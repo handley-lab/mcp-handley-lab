@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch, MagicMock
 
-from mcp_framework.code2prompt.tool import (
+from mcp_handley_lab.code2prompt.tool import (
     generate_prompt, analyze_codebase, git_diff, server_info, _run_code2prompt
 )
 
@@ -31,7 +31,7 @@ class TestCode2PromptTool:
     
     def test_generate_prompt_basic(self, sample_codebase):
         """Test generate_prompt with basic parameters."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('tempfile.NamedTemporaryFile') as mock_temp:
                 mock_file = MagicMock()
                 mock_file.name = "/tmp/test_output.md"
@@ -56,7 +56,7 @@ class TestCode2PromptTool:
     def test_generate_prompt_with_custom_output(self, sample_codebase):
         """Test generate_prompt with custom output file."""
         output_file = "/custom/output.md"
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('pathlib.Path.stat') as mock_stat:
                 mock_stat.return_value.st_size = 2048
                 
@@ -71,7 +71,7 @@ class TestCode2PromptTool:
     
     def test_generate_prompt_with_all_options(self, sample_codebase):
         """Test generate_prompt with all optional parameters."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('pathlib.Path.stat') as mock_stat:
                 mock_stat.return_value.st_size = 512
                 
@@ -119,7 +119,7 @@ class TestCode2PromptTool:
     
     def test_analyze_codebase_basic(self, sample_codebase):
         """Test analyze_codebase with basic parameters."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.return_value = "Directory structure:\n├── main.py\n└── utils.py\n\nTotal tokens: 150"
             
             result = analyze_codebase(sample_codebase)
@@ -135,7 +135,7 @@ class TestCode2PromptTool:
     
     def test_analyze_codebase_with_options(self, sample_codebase):
         """Test analyze_codebase with optional parameters."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.return_value = "Analysis complete"
             
             result = analyze_codebase(
@@ -159,7 +159,7 @@ class TestCode2PromptTool:
     
     def test_git_diff_basic(self, sample_codebase):
         """Test git_diff with basic parameters."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('tempfile.NamedTemporaryFile') as mock_temp:
                 mock_file = MagicMock()
                 mock_file.name = "/tmp/git_diff.md"
@@ -181,7 +181,7 @@ class TestCode2PromptTool:
     
     def test_git_diff_branch_diff(self, sample_codebase):
         """Test git_diff with branch comparison."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('tempfile.NamedTemporaryFile') as mock_temp:
                 mock_file = MagicMock()
                 mock_file.name = "/tmp/branch_diff.md"
@@ -206,7 +206,7 @@ class TestCode2PromptTool:
     
     def test_git_diff_branch_log(self, sample_codebase):
         """Test git_diff with branch log mode."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             with patch('tempfile.NamedTemporaryFile') as mock_temp:
                 mock_file = MagicMock()
                 mock_file.name = "/tmp/branch_log.md"
@@ -237,7 +237,7 @@ class TestCode2PromptTool:
     
     def test_server_info_success(self):
         """Test server_info when code2prompt is available."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.return_value = "code2prompt v1.2.3"
             
             result = server_info()
@@ -255,7 +255,7 @@ class TestCode2PromptTool:
     
     def test_server_info_not_found(self):
         """Test server_info when code2prompt is not installed."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.side_effect = RuntimeError("code2prompt command not found. Please install code2prompt.")
             
             with pytest.raises(RuntimeError, match="code2prompt command not found"):
@@ -298,7 +298,7 @@ class TestCode2PromptTool:
     
     def test_generate_prompt_error(self, sample_codebase):
         """Test generate_prompt with code2prompt error."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.side_effect = ValueError("code2prompt error: invalid path")
             
             with pytest.raises(ValueError, match="code2prompt error: invalid path"):
@@ -306,7 +306,7 @@ class TestCode2PromptTool:
     
     def test_analyze_codebase_error(self, sample_codebase):
         """Test analyze_codebase with code2prompt error."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.side_effect = ValueError("code2prompt error: no files found")
             
             with pytest.raises(ValueError, match="code2prompt error: no files found"):
@@ -314,7 +314,7 @@ class TestCode2PromptTool:
     
     def test_git_diff_error(self, sample_codebase):
         """Test git_diff with code2prompt error."""
-        with patch('mcp_framework.code2prompt.tool._run_code2prompt') as mock_run:
+        with patch('mcp_handley_lab.code2prompt.tool._run_code2prompt') as mock_run:
             mock_run.side_effect = ValueError("code2prompt error: not a git repository")
             
             with pytest.raises(ValueError, match="code2prompt error: not a git repository"):

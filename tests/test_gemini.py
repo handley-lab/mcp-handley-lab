@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock, mock_open
 from PIL import Image
 import io
 
-from mcp_framework.llm.gemini.tool import (
+from mcp_handley_lab.llm.gemini.tool import (
     ask, analyze_image, generate_image, create_agent, list_agents, 
     agent_stats, clear_agent, delete_agent, server_info,
     _resolve_files, _resolve_images
@@ -165,7 +165,7 @@ class TestGeminiTools:
     @pytest.fixture
     def mock_genai(self):
         """Mock google.generativeai module."""
-        with patch('mcp_framework.llm.gemini.tool.genai') as mock:
+        with patch('mcp_handley_lab.llm.gemini.tool.genai') as mock:
             # Mock model and response
             mock_model = MagicMock()
             mock_response = MagicMock()
@@ -182,7 +182,7 @@ class TestGeminiTools:
     @pytest.fixture
     def mock_memory_manager(self):
         """Mock memory manager."""
-        with patch('mcp_framework.llm.gemini.tool.memory_manager') as mock:
+        with patch('mcp_handley_lab.llm.gemini.tool.memory_manager') as mock:
             mock_agent = MagicMock()
             mock_agent.get_conversation_history.return_value = []
             mock.get_agent.return_value = None
@@ -261,13 +261,13 @@ class TestGeminiTools:
 
     def test_ask_api_error(self, mock_memory_manager):
         """Test ask with API error."""
-        with patch('mcp_framework.llm.gemini.tool.genai.GenerativeModel') as mock_model:
+        with patch('mcp_handley_lab.llm.gemini.tool.genai.GenerativeModel') as mock_model:
             mock_model.side_effect = Exception("API Error")
             
             with pytest.raises(RuntimeError, match="Gemini API error"):
                 ask("Hello")
     
-    @patch('mcp_framework.llm.gemini.tool._resolve_images')
+    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     def test_analyze_image_basic(self, mock_resolve_images, mock_genai, mock_memory_manager):
         """Test basic image analysis."""
         mock_image = MagicMock()
@@ -279,7 +279,7 @@ class TestGeminiTools:
         assert "💰 Usage:" in result
         mock_resolve_images.assert_called_once()
     
-    @patch('mcp_framework.llm.gemini.tool._resolve_images')
+    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     def test_analyze_image_with_focus(self, mock_resolve_images, mock_genai, mock_memory_manager):
         """Test image analysis with focus."""
         mock_image = MagicMock()
@@ -292,7 +292,7 @@ class TestGeminiTools:
         call_args = mock_genai.GenerativeModel.return_value.generate_content.call_args[0][0]
         assert "Focus on technical aspects" in call_args[0]
     
-    @patch('mcp_framework.llm.gemini.tool._resolve_images')
+    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     def test_analyze_image_with_agent_creation(self, mock_resolve_images, mock_genai, mock_memory_manager):
         """Test image analysis with agent creation when agent doesn't exist."""
         mock_image = MagicMock()
@@ -311,10 +311,10 @@ class TestGeminiTools:
 
     def test_analyze_image_api_error(self, mock_memory_manager):
         """Test image analysis with API error."""
-        with patch('mcp_framework.llm.gemini.tool._resolve_images') as mock_resolve:
+        with patch('mcp_handley_lab.llm.gemini.tool._resolve_images') as mock_resolve:
             mock_resolve.return_value = [MagicMock()]
             
-            with patch('mcp_framework.llm.gemini.tool.genai.GenerativeModel') as mock_model:
+            with patch('mcp_handley_lab.llm.gemini.tool.genai.GenerativeModel') as mock_model:
                 mock_model.side_effect = Exception("Vision API Error")
                 
                 with pytest.raises(RuntimeError, match="Gemini vision API error"):
@@ -473,12 +473,12 @@ class TestGeminiTools:
     
     def test_server_info_success(self):
         """Test server info when API is working."""
-        with patch('mcp_framework.llm.gemini.tool.genai.list_models') as mock_list:
+        with patch('mcp_handley_lab.llm.gemini.tool.genai.list_models') as mock_list:
             mock_model = MagicMock()
             mock_model.name = "models/gemini-1.5-pro"
             mock_list.return_value = [mock_model]
             
-            with patch('mcp_framework.llm.gemini.tool.memory_manager') as mock_memory:
+            with patch('mcp_handley_lab.llm.gemini.tool.memory_manager') as mock_memory:
                 mock_memory.list_agents.return_value = [MagicMock(), MagicMock()]
                 
                 result = server_info()
@@ -491,7 +491,7 @@ class TestGeminiTools:
     
     def test_server_info_api_error(self):
         """Test server info with API error."""
-        with patch('mcp_framework.llm.gemini.tool.genai.list_models') as mock_list:
+        with patch('mcp_handley_lab.llm.gemini.tool.genai.list_models') as mock_list:
             mock_list.side_effect = Exception("API Error")
             
             with pytest.raises(RuntimeError, match="Gemini API configuration error"):

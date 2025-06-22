@@ -1,10 +1,10 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
-pkgname=mcp-framework
+pkgname=mcp-handley-lab
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="A comprehensive MCP toolkit bridging external services and CLI utilities"
+pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
-url="https://github.com/handley-lab/mcp-framework"
+url="https://github.com/handley-lab/mcp-handley-lab"
 license=('custom')
 depends=(
     'python>=3.10'

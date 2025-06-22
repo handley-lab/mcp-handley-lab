@@ -1,7 +1,7 @@
 """Unit tests for pricing calculation system."""
 import pytest
 
-from mcp_framework.common.pricing import PricingCalculator, calculate_cost, format_usage
+from mcp_handley_lab.common.pricing import PricingCalculator, calculate_cost, format_usage
 
 
 class TestPricingCalculator:

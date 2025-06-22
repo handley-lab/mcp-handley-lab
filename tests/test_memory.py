@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch, MagicMock
 
-from mcp_framework.common.memory import Message, AgentMemory, MemoryManager, memory_manager
+from mcp_handley_lab.common.memory import Message, AgentMemory, MemoryManager, memory_manager
 
 
 class TestMessage:

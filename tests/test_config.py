@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from mcp_framework.common.config import Settings, settings
+from mcp_handley_lab.common.config import Settings, settings
 
 
 class TestSettings:

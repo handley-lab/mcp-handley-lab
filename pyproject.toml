@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mcp-framework"
+name = "mcp-handley-lab"
 version = "0.1.0"
-description = "A comprehensive MCP toolkit bridging external services and CLI utilities"
+description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    {name = "MCP Framework Team", email = "contact@example.com"}
+    {name = "Handley Research Group", email = "wh260@cam.ac.uk"}
 ]
 dependencies = [
     "mcp>=1.0.0",
@@ -34,19 +34,19 @@ dev = [
 ]
 
 [project.scripts]
-mcp-jq = "mcp_framework.jq.__main__:main"
-mcp-vim = "mcp_framework.vim.__main__:main"
-mcp-code2prompt = "mcp_framework.code2prompt.__main__:main"
-mcp-calendar = "mcp_framework.google_calendar.__main__:main"
-mcp-gemini = "mcp_framework.llm.gemini.__main__:main"
-mcp-openai = "mcp_framework.llm.openai:main"
-mcp-chainer = "mcp_framework.tool_chainer.__main__:main"
+mcp-jq = "mcp_handley_lab.jq.__main__:main"
+mcp-vim = "mcp_handley_lab.vim.__main__:main"
+mcp-code2prompt = "mcp_handley_lab.code2prompt.__main__:main"
+mcp-calendar = "mcp_handley_lab.google_calendar.__main__:main"
+mcp-gemini = "mcp_handley_lab.llm.gemini.__main__:main"
+mcp-openai = "mcp_handley_lab.llm.openai:main"
+mcp-chainer = "mcp_handley_lab.tool_chainer.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_framework = ["py.typed"]
+mcp_handley_lab = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

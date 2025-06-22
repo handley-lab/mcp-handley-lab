@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import pickle
 
-from mcp_framework.google_calendar.tool import (
+from mcp_handley_lab.google_calendar.tool import (
     list_events, get_event, create_event, update_event, delete_event,
     list_calendars, find_time, server_info,
     _get_calendar_service, _resolve_calendar_id, _format_datetime
@@ -153,8 +153,8 @@ class TestHelperFunctions:
 class TestGoogleCalendarService:
     """Test Google Calendar service setup."""
     
-    @patch('mcp_framework.google_calendar.tool.build')
-    @patch('mcp_framework.google_calendar.tool.Path.exists')
+    @patch('mcp_handley_lab.google_calendar.tool.build')
+    @patch('mcp_handley_lab.google_calendar.tool.Path.exists')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pickle.load')
     def test_get_calendar_service_existing_token(self, mock_pickle_load, mock_file, mock_exists, mock_build):
@@ -173,12 +173,12 @@ class TestGoogleCalendarService:
         assert result == mock_service
         mock_build.assert_called_once_with('calendar', 'v3', credentials=mock_creds)
     
-    @patch('mcp_framework.google_calendar.tool.build')
-    @patch('mcp_framework.google_calendar.tool.Path.exists')
+    @patch('mcp_handley_lab.google_calendar.tool.build')
+    @patch('mcp_handley_lab.google_calendar.tool.Path.exists')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pickle.load')
     @patch('pickle.dump')
-    @patch('mcp_framework.google_calendar.tool.Request')
+    @patch('mcp_handley_lab.google_calendar.tool.Request')
     def test_get_calendar_service_expired_token_refresh(self, mock_request, mock_pickle_dump, 
                                                        mock_pickle_load, mock_file, mock_exists, mock_build):
         """Test getting service with expired token that can be refreshed."""
@@ -204,12 +204,12 @@ class TestGoogleCalendarService:
         mock_creds.refresh.assert_called_once()
         mock_pickle_dump.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool.build')
-    @patch('mcp_framework.google_calendar.tool.Path')
+    @patch('mcp_handley_lab.google_calendar.tool.build')
+    @patch('mcp_handley_lab.google_calendar.tool.Path')
     @patch('builtins.open', new_callable=mock_open)
     @patch('pickle.load')
     @patch('pickle.dump')
-    @patch('mcp_framework.google_calendar.tool.InstalledAppFlow')
+    @patch('mcp_handley_lab.google_calendar.tool.InstalledAppFlow')
     def test_get_calendar_service_new_auth_flow(self, mock_flow_class, mock_pickle_dump,
                                                mock_pickle_load, mock_file, mock_path_class, mock_build):
         """Test getting service with new OAuth flow."""
@@ -251,8 +251,8 @@ class TestGoogleCalendarService:
         mock_flow.run_local_server.assert_called_once_with(port=0)
         mock_pickle_dump.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool.build')
-    @patch('mcp_framework.google_calendar.tool.settings')
+    @patch('mcp_handley_lab.google_calendar.tool.build')
+    @patch('mcp_handley_lab.google_calendar.tool.settings')
     def test_get_calendar_service_no_credentials(self, mock_settings, mock_build):
         """Test getting service without credentials file."""
         # Create temp files that don't exist
@@ -266,10 +266,10 @@ class TestGoogleCalendarService:
         
         assert "Google Calendar credentials file not found" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool.build')
-    @patch('mcp_framework.google_calendar.tool.settings')
+    @patch('mcp_handley_lab.google_calendar.tool.build')
+    @patch('mcp_handley_lab.google_calendar.tool.settings')
     @patch('pickle.dump')
-    @patch('mcp_framework.google_calendar.tool.InstalledAppFlow')
+    @patch('mcp_handley_lab.google_calendar.tool.InstalledAppFlow')
     def test_get_calendar_service_no_existing_token(self, mock_flow_class, mock_pickle_dump,
                                                    mock_settings, mock_build):
         """Test getting service when no token file exists."""
@@ -307,7 +307,7 @@ class TestGoogleCalendarService:
 class TestListEvents:
     """Test list_events function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_basic(self, mock_get_service, mock_service):
         """Test basic event listing."""
         mock_get_service.return_value = mock_service
@@ -320,7 +320,7 @@ class TestListEvents:
         assert "event1" in result
         assert "event2" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_with_dates(self, mock_get_service, mock_service):
         """Test event listing with specific date range."""
         mock_get_service.return_value = mock_service
@@ -334,7 +334,7 @@ class TestListEvents:
         assert "Found 2 events" in result
         mock_service.events().list.assert_called()
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_all_calendars(self, mock_get_service, mock_service):
         """Test listing events from all calendars."""
         mock_get_service.return_value = mock_service
@@ -345,7 +345,7 @@ class TestListEvents:
         # Should call list for each calendar
         assert mock_service.events().list.call_count >= 2
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_no_events(self, mock_get_service, mock_service):
         """Test listing when no events found."""
         mock_get_service.return_value = mock_service
@@ -355,7 +355,7 @@ class TestListEvents:
         
         assert "No events found" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_api_error(self, mock_get_service, mock_service):
         """Test handling API errors."""
         mock_get_service.return_value = mock_service
@@ -369,7 +369,7 @@ class TestListEvents:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_service_error(self, mock_get_service):
         """Test handling service connection errors."""
         mock_get_service.side_effect = Exception("Connection failed")
@@ -379,7 +379,7 @@ class TestListEvents:
         
         assert "Calendar service error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_events_all_calendars_with_errors(self, mock_get_service, mock_service):
         """Test listing all calendars when some calendars have access errors."""
         mock_get_service.return_value = mock_service
@@ -412,7 +412,7 @@ class TestListEvents:
 class TestGetEvent:
     """Test get_event function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_get_event_success(self, mock_get_service, mock_service):
         """Test successful event retrieval."""
         mock_get_service.return_value = mock_service
@@ -426,7 +426,7 @@ class TestGetEvent:
         assert "user1@example.com" in result
         assert "accepted" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_get_event_not_found(self, mock_get_service, mock_service):
         """Test event not found."""
         mock_get_service.return_value = mock_service
@@ -442,7 +442,7 @@ class TestGetEvent:
         
         assert "not found" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_get_event_api_error(self, mock_get_service, mock_service):
         """Test get event API error."""
         mock_get_service.return_value = mock_service
@@ -458,7 +458,7 @@ class TestGetEvent:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_get_event_service_error(self, mock_get_service):
         """Test get event service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -472,7 +472,7 @@ class TestGetEvent:
 class TestCreateEvent:
     """Test create_event function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_create_event_success(self, mock_get_service, mock_service):
         """Test successful event creation."""
         mock_get_service.return_value = mock_service
@@ -495,7 +495,7 @@ class TestCreateEvent:
         # Verify insert was called with the correct parameters
         assert mock_service.events().insert.called
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_create_event_all_day(self, mock_get_service, mock_service):
         """Test creating all-day event."""
         mock_get_service.return_value = mock_service
@@ -514,7 +514,7 @@ class TestCreateEvent:
         assert 'date' in event_body['start']
         assert 'date' in event_body['end']
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_create_event_api_error(self, mock_get_service, mock_service):
         """Test create event API error."""
         mock_get_service.return_value = mock_service
@@ -532,7 +532,7 @@ class TestCreateEvent:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_create_event_service_error(self, mock_get_service):
         """Test create event service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -550,7 +550,7 @@ class TestCreateEvent:
 class TestUpdateEvent:
     """Test update_event function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_success(self, mock_get_service, mock_service):
         """Test successful event update."""
         mock_get_service.return_value = mock_service
@@ -566,7 +566,7 @@ class TestUpdateEvent:
         assert "Updated fields: summary, description" in result
         mock_service.events().update().execute.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_summary_mismatch(self, mock_get_service, mock_service):
         """Test update with wrong event summary."""
         mock_get_service.return_value = mock_service
@@ -580,7 +580,7 @@ class TestUpdateEvent:
         
         assert "Event summary mismatch" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_no_changes(self, mock_get_service, mock_service):
         """Test update with no changes specified."""
         mock_get_service.return_value = mock_service
@@ -592,7 +592,7 @@ class TestUpdateEvent:
         
         assert "No updates specified" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_with_date_times(self, mock_get_service, mock_service):
         """Test update with both date and datetime formats."""
         mock_get_service.return_value = mock_service
@@ -617,7 +617,7 @@ class TestUpdateEvent:
         
         assert "Event updated successfully" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_not_found(self, mock_get_service, mock_service):
         """Test update event when event not found."""
         mock_get_service.return_value = mock_service
@@ -637,7 +637,7 @@ class TestUpdateEvent:
         
         assert "not found" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_api_error(self, mock_get_service, mock_service):
         """Test update event API error."""
         mock_get_service.return_value = mock_service
@@ -657,7 +657,7 @@ class TestUpdateEvent:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_update_event_service_error(self, mock_get_service):
         """Test update event service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -675,7 +675,7 @@ class TestUpdateEvent:
 class TestDeleteEvent:
     """Test delete_event function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_delete_event_success(self, mock_get_service, mock_service):
         """Test successful event deletion."""
         mock_get_service.return_value = mock_service
@@ -689,7 +689,7 @@ class TestDeleteEvent:
         assert "Test Meeting" in result
         mock_service.events().delete().execute.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_delete_event_summary_mismatch(self, mock_get_service, mock_service):
         """Test delete with wrong event summary."""
         mock_get_service.return_value = mock_service
@@ -702,7 +702,7 @@ class TestDeleteEvent:
         
         assert "Event summary mismatch" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_delete_event_not_found(self, mock_get_service, mock_service):
         """Test delete event when event not found."""
         mock_get_service.return_value = mock_service
@@ -721,7 +721,7 @@ class TestDeleteEvent:
         
         assert "not found" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_delete_event_api_error(self, mock_get_service, mock_service):
         """Test delete event API error."""
         mock_get_service.return_value = mock_service
@@ -740,7 +740,7 @@ class TestDeleteEvent:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_delete_event_service_error(self, mock_get_service):
         """Test delete event service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -757,7 +757,7 @@ class TestDeleteEvent:
 class TestListCalendars:
     """Test list_calendars function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_calendars_success(self, mock_get_service, mock_service):
         """Test successful calendar listing."""
         mock_get_service.return_value = mock_service
@@ -770,7 +770,7 @@ class TestListCalendars:
         assert "owner" in result
         assert "writer" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_calendars_empty(self, mock_get_service, mock_service):
         """Test calendar listing when no calendars found."""
         mock_get_service.return_value = mock_service
@@ -780,7 +780,7 @@ class TestListCalendars:
         
         assert "No calendars found" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_calendars_api_error(self, mock_get_service, mock_service):
         """Test list calendars API error."""
         mock_get_service.return_value = mock_service
@@ -794,7 +794,7 @@ class TestListCalendars:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_list_calendars_service_error(self, mock_get_service):
         """Test list calendars service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -808,8 +808,8 @@ class TestListCalendars:
 class TestFindTime:
     """Test find_time function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
-    @patch('mcp_framework.google_calendar.tool.datetime')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool.datetime')
     def test_find_time_success(self, mock_datetime, mock_get_service, mock_service):
         """Test successful free time finding."""
         mock_get_service.return_value = mock_service
@@ -825,7 +825,7 @@ class TestFindTime:
         assert "free 60-minute slots" in result
         mock_service.freebusy().query().execute.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_find_time_with_dates(self, mock_get_service, mock_service):
         """Test free time finding with specific dates."""
         mock_get_service.return_value = mock_service
@@ -839,7 +839,7 @@ class TestFindTime:
         
         mock_service.freebusy().query().execute.assert_called_once()
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_find_time_no_slots(self, mock_get_service, mock_service):
         """Test find time when no free slots available."""
         mock_get_service.return_value = mock_service
@@ -866,7 +866,7 @@ class TestFindTime:
         
         assert "No free 60-minute slots found" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_find_time_api_error(self, mock_get_service, mock_service):
         """Test find time API error."""
         mock_get_service.return_value = mock_service
@@ -880,7 +880,7 @@ class TestFindTime:
         
         assert "Google Calendar API error" in str(exc_info.value)
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_find_time_service_error(self, mock_get_service):
         """Test find time service error."""
         mock_get_service.side_effect = Exception("Service unavailable")
@@ -894,7 +894,7 @@ class TestFindTime:
 class TestServerInfo:
     """Test server_info function."""
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_server_info_success(self, mock_get_service, mock_service):
         """Test successful server info."""
         mock_get_service.return_value = mock_service
@@ -905,7 +905,7 @@ class TestServerInfo:
         assert "API Connection: ✓ Active" in result
         assert "list_events" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_server_info_connection_error(self, mock_get_service):
         """Test server info with connection error."""
         mock_get_service.side_effect = Exception("Connection failed")
@@ -915,7 +915,7 @@ class TestServerInfo:
         assert "Connection Error" in result
         assert "Connection failed" in result
     
-    @patch('mcp_framework.google_calendar.tool._get_calendar_service')
+    @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     def test_server_info_credentials_error(self, mock_get_service):
         """Test server info with credentials error."""
         mock_get_service.side_effect = FileNotFoundError("Credentials not found")

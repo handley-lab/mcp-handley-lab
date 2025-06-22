@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch, mock_open
 import tempfile
 import os
 
-from mcp_framework.vim.tool import (
+from mcp_handley_lab.vim.tool import (
     prompt_user_edit, quick_edit, open_file, server_info,
     _handle_instructions_and_content, _strip_instructions
 )
@@ -117,8 +117,8 @@ console.log('hello');"""
 class TestPromptUserEdit:
     """Test prompt_user_edit function."""
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -141,8 +141,8 @@ class TestPromptUserEdit:
         mock_close.assert_called_once_with(3)
         mock_unlink.assert_called_once_with("/tmp/test.txt")
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -168,8 +168,8 @@ print('edited')"""
         assert result == "print('hello')\nprint('edited')"
         mock_subprocess.assert_called_once_with(['vim', '/tmp/test.py'], check=True)
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -191,8 +191,8 @@ print('edited')"""
         assert "lines removed" in result
         mock_subprocess.assert_called_once_with(['vim', '/tmp/test.txt'], check=True)
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -212,8 +212,8 @@ print('edited')"""
         assert result == "No changes made"
         mock_subprocess.assert_called_once_with(['vim', '/tmp/test.txt'], check=True)
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     def test_prompt_user_edit_keep_file(self, mock_close, mock_file, 
@@ -236,8 +236,8 @@ print('edited')"""
 class TestQuickEdit:
     """Test quick_edit function."""
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -254,8 +254,8 @@ class TestQuickEdit:
         mock_close.assert_called_once_with(3)
         mock_unlink.assert_called_once_with("/tmp/test.txt")
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -278,8 +278,8 @@ print('Hello, world!')"""
         assert result == "print('Hello, world!')"
         mock_subprocess.assert_called_once_with(['vim', '/tmp/test.py'], check=True)
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.close')
     @patch('os.unlink')
@@ -300,8 +300,8 @@ print('Hello, world!')"""
 class TestOpenFile:
     """Test open_file function."""
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.Path')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.Path')
     def test_open_file_basic(self, mock_path_class, mock_subprocess):
         """Test basic open file functionality."""
         # Mock Path object
@@ -322,9 +322,9 @@ class TestOpenFile:
         mock_subprocess.assert_called_once_with(['vim', '/tmp/test.txt'], check=True)
         mock_backup_path.write_text.assert_called_once_with("Original content")
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.tempfile.mkstemp')
-    @patch('mcp_framework.vim.tool.Path')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.tempfile.mkstemp')
+    @patch('mcp_handley_lab.vim.tool.Path')
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.unlink')
     @patch('os.fdopen')
@@ -357,8 +357,8 @@ class TestOpenFile:
         assert mock_subprocess.call_count == 2
         mock_unlink.assert_called_once_with("/tmp/instructions.txt")
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.Path')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.Path')
     def test_open_file_with_diff(self, mock_path_class, mock_subprocess):
         """Test open file with diff output."""
         # Mock Path object
@@ -383,8 +383,8 @@ class TestOpenFile:
         assert "Backup saved to:" in result
         mock_backup_path.write_text.assert_called_once_with("Original content\nLine 2")
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.Path')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.Path')
     def test_open_file_no_changes(self, mock_path_class, mock_subprocess):
         """Test open file when no changes are made."""
         # Mock Path object
@@ -400,8 +400,8 @@ class TestOpenFile:
         
         assert "No changes made to /tmp/test.txt" in result
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
-    @patch('mcp_framework.vim.tool.Path')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.Path')
     def test_open_file_no_backup(self, mock_path_class, mock_subprocess):
         """Test open file without backup."""
         # Mock Path object
@@ -422,7 +422,7 @@ class TestOpenFile:
 class TestServerInfo:
     """Test server_info function."""
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
     def test_server_info_success(self, mock_subprocess):
         """Test successful server info."""
         mock_result = Mock()
@@ -439,7 +439,7 @@ class TestServerInfo:
         assert "open_file" in result
         mock_subprocess.assert_called_once_with(['vim', '--version'], capture_output=True, text=True)
     
-    @patch('mcp_framework.vim.tool.subprocess.run')
+    @patch('mcp_handley_lab.vim.tool.subprocess.run')
     def test_server_info_vim_not_found(self, mock_subprocess):
         """Test server info when vim is not found."""
         mock_subprocess.side_effect = FileNotFoundError("vim command not found")

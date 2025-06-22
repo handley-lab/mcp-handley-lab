@@ -1,5 +1,6 @@
 """Tests for Google Calendar main module."""
 import sys
+import runpy
 from unittest.mock import patch
 
 
@@ -20,15 +21,9 @@ def test_google_calendar_main_module():
 
 
 def test_google_calendar_main_script_entry():
-    """Test that the __main__ module has the if __name__ == '__main__' guard."""
-    # Test that the module can be imported without executing main
-    import mcp_framework.google_calendar.__main__ as main_module
-    
-    # Test that __name__ checking works by patching and calling conditionally
-    with patch('mcp_framework.google_calendar.__main__.main') as mock_main:
-        # Simulate what happens when the module is run as script
-        if main_module.__name__ == "__main__":
-            main_module.main()
-        
-        # Since __name__ is not "__main__" during import, main should not be called
-        mock_main.assert_not_called()
+    """Test running the module as a script."""
+    with patch('mcp_framework.google_calendar.tool.mcp') as mock_mcp:
+        import runpy
+        with patch('sys.argv', ['mcp_framework.google_calendar']):
+            runpy.run_module('mcp_framework.google_calendar.__main__', run_name='__main__')
+            mock_mcp.run.assert_called()

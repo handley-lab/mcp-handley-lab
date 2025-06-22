@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "A comprehensive MCP toolkit bridging external services and CLI utilities"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
 authors = [
     {name = "MCP Framework Team", email = "contact@example.com"}
 ]

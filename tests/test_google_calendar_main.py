@@ -12,14 +12,11 @@ def test_google_calendar_main_module():
     assert hasattr(main_module, 'main')
     assert callable(main_module.main)
     
-    # Test running main with mocked asyncio
-    with patch('asyncio.run') as mock_run:
-        with patch('mcp_framework.google_calendar.__main__.mcp') as mock_mcp:
-            mock_mcp.run.return_value = "mocked_result"
-            
-            result = main_module.main()
-            
-            mock_run.assert_called_once_with("mocked_result")
+    # Test running main with mocked mcp
+    with patch('mcp_framework.google_calendar.__main__.mcp') as mock_mcp:
+        result = main_module.main()
+        
+        mock_mcp.run.assert_called_once()
 
 
 def test_google_calendar_main_script_entry():

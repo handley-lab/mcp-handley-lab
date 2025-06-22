@@ -1,0 +1,1 @@
+"""Gemini LLM tool for AI interactions via MCP."""

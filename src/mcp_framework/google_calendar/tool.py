@@ -1,0 +1,549 @@
+"""Google Calendar tool for calendar management via MCP."""
+import os
+import pickle
+from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
+from pathlib import Path
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from mcp.server.fastmcp import FastMCP
+
+from ..common.config import settings
+
+mcp = FastMCP("Google Calendar Tool")
+
+# Google Calendar API scopes
+SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+def _get_calendar_service():
+    """Get authenticated Google Calendar service."""
+    creds = None
+    token_file = Path(settings.google_token_file).expanduser()
+    credentials_file = Path(settings.google_credentials_file).expanduser()
+    
+    # Load existing token
+    if token_file.exists():
+        with open(token_file, 'rb') as f:
+            creds = pickle.load(f)
+    
+    # Refresh or get new credentials
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            if not credentials_file.exists():
+                raise FileNotFoundError(
+                    f"Google Calendar credentials file not found at {credentials_file}. "
+                    "Please download credentials.json from Google Cloud Console."
+                )
+            
+            flow = InstalledAppFlow.from_client_secrets_file(str(credentials_file), SCOPES)
+            creds = flow.run_local_server(port=0)
+        
+        # Save credentials for next run
+        token_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(token_file, 'wb') as f:
+            pickle.dump(creds, f)
+    
+    return build('calendar', 'v3', credentials=creds)
+
+
+def _resolve_calendar_id(calendar_id: str, service) -> str:
+    """Resolve calendar name to calendar ID."""
+    if calendar_id in ['primary', 'all'] or '@' in calendar_id:
+        return calendar_id
+    
+    # Try to find calendar by name
+    try:
+        calendar_list = service.calendarList().list().execute()
+        for calendar in calendar_list.get('items', []):
+            if calendar.get('summary', '').lower() == calendar_id.lower():
+                return calendar['id']
+    except HttpError:
+        pass
+    
+    # If not found, assume it's already an ID
+    return calendar_id
+
+
+def _format_datetime(dt_str: str) -> str:
+    """Format datetime string for display."""
+    if 'T' in dt_str:
+        # DateTime format
+        dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+        return dt.strftime('%Y-%m-%d %H:%M:%S %Z').strip()
+    else:
+        # Date format (all-day event)
+        return dt_str + " (all-day)"
+
+
+@mcp.tool(description="Lists calendar events within a date range.")
+def list_events(
+    calendar_id: str = "primary",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    max_results: int = 100
+) -> str:
+    """List calendar events."""
+    try:
+        service = _get_calendar_service()
+        
+        # Set default date range if not provided
+        if not start_date:
+            start_date = datetime.now().isoformat() + 'Z'
+        else:
+            start_date = datetime.fromisoformat(start_date).isoformat() + 'Z'
+        
+        if not end_date:
+            end_dt = datetime.now() + timedelta(days=7)
+            end_date = end_dt.isoformat() + 'Z'
+        else:
+            end_date = datetime.fromisoformat(end_date).isoformat() + 'Z'
+        
+        events_list = []
+        
+        if calendar_id == "all":
+            # Search all calendars
+            calendar_list = service.calendarList().list().execute()
+            for calendar in calendar_list.get('items', []):
+                cal_id = calendar['id']
+                try:
+                    events_result = service.events().list(
+                        calendarId=cal_id,
+                        timeMin=start_date,
+                        timeMax=end_date,
+                        maxResults=max_results,
+                        singleEvents=True,
+                        orderBy='startTime'
+                    ).execute()
+                    
+                    cal_events = events_result.get('items', [])
+                    for event in cal_events:
+                        event['calendar_name'] = calendar.get('summary', cal_id)
+                    events_list.extend(cal_events)
+                except HttpError:
+                    continue  # Skip inaccessible calendars
+        else:
+            # Search specific calendar
+            resolved_id = _resolve_calendar_id(calendar_id, service)
+            events_result = service.events().list(
+                calendarId=resolved_id,
+                timeMin=start_date,
+                timeMax=end_date,
+                maxResults=max_results,
+                singleEvents=True,
+                orderBy='startTime'
+            ).execute()
+            events_list = events_result.get('items', [])
+        
+        if not events_list:
+            return f"No events found in the specified date range."
+        
+        # Sort by start time
+        events_list.sort(key=lambda x: x.get('start', {}).get('dateTime', x.get('start', {}).get('date', '')))
+        
+        result = f"Found {len(events_list)} events:\n\n"
+        
+        for event in events_list:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            title = event.get('summary', 'No Title')
+            event_id = event['id']
+            
+            result += f"• {title}\n"
+            result += f"  Time: {_format_datetime(start)}\n"
+            result += f"  ID: {event_id}\n"
+            
+            if 'calendar_name' in event:
+                result += f"  Calendar: {event['calendar_name']}\n"
+            
+            if event.get('location'):
+                result += f"  Location: {event['location']}\n"
+            
+            result += "\n"
+        
+        return result.strip()
+        
+    except HttpError as e:
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Retrieves a single calendar event by its ID.")
+def get_event(
+    event_id: str,
+    calendar_id: str = "primary"
+) -> str:
+    """Get detailed information about a specific event."""
+    try:
+        service = _get_calendar_service()
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        
+        event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        result = f"Event Details:\n"
+        result += f"Title: {event.get('summary', 'No Title')}\n"
+        
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        end = event['end'].get('dateTime', event['end'].get('date'))
+        result += f"Start: {_format_datetime(start)}\n"
+        result += f"End: {_format_datetime(end)}\n"
+        
+        if event.get('description'):
+            result += f"Description: {event['description']}\n"
+        
+        if event.get('location'):
+            result += f"Location: {event['location']}\n"
+        
+        if event.get('attendees'):
+            result += f"Attendees:\n"
+            for attendee in event['attendees']:
+                email = attendee.get('email', 'Unknown')
+                status = attendee.get('responseStatus', 'needsAction')
+                result += f"  - {email} ({status})\n"
+        
+        result += f"Event ID: {event['id']}\n"
+        result += f"Created: {event.get('created', 'Unknown')}\n"
+        result += f"Updated: {event.get('updated', 'Unknown')}\n"
+        
+        return result
+        
+    except HttpError as e:
+        if e.resp.status == 404:
+            raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Creates a new event in a specified calendar.")
+def create_event(
+    summary: str,
+    start_datetime: str,
+    end_datetime: str,
+    description: Optional[str] = None,
+    calendar_id: str = "primary",
+    timezone: str = "UTC",
+    attendees: Optional[List[str]] = None
+) -> str:
+    """Create a new calendar event."""
+    try:
+        service = _get_calendar_service()
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        
+        # Build event object
+        event_body = {
+            'summary': summary,
+            'description': description or '',
+            'start': {},
+            'end': {}
+        }
+        
+        # Handle all-day vs timed events
+        if 'T' in start_datetime:
+            # Timed event
+            event_body['start']['dateTime'] = start_datetime
+            event_body['start']['timeZone'] = timezone
+            event_body['end']['dateTime'] = end_datetime
+            event_body['end']['timeZone'] = timezone
+        else:
+            # All-day event
+            event_body['start']['date'] = start_datetime
+            event_body['end']['date'] = end_datetime
+        
+        # Add attendees if provided
+        if attendees:
+            event_body['attendees'] = [{'email': email} for email in attendees]
+        
+        # Create the event
+        created_event = service.events().insert(
+            calendarId=resolved_id,
+            body=event_body
+        ).execute()
+        
+        start = created_event['start'].get('dateTime', created_event['start'].get('date'))
+        
+        result = f"Event created successfully!\n"
+        result += f"Title: {created_event['summary']}\n"
+        result += f"Time: {_format_datetime(start)}\n"
+        result += f"Event ID: {created_event['id']}\n"
+        result += f"Calendar: {calendar_id}\n"
+        
+        if attendees:
+            result += f"Attendees: {', '.join(attendees)}\n"
+        
+        return result
+        
+    except HttpError as e:
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Updates an existing calendar event.")
+def update_event(
+    event_summary: str,
+    event_id: str,
+    calendar_id: str = "primary",
+    summary: Optional[str] = None,
+    start_datetime: Optional[str] = None,
+    end_datetime: Optional[str] = None,
+    description: Optional[str] = None
+) -> str:
+    """Update an existing calendar event."""
+    try:
+        service = _get_calendar_service()
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        
+        # Get existing event to verify and for safety
+        existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        # Verify event summary matches for safety
+        if existing_event.get('summary', '') != event_summary:
+            raise ValueError(
+                f"Event summary mismatch. Expected '{event_summary}', "
+                f"found '{existing_event.get('summary', '')}'"
+            )
+        
+        # Prepare updates
+        updates = {}
+        if summary:
+            updates['summary'] = summary
+        if description is not None:
+            updates['description'] = description
+        
+        if start_datetime:
+            if 'T' in start_datetime:
+                updates['start'] = {'dateTime': start_datetime, 'timeZone': 'UTC'}
+            else:
+                updates['start'] = {'date': start_datetime}
+        
+        if end_datetime:
+            if 'T' in end_datetime:
+                updates['end'] = {'dateTime': end_datetime, 'timeZone': 'UTC'}
+            else:
+                updates['end'] = {'date': end_datetime}
+        
+        if not updates:
+            return "No updates specified."
+        
+        # Apply updates
+        for key, value in updates.items():
+            existing_event[key] = value
+        
+        updated_event = service.events().update(
+            calendarId=resolved_id,
+            eventId=event_id,
+            body=existing_event
+        ).execute()
+        
+        result = f"Event updated successfully!\n"
+        result += f"Event ID: {updated_event['id']}\n"
+        result += f"Updated fields: {', '.join(updates.keys())}\n"
+        
+        return result
+        
+    except HttpError as e:
+        if e.resp.status == 404:
+            raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except ValueError as e:
+        raise e  # Re-raise ValueError as is
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Deletes a calendar event.")
+def delete_event(
+    event_summary: str,
+    event_id: str,
+    calendar_id: str = "primary"
+) -> str:
+    """Delete a calendar event."""
+    try:
+        service = _get_calendar_service()
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        
+        # Get existing event to verify summary for safety
+        existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        # Verify event summary matches for safety
+        if existing_event.get('summary', '') != event_summary:
+            raise ValueError(
+                f"Event summary mismatch. Expected '{event_summary}', "
+                f"found '{existing_event.get('summary', '')}'"
+            )
+        
+        # Delete the event
+        service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
+        
+        return f"Event '{event_summary}' (ID: {event_id}) has been permanently deleted."
+        
+    except HttpError as e:
+        if e.resp.status == 404:
+            raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except ValueError as e:
+        raise e  # Re-raise ValueError as is
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Lists all available calendars with their IDs and access levels.")
+def list_calendars() -> str:
+    """List all accessible calendars."""
+    try:
+        service = _get_calendar_service()
+        
+        calendar_list = service.calendarList().list().execute()
+        calendars = calendar_list.get('items', [])
+        
+        if not calendars:
+            return "No calendars found."
+        
+        result = f"Found {len(calendars)} accessible calendars:\n\n"
+        
+        for calendar in calendars:
+            name = calendar.get('summary', 'Unknown')
+            cal_id = calendar['id']
+            access_role = calendar.get('accessRole', 'unknown')
+            color_id = calendar.get('colorId', 'default')
+            
+            result += f"• {name}\n"
+            result += f"  ID: {cal_id}\n"
+            result += f"  Access: {access_role}\n"
+            result += f"  Color: {color_id}\n\n"
+        
+        return result.strip()
+        
+    except HttpError as e:
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Finds available free time slots in a calendar.")
+def find_time(
+    calendar_id: str = "primary",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    duration_minutes: int = 60,
+    work_hours_only: bool = True
+) -> str:
+    """Find free time slots in a calendar."""
+    try:
+        service = _get_calendar_service()
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        
+        # Set default date range
+        if not start_date:
+            start_dt = datetime.now()
+        else:
+            start_dt = datetime.fromisoformat(start_date)
+        
+        if not end_date:
+            end_dt = start_dt + timedelta(days=7)
+        else:
+            end_dt = datetime.fromisoformat(end_date)
+        
+        # Get busy times
+        freebusy_request = {
+            'timeMin': start_dt.isoformat() + 'Z',
+            'timeMax': end_dt.isoformat() + 'Z',
+            'items': [{'id': resolved_id}]
+        }
+        
+        freebusy_result = service.freebusy().query(body=freebusy_request).execute()
+        busy_times = freebusy_result['calendars'][resolved_id].get('busy', [])
+        
+        # Generate time slots
+        slots = []
+        current = start_dt.replace(tzinfo=None) if start_dt.tzinfo else start_dt
+        end_dt = end_dt.replace(tzinfo=None) if end_dt.tzinfo else end_dt
+        slot_duration = timedelta(minutes=duration_minutes)
+        
+        while current + slot_duration <= end_dt:
+            if work_hours_only and (current.hour < 9 or current.hour >= 17):
+                current += timedelta(hours=1)
+                continue
+            
+            slot_end = current + slot_duration
+            
+            # Check if slot conflicts with busy times
+            is_free = True
+            for busy in busy_times:
+                busy_start = datetime.fromisoformat(busy['start'].replace('Z', '+00:00')).replace(tzinfo=None)
+                busy_end = datetime.fromisoformat(busy['end'].replace('Z', '+00:00')).replace(tzinfo=None)
+                
+                if (current < busy_end and slot_end > busy_start):
+                    is_free = False
+                    break
+            
+            if is_free:
+                slots.append((current, slot_end))
+            
+            current += timedelta(minutes=30)  # Check every 30 minutes
+        
+        if not slots:
+            return f"No free {duration_minutes}-minute slots found in the specified time range."
+        
+        result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
+        
+        for start_time, end_time in slots[:20]:  # Limit to first 20 slots
+            result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
+        
+        if len(slots) > 20:
+            result += f"\n... and {len(slots) - 20} more slots"
+        
+        return result
+        
+    except HttpError as e:
+        raise RuntimeError(f"Google Calendar API error: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Calendar service error: {e}")
+
+
+@mcp.tool(description="Gets the status of the Google Calendar server and connection.")
+def server_info() -> str:
+    """Get server status and Google Calendar API connection info."""
+    try:
+        service = _get_calendar_service()
+        
+        # Test API connection by getting calendar list
+        calendar_list = service.calendarList().list(maxResults=1).execute()
+        
+        return f"""Google Calendar Tool Server Status
+========================================
+Status: Connected and ready
+API Connection: ✓ Active
+Calendars Access: ✓ Available ({len(calendar_list.get('items', []))} calendars accessible)
+
+Available tools:
+- list_events: List calendar events within date range
+- get_event: Get detailed event information
+- create_event: Create new calendar events
+- update_event: Update existing events
+- delete_event: Delete calendar events
+- list_calendars: List all accessible calendars
+- find_time: Find free time slots
+- server_info: Get server status"""
+        
+    except FileNotFoundError as e:
+        return f"""Google Calendar Tool Server Status
+========================================
+Status: Configuration Error
+Error: {str(e)}
+
+Please ensure Google Calendar credentials are properly configured."""
+        
+    except Exception as e:
+        return f"""Google Calendar Tool Server Status
+========================================
+Status: Connection Error
+Error: {str(e)}
+
+Please check your internet connection and Google Calendar API credentials."""

@@ -39,7 +39,7 @@ mcp-jq = "mcp_framework.jq.__main__:main"
 mcp-vim = "mcp_framework.vim.__main__:main"
 mcp-code2prompt = "mcp_framework.code2prompt.__main__:main"
 mcp-calendar = "mcp_framework.google_calendar.__main__:main"
-mcp-gemini = "mcp_framework.llm.gemini:main"
+mcp-gemini = "mcp_framework.llm.gemini.__main__:main"
 mcp-openai = "mcp_framework.llm.openai:main"
 mcp-chainer = "mcp_framework.tool_chainer.__main__:main"
 

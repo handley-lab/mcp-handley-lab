@@ -9,6 +9,32 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Vim Tool")
 
 
+def _handle_instructions_and_content(temp_path: str, suffix: str, instructions: str, initial_content: str) -> None:
+    """Write content with optional instructions to temp file."""
+    comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
+    
+    with open(temp_path, 'w') as f:
+        if instructions:
+            for line in instructions.strip().split('\n'):
+                f.write(f"{comment_char} {line}\n")
+            f.write(f"{comment_char} {'='*60}\n\n")
+        f.write(initial_content)
+
+
+def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
+    """Remove instruction comments from content."""
+    if not instructions:
+        return content
+        
+    comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
+    lines = content.split('\n')
+    
+    for i, line in enumerate(lines):
+        if line.strip() == comment_char + ' ' + '='*60:
+            return '\n'.join(lines[i+2:])  # Skip separator and blank line
+    return content
+
+
 @mcp.tool(description="Creates a temporary file, opens vim for user editing, and returns the changes.")
 def prompt_user_edit(
     content: str,
@@ -24,14 +50,8 @@ def prompt_user_edit(
     
     try:
         # Write initial content with optional instructions
-        with os.fdopen(fd, 'w') as f:
-            if instructions:
-                # Add instructions as comments based on file type
-                comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
-                for line in instructions.strip().split('\n'):
-                    f.write(f"{comment_char} {line}\n")
-                f.write(f"{comment_char} {'='*60}\n\n")
-            f.write(content)
+        os.close(fd)  # Close file descriptor so we can use regular file operations
+        _handle_instructions_and_content(temp_path, suffix, instructions, content)
         
         # Open vim
         subprocess.run(['vim', temp_path], check=True)
@@ -41,13 +61,7 @@ def prompt_user_edit(
             edited_content = f.read()
         
         # Remove instruction comments if present
-        if instructions:
-            lines = edited_content.split('\n')
-            # Find where actual content starts
-            for i, line in enumerate(lines):
-                if line.strip() == comment_char + ' ' + '='*60:
-                    edited_content = '\n'.join(lines[i+2:])  # Skip separator and blank line
-                    break
+        edited_content = _strip_instructions(edited_content, instructions, suffix)
         
         if show_diff:
             # Calculate diff
@@ -91,14 +105,9 @@ def quick_edit(
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
     
     try:
-        with os.fdopen(fd, 'w') as f:
-            if instructions:
-                # Add instructions as comments
-                comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
-                for line in instructions.strip().split('\n'):
-                    f.write(f"{comment_char} {line}\n")
-                f.write(f"{comment_char} {'='*60}\n\n")
-            f.write(initial_content)
+        # Write initial content with optional instructions
+        os.close(fd)  # Close file descriptor so we can use regular file operations
+        _handle_instructions_and_content(temp_path, suffix, instructions, initial_content)
         
         # Open vim
         subprocess.run(['vim', temp_path], check=True)
@@ -108,12 +117,7 @@ def quick_edit(
             content = f.read()
         
         # Remove instruction comments if present
-        if instructions:
-            lines = content.split('\n')
-            for i, line in enumerate(lines):
-                if line.strip() == comment_char + ' ' + '='*60:
-                    content = '\n'.join(lines[i+2:])
-                    break
+        content = _strip_instructions(content, instructions, suffix)
         
         return content
         

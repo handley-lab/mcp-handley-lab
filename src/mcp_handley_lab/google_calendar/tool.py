@@ -81,7 +81,7 @@ def _format_datetime(dt_str: str) -> str:
         return dt_str + " (all-day)"
 
 
-@mcp.tool(description="Lists calendar events within a date range.")
+@mcp.tool(description="Lists calendar events within a date range. End date is exclusive - use next day to include full day.")
 def list_events(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,

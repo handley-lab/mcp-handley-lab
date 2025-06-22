@@ -7,28 +7,49 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("JQ Tool")
 
 
+def _resolve_data(data_or_path: str) -> str:
+    """Resolves input, reading from a file if it exists, otherwise returning the data."""
+    p = Path(data_or_path)
+    if p.is_file():
+        return p.read_text()
+    return data_or_path
+
+
+def _run_jq(args: list[str], input_text: str | None = None) -> str:
+    """Runs a jq command and handles errors."""
+    command = ["jq"] + args
+    try:
+        result = subprocess.run(
+            command,
+            input=input_text,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode != 0:
+            raise ValueError(f"jq error: {result.stderr.strip()}")
+        return result.stdout.strip()
+    except FileNotFoundError:
+        raise RuntimeError("jq command not found. Please install jq.")
+
+
 @mcp.tool(description="Queries JSON data from a string or file using a jq filter expression.")
 def query(data: str, filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
-    # Check if data is a file path
-    if not data.startswith('{') and not data.startswith('['):
-        path = Path(data)
-        if path.exists():
-            with open(path) as f:
-                data = f.read()
-    
-    cmd = ["jq"]
+    args = []
     if compact:
-        cmd.append("-c")
+        args.append("-c")
     if raw_output:
-        cmd.append("-r")
-    cmd.append(filter)
+        args.append("-r")
+    args.append(filter)
     
-    result = subprocess.run(cmd, input=data, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise ValueError(f"jq error: {result.stderr}")
-    
-    return result.stdout.strip()
+    # Check if data is a file path - if so, pass directly to jq for efficiency
+    p = Path(data)
+    if p.is_file():
+        args.append(str(p))
+        return _run_jq(args)
+    else:
+        return _run_jq(args, input_text=data)
 
 
 @mcp.tool(description="Edits a JSON file in-place using a jq transformation filter.")
@@ -42,17 +63,10 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
         backup_path.write_text(path.read_text())
     
     # Apply transformation
-    result = subprocess.run(
-        ["jq", filter, str(path)],
-        capture_output=True,
-        text=True
-    )
-    
-    if result.returncode != 0:
-        raise ValueError(f"jq error: {result.stderr}")
+    result = _run_jq([filter, str(path)])
     
     # Write result back
-    path.write_text(result.stdout)
+    path.write_text(result)
     
     msg = f"Successfully edited {file_path}"
     if backup:
@@ -63,30 +77,16 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
 @mcp.tool(description="Reads and pretty-prints a JSON file, with an optional filter.")
 def read(file_path: str, filter: str = ".") -> str:
     """Read and pretty-print a JSON file."""
-    result = subprocess.run(
-        ["jq", filter, file_path],
-        capture_output=True,
-        text=True
-    )
-    
-    if result.returncode != 0:
-        raise ValueError(f"jq error: {result.stderr}")
-    
-    return result.stdout.strip()
+    return _run_jq([filter, file_path])
 
 
 @mcp.tool(description="Validates the syntax of JSON data from a string or file.")
 def validate(data: str) -> str:
     """Validate JSON syntax."""
-    # Check if data is a file path
-    if not data.startswith('{') and not data.startswith('['):
-        path = Path(data)
-        if path.exists():
-            with open(path) as f:
-                data = f.read()
+    data_content = _resolve_data(data)
     
     try:
-        json.loads(data)
+        json.loads(data_content)
         return "JSON is valid"
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {e}")
@@ -95,14 +95,8 @@ def validate(data: str) -> str:
 @mcp.tool(description="Pretty-prints or compacts JSON data from a string or file.")
 def format(data: str, compact: bool = False, sort_keys: bool = False) -> str:
     """Format JSON data."""
-    # Check if data is a file path
-    if not data.startswith('{') and not data.startswith('['):
-        path = Path(data)
-        if path.exists():
-            with open(path) as f:
-                data = f.read()
-    
-    parsed = json.loads(data)
+    data_content = _resolve_data(data)
+    parsed = json.loads(data_content)
     
     if compact:
         return json.dumps(parsed, separators=(',', ':'), sort_keys=sort_keys)
@@ -114,8 +108,7 @@ def format(data: str, compact: bool = False, sort_keys: bool = False) -> str:
 def server_info() -> str:
     """Get server status and jq version."""
     try:
-        result = subprocess.run(["jq", "--version"], capture_output=True, text=True)
-        version = result.stdout.strip()
+        version = _run_jq(["--version"])
         
         return f"""JQ Tool Server Status
 ====================
@@ -129,5 +122,5 @@ Available tools:
 - validate: Validate JSON syntax
 - format: Format JSON data
 - server_info: Get server status"""
-    except FileNotFoundError:
-        raise RuntimeError("jq command not found. Please install jq.")
+    except RuntimeError as e:
+        raise e

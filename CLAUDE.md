@@ -142,10 +142,37 @@ Always test your implementations before marking tasks as complete.
 
 ## Testing Strategy
 
-- Unit tests mock external dependencies (APIs, CLIs)
-- Integration tests verify tools work together
-- Target 100% test coverage to identify refactoring opportunities
-- Run tests with: `python -m pytest tests/ --cov=mcp_framework --cov-report=term-missing`
+### Unit Tests vs Integration Tests
+- **Unit tests**: Mock external dependencies (APIs, CLIs) for fast, isolated testing
+- **Integration tests**: Call real external tools/APIs to validate actual contracts
+- **Both are essential**: Unit tests provide breadth, integration tests provide real-world validation
+
+### Critical Importance of Integration Tests
+Integration tests are **essential** for tools that interact with external CLIs or APIs:
+
+1. **Catch CLI parameter mismatches**: Mocked tests can't detect when CLI tools change their argument syntax
+2. **Validate real output formats**: Ensure tools actually produce expected data structures  
+3. **Test environment variations**: Different versions, configurations, and edge cases
+4. **Prevent production failures**: Catch breaking changes before they reach users
+
+**Example bugs caught by integration tests that unit tests missed:**
+- `--output` vs `--output-file` parameter mismatch
+- `--git-diff` vs `--diff` CLI flag error
+- `--analyze` flag that doesn't exist in the CLI
+- `--git-diff-branch main..feature` vs `--git-diff-branch main feature` argument format
+
+### Integration Test Design Patterns
+- **Environment checks**: Gracefully skip when dependencies unavailable
+- **Real file I/O**: Create actual temp files and directories
+- **Cleanup**: Ensure tests don't leave artifacts
+- **Error validation**: Test both success and failure scenarios
+- **Comprehensive fixtures**: Rich test data covering multiple scenarios
+
+### Testing Commands
+- **Full test suite**: `python -m pytest tests/ --cov=mcp_handley_lab --cov-report=term-missing`
+- **Unit tests only**: `python -m pytest tests/test_*.py -k "not Integration"`
+- **Integration tests only**: `python -m pytest tests/test_*.py -k "Integration"`
+- **Target**: 100% test coverage to identify refactoring opportunities
 
 ## Key Files
 

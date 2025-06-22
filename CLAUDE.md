@@ -113,6 +113,18 @@ mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_rev
 
 **Note**: Always prefer `grounding=true` when using Gemini to ensure access to current information and best practices.
 
+## Task Management
+
+**CRITICAL**: Maintain detailed todo lists with sub-tasks for all work. Break down every major task into smaller, testable components. This ensures nothing is overlooked and provides clear progress tracking.
+
+Example structure:
+- Major task
+  - Sub-task 1: Specific implementation detail
+  - Sub-task 2: Testing component
+  - Sub-task 3: Verification step
+
+Always test your implementations before marking tasks as complete.
+
 ## Testing Strategy
 
 - Unit tests mock external dependencies (APIs, CLIs)

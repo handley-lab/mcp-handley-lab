@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-framework"
+version = "0.1.0"
+description = "A comprehensive MCP toolkit bridging external services and CLI utilities"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "MCP Framework Team", email = "contact@example.com"}
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "google-api-python-client>=2.0.0",
+    "google-auth-httplib2>=0.1.0",
+    "google-auth-oauthlib>=0.5.0",
+    "google-generativeai>=0.8.0",
+    "openai>=1.0.0",
+    "Pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+mcp-jq = "mcp_framework.jq.__main__:main"
+mcp-vim = "mcp_framework.vim.__main__:main"
+mcp-code2prompt = "mcp_framework.code2prompt.__main__:main"
+mcp-calendar = "mcp_framework.google_calendar.__main__:main"
+mcp-gemini = "mcp_framework.llm.gemini:main"
+mcp-openai = "mcp_framework.llm.openai:main"
+mcp-chainer = "mcp_framework.tool_chainer.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+mcp_framework = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # Line too long, handled by black

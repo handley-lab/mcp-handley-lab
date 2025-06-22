@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch, mock_open
 from datetime import datetime, timedelta
 from pathlib import Path
 import pickle
+import os
 
 from mcp_handley_lab.google_calendar.tool import (
     list_events, get_event, create_event, update_event, delete_event,
@@ -924,3 +925,245 @@ class TestServerInfo:
         
         assert "Configuration Error" in result
         assert "Credentials not found" in result
+
+
+TEST_CREDENTIALS_FILE = Path("~/.google_calendar_test_credentials.json").expanduser()
+GOOGLE_CALENDAR_AVAILABLE = TEST_CREDENTIALS_FILE.exists()
+
+@pytest.mark.skipif(not GOOGLE_CALENDAR_AVAILABLE, reason="Google Calendar test credentials not available")
+class TestGoogleCalendarIntegration:
+    """Integration tests that use real Google Calendar API with test credentials."""
+    
+    @pytest.fixture(autouse=True)
+    def setup_environment(self, monkeypatch):
+        """Set up test environment with test credentials."""
+        # Use monkeypatch to set environment variables for this test
+        monkeypatch.setenv('GOOGLE_CREDENTIALS_FILE', str(TEST_CREDENTIALS_FILE))
+        monkeypatch.setenv('GOOGLE_TOKEN_FILE', str(Path("~/.google_calendar_test_token.json").expanduser()))
+        
+        # Force reload the settings module to pick up new environment variables
+        import importlib
+        from mcp_handley_lab import google_calendar
+        from mcp_handley_lab.common import config
+        
+        # Reload the config module to pick up the new environment variables
+        importlib.reload(config)
+        # Update the reference in the google_calendar.tool module
+        google_calendar.tool.settings = config.settings
+        
+        yield
+    
+    def test_server_info_integration(self):
+        """Test server info with real Google Calendar API."""
+        
+        try:
+            result = server_info()
+            
+            # Should connect successfully and show available calendars
+            assert "Google Calendar Tool Server Status" in result
+            assert "Connected and ready" in result
+            # Should show calendars are accessible
+            assert "calendars accessible" in result.lower()
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise
+    
+    def test_list_calendars_integration(self):
+        """Test listing calendars with real API."""
+        
+        try:
+            result = list_calendars()
+            
+            # Should return calendar list
+            assert "calendars" in result.lower()
+            assert "Found" in result
+            
+            # Should show calendar details
+            assert "ID:" in result
+            assert "Access:" in result
+            assert "owner" in result or "reader" in result or "writer" in result
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise
+    
+    def test_list_events_integration(self):
+        """Test listing events with real API."""
+        
+        try:
+            from datetime import datetime, timedelta
+            
+            # Get events for the next 7 days - use correct parameter names
+            end_time = (datetime.now() + timedelta(days=7)).isoformat()
+            
+            result = list_events(
+                calendar_id="primary",
+                end_date=end_time,
+                max_results=10
+            )
+            
+            # Should return events list (may be empty, but should be valid format)
+            assert "Found" in result and "events" in result or "No events found" in result
+            
+            # If events exist, should show proper formatting
+            if "No events found" not in result:
+                assert "•" in result  # Events should have bullet points
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise
+    
+    def test_create_and_delete_event_integration(self):
+        """Test creating and deleting an event with real API."""
+        
+        try:
+            from datetime import datetime, timedelta
+            
+            # Create a test event for tomorrow
+            start_time = datetime.now() + timedelta(days=1)
+            end_time = start_time + timedelta(hours=1)
+            
+            test_summary = "[INTEGRATION TEST] Test Event - Safe to Delete"
+            test_description = "This is a test event created by integration tests. Safe to delete."
+            
+            # Create the event
+            create_result = create_event(
+                calendar_id="primary",
+                summary=test_summary,
+                start_datetime=start_time.isoformat(),
+                end_datetime=end_time.isoformat(),
+                description=test_description
+            )
+            
+            assert "Event created successfully" in create_result
+            assert "Event ID:" in create_result
+            
+            # Extract event ID from result
+            lines = create_result.split('\n')
+            event_id_line = [line for line in lines if "Event ID:" in line][0]
+            event_id = event_id_line.split("Event ID:")[1].strip()
+            
+            # Verify the event was created by getting it
+            get_result = get_event(
+                calendar_id="primary",
+                event_id=event_id
+            )
+            
+            assert test_summary in get_result
+            assert test_description in get_result
+            
+            # Clean up: delete the test event
+            delete_result = delete_event(
+                event_summary=test_summary,
+                event_id=event_id,
+                calendar_id="primary"
+            )
+            
+            assert "permanently deleted" in delete_result
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise
+    
+    def test_find_time_integration(self):
+        """Test finding available time with real API."""
+        
+        try:
+            from datetime import datetime, timedelta
+            
+            # Look for free time in the next 3 days - use correct parameter names
+            start_time = datetime.now()
+            end_time = start_time + timedelta(days=3)
+            
+            result = find_time(
+                calendar_id="primary",
+                start_date=start_time.isoformat(),
+                end_date=end_time.isoformat(),
+                duration_minutes=60
+            )
+            
+            # Should return available time slots
+            assert ("free" in result.lower() and "slots" in result.lower()) or "No free" in result
+            
+            # If slots are found, should show proper formatting
+            if "No free" not in result:
+                assert "Found" in result and "slots" in result
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise
+    
+    def test_update_event_integration(self):
+        """Test updating an event with real API (if any events exist)."""
+        
+        try:
+            # First try to find an existing event to update
+            from datetime import datetime, timedelta
+            
+            # Look for events in the next 30 days
+            end_time = (datetime.now() + timedelta(days=30)).isoformat()
+            
+            events_result = list_events(
+                calendar_id="primary", 
+                end_date=end_time,
+                max_results=5
+            )
+            
+            # If no events exist, create one for testing
+            if "No events found" in events_result:
+                # Create a test event first
+                start_time = datetime.now() + timedelta(days=1)
+                end_time_event = start_time + timedelta(hours=1)
+                
+                create_result = create_event(
+                    calendar_id="primary",
+                    summary="[INTEGRATION TEST] Update Test Event",
+                    start_datetime=start_time.isoformat(),
+                    end_datetime=end_time_event.isoformat(),
+                    description="Test event for update testing"
+                )
+                
+                # Extract event ID and test update
+                lines = create_result.split('\n')
+                event_id_line = [line for line in lines if "Event ID:" in line][0]
+                event_id = event_id_line.split("Event ID:")[1].strip()
+                
+                # Update the event
+                update_result = update_event(
+                    event_summary="[INTEGRATION TEST] Update Test Event",
+                    event_id=event_id,
+                    calendar_id="primary",
+                    summary="[INTEGRATION TEST] Updated Event Title",
+                    description="Updated description via integration test"
+                )
+                
+                assert "Event updated successfully" in update_result
+                
+                # Clean up: delete the test event
+                delete_event(
+                    event_summary="[INTEGRATION TEST] Updated Event Title",
+                    event_id=event_id,
+                    calendar_id="primary"
+                )
+            
+            else:
+                # If we found existing events, we'll skip updating them
+                # to avoid modifying real calendar data
+                pytest.skip("Skipping event update test to avoid modifying existing calendar events")
+            
+        except Exception as e:
+            if "credentials" in str(e).lower() or "authentication" in str(e).lower():
+                pytest.skip(f"Google Calendar authentication failed: {e}")
+            else:
+                raise

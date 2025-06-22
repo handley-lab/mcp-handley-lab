@@ -22,8 +22,8 @@ SCOPES = ['https://www.googleapis.com/auth/calendar']
 def _get_calendar_service():
     """Get authenticated Google Calendar service."""
     creds = None
-    token_file = Path(settings.google_token_file).expanduser()
-    credentials_file = Path(settings.google_credentials_file).expanduser()
+    token_file = settings.google_token_path
+    credentials_file = settings.google_credentials_path
     
     # Load existing token
     if token_file.exists():

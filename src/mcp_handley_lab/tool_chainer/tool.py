@@ -57,80 +57,130 @@ def _save_state(storage_dir: Path, registered_tools: Dict[str, Dict[str, Any]],
 
 
 def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
-    """Execute a tool on an MCP server."""
-    # Create a temporary input file with the request
-    request = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {
-            "name": tool_name,
-            "arguments": arguments
-        }
-    }
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(request, f)
-        input_file = f.name
-    
+    """Execute a tool on an MCP server using MCP protocol."""
     try:
-        # Execute the MCP server command
-        cmd = server_command.split() + [input_file]
-        result = subprocess.run(
+        # Create MCP request messages
+        initialize_request = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {}
+                },
+                "clientInfo": {
+                    "name": "tool-chainer",
+                    "version": "1.0.0"
+                }
+            }
+        }
+        
+        tools_call_request = {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+                "name": tool_name,
+                "arguments": arguments
+            }
+        }
+        
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {}
+        }
+        
+        # Prepare input for MCP server
+        input_data = (
+            json.dumps(initialize_request) + "\n" +
+            json.dumps(initialized_notification) + "\n" +
+            json.dumps(tools_call_request) + "\n"
+        )
+        
+        # Execute the MCP server with stdio communication
+        cmd = server_command.split()
+        process = subprocess.Popen(
             cmd,
-            capture_output=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
             cwd=Path.cwd()
         )
         
-        if result.returncode != 0:
-            return {
-                "success": False,
-                "error": f"Server command failed: {result.stderr}",
-                "output": result.stdout
-            }
-        
-        # Parse the response
         try:
-            response = json.loads(result.stdout)
-            if "error" in response:
+            stdout, stderr = process.communicate(input=input_data, timeout=timeout)
+            
+            if process.returncode != 0:
                 return {
                     "success": False,
-                    "error": response["error"].get("message", "Unknown error"),
-                    "output": result.stdout
+                    "error": f"Server command failed: {stderr}",
+                    "output": stdout
                 }
             
+            # Parse responses - expect one JSON line (tools/call response)
+            lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
+            if len(lines) < 1:
+                return {
+                    "success": False,
+                    "error": f"Invalid response format: expected at least 1 line, got {len(lines)}",
+                    "output": stdout
+                }
+            
+            try:
+                # Parse the tools/call response (last line)
+                response = json.loads(lines[-1])
+                
+                if "error" in response:
+                    return {
+                        "success": False,
+                        "error": response["error"].get("message", "Unknown error"),
+                        "output": stdout
+                    }
+                
+                # Extract result from MCP response
+                result_content = response.get("result", {})
+                if isinstance(result_content, dict) and "content" in result_content:
+                    # MCP tool response format
+                    content = result_content["content"]
+                    if isinstance(content, list) and content:
+                        text_result = content[0].get("text", "")
+                    else:
+                        text_result = str(result_content)
+                else:
+                    # Simple result
+                    text_result = str(result_content)
+                
+                return {
+                    "success": True,
+                    "result": text_result,
+                    "output": stdout
+                }
+                
+            except json.JSONDecodeError as e:
+                return {
+                    "success": False,
+                    "error": f"Failed to parse server response: {e}",
+                    "output": stdout
+                }
+        
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
             return {
-                "success": True,
-                "result": response.get("result", {}).get("content", [{}])[0].get("text", ""),
-                "output": result.stdout
-            }
-        except json.JSONDecodeError:
-            return {
-                "success": True,
-                "result": result.stdout,
-                "output": result.stdout
+                "success": False,
+                "error": f"Tool execution timed out after {timeout} seconds",
+                "output": ""
             }
     
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": f"Tool execution timed out after {timeout} seconds",
-            "output": ""
-        }
     except Exception as e:
         return {
             "success": False,
             "error": f"Execution error: {e}",
             "output": ""
         }
-    finally:
-        # Clean up temp file
-        try:
-            Path(input_file).unlink()
-        except:
-            pass
 
 
 def _substitute_variables(text: str, variables: Dict[str, Any], step_outputs: Dict[str, Any]) -> str:
@@ -182,33 +232,67 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
 def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
     try:
-        # Create tools/list request
-        request = {
+        # Create MCP request messages
+        initialize_request = {
             "jsonrpc": "2.0",
             "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {}
+                },
+                "clientInfo": {
+                    "name": "tool-chainer",
+                    "version": "1.0.0"
+                }
+            }
+        }
+        
+        tools_list_request = {
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "tools/list",
             "params": {}
         }
         
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(request, f)
-            input_file = f.name
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {}
+        }
+        
+        # Prepare input for MCP server
+        input_data = (
+            json.dumps(initialize_request) + "\n" +
+            json.dumps(initialized_notification) + "\n" +
+            json.dumps(tools_list_request) + "\n"
+        )
+        
+        # Execute the MCP server with stdio communication
+        cmd = server_command.split()
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=Path.cwd()
+        )
         
         try:
-            cmd = server_command.split() + [input_file]
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                cwd=Path.cwd()
-            )
+            stdout, stderr = process.communicate(input=input_data, timeout=timeout)
             
-            if result.returncode != 0:
-                return f"❌ Failed to connect to server: {result.stderr}"
+            if process.returncode != 0:
+                return f"❌ Failed to connect to server: {stderr}"
             
-            # Parse response
-            response = json.loads(result.stdout)
+            # Parse responses - expect one JSON line (tools/list response)
+            lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
+            if len(lines) < 1:
+                return f"❌ Invalid response format: expected at least 1 line, got {len(lines)}"
+            
+            # Parse the tools/list response (last line)
+            response = json.loads(lines[-1])
             if "error" in response:
                 return f"❌ Server error: {response['error'].get('message', 'Unknown error')}"
             
@@ -223,12 +307,12 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
                 result_text += f"- {tool.get('description', 'No description')}\n\n"
             
             return result_text
+        
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+            return f"❌ Server discovery timed out after {timeout} seconds"
             
-        finally:
-            Path(input_file).unlink()
-            
-    except subprocess.TimeoutExpired:
-        return f"❌ Server discovery timed out after {timeout} seconds"
     except Exception as e:
         return f"❌ Discovery error: {e}"
 

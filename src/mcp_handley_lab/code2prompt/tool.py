@@ -25,7 +25,7 @@ def _run_code2prompt(args: List[str]) -> str:
         raise RuntimeError("code2prompt command not found. Please install code2prompt.")
 
 
-@mcp.tool(description="Creates a structured, token-counted summary of a codebase and saves it to a file.")
+@mcp.tool(description="Generates a structured, token-counted summary of a codebase and saves it to a file. This allows LLMs to process large codebases efficiently by referencing the summary file, avoiding excessive context window usage. Use this tool when you need to analyze a codebase that is too large to fit directly in the LLM's context window. The output file path should then be used as a 'file' input to an LLM tool. Includes options for filtering files, controlling output format, and incorporating git diff information.")
 def generate_prompt(
     path: str,
     output_file: Optional[str] = None,
@@ -122,7 +122,7 @@ def generate_prompt(
 
 
 
-@mcp.tool(description="Checks the status of the code2prompt server and verifies that the CLI tool is installed and available.")
+@mcp.tool(description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions.")
 def server_info() -> str:
     """Get server status and code2prompt version."""
     try:

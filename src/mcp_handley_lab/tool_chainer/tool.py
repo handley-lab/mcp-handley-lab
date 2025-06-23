@@ -240,9 +240,7 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
 
 
 
-@mcp.tool(description="""Discovers available tools from a specified MCP server command.
-
-Use this to explore what tools are available before registering them for chaining.""")
+@mcp.tool(description="Discovers and lists the tools available on a specified MCP server. Provide the server command as it would be used to run the server. Use this to explore available tools before registering them for chaining.")
 def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
     try:
@@ -331,13 +329,7 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
         return f"❌ Discovery error: {e}"
 
 
-@mcp.tool(description="""Registers a specific tool from an MCP server, making it available for chaining.
-
-Important notes for file-based tools:
-- Tools that generate files typically return descriptive text about what was created, not just the file path
-- When chaining file-based tools, use fixed file paths in arguments rather than variables
-- Use output_to="my_var" to capture tool outputs for reference
-- Variable syntax is {my_var} (not ${my_var})""")
+@mcp.tool(description="Registers a tool from an MCP server, making it available for use in chains. Specify the tool's ID, server command, tool name on the server, and optional description. For file-based tools, use exact file paths in arguments, not variables. Use `output_to` to capture the tool's output for use in subsequent chain steps. Variables are referenced with `{var_name}` syntax (not `${var_name}`).")
 def register_tool(
     tool_id: str,
     server_command: str,
@@ -365,22 +357,7 @@ def register_tool(
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
 
-@mcp.tool(description="""Defines a sequential chain of registered tools.
-
-Variable substitution:
-- Use {variable_name} syntax to reference variables (NOT ${variable_name})
-- Step outputs are stored with output_to parameter and referenced as {output_name}
-- Initial input available as {INITIAL_INPUT}
-- User-provided variables available as {var_name}
-
-File path handling:
-- For file operations, use literal paths: "file_path": "/actual/path/file.txt"
-- Only use variables if extracting paths from tool output text
-- Example: code2prompt returns "Generated file at /tmp/output.md", not just "/tmp/output.md"
-
-Example chain:
-Step 1: generate_file → output_to="file_info"
-Step 2: read_file with arguments={"path": "/tmp/generated.txt"} (use literal path)""")
+@mcp.tool(description="Defines a reusable chain of registered tools. Each step in the chain specifies a tool ID, arguments, and optional conditions and output variable names. Use `{variable_name}` (not `${variable_name}`) for variable substitution. When working with files, use literal file paths in arguments, not variables, unless you're extracting paths from a previous tool's output. For example, if a tool outputs 'File created at /tmp/result.txt', use `{'path': '/tmp/result.txt'}` in the next step.")
 def chain_tools(
     chain_id: str,
     steps: List[ToolStep],
@@ -424,20 +401,7 @@ def chain_tools(
     return result
 
 
-@mcp.tool(description="""Executes a defined chain with an initial input and optional variables.
-
-Variable reference guide:
-- {INITIAL_INPUT}: The initial_input parameter value
-- {step_name}: Output from step with output_to="step_name"
-- {var_name}: User-provided variables
-- Syntax is {var} not ${var}
-
-File path tips:
-- Use exact file paths for file operations, not variables
-- File-generating tools often return descriptive messages, not just paths
-- Check the actual output before using it as a file path
-
-Example: If tool returns "Created summary at /tmp/code.md", use "/tmp/code.md" directly in next step.""")
+@mcp.tool(description="Executes a defined tool chain. Provide the `chain_id`, initial input, and optional variables. Variables are referenced using `{var_name}` syntax (not `${var_name}`). For file operations, use exact file paths in tool arguments, not variables. If a tool returns a message like 'File saved to /path/to/file.txt,' use '/path/to/file.txt' directly in the next step's arguments.")
 def execute_chain(
     chain_id: str,
     initial_input: Optional[str] = None,
@@ -583,7 +547,7 @@ def execute_chain(
     return result
 
 
-@mcp.tool(description="Displays the execution history of recent chains.")
+@mcp.tool(description="Displays the execution history of recent tool chains, including timestamps, status (success/failure), and any errors. Use this to review past chain executions.")
 def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     """Show recent chain execution history."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
@@ -609,7 +573,7 @@ def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     return result
 
 
-@mcp.tool(description="Clears all cached results and execution history.")
+@mcp.tool(description="Clears all cached results, registered tools, defined chains, and execution history. Use this to reset the tool chainer.")
 def clear_cache(storage_dir: Optional[str] = None) -> str:
     """Clear all cached data."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
@@ -624,7 +588,7 @@ def clear_cache(storage_dir: Optional[str] = None) -> str:
     return "✅ Cache and execution history cleared successfully!"
 
 
-@mcp.tool(description="Shows the status of the tool chainer, including registered tools and usage examples.")
+@mcp.tool(description="Shows the status of the Tool Chainer server, including registered tools, defined chains, and usage examples. Use this to get an overview of the Tool Chainer's current state.")
 def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR

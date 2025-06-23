@@ -111,7 +111,7 @@ def _handle_agent_and_usage(
     return format_usage(model, input_tokens, output_tokens, cost, provider)
 
 
-@mcp.tool(description="Asks a question to a Gemini model with optional file analysis and agent memory.")
+@mcp.tool(description="Asks a question to a Gemini model. Supports file analysis and agent memory. File inputs can be provided in these formats: {\"path\": \"/path/to/file\"} (reads file from the filesystem), {\"content\": \"file content as string\"} (uses the provided text directly), or \"string content\" (treats the string as literal content). The `grounding` parameter (defaults to False) enables retrieval augmented generation, improving the factuality of responses. Use this tool for general-purpose question answering and text generation tasks, especially when context from external files is needed.")
 def ask(
     prompt: str,
     agent_name: Optional[str] = None,
@@ -179,7 +179,7 @@ def ask(
         raise RuntimeError(f"Gemini API error: {e}")
 
 
-@mcp.tool(description="Analyzes images using Gemini's vision capabilities.")
+@mcp.tool(description="Analyzes images using Gemini's vision capabilities. Image input formats: {\"path\": \"/path/to/image\"} (reads from the filesystem), {\"data\": \"base64 encoded image data\"} (uses base64 data), \"data:image/...;base64,...\" (data URL format), or \"/path/to/image\" (legacy file path - prefer the dictionary format). The `focus` parameter guides the analysis (e.g., \"objects\", \"colors\", \"composition\"). Use this to get image descriptions, identify objects, and answer questions about images.")
 def analyze_image(
     prompt: str,
     image_data: Optional[str] = None,
@@ -227,7 +227,7 @@ def analyze_image(
         raise RuntimeError(f"Gemini vision API error: {e}")
 
 
-@mcp.tool(description="Generates images using Gemini's image generation model.")
+@mcp.tool(description="Generates images using Gemini's Imagen 3 model. Provide a text prompt describing the desired image. Use this for creative image generation tasks.")
 def generate_image(
     prompt: str,
     model: str = "imagen-3",
@@ -278,7 +278,7 @@ def generate_image(
     return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n{usage_info}"
 
 
-@mcp.tool(description="Creates a new named agent for persistent conversation memory.")
+@mcp.tool(description="Creates a new named agent for persistent conversation memory. An optional `personality` can be provided to guide the agent's responses. Use this to create new conversational agents for ongoing interactions.")
 def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
     try:
@@ -289,7 +289,7 @@ def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
         raise ValueError(str(e))
 
 
-@mcp.tool(description="Lists all existing named agents and their summary statistics.")
+@mcp.tool(description="Lists all existing named agents and their summary statistics (creation date, message count, token usage, and cost). Use this to manage and review existing agents.")
 def list_agents() -> str:
     """List all agents with their statistics."""
     agents = memory_manager.list_agents()
@@ -312,7 +312,7 @@ def list_agents() -> str:
     return result
 
 
-@mcp.tool(description="Retrieves detailed statistics and history for a specific named agent.")
+@mcp.tool(description="Retrieves detailed statistics and recent conversation history for a specific named agent. Use this to get a deeper understanding of an agent's usage and behavior.")
 def agent_stats(agent_name: str) -> str:
     """Get detailed statistics for a specific agent."""
     agent = memory_manager.get_agent(agent_name)
@@ -343,7 +343,7 @@ def agent_stats(agent_name: str) -> str:
     return result
 
 
-@mcp.tool(description="Clears the conversation history of a named agent.")
+@mcp.tool(description="Clears the conversation history of a named agent, resetting it for a new conversation. Use this when you want to start a fresh interaction with an existing agent.")
 def clear_agent(agent_name: str) -> str:
     """Clear an agent's conversation history."""
     success = memory_manager.clear_agent_history(agent_name)
@@ -353,7 +353,7 @@ def clear_agent(agent_name: str) -> str:
         raise ValueError(f"Agent '{agent_name}' not found")
 
 
-@mcp.tool(description="Permanently deletes a named agent and all its data.")
+@mcp.tool(description="Permanently deletes a named agent and all associated data. Use this with caution.")
 def delete_agent(agent_name: str) -> str:
     """Delete an agent permanently."""
     success = memory_manager.delete_agent(agent_name)
@@ -363,7 +363,7 @@ def delete_agent(agent_name: str) -> str:
         raise ValueError(f"Agent '{agent_name}' not found")
 
 
-@mcp.tool(description="Checks the Gemini server status and API key configuration.")
+@mcp.tool(description="Checks the Gemini server status, API key configuration, and lists available Gemini models. Use this to verify the tool is properly configured before making other Gemini requests.")
 def server_info() -> str:
     """Get server status and Gemini configuration."""
     try:

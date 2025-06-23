@@ -35,7 +35,7 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
     return content
 
 
-@mcp.tool(description="Creates a temporary file, opens vim for user editing, and returns the changes.")
+@mcp.tool(description="Presents the given `content` in a temporary file, opens Vim for user editing, and returns the modified content. Optional `instructions` can be provided, which will be added as comments at the beginning of the file. Use this to allow a user to interactively edit text within a workflow. The `show_diff` parameter controls whether the output is the full edited text or a diff showing the changes.")
 def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
@@ -93,7 +93,7 @@ def prompt_user_edit(
             os.unlink(temp_path)
 
 
-@mcp.tool(description="Opens vim for creating new content from scratch.")
+@mcp.tool(description="Opens Vim for creating new content from scratch. Optional `instructions` can be provided, which will be added as comments at the beginning of the file. `initial_content` can be used to pre-populate the file. Use this to quickly create or edit small text files.")
 def quick_edit(
     file_extension: str = ".txt",
     instructions: str = None,
@@ -125,7 +125,7 @@ def quick_edit(
         os.unlink(temp_path)
 
 
-@mcp.tool(description="Opens an existing local file in vim for editing.")
+@mcp.tool(description="Opens an existing local file in Vim for editing. If `instructions` are provided, they are displayed in a temporary Vim buffer *before* opening the file for editing. A backup of the original file is created if `backup` is True (default). Use this to modify existing files.")
 def open_file(
     file_path: str,
     instructions: str = None,
@@ -196,7 +196,7 @@ def open_file(
     return result
 
 
-@mcp.tool(description="Gets the status of the Vim server and vim CLI availability.")
+@mcp.tool(description="Checks the status of the Vim Tool server and the availability of the `vim` command-line tool. Use this to verify the tool is operational before calling other Vim Tool functions.")
 def server_info() -> str:
     """Get server status and vim version."""
     try:

@@ -116,7 +116,7 @@ def _handle_agent_and_usage(
     return format_usage(model, input_tokens, output_tokens, cost, provider)
 
 
-@mcp.tool(description="Asks a question to an OpenAI GPT model. Supports file analysis.")
+@mcp.tool(description="Asks a question to an OpenAI GPT model. Supports file analysis and agent memory. File inputs can be provided in these formats: {\"path\": \"/path/to/file\"} (reads file from the filesystem), {\"content\": \"file content as string\"} (uses the provided text directly), or \"string content\" (treats the string as literal content). Use this tool for general-purpose question answering and text generation tasks, especially when context from external files is needed.")
 def ask(
     prompt: str,
     agent_name: Optional[str] = None,
@@ -165,7 +165,7 @@ def ask(
         raise RuntimeError(f"OpenAI API error: {e}")
 
 
-@mcp.tool(description="Analyzes one or more images with a prompt using a GPT vision model.")
+@mcp.tool(description="Analyzes one or more images with a prompt using a GPT vision model. Image input formats: {\"path\": \"/path/to/image\"} (reads from the filesystem), {\"data\": \"base64 encoded image data\"} (uses base64 data), \"data:image/...;base64,...\" (data URL format), or \"/path/to/image\" (legacy file path - prefer the dictionary format). The `focus` parameter guides the analysis (e.g., \"objects\", \"colors\", \"composition\"). Use this to get image descriptions, identify objects, and answer questions about images.")
 def analyze_image(
     prompt: str,
     image_data: Optional[str] = None,
@@ -227,7 +227,7 @@ def analyze_image(
         raise RuntimeError(f"OpenAI vision API error: {e}")
 
 
-@mcp.tool(description="Generates an image from a text prompt using a DALL-E model.")
+@mcp.tool(description="Generates an image from a text prompt using a DALL-E model. Available models include `dall-e-2` and `dall-e-3`. `quality` can be \"standard\" or \"hd\". `size` options depend on the model. Use this for creative image generation tasks.")
 def generate_image(
     prompt: str,
     model: str = "dall-e-3",
@@ -279,7 +279,7 @@ def generate_image(
         raise RuntimeError(f"DALL-E API error: {e}")
 
 
-@mcp.tool(description="Checks the OpenAI server status and API key configuration.")
+@mcp.tool(description="Checks the OpenAI server status, API key configuration, and lists available OpenAI models. Use this to verify the tool is properly configured before making other OpenAI requests.")
 def server_info() -> str:
     """Get server status and OpenAI configuration."""
     try:

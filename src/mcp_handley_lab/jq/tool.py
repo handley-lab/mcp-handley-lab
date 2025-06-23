@@ -33,7 +33,7 @@ def _run_jq(args: list[str], input_text: str | None = None) -> str:
         raise RuntimeError("jq command not found. Please install jq.")
 
 
-@mcp.tool(description="Queries JSON data from a string or file using a jq filter expression.")
+@mcp.tool(description="Queries JSON data using a jq filter expression. The `data` parameter can be either a JSON string or a path to a JSON file. If `data` is a valid file path, the file will be read; otherwise, `data` is treated as a JSON string. Use `compact` for compressed output and `raw_output` to output raw string values instead of JSON strings.")
 def query(data: str, filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
     args = []
@@ -52,7 +52,7 @@ def query(data: str, filter: str = ".", compact: bool = False, raw_output: bool 
         return _run_jq(args, input_text=data)
 
 
-@mcp.tool(description="Edits a JSON file in-place using a jq transformation filter.")
+@mcp.tool(description="Edits a JSON file *in-place* using a jq filter. The `filter` should perform a transformation on the JSON data. A backup of the original file is created if `backup` is True (default). Use this to modify JSON files directly.")
 def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
     path = Path(file_path)
@@ -74,13 +74,13 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
     return msg
 
 
-@mcp.tool(description="Reads and pretty-prints a JSON file, with an optional filter.")
+@mcp.tool(description="Reads a JSON file and pretty-prints its contents, optionally filtered by a jq expression. This is helpful for LLMs to process and understand JSON file structures.")
 def read(file_path: str, filter: str = ".") -> str:
     """Read and pretty-print a JSON file."""
     return _run_jq([filter, file_path])
 
 
-@mcp.tool(description="Validates the syntax of JSON data from a string or file.")
+@mcp.tool(description="Validates the syntax of JSON data. The `data` parameter can be a JSON string or a path to a JSON file. Use this to check if JSON data is well-formed before processing it.")
 def validate(data: str) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
@@ -92,7 +92,7 @@ def validate(data: str) -> str:
         raise ValueError(f"Invalid JSON: {e}")
 
 
-@mcp.tool(description="Pretty-prints or compacts JSON data from a string or file.")
+@mcp.tool(description="Formats JSON data, either compacting or pretty-printing it. The `data` parameter can be a JSON string or a file path. Useful for making JSON data more readable or for reducing its size.")
 def format(data: str, compact: bool = False, sort_keys: bool = False) -> str:
     """Format JSON data."""
     data_content = _resolve_data(data)
@@ -104,7 +104,7 @@ def format(data: str, compact: bool = False, sort_keys: bool = False) -> str:
         return json.dumps(parsed, indent=2, sort_keys=sort_keys)
 
 
-@mcp.tool(description="Gets the status of the JQ server and jq CLI availability.")
+@mcp.tool(description="Checks the status of the JQ server and the availability of the `jq` command-line tool. Use this to verify the tool is operational before calling other JQ functions.")
 def server_info() -> str:
     """Get server status and jq version."""
     try:

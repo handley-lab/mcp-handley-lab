@@ -81,7 +81,7 @@ def _format_datetime(dt_str: str) -> str:
         return dt_str + " (all-day)"
 
 
-@mcp.tool(description="Lists calendar events within a date range. End date is exclusive - use next day to include full day.")
+@mcp.tool(description="Lists calendar events within a specified date range. The end date is exclusive (events on the `end_date` itself are *not* included). If `start_date` and `end_date` are not provided, defaults to the next 7 days starting from now. Use this to retrieve events from a specific calendar or across all calendars (using `calendar_id='all'`).")
 def list_events(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
@@ -173,7 +173,7 @@ def list_events(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Retrieves a single calendar event by its ID.")
+@mcp.tool(description="Retrieves a single calendar event by its ID. Use this when you have a specific event ID and need detailed information about it.")
 def get_event(
     event_id: str,
     calendar_id: str = "primary"
@@ -220,7 +220,7 @@ def get_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Creates a new event in a specified calendar.")
+@mcp.tool(description="Creates a new event in the specified calendar. Date/time parameters should be in ISO 8601 format (e.g., `YYYY-MM-DDTHH:MM:SSZ` for UTC or `YYYY-MM-DDTHH:MM:SS+02:00` for a specific timezone). For all-day events, use the format `YYYY-MM-DD`. The `timezone` parameter defaults to UTC. Use this to schedule new events.")
 def create_event(
     summary: str,
     start_datetime: str,
@@ -284,7 +284,7 @@ def create_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Updates an existing calendar event.")
+@mcp.tool(description="Updates an existing calendar event. The `event_summary` parameter is used as a safety check to prevent accidental updates to the wrong event. The event will only be updated if the provided `event_summary` matches the existing event's summary. Use this to modify existing events.")
 def update_event(
     event_summary: str,
     event_id: str,
@@ -357,7 +357,7 @@ def update_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Deletes a calendar event.")
+@mcp.tool(description="Deletes a calendar event by ID. The `event_summary` parameter acts as a safety check: the event will only be deleted if the provided summary matches the existing event's summary. Use this with caution as the deletion is permanent.")
 def delete_event(
     event_summary: str,
     event_id: str,
@@ -393,7 +393,7 @@ def delete_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Lists all available calendars with their IDs and access levels.")
+@mcp.tool(description="Lists all available calendars accessible to the authenticated user, including their IDs and access levels. Use this to discover calendar IDs before using other calendar tools.")
 def list_calendars() -> str:
     """List all accessible calendars."""
     try:
@@ -426,7 +426,7 @@ def list_calendars() -> str:
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Finds available free time slots in a calendar.")
+@mcp.tool(description="Finds available free time slots within a given calendar. If no date range is specified, it defaults to the next 7 days. The `duration_minutes` parameter sets the desired slot length. `work_hours_only` (defaults to True) restricts the search to weekdays between 9 AM and 5 PM in the calendar's timezone. Use this to find suitable meeting times.")
 def find_time(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
@@ -507,7 +507,7 @@ def find_time(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Gets the status of the Google Calendar server and connection.")
+@mcp.tool(description="Checks the status of the Google Calendar Tool server and the connection to the Google Calendar API. Use this to verify the tool is operational before making other Google Calendar requests.")
 def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
     try:

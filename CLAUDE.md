@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CRITICAL SECURITY RULE
+
+**NEVER USE --break-system-packages FLAG**
+
+- This is an externally managed environment (Arch Linux with pacman)
+- NEVER run `pip install --break-system-packages` under any circumstances
+- If package installation fails, use virtual environments: `python -m venv venv && source venv/bin/activate`
+- System package management must remain intact for system stability
+- Breaking system packages can corrupt the entire Python installation
+
 ## Project Overview
 
 This is an MCP (Model Context Protocol) framework project designed to bridge various external services and command-line utilities into a unified API. The framework provides a comprehensive toolkit for:
@@ -18,7 +28,8 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 
 ### Environment Assumptions
 - **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, jq, vim, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
-- Work within a Python virtual environment for all package installations
+- **NEVER use --break-system-packages**: Use virtual environments instead for package installations
+- Work within a Python virtual environment for all package installations: `python -m venv venv && source venv/bin/activate`
 - This is a local toolset, not for wider distribution - failures in practice guide improvements
 
 ### Code Philosophy - CONCISE ELEGANCE IS PARAMOUNT

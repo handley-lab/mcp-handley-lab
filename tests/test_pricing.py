@@ -211,13 +211,13 @@ class TestPricingAccuracy:
     def test_realistic_conversation_cost(self):
         """Test realistic conversation token usage."""
         # Typical conversation: ~500 input tokens, ~300 output tokens
-        cost_flash = calculate_cost("gemini-1.5-flash", 500, 300, "gemini")  # Use legacy for comparison
+        cost_lite = calculate_cost("gemini-2.5-flash-lite-preview-06-17", 500, 300, "gemini")  # Cheapest
         cost_pro = calculate_cost("pro", 500, 300, "gemini")
         cost_gpt4o = calculate_cost("gpt-4o", 500, 300, "openai")
         
-        # Legacy flash should be cheapest, Pro most expensive, GPT-4o middle
-        assert cost_flash < cost_gpt4o < cost_pro
-        assert cost_flash < 0.001  # Should be very cheap
+        # Lite should be cheapest, Pro most expensive, GPT-4o middle
+        assert cost_lite < cost_gpt4o < cost_pro
+        assert cost_lite < 0.001  # Should be very cheap
         assert cost_pro > 0.005   # Should be most expensive
 
 

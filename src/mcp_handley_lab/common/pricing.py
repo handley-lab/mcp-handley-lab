@@ -7,15 +7,10 @@ class PricingCalculator:
     
     # Pricing per 1M tokens (input/output) as of January 2025
     GEMINI_PRICING = {
-        # Gemini 2.5 models (latest)
-        "gemini-2.5-pro": (2.50, 15.00),        # latest pro model
-        "gemini-2.5-flash": (0.30, 2.50),       # latest flash model
+        # Gemini 2.5 models
+        "gemini-2.5-pro": (2.50, 15.00),        # pro model
+        "gemini-2.5-flash": (0.30, 2.50),       # flash model
         "gemini-2.5-flash-lite-preview-06-17": (0.15, 1.25),  # lite model
-        
-        # Gemini 1.5 models (legacy)
-        "gemini-1.5-flash": (0.075, 0.30),      # legacy flash model
-        "gemini-1.5-pro": (1.25, 5.00),         # legacy pro model
-        "gemini-1.5-flash-8b": (0.0375, 0.15),  # legacy flash-8b model
         
         # Image generation
         "imagen-3": (0.030, 0.030),             # per image

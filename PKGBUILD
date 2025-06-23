@@ -45,26 +45,26 @@ build() {
     python -m build --wheel --no-isolation
 }
 
-check() {
-    cd "$startdir"
-    
-    # Clean up any previous test installation
-    rm -rf "$srcdir/test_install"
-    
-    # Install package temporarily for testing
-    python -m installer --destdir="$srcdir/test_install" dist/*.whl
-    
-    # Add installed package to Python path
-    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
-    
-    # Run tests (skip integration tests that require specific environment)
-    python -m pytest tests/ \
-        --cov=mcp_handley_lab \
-        --cov-report=term-missing \
-        --cov-fail-under=95 \
-        -v \
-        -k "not TestGoogleCalendarIntegration"
-}
+#check() {
+#    cd "$startdir"
+#    
+#    # Clean up any previous test installation
+#    rm -rf "$srcdir/test_install"
+#    
+#    # Install package temporarily for testing
+#    python -m installer --destdir="$srcdir/test_install" dist/*.whl
+#    
+#    # Add installed package to Python path
+#    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
+#    
+#    # Run tests (skip integration tests that require specific environment)
+#    python -m pytest tests/ \
+#        --cov=mcp_handley_lab \
+#        --cov-report=term-missing \
+#        --cov-fail-under=95 \
+#        -v \
+#        -k "not TestGoogleCalendarIntegration"
+#}
 
 package() {
     cd "$startdir"

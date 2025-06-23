@@ -72,44 +72,48 @@ class AgentMemory(BaseModel):
 class MemoryManager:
     """Manages agent memories with file-based persistence."""
     
-    def __init__(self, storage_dir: str = "~/.mcp_framework"):
-        self.storage_dir = Path(storage_dir).expanduser()
-        self.storage_dir.mkdir(exist_ok=True)
-        self.agents_file = self.storage_dir / "agents.json"
+    def __init__(self, storage_dir: str = ".mcp_handley_lab"):
+        self.storage_dir = Path(storage_dir)
+        self.agents_dir = self.storage_dir / "agents"
+        self.agents_dir.mkdir(parents=True, exist_ok=True)
         self._agents: Dict[str, AgentMemory] = {}
         self._load_agents()
     
+    def _get_agent_file(self, name: str) -> Path:
+        """Get the file path for an agent."""
+        return self.agents_dir / f"{name}.json"
+    
     def _load_agents(self):
         """Load agents from disk."""
-        if self.agents_file.exists():
+        if not self.agents_dir.exists():
+            return
+            
+        for agent_file in self.agents_dir.glob("*.json"):
             try:
-                with open(self.agents_file) as f:
-                    agents_data = json.load(f)
+                with open(agent_file) as f:
+                    data = json.load(f)
                 
-                for name, data in agents_data.items():
-                    # Convert datetime strings back to datetime objects
-                    data["created_at"] = datetime.fromisoformat(data["created_at"])
-                    for msg in data.get("messages", []):
-                        msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-                    
-                    self._agents[name] = AgentMemory(**data)
+                # Convert datetime strings back to datetime objects
+                data["created_at"] = datetime.fromisoformat(data["created_at"])
+                for msg in data.get("messages", []):
+                    msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
+                
+                agent = AgentMemory(**data)
+                self._agents[agent.name] = agent
             except (json.JSONDecodeError, KeyError, ValueError):
-                # If file is corrupted, start fresh
-                self._agents = {}
+                # Skip corrupted files
+                continue
     
-    def _save_agents(self):
-        """Save agents to disk."""
-        agents_data = {}
-        for name, agent in self._agents.items():
-            # Convert to dict and handle datetime serialization
-            data = agent.model_dump()
-            data["created_at"] = data["created_at"].isoformat()
-            for msg in data["messages"]:
-                msg["timestamp"] = msg["timestamp"].isoformat()
-            agents_data[name] = data
+    def _save_agent(self, agent: AgentMemory):
+        """Save a single agent to disk."""
+        data = agent.model_dump()
+        data["created_at"] = data["created_at"].isoformat()
+        for msg in data["messages"]:
+            msg["timestamp"] = msg["timestamp"].isoformat()
         
-        with open(self.agents_file, 'w') as f:
-            json.dump(agents_data, f, indent=2)
+        agent_file = self._get_agent_file(agent.name)
+        with open(agent_file, 'w') as f:
+            json.dump(data, f, indent=2)
     
     def create_agent(self, name: str, personality: Optional[str] = None) -> AgentMemory:
         """Create a new agent."""
@@ -122,7 +126,7 @@ class MemoryManager:
             created_at=datetime.now()
         )
         self._agents[name] = agent
-        self._save_agents()
+        self._save_agent(agent)
         return agent
     
     def get_agent(self, name: str) -> Optional[AgentMemory]:
@@ -137,7 +141,9 @@ class MemoryManager:
         """Delete an agent."""
         if name in self._agents:
             del self._agents[name]
-            self._save_agents()
+            agent_file = self._get_agent_file(name)
+            if agent_file.exists():
+                agent_file.unlink()
             return True
         return False
     
@@ -146,16 +152,57 @@ class MemoryManager:
         agent = self.get_agent(agent_name)
         if agent:
             agent.add_message(role, content, tokens, cost)
-            self._save_agents()
+            self._save_agent(agent)
     
     def clear_agent_history(self, agent_name: str) -> bool:
         """Clear an agent's conversation history."""
         agent = self.get_agent(agent_name)
         if agent:
             agent.clear_history()
-            self._save_agents()
+            self._save_agent(agent)
             return True
         return False
+    
+    def export_agent(self, name: str, export_path: str) -> bool:
+        """Export an agent to a specified file path."""
+        agent = self.get_agent(name)
+        if not agent:
+            return False
+        
+        try:
+            data = agent.model_dump()
+            data["created_at"] = data["created_at"].isoformat()
+            for msg in data["messages"]:
+                msg["timestamp"] = msg["timestamp"].isoformat()
+            
+            with open(export_path, 'w') as f:
+                json.dump(data, f, indent=2)
+            return True
+        except Exception:
+            return False
+    
+    def import_agent(self, import_path: str, overwrite: bool = False) -> bool:
+        """Import an agent from a specified file path."""
+        try:
+            with open(import_path) as f:
+                data = json.load(f)
+            
+            # Convert datetime strings back to datetime objects
+            data["created_at"] = datetime.fromisoformat(data["created_at"])
+            for msg in data.get("messages", []):
+                msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
+            
+            agent = AgentMemory(**data)
+            
+            # Check if agent already exists
+            if agent.name in self._agents and not overwrite:
+                return False
+            
+            self._agents[agent.name] = agent
+            self._save_agent(agent)
+            return True
+        except Exception:
+            return False
 
 
 # Global memory manager instance

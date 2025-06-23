@@ -17,6 +17,20 @@ from mcp_handley_lab.tool_chainer.tool import (
 class TestHelperFunctions:
     """Test helper functions."""
     
+    def setup_method(self):
+        """Set up test method."""
+        # Clear global state
+        REGISTERED_TOOLS.clear()
+        DEFINED_CHAINS.clear()
+        EXECUTION_HISTORY.clear()
+    
+    def teardown_method(self):
+        """Clean up after test method."""
+        # Clear global state
+        REGISTERED_TOOLS.clear()
+        DEFINED_CHAINS.clear()
+        EXECUTION_HISTORY.clear()
+    
     @patch('subprocess.run')
     @patch('tempfile.NamedTemporaryFile')
     def test_execute_mcp_tool_success(self, mock_tempfile, mock_subprocess):
@@ -184,13 +198,15 @@ class TestHelperFunctions:
         """Test evaluating invalid condition."""
         assert _evaluate_condition("invalid syntax @@", {}, {}) is False
     
-    @patch('mcp_handley_lab.tool_chainer.tool.EXECUTION_HISTORY', [{"exec": "test"}])
-    @patch('mcp_handley_lab.tool_chainer.tool.DEFINED_CHAINS', {"chain": {"steps": []}})
-    @patch('mcp_handley_lab.tool_chainer.tool.REGISTERED_TOOLS', {"test": {"data": "value"}})
     @patch('json.dump')
     @patch('builtins.open', new_callable=mock_open)
-    def test_save_state(self, mock_file, mock_json_dump, mock_registered_tools, mock_defined_chains, mock_execution_history):
+    def test_save_state(self, mock_file, mock_json_dump):
         """Test saving state to file."""
+        # Set up test data
+        REGISTERED_TOOLS["test"] = {"data": "value"}
+        DEFINED_CHAINS["chain"] = {"steps": []}
+        EXECUTION_HISTORY.append({"exec": "test"})
+        
         _save_state()
         
         mock_file.assert_called_once()

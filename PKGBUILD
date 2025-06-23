@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
-pkgname=mcp-handley-lab
+pkgname=python-mcp-handley-lab
 pkgver=0.1.0
-pkgrel=1
+pkgrel=4
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
@@ -37,39 +37,39 @@ optdepends=(
     'python-black: Code formatting for development'
     'python-ruff: Linting for development'
 )
-source=("$pkgname-$pkgver.tar.gz")
-sha256sums=('SKIP')
+source=()
+sha256sums=()
 
 build() {
-    cd "$pkgname-$pkgver"
+    cd "$startdir"
     python -m build --wheel --no-isolation
 }
 
 check() {
-    cd "$pkgname-$pkgver"
-    # Install package in test environment
+    cd "$startdir"
+    
+    # Clean up any previous test installation
+    rm -rf "$srcdir/test_install"
+    
+    # Install package temporarily for testing
     python -m installer --destdir="$srcdir/test_install" dist/*.whl
     
     # Add installed package to Python path
-    export PYTHONPATH="$srcdir/test_install/usr/lib/python*/site-packages:$PYTHONPATH"
+    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
     
-    # Run tests with coverage
+    # Run tests (skip integration tests that require specific environment)
     python -m pytest tests/ \
-        --cov=mcp_framework \
+        --cov=mcp_handley_lab \
         --cov-report=term-missing \
         --cov-fail-under=95 \
-        -v
+        -v \
+        -k "not TestGoogleCalendarIntegration"
 }
 
 package() {
-    cd "$pkgname-$pkgver"
+    cd "$startdir"
     python -m installer --destdir="$pkgdir" dist/*.whl
     
-    
     # Install documentation
-    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"
-    
-    # Install example configuration
-    install -Dm644 .env.example "$pkgdir/usr/share/doc/$pkgname/env.example"
 }

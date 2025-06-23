@@ -42,3 +42,6 @@ htmlcov/
 # Temporary files
 *.tmp
 *~
+
+# MCP Handley Lab local data
+.mcp_handley_lab/

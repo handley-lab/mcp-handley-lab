@@ -145,8 +145,9 @@ class TestMemoryManager:
     def test_memory_manager_initialization(self, memory_mgr, temp_storage):
         """Test memory manager initialization."""
         assert memory_mgr.storage_dir == Path(temp_storage)
-        assert memory_mgr.agents_file == Path(temp_storage) / "agents.json"
+        assert memory_mgr.agents_dir == Path(temp_storage) / "agents"
         assert memory_mgr._agents == {}
+        assert memory_mgr.agents_dir.exists()
     
     def test_create_agent(self, memory_mgr):
         """Test creating a new agent."""
@@ -155,7 +156,8 @@ class TestMemoryManager:
         assert agent.name == "test_agent"
         assert agent.personality == "Test personality"
         assert "test_agent" in memory_mgr._agents
-        assert memory_mgr.agents_file.exists()
+        agent_file = memory_mgr._get_agent_file("test_agent")
+        assert agent_file.exists()
     
     def test_create_duplicate_agent(self, memory_mgr):
         """Test creating duplicate agent raises error."""
@@ -258,25 +260,290 @@ class TestMemoryManager:
         assert loaded_agent.total_cost == 0.01
     
     def test_load_corrupted_file(self, memory_mgr):
-        """Test loading corrupted agents file starts fresh."""
-        # Write corrupted JSON
-        memory_mgr.agents_file.write_text("invalid json")
+        """Test loading corrupted agent file is skipped."""
+        # Create agent first
+        memory_mgr.create_agent("test_agent")
         
-        # Create new manager - should start fresh
+        # Write corrupted JSON to agent file
+        agent_file = memory_mgr._get_agent_file("test_agent")
+        agent_file.write_text("invalid json")
+        
+        # Create new manager - should skip corrupted file
         new_mgr = MemoryManager(storage_dir=str(memory_mgr.storage_dir))
         
-        assert new_mgr._agents == {}
+        assert new_mgr.get_agent("test_agent") is None
     
-    def test_load_missing_file(self, memory_mgr):
-        """Test loading when file doesn't exist."""
-        # Remove file if it exists
-        if memory_mgr.agents_file.exists():
-            memory_mgr.agents_file.unlink()
-        
-        # Create new manager - should start fresh
-        new_mgr = MemoryManager(storage_dir=str(memory_mgr.storage_dir))
+    def test_load_missing_directory(self, temp_storage):
+        """Test loading when agents directory doesn't exist."""
+        # Create manager with fresh directory
+        new_mgr = MemoryManager(storage_dir=temp_storage)
         
         assert new_mgr._agents == {}
+        assert new_mgr.agents_dir.exists()
+    
+    def test_load_agents_no_directory(self, temp_storage):
+        """Test _load_agents when directory doesn't exist yet."""
+        # Create manager but remove agents directory after creation
+        mgr = MemoryManager(storage_dir=temp_storage)
+        mgr.agents_dir.rmdir()  # Remove the directory
+        
+        # Call _load_agents directly on empty directory
+        mgr._load_agents()
+        
+        # Should handle gracefully - no agents loaded
+        assert mgr._agents == {}
+    
+    def test_delete_agent_removes_file(self, memory_mgr):
+        """Test deleting agent removes the file."""
+        memory_mgr.create_agent("test_agent")
+        agent_file = memory_mgr._get_agent_file("test_agent")
+        assert agent_file.exists()
+        
+        success = memory_mgr.delete_agent("test_agent")
+        
+        assert success is True
+        assert not agent_file.exists()
+    
+    def test_get_agent_file(self, memory_mgr):
+        """Test getting agent file path."""
+        agent_file = memory_mgr._get_agent_file("test_agent")
+        expected_path = memory_mgr.agents_dir / "test_agent.json"
+        assert agent_file == expected_path
+    
+    def test_save_agent_method(self, memory_mgr):
+        """Test the _save_agent method."""
+        agent = memory_mgr.create_agent("test_agent", "Test personality")
+        agent.add_message("user", "Hello", tokens=5, cost=0.01)
+        
+        # Save agent directly
+        memory_mgr._save_agent(agent)
+        
+        # Verify file content
+        agent_file = memory_mgr._get_agent_file("test_agent")
+        with open(agent_file) as f:
+            data = json.load(f)
+        
+        assert data["name"] == "test_agent"
+        assert data["personality"] == "Test personality"
+        assert len(data["messages"]) == 1
+        assert data["messages"][0]["content"] == "Hello"
+    
+    def test_multiple_agents_individual_files(self, memory_mgr):
+        """Test that multiple agents get individual files."""
+        agent1 = memory_mgr.create_agent("agent1", "First agent")
+        agent2 = memory_mgr.create_agent("agent2", "Second agent")
+        
+        file1 = memory_mgr._get_agent_file("agent1")
+        file2 = memory_mgr._get_agent_file("agent2")
+        
+        assert file1.exists()
+        assert file2.exists()
+        assert file1 != file2
+        
+        # Verify file contents are different
+        with open(file1) as f:
+            data1 = json.load(f)
+        with open(file2) as f:
+            data2 = json.load(f)
+        
+        assert data1["name"] == "agent1"
+        assert data2["name"] == "agent2"
+        assert data1["personality"] == "First agent"
+        assert data2["personality"] == "Second agent"
+
+
+class TestMemoryManagerExportImport:
+    """Test cases for export/import functionality."""
+    
+    @pytest.fixture
+    def temp_storage(self):
+        """Create temporary storage directory."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield temp_dir
+    
+    @pytest.fixture
+    def memory_mgr(self, temp_storage):
+        """Create memory manager with temporary storage."""
+        return MemoryManager(storage_dir=temp_storage)
+    
+    def test_export_agent_success(self, memory_mgr):
+        """Test successful agent export."""
+        agent = memory_mgr.create_agent("test_agent", "Export test")
+        memory_mgr.add_message("test_agent", "user", "Hello", tokens=5, cost=0.01)
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            export_path = f.name
+        
+        try:
+            success = memory_mgr.export_agent("test_agent", export_path)
+            assert success is True
+            
+            # Verify exported content
+            with open(export_path) as f:
+                data = json.load(f)
+            
+            assert data["name"] == "test_agent"
+            assert data["personality"] == "Export test"
+            assert len(data["messages"]) == 1
+            assert data["messages"][0]["content"] == "Hello"
+        finally:
+            Path(export_path).unlink()
+    
+    def test_export_nonexistent_agent(self, memory_mgr):
+        """Test exporting non-existent agent returns False."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            export_path = f.name
+        
+        try:
+            success = memory_mgr.export_agent("nonexistent", export_path)
+            assert success is False
+        finally:
+            if Path(export_path).exists():
+                Path(export_path).unlink()
+    
+    def test_export_agent_invalid_path(self, memory_mgr):
+        """Test exporting to invalid path returns False."""
+        memory_mgr.create_agent("test_agent")
+        
+        # Try to export to invalid path (directory that doesn't exist)
+        success = memory_mgr.export_agent("test_agent", "/nonexistent/path/agent.json")
+        assert success is False
+    
+    def test_import_agent_success(self, memory_mgr):
+        """Test successful agent import."""
+        # Create export data
+        agent_data = {
+            "name": "imported_agent",
+            "personality": "Imported personality",
+            "created_at": "2025-01-01T12:00:00",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello",
+                    "timestamp": "2025-01-01T12:01:00",
+                    "tokens": 5,
+                    "cost": 0.01
+                }
+            ],
+            "total_tokens": 5,
+            "total_cost": 0.01
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(agent_data, f)
+            import_path = f.name
+        
+        try:
+            success = memory_mgr.import_agent(import_path)
+            assert success is True
+            
+            # Verify imported agent
+            agent = memory_mgr.get_agent("imported_agent")
+            assert agent is not None
+            assert agent.name == "imported_agent"
+            assert agent.personality == "Imported personality"
+            assert len(agent.messages) == 1
+            assert agent.messages[0].content == "Hello"
+            assert agent.total_tokens == 5
+            assert agent.total_cost == 0.01
+        finally:
+            Path(import_path).unlink()
+    
+    def test_import_agent_overwrite_false(self, memory_mgr):
+        """Test importing existing agent without overwrite returns False."""
+        memory_mgr.create_agent("existing_agent")
+        
+        agent_data = {
+            "name": "existing_agent",
+            "personality": "New personality",
+            "created_at": "2025-01-01T12:00:00",
+            "messages": [],
+            "total_tokens": 0,
+            "total_cost": 0.0
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(agent_data, f)
+            import_path = f.name
+        
+        try:
+            success = memory_mgr.import_agent(import_path, overwrite=False)
+            assert success is False
+            
+            # Original agent should be unchanged
+            agent = memory_mgr.get_agent("existing_agent")
+            assert agent.personality is None  # Original had no personality
+        finally:
+            Path(import_path).unlink()
+    
+    def test_import_agent_overwrite_true(self, memory_mgr):
+        """Test importing existing agent with overwrite."""
+        memory_mgr.create_agent("existing_agent", "Original personality")
+        
+        agent_data = {
+            "name": "existing_agent",
+            "personality": "New personality",
+            "created_at": "2025-01-01T12:00:00",
+            "messages": [],
+            "total_tokens": 0,
+            "total_cost": 0.0
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(agent_data, f)
+            import_path = f.name
+        
+        try:
+            success = memory_mgr.import_agent(import_path, overwrite=True)
+            assert success is True
+            
+            # Agent should be updated
+            agent = memory_mgr.get_agent("existing_agent")
+            assert agent.personality == "New personality"
+        finally:
+            Path(import_path).unlink()
+    
+    def test_import_agent_invalid_file(self, memory_mgr):
+        """Test importing invalid file returns False."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            f.write("invalid json")
+            import_path = f.name
+        
+        try:
+            success = memory_mgr.import_agent(import_path)
+            assert success is False
+        finally:
+            Path(import_path).unlink()
+    
+    def test_import_agent_missing_file(self, memory_mgr):
+        """Test importing missing file returns False."""
+        success = memory_mgr.import_agent("/nonexistent/file.json")
+        assert success is False
+    
+    def test_import_agent_creates_file(self, memory_mgr):
+        """Test that importing agent creates individual file."""
+        agent_data = {
+            "name": "file_test_agent",
+            "personality": "File test",
+            "created_at": "2025-01-01T12:00:00",
+            "messages": [],
+            "total_tokens": 0,
+            "total_cost": 0.0
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(agent_data, f)
+            import_path = f.name
+        
+        try:
+            success = memory_mgr.import_agent(import_path)
+            assert success is True
+            
+            # Check that individual file was created
+            agent_file = memory_mgr._get_agent_file("file_test_agent")
+            assert agent_file.exists()
+        finally:
+            Path(import_path).unlink()
 
 
 class TestGlobalMemoryManager:

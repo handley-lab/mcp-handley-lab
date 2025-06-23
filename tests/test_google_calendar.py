@@ -259,8 +259,13 @@ class TestGoogleCalendarService:
         # Create temp files that don't exist
         import tempfile
         with tempfile.TemporaryDirectory() as tmpdir:
-            mock_settings.google_token_file = f"{tmpdir}/nonexistent_token.pkl"
-            mock_settings.google_credentials_file = f"{tmpdir}/nonexistent_credentials.json"
+            mock_token_path = Mock()
+            mock_token_path.exists.return_value = False
+            mock_credentials_path = Mock()
+            mock_credentials_path.exists.return_value = False
+            
+            mock_settings.google_token_path = mock_token_path
+            mock_settings.google_credentials_path = mock_credentials_path
             
             with pytest.raises(FileNotFoundError) as exc_info:
                 _get_calendar_service()
@@ -274,35 +279,32 @@ class TestGoogleCalendarService:
     def test_get_calendar_service_no_existing_token(self, mock_flow_class, mock_pickle_dump,
                                                    mock_settings, mock_build):
         """Test getting service when no token file exists."""
-        # Create temp directory with credentials file but no token file
-        import tempfile
-        import os
-        with tempfile.TemporaryDirectory() as tmpdir:
-            token_file = f"{tmpdir}/token.pkl"
-            credentials_file = f"{tmpdir}/credentials.json"
-            
-            # Create credentials file but not token file
-            with open(credentials_file, 'w') as f:
-                f.write('{"installed": {"client_id": "test"}}')
-            
-            mock_settings.google_token_file = token_file
-            mock_settings.google_credentials_file = credentials_file
-            
-            # Mock OAuth flow
-            mock_flow = Mock()
-            mock_new_creds = Mock()
-            mock_flow.run_local_server.return_value = mock_new_creds
-            mock_flow_class.from_client_secrets_file.return_value = mock_flow
-            
-            mock_service = Mock()
-            mock_build.return_value = mock_service
-            
-            with patch('builtins.open', mock_open()):
-                result = _get_calendar_service()
-            
-            assert result == mock_service
-            mock_flow_class.from_client_secrets_file.assert_called_once()
-            mock_pickle_dump.assert_called_once()
+        # Mock paths
+        mock_token_path = Mock()
+        mock_token_path.exists.return_value = False
+        mock_token_path.parent.mkdir = Mock()
+        
+        mock_credentials_path = Mock()
+        mock_credentials_path.exists.return_value = True
+        
+        mock_settings.google_token_path = mock_token_path
+        mock_settings.google_credentials_path = mock_credentials_path
+        
+        # Mock OAuth flow
+        mock_flow = Mock()
+        mock_new_creds = Mock()
+        mock_flow.run_local_server.return_value = mock_new_creds
+        mock_flow_class.from_client_secrets_file.return_value = mock_flow
+        
+        mock_service = Mock()
+        mock_build.return_value = mock_service
+        
+        with patch('builtins.open', mock_open()):
+            result = _get_calendar_service()
+        
+        assert result == mock_service
+        mock_flow_class.from_client_secrets_file.assert_called_once()
+        mock_pickle_dump.assert_called_once()
 
 
 class TestListEvents:

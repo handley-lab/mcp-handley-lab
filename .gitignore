@@ -45,3 +45,8 @@ htmlcov/
 
 # MCP Handley Lab local data
 .mcp_handley_lab/
+
+# PKGBUILD generated files
+pkg/
+*.pkg.tar.zst
+*.pkg.tar.xz

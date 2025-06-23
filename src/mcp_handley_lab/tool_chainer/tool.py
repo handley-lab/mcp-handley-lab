@@ -1,4 +1,16 @@
-"""Tool chainer for executing sequences of MCP tools."""
+"""Tool chainer for executing sequences of MCP tools.
+
+Key concepts:
+- Variables: Use {var_name} syntax (not ${var_name})
+- File paths: Use exact paths in arguments, not variable substitution
+- Outputs: Tools return descriptive text, not just values
+- Chaining: Use output_to to capture results for next steps
+
+Example workflow:
+1. code2prompt generates summary → output_to="summary"
+2. gemini analyzes with file path: {"files": [{"path": "/tmp/code_summary.md"}]}
+   NOT: {"files": [{"path": "{summary}"}]}
+"""
 import json
 import subprocess
 import tempfile
@@ -228,7 +240,9 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
 
 
 
-@mcp.tool(description="Discovers available tools from a specified MCP server command.")
+@mcp.tool(description="""Discovers available tools from a specified MCP server command.
+
+Use this to explore what tools are available before registering them for chaining.""")
 def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
     try:
@@ -317,7 +331,13 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
         return f"❌ Discovery error: {e}"
 
 
-@mcp.tool(description="Registers a specific tool from an MCP server, making it available for chaining.")
+@mcp.tool(description="""Registers a specific tool from an MCP server, making it available for chaining.
+
+Important notes for file-based tools:
+- Tools that generate files typically return descriptive text about what was created, not just the file path
+- When chaining file-based tools, use fixed file paths in arguments rather than variables
+- Use output_to="my_var" to capture tool outputs for reference
+- Variable syntax is {my_var} (not ${my_var})""")
 def register_tool(
     tool_id: str,
     server_command: str,
@@ -345,7 +365,22 @@ def register_tool(
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
 
-@mcp.tool(description="Defines a sequential chain of registered tools.")
+@mcp.tool(description="""Defines a sequential chain of registered tools.
+
+Variable substitution:
+- Use {variable_name} syntax to reference variables (NOT ${variable_name})
+- Step outputs are stored with output_to parameter and referenced as {output_name}
+- Initial input available as {INITIAL_INPUT}
+- User-provided variables available as {var_name}
+
+File path handling:
+- For file operations, use literal paths: "file_path": "/actual/path/file.txt"
+- Only use variables if extracting paths from tool output text
+- Example: code2prompt returns "Generated file at /tmp/output.md", not just "/tmp/output.md"
+
+Example chain:
+Step 1: generate_file → output_to="file_info"
+Step 2: read_file with arguments={"path": "/tmp/generated.txt"} (use literal path)""")
 def chain_tools(
     chain_id: str,
     steps: List[ToolStep],
@@ -357,9 +392,17 @@ def chain_tools(
     registered_tools, defined_chains, execution_history = _load_state(storage_path)
     
     # Validate that all referenced tools are registered
-    for step in steps:
+    for i, step in enumerate(steps):
         if step.tool_id not in registered_tools:
             raise ValueError(f"Tool '{step.tool_id}' is not registered. Register it first with register_tool().")
+        
+        # Warn about potential file path variable usage
+        for arg_key, arg_value in step.arguments.items():
+            if isinstance(arg_value, str) and 'path' in arg_key.lower():
+                if arg_value.startswith('{') and arg_value.endswith('}'):
+                    print(f"⚠️  Warning (Step {i+1}): Using variable '{arg_value}' for '{arg_key}'.")
+                    print("   File paths usually need exact strings, not variables.")
+                    print("   Only use variables if the previous step output contains the actual path.")
     
     defined_chains[chain_id] = {
         "steps": [step.model_dump() for step in steps],
@@ -381,7 +424,20 @@ def chain_tools(
     return result
 
 
-@mcp.tool(description="Executes a defined chain with an initial input and optional variables.")
+@mcp.tool(description="""Executes a defined chain with an initial input and optional variables.
+
+Variable reference guide:
+- {INITIAL_INPUT}: The initial_input parameter value
+- {step_name}: Output from step with output_to="step_name"
+- {var_name}: User-provided variables
+- Syntax is {var} not ${var}
+
+File path tips:
+- Use exact file paths for file operations, not variables
+- File-generating tools often return descriptive messages, not just paths
+- Check the actual output before using it as a file path
+
+Example: If tool returns "Created summary at /tmp/code.md", use "/tmp/code.md" directly in next step.""")
 def execute_chain(
     chain_id: str,
     initial_input: Optional[str] = None,
@@ -568,7 +624,7 @@ def clear_cache(storage_dir: Optional[str] = None) -> str:
     return "✅ Cache and execution history cleared successfully!"
 
 
-@mcp.tool(description="Shows the status of the tool chainer, including registered tools.")
+@mcp.tool(description="Shows the status of the tool chainer, including registered tools and usage examples.")
 def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
@@ -597,13 +653,32 @@ Storage Directory: {storage_path}
     
     result += """
 
-Available tools:
+**Available Tools:**
 - discover_tools: Find tools on MCP servers
 - register_tool: Register tools for chaining
 - chain_tools: Define tool execution chains
 - execute_chain: Run defined chains
 - show_history: View execution history
 - clear_cache: Clear cached data
-- server_info: Get server status"""
+- server_info: Get server status
+
+**Variable Usage Examples:**
+
+1. Capture tool output:
+   - Set: output_to="my_result" 
+   - Use: {my_result} in next step
+
+2. File path handling:
+   - Fixed path: "file_path": "/tmp/data.json"
+   - From output: "data": "{step1_output}"
+   - NOT: "file_path": "{some_var}" (unless var contains the path)
+
+3. Variable syntax:
+   - Correct: {variable_name}
+   - Wrong: ${variable_name} or $variable_name
+
+Example chain for file processing:
+Step 1: generate_file → output_to="file_info"
+Step 2: read_file with arguments={"path": "/tmp/generated.txt"}"""
     
     return result

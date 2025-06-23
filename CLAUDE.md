@@ -86,14 +86,14 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ## Completed Implementations
 
 ### Vim Tool ✓ **100% Test Coverage**
-- **Location**: `src/mcp_framework/vim/`
+- **Location**: `src/mcp_handley_lab/vim/`
 - **Functions**: `prompt_user_edit`, `quick_edit`, `open_file`, `server_info`
 - **Features**: Instructions support, diff output, backup creation, file extension detection
 - **Tests**: 24 test cases covering all functionality and edge cases
 - **Status**: Production ready with comprehensive error handling
 
 ### Google Calendar Tool ✓ **100% Test Coverage**
-- **Location**: `src/mcp_framework/google_calendar/`
+- **Location**: `src/mcp_handley_lab/google_calendar/`
 - **Functions**: `list_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
 - **Features**: OAuth2 authentication, calendar management, event CRUD operations, free time finding
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
@@ -112,16 +112,16 @@ source venv/bin/activate
 pip install -e .
 
 # Run individual tool servers
-python -m mcp_framework.jq
-python -m mcp_framework.vim
-python -m mcp_framework.google_calendar
-python -m mcp_framework.llm.gemini
-python -m mcp_framework.llm.openai
-python -m mcp_framework.code2prompt
-python -m mcp_framework.tool_chainer
+python -m mcp_handley_lab.jq
+python -m mcp_handley_lab.vim
+python -m mcp_handley_lab.google_calendar
+python -m mcp_handley_lab.llm.gemini
+python -m mcp_handley_lab.llm.openai
+python -m mcp_handley_lab.code2prompt
+python -m mcp_handley_lab.tool_chainer
 
 # Test with MCP client
-mcp-cli connect stdio python -m mcp_framework.jq
+mcp-cli connect stdio python -m mcp_handley_lab.jq
 ```
 
 ## Using Gemini Agents for Code Review and Ideation

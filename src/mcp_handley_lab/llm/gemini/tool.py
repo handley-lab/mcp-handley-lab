@@ -235,32 +235,34 @@ def generate_image(
 ) -> str:
     """Generate images with Gemini using Imagen 3."""
     import tempfile
-    import base64
-    from mcp_handley_lab.common.pricing import calculate_cost, format_usage
-    from mcp_handley_lab.common.memory import memory_manager
+    from google import genai as google_genai
+    from google.genai import types
+    from PIL import Image
+    from io import BytesIO
     
-    # Use Imagen 3 for image generation (use full model ID for API)
+    # Use Imagen 3 for image generation
     api_model_name = "imagen-3.0-generate-002"
     pricing_model_name = "imagen-3"  # For pricing calculation
     
-    # Create Gemini model for image generation
-    gemini_model = genai.GenerativeModel(api_model_name)
+    # Create Gemini client for image generation
+    client = google_genai.Client(api_key=settings.gemini_api_key)
     
-    # Generate image using Gemini's generateContent with Imagen
-    response = gemini_model.generate_content(
-        contents=[prompt],
-        generation_config={
-            "response_mime_type": "image/png"
-        }
+    # Generate image using Gemini's generate_images
+    response = client.models.generate_images(
+        model=api_model_name,
+        prompt=prompt,
+        config=types.GenerateImagesConfig(
+            number_of_images=1,
+        )
     )
     
-    # Extract base64 image data
-    image_part = response.candidates[0].content.parts[0]
-    image_data = base64.b64decode(image_part.inline_data.data)
+    # Extract image data from response
+    generated_image = response.generated_images[0]
+    image_bytes = generated_image.image.image_bytes
     
     # Save to temp file
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        f.write(image_data)
+        f.write(image_bytes)
         saved_path = f.name
     
     # Handle agent memory and format usage
@@ -386,7 +388,7 @@ Agent Management:
 Available tools:
 - ask: Chat with Gemini models
 - analyze_image: Image analysis with vision models
-- generate_image: Generate images (not yet available)
+- generate_image: Generate images with Imagen 3
 - create_agent: Create persistent conversation agents
 - list_agents: List all agents and stats
 - agent_stats: Get detailed agent statistics

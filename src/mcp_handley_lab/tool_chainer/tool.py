@@ -11,12 +11,8 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Tool Chainer")
 
-# Global storage for registered tools and execution state
-REGISTERED_TOOLS: Dict[str, Dict[str, Any]] = {}
-DEFINED_CHAINS: Dict[str, Dict[str, Any]] = {}
-EXECUTION_HISTORY: List[Dict[str, Any]] = []
-CACHE_DIR = Path.cwd() / ".mcp_handley_lab" / "tool_chainer"
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
+# Default storage directory
+DEFAULT_STORAGE_DIR = Path.cwd() / ".mcp_handley_lab" / "tool_chainer"
 
 
 class ToolStep(BaseModel):
@@ -27,31 +23,37 @@ class ToolStep(BaseModel):
     output_to: Optional[str] = None
 
 
-def _save_state():
-    """Save current state to disk."""
-    state = {
-        "registered_tools": REGISTERED_TOOLS,
-        "defined_chains": DEFINED_CHAINS,
-        "execution_history": EXECUTION_HISTORY
-    }
-    with open(CACHE_DIR / "state.json", "w") as f:
-        json.dump(state, f, indent=2, default=str)
-
-
-def _load_state():
+def _load_state(storage_dir: Path) -> tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]], List[Dict[str, Any]]]:
     """Load state from disk."""
-    global REGISTERED_TOOLS, DEFINED_CHAINS, EXECUTION_HISTORY
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    state_file = storage_dir / "state.json"
     
-    state_file = CACHE_DIR / "state.json"
     if state_file.exists():
         try:
             with open(state_file) as f:
                 state = json.load(f)
-            REGISTERED_TOOLS = state.get("registered_tools", {})
-            DEFINED_CHAINS = state.get("defined_chains", {})
-            EXECUTION_HISTORY = state.get("execution_history", [])
+            return (
+                state.get("registered_tools", {}),
+                state.get("defined_chains", {}),
+                state.get("execution_history", [])
+            )
         except (json.JSONDecodeError, KeyError):
             pass
+    
+    return {}, {}, []
+
+
+def _save_state(storage_dir: Path, registered_tools: Dict[str, Dict[str, Any]], 
+                defined_chains: Dict[str, Dict[str, Any]], execution_history: List[Dict[str, Any]]):
+    """Save state to disk."""
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    state = {
+        "registered_tools": registered_tools,
+        "defined_chains": defined_chains,
+        "execution_history": execution_history
+    }
+    with open(storage_dir / "state.json", "w") as f:
+        json.dump(state, f, indent=2, default=str)
 
 
 def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
@@ -174,8 +176,6 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
         return False
 
 
-# Load state on module import
-_load_state()
 
 
 @mcp.tool(description="Discovers available tools from a specified MCP server command.")
@@ -240,10 +240,14 @@ def register_tool(
     tool_name: str,
     description: Optional[str] = None,
     output_format: str = "text",
-    timeout: Optional[int] = None
+    timeout: Optional[int] = None,
+    storage_dir: Optional[str] = None
 ) -> str:
     """Register a tool for use in chains."""
-    REGISTERED_TOOLS[tool_id] = {
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+    registered_tools, defined_chains, execution_history = _load_state(storage_path)
+    
+    registered_tools[tool_id] = {
         "server_command": server_command,
         "tool_name": tool_name,
         "description": description or f"Tool {tool_name} from {server_command}",
@@ -252,7 +256,7 @@ def register_tool(
         "registered_at": datetime.now().isoformat()
     }
     
-    _save_state()
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
@@ -261,21 +265,25 @@ def register_tool(
 def chain_tools(
     chain_id: str,
     steps: List[ToolStep],
-    save_to_file: Optional[str] = None
+    save_to_file: Optional[str] = None,
+    storage_dir: Optional[str] = None
 ) -> str:
     """Define a chain of tool executions."""
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+    registered_tools, defined_chains, execution_history = _load_state(storage_path)
+    
     # Validate that all referenced tools are registered
     for step in steps:
-        if step.tool_id not in REGISTERED_TOOLS:
+        if step.tool_id not in registered_tools:
             raise ValueError(f"Tool '{step.tool_id}' is not registered. Register it first with register_tool().")
     
-    DEFINED_CHAINS[chain_id] = {
+    defined_chains[chain_id] = {
         "steps": [step.model_dump() for step in steps],
         "save_to_file": save_to_file,
         "created_at": datetime.now().isoformat()
     }
     
-    _save_state()
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     result = f"✅ Chain '{chain_id}' defined successfully!\n\n**Steps:**\n"
     for i, step in enumerate(steps, 1):
@@ -294,13 +302,17 @@ def execute_chain(
     chain_id: str,
     initial_input: Optional[str] = None,
     variables: Optional[Dict[str, Any]] = None,
-    timeout: Optional[int] = None
+    timeout: Optional[int] = None,
+    storage_dir: Optional[str] = None
 ) -> str:
     """Execute a defined tool chain."""
-    if chain_id not in DEFINED_CHAINS:
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+    registered_tools, defined_chains, execution_history = _load_state(storage_path)
+    
+    if chain_id not in defined_chains:
         raise ValueError(f"Chain '{chain_id}' not found. Define it first with chain_tools().")
     
-    chain_config = DEFINED_CHAINS[chain_id]
+    chain_config = defined_chains[chain_id]
     variables = variables or {}
     step_outputs = {}
     
@@ -337,10 +349,10 @@ def execute_chain(
                 continue
             
             # Get tool configuration
-            if step.tool_id not in REGISTERED_TOOLS:
+            if step.tool_id not in registered_tools:
                 raise ValueError(f"Tool '{step.tool_id}' not registered")
             
-            tool_config = REGISTERED_TOOLS[step.tool_id]
+            tool_config = registered_tools[step.tool_id]
             
             # Substitute variables in arguments
             substituted_args = {}
@@ -399,8 +411,8 @@ def execute_chain(
     finally:
         execution_log["completed_at"] = datetime.now().isoformat()
         execution_log["total_duration"] = time.time() - start_time
-        EXECUTION_HISTORY.append(execution_log)
-        _save_state()
+        execution_history.append(execution_log)
+        _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     # Save final result to file if requested
     if chain_config.get("save_to_file") and execution_log.get("final_result"):
@@ -432,12 +444,15 @@ def execute_chain(
 
 
 @mcp.tool(description="Displays the execution history of recent chains.")
-def show_history(limit: int = 10) -> str:
+def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     """Show recent chain execution history."""
-    if not EXECUTION_HISTORY:
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+    _, _, execution_history = _load_state(storage_path)
+    
+    if not execution_history:
         return "No chain executions found."
     
-    recent_executions = EXECUTION_HISTORY[-limit:]
+    recent_executions = execution_history[-limit:]
     
     result = f"📚 **Chain Execution History** (last {len(recent_executions)})\n\n"
     
@@ -455,44 +470,46 @@ def show_history(limit: int = 10) -> str:
 
 
 @mcp.tool(description="Clears all cached results and execution history.")
-def clear_cache() -> str:
+def clear_cache(storage_dir: Optional[str] = None) -> str:
     """Clear all cached data."""
-    global EXECUTION_HISTORY
-    
-    EXECUTION_HISTORY = []
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     
     # Clear cache files
-    for cache_file in CACHE_DIR.glob("*.json"):
+    for cache_file in storage_path.glob("*.json"):
         cache_file.unlink()
     
-    _save_state()
+    # Save empty state
+    _save_state(storage_path, {}, {}, [])
     
     return "✅ Cache and execution history cleared successfully!"
 
 
 @mcp.tool(description="Shows the status of the tool chainer, including registered tools.")
-def server_info() -> str:
+def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""
+    storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
+    registered_tools, defined_chains, execution_history = _load_state(storage_path)
+    
     result = f"""Tool Chainer Server Status
 ============================
 Status: Ready ✓
-Cache Directory: {CACHE_DIR}
+Storage Directory: {storage_path}
 
-**Registered Tools:** {len(REGISTERED_TOOLS)}"""
+**Registered Tools:** {len(registered_tools)}"""
     
-    if REGISTERED_TOOLS:
+    if registered_tools:
         result += "\n"
-        for tool_id, config in REGISTERED_TOOLS.items():
+        for tool_id, config in registered_tools.items():
             result += f"- {tool_id}: {config['tool_name']} ({config['server_command']})\n"
     
-    result += f"\n**Defined Chains:** {len(DEFINED_CHAINS)}"
-    if DEFINED_CHAINS:
+    result += f"\n**Defined Chains:** {len(defined_chains)}"
+    if defined_chains:
         result += "\n"
-        for chain_id, config in DEFINED_CHAINS.items():
+        for chain_id, config in defined_chains.items():
             step_count = len(config['steps'])
             result += f"- {chain_id}: {step_count} steps\n"
     
-    result += f"\n**Execution History:** {len(EXECUTION_HISTORY)} executions"
+    result += f"\n**Execution History:** {len(execution_history)} executions"
     
     result += """
 

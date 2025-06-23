@@ -32,6 +32,8 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
 - **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirections
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
+- **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
+- **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
 
 Examples of what to avoid:
 - Checking if a file exists before reading (let it fail with FileNotFoundError)
@@ -39,6 +41,8 @@ Examples of what to avoid:
 - Creating abstract base classes for single implementations
 - Writing "just in case" error handling
 - Adding type hints for obvious types (let FastMCP infer from usage)
+- Global mutable state (prefer stateless functions with explicit storage parameters)
+- Complex class hierarchies (prefer simple functions)
 
 ### Communication Standards
 - **Maintain professional, measured tone**: Throughout all interactions, not just in writing
@@ -57,6 +61,8 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 2. **Configuration**: Centralized settings management using `pydantic-settings` with environment variables
 3. **Error Handling**: Use specific Python exceptions (ValueError, FileNotFoundError, etc.) - FastMCP handles conversion to MCP errors
 4. **Data Modeling**: Pydantic BaseModel for complex data structures
+5. **Stateless Design**: Functions take explicit storage_dir parameters instead of using global state
+6. **Alpha Development**: This is alpha software - APIs may change without notice to improve design
 
 ### Development Phases
 

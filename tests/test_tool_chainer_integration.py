@@ -1,6 +1,7 @@
 """Integration tests for Tool Chainer."""
 import subprocess
 import tempfile
+import shutil
 import json
 from pathlib import Path
 import pytest
@@ -14,12 +15,16 @@ class TestToolChainerIntegration:
     """Integration tests that use real MCP servers."""
     
     def setup_method(self):
-        """Clear state before each test."""
-        clear_cache()
+        """Set up test method."""
+        # Create temporary directory for each test
+        self.temp_dir = tempfile.mkdtemp()
+        self.storage_path = Path(self.temp_dir)
     
     def teardown_method(self):
-        """Clean up after each test."""
-        clear_cache()
+        """Clean up after test method."""
+        # Clean up temp directory
+        if self.storage_path.exists():
+            shutil.rmtree(self.storage_path)
     
     def test_discover_jq_tool_integration(self):
         """Test discovering tools from the JQ server."""
@@ -53,7 +58,8 @@ class TestToolChainerIntegration:
                 "jq_validate",
                 "python -m mcp_handley_lab.jq", 
                 "validate",
-                "Validate JSON data"
+                "Validate JSON data",
+                storage_dir=str(self.storage_path)
             )
             assert "✅ Tool 'jq_validate' registered successfully!" in register_result
             
@@ -62,7 +68,8 @@ class TestToolChainerIntegration:
                 "jq_query",
                 "python -m mcp_handley_lab.jq",
                 "query", 
-                "Query JSON data"
+                "Query JSON data",
+                storage_dir=str(self.storage_path)
             )
             assert "✅ Tool 'jq_query' registered successfully!" in register_result
             
@@ -80,11 +87,11 @@ class TestToolChainerIntegration:
                 )
             ]
             
-            chain_result = chain_tools("json_chain", steps)
+            chain_result = chain_tools("json_chain", steps, storage_dir=str(self.storage_path))
             assert "✅ Chain 'json_chain' defined successfully!" in chain_result
             
             # Execute the chain
-            execution_result = execute_chain("json_chain")
+            execution_result = execute_chain("json_chain", storage_dir=str(self.storage_path))
             assert "✅ Success" in execution_result
             assert "2/2" in execution_result  # Both steps should execute
             
@@ -98,10 +105,11 @@ class TestToolChainerIntegration:
             register_tool(
                 "test_jq",
                 "python -m mcp_handley_lab.jq",
-                "validate"
+                "validate",
+                storage_dir=str(self.storage_path)
             )
             
-            result = server_info()
+            result = server_info(storage_dir=str(self.storage_path))
             
             assert "Tool Chainer Server Status" in result
             assert "Status: Ready ✓" in result
@@ -119,7 +127,8 @@ class TestToolChainerIntegration:
                 "jq_format",
                 "python -m mcp_handley_lab.jq",
                 "format",
-                "Format JSON data"
+                "Format JSON data",
+                storage_dir=str(self.storage_path)
             )
             
             # Create temp file for output
@@ -135,10 +144,10 @@ class TestToolChainerIntegration:
                     )
                 ]
                 
-                chain_tools("format_chain", steps, output_file)
+                chain_tools("format_chain", steps, output_file, storage_dir=str(self.storage_path))
                 
                 # Execute the chain
-                result = execute_chain("format_chain")
+                result = execute_chain("format_chain", storage_dir=str(self.storage_path))
                 assert "✅ Success" in result
                 
                 # Check that output file was created and contains formatted JSON
@@ -161,7 +170,8 @@ class TestToolChainerIntegration:
             register_tool(
                 "jq_validate_cond",
                 "python -m mcp_handley_lab.jq",
-                "validate"
+                "validate",
+                storage_dir=str(self.storage_path)
             )
             
             # Define chain with a condition that should be skipped
@@ -178,10 +188,10 @@ class TestToolChainerIntegration:
                 )
             ]
             
-            chain_tools("conditional_chain", steps)
+            chain_tools("conditional_chain", steps, storage_dir=str(self.storage_path))
             
             # Execute the chain
-            result = execute_chain("conditional_chain")
+            result = execute_chain("conditional_chain", storage_dir=str(self.storage_path))
             assert "✅ Success" in result
             assert "1/2" in result  # Only 1 step should execute, 1 skipped
             
@@ -195,16 +205,17 @@ class TestToolChainerIntegration:
             register_tool(
                 "jq_simple",
                 "python -m mcp_handley_lab.jq", 
-                "validate"
+                "validate",
+                storage_dir=str(self.storage_path)
             )
             
             steps = [ToolStep(tool_id="jq_simple", arguments={"data": '{}'})]
-            chain_tools("history_test", steps)
-            execute_chain("history_test")
+            chain_tools("history_test", steps, storage_dir=str(self.storage_path))
+            execute_chain("history_test", storage_dir=str(self.storage_path))
             
             # Check history
             from mcp_handley_lab.tool_chainer.tool import show_history
-            history_result = show_history()
+            history_result = show_history(storage_dir=str(self.storage_path))
             
             assert "📚 **Chain Execution History**" in history_result
             assert "history_test" in history_result
@@ -218,20 +229,24 @@ class TestToolChainerRealWorldScenarios:
     """Test real-world usage scenarios."""
     
     def setup_method(self):
-        """Clear state before each test."""
-        clear_cache()
+        """Set up test method."""
+        # Create temporary directory for each test
+        self.temp_dir = tempfile.mkdtemp()
+        self.storage_path = Path(self.temp_dir)
     
     def teardown_method(self):
-        """Clean up after each test."""
-        clear_cache()
+        """Clean up after test method."""
+        # Clean up temp directory
+        if self.storage_path.exists():
+            shutil.rmtree(self.storage_path)
     
     def test_json_processing_pipeline_integration(self):
         """Test a realistic JSON processing pipeline."""
         try:
             # Register multiple JQ tools for a pipeline
-            register_tool("validate", "python -m mcp_handley_lab.jq", "validate")
-            register_tool("query", "python -m mcp_handley_lab.jq", "query") 
-            register_tool("format", "python -m mcp_handley_lab.jq", "format")
+            register_tool("validate", "python -m mcp_handley_lab.jq", "validate", storage_dir=str(self.storage_path))
+            register_tool("query", "python -m mcp_handley_lab.jq", "query", storage_dir=str(self.storage_path)) 
+            register_tool("format", "python -m mcp_handley_lab.jq", "format", storage_dir=str(self.storage_path))
             
             # Create a processing pipeline
             test_json = '{"users":[{"name":"Alice","age":30},{"name":"Bob","age":25}],"total":2}'
@@ -257,10 +272,10 @@ class TestToolChainerRealWorldScenarios:
                 )
             ]
             
-            chain_tools("json_pipeline", steps)
+            chain_tools("json_pipeline", steps, storage_dir=str(self.storage_path))
             
             # Execute the pipeline
-            result = execute_chain("json_pipeline", test_json)
+            result = execute_chain("json_pipeline", test_json, storage_dir=str(self.storage_path))
             
             assert "✅ Success" in result
             assert "3/3" in result  # All steps should execute

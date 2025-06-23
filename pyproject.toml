@@ -39,7 +39,7 @@ mcp-vim = "mcp_handley_lab.vim.__main__:main"
 mcp-code2prompt = "mcp_handley_lab.code2prompt.__main__:main"
 mcp-google-calendar = "mcp_handley_lab.google_calendar.__main__:main"
 mcp-gemini = "mcp_handley_lab.llm.gemini.__main__:main"
-mcp-openai = "mcp_handley_lab.llm.openai:main"
+mcp-openai = "mcp_handley_lab.llm.openai.__main__:main"
 mcp-chainer = "mcp_handley_lab.tool_chainer.__main__:main"
 
 [tool.setuptools.packages.find]

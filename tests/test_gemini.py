@@ -355,7 +355,7 @@ class TestGeminiTools:
         assert "$0.03" in result
         
         # Check that GenerativeModel was created with correct model
-        mock_genai.GenerativeModel.assert_called_once_with("imagen-3")
+        mock_genai.GenerativeModel.assert_called_once_with("imagen-3.0-generate-002")
         
         # Check generate_content was called correctly
         mock_client.generate_content.assert_called_once()

@@ -7,24 +7,45 @@ class PricingCalculator:
     
     # Pricing per 1M tokens (input/output) as of January 2025
     GEMINI_PRICING = {
-        "gemini-1.5-flash": (0.075, 0.30),      # flash model
-        "gemini-1.5-pro": (1.25, 5.00),         # pro model
-        "gemini-1.5-flash-8b": (0.0375, 0.15),  # flash-8b model
+        # Gemini 2.5 models (latest)
+        "gemini-2.5-pro": (2.50, 15.00),        # latest pro model
+        "gemini-2.5-flash": (0.30, 2.50),       # latest flash model
+        "gemini-2.5-flash-lite-preview-06-17": (0.15, 1.25),  # lite model
+        
+        # Gemini 1.5 models (legacy)
+        "gemini-1.5-flash": (0.075, 0.30),      # legacy flash model
+        "gemini-1.5-pro": (1.25, 5.00),         # legacy pro model
+        "gemini-1.5-flash-8b": (0.0375, 0.15),  # legacy flash-8b model
+        
+        # Image generation
         "imagen-3": (0.030, 0.030),             # per image
+        "imagen-3.0-generate-002": (0.030, 0.030),  # per image (full model ID)
     }
     
     OPENAI_PRICING = {
+        # GPT-4.1 models (latest - launched April 2025)
+        "gpt-4.1": (5.00, 15.00),        # New flagship model
+        "gpt-4.1-mini": (0.10, 0.40),    # 83% cheaper than gpt-4o
+        "gpt-4.1-nano": (0.05, 0.20),    # Fastest and cheapest
+        
+        # GPT-4o models 
         "gpt-4o": (2.50, 10.00),
         "gpt-4o-mini": (0.150, 0.600),
+        
+        # Legacy models
         "gpt-4-turbo": (10.00, 30.00),
         "gpt-4": (30.00, 60.00),
         "gpt-3.5-turbo": (0.50, 1.50),
+        
+        # o1 models
         "o1": (15.00, 60.00),
         "o1-mini": (3.00, 12.00),
         "o1-preview": (15.00, 60.00),
-        "chatgpt-4o": (5.00, 15.00),
-        "dall-e-3": (0.040, 0.040),  # per image (1024x1024 standard)
-        "dall-e-2": (0.020, 0.020),  # per image (1024x1024)
+        
+        # Image generation
+        "dall-e-3": (0.040, 0.040),     # per image (1024x1024 standard)
+        "dall-e-3-hd": (0.080, 0.080),  # per image (1024x1024 HD)
+        "dall-e-2": (0.020, 0.020),     # per image (1024x1024)
     }
     
     @classmethod
@@ -41,9 +62,11 @@ class PricingCalculator:
         # Normalize model names
         if provider == "gemini":
             if model in ["flash", "gemini-flash"]:
-                model = "gemini-1.5-flash"
+                model = "gemini-2.5-flash"  # Use latest flash by default
             elif model in ["pro", "gemini-pro"]:
-                model = "gemini-1.5-pro"
+                model = "gemini-2.5-pro"    # Use latest pro by default
+            elif model == "image":
+                model = "imagen-3"
         
         if model not in pricing_table:
             return 0.0

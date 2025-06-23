@@ -8,7 +8,7 @@ class TestPricingCalculator:
     """Test cases for PricingCalculator class."""
     
     def test_gemini_flash_pricing(self):
-        """Test Gemini Flash pricing calculation."""
+        """Test Gemini Flash pricing calculation (2.5-flash)."""
         cost = PricingCalculator.calculate_cost(
             "flash", 
             input_tokens=1000, 
@@ -16,12 +16,12 @@ class TestPricingCalculator:
             provider="gemini"
         )
         
-        # Expected: (1000/1M * 0.075) + (500/1M * 0.30) = 0.000075 + 0.00015 = 0.000225
-        expected = 0.000225
+        # Expected: (1000/1M * 0.30) + (500/1M * 2.50) = 0.0003 + 0.00125 = 0.00155
+        expected = 0.00155
         assert abs(cost - expected) < 0.000001
     
     def test_gemini_pro_pricing(self):
-        """Test Gemini Pro pricing calculation."""
+        """Test Gemini Pro pricing calculation (2.5-pro)."""
         cost = PricingCalculator.calculate_cost(
             "pro", 
             input_tokens=2000, 
@@ -29,8 +29,8 @@ class TestPricingCalculator:
             provider="gemini"
         )
         
-        # Expected: (2000/1M * 1.25) + (1000/1M * 5.00) = 0.0025 + 0.005 = 0.0075
-        expected = 0.0075
+        # Expected: (2000/1M * 2.50) + (1000/1M * 15.00) = 0.005 + 0.015 = 0.020
+        expected = 0.020
         assert abs(cost - expected) < 0.000001
     
     def test_openai_gpt4o_pricing(self):
@@ -83,17 +83,17 @@ class TestPricingCalculator:
     
     def test_gemini_model_normalization(self):
         """Test Gemini model name normalization."""
-        # Test flash normalization
+        # Test flash normalization (now points to 2.5-flash)
         cost1 = PricingCalculator.calculate_cost("flash", 1000, 500, "gemini")
         cost2 = PricingCalculator.calculate_cost("gemini-flash", 1000, 500, "gemini")
-        cost3 = PricingCalculator.calculate_cost("gemini-1.5-flash", 1000, 500, "gemini")
+        cost3 = PricingCalculator.calculate_cost("gemini-2.5-flash", 1000, 500, "gemini")
         
         assert cost1 == cost2 == cost3
         
-        # Test pro normalization
+        # Test pro normalization (now points to 2.5-pro)
         cost4 = PricingCalculator.calculate_cost("pro", 1000, 500, "gemini")
         cost5 = PricingCalculator.calculate_cost("gemini-pro", 1000, 500, "gemini")
-        cost6 = PricingCalculator.calculate_cost("gemini-1.5-pro", 1000, 500, "gemini")
+        cost6 = PricingCalculator.calculate_cost("gemini-2.5-pro", 1000, 500, "gemini")
         
         assert cost4 == cost5 == cost6
     
@@ -156,7 +156,7 @@ class TestConvenienceFunctions:
     def test_calculate_cost_function(self):
         """Test calculate_cost convenience function."""
         cost = calculate_cost("flash", 1000, 500, "gemini")
-        expected = 0.000225
+        expected = 0.00155  # Updated for 2.5-flash pricing
         assert abs(cost - expected) < 0.000001
     
     def test_format_usage_function(self):
@@ -191,15 +191,15 @@ class TestPricingAccuracy:
     """Test pricing accuracy against known values."""
     
     def test_gemini_flash_1m_tokens(self):
-        """Test Gemini Flash with exactly 1M tokens."""
+        """Test Gemini Flash with exactly 1M tokens (2.5-flash)."""
         cost = calculate_cost("flash", 1_000_000, 1_000_000, "gemini")
-        expected = 0.075 + 0.30  # $0.375
+        expected = 0.30 + 2.50  # $2.80
         assert abs(cost - expected) < 0.000001
     
     def test_gemini_pro_1m_tokens(self):
-        """Test Gemini Pro with exactly 1M tokens."""
+        """Test Gemini Pro with exactly 1M tokens (2.5-pro)."""
         cost = calculate_cost("pro", 1_000_000, 1_000_000, "gemini")
-        expected = 1.25 + 5.00  # $6.25
+        expected = 2.50 + 15.00  # $17.50
         assert abs(cost - expected) < 0.000001
     
     def test_openai_gpt4o_1m_tokens(self):
@@ -211,14 +211,14 @@ class TestPricingAccuracy:
     def test_realistic_conversation_cost(self):
         """Test realistic conversation token usage."""
         # Typical conversation: ~500 input tokens, ~300 output tokens
-        cost_flash = calculate_cost("flash", 500, 300, "gemini")
+        cost_flash = calculate_cost("gemini-1.5-flash", 500, 300, "gemini")  # Use legacy for comparison
         cost_pro = calculate_cost("pro", 500, 300, "gemini")
         cost_gpt4o = calculate_cost("gpt-4o", 500, 300, "openai")
         
-        # Flash should be cheapest, Pro middle, GPT-4o most expensive
-        assert cost_flash < cost_pro < cost_gpt4o
+        # Legacy flash should be cheapest, Pro most expensive, GPT-4o middle
+        assert cost_flash < cost_gpt4o < cost_pro
         assert cost_flash < 0.001  # Should be very cheap
-        assert cost_gpt4o > 0.003  # Should be more expensive
+        assert cost_pro > 0.005   # Should be most expensive
 
 
 class TestPricingModelCoverage:

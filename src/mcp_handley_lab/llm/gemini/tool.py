@@ -239,11 +239,12 @@ def generate_image(
     from mcp_handley_lab.common.pricing import calculate_cost, format_usage
     from mcp_handley_lab.common.memory import memory_manager
     
-    # Use Imagen 3 for image generation
-    model_name = "imagen-3"
+    # Use Imagen 3 for image generation (use full model ID for API)
+    api_model_name = "imagen-3.0-generate-002"
+    pricing_model_name = "imagen-3"  # For pricing calculation
     
     # Create Gemini model for image generation
-    gemini_model = genai.GenerativeModel(model_name)
+    gemini_model = genai.GenerativeModel(api_model_name)
     
     # Generate image using Gemini's generateContent with Imagen
     response = gemini_model.generate_content(
@@ -267,7 +268,7 @@ def generate_image(
         agent_name, 
         f"Generate image: {prompt}", 
         f"Generated image saved to {saved_path}",
-        model_name,
+        pricing_model_name,
         1, 0,  # 1 image, 0 output tokens
         "gemini"
     )

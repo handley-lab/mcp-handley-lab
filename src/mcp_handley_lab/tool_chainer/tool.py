@@ -15,7 +15,7 @@ mcp = FastMCP("Tool Chainer")
 REGISTERED_TOOLS: Dict[str, Dict[str, Any]] = {}
 DEFINED_CHAINS: Dict[str, Dict[str, Any]] = {}
 EXECUTION_HISTORY: List[Dict[str, Any]] = []
-CACHE_DIR = Path.home() / ".mcp_framework" / "tool_chainer"
+CACHE_DIR = Path.cwd() / ".mcp_handley_lab" / "tool_chainer"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 

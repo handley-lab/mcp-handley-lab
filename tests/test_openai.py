@@ -350,7 +350,7 @@ class TestOpenAITools:
         
         assert "✅ Image generated successfully!" in result
         assert "/tmp/generated_image.png" in result
-        assert "💰 Cost:" in result
+        assert "💰 Cost: $0.04" in result
         
         mock_openai_client.images.generate.assert_called_once()
         call_args = mock_openai_client.images.generate.call_args

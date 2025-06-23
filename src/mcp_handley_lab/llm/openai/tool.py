@@ -260,7 +260,7 @@ def generate_image(
             saved_path = f.name
         
         # Calculate cost (DALL-E pricing is per image)
-        cost = calculate_cost(model, 1, 0, "openai")  # 1 "token" represents 1 image
+        cost = calculate_cost(model, 1, 0, "openai")  # 1 image
         
         # Handle agent memory
         if agent_name:

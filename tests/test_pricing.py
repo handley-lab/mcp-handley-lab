@@ -219,3 +219,42 @@ class TestPricingAccuracy:
         assert cost_flash < cost_pro < cost_gpt4o
         assert cost_flash < 0.001  # Should be very cheap
         assert cost_gpt4o > 0.003  # Should be more expensive
+
+
+class TestPricingModelCoverage:
+    """Test all pricing models are handled correctly without hardcoded values."""
+    
+    def test_all_openai_models_have_pricing(self):
+        """Test all OpenAI models return non-zero costs for appropriate inputs."""
+        from mcp_handley_lab.common.pricing import PricingCalculator
+        
+        for model in PricingCalculator.OPENAI_PRICING.keys():
+            if model.startswith("dall-e"):
+                # Image models - 1 image should have non-zero cost
+                cost = calculate_cost(model, 1, 0, "openai")
+                assert cost > 0, f"Image model {model} should have positive cost for 1 image"
+            else:
+                # Text models - tokens should have non-zero cost
+                cost = calculate_cost(model, 1000, 500, "openai")
+                assert cost > 0, f"Text model {model} should have positive cost for tokens"
+    
+    def test_all_gemini_models_have_pricing(self):
+        """Test all Gemini models return non-zero costs for token inputs."""
+        from mcp_handley_lab.common.pricing import PricingCalculator
+        
+        for model in PricingCalculator.GEMINI_PRICING.keys():
+            cost = calculate_cost(model, 1000, 500, "gemini")
+            assert cost > 0, f"Model {model} should have positive cost for tokens"
+    
+    def test_dalle_vs_text_model_pricing_logic(self):
+        """Test that DALL-E uses per-image pricing vs text models using per-token."""
+        # DALL-E should scale with number of images (1 image = $0.04, 2 images = $0.08)
+        dalle_cost_1 = calculate_cost("dall-e-3", 1, 0, "openai")
+        dalle_cost_2 = calculate_cost("dall-e-3", 2, 0, "openai")
+        assert dalle_cost_2 == dalle_cost_1 * 2, "DALL-E should use per-image pricing"
+        assert dalle_cost_1 == 0.040, "DALL-E should cost $0.04 per image"
+        
+        # Text model should scale with token count  
+        gpt_cost_1 = calculate_cost("gpt-4o", 1, 0, "openai")
+        gpt_cost_1000 = calculate_cost("gpt-4o", 1000, 0, "openai")
+        assert gpt_cost_1000 > gpt_cost_1, "Text models should scale with token count"

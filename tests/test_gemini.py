@@ -325,10 +325,74 @@ class TestGeminiTools:
         with pytest.raises(ValueError, match="Either image_data or images must be provided"):
             analyze_image("What's in this image?")
     
-    def test_generate_image_not_available(self):
-        """Test image generation (not available)."""
-        with pytest.raises(RuntimeError, match="Image generation is not yet available"):
-            generate_image("A beautiful sunset")
+    @patch('tempfile.NamedTemporaryFile')
+    def test_generate_image_success(self, mock_tempfile, mock_genai, mock_memory_manager):
+        """Test successful image generation."""
+        # Mock temp file
+        mock_file = MagicMock()
+        mock_file.name = "/tmp/generated_image.png"
+        mock_tempfile.return_value.__enter__.return_value = mock_file
+        
+        # Mock Gemini response with image data
+        mock_part = MagicMock()
+        mock_part.inline_data.data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAFtqWAJgQAAAABJRU5ErkJggg=="  # 1x1 PNG
+        
+        mock_candidate = MagicMock()
+        mock_candidate.content.parts = [mock_part]
+        
+        mock_response = MagicMock()
+        mock_response.candidates = [mock_candidate]
+        
+        # Get the mock client from the fixture
+        mock_client = mock_genai.GenerativeModel.return_value
+        mock_client.generate_content.return_value = mock_response
+        
+        result = generate_image("A beautiful sunset")
+        
+        assert "✅ Image generated successfully!" in result
+        assert "/tmp/generated_image.png" in result
+        assert "💰 Usage: 1 token" in result
+        assert "$0.03" in result
+        
+        # Check that GenerativeModel was created with correct model
+        mock_genai.GenerativeModel.assert_called_once_with("imagen-3")
+        
+        # Check generate_content was called correctly
+        mock_client.generate_content.assert_called_once()
+        call_args = mock_client.generate_content.call_args
+        assert call_args[1]["contents"] == ["A beautiful sunset"]
+        assert call_args[1]["generation_config"]["response_mime_type"] == "image/png"
+    
+    @patch('tempfile.NamedTemporaryFile')
+    def test_generate_image_with_agent(self, mock_tempfile, mock_genai, mock_memory_manager):
+        """Test image generation with agent memory."""
+        # Mock temp file
+        mock_file = MagicMock()
+        mock_file.name = "/tmp/generated_image.png"
+        mock_tempfile.return_value.__enter__.return_value = mock_file
+        
+        # Mock Gemini response with image data
+        mock_part = MagicMock()
+        mock_part.inline_data.data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAFtqWAJgQAAAABJRU5ErkJggg=="
+        
+        mock_candidate = MagicMock()
+        mock_candidate.content.parts = [mock_part]
+        
+        mock_response = MagicMock()
+        mock_response.candidates = [mock_candidate]
+        
+        mock_client = mock_genai.GenerativeModel.return_value
+        mock_client.generate_content.return_value = mock_response
+        
+        # Mock agent exists
+        mock_agent = MagicMock()
+        mock_memory_manager.get_agent.return_value = mock_agent
+        
+        result = generate_image("A test image", agent_name="test_agent")
+        
+        assert "✅ Image generated successfully!" in result
+        mock_memory_manager.get_agent.assert_called_with("test_agent")
+        mock_memory_manager.add_message.assert_called()
     
     def test_create_agent_success(self, mock_memory_manager):
         """Test creating an agent."""

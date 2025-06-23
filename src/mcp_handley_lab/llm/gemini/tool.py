@@ -230,13 +230,49 @@ def analyze_image(
 @mcp.tool(description="Generates images using Gemini's image generation model.")
 def generate_image(
     prompt: str,
-    model: str = "image",
+    model: str = "imagen-3",
     agent_name: Optional[str] = None
 ) -> str:
-    """Generate images with Gemini."""
-    # Note: As of January 2025, Gemini doesn't have image generation
-    # This is a placeholder for when the feature becomes available
-    raise RuntimeError("Image generation is not yet available in Gemini models. Use OpenAI's DALL-E instead.")
+    """Generate images with Gemini using Imagen 3."""
+    import tempfile
+    import base64
+    from mcp_handley_lab.common.pricing import calculate_cost, format_usage
+    from mcp_handley_lab.common.memory import memory_manager
+    
+    # Use Imagen 3 for image generation
+    model_name = "imagen-3"
+    
+    # Create Gemini model for image generation
+    gemini_model = genai.GenerativeModel(model_name)
+    
+    # Generate image using Gemini's generateContent with Imagen
+    response = gemini_model.generate_content(
+        contents=[prompt],
+        generation_config={
+            "response_mime_type": "image/png"
+        }
+    )
+    
+    # Extract base64 image data
+    image_part = response.candidates[0].content.parts[0]
+    image_data = base64.b64decode(image_part.inline_data.data)
+    
+    # Save to temp file
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        f.write(image_data)
+        saved_path = f.name
+    
+    # Handle agent memory and format usage
+    usage_info = _handle_agent_and_usage(
+        agent_name, 
+        f"Generate image: {prompt}", 
+        f"Generated image saved to {saved_path}",
+        model_name,
+        1, 0,  # 1 image, 0 output tokens
+        "gemini"
+    )
+    
+    return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n{usage_info}"
 
 
 @mcp.tool(description="Creates a new named agent for persistent conversation memory.")

@@ -10,6 +10,7 @@ class PricingCalculator:
         "gemini-1.5-flash": (0.075, 0.30),      # flash model
         "gemini-1.5-pro": (1.25, 5.00),         # pro model
         "gemini-1.5-flash-8b": (0.0375, 0.15),  # flash-8b model
+        "imagen-3": (0.030, 0.030),             # per image
     }
     
     OPENAI_PRICING = {
@@ -49,6 +50,13 @@ class PricingCalculator:
         
         input_price_per_1m, output_price_per_1m = pricing_table[model]
         
+        # Image models (DALL-E, Imagen) use per-image pricing
+        if model.startswith("dall-e") or model.startswith("imagen"):
+            # For image models, input_tokens represents number of images
+            # Price is per image, not per 1M tokens
+            return input_tokens * input_price_per_1m
+        
+        # Text models use per-token pricing
         input_cost = (input_tokens / 1_000_000) * input_price_per_1m
         output_cost = (output_tokens / 1_000_000) * output_price_per_1m
         

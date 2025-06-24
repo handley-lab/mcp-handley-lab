@@ -100,11 +100,13 @@ def _handle_agent_and_usage(
     model: str,
     input_tokens: int, 
     output_tokens: int,
+    output_file: str,
     provider: str = "openai"
 ) -> str:
-    """Handle agent memory and return formatted usage info."""
+    """Handle agent memory, file output, and return formatted usage info."""
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
     
+    # Store in agent memory if specified
     if agent_name:
         agent = memory_manager.get_agent(agent_name)
         if not agent:
@@ -113,10 +115,28 @@ def _handle_agent_and_usage(
         memory_manager.add_message(agent_name, "user", user_prompt, input_tokens, cost / 2)
         memory_manager.add_message(agent_name, "assistant", response_text, output_tokens, cost / 2)
     
-    return format_usage(model, input_tokens, output_tokens, cost, provider)
+    # Handle file output
+    if output_file != '-':
+        # Save to file
+        output_path = Path(output_file)
+        output_path.write_text(response_text)
+        
+        # Return summary with file path and usage
+        usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
+        char_count = len(response_text)
+        line_count = response_text.count('\n') + 1
+        return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n\n{usage_info}"
+    else:
+        # Return full response with usage for stdout
+        usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
+        return f"{response_text}\n\n{usage_info}"
 
 
-@mcp.tool(description="""Asks a question to an OpenAI GPT model with file context and persistent memory.
+@mcp.tool(description="""Asks a question to an OpenAI GPT model with optional file context and persistent memory.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the response for future processing (recommended for large responses)
+- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
 
 File Input Formats:
 - {"path": "/path/to/file"} - Reads file from filesystem
@@ -139,12 +159,14 @@ Error Handling:
 - Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)
 - Raises ValueError for invalid file paths or unsupported content
 - Agent memory automatically handles conversation context limits
+- Large responses automatically saved to avoid MCP message size limits
 
 Examples:
 ```python
 # Basic question with file context
 ask(
     prompt="Explain this code and suggest improvements",
+    output_file="/tmp/analysis.md",
     files=[{"path": "/path/to/code.py"}],
     model="gpt-4o"
 )
@@ -152,6 +174,7 @@ ask(
 # Persistent agent conversation
 ask(
     prompt="Continue reviewing the codebase",
+    output_file="/tmp/review.md",
     agent_name="code_reviewer",
     model="gpt-4o",
     temperature=0.3
@@ -160,6 +183,7 @@ ask(
 # Complex reasoning task
 ask(
     prompt="Solve this algorithmic problem step by step",
+    output_file="/tmp/solution.md",
     model="o1-preview",
     files=[{"content": "Problem description here"}]
 )
@@ -167,6 +191,7 @@ ask(
 # Multiple file analysis
 ask(
     prompt="Compare these implementations",
+    output_file="/tmp/comparison.md",
     files=[
         {"path": "/path/to/impl1.py"},
         {"path": "/path/to/impl2.py"},
@@ -177,6 +202,7 @@ ask(
 ```""")
 def ask(
     prompt: str,
+    output_file: str,
     agent_name: Optional[str] = None,
     model: str = "gpt-4o",
     temperature: float = 0.7,
@@ -215,15 +241,17 @@ def ask(
         output_tokens = response.usage.completion_tokens
         
         # Handle agent and usage
-        usage_info = _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens)
-        
-        return f"{response_text}\n\n{usage_info}"
+        return _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens, output_file)
         
     except Exception as e:
         raise RuntimeError(f"OpenAI API error: {e}")
 
 
 @mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the analysis for future processing (recommended)
+- '-' to output directly to stdout (use sparingly for large analyses)
 
 Image Input Formats:
 - {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
@@ -256,6 +284,7 @@ Examples:
 # Analyze single image
 analyze_image(
     prompt="Describe what you see in this screenshot",
+    output_file="/tmp/analysis.md",
     image_data="/path/to/screenshot.png",
     focus="general"
 )
@@ -263,6 +292,7 @@ analyze_image(
 # Multiple images comparison
 analyze_image(
     prompt="Compare these two UI designs and suggest improvements",
+    output_file="/tmp/comparison.md",
     images=[
         {"path": "/path/to/design1.png"},
         {"path": "/path/to/design2.png"}
@@ -273,6 +303,7 @@ analyze_image(
 # Extract text from image
 analyze_image(
     prompt="Extract and transcribe all text from this document",
+    output_file="/tmp/extracted_text.md",
     image_data={"path": "/path/to/document.jpg"},
     focus="text",
     model="gpt-4o"
@@ -281,6 +312,7 @@ analyze_image(
 # Code analysis from screenshot
 analyze_image(
     prompt="Review this code for potential bugs and improvements",
+    output_file="/tmp/code_review.md",
     image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
     focus="code",
     agent_name="code_reviewer"
@@ -288,6 +320,7 @@ analyze_image(
 ```""")
 def analyze_image(
     prompt: str,
+    output_file: str,
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
@@ -339,9 +372,7 @@ def analyze_image(
         
         # Handle agent and usage
         image_desc = f"[Image analysis: {len(image_list)} image(s)]"
-        usage_info = _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens)
-        
-        return f"{response_text}\n\n{usage_info}"
+        return _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens, output_file)
         
     except Exception as e:
         raise RuntimeError(f"OpenAI vision API error: {e}")
@@ -458,6 +489,36 @@ def generate_image(
         raise RuntimeError(f"DALL-E API error: {e}")
 
 
+@mcp.tool(description="""Retrieves a specific message from an agent's conversation history by index.
+
+Index Usage:
+- -1 (default): Last/most recent message
+- 0: First message in history  
+- Positive integers: Specific message position
+
+Example:
+```python
+# Get the last response
+get_response("code_mentor")
+
+# Get the first message
+get_response("code_mentor", index=0)
+
+# Get third message
+get_response("code_mentor", index=2)
+```""")
+def get_response(agent_name: str, index: int = -1) -> str:
+    """Get a message from an agent's conversation history by index."""
+    response = memory_manager.get_response(agent_name, index)
+    if response is None:
+        if memory_manager.get_agent(agent_name) is None:
+            raise ValueError(f"Agent '{agent_name}' not found")
+        else:
+            raise ValueError(f"No message found at index {index}")
+    
+    return response
+
+
 @mcp.tool(description="Checks OpenAI server status, API connectivity, available models, and agent statistics. Returns configuration status and available commands. Use this to verify the tool is properly configured before making requests.")
 def server_info() -> str:
     """Get server status and OpenAI configuration."""
@@ -481,9 +542,10 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with GPT models
-- analyze_image: Image analysis with vision models  
+- ask: Chat with GPT models (requires output_file parameter)
+- analyze_image: Image analysis with vision models (requires output_file parameter)
 - generate_image: Generate images with DALL-E
+- get_response: Retrieve messages from agent conversation history
 - server_info: Get server status"""
         
     except Exception as e:

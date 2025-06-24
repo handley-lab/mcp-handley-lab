@@ -34,3 +34,8 @@
   - look for any hard-coded timeouts
   - improve the schemas
   - check for the kind of things the tools output and improve them.
+- implement claude
+- soon:
+  - get it to make integration tests for all tools
+  - get gemini to assess code consistency
+  - get gemini to suggest better docstrings

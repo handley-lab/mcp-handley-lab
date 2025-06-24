@@ -9,7 +9,7 @@ import io
 
 from mcp_handley_lab.llm.gemini.tool import (
     ask, analyze_image, generate_image, create_agent, list_agents, 
-    agent_stats, clear_agent, delete_agent, server_info,
+    agent_stats, get_response, clear_agent, delete_agent, server_info,
     _resolve_files, _resolve_images
 )
 
@@ -191,7 +191,7 @@ class TestGeminiTools:
     
     def test_ask_basic(self, mock_genai, mock_memory_manager):
         """Test basic ask functionality."""
-        result = ask("Hello, how are you?")
+        result = ask("Hello, how are you?", output_file="-")
         
         assert "Test response" in result
         assert "💰 Usage:" in result
@@ -207,7 +207,7 @@ class TestGeminiTools:
         ]
         mock_memory_manager.get_agent.return_value = mock_agent
         
-        result = ask("Hello", agent_name="test_agent")
+        result = ask("Hello", output_file="-", agent_name="test_agent")
         
         assert "Test response" in result
         mock_memory_manager.get_agent.assert_called_with("test_agent")
@@ -219,7 +219,7 @@ class TestGeminiTools:
         test_file.write_text("File content")
         
         files = [{"path": str(test_file)}, {"content": "Direct content"}]
-        result = ask("Question about files", files=files)
+        result = ask("Question about files", output_file="-", files=files)
         
         assert "Test response" in result
         # Check that file content was added to prompt
@@ -229,7 +229,7 @@ class TestGeminiTools:
     
     def test_ask_with_grounding(self, mock_genai, mock_memory_manager):
         """Test ask with grounding enabled."""
-        result = ask("Current weather", grounding=True)
+        result = ask("Current weather", output_file="-", grounding=True)
         
         assert "Test response" in result
         # Check that tools were configured
@@ -238,7 +238,7 @@ class TestGeminiTools:
     
     def test_ask_with_temperature(self, mock_genai, mock_memory_manager):
         """Test ask with custom temperature."""
-        result = ask("Creative question", temperature=0.9)
+        result = ask("Creative question", output_file="-", temperature=0.9)
         
         assert "Test response" in result
         # Check generation config
@@ -253,7 +253,7 @@ class TestGeminiTools:
         mock_agent.get_conversation_history.return_value = []
         mock_memory_manager.create_agent.return_value = mock_agent
         
-        result = ask("Hello", agent_name="new_agent")
+        result = ask("Hello", output_file="-", agent_name="new_agent")
         
         assert "Test response" in result
         mock_memory_manager.get_agent.assert_called_with("new_agent")
@@ -265,7 +265,7 @@ class TestGeminiTools:
             mock_model.side_effect = Exception("API Error")
             
             with pytest.raises(RuntimeError, match="Gemini API error"):
-                ask("Hello")
+                ask("Hello", output_file="-")
     
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     def test_analyze_image_basic(self, mock_resolve_images, mock_genai, mock_memory_manager):
@@ -273,7 +273,7 @@ class TestGeminiTools:
         mock_image = MagicMock()
         mock_resolve_images.return_value = [mock_image]
         
-        result = analyze_image("What's in this image?", image_data="fake_image_data")
+        result = analyze_image("What's in this image?", output_file="-", image_data="fake_image_data")
         
         assert "Test response" in result
         assert "💰 Usage:" in result
@@ -285,7 +285,7 @@ class TestGeminiTools:
         mock_image = MagicMock()
         mock_resolve_images.return_value = [mock_image]
         
-        result = analyze_image("Analyze this", image_data="fake", focus="technical")
+        result = analyze_image("Analyze this", output_file="-", image_data="fake", focus="technical")
         
         assert "Test response" in result
         # Check that focus was added to prompt
@@ -303,7 +303,7 @@ class TestGeminiTools:
         mock_agent = MagicMock()
         mock_memory_manager.create_agent.return_value = mock_agent
         
-        result = analyze_image("Analyze this", image_data="fake", agent_name="new_agent")
+        result = analyze_image("Analyze this", output_file="-", image_data="fake", agent_name="new_agent")
         
         assert "Test response" in result
         mock_memory_manager.get_agent.assert_called_with("new_agent")
@@ -318,12 +318,12 @@ class TestGeminiTools:
                 mock_model.side_effect = Exception("Vision API Error")
                 
                 with pytest.raises(RuntimeError, match="Gemini vision API error"):
-                    analyze_image("Analyze this", image_data="fake")
+                    analyze_image("Analyze this", output_file="-", image_data="fake")
 
     def test_analyze_image_no_images(self, mock_memory_manager):
         """Test image analysis without images."""
         with pytest.raises(ValueError, match="Either image_data or images must be provided"):
-            analyze_image("What's in this image?")
+            analyze_image("What's in this image?", output_file="-")
     
     @patch('tempfile.NamedTemporaryFile')
     def test_generate_image_success(self, mock_tempfile, mock_genai, mock_memory_manager):
@@ -560,5 +560,66 @@ class TestGeminiTools:
             
             with pytest.raises(RuntimeError, match="Gemini API configuration error"):
                 server_info()
+    
+    def test_get_response_success(self, mock_memory_manager):
+        """Test getting response from agent."""
+        mock_memory_manager.get_response.return_value = "Test response content"
+        
+        result = get_response("test_agent")
+        
+        assert result == "Test response content"
+        mock_memory_manager.get_response.assert_called_with("test_agent", -1)
+    
+    def test_get_response_with_index(self, mock_memory_manager):
+        """Test getting response with specific index."""
+        mock_memory_manager.get_response.return_value = "Specific response"
+        
+        result = get_response("test_agent", 2)
+        
+        assert result == "Specific response"
+        mock_memory_manager.get_response.assert_called_with("test_agent", 2)
+    
+    def test_get_response_agent_not_found(self, mock_memory_manager):
+        """Test getting response from non-existent agent."""
+        mock_memory_manager.get_response.return_value = None
+        mock_memory_manager.get_agent.return_value = None
+        
+        with pytest.raises(ValueError, match="Agent 'test_agent' not found"):
+            get_response("test_agent")
+    
+    def test_get_response_message_not_found(self, mock_memory_manager):
+        """Test getting response when message index doesn't exist."""
+        mock_memory_manager.get_response.return_value = None
+        mock_memory_manager.get_agent.return_value = MagicMock()  # Agent exists
+        
+        with pytest.raises(ValueError, match="No message found at index 5"):
+            get_response("test_agent", 5)
+    
+    def test_ask_with_file_output(self, mock_genai, mock_memory_manager, tmp_path):
+        """Test ask with file output."""
+        output_file = tmp_path / "response.txt"
+        
+        result = ask("Hello", output_file=str(output_file))
+        
+        assert "Response saved to:" in result
+        assert str(output_file) in result
+        assert "Content: 13 characters" in result  # "Test response" = 13 chars
+        assert output_file.exists()
+        assert output_file.read_text() == "Test response"
+    
+    def test_analyze_image_with_file_output(self, mock_genai, mock_memory_manager, tmp_path):
+        """Test analyze_image with file output."""
+        output_file = tmp_path / "analysis.txt"
+        
+        with patch('mcp_handley_lab.llm.gemini.tool._resolve_images') as mock_resolve:
+            mock_resolve.return_value = [MagicMock()]
+            
+            result = analyze_image("Analyze this", output_file=str(output_file), image_data="fake")
+            
+            assert "Response saved to:" in result
+            assert str(output_file) in result
+            assert "Content: 13 characters" in result
+            assert output_file.exists()
+            assert output_file.read_text() == "Test response"
 
 

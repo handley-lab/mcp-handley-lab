@@ -126,6 +126,56 @@ class TestAgentMemory:
         assert stats["total_tokens"] == 8
         assert stats["total_cost"] == 0.015
         assert stats["personality"] == "Helpful assistant"
+    
+    def test_get_response_empty(self, sample_agent):
+        """Test getting response from empty agent."""
+        result = sample_agent.get_response()
+        assert result is None
+    
+    def test_get_response_last_message(self, sample_agent):
+        """Test getting last message."""
+        sample_agent.add_message("user", "Hello")
+        sample_agent.add_message("assistant", "Hi there")
+        
+        result = sample_agent.get_response()
+        assert result == "Hi there"
+    
+    def test_get_response_specific_index(self, sample_agent):
+        """Test getting message by specific index."""
+        sample_agent.add_message("user", "Hello")
+        sample_agent.add_message("assistant", "Hi there")
+        sample_agent.add_message("user", "How are you?")
+        
+        result = sample_agent.get_response(0)
+        assert result == "Hello"
+        
+        result = sample_agent.get_response(1)
+        assert result == "Hi there"
+        
+        result = sample_agent.get_response(2)
+        assert result == "How are you?"
+    
+    def test_get_response_negative_index(self, sample_agent):
+        """Test getting message with negative index."""
+        sample_agent.add_message("user", "Hello")
+        sample_agent.add_message("assistant", "Hi there")
+        sample_agent.add_message("user", "How are you?")
+        
+        result = sample_agent.get_response(-1)
+        assert result == "How are you?"
+        
+        result = sample_agent.get_response(-2)
+        assert result == "Hi there"
+    
+    def test_get_response_out_of_bounds(self, sample_agent):
+        """Test getting message with out of bounds index."""
+        sample_agent.add_message("user", "Hello")
+        
+        result = sample_agent.get_response(5)
+        assert result is None
+        
+        result = sample_agent.get_response(-5)
+        assert result is None
 
 
 class TestMemoryManager:
@@ -350,6 +400,32 @@ class TestMemoryManager:
         assert data2["name"] == "agent2"
         assert data1["personality"] == "First agent"
         assert data2["personality"] == "Second agent"
+    
+    def test_get_response_success(self, memory_mgr):
+        """Test getting response from agent via manager."""
+        agent = memory_mgr.create_agent("test_agent")
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there")
+        
+        result = memory_mgr.get_response("test_agent")
+        assert result == "Hi there"
+    
+    def test_get_response_with_index(self, memory_mgr):
+        """Test getting response with specific index via manager."""
+        agent = memory_mgr.create_agent("test_agent")
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there")
+        
+        result = memory_mgr.get_response("test_agent", 0)
+        assert result == "Hello"
+        
+        result = memory_mgr.get_response("test_agent", 1)
+        assert result == "Hi there"
+    
+    def test_get_response_nonexistent_agent(self, memory_mgr):
+        """Test getting response from non-existent agent."""
+        result = memory_mgr.get_response("nonexistent")
+        assert result is None
 
 
 class TestMemoryManagerExportImport:

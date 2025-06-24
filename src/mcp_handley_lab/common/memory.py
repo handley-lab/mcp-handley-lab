@@ -67,6 +67,16 @@ class AgentMemory(BaseModel):
             "total_cost": self.total_cost,
             "personality": self.personality
         }
+    
+    def get_response(self, index: int = -1) -> Optional[str]:
+        """Get a message content by index. Default -1 gets the last message."""
+        if not self.messages:
+            return None
+        
+        try:
+            return self.messages[index].content
+        except IndexError:
+            return None
 
 
 class MemoryManager:
@@ -203,6 +213,14 @@ class MemoryManager:
             return True
         except Exception:
             return False
+    
+    def get_response(self, agent_name: str, index: int = -1) -> Optional[str]:
+        """Get a message content from an agent by index. Default -1 gets the last message."""
+        agent = self.get_agent(agent_name)
+        if not agent:
+            return None
+        
+        return agent.get_response(index)
 
 
 # Global memory manager instance

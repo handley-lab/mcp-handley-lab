@@ -35,7 +35,53 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
     return content
 
 
-@mcp.tool(description="Presents the given `content` in a temporary file, opens Vim for user editing, and returns the modified content. Optional `instructions` can be provided, which will be added as comments at the beginning of the file. Use this to allow a user to interactively edit text within a workflow. The `show_diff` parameter controls whether the output is the full edited text or a diff showing the changes.")
+@mcp.tool(description="""Opens Vim to edit provided content in a temporary file with optional instructions.
+
+Creates a temporary file with the content, optionally adds instruction comments at the top, opens Vim for editing, then returns the result.
+
+File Handling:
+- Temporary file is created with specified extension
+- File is deleted after editing (unless `keep_file=True`)
+- Instructions are added as comments and automatically stripped from output
+
+Error Handling:
+- Raises subprocess.CalledProcessError if vim exits with non-zero status
+- File creation errors raise OSError with specific details
+- Instructions are safely handled even with special characters
+
+Output Options:
+- `show_diff=True` (default): Returns unified diff showing changes made
+- `show_diff=False`: Returns full edited content
+
+Comment Style:
+- Python/Shell/YAML files (.py, .sh, .yaml, .yml): Uses `#` comments
+- Other files: Uses `//` comments
+
+Examples:
+```python
+# Edit code with guidance
+prompt_user_edit(
+    content="def hello():\n    pass",
+    file_extension=".py",
+    instructions="Add proper implementation and docstring",
+    show_diff=True
+)
+
+# Edit configuration
+prompt_user_edit(
+    content="server:\n  port: 8080",
+    file_extension=".yaml", 
+    instructions="Update port to 3000 and add host configuration"
+)
+
+# Keep temporary file for debugging
+prompt_user_edit(
+    content="Some content",
+    instructions="Make improvements",
+    keep_file=True,
+    show_diff=False
+)
+```""")
 def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
@@ -93,7 +139,49 @@ def prompt_user_edit(
             os.unlink(temp_path)
 
 
-@mcp.tool(description="Opens Vim for creating new content from scratch. Optional `instructions` can be provided, which will be added as comments at the beginning of the file. `initial_content` can be used to pre-populate the file. Use this to quickly create or edit small text files.")
+@mcp.tool(description="""Opens Vim to create new content from scratch with optional starting content and instructions.
+
+Creates a temporary file with optional initial content and instructions, opens Vim for editing, then returns the final content.
+
+Features:
+- Start with empty file or pre-populate with `initial_content`
+- Add instructions as comments that are automatically stripped
+- Temporary file is automatically cleaned up
+- Choose file extension for proper syntax highlighting
+
+Error Handling:
+- Raises subprocess.CalledProcessError if vim exits abnormally
+- File creation/deletion errors are handled gracefully
+- Returns empty string if user exits vim without saving
+
+Examples:
+```python
+# Create new Python script
+quick_edit(
+    file_extension=".py",
+    instructions="Create a function that calculates fibonacci numbers",
+    initial_content="#!/usr/bin/env python3\n\n"
+)
+
+# Create configuration file
+quick_edit(
+    file_extension=".json",
+    instructions="Create a config for database connection",
+    initial_content="{\n  \n}"
+)
+
+# Create plain text document
+quick_edit(
+    instructions="Write a brief project summary"
+)
+
+# Create shell script
+quick_edit(
+    file_extension=".sh",
+    instructions="Create a deployment script",
+    initial_content="#!/bin/bash\nset -e\n\n"
+)
+```""")
 def quick_edit(
     file_extension: str = ".txt",
     instructions: str = None,
@@ -125,7 +213,62 @@ def quick_edit(
         os.unlink(temp_path)
 
 
-@mcp.tool(description="Opens an existing local file in Vim for editing. If `instructions` are provided, they are displayed in a temporary Vim buffer *before* opening the file for editing. A backup of the original file is created if `backup` is True (default). Use this to modify existing files.")
+@mcp.tool(description="""Opens an existing file in Vim for editing with optional instructions and automatic backup.
+
+Opens the specified file directly in Vim. If instructions are provided, they are shown in a read-only buffer first, then the actual file opens for editing.
+
+File Safety:
+- Automatic backup creation (file.ext.bak) unless `backup=False`
+- Instructions shown in separate read-only buffer to avoid accidental modification
+- Error handling if file doesn't exist or isn't readable
+
+Output Options:
+- `show_diff=True` (default): Shows unified diff of changes with line counts
+- `show_diff=False`: Simple confirmation message
+
+Behavior:
+1. Create backup if enabled
+2. Show instructions in read-only Vim buffer (if provided)
+3. Open actual file for editing
+4. Calculate and return diff or confirmation
+
+Examples:
+```python
+# Edit existing file with guidance
+open_file(
+    file_path="/path/to/config.py",
+    instructions="Update the database URL and add error handling",
+    show_diff=True
+)
+
+# Quick edit without backup
+open_file(
+    file_path="/tmp/notes.txt",
+    backup=False,
+    show_diff=False
+)
+
+# Edit with detailed instructions
+open_file(
+    file_path="src/main.py",
+    instructions=\"\"\"Please make the following changes:
+1. Add type hints to all functions
+2. Add docstrings following Google style
+3. Fix any linting issues\"\"\",
+    backup=True
+)
+
+# Simple edit (no instructions)
+open_file("/path/to/file.txt")
+```
+
+Note: If the file doesn't exist, Vim will create it. The backup will only be created if the file exists before editing.
+
+Error Handling:
+- Raises FileNotFoundError if file path is invalid or inaccessible
+- Raises PermissionError if file cannot be read or written
+- Backup creation failures are logged but don't prevent editing
+- Instructions display errors don't prevent file editing""")
 def open_file(
     file_path: str,
     instructions: str = None,
@@ -196,7 +339,7 @@ def open_file(
     return result
 
 
-@mcp.tool(description="Checks the status of the Vim Tool server and the availability of the `vim` command-line tool. Use this to verify the tool is operational before calling other Vim Tool functions.")
+@mcp.tool(description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools.")
 def server_info() -> str:
     """Get server status and vim version."""
     try:

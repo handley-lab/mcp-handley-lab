@@ -116,7 +116,65 @@ def _handle_agent_and_usage(
     return format_usage(model, input_tokens, output_tokens, cost, provider)
 
 
-@mcp.tool(description="Asks a question to an OpenAI GPT model. Supports file analysis and agent memory. File inputs can be provided in these formats: {\"path\": \"/path/to/file\"} (reads file from the filesystem), {\"content\": \"file content as string\"} (uses the provided text directly), or \"string content\" (treats the string as literal content). Use this tool for general-purpose question answering and text generation tasks, especially when context from external files is needed.")
+@mcp.tool(description="""Asks a question to an OpenAI GPT model with file context and persistent memory.
+
+File Input Formats:
+- {"path": "/path/to/file"} - Reads file from filesystem
+- {"content": "text content"} - Uses provided text directly
+- "direct string" - Treats string as literal content
+
+Key Parameters:
+- `model`: "gpt-4o" (default, multimodal), "gpt-4o-mini" (fast), "o1-preview" (reasoning), "o1-mini" (fast reasoning)
+- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7)
+- `max_tokens`: Maximum response length (default: model maximum)
+- `agent_name`: Store conversation in persistent memory for ongoing interactions
+
+Model Selection Guide:
+- gpt-4o: Best for complex analysis, coding, and multimodal tasks (128k context)
+- gpt-4o-mini: Fast and cost-effective for simple tasks (128k context)
+- o1-preview: Advanced reasoning for complex problems (128k context, no system messages)
+- o1-mini: Fast reasoning for mathematical and coding tasks (128k context, no system messages)
+
+Error Handling:
+- Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)
+- Raises ValueError for invalid file paths or unsupported content
+- Agent memory automatically handles conversation context limits
+
+Examples:
+```python
+# Basic question with file context
+ask(
+    prompt="Explain this code and suggest improvements",
+    files=[{"path": "/path/to/code.py"}],
+    model="gpt-4o"
+)
+
+# Persistent agent conversation
+ask(
+    prompt="Continue reviewing the codebase",
+    agent_name="code_reviewer",
+    model="gpt-4o",
+    temperature=0.3
+)
+
+# Complex reasoning task
+ask(
+    prompt="Solve this algorithmic problem step by step",
+    model="o1-preview",
+    files=[{"content": "Problem description here"}]
+)
+
+# Multiple file analysis
+ask(
+    prompt="Compare these implementations",
+    files=[
+        {"path": "/path/to/impl1.py"},
+        {"path": "/path/to/impl2.py"},
+        {"content": "Additional context"}
+    ],
+    max_tokens=2000
+)
+```""")
 def ask(
     prompt: str,
     agent_name: Optional[str] = None,
@@ -165,7 +223,69 @@ def ask(
         raise RuntimeError(f"OpenAI API error: {e}")
 
 
-@mcp.tool(description="Analyzes one or more images with a prompt using a GPT vision model. Image input formats: {\"path\": \"/path/to/image\"} (reads from the filesystem), {\"data\": \"base64 encoded image data\"} (uses base64 data), \"data:image/...;base64,...\" (data URL format), or \"/path/to/image\" (legacy file path - prefer the dictionary format). The `focus` parameter guides the analysis (e.g., \"objects\", \"colors\", \"composition\"). Use this to get image descriptions, identify objects, and answer questions about images.")
+@mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
+
+Image Input Formats:
+- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
+- {"data": "base64_encoded_data"} - Base64 encoded image data
+- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
+- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+
+Analysis Focus Options:
+- "general" (default) - Overall image description
+- "objects" - Focus on object detection and identification
+- "colors" - Analyze color palette and composition
+- "composition" - Focus on artistic composition and layout
+- "text" - Extract and analyze text within images (OCR)
+- "technical" - Focus on technical aspects, quality, metadata
+- "medical" - Medical image analysis (disclaimer: not for diagnosis)
+- "code" - Analyze screenshots of code or diagrams
+
+Model Options:
+- "gpt-4o" (default) - Best vision capabilities, handles complex visual reasoning
+- "gpt-4o-mini" - Faster, cost-effective vision analysis for simple tasks
+
+Error Handling:
+- Raises ValueError for missing images or unsupported formats
+- Raises RuntimeError for OpenAI API errors (quota, rate limits, content policy)
+- Supports: JPEG, PNG, GIF, WebP (max 20MB per image)
+- Multiple images increase token usage significantly
+
+Examples:
+```python
+# Analyze single image
+analyze_image(
+    prompt="Describe what you see in this screenshot",
+    image_data="/path/to/screenshot.png",
+    focus="general"
+)
+
+# Multiple images comparison
+analyze_image(
+    prompt="Compare these two UI designs and suggest improvements",
+    images=[
+        {"path": "/path/to/design1.png"},
+        {"path": "/path/to/design2.png"}
+    ],
+    focus="composition"
+)
+
+# Extract text from image
+analyze_image(
+    prompt="Extract and transcribe all text from this document",
+    image_data={"path": "/path/to/document.jpg"},
+    focus="text",
+    model="gpt-4o"
+)
+
+# Code analysis from screenshot
+analyze_image(
+    prompt="Review this code for potential bugs and improvements",
+    image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
+    focus="code",
+    agent_name="code_reviewer"
+)
+```""")
 def analyze_image(
     prompt: str,
     image_data: Optional[str] = None,
@@ -227,7 +347,66 @@ def analyze_image(
         raise RuntimeError(f"OpenAI vision API error: {e}")
 
 
-@mcp.tool(description="Generates an image from a text prompt using a DALL-E model. Available models include `dall-e-2` and `dall-e-3`. `quality` can be \"standard\" or \"hd\". `size` options depend on the model. Use this for creative image generation tasks.")
+@mcp.tool(description="""Generates high-quality images using OpenAI's DALL-E models.
+
+Model Options:
+- "dall-e-3" (default) - Latest model with best quality and prompt adherence
+- "dall-e-2" - Previous generation, faster and more cost-effective
+
+Quality Settings:
+- "standard" (default) - Good quality, faster generation
+- "hd" - Higher resolution and detail (DALL-E 3 only)
+
+Size Options:
+- DALL-E 3: "1024x1024" (default), "1024x1792" (portrait), "1792x1024" (landscape)
+- DALL-E 2: "256x256", "512x512", "1024x1024" (default)
+
+Prompt Guidelines:
+- Be descriptive and specific for best results
+- Include style, mood, lighting, and composition details
+- DALL-E 3 follows prompts more precisely than DALL-E 2
+- Avoid requesting copyrighted characters or inappropriate content
+
+Examples:
+```python
+# High-quality artistic image
+generate_image(
+    prompt="A serene mountain landscape at sunset with golden light reflecting on a crystal-clear lake, painted in impressionist style with visible brushstrokes",
+    model="dall-e-3",
+    quality="hd",
+    size="1792x1024"
+)
+
+# Technical diagram
+generate_image(
+    prompt="Clean, minimalist flowchart showing a software deployment pipeline with rounded rectangles and arrow connections, professional blue and white colors",
+    model="dall-e-3",
+    size="1024x1792"
+)
+
+# Portrait with specific style
+generate_image(
+    prompt="Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field, photorealistic style",
+    model="dall-e-3",
+    quality="hd",
+    agent_name="design_assistant"
+)
+
+# Cost-effective generation
+generate_image(
+    prompt="Simple icon design for a mobile app, minimalist style, single color",
+    model="dall-e-2",
+    size="512x512"
+)
+```
+
+Note: Generated images are automatically downloaded and saved to temporary files. Use the returned file path for further processing.
+
+Error Handling:
+- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)
+- Raises ValueError for prompts violating OpenAI's usage policies
+- Image download may fail due to network issues; temporary URLs expire quickly
+- DALL-E 3 may revise prompts for safety compliance""")
 def generate_image(
     prompt: str,
     model: str = "dall-e-3",
@@ -279,7 +458,7 @@ def generate_image(
         raise RuntimeError(f"DALL-E API error: {e}")
 
 
-@mcp.tool(description="Checks the OpenAI server status, API key configuration, and lists available OpenAI models. Use this to verify the tool is properly configured before making other OpenAI requests.")
+@mcp.tool(description="Checks OpenAI server status, API connectivity, available models, and agent statistics. Returns configuration status and available commands. Use this to verify the tool is properly configured before making requests.")
 def server_info() -> str:
     """Get server status and OpenAI configuration."""
     try:

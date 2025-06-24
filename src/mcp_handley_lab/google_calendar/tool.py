@@ -81,7 +81,37 @@ def _format_datetime(dt_str: str) -> str:
         return dt_str + " (all-day)"
 
 
-@mcp.tool(description="Lists calendar events within a specified date range. The end date is exclusive (events on the `end_date` itself are *not* included). If `start_date` and `end_date` are not provided, defaults to the next 7 days starting from now. Use this to retrieve events from a specific calendar or across all calendars (using `calendar_id='all'`).")
+@mcp.tool(description="""Lists calendar events within a specified date range. The end date is exclusive (events on the `end_date` itself are *not* included). 
+
+Defaults to the next 7 days if no dates provided. Use `calendar_id='all'` to search across all accessible calendars.
+
+Date Format: ISO 8601 format required:
+- DateTime: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
+- Date only: "2024-06-24" (for all-day events)
+
+Error Handling:
+- Raises ValueError for invalid date formats
+- Raises RuntimeError for Google Calendar API errors (authentication, network, quota exceeded)
+- Inaccessible calendars are silently skipped when using `calendar_id='all'`
+
+Examples:
+```python
+# List next week's events from primary calendar
+list_events()
+
+# List events from specific date range
+list_events(
+    start_date="2024-06-24T09:00:00Z",
+    end_date="2024-06-25T17:00:00Z"
+)
+
+# Search all calendars for today's events
+list_events(
+    calendar_id="all",
+    start_date="2024-06-24",
+    end_date="2024-06-25"
+)
+```""")
 def list_events(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
@@ -173,7 +203,7 @@ def list_events(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Retrieves a single calendar event by its ID. Use this when you have a specific event ID and need detailed information about it.")
+@mcp.tool(description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.")
 def get_event(
     event_id: str,
     calendar_id: str = "primary"
@@ -220,7 +250,45 @@ def get_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Creates a new event in the specified calendar. Date/time parameters should be in ISO 8601 format (e.g., `YYYY-MM-DDTHH:MM:SSZ` for UTC or `YYYY-MM-DDTHH:MM:SS+02:00` for a specific timezone). For all-day events, use the format `YYYY-MM-DD`. The `timezone` parameter defaults to UTC. Use this to schedule new events.")
+@mcp.tool(description="""Creates a new event in the specified calendar. 
+
+Date/Time Formats (ISO 8601 required):
+- Timed events: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
+- All-day events: "2024-06-24" (date only, no time component)
+
+The `timezone` parameter defaults to UTC and is only used for timed events.
+
+Error Handling:
+- Raises ValueError for invalid date/time formats or missing required fields
+- Raises RuntimeError for Google Calendar API errors (authentication, permissions, quota)
+- Invalid attendee emails are accepted by the API but may not receive invitations
+
+Examples:
+```python
+# Create a 1-hour meeting
+create_event(
+    summary="Team Standup",
+    start_datetime="2024-06-24T10:00:00Z",
+    end_datetime="2024-06-24T11:00:00Z",
+    description="Daily team synchronization",
+    attendees=["alice@company.com", "bob@company.com"]
+)
+
+# Create an all-day event
+create_event(
+    summary="Company Holiday",
+    start_datetime="2024-12-25",
+    end_datetime="2024-12-26"
+)
+
+# Create event with timezone
+create_event(
+    summary="Client Meeting",
+    start_datetime="2024-06-24T14:00:00",
+    end_datetime="2024-06-24T15:00:00",
+    timezone="America/New_York"
+)
+```""")
 def create_event(
     summary: str,
     start_datetime: str,
@@ -284,7 +352,42 @@ def create_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Updates an existing calendar event. The `event_summary` parameter is used as a safety check to prevent accidental updates to the wrong event. The event will only be updated if the provided `event_summary` matches the existing event's summary. Use this to modify existing events.")
+@mcp.tool(description="""Updates an existing calendar event with safety verification.
+
+SAFETY CHECK: The `event_summary` parameter must exactly match the existing event's title. This prevents accidental updates to the wrong event.
+
+Only non-None parameters will be updated. To clear a field, pass an empty string.
+
+Error Handling:
+- Raises ValueError if event_summary doesn't match existing event title (safety check)
+- Raises ValueError if event_id not found in specified calendar
+- Raises RuntimeError for Google Calendar API errors (permissions, network, quota)
+
+Examples:
+```python
+# Update event time only
+update_event(
+    event_summary="Team Standup",  # Must match exactly
+    event_id="abc123def456",
+    start_datetime="2024-06-24T11:00:00Z",
+    end_datetime="2024-06-24T12:00:00Z"
+)
+
+# Update title and description
+update_event(
+    event_summary="Old Meeting Title",  # Current title
+    event_id="abc123def456",
+    summary="New Meeting Title",  # New title
+    description="Updated meeting agenda"
+)
+
+# Clear description
+update_event(
+    event_summary="Team Standup",
+    event_id="abc123def456",
+    description=""  # Empty string clears the field
+)
+```""")
 def update_event(
     event_summary: str,
     event_id: str,
@@ -357,7 +460,26 @@ def update_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Deletes a calendar event by ID. The `event_summary` parameter acts as a safety check: the event will only be deleted if the provided summary matches the existing event's summary. Use this with caution as the deletion is permanent.")
+@mcp.tool(description="""Deletes a calendar event permanently with safety verification.
+
+CRITICAL SAFETY CHECK: The `event_summary` parameter must exactly match the existing event's title. This prevents accidental deletion of the wrong event.
+
+WARNING: Deletion is permanent and cannot be undone.
+
+Error Handling:
+- Raises ValueError if event_summary doesn't match existing event title (safety check)
+- Raises ValueError if event_id not found in specified calendar
+- Raises RuntimeError for Google Calendar API errors (permissions, network issues)
+
+Example:
+```python
+# Delete event with safety check
+delete_event(
+    event_summary="Team Standup",  # Must match exactly
+    event_id="abc123def456",
+    calendar_id="primary"
+)
+```""")
 def delete_event(
     event_summary: str,
     event_id: str,
@@ -393,7 +515,7 @@ def delete_event(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Lists all available calendars accessible to the authenticated user, including their IDs and access levels. Use this to discover calendar IDs before using other calendar tools.")
+@mcp.tool(description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools.")
 def list_calendars() -> str:
     """List all accessible calendars."""
     try:
@@ -426,7 +548,39 @@ def list_calendars() -> str:
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Finds available free time slots within a given calendar. If no date range is specified, it defaults to the next 7 days. The `duration_minutes` parameter sets the desired slot length. `work_hours_only` (defaults to True) restricts the search to weekdays between 9 AM and 5 PM in the calendar's timezone. Use this to find suitable meeting times.")
+@mcp.tool(description="""Finds available free time slots within a calendar for scheduling meetings.
+
+Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes.
+
+Parameters:
+- `duration_minutes`: Length of desired time slot (default: 60)
+- `work_hours_only`: If True (default), restricts to weekdays 9 AM - 5 PM in the calendar's local timezone (not configurable)
+
+Date Format: ISO 8601 format required ("2024-06-24T09:00:00Z" or "2024-06-24")
+
+Error Handling:
+- Raises ValueError for invalid date formats or missing required parameters
+- Raises RuntimeError for Google Calendar API errors (network, authentication, quota)
+- Returns descriptive error messages for debugging
+
+Examples:
+```python
+# Find 1-hour slots in work hours for next week
+find_time()
+
+# Find 30-minute slots including evenings/weekends
+find_time(
+    duration_minutes=30,
+    work_hours_only=False
+)
+
+# Find slots in specific date range
+find_time(
+    start_date="2024-06-24T09:00:00Z",
+    end_date="2024-06-28T17:00:00Z",
+    duration_minutes=90
+)
+```""")
 def find_time(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
@@ -507,7 +661,7 @@ def find_time(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Checks the status of the Google Calendar Tool server and the connection to the Google Calendar API. Use this to verify the tool is operational before making other Google Calendar requests.")
+@mcp.tool(description="Checks the Google Calendar Tool server status and API connectivity. Returns authentication status, accessible calendars count, and available commands. Use this to verify the tool is operational before making other requests.")
 def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
     try:

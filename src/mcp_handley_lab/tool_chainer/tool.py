@@ -240,7 +240,21 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
 
 
 
-@mcp.tool(description="Discovers and lists the tools available on a specified MCP server. Provide the server command as it would be used to run the server. Use this to explore available tools before registering them for chaining.")
+@mcp.tool(description="""Discovers and lists all available tools on an MCP server.
+
+Provide the exact server command as it would be executed. This scans the server to find all available tools and their descriptions before registering them.
+
+Examples:
+```python
+# Discover tools on a Python MCP server
+discover_tools("python -m mcp_handley_lab.jq")
+
+# Discover tools on a Node.js server
+discover_tools("node dist/index.js")
+
+# Discover with timeout
+discover_tools("python -m my_server", timeout=10)
+```""")
 def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
     try:
@@ -329,7 +343,51 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
         return f"❌ Discovery error: {e}"
 
 
-@mcp.tool(description="Registers a tool from an MCP server, making it available for use in chains. Specify the tool's ID, server command, tool name on the server, and optional description. For file-based tools, use exact file paths in arguments, not variables. Use `output_to` to capture the tool's output for use in subsequent chain steps. Variables are referenced with `{var_name}` syntax (not `${var_name}`).")
+@mcp.tool(description="""Registers a tool from an MCP server for use in chains.
+
+CRITICAL: For file-based tools, always use exact file paths in arguments, NOT variables. Only use variables when the previous step's output contains the actual file path.
+
+Parameters:
+- `tool_id`: Unique identifier for this tool in chains
+- `server_command`: Exact command to run the MCP server
+- `tool_name`: Name of the tool on the server (from discover_tools)
+- `output_format`: "text" (default), "json", "file_path" - how to parse tool output
+- `timeout`: Execution timeout in seconds (default: 30, max recommended: 300)
+
+Error Handling:
+- Tool registration always succeeds but execution may fail if server command invalid
+- Server commands are not validated until execution time
+- Use discover_tools first to verify tool availability
+
+Variable Syntax: Use `{var_name}` NOT `${var_name}`
+
+Examples:
+```python
+# Register a file processing tool
+register_tool(
+    tool_id="jq_query",
+    server_command="python -m mcp_handley_lab.jq",
+    tool_name="query",
+    description="Query JSON data with jq",
+    timeout=15
+)
+
+# Register code analysis tool
+register_tool(
+    tool_id="code_summarizer",
+    server_command="python -m mcp_handley_lab.code2prompt",
+    tool_name="generate_prompt",
+    output_format="file_path"
+)
+
+# Register LLM tool
+register_tool(
+    tool_id="gemini_ai",
+    server_command="python -m mcp_handley_lab.llm.gemini",
+    tool_name="ask",
+    description="Ask Gemini questions"
+)
+```""")
 def register_tool(
     tool_id: str,
     server_command: str,
@@ -357,7 +415,93 @@ def register_tool(
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
 
-@mcp.tool(description="Defines a reusable chain of registered tools. Each step in the chain specifies a tool ID, arguments, and optional conditions and output variable names. Use `{variable_name}` (not `${variable_name}`) for variable substitution. When working with files, use literal file paths in arguments, not variables, unless you're extracting paths from a previous tool's output. For example, if a tool outputs 'File created at /tmp/result.txt', use `{'path': '/tmp/result.txt'}` in the next step.")
+@mcp.tool(description="""Defines a reusable chain of tool executions with conditional logic and variable passing.
+
+CRITICAL File Path Handling:
+- Use literal paths: `{"file_path": "/tmp/data.json"}` ✓
+- Only use variables if previous step output contains the path: `{"data": "{analysis_result}"}` ✓  
+- DON'T use variables for file paths unless you're certain: `{"file_path": "{some_var}"}` ❌
+
+Chain Components:
+- `steps`: List of ToolStep objects with tool_id, arguments, condition, output_to
+- `condition`: Optional boolean expression for conditional execution
+- `output_to`: Variable name to store this step's output
+- `save_to_file`: Save final result to specified file path
+
+Variable Syntax: `{var_name}` NOT `${var_name}`
+
+Error Handling:
+- Raises ValueError if referenced tools are not registered
+- Warns about potential file path variable misuse
+- Chain definition succeeds even if tool configurations are invalid
+
+Conditional Expressions:
+- `"{result} contains 'success'"` - Check if output contains text
+- `"{status} == 'completed'"` - Exact string comparison
+- `"{error_count} != '0'"` - Inequality check
+
+Examples:
+```python
+# Simple linear chain
+chain_tools(
+    chain_id="analyze_codebase",
+    steps=[
+        ToolStep(
+            tool_id="code_summarizer",
+            arguments={"path": "/path/to/project", "output_file": "/tmp/summary.md"},
+            output_to="summary_path"
+        ),
+        ToolStep(
+            tool_id="gemini_ai", 
+            arguments={
+                "prompt": "Review this codebase for improvements",
+                "files": [{"path": "/tmp/summary.md"}],
+                "output_file": "/tmp/review.md"
+            }
+        )
+    ]
+)
+
+# Conditional chain with error handling
+chain_tools(
+    chain_id="process_with_fallback",
+    steps=[
+        ToolStep(
+            tool_id="primary_processor",
+            arguments={"input_file": "/data/input.json"},
+            output_to="primary_result"
+        ),
+        ToolStep(
+            tool_id="fallback_processor",
+            arguments={"input_file": "/data/input.json"},
+            condition="{primary_result} contains 'error'",
+            output_to="backup_result"
+        ),
+        ToolStep(
+            tool_id="final_formatter",
+            arguments={"data": "{primary_result}"},
+            condition="{primary_result} != '' and {primary_result} not contains 'error'"
+        )
+    ],
+    save_to_file="/tmp/final_output.txt"
+)
+
+# File processing pipeline
+chain_tools(
+    chain_id="json_analysis",
+    steps=[
+        ToolStep(
+            tool_id="jq_query",
+            arguments={"data": "/path/data.json", "filter": ".users | length"},
+            output_to="user_count"
+        ),
+        ToolStep(
+            tool_id="report_generator",
+            arguments={"template": "Found {user_count} users in the dataset"}
+        )
+    ]
+)
+```""")
 def chain_tools(
     chain_id: str,
     steps: List[ToolStep],
@@ -401,7 +545,78 @@ def chain_tools(
     return result
 
 
-@mcp.tool(description="Executes a defined tool chain. Provide the `chain_id`, initial input, and optional variables. Variables are referenced using `{var_name}` syntax (not `${var_name}`). For file operations, use exact file paths in tool arguments, not variables. If a tool returns a message like 'File saved to /path/to/file.txt,' use '/path/to/file.txt' directly in the next step's arguments.")
+@mcp.tool(description="""Executes a previously defined tool chain with variable substitution and error handling.
+
+Provides comprehensive execution tracking, conditional step execution, and automatic variable substitution.
+
+Parameters:
+- `chain_id`: ID of the chain to execute (from chain_tools)
+- `initial_input`: Optional input available as `{INITIAL_INPUT}` in all steps
+- `variables`: Dict of variables available for substitution `{var_name}`
+- `timeout`: Override default timeout for all steps
+
+Variable Substitution:
+- User variables: `{my_variable}` from the variables parameter
+- Step outputs: `{step_1}`, `{step_2}` or custom names from `output_to`
+- Initial input: `{INITIAL_INPUT}` from the initial_input parameter
+
+Execution Features:
+- Conditional steps based on previous outputs
+- Automatic error handling and rollback
+- Comprehensive logging with timing
+- File output saving if configured
+
+Examples:
+```python
+# Execute simple chain
+execute_chain(
+    chain_id="analyze_codebase",
+    initial_input="/path/to/my/project"
+)
+
+# Execute with custom variables
+execute_chain(
+    chain_id="process_data",
+    variables={
+        "input_dir": "/data/raw",
+        "output_dir": "/data/processed",
+        "batch_size": "100"
+    },
+    timeout=300
+)
+
+# Execute conditional processing
+execute_chain(
+    chain_id="test_and_deploy",
+    variables={
+        "environment": "production",
+        "skip_tests": "false"
+    }
+)
+
+# Execute with file input
+execute_chain(
+    chain_id="document_analysis",
+    initial_input="Analyze the uploaded document",
+    variables={
+        "document_path": "/tmp/uploaded_doc.pdf",
+        "format": "markdown"
+    }
+)
+```
+
+Returns detailed execution summary including:
+- Overall success/failure status
+- Execution duration and step timing
+- Step-by-step results and errors
+- Final output if successful
+
+Error Handling:
+- Chain stops at first failed step unless conditionals allow continuation
+- Timeout errors halt execution and are logged
+- Server communication failures are retried once automatically
+- Variables are validated before each step execution
+- File save errors are logged but don't fail the chain""")
 def execute_chain(
     chain_id: str,
     initial_input: Optional[str] = None,
@@ -547,7 +762,21 @@ def execute_chain(
     return result
 
 
-@mcp.tool(description="Displays the execution history of recent tool chains, including timestamps, status (success/failure), and any errors. Use this to review past chain executions.")
+@mcp.tool(description="""Displays execution history of tool chains with timestamps, status, and error details.
+
+Shows recent chain executions in reverse chronological order (newest first) with success/failure status and execution times.
+
+Examples:
+```python
+# Show last 10 executions (default)
+show_history()
+
+# Show last 20 executions
+show_history(limit=20)
+
+# Show history from custom storage
+show_history(limit=5, storage_dir="/custom/path")
+```""")
 def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     """Show recent chain execution history."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
@@ -573,7 +802,23 @@ def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     return result
 
 
-@mcp.tool(description="Clears all cached results, registered tools, defined chains, and execution history. Use this to reset the tool chainer.")
+@mcp.tool(description="""Clears all tool chainer data including registered tools, chains, and execution history.
+
+WARNING: This permanently deletes all registered tools, defined chains, and execution history. Use with caution.
+
+Error Handling:
+- Storage directory is created if it doesn't exist
+- File deletion errors are logged but operation continues
+- Always returns success even if some files couldn't be deleted
+
+Example:
+```python
+# Clear all data
+clear_cache()
+
+# Clear data from custom storage
+clear_cache(storage_dir="/custom/path")
+```""")
 def clear_cache(storage_dir: Optional[str] = None) -> str:
     """Clear all cached data."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
@@ -588,7 +833,23 @@ def clear_cache(storage_dir: Optional[str] = None) -> str:
     return "✅ Cache and execution history cleared successfully!"
 
 
-@mcp.tool(description="Shows the status of the Tool Chainer server, including registered tools, defined chains, and usage examples. Use this to get an overview of the Tool Chainer's current state.")
+@mcp.tool(description="""Shows comprehensive Tool Chainer status including registered tools, chains, execution history, and usage examples.
+
+Provides complete overview of:
+- Registered tools and their configurations
+- Defined chains and step counts
+- Execution history statistics
+- Usage examples and best practices
+- Variable syntax guidelines
+
+Example:
+```python
+# Get status overview
+server_info()
+
+# Get status from custom storage
+server_info(storage_dir="/custom/path")
+```""")
 def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR

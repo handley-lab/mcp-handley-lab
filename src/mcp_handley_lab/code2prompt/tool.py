@@ -25,7 +25,53 @@ def _run_code2prompt(args: List[str]) -> str:
         raise RuntimeError("code2prompt command not found. Please install code2prompt.")
 
 
-@mcp.tool(description="Generates a structured, token-counted summary of a codebase and saves it to a file. This allows LLMs to process large codebases efficiently by referencing the summary file, avoiding excessive context window usage. Use this tool when you need to analyze a codebase that is too large to fit directly in the LLM's context window. The output file path should then be used as a 'file' input to an LLM tool. Includes options for filtering files, controlling output format, and incorporating git diff information.")
+@mcp.tool(description="""Generates a structured, token-counted summary of a codebase and saves it to a file. This allows LLMs to process large codebases efficiently by referencing the summary file, avoiding excessive context window usage. Use this tool when you need to analyze a codebase that is too large to fit directly in the LLM's context window. The output file path should then be used as a 'file' input to an LLM tool. 
+
+Includes options for filtering files, controlling output format, and incorporating git diff information.
+
+Key Parameters:
+- `include`/`exclude`: Glob patterns like ["*.py", "*.js"] or ["node_modules", "__pycache__"]
+- `output_format`: "markdown" (default), "json", "xml", or "plain"
+- `include_git_diff`: Must be True to include git diff; REQUIRES both `git_diff_branch1` and `git_diff_branch2` to be provided
+- `git_diff_branch1`/`git_diff_branch2`: Branch names for diff comparison (e.g., "main", "feature-branch"). Only used when `include_git_diff=True`
+- `git_log_branch1`/`git_log_branch2`: Generate git logs between branches (independent of diff functionality)
+- `encoding`: Token counting method - "cl100k" (GPT-4/GPT-4o), "p50k_base" (GPT-3), "o200k_base" (GPT-4o), etc.
+- `tokens`: "format" (show tokens in output), "count" (count only), "none" (disable token counting)
+- `sort`: "name_asc" (default), "name_desc", "size_asc", "size_desc", "date_asc", "date_desc"
+- `include_priority`: Adds file priority markers to help LLMs focus on important files first
+- `template`: Path to custom Jinja2 template file for output formatting
+- `no_ignore`: Ignore .gitignore and .code2promptignore files, include all files matching patterns
+- `line_numbers`: Add line numbers to code blocks for easier reference
+- `absolute_paths`: Use absolute file paths instead of relative paths
+- `full_directory_tree`: Include complete directory structure, not just files with content
+
+Example usage:
+```python
+# Basic usage - analyze Python files only
+generate_prompt(
+    path="/path/to/project",
+    include=["*.py"],
+    exclude=["__pycache__", "venv"]
+)
+
+# Include git diff between branches
+generate_prompt(
+    path="/path/to/project",
+    include_git_diff=True,
+    git_diff_branch1="main",
+    git_diff_branch2="feature-branch"
+)
+
+# Generate for multiple file types with git log
+generate_prompt(
+    path="/path/to/project",
+    include=["*.py", "*.js", "*.ts"],
+    exclude=["node_modules", "dist", "__pycache__"],
+    git_log_branch1="v1.0.0",
+    git_log_branch2="HEAD",
+    output_format="json"
+)
+```""")
 def generate_prompt(
     path: str,
     output_file: Optional[str] = None,
@@ -122,7 +168,7 @@ def generate_prompt(
 
 
 
-@mcp.tool(description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions.")
+@mcp.tool(description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands.")
 def server_info() -> str:
     """Get server status and code2prompt version."""
     try:

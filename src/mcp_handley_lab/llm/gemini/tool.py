@@ -126,7 +126,64 @@ def _handle_agent_and_usage(
         return f"{response_text}\n\n{usage_info}"
 
 
-@mcp.tool(description="Asks a question to a Gemini model. IMPORTANT: Specify output_file path to save response for future processing, or use '-' to output to stdout. File inputs can be provided in these formats: {\"path\": \"/path/to/file\"} (reads file from the filesystem), {\"content\": \"file content as string\"} (uses the provided text directly), or \"string content\" (treats the string as literal content). The `grounding` parameter (defaults to False) enables retrieval augmented generation, improving the factuality of responses. Use this tool for general-purpose question answering and text generation tasks, especially when context from external files is needed.")
+@mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the response for future processing (recommended for large responses)
+- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
+
+File Input Formats:
+- {"path": "/path/to/file"} - Reads file from filesystem
+- {"content": "text content"} - Uses provided text directly  
+- "direct string" - Treats string as literal content
+
+Key Parameters:
+- `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
+- `grounding`: Enable Google Search integration for factual accuracy (default: False, may increase response time)
+- `agent_name`: Store conversation in persistent memory for ongoing interactions
+- `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
+
+Error Handling:
+- Raises RuntimeError for Gemini API errors (authentication, quota, network)
+- Raises ValueError for invalid file paths or malformed requests
+- Large responses automatically saved to avoid MCP message size limits
+
+Examples:
+```python
+# Basic question with file output
+ask(
+    prompt="Explain this code",
+    output_file="/tmp/explanation.md",
+    files=[{"path": "/path/to/code.py"}]
+)
+
+# Grounded research query
+ask(
+    prompt="What are the latest developments in quantum computing?",
+    output_file="/tmp/research.md",
+    grounding=True,
+    model="pro"
+)
+
+# Persistent agent conversation
+ask(
+    prompt="Continue our discussion about the algorithm",
+    output_file="/tmp/response.md",
+    agent_name="code_reviewer",
+    model="pro"
+)
+
+# Multiple file context
+ask(
+    prompt="Compare these implementations",
+    output_file="/tmp/comparison.md",
+    files=[
+        {"path": "/path/to/impl1.py"},
+        {"path": "/path/to/impl2.py"},
+        {"content": "Additional context here"}
+    ]
+)
+```""")
 def ask(
     prompt: str,
     output_file: str,
@@ -193,7 +250,74 @@ def ask(
         raise RuntimeError(f"Gemini API error: {e}")
 
 
-@mcp.tool(description="Analyzes images using Gemini's vision capabilities. IMPORTANT: Specify output_file path to save response for future processing, or use '-' to output to stdout. Image input formats: {\"path\": \"/path/to/image\"} (reads from the filesystem), {\"data\": \"base64 encoded image data\"} (uses base64 data), \"data:image/...;base64,...\" (data URL format), or \"/path/to/image\" (legacy file path - prefer the dictionary format). The `focus` parameter guides the analysis (e.g., \"objects\", \"colors\", \"composition\"). Use this to get image descriptions, identify objects, and answer questions about images.")
+@mcp.tool(description="""Analyzes images using Gemini's advanced vision capabilities.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the analysis for future processing (recommended)
+- '-' to output directly to stdout (use sparingly for large analyses)
+
+Image Input Formats:
+- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
+- {"data": "base64_encoded_data"} - Base64 encoded image data
+- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
+- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+
+Analysis Focus Options:
+- "general" (default) - Overall image description
+- "objects" - Focus on object detection and identification
+- "colors" - Analyze color palette and composition
+- "composition" - Focus on artistic composition and layout
+- "text" - Extract and analyze text within images
+- "technical" - Focus on technical aspects, quality, metadata
+
+Model Options:
+- "pro" (default) - Best for detailed analysis and complex reasoning
+- "flash" - Faster response, good for simple image descriptions
+
+Error Handling:
+- Raises ValueError for missing or invalid image inputs
+- Raises RuntimeError for Gemini API errors (quota, authentication, unsupported formats)
+- Supports common formats: JPEG, PNG, GIF, WebP
+- Large images may be automatically resized by the API
+
+Examples:
+```python
+# Analyze single image from file
+analyze_image(
+    prompt="Describe what you see in this image",
+    output_file="/tmp/analysis.md",
+    image_data="/path/to/photo.jpg",
+    focus="general"
+)
+
+# Multiple images comparison
+analyze_image(
+    prompt="Compare these two diagrams and explain the differences",
+    output_file="/tmp/comparison.md",
+    images=[
+        {"path": "/path/to/diagram1.png"},
+        {"path": "/path/to/diagram2.png"}
+    ],
+    focus="technical"
+)
+
+# Extract text from image
+analyze_image(
+    prompt="Extract and transcribe all text from this document",
+    output_file="/tmp/extracted_text.md",
+    image_data={"path": "/path/to/document.jpg"},
+    focus="text",
+    model="pro"
+)
+
+# Base64 image analysis
+analyze_image(
+    prompt="Identify all objects in this scene",
+    output_file="/tmp/objects.md",
+    image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
+    focus="objects"
+)
+```""")
 def analyze_image(
     prompt: str,
     output_file: str,
@@ -240,7 +364,41 @@ def analyze_image(
         raise RuntimeError(f"Gemini vision API error: {e}")
 
 
-@mcp.tool(description="Generates images using Gemini's Imagen 3 model. Provide a text prompt describing the desired image. Use this for creative image generation tasks.")
+@mcp.tool(description="""Generates high-quality images using Gemini's Imagen 3 model.
+
+Creates images from text descriptions with advanced artistic capabilities. Generated images are saved as PNG files to a temporary location.
+
+Prompt Guidelines:
+- Be descriptive and specific for best results
+- Include style, mood, lighting, and composition details
+- Mention aspect ratio preferences if needed
+- Avoid requesting copyrighted characters or inappropriate content
+
+Examples:
+```python
+# Artistic image
+generate_image(
+    prompt="A serene mountain landscape at sunset, with golden light reflecting on a crystal-clear lake, painted in impressionist style",
+    agent_name="artist_bot"
+)
+
+# Technical diagram
+generate_image(
+    prompt="Clean, minimalist flowchart showing a software deployment pipeline, with rounded rectangles and arrow connections, in professional blue and white colors"
+)
+
+# Portrait style
+generate_image(
+    prompt="Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field"
+)
+```
+
+Note: Generated images are automatically saved to temporary files. Use the returned file path for further processing.
+
+Error Handling:
+- Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
+- Raises ValueError for prompts that violate content policies
+- Generated images are PNG format, saved to system temp directory""")
 def generate_image(
     prompt: str,
     model: str = "imagen-3",
@@ -291,7 +449,23 @@ def generate_image(
     )
 
 
-@mcp.tool(description="Creates a new named agent for persistent conversation memory. An optional `personality` can be provided to guide the agent's responses. Use this to create new conversational agents for ongoing interactions.")
+@mcp.tool(description="""Creates a new persistent conversation agent with optional personality.
+
+Agents maintain conversation history across multiple interactions, enabling context-aware responses and long-term memory.
+
+Personality Examples:
+- "Expert Python developer focused on clean code and best practices"
+- "Helpful data scientist specializing in machine learning"
+- "Creative writing assistant with expertise in technical documentation"
+- "Security-focused code reviewer"
+
+Example:
+```python
+create_agent(
+    agent_name="code_mentor",
+    personality="Senior software engineer who provides constructive code reviews with focus on maintainability and performance"
+)
+```""")
 def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
     try:
@@ -302,7 +476,7 @@ def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
         raise ValueError(str(e))
 
 
-@mcp.tool(description="Lists all existing named agents and their summary statistics (creation date, message count, token usage, and cost). Use this to manage and review existing agents.")
+@mcp.tool(description="Lists all persistent agents with summary statistics including creation date, message count, token usage, and total cost. Use this to manage and monitor agent usage across your projects.")
 def list_agents() -> str:
     """List all agents with their statistics."""
     agents = memory_manager.list_agents()
@@ -325,7 +499,15 @@ def list_agents() -> str:
     return result
 
 
-@mcp.tool(description="Retrieves detailed statistics and recent conversation history for a specific named agent. Use this to get a deeper understanding of an agent's usage and behavior.")
+@mcp.tool(description="""Retrieves comprehensive statistics and recent conversation history for a specific agent.
+
+Provides detailed insights into agent usage including total tokens, costs, and the last 5 messages for context review.
+
+Example:
+```python
+agent_stats("code_mentor")
+# Returns creation date, message count, token usage, cost, personality, and recent messages
+```""")
 def agent_stats(agent_name: str) -> str:
     """Get detailed statistics for a specific agent."""
     agent = memory_manager.get_agent(agent_name)
@@ -356,7 +538,7 @@ def agent_stats(agent_name: str) -> str:
     return result
 
 
-@mcp.tool(description="Clears the conversation history of a named agent, resetting it for a new conversation. Use this when you want to start a fresh interaction with an existing agent.")
+@mcp.tool(description="Clears all conversation history for an agent while preserving the agent itself and its personality. Use this to start fresh conversations while maintaining the agent's configuration.")
 def clear_agent(agent_name: str) -> str:
     """Clear an agent's conversation history."""
     success = memory_manager.clear_agent_history(agent_name)
@@ -366,7 +548,7 @@ def clear_agent(agent_name: str) -> str:
         raise ValueError(f"Agent '{agent_name}' not found")
 
 
-@mcp.tool(description="Permanently deletes a named agent and all associated data. Use this with caution.")
+@mcp.tool(description="Permanently deletes an agent and all associated conversation data. WARNING: This action cannot be undone. Use clear_agent() instead if you only want to reset the conversation history.")
 def delete_agent(agent_name: str) -> str:
     """Delete an agent permanently."""
     success = memory_manager.delete_agent(agent_name)
@@ -376,7 +558,24 @@ def delete_agent(agent_name: str) -> str:
         raise ValueError(f"Agent '{agent_name}' not found")
 
 
-@mcp.tool(description="Retrieves a message from an agent's conversation history by index. Default index -1 gets the last message. Use positive integers to get specific messages (0 = first message). Returns the content of the message at the specified index.")
+@mcp.tool(description="""Retrieves a specific message from an agent's conversation history by index.
+
+Index Usage:
+- -1 (default): Last/most recent message
+- 0: First message in history  
+- Positive integers: Specific message position
+
+Example:
+```python
+# Get the last response
+get_response("code_mentor")
+
+# Get the first message
+get_response("code_mentor", index=0)
+
+# Get third message
+get_response("code_mentor", index=2)
+```""")
 def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
     response = memory_manager.get_response(agent_name, index)
@@ -389,7 +588,7 @@ def get_response(agent_name: str, index: int = -1) -> str:
     return response
 
 
-@mcp.tool(description="Checks the Gemini server status, API key configuration, and lists available Gemini models. Use this to verify the tool is properly configured before making other Gemini requests.")
+@mcp.tool(description="Checks Gemini server status, API connectivity, available models, and agent statistics. Returns configuration status and available commands. Use this to verify the tool is properly configured before making requests.")
 def server_info() -> str:
     """Get server status and Gemini configuration."""
     try:

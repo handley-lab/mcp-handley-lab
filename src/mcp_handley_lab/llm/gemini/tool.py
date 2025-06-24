@@ -236,7 +236,7 @@ def ask(
         # Start or continue conversation
         if history:
             # Continue existing conversation
-            chat = gemini_model.start_chat(messages=history)
+            chat = gemini_model.start_chat(history=history)
             response = chat.send_message(prompt)
         else:
             # New conversation

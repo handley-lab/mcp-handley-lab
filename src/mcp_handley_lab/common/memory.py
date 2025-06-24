@@ -51,12 +51,12 @@ class AgentMemory(BaseModel):
         # We'll handle this in the tool itself rather than here
         
         for message in self.messages:
-            # Convert to Gemini's expected format with 'content' as list
+            # Convert to Gemini's expected format with 'parts'
             # Map "assistant" role to "model" for Gemini
             role = "model" if message.role == "assistant" else message.role
             history.append({
                 "role": role,
-                "content": [{"text": message.content}]
+                "parts": [{"text": message.content}]
             })
         
         return history

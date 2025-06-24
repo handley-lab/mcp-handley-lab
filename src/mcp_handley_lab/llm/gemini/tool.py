@@ -209,18 +209,24 @@ def ask(
         if grounding:
             tools = ["google_search_retrieval"]
         
-        gemini_model = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=generation_config,
-            tools=tools
-        )
-        
-        # Build conversation history
+        # Handle agent setup and system instruction (personality)
+        agent = None
+        system_instruction = None
         history = []
+        
         if agent_name:
             agent = memory_manager.get_agent(agent_name)
             if agent:
+                if agent.personality:
+                    system_instruction = agent.personality
                 history = agent.get_conversation_history()
+        
+        gemini_model = genai.GenerativeModel(
+            model_name=model_name,
+            generation_config=generation_config,
+            tools=tools,
+            system_instruction=system_instruction
+        )
         
         # Add file contents to prompt if provided
         file_contents = _resolve_files(files)
@@ -230,7 +236,7 @@ def ask(
         # Start or continue conversation
         if history:
             # Continue existing conversation
-            chat = gemini_model.start_chat(history=history[:-1] if history else [])
+            chat = gemini_model.start_chat(messages=history)
             response = chat.send_message(prompt)
         else:
             # New conversation

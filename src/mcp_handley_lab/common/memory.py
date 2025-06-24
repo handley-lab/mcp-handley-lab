@@ -43,16 +43,20 @@ class AgentMemory(BaseModel):
         self.total_tokens = 0
         self.total_cost = 0.0
     
-    def get_conversation_history(self) -> List[Dict[str, str]]:
-        """Get conversation history in format suitable for LLM APIs."""
+    def get_conversation_history(self) -> List[Dict[str, Any]]:
+        """Get conversation history in format suitable for Gemini API."""
         history = []
-        if self.personality:
-            history.append({"role": "system", "content": self.personality})
+        
+        # For Gemini, personality/system messages should be added differently
+        # We'll handle this in the tool itself rather than here
         
         for message in self.messages:
+            # Convert to Gemini's expected format with 'content' as list
+            # Map "assistant" role to "model" for Gemini
+            role = "model" if message.role == "assistant" else message.role
             history.append({
-                "role": message.role,
-                "content": message.content
+                "role": role,
+                "content": [{"text": message.content}]
             })
         
         return history

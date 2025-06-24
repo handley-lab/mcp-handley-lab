@@ -98,8 +98,8 @@ class TestAgentMemory:
         history = sample_agent.get_conversation_history()
         
         assert len(history) == 2
-        assert history[0] == {"role": "user", "content": "Hello"}
-        assert history[1] == {"role": "assistant", "content": "Hi there"}
+        assert history[0] == {"role": "user", "content": [{"text": "Hello"}]}
+        assert history[1] == {"role": "model", "content": [{"text": "Hi there"}]}
     
     def test_get_conversation_history_with_personality(self, sample_agent):
         """Test getting conversation history with personality."""
@@ -108,10 +108,11 @@ class TestAgentMemory:
         
         history = sample_agent.get_conversation_history()
         
-        assert len(history) == 3
-        assert history[0] == {"role": "system", "content": "Helpful assistant"}
-        assert history[1] == {"role": "user", "content": "Hello"}
-        assert history[2] == {"role": "assistant", "content": "Hi there"}
+        # Personality is now handled in the tool, not in memory
+        # So we should only see the user/assistant messages  
+        assert len(history) == 2
+        assert history[0] == {"role": "user", "content": [{"text": "Hello"}]}
+        assert history[1] == {"role": "model", "content": [{"text": "Hi there"}]}
     
     def test_get_stats(self, sample_agent):
         """Test getting agent statistics."""

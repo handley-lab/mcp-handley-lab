@@ -561,6 +561,42 @@ class TestGeminiTools:
             with pytest.raises(RuntimeError, match="Gemini API configuration error"):
                 server_info()
     
+    def test_ask_with_personality_system_instruction(self, mock_genai, mock_memory_manager):
+        """Test ask function with agent personality sets system instruction."""
+        # Setup agent with personality
+        mock_agent = MagicMock()
+        mock_agent.personality = "You are a helpful coding assistant"
+        mock_agent.get_conversation_history.return_value = [
+            {"role": "user", "content": [{"text": "Previous message"}]}
+        ]
+        mock_memory_manager.get_agent.return_value = mock_agent
+        
+        result = ask("Hello", output_file="-", agent_name="test_agent")
+        
+        # Check that GenerativeModel was called with system_instruction
+        mock_genai.GenerativeModel.assert_called_once()
+        call_args = mock_genai.GenerativeModel.call_args
+        assert call_args[1]["system_instruction"] == "You are a helpful coding assistant"
+        
+        assert "Test response" in result
+    
+    def test_ask_without_personality_no_system_instruction(self, mock_genai, mock_memory_manager):
+        """Test ask function without agent personality doesn't set system instruction."""
+        # Setup agent without personality
+        mock_agent = MagicMock()
+        mock_agent.personality = None
+        mock_agent.get_conversation_history.return_value = []
+        mock_memory_manager.get_agent.return_value = mock_agent
+        
+        result = ask("Hello", output_file="-", agent_name="test_agent")
+        
+        # Check that GenerativeModel was called without system_instruction
+        mock_genai.GenerativeModel.assert_called_once()
+        call_args = mock_genai.GenerativeModel.call_args
+        assert call_args[1]["system_instruction"] is None
+        
+        assert "Test response" in result
+    
     def test_get_response_success(self, mock_memory_manager):
         """Test getting response from agent."""
         mock_memory_manager.get_response.return_value = "Test response content"

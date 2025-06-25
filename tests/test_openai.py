@@ -8,7 +8,7 @@ import requests
 
 from mcp_handley_lab.llm.openai.tool import (
     ask, analyze_image, generate_image, get_response, server_info,
-    _resolve_files, _resolve_images
+    _resolve_files, _resolve_images, _determine_mime_type, _is_text_file
 )
 
 
@@ -17,17 +17,20 @@ class TestHelperFunctions:
     
     def test_resolve_files_empty(self):
         """Test resolving empty files list."""
-        result = _resolve_files(None)
-        assert result == []
+        file_attachments, inline_content = _resolve_files(None)
+        assert file_attachments == []
+        assert inline_content == []
         
-        result = _resolve_files([])
-        assert result == []
+        file_attachments, inline_content = _resolve_files([])
+        assert file_attachments == []
+        assert inline_content == []
     
     def test_resolve_files_string_content(self):
         """Test resolving files with string content."""
         files = ["content1", "content2"]
-        result = _resolve_files(files)
-        assert result == ["content1", "content2"]
+        file_attachments, inline_content = _resolve_files(files)
+        assert file_attachments == []
+        assert inline_content == ["content1", "content2"]
     
     def test_resolve_files_dict_content(self):
         """Test resolving files with dict content."""
@@ -35,8 +38,9 @@ class TestHelperFunctions:
             {"content": "dict content"},
             {"content": "another content"}
         ]
-        result = _resolve_files(files)
-        assert result == ["dict content", "another content"]
+        file_attachments, inline_content = _resolve_files(files)
+        assert file_attachments == []
+        assert inline_content == ["dict content", "another content"]
     
     def test_resolve_files_dict_path(self, tmp_path):
         """Test resolving files with dict path."""
@@ -44,15 +48,19 @@ class TestHelperFunctions:
         test_file.write_text("file content")
         
         files = [{"path": str(test_file)}]
-        result = _resolve_files(files)
-        assert result == ["file content"]
+        file_attachments, inline_content = _resolve_files(files)
+        assert file_attachments == []
+        assert len(inline_content) == 1
+        assert "[File: test.txt]" in inline_content[0]
+        assert "file content" in inline_content[0]
     
     def test_resolve_files_dict_path_error(self):
         """Test resolving files with invalid path."""
         files = [{"path": "/nonexistent/file.txt"}]
-        result = _resolve_files(files)
-        assert len(result) == 1
-        assert "Error reading file" in result[0]
+        file_attachments, inline_content = _resolve_files(files)
+        assert file_attachments == []
+        assert len(inline_content) == 1
+        assert "Error: File not found" in inline_content[0]
     
     def test_resolve_files_mixed(self, tmp_path):
         """Test resolving mixed file types."""
@@ -64,8 +72,13 @@ class TestHelperFunctions:
             {"content": "dict content"},
             {"path": str(test_file)}
         ]
-        result = _resolve_files(files)
-        assert result == ["string content", "dict content", "file content"]
+        file_attachments, inline_content = _resolve_files(files)
+        assert file_attachments == []
+        assert len(inline_content) == 3
+        assert inline_content[0] == "string content"
+        assert inline_content[1] == "dict content"
+        assert "[File: test.txt]" in inline_content[2]
+        assert "file content" in inline_content[2]
     
     def test_resolve_images_single_data_url(self):
         """Test resolving single image from data URL."""

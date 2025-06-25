@@ -46,6 +46,22 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
 
+### ⚠️ CRITICAL ERROR HANDLING RULE
+
+**NEVER SILENCE ERRORS BY DISABLING FUNCTIONALITY**
+
+- **Errors must be fixed, not hidden**: When functionality breaks, fix the underlying issue rather than turning off the feature
+- **No silent fallbacks**: Do not implement fallback modes that silently disable broken features without explicit user notification
+- **Fail fast and loud**: Let errors surface immediately so they can be addressed properly
+- **Document limitations explicitly**: If a feature has known limitations, document them clearly rather than silently working around them
+- **Test-driven fixes**: When something breaks, write a test that reproduces the issue, then fix both the test and the implementation
+
+Examples of prohibited patterns:
+- Wrapping API calls in `try/except` that silently continue without the feature
+- Adding configuration flags to "disable problematic features"
+- Implementing fallback modes that hide broken functionality
+- Using `pass` statements to ignore exceptions without user notification
+
 Examples of what to avoid:
 - Checking if a file exists before reading (let it fail with FileNotFoundError)
 - Validating API keys are present (assume they are)
@@ -98,6 +114,14 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Features**: OAuth2 authentication, calendar management, event CRUD operations, free time finding
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
 - **Status**: Production ready with comprehensive API integration
+
+### Gemini LLM Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/llm/gemini/`
+- **Functions**: `ask`, `analyze_image`, `generate_image`, `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent`, `server_info`
+- **Features**: Text generation, image analysis, image generation with Imagen 3, Google Search grounding, persistent agent memory, file input support
+- **SDK**: Migrated to official `google-genai` SDK (replacing deprecated `google-generativeai`)
+- **Tests**: 56 unit tests + 9 integration tests covering all functionality and API compatibility
+- **Status**: Production ready with full google-genai integration
 
 ## Running Tools Standalone
 
@@ -186,9 +210,10 @@ Integration tests are **essential** for tools that interact with external CLIs o
 - **Comprehensive fixtures**: Rich test data covering multiple scenarios
 
 ### Testing Commands
-- **Full test suite**: `python -m pytest tests/ --cov=mcp_handley_lab --cov-report=term-missing`
-- **Unit tests only**: `python -m pytest tests/test_*.py -k "not Integration"`
-- **Integration tests only**: `python -m pytest tests/test_*.py -k "Integration"`
+- **All tests**: `python -m pytest tests/ --cov=mcp_handley_lab --cov-report=term-missing`
+- **Integration tests only**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py -v`
+- **Unit tests only**: `python -m pytest tests/ -k "not integration" --cov=mcp_handley_lab --cov-report=term-missing`
+- **Fast integration check**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py`
 - **Target**: 100% test coverage to identify refactoring opportunities
 
 ## Key Files

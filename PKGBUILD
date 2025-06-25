@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a1
-pkgrel=5
+pkgver=0.0.0a2
+pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
@@ -14,7 +14,7 @@ depends=(
     'python-google-api-python-client>=2.0.0'
     'python-google-auth-httplib2>=0.1.0'
     'python-google-auth-oauthlib>=0.5.0'
-    'python-google-generativeai>=0.8.0'
+    'python-google-genai>=1.0.0'
     'python-openai>=1.0.0'
     'python-pillow>=10.0.0'
 )

@@ -3,10 +3,24 @@ import os
 import subprocess
 import tempfile
 import difflib
+import shutil
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Vim Tool")
+
+
+def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
+    """Run vim directly using subprocess."""
+    vim_cmd = ['vim'] + (vim_args or []) + [file_path]
+    
+    # Check if we have a TTY - if yes, run vim directly
+    if os.isatty(0):  # stdin is a tty
+        subprocess.run(vim_cmd, check=True)
+    else:
+        # No TTY available - this will happen in non-interactive environments
+        # Just run vim anyway and let it handle the situation
+        subprocess.run(vim_cmd, check=True)
 
 
 def _handle_instructions_and_content(temp_path: str, suffix: str, instructions: str, initial_content: str) -> None:
@@ -38,6 +52,10 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
 @mcp.tool(description="""Opens Vim to edit provided content in a temporary file with optional instructions.
 
 Creates a temporary file with the content, optionally adds instruction comments at the top, opens Vim for editing, then returns the result.
+
+Behavior:
+- Opens vim directly in the current terminal environment
+- Requires interactive terminal access for proper functionality
 
 File Handling:
 - Temporary file is created with specified extension
@@ -100,7 +118,7 @@ def prompt_user_edit(
         _handle_instructions_and_content(temp_path, suffix, instructions, content)
         
         # Open vim
-        subprocess.run(['vim', temp_path], check=True)
+        _run_vim(temp_path)
         
         # Read edited content
         with open(temp_path) as f:
@@ -142,6 +160,10 @@ def prompt_user_edit(
 @mcp.tool(description="""Opens Vim to create new content from scratch with optional starting content and instructions.
 
 Creates a temporary file with optional initial content and instructions, opens Vim for editing, then returns the final content.
+
+Behavior:
+- Opens vim directly in the current terminal environment
+- Requires interactive terminal access for proper functionality
 
 Features:
 - Start with empty file or pre-populate with `initial_content`
@@ -198,7 +220,7 @@ def quick_edit(
         _handle_instructions_and_content(temp_path, suffix, instructions, initial_content)
         
         # Open vim
-        subprocess.run(['vim', temp_path], check=True)
+        _run_vim(temp_path)
         
         # Read content
         with open(temp_path) as f:
@@ -216,6 +238,10 @@ def quick_edit(
 @mcp.tool(description="""Opens an existing file in Vim for editing with optional instructions and automatic backup.
 
 Opens the specified file directly in Vim. If instructions are provided, they are shown in a read-only buffer first, then the actual file opens for editing.
+
+Behavior:
+- Opens vim directly in the current terminal environment
+- Requires interactive terminal access for proper functionality
 
 File Safety:
 - Automatic backup creation (file.ext.bak) unless `backup=False`
@@ -298,12 +324,12 @@ def open_file(
                 f.write("\nPress any key to continue to the file...")
             
             # Show instructions
-            subprocess.run(['vim', '-R', inst_path], check=True)
+            _run_vim(inst_path, ['-R'])
         finally:
             os.unlink(inst_path)
     
     # Open the actual file
-    subprocess.run(['vim', str(path)], check=True)
+    _run_vim(str(path))
     
     # Read edited content
     edited_content = path.read_text()

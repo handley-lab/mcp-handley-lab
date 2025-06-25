@@ -2,17 +2,32 @@
 import json
 import subprocess
 from pathlib import Path
+from typing import Union
+from pydantic import constr
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("JQ Tool")
 
 
-def _resolve_data(data_or_path: str) -> str:
-    """Resolves input, reading from a file if it exists, otherwise returning the data."""
-    p = Path(data_or_path)
-    if p.is_file():
-        return p.read_text()
-    return data_or_path
+def _resolve_data(data: Union[str, dict, list]) -> str:
+    """Resolves input, handling strings, dicts, lists, or file paths.
+    
+    This function gracefully handles cases where FastMCP auto-parses JSON strings
+    into dictionaries or lists, converting them back to JSON strings as needed.
+    """
+    # If it's a dict or list (FastMCP parsed JSON), convert back to string
+    if isinstance(data, (dict, list)):
+        return json.dumps(data)
+    
+    # If it's a string, check if it's a file path
+    if isinstance(data, str):
+        p = Path(data)
+        if p.is_file():
+            return p.read_text()
+        return data
+    
+    # Fallback: convert to string
+    return str(data)
 
 
 def _run_jq(args: list[str], input_text: str | None = None) -> str:
@@ -35,7 +50,7 @@ def _run_jq(args: list[str], input_text: str | None = None) -> str:
 
 @mcp.tool(description="""Queries JSON data using a jq filter expression.
 
-Data Input: Can be either a JSON string or a file path. If a valid file path, the file is read automatically.
+Data Input: Accepts JSON strings, parsed objects/arrays, or file paths. Automatically handles FastMCP's JSON parsing and file path detection.
 
 Filter Parameter: Defaults to "." (identity filter). Use standard jq syntax:
 - `.field` - Extract field value
@@ -71,7 +86,7 @@ query('{"message": "Hello World"}', '.message', raw_output=True)
 query('{"a": 1, "b": 2}', '.', compact=True)
 # Returns: {"a":1,"b":2}
 ```""")
-def query(data: str, filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
+def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
     args = []
     if compact:
@@ -80,13 +95,18 @@ def query(data: str, filter: str = ".", compact: bool = False, raw_output: bool 
         args.append("-r")
     args.append(filter)
     
-    # Check if data is a file path - if so, pass directly to jq for efficiency
-    p = Path(data)
-    if p.is_file():
-        args.append(str(p))
-        return _run_jq(args)
-    else:
-        return _run_jq(args, input_text=data)
+    # Resolve data to handle various input types
+    data_content = _resolve_data(data)
+    
+    # Check if original data is a file path - if so, pass directly to jq for efficiency
+    if isinstance(data, str):
+        p = Path(data)
+        if p.is_file():
+            args.append(str(p))
+            return _run_jq(args)
+    
+    # Otherwise use the resolved content
+    return _run_jq(args, input_text=data_content)
 
 
 @mcp.tool(description="""Edits a JSON file in-place using a jq transformation filter.
@@ -182,7 +202,7 @@ validate('/path/data.json')
 validate('{invalid: json}')
 # Raises: ValueError("Invalid JSON: ...")
 ```""")
-def validate(data: str) -> str:
+def validate(data: Union[constr(min_length=1), dict, list]) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
     
@@ -223,7 +243,7 @@ format('{"b":2,"a":1}', compact=True, sort_keys=True)
 # Format file
 format('/path/data.json', sort_keys=True)
 ```""")
-def format(data: str, compact: bool = False, sort_keys: bool = False) -> str:
+def format(data: Union[constr(min_length=1), dict, list], compact: bool = False, sort_keys: bool = False) -> str:
     """Format JSON data."""
     data_content = _resolve_data(data)
     parsed = json.loads(data_content)

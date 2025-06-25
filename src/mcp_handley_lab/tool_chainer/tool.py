@@ -211,6 +211,7 @@ def _substitute_variables(text: str, variables: Dict[str, Any], step_outputs: Di
     return text
 
 
+
 def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs: Dict[str, Any]) -> bool:
     """Evaluate a condition string."""
     if not condition:

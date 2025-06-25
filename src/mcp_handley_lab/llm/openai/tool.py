@@ -18,25 +18,133 @@ mcp = FastMCP("OpenAI Tool")
 client = OpenAI(api_key=settings.openai_api_key)
 
 
-def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[str]:
-    """Resolve file inputs to content strings."""
-    if not files:
-        return []
+def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[List[Dict], List[str]]:
+    """Resolve file inputs to OpenAI chat content format.
     
-    content_list = []
+    Returns tuple of (file_attachments, inline_content):
+    - file_attachments: List of dicts for Files API (large files)
+    - inline_content: List of strings for direct inclusion (small files)
+    
+    Uses intelligent size-based strategy:
+    - Small files (<1MB): Include content directly in messages
+    - Large files (1MB-20MB): Upload via Files API for Assistants
+    - Text files: Direct content inclusion with filename header
+    - Binary files: Base64 encoding for small files, Files API for large
+    """
+    if not files:
+        return [], []
+    
+    file_attachments = []
+    inline_content = []
+    
     for file_item in files:
         if isinstance(file_item, str):
-            content_list.append(file_item)
+            # Direct content string
+            inline_content.append(file_item)
         elif isinstance(file_item, dict):
             if "content" in file_item:
-                content_list.append(file_item["content"])
+                # Direct content from dict
+                inline_content.append(file_item["content"])
             elif "path" in file_item:
+                # File path - determine optimal handling strategy
+                file_path = Path(file_item["path"])
                 try:
-                    content_list.append(Path(file_item["path"]).read_text())
-                except (OSError, UnicodeDecodeError) as e:
-                    content_list.append(f"Error reading file {file_item['path']}: {e}")
+                    if not file_path.exists():
+                        inline_content.append(f"Error: File not found: {file_path}")
+                        continue
+                    
+                    file_size = file_path.stat().st_size
+                    
+                    if file_size > 1024 * 1024:  # 1MB threshold for Files API
+                        # Large file - use Files API for assistant-compatible upload
+                        try:
+                            uploaded_file = client.files.create(
+                                file=open(file_path, "rb"),
+                                purpose="assistants"
+                            )
+                            file_attachments.append({
+                                "file_id": uploaded_file.id,
+                                "tools": [{"type": "file_search"}]
+                            })
+                        except Exception as e:
+                            # Fallback to chunked text inclusion for large files
+                            try:
+                                if _is_text_file(file_path):
+                                    content = file_path.read_text(encoding='utf-8')
+                                    # Truncate very large text files to prevent token overflow
+                                    if len(content) > 50000:  # ~12.5k tokens rough estimate
+                                        content = content[:50000] + "\n\n[Content truncated due to size]"
+                                    inline_content.append(f"[File: {file_path.name}]\n{content}")
+                                else:
+                                    inline_content.append(f"Error: Could not upload large binary file {file_path}: {e}")
+                            except UnicodeDecodeError:
+                                inline_content.append(f"Error: Could not process large file {file_path}: {e}")
+                    else:
+                        # Small file - include directly
+                        try:
+                            if _is_text_file(file_path):
+                                # Text file - read as string with header
+                                content = file_path.read_text(encoding='utf-8')
+                                inline_content.append(f"[File: {file_path.name}]\n{content}")
+                            else:
+                                # Small binary file - base64 encode with metadata
+                                file_content = file_path.read_bytes()
+                                encoded_content = base64.b64encode(file_content).decode()
+                                mime_type = _determine_mime_type(file_path)
+                                inline_content.append(
+                                    f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
+                                )
+                        except Exception as e:
+                            inline_content.append(f"Error reading file {file_path}: {e}")
+                            
+                except Exception as e:
+                    inline_content.append(f"Error processing file {file_path}: {e}")
     
-    return content_list
+    return file_attachments, inline_content
+
+
+def _determine_mime_type(file_path: Path) -> str:
+    """Determine MIME type based on file extension."""
+    suffix = file_path.suffix.lower()
+    mime_types = {
+        '.txt': 'text/plain',
+        '.md': 'text/markdown', 
+        '.py': 'text/x-python',
+        '.js': 'text/javascript',
+        '.html': 'text/html',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.xml': 'application/xml',
+        '.csv': 'text/csv',
+        '.yaml': 'text/yaml',
+        '.yml': 'text/yaml',
+        '.toml': 'text/toml',
+        '.ini': 'text/plain',
+        '.conf': 'text/plain',
+        '.log': 'text/plain',
+        '.pdf': 'application/pdf',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.bmp': 'image/bmp',
+        '.svg': 'image/svg+xml',
+    }
+    return mime_types.get(suffix, 'application/octet-stream')
+
+
+def _is_text_file(file_path: Path) -> bool:
+    """Check if file is likely a text file that should be read as text."""
+    text_extensions = {
+        '.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.csv', 
+        '.yaml', '.yml', '.toml', '.ini', '.conf', '.log', '.sh', '.bat', 
+        '.c', '.cpp', '.h', '.hpp', '.java', '.rb', '.go', '.rs', '.php',
+        '.sql', '.r', '.m', '.scala', '.kt', '.swift', '.ts', '.tsx', '.jsx'
+    }
+    return file_path.suffix.lower() in text_extensions
 
 
 def _resolve_images(
@@ -218,13 +326,16 @@ def ask(
             if agent:
                 messages = agent.get_conversation_history()
         
-        # Add file contents to prompt if provided
-        file_contents = _resolve_files(files)
-        if file_contents:
-            prompt += "\n\n" + "\n\n".join(file_contents)
+        # Resolve files using improved strategy
+        file_attachments, inline_content = _resolve_files(files)
+        if inline_content:
+            prompt += "\n\n" + "\n\n".join(inline_content)
         
-        # Add current prompt
-        messages.append({"role": "user", "content": prompt})
+        # Add current prompt with file attachments if any
+        message_content = {"role": "user", "content": prompt}
+        if file_attachments:
+            message_content["attachments"] = file_attachments
+        messages.append(message_content)
         
         # Make API call
         response = client.chat.completions.create(

@@ -101,6 +101,88 @@ class TestHelperFunctions:
         with pytest.raises(ValueError, match="Failed to load image"):
             _resolve_images(image_data="invalid_data")
     
+    def test_determine_mime_type(self):
+        """Test MIME type detection."""
+        assert _determine_mime_type(Path("test.py")) == "text/x-python"
+        assert _determine_mime_type(Path("test.json")) == "application/json"
+        assert _determine_mime_type(Path("test.png")) == "image/png"
+        assert _determine_mime_type(Path("test.jpg")) == "image/jpeg"
+        assert _determine_mime_type(Path("test.unknown")) == "application/octet-stream"
+    
+    def test_is_text_file(self):
+        """Test text file detection."""
+        assert _is_text_file(Path("test.py")) == True
+        assert _is_text_file(Path("test.txt")) == True
+        assert _is_text_file(Path("test.md")) == True
+        assert _is_text_file(Path("test.json")) == True
+        assert _is_text_file(Path("test.png")) == False
+        assert _is_text_file(Path("test.pdf")) == False
+        assert _is_text_file(Path("test.unknown")) == False
+    
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    def test_resolve_files_large_file_upload_success(self, mock_client, tmp_path):
+        """Test Files API upload for large files."""
+        # Create a large file (>1MB)
+        large_file = tmp_path / "large.txt"
+        large_content = "x" * (1024 * 1024 + 1)  # Just over 1MB
+        large_file.write_text(large_content)
+        
+        # Mock the Files API response
+        mock_upload_response = MagicMock()
+        mock_upload_response.id = "file-123"
+        mock_client.files.create.return_value = mock_upload_response
+        
+        files = [{"path": str(large_file)}]
+        file_attachments, inline_content = _resolve_files(files)
+        
+        # Should use Files API for large file
+        assert len(file_attachments) == 1
+        assert file_attachments[0]["file_id"] == "file-123"
+        assert file_attachments[0]["tools"] == [{"type": "file_search"}]
+        assert inline_content == []
+        
+        # Verify Files API was called
+        mock_client.files.create.assert_called_once()
+    
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    def test_resolve_files_large_file_upload_fallback(self, mock_client, tmp_path):
+        """Test Files API upload fallback for large files when upload fails."""
+        # Create a large file (>1MB)
+        large_file = tmp_path / "large.txt"
+        large_content = "x" * (1024 * 1024 + 1)  # Just over 1MB
+        large_file.write_text(large_content)
+        
+        # Mock Files API to fail
+        mock_client.files.create.side_effect = Exception("Upload failed")
+        
+        files = [{"path": str(large_file)}]
+        file_attachments, inline_content = _resolve_files(files)
+        
+        # Should fallback to truncated inline content
+        assert file_attachments == []
+        assert len(inline_content) == 1
+        assert "[File: large.txt]" in inline_content[0]
+        assert "[Content truncated due to size]" in inline_content[0]
+        
+        # Verify Files API was attempted
+        mock_client.files.create.assert_called_once()
+    
+    def test_resolve_files_binary_small(self, tmp_path):
+        """Test small binary file handling."""
+        # Create a small binary file
+        binary_file = tmp_path / "test.png"
+        binary_content = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+        binary_file.write_bytes(binary_content)
+        
+        files = [{"path": str(binary_file)}]
+        file_attachments, inline_content = _resolve_files(files)
+        
+        # Should inline small binary files with base64 encoding
+        assert file_attachments == []
+        assert len(inline_content) == 1
+        assert "[Binary file: test.png, image/png," in inline_content[0]
+        assert base64.b64encode(binary_content).decode() in inline_content[0]
+    
     def test_resolve_images_array_data_url(self):
         """Test resolving images array with data URL."""
         images = ["data:image/png;base64,iVBORw0KGgoAAAANSU"]
@@ -268,7 +350,9 @@ class TestOpenAITools:
         
         assert "Test response" in result
         call_args = mock_openai_client.chat.completions.create.call_args
-        assert "file content" in call_args[1]["messages"][-1]["content"]
+        message_content = call_args[1]["messages"][-1]["content"]
+        assert "[File: test.txt]" in message_content
+        assert "file content" in message_content
     
     def test_ask_api_error(self, mock_openai_client, mock_memory_manager):
         """Test ask with API error."""

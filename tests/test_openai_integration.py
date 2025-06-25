@@ -18,7 +18,7 @@ class TestOpenAIIntegration:
     def test_ask_integration(self):
         """Test basic ask functionality with real API."""
         # Simple test that should work reliably
-        result = ask("What is 2+2? Answer with just the number.")
+        result = ask("What is 2+2? Answer with just the number.", output_file="-")
         
         # Should contain the answer and usage info
         assert "4" in result
@@ -44,7 +44,7 @@ class TestOpenAIIntegration:
         
         try:
             files = [{"path": temp_file}]
-            result = ask("What's the temperature mentioned in this file?", files=files)
+            result = ask("What's the temperature mentioned in this file?", output_file="-", files=files)
             
             # Should extract the temperature
             assert "75" in result
@@ -56,6 +56,7 @@ class TestOpenAIIntegration:
         """Test ask with a smaller/cheaper model."""
         result = ask(
             "Hello! Respond with exactly: 'Integration test successful'",
+            output_file="-",
             model="gpt-4o-mini"
         )
         

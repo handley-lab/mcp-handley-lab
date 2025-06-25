@@ -2,11 +2,15 @@
 import base64
 import io
 import tempfile
+import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-import google.generativeai as genai
 from PIL import Image
 from mcp.server.fastmcp import FastMCP
+
+from google import genai as google_genai
+from google.genai.types import GenerateContentConfig, GenerateImagesConfig, Tool, GoogleSearch, GoogleSearchRetrieval, Part, Blob, FileData, Content
+from google.genai.errors import ClientError
 
 from ...common.config import settings
 from ...common.memory import memory_manager
@@ -14,31 +18,113 @@ from ...common.pricing import calculate_cost, format_usage
 
 mcp = FastMCP("Gemini Tool")
 
-# Configure Gemini
-genai.configure(api_key=settings.gemini_api_key)
+# Configure Gemini client
+client = None
+initialization_error = None
+
+try:
+    client = google_genai.Client(api_key=settings.gemini_api_key)
+except Exception as e:
+    client = None
+    initialization_error = str(e)
 
 
-def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[str]:
-    """Resolve file inputs to content strings."""
+def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
+    """Resolve file inputs to structured content parts for google-genai API.
+    
+    Uses inlineData for files <20MB and Files API for larger files.
+    Returns list of Part objects that can be included in contents.
+    """
     if not files:
         return []
     
-    content_list = []
+    parts = []
     for file_item in files:
         if isinstance(file_item, str):
-            # Direct content string
-            content_list.append(file_item)
+            # Direct content string - create text part
+            parts.append(Part(text=file_item))
         elif isinstance(file_item, dict):
             if "content" in file_item:
-                content_list.append(file_item["content"])
+                # Direct content - create text part
+                parts.append(Part(text=file_item["content"]))
             elif "path" in file_item:
-                # Read file from path
+                # File path - determine optimal handling based on size
+                file_path = Path(file_item["path"])
                 try:
-                    content_list.append(Path(file_item["path"]).read_text())
-                except (OSError, UnicodeDecodeError) as e:
-                    content_list.append(f"Error reading file {file_item['path']}: {e}")
+                    if not file_path.exists():
+                        parts.append(Part(text=f"Error: File not found: {file_path}"))
+                        continue
+                    
+                    file_size = file_path.stat().st_size
+                    
+                    if file_size > 20 * 1024 * 1024:  # 20MB threshold
+                        # Large file - use Files API
+                        try:
+                            uploaded_file = client.files.upload(
+                                file=str(file_path),
+                                mime_type=_determine_mime_type(file_path)
+                            )
+                            parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
+                        except Exception as e:
+                            # Fallback to reading as text if upload fails
+                            try:
+                                content = file_path.read_text(encoding='utf-8')
+                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
+                            except UnicodeDecodeError:
+                                parts.append(Part(text=f"Error: Could not upload or read file {file_path}: {e}"))
+                    else:
+                        # Small file - use inlineData with base64 encoding
+                        try:
+                            if _is_text_file(file_path):
+                                # For text files, read directly as text
+                                content = file_path.read_text(encoding='utf-8')
+                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
+                            else:
+                                # For binary files, use inlineData
+                                file_content = file_path.read_bytes()
+                                encoded_content = base64.b64encode(file_content).decode()
+                                parts.append(Part(
+                                    inlineData=Blob(
+                                        mimeType=_determine_mime_type(file_path),
+                                        data=encoded_content
+                                    )
+                                ))
+                        except Exception as e:
+                            parts.append(Part(text=f"Error reading file {file_path}: {e}"))
+                            
+                except Exception as e:
+                    parts.append(Part(text=f"Error processing file {file_path}: {e}"))
     
-    return content_list
+    return parts
+
+
+def _determine_mime_type(file_path: Path) -> str:
+    """Determine MIME type based on file extension."""
+    suffix = file_path.suffix.lower()
+    mime_types = {
+        '.txt': 'text/plain',
+        '.md': 'text/markdown', 
+        '.py': 'text/x-python',
+        '.js': 'text/javascript',
+        '.html': 'text/html',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.xml': 'application/xml',
+        '.csv': 'text/csv',
+        '.pdf': 'application/pdf',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+    }
+    return mime_types.get(suffix, 'application/octet-stream')
+
+
+def _is_text_file(file_path: Path) -> bool:
+    """Check if file is likely a text file that should be read as text."""
+    text_extensions = {'.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.csv', '.yaml', '.yml', '.toml', '.ini', '.conf', '.log'}
+    return file_path.suffix.lower() in text_extensions
 
 
 def _resolve_images(
@@ -139,7 +225,7 @@ File Input Formats:
 
 Key Parameters:
 - `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
-- `grounding`: Enable Google Search integration for factual accuracy (default: False, may increase response time)
+- `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
 - `agent_name`: Store conversation in persistent memory for ongoing interactions
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
 
@@ -194,23 +280,19 @@ def ask(
     files: Optional[List[Union[str, Dict[str, str]]]] = None
 ) -> str:
     """Ask Gemini a question with optional persistent memory."""
+    if not client:
+        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
+    
     # Resolve model name
     model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
     
     try:
-        # Get the model
-        generation_config = genai.GenerationConfig(
-            temperature=temperature,
-            max_output_tokens=8192,
-        )
-        
         # Configure tools for grounding if requested
-        tools = None
+        tools = []
         if grounding:
-            tools = ["google_search_retrieval"]
+            tools.append(Tool(googleSearchRetrieval=GoogleSearchRetrieval()))
         
         # Handle agent setup and system instruction (personality)
-        agent = None
         system_instruction = None
         history = []
         
@@ -221,31 +303,59 @@ def ask(
                     system_instruction = agent.personality
                 history = agent.get_conversation_history()
         
-        gemini_model = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=generation_config,
-            tools=tools,
-            system_instruction=system_instruction
-        )
+        # Resolve file contents to structured parts
+        file_parts = _resolve_files(files)
         
-        # Add file contents to prompt if provided
-        file_contents = _resolve_files(files)
-        if file_contents:
-            prompt += "\n\n" + "\n\n".join(file_contents)
+        # Prepare the config
+        config_params = {
+            "temperature": temperature,
+            "max_output_tokens": 8192,
+        }
         
-        # Start or continue conversation
+        if system_instruction:
+            config_params["system_instruction"] = system_instruction
+            
+        if tools:
+            config_params["tools"] = tools
+        
+        config = GenerateContentConfig(**config_params)
+        
+        # Generate content
         if history:
-            # Continue existing conversation
-            chat = gemini_model.start_chat(history=history)
-            response = chat.send_message(prompt)
+            # Continue existing conversation by adding history
+            # Create user message with prompt and any file parts
+            user_parts = [Part(text=prompt)] + file_parts
+            contents = history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
+            response = client.models.generate_content(
+                model=model_name,
+                contents=contents,
+                config=config
+            )
         else:
-            # New conversation
-            response = gemini_model.generate_content(prompt)
+            # New conversation - create content with prompt and files
+            if file_parts:
+                # Include files as separate parts
+                content_parts = [Part(text=prompt)] + file_parts
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=content_parts,
+                    config=config
+                )
+            else:
+                # Simple text-only prompt
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config
+                )
         
         # Extract response text
-        response_text = response.text
+        if response.text:
+            response_text = response.text
+        else:
+            raise RuntimeError("No response text generated")
         
-        # Calculate usage and cost
+        # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
         
@@ -334,6 +444,9 @@ def analyze_image(
     agent_name: Optional[str] = None
 ) -> str:
     """Analyze images with Gemini vision model."""
+    if not client:
+        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
+    
     if not image_data and not images:
         raise ValueError("Either image_data or images must be provided")
     
@@ -348,17 +461,22 @@ def analyze_image(
         if focus != "general":
             prompt = f"Focus on {focus} aspects. {prompt}"
         
-        # Get the model
-        gemini_model = genai.GenerativeModel(model_name)
-        
-        # Prepare content with images
+        # Prepare content with images - google-genai expects PIL Image objects directly
         content = [prompt] + image_list
         
         # Generate response
-        response = gemini_model.generate_content(content)
-        response_text = response.text
+        response = client.models.generate_content(
+            model=model_name,
+            contents=content
+        )
         
-        # Calculate usage and cost
+        # Extract response text
+        if response.text:
+            response_text = response.text
+        else:
+            raise RuntimeError("No response text generated")
+        
+        # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
         
@@ -410,49 +528,68 @@ def generate_image(
     model: str = "imagen-3",
     agent_name: Optional[str] = None
 ) -> str:
-    """Generate images with Gemini using Imagen 3."""
-    import tempfile
-    from google import genai as google_genai
-    from google.genai import types
-    from PIL import Image
-    from io import BytesIO
+    """Generate images with Google's Imagen 3 model."""
+    if not client:
+        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
-    # Use Imagen 3 for image generation
-    api_model_name = "imagen-3.0-generate-002"
-    pricing_model_name = "imagen-3"  # For pricing calculation
+    # Map model names to actual model IDs
+    model_mapping = {
+        "imagen-3": "imagen-3.0-generate-002",
+        "image": "imagen-3.0-generate-002",
+        "image-flash": "imagen-3.0-generate-002"
+    }
     
-    # Create Gemini client for image generation
-    client = google_genai.Client(api_key=settings.gemini_api_key)
+    actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
     
-    # Generate image using Gemini's generate_images
-    response = client.models.generate_images(
-        model=api_model_name,
-        prompt=prompt,
-        config=types.GenerateImagesConfig(
-            number_of_images=1,
+    try:
+        # Generate image
+        response = client.models.generate_images(
+            model=actual_model,
+            prompt=prompt,
+            config=GenerateImagesConfig(
+                number_of_images=1,
+                aspect_ratio="1:1"
+            )
         )
-    )
-    
-    # Extract image data from response
-    generated_image = response.generated_images[0]
-    image_bytes = generated_image.image.image_bytes
-    
-    # Save to temp file
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        f.write(image_bytes)
-        saved_path = f.name
-    
-    # Handle agent memory and format usage
-    response_text = f"✅ Image generated successfully!\n📁 Saved to: {saved_path}"
-    return _handle_agent_and_usage(
-        agent_name, 
-        f"Generate image: {prompt}", 
-        response_text,
-        pricing_model_name,
-        1, 0,  # 1 image, 0 output tokens
-        "-",  # Always output to stdout for image generation
-        "gemini"
-    )
+        
+        if not response.generated_images:
+            raise RuntimeError("No images were generated")
+        
+        # Save the generated image
+        generated_image = response.generated_images[0]
+        if not generated_image.image or not generated_image.image.image_bytes:
+            raise RuntimeError("Generated image has no data")
+        
+        # Save to temporary file
+        import uuid
+        file_id = str(uuid.uuid4())[:8]
+        filename = f"gemini_generated_{file_id}.png"
+        filepath = Path(tempfile.gettempdir()) / filename
+        
+        filepath.write_bytes(generated_image.image.image_bytes)
+        
+        # Calculate usage and cost (estimate)
+        input_tokens = len(prompt.split()) * 2  # Rough estimate
+        output_tokens = 1  # Image generation
+        cost = calculate_cost(actual_model, input_tokens, output_tokens, "gemini")
+        
+        # Handle agent memory if specified
+        if agent_name:
+            agent = memory_manager.get_agent(agent_name)
+            if not agent:
+                agent = memory_manager.create_agent(agent_name)
+            
+            memory_manager.add_message(agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2)
+            memory_manager.add_message(agent_name, "assistant", f"Generated image saved to {filepath}", output_tokens, cost / 2)
+        
+        # Format response
+        file_size = len(generated_image.image.image_bytes)
+        usage_info = format_usage(actual_model, input_tokens, output_tokens, cost, "gemini")
+        
+        return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
+        
+    except Exception as e:
+        raise RuntimeError(f"Error generating image with Imagen: {e}")
 
 
 @mcp.tool(description="""Creates a new persistent conversation agent with optional personality.
@@ -598,9 +735,15 @@ def get_response(agent_name: str, index: int = -1) -> str:
 def server_info() -> str:
     """Get server status and Gemini configuration."""
     try:
-        # Test API key by listing models
-        models = list(genai.list_models())
-        available_models = [m.name.split('/')[-1] for m in models if 'gemini' in m.name]
+        if not client:
+            raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
+        
+        # Test API by listing models
+        models_response = client.models.list()
+        available_models = []
+        for model in models_response:
+            if 'gemini' in model.name:
+                available_models.append(model.name.split('/')[-1])
         
         # Get agent count
         agent_count = len(memory_manager.list_agents())
@@ -630,5 +773,3 @@ Available tools:
         
     except Exception as e:
         raise RuntimeError(f"Gemini API configuration error: {e}")
-
-

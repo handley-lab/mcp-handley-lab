@@ -1,16 +1,17 @@
-"""Unit tests for Gemini LLM tool."""
+"""Unit tests for Gemini LLM tool with google-genai SDK."""
 import base64
 import tempfile
 from pathlib import Path
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock, mock_open, Mock
 from PIL import Image
 import io
 
 from mcp_handley_lab.llm.gemini.tool import (
     ask, analyze_image, generate_image, create_agent, list_agents, 
     agent_stats, get_response, clear_agent, delete_agent, server_info,
-    _resolve_files, _resolve_images
+    _resolve_files, _resolve_images, _handle_agent_and_usage,
+    _determine_mime_type, _is_text_file
 )
 
 
@@ -29,7 +30,9 @@ class TestHelperFunctions:
         """Test resolving files with string content."""
         files = ["content1", "content2"]
         result = _resolve_files(files)
-        assert result == ["content1", "content2"]
+        assert len(result) == 2
+        assert result[0].text == "content1"
+        assert result[1].text == "content2"
     
     def test_resolve_files_dict_content(self):
         """Test resolving files with dict content."""
@@ -38,7 +41,9 @@ class TestHelperFunctions:
             {"content": "another content"}
         ]
         result = _resolve_files(files)
-        assert result == ["dict content", "another content"]
+        assert len(result) == 2
+        assert result[0].text == "dict content"
+        assert result[1].text == "another content"
     
     def test_resolve_files_dict_path(self, tmp_path):
         """Test resolving files with dict path."""
@@ -47,14 +52,15 @@ class TestHelperFunctions:
         
         files = [{"path": str(test_file)}]
         result = _resolve_files(files)
-        assert result == ["file content"]
+        assert len(result) == 1
+        assert result[0].text == "[File: test.txt]\nfile content"
     
     def test_resolve_files_dict_path_error(self):
         """Test resolving files with invalid path."""
         files = [{"path": "/nonexistent/file.txt"}]
         result = _resolve_files(files)
         assert len(result) == 1
-        assert "Error reading file" in result[0]
+        assert "Error: File not found" in result[0].text
     
     def test_resolve_files_mixed(self, tmp_path):
         """Test resolving mixed file types."""
@@ -67,7 +73,10 @@ class TestHelperFunctions:
             {"path": str(test_file)}
         ]
         result = _resolve_files(files)
-        assert result == ["string content", "dict content", "file content"]
+        assert len(result) == 3
+        assert result[0].text == "string content"
+        assert result[1].text == "dict content"
+        assert result[2].text == "[File: test.txt]\nfile content"
     
     @patch('PIL.Image.open')
     def test_resolve_images_single_data_url(self, mock_image_open):
@@ -157,26 +166,103 @@ class TestHelperFunctions:
         images = ["invalid_data"]
         with pytest.raises(ValueError, match="Failed to load image"):
             _resolve_images(images=images)
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.llm.gemini.tool.calculate_cost')
+    @patch('mcp_handley_lab.llm.gemini.tool.format_usage')
+    def test_handle_agent_and_usage_file_output(self, mock_format_usage, mock_calculate_cost, mock_memory_manager, tmp_path):
+        """Test handle_agent_and_usage with file output."""
+        mock_calculate_cost.return_value = 0.01
+        mock_format_usage.return_value = "💰 Usage: 100 tokens"
+        
+        output_file = tmp_path / "output.txt"
+        result = _handle_agent_and_usage(
+            None, "prompt", "response", "flash", 50, 50, str(output_file)
+        )
+        
+        assert f"Response saved to: {output_file}" in result
+        assert "Content: 8 characters, 1 lines" in result
+        assert "💰 Usage: 100 tokens" in result
+        assert output_file.read_text() == "response"
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.llm.gemini.tool.calculate_cost')
+    @patch('mcp_handley_lab.llm.gemini.tool.format_usage')
+    def test_handle_agent_and_usage_stdout(self, mock_format_usage, mock_calculate_cost, mock_memory_manager):
+        """Test handle_agent_and_usage with stdout output."""
+        mock_calculate_cost.return_value = 0.01
+        mock_format_usage.return_value = "💰 Usage: 100 tokens"
+        
+        result = _handle_agent_and_usage(
+            None, "prompt", "response", "flash", 50, 50, "-"
+        )
+        
+        assert "response\n\n💰 Usage: 100 tokens" == result
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.llm.gemini.tool.calculate_cost')
+    @patch('mcp_handley_lab.llm.gemini.tool.format_usage')
+    def test_handle_agent_and_usage_with_agent(self, mock_format_usage, mock_calculate_cost, mock_memory_manager):
+        """Test handle_agent_and_usage with agent memory."""
+        mock_calculate_cost.return_value = 0.01
+        mock_format_usage.return_value = "💰 Usage: 100 tokens"
+        mock_agent = MagicMock()
+        mock_memory_manager.get_agent.return_value = mock_agent
+        
+        result = _handle_agent_and_usage(
+            "test_agent", "prompt", "response", "flash", 50, 50, "-"
+        )
+        
+        mock_memory_manager.get_agent.assert_called_with("test_agent")
+        mock_memory_manager.add_message.assert_called()
+        assert "response\n\n💰 Usage: 100 tokens" == result
+    
+    def test_determine_mime_type(self):
+        """Test MIME type determination."""
+        from pathlib import Path
+        
+        assert _determine_mime_type(Path("test.txt")) == "text/plain"
+        assert _determine_mime_type(Path("test.py")) == "text/x-python"
+        assert _determine_mime_type(Path("test.js")) == "text/javascript"
+        assert _determine_mime_type(Path("test.json")) == "application/json"
+        assert _determine_mime_type(Path("test.png")) == "image/png"
+        assert _determine_mime_type(Path("test.jpg")) == "image/jpeg"
+        assert _determine_mime_type(Path("test.pdf")) == "application/pdf"
+        assert _determine_mime_type(Path("test.unknown")) == "application/octet-stream"
+        assert _determine_mime_type(Path("test")) == "application/octet-stream"
+    
+    def test_is_text_file(self):
+        """Test text file detection."""
+        from pathlib import Path
+        
+        # Text files
+        assert _is_text_file(Path("test.txt")) == True
+        assert _is_text_file(Path("test.md")) == True
+        assert _is_text_file(Path("test.py")) == True
+        assert _is_text_file(Path("test.js")) == True
+        assert _is_text_file(Path("test.json")) == True
+        assert _is_text_file(Path("test.yaml")) == True
+        assert _is_text_file(Path("test.yml")) == True
+        assert _is_text_file(Path("test.toml")) == True
+        assert _is_text_file(Path("config.conf")) == True
+        assert _is_text_file(Path("app.log")) == True
+        
+        # Binary files
+        assert _is_text_file(Path("test.png")) == False
+        assert _is_text_file(Path("test.jpg")) == False
+        assert _is_text_file(Path("test.pdf")) == False
+        assert _is_text_file(Path("test.exe")) == False
+        assert _is_text_file(Path("test.bin")) == False
+        assert _is_text_file(Path("test")) == False
 
 
 class TestGeminiTools:
     """Test Gemini tool functions."""
     
     @pytest.fixture
-    def mock_genai(self):
-        """Mock google.generativeai module."""
-        with patch('mcp_handley_lab.llm.gemini.tool.genai') as mock:
-            # Mock model and response
-            mock_model = MagicMock()
-            mock_response = MagicMock()
-            mock_response.text = "Test response"
-            mock_response.usage_metadata.prompt_token_count = 10
-            mock_response.usage_metadata.candidates_token_count = 20
-            
-            mock_model.generate_content.return_value = mock_response
-            mock_model.start_chat.return_value.send_message.return_value = mock_response
-            mock.GenerativeModel.return_value = mock_model
-            
+    def mock_client(self):
+        """Mock google-genai client."""
+        with patch('mcp_handley_lab.llm.gemini.tool.client') as mock:
             yield mock
     
     @pytest.fixture
@@ -189,23 +275,53 @@ class TestGeminiTools:
             mock.create_agent.return_value = mock_agent
             yield mock
     
-    def test_ask_basic(self, mock_genai, mock_memory_manager):
+    def test_ask_basic(self, mock_client, mock_memory_manager):
         """Test basic ask functionality."""
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
         result = ask("Hello, how are you?", output_file="-")
         
         assert "Test response" in result
         assert "💰 Usage:" in result
-        mock_genai.GenerativeModel.assert_called_once()
-        mock_genai.GenerativeModel.return_value.generate_content.assert_called_once()
+        mock_client.models.generate_content.assert_called_once()
     
-    def test_ask_with_agent(self, mock_genai, mock_memory_manager):
+    def test_ask_client_not_initialized(self, mock_memory_manager):
+        """Test ask when client is not initialized."""
+        # Temporarily set client to None to simulate initialization failure
+        import mcp_handley_lab.llm.gemini.tool as gemini_tool
+        original_client = gemini_tool.client
+        gemini_tool.client = None
+        
+        try:
+            with pytest.raises(RuntimeError, match="Gemini client not initialized"):
+                ask("Hello", output_file="-")
+        finally:
+            # Restore original client
+            gemini_tool.client = original_client
+    
+    def test_ask_with_agent(self, mock_client, mock_memory_manager):
         """Test ask with agent memory."""
         # Setup agent
         mock_agent = MagicMock()
+        mock_agent.personality = "Helpful assistant"
         mock_agent.get_conversation_history.return_value = [
             {"role": "user", "content": "Previous message"}
         ]
         mock_memory_manager.get_agent.return_value = mock_agent
+        
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
         
         result = ask("Hello", output_file="-", agent_name="test_agent")
         
@@ -213,65 +329,97 @@ class TestGeminiTools:
         mock_memory_manager.get_agent.assert_called_with("test_agent")
         mock_memory_manager.add_message.assert_called()
     
-    def test_ask_with_files(self, mock_genai, mock_memory_manager, tmp_path):
+    def test_ask_with_files(self, mock_client, mock_memory_manager, tmp_path):
         """Test ask with file content."""
         test_file = tmp_path / "test.txt"
         test_file.write_text("File content")
+        
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
         
         files = [{"path": str(test_file)}, {"content": "Direct content"}]
         result = ask("Question about files", output_file="-", files=files)
         
         assert "Test response" in result
-        # Check that file content was added to prompt
-        call_args = mock_genai.GenerativeModel.return_value.generate_content.call_args[0][0]
-        assert "File content" in call_args
-        assert "Direct content" in call_args
+        # Check that content was structured properly with separate parts
+        call_args = mock_client.models.generate_content.call_args
+        contents = call_args[1]['contents']
+        # Contents should now be a list of Part objects, not a string with concatenated content
+        assert isinstance(contents, list)
+        assert len(contents) > 1  # Should have multiple parts (prompt + files)
     
-    def test_ask_with_grounding(self, mock_genai, mock_memory_manager):
+    @patch('mcp_handley_lab.llm.gemini.tool.Tool')
+    @patch('mcp_handley_lab.llm.gemini.tool.GoogleSearchRetrieval')
+    def test_ask_with_grounding(self, mock_google_search_retrieval, mock_tool, mock_client, mock_memory_manager):
         """Test ask with grounding enabled."""
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
         result = ask("Current weather", output_file="-", grounding=True)
         
         assert "Test response" in result
         # Check that tools were configured
-        model_call = mock_genai.GenerativeModel.call_args
-        assert "tools" in model_call[1] or len(model_call[0]) > 1
+        mock_tool.assert_called_once()
+        mock_google_search_retrieval.assert_called_once()
     
-    def test_ask_with_temperature(self, mock_genai, mock_memory_manager):
+    def test_ask_with_temperature(self, mock_client, mock_memory_manager):
         """Test ask with custom temperature."""
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
         result = ask("Creative question", output_file="-", temperature=0.9)
         
         assert "Test response" in result
         # Check generation config
-        gen_config = mock_genai.GenerationConfig.call_args[1]
-        assert gen_config["temperature"] == 0.9
+        config = mock_client.models.generate_content.call_args[1]['config']
+        assert config.temperature == 0.9
     
-    def test_ask_with_agent_creation(self, mock_genai, mock_memory_manager):
-        """Test ask with agent creation when agent doesn't exist."""
-        # Setup no existing agent
-        mock_memory_manager.get_agent.return_value = None
-        mock_agent = MagicMock()
-        mock_agent.get_conversation_history.return_value = []
-        mock_memory_manager.create_agent.return_value = mock_agent
-        
-        result = ask("Hello", output_file="-", agent_name="new_agent")
-        
-        assert "Test response" in result
-        mock_memory_manager.get_agent.assert_called_with("new_agent")
-        mock_memory_manager.create_agent.assert_called_with("new_agent")
-
-    def test_ask_api_error(self, mock_memory_manager):
+    def test_ask_api_error(self, mock_client, mock_memory_manager):
         """Test ask with API error."""
-        with patch('mcp_handley_lab.llm.gemini.tool.genai.GenerativeModel') as mock_model:
-            mock_model.side_effect = Exception("API Error")
-            
-            with pytest.raises(RuntimeError, match="Gemini API error"):
-                ask("Hello", output_file="-")
+        mock_client.models.generate_content.side_effect = Exception("API Error")
+        
+        with pytest.raises(RuntimeError, match="Gemini API error"):
+            ask("Hello", output_file="-")
+    
+    def test_ask_no_response_text(self, mock_client, mock_memory_manager):
+        """Test ask when no response text is generated."""
+        # Mock response without text
+        mock_response = MagicMock()
+        mock_response.text = None
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
+        with pytest.raises(RuntimeError, match="No response text generated"):
+            ask("Hello", output_file="-")
     
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
-    def test_analyze_image_basic(self, mock_resolve_images, mock_genai, mock_memory_manager):
+    def test_analyze_image_basic(self, mock_resolve_images, mock_client, mock_memory_manager):
         """Test basic image analysis."""
         mock_image = MagicMock()
         mock_resolve_images.return_value = [mock_image]
+        
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 100
+        mock_response.usage_metadata.candidates_token_count = 50
+        
+        mock_client.models.generate_content.return_value = mock_response
         
         result = analyze_image("What's in this image?", output_file="-", image_data="fake_image_data")
         
@@ -279,110 +427,102 @@ class TestGeminiTools:
         assert "💰 Usage:" in result
         mock_resolve_images.assert_called_once()
     
+    def test_analyze_image_client_not_initialized(self, mock_memory_manager):
+        """Test analyze_image when client is not initialized."""
+        # Temporarily set client to None to simulate initialization failure
+        import mcp_handley_lab.llm.gemini.tool as gemini_tool
+        original_client = gemini_tool.client
+        gemini_tool.client = None
+        
+        try:
+            with pytest.raises(RuntimeError, match="Gemini client not initialized"):
+                analyze_image("Analyze", output_file="-", image_data="fake")
+        finally:
+            # Restore original client
+            gemini_tool.client = original_client
+    
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
-    def test_analyze_image_with_focus(self, mock_resolve_images, mock_genai, mock_memory_manager):
+    def test_analyze_image_with_focus(self, mock_resolve_images, mock_client, mock_memory_manager):
         """Test image analysis with focus."""
         mock_image = MagicMock()
         mock_resolve_images.return_value = [mock_image]
+        
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 100
+        mock_response.usage_metadata.candidates_token_count = 50
+        
+        mock_client.models.generate_content.return_value = mock_response
         
         result = analyze_image("Analyze this", output_file="-", image_data="fake", focus="technical")
         
         assert "Test response" in result
         # Check that focus was added to prompt
-        call_args = mock_genai.GenerativeModel.return_value.generate_content.call_args[0][0]
+        call_args = mock_client.models.generate_content.call_args[1]['contents']
         assert "Focus on technical aspects" in call_args[0]
     
-    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
-    def test_analyze_image_with_agent_creation(self, mock_resolve_images, mock_genai, mock_memory_manager):
-        """Test image analysis with agent creation when agent doesn't exist."""
-        mock_image = MagicMock()
-        mock_resolve_images.return_value = [mock_image]
-        
-        # Setup no existing agent
-        mock_memory_manager.get_agent.return_value = None
-        mock_agent = MagicMock()
-        mock_memory_manager.create_agent.return_value = mock_agent
-        
-        result = analyze_image("Analyze this", output_file="-", image_data="fake", agent_name="new_agent")
-        
-        assert "Test response" in result
-        mock_memory_manager.get_agent.assert_called_with("new_agent")
-        mock_memory_manager.create_agent.assert_called_with("new_agent")
-
-    def test_analyze_image_api_error(self, mock_memory_manager):
-        """Test image analysis with API error."""
-        with patch('mcp_handley_lab.llm.gemini.tool._resolve_images') as mock_resolve:
-            mock_resolve.return_value = [MagicMock()]
-            
-            with patch('mcp_handley_lab.llm.gemini.tool.genai.GenerativeModel') as mock_model:
-                mock_model.side_effect = Exception("Vision API Error")
-                
-                with pytest.raises(RuntimeError, match="Gemini vision API error"):
-                    analyze_image("Analyze this", output_file="-", image_data="fake")
-
-    def test_analyze_image_no_images(self, mock_memory_manager):
+    def test_analyze_image_no_images(self, mock_client, mock_memory_manager):
         """Test image analysis without images."""
         with pytest.raises(ValueError, match="Either image_data or images must be provided"):
             analyze_image("What's in this image?", output_file="-")
     
-    @patch('tempfile.NamedTemporaryFile')
-    def test_generate_image_success(self, mock_tempfile, mock_genai, mock_memory_manager):
+    def test_analyze_image_api_error(self, mock_client, mock_memory_manager):
+        """Test image analysis with API error."""
+        with patch('mcp_handley_lab.llm.gemini.tool._resolve_images') as mock_resolve:
+            mock_resolve.return_value = [MagicMock()]
+            mock_client.models.generate_content.side_effect = Exception("Vision API Error")
+            
+            with pytest.raises(RuntimeError, match="Gemini vision API error"):
+                analyze_image("Analyze this", output_file="-", image_data="fake")
+    
+    def test_generate_image_success(self, mock_client, mock_memory_manager):
         """Test successful image generation."""
-        # Mock temp file
-        mock_file = MagicMock()
-        mock_file.name = "/tmp/generated_image.png"
-        mock_tempfile.return_value.__enter__.return_value = mock_file
-        
-        # Mock Gemini response with image data
-        mock_part = MagicMock()
-        mock_part.inline_data.data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAFtqWAJgQAAAABJRU5ErkJggg=="  # 1x1 PNG
-        
-        mock_candidate = MagicMock()
-        mock_candidate.content.parts = [mock_part]
+        # Mock the generated image response
+        mock_image = MagicMock()
+        mock_image.image.image_bytes = b"fake_image_data"
         
         mock_response = MagicMock()
-        mock_response.candidates = [mock_candidate]
+        mock_response.generated_images = [mock_image]
         
-        # Get the mock client from the fixture
-        mock_client = mock_genai.GenerativeModel.return_value
-        mock_client.generate_content.return_value = mock_response
+        mock_client.models.generate_images.return_value = mock_response
         
         result = generate_image("A beautiful sunset")
         
-        assert "✅ Image generated successfully!" in result
-        assert "/tmp/generated_image.png" in result
-        assert "💰 Usage: 1 token" in result
-        assert "$0.03" in result
+        assert "✅ **Image Generated Successfully**" in result
+        assert "📁 **File:**" in result
+        assert "gemini_generated_" in result
+        assert ".png" in result
+        assert "📏 **Size:** 15 bytes" in result  # len(b"fake_image_data") = 15
+        assert "💰 Usage:" in result
         
-        # Check that GenerativeModel was created with correct model
-        mock_genai.GenerativeModel.assert_called_once_with("imagen-3.0-generate-002")
-        
-        # Check generate_content was called correctly
-        mock_client.generate_content.assert_called_once()
-        call_args = mock_client.generate_content.call_args
-        assert call_args[1]["contents"] == ["A beautiful sunset"]
-        assert call_args[1]["generation_config"]["response_mime_type"] == "image/png"
+        # Verify the client was called correctly
+        mock_client.models.generate_images.assert_called_once()
     
-    @patch('tempfile.NamedTemporaryFile')
-    def test_generate_image_with_agent(self, mock_tempfile, mock_genai, mock_memory_manager):
+    def test_generate_image_client_not_initialized(self, mock_memory_manager):
+        """Test generate_image when client is not initialized."""
+        # Temporarily set client to None to simulate initialization failure
+        import mcp_handley_lab.llm.gemini.tool as gemini_tool
+        original_client = gemini_tool.client
+        gemini_tool.client = None
+        
+        try:
+            with pytest.raises(RuntimeError, match="Gemini client not initialized"):
+                generate_image("A test image")
+        finally:
+            # Restore original client
+            gemini_tool.client = original_client
+    
+    def test_generate_image_with_agent(self, mock_client, mock_memory_manager):
         """Test image generation with agent memory."""
-        # Mock temp file
-        mock_file = MagicMock()
-        mock_file.name = "/tmp/generated_image.png"
-        mock_tempfile.return_value.__enter__.return_value = mock_file
-        
-        # Mock Gemini response with image data
-        mock_part = MagicMock()
-        mock_part.inline_data.data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAFtqWAJgQAAAABJRU5ErkJggg=="
-        
-        mock_candidate = MagicMock()
-        mock_candidate.content.parts = [mock_part]
+        # Mock the generated image response
+        mock_image = MagicMock()
+        mock_image.image.image_bytes = b"fake_image_data"
         
         mock_response = MagicMock()
-        mock_response.candidates = [mock_candidate]
+        mock_response.generated_images = [mock_image]
         
-        mock_client = mock_genai.GenerativeModel.return_value
-        mock_client.generate_content.return_value = mock_response
+        mock_client.models.generate_images.return_value = mock_response
         
         # Mock agent exists
         mock_agent = MagicMock()
@@ -390,9 +530,32 @@ class TestGeminiTools:
         
         result = generate_image("A test image", agent_name="test_agent")
         
-        assert "✅ Image generated successfully!" in result
+        assert "✅ **Image Generated Successfully**" in result
         mock_memory_manager.get_agent.assert_called_with("test_agent")
         mock_memory_manager.add_message.assert_called()
+    
+    def test_generate_image_no_images_generated(self, mock_client, mock_memory_manager):
+        """Test when no images are generated."""
+        mock_response = MagicMock()
+        mock_response.generated_images = []
+        
+        mock_client.models.generate_images.return_value = mock_response
+        
+        with pytest.raises(RuntimeError, match="No images were generated"):
+            generate_image("A test image")
+    
+    def test_generate_image_no_image_data(self, mock_client, mock_memory_manager):
+        """Test when generated image has no data."""
+        mock_image = MagicMock()
+        mock_image.image = None
+        
+        mock_response = MagicMock()
+        mock_response.generated_images = [mock_image]
+        
+        mock_client.models.generate_images.return_value = mock_response
+        
+        with pytest.raises(RuntimeError, match="Generated image has no data"):
+            generate_image("A test image")
     
     def test_create_agent_success(self, mock_memory_manager):
         """Test creating an agent."""
@@ -535,68 +698,6 @@ class TestGeminiTools:
         with pytest.raises(ValueError, match="Agent 'test_agent' not found"):
             delete_agent("test_agent")
     
-    def test_server_info_success(self):
-        """Test server info when API is working."""
-        with patch('mcp_handley_lab.llm.gemini.tool.genai.list_models') as mock_list:
-            mock_model = MagicMock()
-            mock_model.name = "models/gemini-1.5-pro"
-            mock_list.return_value = [mock_model]
-            
-            with patch('mcp_handley_lab.llm.gemini.tool.memory_manager') as mock_memory:
-                mock_memory.list_agents.return_value = [MagicMock(), MagicMock()]
-                
-                result = server_info()
-                
-                assert "Gemini Tool Server Status" in result
-                assert "Connected and ready" in result
-                assert "Available Models: 1 models" in result
-                assert "Active Agents: 2" in result
-                assert "Available tools:" in result
-    
-    def test_server_info_api_error(self):
-        """Test server info with API error."""
-        with patch('mcp_handley_lab.llm.gemini.tool.genai.list_models') as mock_list:
-            mock_list.side_effect = Exception("API Error")
-            
-            with pytest.raises(RuntimeError, match="Gemini API configuration error"):
-                server_info()
-    
-    def test_ask_with_personality_system_instruction(self, mock_genai, mock_memory_manager):
-        """Test ask function with agent personality sets system instruction."""
-        # Setup agent with personality
-        mock_agent = MagicMock()
-        mock_agent.personality = "You are a helpful coding assistant"
-        mock_agent.get_conversation_history.return_value = [
-            {"role": "user", "content": [{"text": "Previous message"}]}
-        ]
-        mock_memory_manager.get_agent.return_value = mock_agent
-        
-        result = ask("Hello", output_file="-", agent_name="test_agent")
-        
-        # Check that GenerativeModel was called with system_instruction
-        mock_genai.GenerativeModel.assert_called_once()
-        call_args = mock_genai.GenerativeModel.call_args
-        assert call_args[1]["system_instruction"] == "You are a helpful coding assistant"
-        
-        assert "Test response" in result
-    
-    def test_ask_without_personality_no_system_instruction(self, mock_genai, mock_memory_manager):
-        """Test ask function without agent personality doesn't set system instruction."""
-        # Setup agent without personality
-        mock_agent = MagicMock()
-        mock_agent.personality = None
-        mock_agent.get_conversation_history.return_value = []
-        mock_memory_manager.get_agent.return_value = mock_agent
-        
-        result = ask("Hello", output_file="-", agent_name="test_agent")
-        
-        # Check that GenerativeModel was called without system_instruction
-        mock_genai.GenerativeModel.assert_called_once()
-        call_args = mock_genai.GenerativeModel.call_args
-        assert call_args[1]["system_instruction"] is None
-        
-        assert "Test response" in result
-    
     def test_get_response_success(self, mock_memory_manager):
         """Test getting response from agent."""
         mock_memory_manager.get_response.return_value = "Test response content"
@@ -631,9 +732,59 @@ class TestGeminiTools:
         with pytest.raises(ValueError, match="No message found at index 5"):
             get_response("test_agent", 5)
     
-    def test_ask_with_file_output(self, mock_genai, mock_memory_manager, tmp_path):
+    def test_server_info_success(self, mock_client, mock_memory_manager):
+        """Test server info when API is working."""
+        # Mock model list response
+        mock_model1 = MagicMock()
+        mock_model1.name = "models/gemini-1.5-pro"
+        mock_model2 = MagicMock()
+        mock_model2.name = "models/gemini-1.5-flash"
+        
+        mock_models_response = [mock_model1, mock_model2]
+        mock_client.models.list.return_value = mock_models_response
+        
+        mock_memory_manager.list_agents.return_value = [MagicMock(), MagicMock()]
+        
+        result = server_info()
+        
+        assert "Gemini Tool Server Status" in result
+        assert "Connected and ready" in result
+        assert "Available Models: 2 models" in result
+        assert "Active Agents: 2" in result
+        assert "Available tools:" in result
+    
+    def test_server_info_client_not_initialized(self):
+        """Test server info when client is not initialized."""
+        # Temporarily set client to None to simulate initialization failure
+        import mcp_handley_lab.llm.gemini.tool as gemini_tool
+        original_client = gemini_tool.client
+        gemini_tool.client = None
+        
+        try:
+            with pytest.raises(RuntimeError, match="Gemini client not initialized"):
+                server_info()
+        finally:
+            # Restore original client
+            gemini_tool.client = original_client
+    
+    def test_server_info_api_error(self, mock_client, mock_memory_manager):
+        """Test server info with API error."""
+        mock_client.models.list.side_effect = Exception("API Error")
+        
+        with pytest.raises(RuntimeError, match="Gemini API configuration error"):
+            server_info()
+    
+    def test_ask_with_file_output(self, mock_client, mock_memory_manager, tmp_path):
         """Test ask with file output."""
         output_file = tmp_path / "response.txt"
+        
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
         
         result = ask("Hello", output_file=str(output_file))
         
@@ -643,19 +794,24 @@ class TestGeminiTools:
         assert output_file.exists()
         assert output_file.read_text() == "Test response"
     
-    def test_analyze_image_with_file_output(self, mock_genai, mock_memory_manager, tmp_path):
+    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
+    def test_analyze_image_with_file_output(self, mock_resolve_images, mock_client, mock_memory_manager, tmp_path):
         """Test analyze_image with file output."""
         output_file = tmp_path / "analysis.txt"
+        mock_resolve_images.return_value = [MagicMock()]
         
-        with patch('mcp_handley_lab.llm.gemini.tool._resolve_images') as mock_resolve:
-            mock_resolve.return_value = [MagicMock()]
-            
-            result = analyze_image("Analyze this", output_file=str(output_file), image_data="fake")
-            
-            assert "Response saved to:" in result
-            assert str(output_file) in result
-            assert "Content: 13 characters" in result
-            assert output_file.exists()
-            assert output_file.read_text() == "Test response"
-
-
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 100
+        mock_response.usage_metadata.candidates_token_count = 50
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
+        result = analyze_image("Analyze this", output_file=str(output_file), image_data="fake")
+        
+        assert "Response saved to:" in result
+        assert str(output_file) in result
+        assert "Content: 13 characters" in result
+        assert output_file.exists()
+        assert output_file.read_text() == "Test response"

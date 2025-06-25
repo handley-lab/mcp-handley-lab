@@ -3,6 +3,7 @@ import base64
 import io
 import tempfile
 import os
+import time
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 from PIL import Image
@@ -27,6 +28,25 @@ try:
 except Exception as e:
     client = None
     initialization_error = str(e)
+
+# Generate session ID once at module load time
+_SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
+
+
+def _get_session_id() -> str:
+    """Get the persistent session ID for this MCP server process."""
+    try:
+        # Try to get client context from FastMCP
+        context = mcp.get_context()
+        client_id = getattr(context, 'client_id', None)
+        if client_id:
+            return f"_session_{client_id}"
+        else:
+            # Fallback to module-level session ID
+            return _SESSION_ID
+    except:
+        # Fallback to module-level session ID
+        return _SESSION_ID
 
 
 def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -174,7 +194,7 @@ def _resolve_images(
 
 
 def _handle_agent_and_usage(
-    agent_name: Optional[str], 
+    agent_name: Optional[Union[str, bool]], 
     user_prompt: str, 
     response_text: str, 
     model: str,
@@ -186,8 +206,12 @@ def _handle_agent_and_usage(
     """Handle agent memory, file output, and return formatted usage info."""
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
     
-    # Store in agent memory if specified
-    if agent_name:
+    # Use session-specific agent if no agent_name provided (and memory not disabled)
+    if not agent_name and agent_name is not False:
+        agent_name = _get_session_id()
+    
+    # Store in agent memory (only if memory not disabled)
+    if agent_name is not False:
         agent = memory_manager.get_agent(agent_name)
         if not agent:
             agent = memory_manager.create_agent(agent_name)
@@ -214,6 +238,8 @@ def _handle_agent_and_usage(
 
 @mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.
 
+**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
 - '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
@@ -226,7 +252,7 @@ File Input Formats:
 Key Parameters:
 - `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
 - `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
-- `agent_name`: Store conversation in persistent memory for ongoing interactions
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
 
 Error Handling:
@@ -236,44 +262,39 @@ Error Handling:
 
 Examples:
 ```python
-# Basic question with file output
+# Basic question with session memory (default)
 ask(
     prompt="Explain this code",
     output_file="/tmp/explanation.md",
     files=[{"path": "/path/to/code.py"}]
 )
 
-# Grounded research query
+# Continue conversation in same session
 ask(
-    prompt="What are the latest developments in quantum computing?",
-    output_file="/tmp/research.md",
-    grounding=True,
-    model="pro"
+    prompt="Now show me how to optimize it",
+    output_file="/tmp/optimization.md"
 )
 
-# Persistent agent conversation
+# Named agent for cross-session persistence
 ask(
-    prompt="Continue our discussion about the algorithm",
-    output_file="/tmp/response.md",
+    prompt="Review this codebase",
+    output_file="/tmp/review.md",
     agent_name="code_reviewer",
     model="pro"
 )
 
-# Multiple file context
+# Disable memory for one-off queries
 ask(
-    prompt="Compare these implementations",
-    output_file="/tmp/comparison.md",
-    files=[
-        {"path": "/path/to/impl1.py"},
-        {"path": "/path/to/impl2.py"},
-        {"content": "Additional context here"}
-    ]
+    prompt="What is the weather like?",
+    output_file="/tmp/weather.md",
+    agent_name=False,
+    grounding=True
 )
 ```""")
 def ask(
     prompt: str,
     output_file: str,
-    agent_name: Optional[str] = None,
+    agent_name: Optional[Union[str, bool]] = None,
     model: str = "flash",
     temperature: float = 0.7,
     grounding: bool = False,
@@ -295,13 +316,22 @@ def ask(
         # Handle agent setup and system instruction (personality)
         system_instruction = None
         history = []
+        use_memory = agent_name is not False
         
-        if agent_name:
+        # Only use memory if not explicitly disabled
+        if use_memory:
+            # Use session-specific agent if no agent_name provided (same logic as _handle_agent_and_usage)
+            if not agent_name:
+                agent_name = _get_session_id()
+            
             agent = memory_manager.get_agent(agent_name)
             if agent:
                 if agent.personality:
                     system_instruction = agent.personality
                 history = agent.get_conversation_history()
+        else:
+            # No memory - set agent_name to None to skip memory operations
+            agent_name = None
         
         # Resolve file contents to structured parts
         file_parts = _resolve_files(files)
@@ -359,14 +389,30 @@ def ask(
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
         
-        # Handle agent and usage
-        return _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens, output_file)
+        # Handle agent and usage (only if memory is enabled)
+        if use_memory:
+            return _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens, output_file)
+        else:
+            # No memory - just handle file output and usage
+            cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
+            if output_file != '-':
+                output_path = Path(output_file)
+                output_path.write_text(response_text)
+                usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
+                char_count = len(response_text)
+                line_count = response_text.count('\n') + 1
+                return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n\n{usage_info}"
+            else:
+                usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
+                return f"{response_text}\n\n{usage_info}"
         
     except Exception as e:
         raise RuntimeError(f"Gemini API error: {e}")
 
 
 @mcp.tool(description="""Analyzes images using Gemini's advanced vision capabilities.
+
+**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
@@ -390,6 +436,9 @@ Model Options:
 - "pro" (default) - Best for detailed analysis and complex reasoning
 - "flash" - Faster response, good for simple image descriptions
 
+Key Parameters:
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+
 Error Handling:
 - Raises ValueError for missing or invalid image inputs
 - Raises RuntimeError for Gemini API errors (quota, authentication, unsupported formats)
@@ -398,7 +447,7 @@ Error Handling:
 
 Examples:
 ```python
-# Analyze single image from file
+# Analyze image with session memory (default)
 analyze_image(
     prompt="Describe what you see in this image",
     output_file="/tmp/analysis.md",
@@ -406,32 +455,28 @@ analyze_image(
     focus="general"
 )
 
-# Multiple images comparison
+# Continue analysis in same session
 analyze_image(
-    prompt="Compare these two diagrams and explain the differences",
-    output_file="/tmp/comparison.md",
-    images=[
-        {"path": "/path/to/diagram1.png"},
-        {"path": "/path/to/diagram2.png"}
-    ],
+    prompt="Now focus on the text in the image",
+    output_file="/tmp/text_analysis.md",
+    focus="text"
+)
+
+# Named agent for cross-session persistence
+analyze_image(
+    prompt="Analyze this architectural diagram",
+    output_file="/tmp/architecture.md",
+    image_data={"path": "/path/to/diagram.png"},
+    agent_name="architect_reviewer",
     focus="technical"
 )
 
-# Extract text from image
+# One-off analysis without memory
 analyze_image(
-    prompt="Extract and transcribe all text from this document",
-    output_file="/tmp/extracted_text.md",
-    image_data={"path": "/path/to/document.jpg"},
-    focus="text",
-    model="pro"
-)
-
-# Base64 image analysis
-analyze_image(
-    prompt="Identify all objects in this scene",
-    output_file="/tmp/objects.md",
+    prompt="What's in this random image?",
+    output_file="/tmp/random.md",
     image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
-    focus="objects"
+    agent_name=False
 )
 ```""")
 def analyze_image(
@@ -441,7 +486,7 @@ def analyze_image(
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
     model: str = "pro",
-    agent_name: Optional[str] = None
+    agent_name: Optional[Union[str, bool]] = None
 ) -> str:
     """Analyze images with Gemini vision model."""
     if not client:
@@ -480,15 +525,33 @@ def analyze_image(
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
         
-        # Handle agent and usage
+        # Handle agent and usage (only if memory is enabled)
         image_desc = f"[Image analysis: {len(image_list)} image(s)]"
-        return _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens, output_file)
+        use_memory = agent_name is not False
+        
+        if use_memory:
+            return _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens, output_file)
+        else:
+            # No memory - just handle file output and usage
+            cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
+            if output_file != '-':
+                output_path = Path(output_file)
+                output_path.write_text(response_text)
+                usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
+                char_count = len(response_text)
+                line_count = response_text.count('\n') + 1
+                return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n\n{usage_info}"
+            else:
+                usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
+                return f"{response_text}\n\n{usage_info}"
         
     except Exception as e:
         raise RuntimeError(f"Gemini vision API error: {e}")
 
 
 @mcp.tool(description="""Generates high-quality images using Gemini's Imagen 3 model.
+
+**Memory Behavior**: Image generation requests are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
 Creates images from text descriptions with advanced artistic capabilities. Generated images are saved as PNG files to a temporary location.
 
@@ -498,22 +561,31 @@ Prompt Guidelines:
 - Mention aspect ratio preferences if needed
 - Avoid requesting copyrighted characters or inappropriate content
 
+Key Parameters:
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+
 Examples:
 ```python
-# Artistic image
+# Generate with session memory (default)
 generate_image(
-    prompt="A serene mountain landscape at sunset, with golden light reflecting on a crystal-clear lake, painted in impressionist style",
-    agent_name="artist_bot"
+    prompt="A serene mountain landscape at sunset, with golden light reflecting on a crystal-clear lake, painted in impressionist style"
 )
 
-# Technical diagram
+# Continue with variations in same session
 generate_image(
-    prompt="Clean, minimalist flowchart showing a software deployment pipeline, with rounded rectangles and arrow connections, in professional blue and white colors"
+    prompt="Now make it more abstract and colorful"
 )
 
-# Portrait style
+# Named agent for cross-session persistence
 generate_image(
-    prompt="Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field"
+    prompt="Professional headshot of a confident software engineer",
+    agent_name="portrait_artist"
+)
+
+# One-off generation without memory
+generate_image(
+    prompt="Random abstract art",
+    agent_name=False
 )
 ```
 
@@ -526,7 +598,7 @@ Error Handling:
 def generate_image(
     prompt: str,
     model: str = "imagen-3",
-    agent_name: Optional[str] = None
+    agent_name: Optional[Union[str, bool]] = None
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
     if not client:
@@ -573,8 +645,14 @@ def generate_image(
         output_tokens = 1  # Image generation
         cost = calculate_cost(actual_model, input_tokens, output_tokens, "gemini")
         
-        # Handle agent memory if specified
-        if agent_name:
+        # Handle agent memory (only if enabled)
+        use_memory = agent_name is not False
+        
+        if use_memory:
+            # Use session-specific agent if no agent_name provided
+            if not agent_name:
+                agent_name = _get_session_id()
+            
             agent = memory_manager.get_agent(agent_name)
             if not agent:
                 agent = memory_manager.create_agent(agent_name)
@@ -760,9 +838,9 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Gemini models (requires output_file parameter)
-- analyze_image: Image analysis with vision models (requires output_file parameter)
-- generate_image: Generate images with Imagen 3
+- ask: Chat with Gemini models (persistent memory by default, agent_name=False to disable)
+- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=False to disable)
+- generate_image: Generate images with Imagen 3 (persistent memory by default, agent_name=False to disable)
 - create_agent: Create persistent conversation agents
 - list_agents: List all agents and stats
 - agent_stats: Get detailed agent statistics

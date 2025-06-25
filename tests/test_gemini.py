@@ -407,6 +407,25 @@ class TestGeminiTools:
         with pytest.raises(RuntimeError, match="No response text generated"):
             ask("Hello", output_file="-")
     
+    def test_ask_memory_disabled(self, mock_client, mock_memory_manager):
+        """Test ask with memory disabled using agent_name=False."""
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.text = "Test response without memory"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        
+        mock_client.models.generate_content.return_value = mock_response
+        
+        result = ask("Hello", output_file="-", agent_name=False)
+        
+        assert "Test response without memory" in result
+        assert "💰 Usage:" in result
+        # Memory manager should not be called when memory is disabled
+        mock_memory_manager.get_agent.assert_not_called()
+        mock_memory_manager.add_message.assert_not_called()
+        mock_memory_manager.create_agent.assert_not_called()
+    
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     def test_analyze_image_basic(self, mock_resolve_images, mock_client, mock_memory_manager):
         """Test basic image analysis."""

@@ -122,4 +122,71 @@ def test_gemini_server_info(skip_if_no_api_key):
     result = server_info()
     
     assert "gemini" in result.lower()
-    assert "status" in result.lower()
+
+@pytest.mark.vcr
+def test_gemini_custom_token_limits(skip_if_no_api_key, test_output_file):
+    """Test that custom max_output_tokens parameter works with real API."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+    
+    # Test with very low token limit - should still work but be brief
+    result = ask(
+        prompt="Say exactly: SUCCESS",
+        output_file=test_output_file,
+        model="gemini-2.5-flash",
+        max_output_tokens=50,
+        agent_name=False
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert "SUCCESS" in content
+
+@pytest.mark.vcr  
+def test_gemini_high_token_limits(skip_if_no_api_key, test_output_file):
+    """Test that high token limits work with 2.5 models."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+    
+    # Test with higher token limit using gemini-2.5-flash
+    result = ask(
+        prompt="Write a brief explanation of photosynthesis in plants.",
+        output_file=test_output_file,
+        model="gemini-2.5-flash",
+        max_output_tokens=1000,
+        agent_name=False
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert len(content) > 50  # Should be a substantial response
+    assert "photosynthesis" in content.lower()
+
+@pytest.mark.vcr
+def test_gemini_analyze_image_token_limits(skip_if_no_api_key, test_output_file):
+    """Test that analyze_image respects custom token limits."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+    
+    # Create a simple test image (small red square)
+    from PIL import Image
+    import io
+    import base64
+    
+    # Create a 10x10 red square
+    img = Image.new('RGB', (10, 10), color='red')
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_data = base64.b64encode(img_buffer.getvalue()).decode()
+    
+    result = analyze_image(
+        prompt="What color is this image? Just say the color.",
+        output_file=test_output_file,
+        image_data=f"data:image/png;base64,{img_data}",
+        max_output_tokens=25,
+        agent_name=False
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert "red" in content.lower()

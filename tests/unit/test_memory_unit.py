@@ -1,0 +1,528 @@
+"""Unit tests for memory management module."""
+import json
+import tempfile
+from datetime import datetime
+from pathlib import Path
+import pytest
+
+from mcp_handley_lab.common.memory import MemoryManager, AgentMemory, Message
+
+
+class TestMessage:
+    """Test Message model."""
+    
+    def test_message_creation(self):
+        """Test basic message creation."""
+        msg = Message(
+            role="user",
+            content="Hello",
+            timestamp=datetime.now(),
+            tokens=10,
+            cost=0.001
+        )
+        assert msg.role == "user"
+        assert msg.content == "Hello"
+        assert msg.tokens == 10
+        assert msg.cost == 0.001
+    
+    def test_message_optional_fields(self):
+        """Test message with optional fields."""
+        msg = Message(
+            role="assistant",
+            content="Hi there",
+            timestamp=datetime.now()
+        )
+        assert msg.role == "assistant"
+        assert msg.content == "Hi there"
+        assert msg.tokens is None
+        assert msg.cost is None
+
+
+class TestAgentMemory:
+    """Test AgentMemory model."""
+    
+    def test_agent_creation(self):
+        """Test basic agent creation."""
+        agent = AgentMemory(
+            name="test_agent",
+            created_at=datetime.now()
+        )
+        assert agent.name == "test_agent"
+        assert agent.personality is None
+        assert len(agent.messages) == 0
+        assert agent.total_tokens == 0
+        assert agent.total_cost == 0.0
+    
+    def test_agent_with_personality(self):
+        """Test agent with personality."""
+        agent = AgentMemory(
+            name="helpful_agent",
+            personality="You are helpful",
+            created_at=datetime.now()
+        )
+        assert agent.personality == "You are helpful"
+    
+    def test_add_message(self):
+        """Test adding messages to agent."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        
+        agent.add_message("user", "Hello", tokens=5, cost=0.001)
+        
+        assert len(agent.messages) == 1
+        assert agent.messages[0].role == "user"
+        assert agent.messages[0].content == "Hello"
+        assert agent.total_tokens == 5
+        assert agent.total_cost == 0.001
+        
+        agent.add_message("assistant", "Hi", tokens=3, cost=0.0005)
+        
+        assert len(agent.messages) == 2
+        assert agent.total_tokens == 8
+        assert agent.total_cost == 0.0015
+    
+    def test_clear_history(self):
+        """Test clearing conversation history."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        agent.add_message("user", "Hello", tokens=5, cost=0.001)
+        
+        assert len(agent.messages) == 1
+        assert agent.total_tokens == 5
+        assert agent.total_cost == 0.001
+        
+        agent.clear_history()
+        
+        assert len(agent.messages) == 0
+        assert agent.total_tokens == 0
+        assert agent.total_cost == 0.0
+    
+    def test_get_conversation_history_gemini(self):
+        """Test getting conversation history in Gemini format."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there")
+        
+        history = agent.get_conversation_history()
+        
+        assert len(history) == 2
+        assert history[0]["role"] == "user"
+        assert history[0]["parts"] == [{"text": "Hello"}]
+        assert history[1]["role"] == "model"  # assistant -> model for Gemini
+        assert history[1]["parts"] == [{"text": "Hi there"}]
+    
+    def test_get_openai_conversation_history(self):
+        """Test getting conversation history in OpenAI format."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there")
+        
+        history = agent.get_openai_conversation_history()
+        
+        assert len(history) == 2
+        assert history[0]["role"] == "user"
+        assert history[0]["content"] == "Hello"
+        assert history[1]["role"] == "assistant"
+        assert history[1]["content"] == "Hi there"
+    
+    def test_get_stats(self):
+        """Test getting agent statistics."""
+        created_time = datetime.now()
+        agent = AgentMemory(
+            name="test_agent",
+            personality="helpful",
+            created_at=created_time
+        )
+        agent.add_message("user", "Hello", tokens=5, cost=0.001)
+        
+        stats = agent.get_stats()
+        
+        assert stats["name"] == "test_agent"
+        assert stats["created_at"] == created_time.isoformat()
+        assert stats["message_count"] == 1
+        assert stats["total_tokens"] == 5
+        assert stats["total_cost"] == 0.001
+        assert stats["personality"] == "helpful"
+    
+    def test_get_response_valid_index(self):
+        """Test getting response by valid index."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there")
+        
+        # Test default (-1, last message)
+        assert agent.get_response() == "Hi there"
+        assert agent.get_response(-1) == "Hi there"
+        
+        # Test first message
+        assert agent.get_response(0) == "Hello"
+        
+        # Test second message
+        assert agent.get_response(1) == "Hi there"
+    
+    def test_get_response_invalid_index(self):
+        """Test getting response by invalid index."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        agent.add_message("user", "Hello")
+        
+        # Out of range index
+        assert agent.get_response(10) is None
+        assert agent.get_response(-10) is None
+    
+    def test_get_response_empty_messages(self):
+        """Test getting response from empty message list."""
+        agent = AgentMemory(name="test", created_at=datetime.now())
+        
+        assert agent.get_response() is None
+        assert agent.get_response(0) is None
+
+
+class TestMemoryManager:
+    """Test MemoryManager class."""
+    
+    def test_memory_manager_creation(self):
+        """Test memory manager creation with temp directory."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            assert manager.storage_dir == Path(temp_dir)
+            assert manager.agents_dir == Path(temp_dir) / "agents"
+            assert manager.agents_dir.exists()
+    
+    def test_create_agent(self):
+        """Test creating a new agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.create_agent("test_agent", "helpful personality")
+            
+            assert agent.name == "test_agent"
+            assert agent.personality == "helpful personality"
+            assert "test_agent" in manager._agents
+            
+            # Check file was created
+            agent_file = manager.agents_dir / "test_agent.json"
+            assert agent_file.exists()
+    
+    def test_create_duplicate_agent(self):
+        """Test creating duplicate agent raises error."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            manager.create_agent("test_agent")
+            
+            with pytest.raises(ValueError, match="Agent 'test_agent' already exists"):
+                manager.create_agent("test_agent")
+    
+    def test_get_agent_exists(self):
+        """Test getting existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            created_agent = manager.create_agent("test_agent")
+            retrieved_agent = manager.get_agent("test_agent")
+            
+            assert retrieved_agent is not None
+            assert retrieved_agent.name == "test_agent"
+            assert retrieved_agent is created_agent
+    
+    def test_get_agent_not_exists(self):
+        """Test getting non-existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.get_agent("nonexistent")
+            
+            assert agent is None
+    
+    def test_list_agents(self):
+        """Test listing all agents."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            assert len(manager.list_agents()) == 0
+            
+            agent1 = manager.create_agent("agent1")
+            agent2 = manager.create_agent("agent2")
+            
+            agents = manager.list_agents()
+            assert len(agents) == 2
+            assert agent1 in agents
+            assert agent2 in agents
+    
+    def test_delete_agent_exists(self):
+        """Test deleting existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            manager.create_agent("test_agent")
+            agent_file = manager.agents_dir / "test_agent.json"
+            assert agent_file.exists()
+            
+            result = manager.delete_agent("test_agent")
+            
+            assert result is True
+            assert "test_agent" not in manager._agents
+            assert not agent_file.exists()
+    
+    def test_delete_agent_not_exists(self):
+        """Test deleting non-existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            result = manager.delete_agent("nonexistent")
+            
+            assert result is False
+    
+    def test_add_message_to_agent(self):
+        """Test adding message to agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.create_agent("test_agent")
+            manager.add_message("test_agent", "user", "Hello", tokens=5, cost=0.001)
+            
+            assert len(agent.messages) == 1
+            assert agent.messages[0].content == "Hello"
+    
+    def test_add_message_to_nonexistent_agent(self):
+        """Test adding message to non-existing agent does nothing."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            # Should not raise error
+            manager.add_message("nonexistent", "user", "Hello")
+    
+    def test_clear_agent_history_exists(self):
+        """Test clearing history of existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.create_agent("test_agent")
+            manager.add_message("test_agent", "user", "Hello")
+            
+            assert len(agent.messages) == 1
+            
+            result = manager.clear_agent_history("test_agent")
+            
+            assert result is True
+            assert len(agent.messages) == 0
+    
+    def test_clear_agent_history_not_exists(self):
+        """Test clearing history of non-existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            result = manager.clear_agent_history("nonexistent")
+            
+            assert result is False
+    
+    def test_export_agent_success(self):
+        """Test exporting agent successfully."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.create_agent("test_agent", "helpful")
+            manager.add_message("test_agent", "user", "Hello")
+            
+            export_file = Path(temp_dir) / "export.json"
+            result = manager.export_agent("test_agent", str(export_file))
+            
+            assert result is True
+            assert export_file.exists()
+            
+            # Verify export content
+            with open(export_file) as f:
+                data = json.load(f)
+            assert data["name"] == "test_agent"
+            assert data["personality"] == "helpful"
+            assert len(data["messages"]) == 1
+    
+    def test_export_agent_not_exists(self):
+        """Test exporting non-existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            export_file = Path(temp_dir) / "export.json"
+            result = manager.export_agent("nonexistent", str(export_file))
+            
+            assert result is False
+            assert not export_file.exists()
+    
+    def test_import_agent_success(self):
+        """Test importing agent successfully."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            # Create export data
+            export_data = {
+                "name": "imported_agent",
+                "personality": "imported personality",
+                "created_at": datetime.now().isoformat(),
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Hello",
+                        "timestamp": datetime.now().isoformat(),
+                        "tokens": 5,
+                        "cost": 0.001
+                    }
+                ],
+                "total_tokens": 5,
+                "total_cost": 0.001
+            }
+            
+            import_file = Path(temp_dir) / "import.json"
+            with open(import_file, 'w') as f:
+                json.dump(export_data, f)
+            
+            result = manager.import_agent(str(import_file))
+            
+            assert result is True
+            assert "imported_agent" in manager._agents
+            
+            agent = manager.get_agent("imported_agent")
+            assert agent.name == "imported_agent"
+            assert agent.personality == "imported personality"
+            assert len(agent.messages) == 1
+    
+    def test_import_agent_file_not_exists(self):
+        """Test importing from non-existing file."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            result = manager.import_agent("/nonexistent/file.json")
+            
+            assert result is False
+    
+    def test_import_agent_no_overwrite(self):
+        """Test importing agent that already exists without overwrite."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            # Create existing agent
+            manager.create_agent("existing_agent")
+            
+            # Create import data with same name
+            export_data = {
+                "name": "existing_agent",
+                "created_at": datetime.now().isoformat(),
+                "messages": [],
+                "total_tokens": 0,
+                "total_cost": 0.0
+            }
+            
+            import_file = Path(temp_dir) / "import.json"
+            with open(import_file, 'w') as f:
+                json.dump(export_data, f)
+            
+            result = manager.import_agent(str(import_file), overwrite=False)
+            
+            assert result is False
+    
+    def test_import_agent_with_overwrite(self):
+        """Test importing agent with overwrite."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            # Create existing agent
+            manager.create_agent("existing_agent", "original personality")
+            
+            # Create import data with same name
+            export_data = {
+                "name": "existing_agent",
+                "personality": "new personality",
+                "created_at": datetime.now().isoformat(),
+                "messages": [],
+                "total_tokens": 0,
+                "total_cost": 0.0
+            }
+            
+            import_file = Path(temp_dir) / "import.json"
+            with open(import_file, 'w') as f:
+                json.dump(export_data, f)
+            
+            result = manager.import_agent(str(import_file), overwrite=True)
+            
+            assert result is True
+            
+            agent = manager.get_agent("existing_agent")
+            assert agent.personality == "new personality"
+    
+    def test_get_response_from_agent(self):
+        """Test getting response from agent via manager."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            agent = manager.create_agent("test_agent")
+            manager.add_message("test_agent", "user", "Hello")
+            manager.add_message("test_agent", "assistant", "Hi there")
+            
+            # Test getting last message
+            response = manager.get_response("test_agent")
+            assert response == "Hi there"
+            
+            # Test getting first message
+            response = manager.get_response("test_agent", 0)
+            assert response == "Hello"
+    
+    def test_get_response_from_nonexistent_agent(self):
+        """Test getting response from non-existing agent."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            
+            response = manager.get_response("nonexistent")
+            assert response is None
+    
+    def test_load_agents_from_disk(self):
+        """Test loading agents from disk on initialization."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create manager and agent
+            manager1 = MemoryManager(temp_dir)
+            agent = manager1.create_agent("persistent_agent", "persistent personality")
+            manager1.add_message("persistent_agent", "user", "Hello")
+            
+            # Create new manager instance (simulates restart)
+            manager2 = MemoryManager(temp_dir)
+            
+            # Check agent was loaded
+            loaded_agent = manager2.get_agent("persistent_agent")
+            assert loaded_agent is not None
+            assert loaded_agent.name == "persistent_agent"
+            assert loaded_agent.personality == "persistent personality"
+            assert len(loaded_agent.messages) == 1
+            assert loaded_agent.messages[0].content == "Hello"
+    
+    def test_load_agents_corrupted_file(self):
+        """Test loading agents with corrupted JSON file."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            agents_dir = Path(temp_dir) / "agents"
+            agents_dir.mkdir()
+            
+            # Create corrupted JSON file
+            corrupted_file = agents_dir / "corrupted.json"
+            corrupted_file.write_text("invalid json content")
+            
+            # Should not crash, just skip corrupted file
+            manager = MemoryManager(temp_dir)
+            assert len(manager.list_agents()) == 0
+    
+    def test_load_agents_no_agents_dir(self):
+        """Test loading agents when agents directory doesn't exist."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Don't create agents directory
+            manager = MemoryManager(temp_dir)
+            # Should create the directory during init, but then delete it to test the early return
+            manager.agents_dir.rmdir()
+            
+            # This should trigger the early return in _load_agents
+            manager._load_agents()
+            assert len(manager.list_agents()) == 0
+    
+    def test_export_agent_write_error(self):
+        """Test export agent with write permission error."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = MemoryManager(temp_dir)
+            agent = manager.create_agent("test_agent")
+            
+            # Try to export to invalid path (should trigger exception)
+            result = manager.export_agent("test_agent", "/invalid/path/export.json")
+            
+            assert result is False

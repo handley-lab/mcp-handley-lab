@@ -269,13 +269,21 @@ def ask(
     files: Optional[List[Union[str, Dict[str, str]]]] = None
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if not output_file or not output_file.strip():
+        raise ValueError("Output file is required")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
+    
     try:
         # Build conversation history
         messages = []
         if agent_name:
             agent = memory_manager.get_agent(agent_name)
             if agent:
-                messages = agent.get_conversation_history()
+                messages = agent.get_openai_conversation_history()
         
         # Resolve files using improved strategy
         file_attachments, inline_content = _resolve_files(files)
@@ -390,8 +398,15 @@ def analyze_image(
     agent_name: Optional[str] = None
 ) -> str:
     """Analyze images with OpenAI vision model."""
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if not output_file or not output_file.strip():
+        raise ValueError("Output file is required")
     if not image_data and not images:
         raise ValueError("Either image_data or images must be provided")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
     
     try:
         # Load images
@@ -414,7 +429,7 @@ def analyze_image(
         if agent_name:
             agent = memory_manager.get_agent(agent_name)
             if agent:
-                messages = agent.get_conversation_history()
+                messages = agent.get_openai_conversation_history()
         
         # Add current message with images
         messages.append({"role": "user", "content": content})
@@ -508,15 +523,24 @@ def generate_image(
     agent_name: Optional[str] = None
 ) -> str:
     """Generate images with DALL-E."""
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
+    
     try:
-        # Make API call
-        response = client.images.generate(
-            model=model,
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=1
-        )
+        # Make API call (quality only supported for DALL-E 3)
+        params = {
+            "model": model,
+            "prompt": prompt,
+            "size": size,
+            "n": 1
+        }
+        if model == "dall-e-3":
+            params["quality"] = quality
+            
+        response = client.images.generate(**params)
         
         # Get the image URL
         image_url = response.data[0].url

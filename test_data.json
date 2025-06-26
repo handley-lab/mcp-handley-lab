@@ -1,6 +1,0 @@
-{
-  "name": "MCP Framework",
-  "version": "0.1.0",
-  "tools": ["jq", "vim"],
-  "status": "active"
-}

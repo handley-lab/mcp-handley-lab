@@ -50,7 +50,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **No defensive programming**: This is a local tool - assume happy paths. Add guards only after actual failures occur
 - **Trust the environment**: Don't check if tools exist or APIs are configured - they are
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
-- **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirections
+- **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirection
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
@@ -103,10 +103,10 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**
-2. **Phase 2**: Simple CLI-based tools (jq, vim) ✓ **COMPLETE - 100% test coverage**
-3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **GOOGLE CALENDAR COMPLETE - 100% test coverage**
-4. **Phase 4**: Complex tools (code2prompt, tool_chainer)
-5. **Phase 5**: Comprehensive testing and documentation
+2. **Phase 2**: Simple CLI-based tools (jq, vim) ✓ **COMPLETE**
+3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
+4. **Phase 4**: Complex tools (code2prompt, tool_chainer) ✓ **COMPLETE**
+5. **Phase 5**: Comprehensive testing and documentation ✓ **COMPLETE**
 
 ## Completed Implementations
 
@@ -132,9 +132,25 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 56 unit tests + 9 integration tests covering all functionality and API compatibility
 - **Status**: Production ready with full google-genai integration
 
-## Running Tools Standalone
+### OpenAI LLM Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/llm/openai/`
+- **Functions**: `ask`, `analyze_image`, `generate_image`, `get_response`, `server_info`
+- **Features**: Text generation, image analysis, image generation with DALL-E, persistent agent memory, file input support
+- **Tests**: 6 integration tests covering all functionality and API compatibility
+- **Status**: Production ready with full OpenAI integration
 
-Each tool can be run independently for testing and development:
+### Tool Chainer Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/tool_chainer/`
+- **Functions**: `discover_tools`, `register_tool`, `chain_tools`, `execute_chain`, `show_history`, `clear_cache`, `server_info`
+- **Features**: Tool discovery, registration, chaining, conditional execution, variable substitution
+- **Tests**: 6 integration tests covering all functionality
+- **Status**: Production ready
+
+## Running Tools
+
+### Unified Entry Point
+
+The project provides a unified entry point for all tools:
 
 ```bash
 # Create and activate virtual environment
@@ -144,17 +160,287 @@ source venv/bin/activate
 # Install the package in development mode
 pip install -e .
 
-# Run individual tool servers
-python -m mcp_handley_lab.jq
-python -m mcp_handley_lab.vim
-python -m mcp_handley_lab.google_calendar
-python -m mcp_handley_lab.llm.gemini
-python -m mcp_handley_lab.llm.openai
-python -m mcp_handley_lab.code2prompt
-python -m mcp_handley_lab.tool_chainer
+# Use unified entry point
+python -m mcp_handley_lab --help                # Show available tools
+python -m mcp_handley_lab jq                    # Run JQ tool
+python -m mcp_handley_lab vim                   # Run Vim tool
+python -m mcp_handley_lab code2prompt           # Run Code2Prompt tool
+python -m mcp_handley_lab llm.gemini            # Run Gemini LLM tool
+python -m mcp_handley_lab llm.openai          # Run OpenAI LLM tool
+python -m mcp_handley_lab google_calendar       # Run Google Calendar tool
+python -m mcp_handley_lab tool_chainer        # Run Tool Chainer tool
 
-# Test with MCP client
-mcp-cli connect stdio python -m mcp_handley_lab.jq
+# Or use direct script entries
+mcp-handley-lab --help                          # Unified entry point
+mcp-jq                                          # Direct JQ tool
+mcp-vim                                         # Direct Vim tool
+mcp-code2prompt                                 # Direct Code2Prompt tool
+mcp-gemini                                      # Direct Gemini tool
+mcp-openai                                    # Direct OpenAI tool
+mcp-google-calendar                             # Direct Google Calendar tool
+mcp-tool-chainer                              # Direct Tool Chainer tool
+```
+
+### JSON-RPC MCP Server Usage
+
+Each tool runs as a JSON-RPC server following the Model Context Protocol (MCP) specification. Here's how to interact with them:
+
+#### 1. Basic MCP Protocol Sequence
+
+```bash
+# Start any tool server (example with Gemini)
+source venv/bin/activate
+mcp-gemini
+```
+
+#### 2. JSON-RPC Message Flow
+
+Send these JSON-RPC messages in sequence:
+
+**Step 1: Initialize the server**
+```json
+{
+  "jsonrpc": "2.0", 
+  "id": 1, 
+  "method": "initialize", 
+  "params": {
+    "protocolVersion": "2024-11-05", 
+    "capabilities": {}, 
+    "clientInfo": {"name": "test-client", "version": "1.0.0"}
+  }
+}
+```
+
+**Step 2: Send initialization notification**
+```json
+{"jsonrpc": "2.0", "method": "notifications/initialized"}
+```
+
+**Step 3: List available tools**
+```json
+{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+```
+
+**Step 4: Call a tool**
+```json
+{
+  "jsonrpc": "2.0", 
+  "id": 3, 
+  "method": "tools/call", 
+  "params": {
+    "name": "ask", 
+    "arguments": {
+      "prompt": "What is 2+2?", 
+      "output_file": "/tmp/result.txt", 
+      "agent_name": false
+    }
+  }
+}
+```
+
+#### 3. Complete Working Example
+
+```bash
+source venv/bin/activate
+
+# Test Gemini tool via JSON-RPC
+(
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}'
+echo '{"jsonrpc": "2.0", "method": "notifications/initialized"}'
+echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}'
+echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 5+5?", "output_file": "/tmp/test.txt", "agent_name": false}}}'
+) | mcp-gemini
+```
+
+#### 4. Expected Responses
+
+**Initialize Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {...},
+    "serverInfo": {"name": "Gemini Tool", "version": "1.9.4"}
+  }
+}
+```
+
+**Tools List Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "ask",
+        "description": "Asks a question to a Gemini model...",
+        "inputSchema": {...}
+      },
+      ...
+    ]
+  }
+}
+```
+
+**Tool Call Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [{"type": "text", "text": "Response saved to: /tmp/test.txt..."}],
+    "isError": false
+  }
+}
+```
+
+#### 5. Integration with MCP Clients
+
+For integration with MCP clients like Claude Desktop:
+
+```bash
+# Test with official MCP client tools
+mcp-cli connect stdio mcp-gemini
+```
+
+#### 6. Testing and Debugging JSON-RPC
+
+**CRITICAL**: Always test tool functions via JSON-RPC, not just server startup. Starting a server (e.g., `mcp-gemini`) only validates imports and initialization - it doesn't test actual tool execution.
+
+**Common Testing Mistake:**
+```bash
+# ❌ This only tests server startup, NOT tool function execution
+mcp-gemini  # Server starts successfully but tool calls may still fail
+```
+
+**Proper Testing Approach:**
+```bash
+# ✅ Test actual tool execution via JSON-RPC
+source venv/bin/activate
+
+# Method 1: Automated test script
+python /tmp/test_jsonrpc.py
+
+# Method 2: Manual JSON-RPC commands  
+(
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}'
+echo '{"jsonrpc": "2.0", "method": "notifications/initialized"}'
+echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "output_file": "/tmp/test.txt"}}}'
+) | mcp-gemini
+```
+
+**Automated Test Script (`/tmp/test_jsonrpc.py`):**
+```python
+#!/usr/bin/env python3
+import subprocess
+import json
+
+def test_mcp_jsonrpc():
+    process = subprocess.Popen(
+        ['mcp-gemini'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, 
+        stderr=subprocess.PIPE, text=True, bufsize=0)
+    
+    try:
+        # Initialize
+        init_request = {
+            "jsonrpc": "2.0", "id": 1, "method": "initialize",
+            "params": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, 
+                      "clientInfo": {"name": "test-client", "version": "1.0.0"}}
+        }
+        process.stdin.write(json.dumps(init_request) + '\n')
+        process.stdin.flush()
+        response = process.stdout.readline()
+        print("Initialize:", response.strip())
+        
+        # Send initialized notification
+        process.stdin.write('{"jsonrpc": "2.0", "method": "notifications/initialized"}\n')
+        process.stdin.flush()
+        
+        # Test tool call
+        ask_request = {
+            "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+            "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "output_file": "/tmp/test.txt"}}
+        }
+        process.stdin.write(json.dumps(ask_request) + '\n')
+        process.stdin.flush()
+        response = process.stdout.readline()
+        print("Tool call:", response.strip())
+        
+        # Check for errors
+        if '"isError":true' in response:
+            print("❌ Tool execution failed!")
+        else:
+            print("✅ Tool execution successful!")
+            
+    finally:
+        process.terminate()
+        process.wait()
+
+if __name__ == "__main__": test_mcp_jsonrpc()
+```
+
+**Why JSON-RPC Testing Matters:**
+- Server startup only validates imports and FastMCP registration
+- Tool execution requires all dependencies and proper imports
+- Missing imports (like `memory_manager`) only surface during actual function calls
+- Integration issues with shared utilities are caught during JSON-RPC testing
+- Claude Code uses JSON-RPC exclusively - direct function calls don't match real usage
+
+**Error Examples to Watch For:**
+```json
+// Missing import error
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: name 'memory_manager' is not defined"}],"isError":true}}
+
+// API key missing  
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: GEMINI_API_KEY not found"}],"isError":true}}
+```
+
+#### 7. Tool-Specific Examples
+
+**JQ Tool:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "query",
+    "arguments": {
+      "data": "{\"users\": [{\"name\": \"Alice\"}]}",
+      "filter": ".users[0].name"
+    }
+  }
+}
+```
+
+**Google Calendar Tool:**
+```json
+{
+  "method": "tools/call", 
+  "params": {
+    "name": "list_events",
+    "arguments": {
+      "start_date": "2024-06-25",
+      "end_date": "2024-06-26"
+    }
+  }
+}
+```
+
+**Code2Prompt Tool:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "generate_prompt", 
+    "arguments": {
+      "path": "/path/to/code",
+      "include": ["*.py"],
+      "output_file": "/tmp/code_summary.md"
+    }
+  }
+}
 ```
 
 ## Using Gemini Agents for Code Review and Ideation

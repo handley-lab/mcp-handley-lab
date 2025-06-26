@@ -10,7 +10,7 @@ from mcp_handley_lab.tool_chainer.tool import (
 @pytest.mark.vcr
 def test_tool_chainer_jq_discovery(temp_storage_dir):
     result = discover_tools(
-        server_command="python -m mcp_handley_lab.jq",
+        server_command="python -m mcp_handley_lab jq",
         timeout=10
     )
     
@@ -23,7 +23,7 @@ def test_tool_chainer_basic_workflow(temp_storage_dir):
     # Register a jq tool
     register_result = register_tool(
         tool_id="test_jq",
-        server_command="python -m mcp_handley_lab.jq",
+        server_command="python -m mcp_handley_lab jq",
         tool_name="query",
         description="Test jq query tool",
         storage_dir=temp_storage_dir
@@ -62,7 +62,11 @@ def test_tool_chainer_conditional_chain(temp_storage_dir):
     # Register jq tool
     register_tool(
         tool_id="conditional_jq",
+<<<<<<< HEAD
         server_command="python -m mcp_handley_lab.jq", 
+=======
+        server_command="python -m mcp_handley_lab jq", 
+>>>>>>> master
         tool_name="query",
         storage_dir=temp_storage_dir
     )
@@ -120,14 +124,14 @@ def test_tool_chainer_file_processing_chain(temp_storage_dir):
     # Register multiple tools
     register_tool(
         tool_id="file_jq",
-        server_command="python -m mcp_handley_lab.jq",
+        server_command="python -m mcp_handley_lab jq",
         tool_name="query", 
         storage_dir=temp_storage_dir
     )
     
     register_tool(
         tool_id="file_format",
-        server_command="python -m mcp_handley_lab.jq",
+        server_command="python -m mcp_handley_lab jq",
         tool_name="format",
         storage_dir=temp_storage_dir
     )

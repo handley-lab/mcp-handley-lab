@@ -23,14 +23,18 @@ This toolkit aims to be a complete research lab management system covering:
 - **Group Resources**: Lab resource administration and allocation
 - **Group Personal Assistant**: AI-powered assistance for lab coordination
 
-### Current Features
+### Implemented Features
 
-- **JQ Tool**: JSON manipulation using the powerful jq command-line processor
-- **Vim Tool**: Interactive text editing capabilities
-- **Code2Prompt**: Codebase analysis and summarization
-- **Google Calendar**: Full calendar management integration
-- **LLM Integration**: Gemini and OpenAI model access with persistent agents
-- **Tool Chainer**: Workflow automation via tool composition
+- **JQ Tool**: JSON manipulation using the powerful `jq` command-line processor.
+- **Vim Tool**: Interactive text editing capabilities using the Vim editor.
+- **Code2Prompt**: Codebase analysis and summarization.
+- **Google Calendar**: Full calendar management integration, including creating, listing, and updating events.
+- **LLM Integration**: Access to Google Gemini and OpenAI models with support for persistent agents.
+    - **ask**: General-purpose question answering.
+    - **analyze_image**: Image analysis with vision models.
+    - **generate_image**: Image generation with DALL-E and Imagen.
+    - **Agent Management**: Create, list, and manage persistent agents for conversational memory.
+- **Tool Chainer**: A tool for creating and executing workflows by chaining together other tools.
 
 ## Installation
 
@@ -58,14 +62,35 @@ Each tool can be run as a standalone MCP server:
 
 ```bash
 # JQ Tool
-python -m mcp_framework.jq
+python -m mcp_handley_lab.jq
 
 # Vim Tool
-python -m mcp_framework.vim
+python -m mcp_handley_lab.vim
 
-# Or use the console scripts
+# Google Calendar Tool
+python -m mcp_handley_lab.google_calendar
+
+# Gemini Tool
+python -m mcp_handley_lab.llm.gemini
+
+# OpenAI Tool
+python -m mcp_handley_lab.llm.openai
+
+# Tool Chainer
+python -m mcp_handley_lab.tool_chainer
+```
+
+You can also use the console scripts:
+
+```bash
 mcp-jq
 mcp-vim
+mcp-code2prompt
+mcp-google-calendar
+mcp-gemini
+mcp-openai
+mcp-tool-chainer
+mcp-handley-lab
 ```
 
 ## Testing with MCP Client
@@ -75,33 +100,30 @@ mcp-vim
 pip install mcp-cli
 
 # Connect to a tool
-mcp-cli connect stdio python -m mcp_framework.jq
+mcp-cli connect stdio python -m mcp_handley_lab.jq
 ```
 
 ## Development Roadmap
 
-### Immediate Priorities
-- **Email Integration**: Complete workflow with OfflineIMAP, Mutt, Notmuch, msmtp
-- **TaskWarrior Integration**: Sophisticated to-do list management
-- **Mathematica Integration**: Mathematical computing capabilities
-- **Calendar Enhancements**: Address book integration, batching, UI improvements
+### Implemented
+- JQ Tool
+- Vim Tool
+- Code2Prompt
+- Google Calendar
+- LLM Integration (Gemini and OpenAI)
+- Tool Chainer
 
-### Scientific Tools
-- **Data Visualization**: Advanced plotting and analysis capabilities
-- **HPC Integration**: Cluster access and job management
-- **Research Paper Analysis**: Voice analysis from author's publication corpus
+### Partially Implemented
+- **Gemini Improvements**: Grounding has been added. Schema improvements and output formatting are ongoing.
 
-### Infrastructure & Quality
-- **Gemini Improvements**: Add grounding, improve schemas, enhance output formatting
-- **Testing & Coverage**: Comprehensive test suite with 100% coverage target
-- **Documentation**: Complete API documentation and usage examples
-- **Chat Interface**: Investigate chat capabilities for interactive workflows
-
-### Advanced Features
-- **RAG Filing System**: Intelligent document organization and retrieval
-- **Google Cloud Integration**: Compute instance management and provisioning
-- **Lab Resource Management**: Group administration and resource allocation
-- **Multi-modal AI**: Integration of text, code, and data analysis workflows
+### Not Yet Implemented
+- Email Integration
+- TaskWarrior Integration
+- Mathematica Integration
+- Data Visualization
+- HPC Integration
+- RAG Filing System
+- Google Cloud Integration
 
 ## Development
 

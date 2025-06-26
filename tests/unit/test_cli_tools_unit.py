@@ -115,8 +115,8 @@ class TestJQUnit:
     
     @patch('subprocess.run')
     def test_jq_error_handling(self, mock_run):
-        mock_run.return_value.returncode = 1
-        mock_run.return_value.stderr = "jq error: invalid filter"
+        from subprocess import CalledProcessError
+        mock_run.side_effect = CalledProcessError(1, "jq", stderr="jq error: invalid filter")
         
         with pytest.raises(ValueError, match="jq error"):
             query('{"test": "value"}', 'invalid..filter')
@@ -249,9 +249,8 @@ class TestCode2PromptUnit:
     
     @patch('subprocess.run')
     def test_generate_prompt_subprocess_error(self, mock_run):
-        mock_run.return_value.returncode = 1
-        mock_run.return_value.stderr = "Command failed"
-        mock_run.return_value.stdout = ""
+        from subprocess import CalledProcessError
+        mock_run.side_effect = CalledProcessError(1, "code2prompt", stderr="Command failed")
         
         with pytest.raises(ValueError, match="code2prompt error"):
             generate_prompt(path="/tmp/test")

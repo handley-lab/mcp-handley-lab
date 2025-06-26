@@ -10,8 +10,69 @@ import io
 
 from mcp_handley_lab.llm.openai.tool import (
     ask, analyze_image, generate_image, get_response, server_info,
-    _resolve_files, _determine_mime_type, _is_text_file, _resolve_images, _handle_agent_and_usage
+    _resolve_files, _resolve_images, _handle_agent_and_usage,
+    _get_model_config, MODEL_CONFIGS
 )
+from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
+
+
+class TestOpenAIModelConfiguration:
+    """Test OpenAI model configuration and token limit functionality."""
+    
+    def test_model_configs_all_present(self):
+        """Test that all expected OpenAI models are in MODEL_CONFIGS."""
+        expected_models = {
+            "o3-mini", "o1-preview", "o1-mini",
+            "gpt-4o", "gpt-4o-mini", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini-2024-07-18",
+            "gpt-4.1", "gpt-4.1-mini"
+        }
+        assert set(MODEL_CONFIGS.keys()) == expected_models
+    
+    def test_model_configs_token_limits(self):
+        """Test that model configurations have correct token limits."""
+        # O3 series
+        assert MODEL_CONFIGS["o3-mini"]["output_tokens"] == 100000
+        
+        # O1 series 
+        assert MODEL_CONFIGS["o1-preview"]["output_tokens"] == 32768
+        assert MODEL_CONFIGS["o1-mini"]["output_tokens"] == 65536
+        
+        # GPT-4o series
+        assert MODEL_CONFIGS["gpt-4o"]["output_tokens"] == 16384
+        assert MODEL_CONFIGS["gpt-4o-mini"]["output_tokens"] == 16384
+        
+        # GPT-4.1 series
+        assert MODEL_CONFIGS["gpt-4.1"]["output_tokens"] == 32768
+        assert MODEL_CONFIGS["gpt-4.1-mini"]["output_tokens"] == 16384
+    
+    def test_model_configs_param_names(self):
+        """Test that model configurations use correct parameter names."""
+        # O1/O3 series use max_completion_tokens
+        assert MODEL_CONFIGS["o3-mini"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["o1-preview"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["o1-mini"]["param"] == "max_completion_tokens"
+        
+        # GPT-4o series use max_tokens
+        assert MODEL_CONFIGS["gpt-4o"]["param"] == "max_tokens"
+        assert MODEL_CONFIGS["gpt-4o-mini"]["param"] == "max_tokens"
+        assert MODEL_CONFIGS["gpt-4.1"]["param"] == "max_tokens"
+    
+    def test_get_model_config_known_models(self):
+        """Test _get_model_config with known model names."""
+        config = _get_model_config("o3-mini")
+        assert config["output_tokens"] == 100000
+        assert config["param"] == "max_completion_tokens"
+        
+        config = _get_model_config("gpt-4o")
+        assert config["output_tokens"] == 16384
+        assert config["param"] == "max_tokens"
+    
+    def test_get_model_config_unknown_model(self):
+        """Test _get_model_config falls back to default for unknown models."""
+        config = _get_model_config("unknown-model")
+        # Should default to gpt-4o
+        assert config["output_tokens"] == 16384
+        assert config["param"] == "max_tokens"
 
 
 class TestOpenAIHelperFunctions:
@@ -20,36 +81,36 @@ class TestOpenAIHelperFunctions:
     def test_determine_mime_type_text(self):
         """Test MIME type detection for text files."""
         # Test common text file extensions
-        assert _determine_mime_type(Path("test.txt")) == "text/plain"
-        assert _determine_mime_type(Path("test.py")) == "text/x-python"
-        assert _determine_mime_type(Path("test.js")) == "text/javascript"
-        assert _determine_mime_type(Path("test.json")) == "application/json"
+        assert determine_mime_type(Path("test.txt")) == "text/plain"
+        assert determine_mime_type(Path("test.py")) == "text/x-python"
+        assert determine_mime_type(Path("test.js")) == "text/javascript"
+        assert determine_mime_type(Path("test.json")) == "application/json"
         
     def test_determine_mime_type_images(self):
         """Test MIME type detection for image files."""
-        assert _determine_mime_type(Path("test.jpg")) == "image/jpeg"
-        assert _determine_mime_type(Path("test.png")) == "image/png"
-        assert _determine_mime_type(Path("test.gif")) == "image/gif"
-        assert _determine_mime_type(Path("test.webp")) == "image/webp"
+        assert determine_mime_type(Path("test.jpg")) == "image/jpeg"
+        assert determine_mime_type(Path("test.png")) == "image/png"
+        assert determine_mime_type(Path("test.gif")) == "image/gif"
+        assert determine_mime_type(Path("test.webp")) == "image/webp"
         
     def test_determine_mime_type_unknown(self):
         """Test MIME type detection for unknown extensions."""
-        assert _determine_mime_type(Path("test.unknown")) == "application/octet-stream"
-        assert _determine_mime_type(Path("no_extension")) == "application/octet-stream"
+        assert determine_mime_type(Path("test.unknown")) == "application/octet-stream"
+        assert determine_mime_type(Path("no_extension")) == "application/octet-stream"
     
     def test_is_text_file_true(self):
         """Test text file detection for text files."""
-        assert _is_text_file(Path("test.txt")) is True
-        assert _is_text_file(Path("test.py")) is True
-        assert _is_text_file(Path("test.md")) is True
-        assert _is_text_file(Path("test.json")) is True
+        assert is_text_file(Path("test.txt")) is True
+        assert is_text_file(Path("test.py")) is True
+        assert is_text_file(Path("test.md")) is True
+        assert is_text_file(Path("test.json")) is True
         
     def test_is_text_file_false(self):
         """Test text file detection for binary files."""
-        assert _is_text_file(Path("test.jpg")) is False
-        assert _is_text_file(Path("test.png")) is False
-        assert _is_text_file(Path("test.pdf")) is False
-        assert _is_text_file(Path("test.exe")) is False
+        assert is_text_file(Path("test.jpg")) is False
+        assert is_text_file(Path("test.png")) is False
+        assert is_text_file(Path("test.pdf")) is False
+        assert is_text_file(Path("test.exe")) is False
 
 
 class TestResolveFiles:
@@ -328,6 +389,189 @@ class TestErrorHandling:
         
         with pytest.raises(RuntimeError, match="OpenAI API error"):
             ask("Test prompt", str(output_file))
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_ask_uses_model_default_tokens(self, mock_handle_output, mock_client):
+        """Test that ask uses model's default token limit when max_output_tokens not specified."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Response saved"
+        
+        # Call ask with o3-mini (should use 100,000 tokens)
+        ask(
+            prompt="Test prompt",
+            output_file="/tmp/test.txt",
+            model="o3-mini",
+            agent_name=None
+        )
+        
+        # Verify API was called with max_completion_tokens (not max_tokens)
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert call_kwargs["max_completion_tokens"] == 100000
+        assert "max_tokens" not in call_kwargs
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_ask_uses_custom_tokens(self, mock_handle_output, mock_client):
+        """Test that ask uses custom max_output_tokens when specified."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Response saved"
+        
+        # Call ask with custom token limit
+        ask(
+            prompt="Test prompt",
+            output_file="/tmp/test.txt",
+            model="gpt-4o",
+            max_output_tokens=1000,
+            agent_name=None
+        )
+        
+        # Verify API was called with custom max_tokens
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert call_kwargs["max_tokens"] == 1000
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_ask_different_param_names(self, mock_handle_output, mock_client):
+        """Test that ask uses correct parameter names for different model types."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Response saved"
+        
+        # Test gpt-4o (uses max_tokens)
+        ask(
+            prompt="Test prompt",
+            output_file="/tmp/test.txt",
+            model="gpt-4o",
+            agent_name=None
+        )
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert "max_tokens" in call_kwargs
+        assert call_kwargs["max_tokens"] == 16384
+        
+        # Test o1-preview (uses max_completion_tokens)
+        ask(
+            prompt="Test prompt", 
+            output_file="/tmp/test.txt",
+            model="o1-preview",
+            agent_name=None
+        )
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert "max_completion_tokens" in call_kwargs
+        assert call_kwargs["max_completion_tokens"] == 32768
+        assert "max_tokens" not in call_kwargs
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_analyze_image_uses_model_default_tokens(self, mock_handle_output, mock_client):
+        """Test that analyze_image uses model's default token limit when max_output_tokens not specified."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Image analysis"
+        mock_response.usage.prompt_tokens = 15
+        mock_response.usage.completion_tokens = 10
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Analysis saved"
+        
+        # Call analyze_image with gpt-4o (should use 16384 tokens)
+        analyze_image(
+            prompt="Describe this image",
+            output_file="/tmp/test.txt",
+            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+            model="gpt-4o",
+            agent_name=None
+        )
+        
+        # Verify API was called with max_tokens (not max_completion_tokens)
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert call_kwargs["max_tokens"] == 16384
+        assert "max_completion_tokens" not in call_kwargs
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_analyze_image_uses_custom_tokens(self, mock_handle_output, mock_client):
+        """Test that analyze_image uses custom max_output_tokens when specified."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Custom analysis"
+        mock_response.usage.prompt_tokens = 15
+        mock_response.usage.completion_tokens = 10
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Analysis saved"
+        
+        # Call analyze_image with custom token limit
+        analyze_image(
+            prompt="Describe this image",
+            output_file="/tmp/test.txt",
+            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+            model="gpt-4o",
+            max_output_tokens=500,
+            agent_name=None
+        )
+        
+        # Verify API was called with custom max_tokens
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert call_kwargs["max_tokens"] == 500
+
+    @patch('mcp_handley_lab.llm.openai.tool.client')
+    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
+    def test_analyze_image_different_param_names(self, mock_handle_output, mock_client):
+        """Test that analyze_image uses correct parameter names for different model types."""
+        # Setup mock
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test analysis"
+        mock_response.usage.prompt_tokens = 15
+        mock_response.usage.completion_tokens = 10
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_handle_output.return_value = "Analysis saved"
+        
+        base64_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+        
+        # Test gpt-4o (uses max_tokens)
+        analyze_image(
+            prompt="Describe image",
+            output_file="/tmp/test.txt",
+            image_data=base64_image,
+            model="gpt-4o",
+            agent_name=None
+        )
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert "max_tokens" in call_kwargs
+        assert call_kwargs["max_tokens"] == 16384
+        
+        # Test o1-preview (uses max_completion_tokens) - though o1 models don't support vision
+        # This tests the parameter selection logic
+        analyze_image(
+            prompt="Describe image", 
+            output_file="/tmp/test.txt",
+            image_data=base64_image,
+            model="o1-preview",
+            agent_name=None
+        )
+        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        assert "max_completion_tokens" in call_kwargs
+        assert call_kwargs["max_completion_tokens"] == 32768
+        assert "max_tokens" not in call_kwargs
             
     def test_generate_image_invalid_model(self, mock_openai_client):
         """Test generate_image with invalid model parameters."""

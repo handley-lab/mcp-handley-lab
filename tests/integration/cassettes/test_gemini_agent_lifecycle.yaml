@@ -1,0 +1,66 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Remember my favorite color is blue"}],
+      "role": "user"}], "systemInstruction": {"parts": [{"text": "You are a helpful
+      assistant"}], "role": "user"}, "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      8192}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '249'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Okay, I'll remember your favorite
+        color is blue.\\n\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"avgLogprobs\": -0.0758477678665748\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 11,\n    \"candidatesTokenCount\":
+        13,\n    \"totalTokenCount\": 24,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 11\n      }\n    ],\n
+        \   \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 13\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-flash\",\n
+        \ \"responseId\": \"eW1caM7fKumLqsMPwoPwiAk\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 25 Jun 2025 21:43:22 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=439
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '695'
+    status:
+      code: 200
+      message: OK
+version: 1

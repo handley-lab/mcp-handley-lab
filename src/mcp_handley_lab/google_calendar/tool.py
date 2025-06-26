@@ -126,13 +126,31 @@ def list_events(
         if not start_date:
             start_date = datetime.now().isoformat() + 'Z'
         else:
-            start_date = datetime.fromisoformat(start_date).isoformat() + 'Z'
+            # Handle existing Z suffix or timezone info
+            if start_date.endswith('Z'):
+                start_date = start_date  # Already formatted correctly
+            elif '+' in start_date or start_date.count('T') > 0:
+                # Parse and ensure proper Z format without double timezone
+                dt = datetime.fromisoformat(start_date.replace('Z', ''))
+                start_date = dt.replace(tzinfo=None).isoformat() + 'Z'
+            else:
+                # Date only format
+                start_date = start_date + 'T00:00:00Z'
         
         if not end_date:
             end_dt = datetime.now() + timedelta(days=7)
             end_date = end_dt.isoformat() + 'Z'
         else:
-            end_date = datetime.fromisoformat(end_date).isoformat() + 'Z'
+            # Handle existing Z suffix or timezone info
+            if end_date.endswith('Z'):
+                end_date = end_date  # Already formatted correctly
+            elif '+' in end_date or end_date.count('T') > 0:
+                # Parse and ensure proper Z format without double timezone
+                dt = datetime.fromisoformat(end_date.replace('Z', ''))
+                end_date = dt.replace(tzinfo=None).isoformat() + 'Z'
+            else:
+                # Date only format
+                end_date = end_date + 'T23:59:59Z'
         
         events_list = []
         

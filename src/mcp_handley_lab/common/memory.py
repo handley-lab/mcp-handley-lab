@@ -61,6 +61,19 @@ class AgentMemory(BaseModel):
         
         return history
     
+    def get_openai_conversation_history(self) -> List[Dict[str, str]]:
+        """Get conversation history in format suitable for OpenAI API."""
+        history = []
+        
+        for message in self.messages:
+            # OpenAI format: simple role/content structure
+            history.append({
+                "role": message.role,  # Keep original role (user/assistant)
+                "content": message.content
+            })
+        
+        return history
+    
     def get_stats(self) -> Dict[str, Any]:
         """Get summary statistics for the agent."""
         return {

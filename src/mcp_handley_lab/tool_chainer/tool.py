@@ -399,6 +399,14 @@ def register_tool(
     storage_dir: Optional[str] = None
 ) -> str:
     """Register a tool for use in chains."""
+    # Input validation
+    if not tool_id or not tool_id.strip():
+        raise ValueError("Tool ID is required and cannot be empty")
+    if not server_command or not server_command.strip():
+        raise ValueError("Server command is required and cannot be empty")
+    if not tool_name or not tool_name.strip():
+        raise ValueError("Tool name is required and cannot be empty")
+    
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     registered_tools, defined_chains, execution_history = _load_state(storage_path)
     
@@ -510,6 +518,12 @@ def chain_tools(
     storage_dir: Optional[str] = None
 ) -> str:
     """Define a chain of tool executions."""
+    # Input validation
+    if not chain_id or not chain_id.strip():
+        raise ValueError("Chain ID is required and cannot be empty")
+    if not steps:
+        raise ValueError("Steps are required and cannot be empty")
+    
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     registered_tools, defined_chains, execution_history = _load_state(storage_path)
     
@@ -626,6 +640,10 @@ def execute_chain(
     storage_dir: Optional[str] = None
 ) -> str:
     """Execute a defined tool chain."""
+    # Input validation
+    if not chain_id or not chain_id.strip():
+        raise ValueError("Chain ID is required and cannot be empty")
+    
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     registered_tools, defined_chains, execution_history = _load_state(storage_path)
     

@@ -50,7 +50,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **No defensive programming**: This is a local tool - assume happy paths. Add guards only after actual failures occur
 - **Trust the environment**: Don't check if tools exist or APIs are configured - they are
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
-- **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirections
+- **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirection
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
@@ -103,10 +103,10 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**
-2. **Phase 2**: Simple CLI-based tools (jq, vim) ✓ **COMPLETE - 100% test coverage**
-3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **GOOGLE CALENDAR COMPLETE - 100% test coverage**
-4. **Phase 4**: Complex tools (code2prompt, tool_chainer)
-5. **Phase 5**: Comprehensive testing and documentation
+2. **Phase 2**: Simple CLI-based tools (jq, vim) ✓ **COMPLETE**
+3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
+4. **Phase 4**: Complex tools (code2prompt, tool_chainer) ✓ **COMPLETE**
+5. **Phase 5**: Comprehensive testing and documentation ✓ **COMPLETE**
 
 ## Completed Implementations
 
@@ -132,6 +132,20 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 56 unit tests + 9 integration tests covering all functionality and API compatibility
 - **Status**: Production ready with full google-genai integration
 
+### OpenAI LLM Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/llm/openai/`
+- **Functions**: `ask`, `analyze_image`, `generate_image`, `get_response`, `server_info`
+- **Features**: Text generation, image analysis, image generation with DALL-E, persistent agent memory, file input support
+- **Tests**: 6 integration tests covering all functionality and API compatibility
+- **Status**: Production ready with full OpenAI integration
+
+### Tool Chainer Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/tool_chainer/`
+- **Functions**: `discover_tools`, `register_tool`, `chain_tools`, `execute_chain`, `show_history`, `clear_cache`, `server_info`
+- **Features**: Tool discovery, registration, chaining, conditional execution, variable substitution
+- **Tests**: 6 integration tests covering all functionality
+- **Status**: Production ready
+
 ## Running Tools
 
 ### Unified Entry Point
@@ -149,14 +163,22 @@ pip install -e .
 # Use unified entry point
 python -m mcp_handley_lab --help                # Show available tools
 python -m mcp_handley_lab jq                    # Run JQ tool
+python -m mcp_handley_lab vim                   # Run Vim tool
+python -m mcp_handley_lab code2prompt           # Run Code2Prompt tool
 python -m mcp_handley_lab llm.gemini            # Run Gemini LLM tool
+python -m mcp_handley_lab llm.openai          # Run OpenAI LLM tool
 python -m mcp_handley_lab google_calendar       # Run Google Calendar tool
+python -m mcp_handley_lab tool_chainer        # Run Tool Chainer tool
 
 # Or use direct script entries
 mcp-handley-lab --help                          # Unified entry point
 mcp-jq                                          # Direct JQ tool
+mcp-vim                                         # Direct Vim tool
+mcp-code2prompt                                 # Direct Code2Prompt tool
 mcp-gemini                                      # Direct Gemini tool
+mcp-openai                                    # Direct OpenAI tool
 mcp-google-calendar                             # Direct Google Calendar tool
+mcp-tool-chainer                              # Direct Tool Chainer tool
 ```
 
 ### JSON-RPC MCP Server Usage

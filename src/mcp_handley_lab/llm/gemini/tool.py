@@ -14,8 +14,12 @@ from google.genai.types import GenerateContentConfig, GenerateImagesConfig, Tool
 from google.genai.errors import ClientError
 
 from ...common.config import settings
-from ...common.memory import memory_manager
 from ...common.pricing import calculate_cost, format_usage
+from ...common.memory import memory_manager
+from ..common import (
+    get_session_id, determine_mime_type, is_text_file, 
+    resolve_image_data, handle_output, handle_agent_memory
+)
 
 mcp = FastMCP("Gemini Tool")
 
@@ -35,18 +39,7 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 def _get_session_id() -> str:
     """Get the persistent session ID for this MCP server process."""
-    try:
-        # Try to get client context from FastMCP
-        context = mcp.get_context()
-        client_id = getattr(context, 'client_id', None)
-        if client_id:
-            return f"_session_{client_id}"
-        else:
-            # Fallback to module-level session ID
-            return _SESSION_ID
-    except:
-        # Fallback to module-level session ID
-        return _SESSION_ID
+    return get_session_id(mcp)
 
 
 def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -82,7 +75,7 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Pa
                         try:
                             uploaded_file = client.files.upload(
                                 file=str(file_path),
-                                mime_type=_determine_mime_type(file_path)
+                                mime_type=determine_mime_type(file_path)
                             )
                             parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
                         except Exception as e:
@@ -95,7 +88,7 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Pa
                     else:
                         # Small file - use inlineData with base64 encoding
                         try:
-                            if _is_text_file(file_path):
+                            if is_text_file(file_path):
                                 # For text files, read directly as text
                                 content = file_path.read_text(encoding='utf-8')
                                 parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
@@ -105,7 +98,7 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Pa
                                 encoded_content = base64.b64encode(file_content).decode()
                                 parts.append(Part(
                                     inlineData=Blob(
-                                        mimeType=_determine_mime_type(file_path),
+                                        mimeType=determine_mime_type(file_path),
                                         data=encoded_content
                                     )
                                 ))
@@ -118,33 +111,8 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Pa
     return parts
 
 
-def _determine_mime_type(file_path: Path) -> str:
-    """Determine MIME type based on file extension."""
-    suffix = file_path.suffix.lower()
-    mime_types = {
-        '.txt': 'text/plain',
-        '.md': 'text/markdown', 
-        '.py': 'text/x-python',
-        '.js': 'text/javascript',
-        '.html': 'text/html',
-        '.css': 'text/css',
-        '.json': 'application/json',
-        '.xml': 'application/xml',
-        '.csv': 'text/csv',
-        '.pdf': 'application/pdf',
-        '.png': 'image/png',
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.gif': 'image/gif',
-        '.webp': 'image/webp',
-    }
-    return mime_types.get(suffix, 'application/octet-stream')
 
 
-def _is_text_file(file_path: Path) -> bool:
-    """Check if file is likely a text file that should be read as text."""
-    text_extensions = {'.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.csv', '.yaml', '.yml', '.toml', '.ini', '.conf', '.log'}
-    return file_path.suffix.lower() in text_extensions
 
 
 def _resolve_images(
@@ -157,14 +125,7 @@ def _resolve_images(
     # Handle single image_data parameter
     if image_data:
         try:
-            if image_data.startswith("data:image"):
-                # Data URL format
-                header, encoded = image_data.split(",", 1)
-                image_bytes = base64.b64decode(encoded)
-            else:
-                # Assume it's a file path
-                image_bytes = Path(image_data).read_bytes()
-            
+            image_bytes = resolve_image_data(image_data)
             image_list.append(Image.open(io.BytesIO(image_bytes)))
         except Exception as e:
             raise ValueError(f"Failed to load image: {e}")
@@ -173,20 +134,8 @@ def _resolve_images(
     if images:
         for image_item in images:
             try:
-                if isinstance(image_item, str):
-                    if image_item.startswith("data:image"):
-                        header, encoded = image_item.split(",", 1)
-                        image_bytes = base64.b64decode(encoded)
-                    else:
-                        image_bytes = Path(image_item).read_bytes()
-                    image_list.append(Image.open(io.BytesIO(image_bytes)))
-                elif isinstance(image_item, dict):
-                    if "data" in image_item:
-                        image_bytes = base64.b64decode(image_item["data"])
-                        image_list.append(Image.open(io.BytesIO(image_bytes)))
-                    elif "path" in image_item:
-                        image_bytes = Path(image_item["path"]).read_bytes()
-                        image_list.append(Image.open(io.BytesIO(image_bytes)))
+                image_bytes = resolve_image_data(image_item)
+                image_list.append(Image.open(io.BytesIO(image_bytes)))
             except Exception as e:
                 raise ValueError(f"Failed to load image: {e}")
     
@@ -206,34 +155,17 @@ def _handle_agent_and_usage(
     """Handle agent memory, file output, and return formatted usage info."""
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
     
-    # Use session-specific agent if no agent_name provided (and memory not disabled)
-    if not agent_name and agent_name is not False:
-        agent_name = _get_session_id()
+    # Handle agent memory
+    handle_agent_memory(
+        agent_name, user_prompt, response_text, 
+        input_tokens, output_tokens, cost, _get_session_id
+    )
     
-    # Store in agent memory (only if memory not disabled)
-    if agent_name is not False:
-        agent = memory_manager.get_agent(agent_name)
-        if not agent:
-            agent = memory_manager.create_agent(agent_name)
-        
-        memory_manager.add_message(agent_name, "user", user_prompt, input_tokens, cost / 2)
-        memory_manager.add_message(agent_name, "assistant", response_text, output_tokens, cost / 2)
-    
-    # Handle file output
-    if output_file != '-':
-        # Save to file
-        output_path = Path(output_file)
-        output_path.write_text(response_text)
-        
-        # Return summary with file path and usage
-        usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
-        char_count = len(response_text)
-        line_count = response_text.count('\n') + 1
-        return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n\n{usage_info}"
-    else:
-        # Return full response with usage for stdout
-        usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
-        return f"{response_text}\n\n{usage_info}"
+    # Handle output
+    return handle_output(
+        response_text, output_file, model, 
+        input_tokens, output_tokens, cost, provider
+    )
 
 
 @mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.

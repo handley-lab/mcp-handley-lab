@@ -32,18 +32,17 @@ def _resolve_data(data: Union[str, dict, list]) -> str:
 
 def _run_jq(args: list[str], input_text: str | None = None) -> str:
     """Runs a jq command and handles errors."""
-    command = ["jq"] + args
     try:
         result = subprocess.run(
-            command,
+            ["jq"] + args,
             input=input_text,
             capture_output=True,
             text=True,
-            check=False
+            check=True
         )
-        if result.returncode != 0:
-            raise ValueError(f"jq error: {result.stderr.strip()}")
         return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        raise ValueError(f"jq error: {e.stderr.strip()}")
     except FileNotFoundError:
         raise RuntimeError("jq command not found. Please install jq.")
 
@@ -88,12 +87,8 @@ query('{"a": 1, "b": 2}', '.', compact=True)
 ```""")
 def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
-    args = []
-    if compact:
-        args.append("-c")
-    if raw_output:
-        args.append("-r")
-    args.append(filter)
+    flags = [(compact, "-c"), (raw_output, "-r")]
+    args = [flag for condition, flag in flags if condition] + [filter]
     
     # Resolve data to handle various input types
     data_content = _resolve_data(data)

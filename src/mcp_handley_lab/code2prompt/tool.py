@@ -10,17 +10,16 @@ mcp = FastMCP("Code2Prompt Tool")
 
 def _run_code2prompt(args: List[str]) -> str:
     """Runs a code2prompt command and handles errors."""
-    command = ["code2prompt"] + args
     try:
         result = subprocess.run(
-            command,
+            ["code2prompt"] + args,
             capture_output=True,
             text=True,
-            check=False
+            check=True
         )
-        if result.returncode != 0:
-            raise ValueError(f"code2prompt error: {result.stderr.strip()}")
         return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        raise ValueError(f"code2prompt error: {e.stderr.strip()}")
     except FileNotFoundError:
         raise RuntimeError("code2prompt command not found. Please install code2prompt.")
 
@@ -111,45 +110,27 @@ def generate_prompt(
     args.extend(["--tokens", tokens])
     args.extend(["--sort", sort])
     
-    if include:
-        for pattern in include:
-            args.extend(["--include", pattern])
+    args.extend(["--include", pattern] for pattern in include or [])
+    args.extend(["--exclude", pattern] for pattern in exclude or [])
     
-    if exclude:
-        for pattern in exclude:
-            args.extend(["--exclude", pattern])
-    
-    if include_priority:
-        args.append("--include-priority")
+    # Boolean flags
+    flags = [
+        (include_priority, "--include-priority"),
+        (no_ignore, "--no-ignore"),
+        (line_numbers, "--line-numbers"),
+        (full_directory_tree, "--full-directory-tree"),
+        (follow_symlinks, "--follow-symlinks"),
+        (hidden, "--hidden"),
+        (no_codeblock, "--no-codeblock"),
+        (absolute_paths, "--absolute-paths"),
+        (include_git_diff, "--diff")
+    ]
+    args.extend(flag for condition, flag in flags if condition)
     
     if template:
         args.extend(["--template", template])
     
-    if no_ignore:
-        args.append("--no-ignore")
-    
-    if line_numbers:
-        args.append("--line-numbers")
-    
-    if full_directory_tree:
-        args.append("--full-directory-tree")
-    
-    if follow_symlinks:
-        args.append("--follow-symlinks")
-    
-    if hidden:
-        args.append("--hidden")
-    
-    if no_codeblock:
-        args.append("--no-codeblock")
-    
-    if absolute_paths:
-        args.append("--absolute-paths")
-    
-    # Add git options (can be used independently or together)
-    if include_git_diff:
-        args.append("--diff")
-    
+    # Git options
     if git_diff_branch1 and git_diff_branch2:
         args.extend(["--git-diff-branch", git_diff_branch1, git_diff_branch2])
     

@@ -110,8 +110,10 @@ def generate_prompt(
     args.extend(["--tokens", tokens])
     args.extend(["--sort", sort])
     
-    args.extend(["--include", pattern] for pattern in include or [])
-    args.extend(["--exclude", pattern] for pattern in exclude or [])
+    for pattern in include or []:
+        args.extend(["--include", pattern])
+    for pattern in exclude or []:
+        args.extend(["--exclude", pattern])
     
     # Boolean flags
     flags = [

@@ -10,46 +10,47 @@ import io
 
 from mcp_handley_lab.llm.openai.tool import (
     ask, analyze_image, generate_image, get_response, server_info,
-    _resolve_files, _determine_mime_type, _is_text_file, _resolve_images, _handle_agent_and_usage
+    _resolve_files, _resolve_images, _handle_agent_and_usage
 )
+from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 
 
 class TestOpenAIHelperFunctions:
     """Test helper functions that don't require API calls."""
     
-    def test_determine_mime_type_text(self):
+    def testdetermine_mime_type_text(self):
         """Test MIME type detection for text files."""
         # Test common text file extensions
-        assert _determine_mime_type(Path("test.txt")) == "text/plain"
-        assert _determine_mime_type(Path("test.py")) == "text/x-python"
-        assert _determine_mime_type(Path("test.js")) == "text/javascript"
-        assert _determine_mime_type(Path("test.json")) == "application/json"
+        assert determine_mime_type(Path("test.txt")) == "text/plain"
+        assert determine_mime_type(Path("test.py")) == "text/x-python"
+        assert determine_mime_type(Path("test.js")) == "text/javascript"
+        assert determine_mime_type(Path("test.json")) == "application/json"
         
-    def test_determine_mime_type_images(self):
+    def testdetermine_mime_type_images(self):
         """Test MIME type detection for image files."""
-        assert _determine_mime_type(Path("test.jpg")) == "image/jpeg"
-        assert _determine_mime_type(Path("test.png")) == "image/png"
-        assert _determine_mime_type(Path("test.gif")) == "image/gif"
-        assert _determine_mime_type(Path("test.webp")) == "image/webp"
+        assert determine_mime_type(Path("test.jpg")) == "image/jpeg"
+        assert determine_mime_type(Path("test.png")) == "image/png"
+        assert determine_mime_type(Path("test.gif")) == "image/gif"
+        assert determine_mime_type(Path("test.webp")) == "image/webp"
         
-    def test_determine_mime_type_unknown(self):
+    def testdetermine_mime_type_unknown(self):
         """Test MIME type detection for unknown extensions."""
-        assert _determine_mime_type(Path("test.unknown")) == "application/octet-stream"
-        assert _determine_mime_type(Path("no_extension")) == "application/octet-stream"
+        assert determine_mime_type(Path("test.unknown")) == "application/octet-stream"
+        assert determine_mime_type(Path("no_extension")) == "application/octet-stream"
     
-    def test_is_text_file_true(self):
+    def testis_text_file_true(self):
         """Test text file detection for text files."""
-        assert _is_text_file(Path("test.txt")) is True
-        assert _is_text_file(Path("test.py")) is True
-        assert _is_text_file(Path("test.md")) is True
-        assert _is_text_file(Path("test.json")) is True
+        assert is_text_file(Path("test.txt")) is True
+        assert is_text_file(Path("test.py")) is True
+        assert is_text_file(Path("test.md")) is True
+        assert is_text_file(Path("test.json")) is True
         
-    def test_is_text_file_false(self):
+    def testis_text_file_false(self):
         """Test text file detection for binary files."""
-        assert _is_text_file(Path("test.jpg")) is False
-        assert _is_text_file(Path("test.png")) is False
-        assert _is_text_file(Path("test.pdf")) is False
-        assert _is_text_file(Path("test.exe")) is False
+        assert is_text_file(Path("test.jpg")) is False
+        assert is_text_file(Path("test.png")) is False
+        assert is_text_file(Path("test.pdf")) is False
+        assert is_text_file(Path("test.exe")) is False
 
 
 class TestResolveFiles:

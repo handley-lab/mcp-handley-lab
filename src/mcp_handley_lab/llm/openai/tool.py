@@ -10,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 
 from ...common.config import settings
 from ...common.pricing import calculate_cost
+from ...common.memory import memory_manager
 from ..common import (
     determine_mime_type, is_text_file, resolve_image_data, 
     handle_output, handle_agent_memory

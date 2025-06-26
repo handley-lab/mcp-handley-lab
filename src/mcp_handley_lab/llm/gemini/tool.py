@@ -36,10 +36,32 @@ except Exception as e:
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
+# Model configurations with token limits from https://ai.google.dev/gemini-api/docs/models
+MODEL_CONFIGS = {
+    # Gemini 2.5 Models
+    "gemini-2.5-pro": {"input_tokens": 1048576, "output_tokens": 65536},
+    "gemini-2.5-flash": {"input_tokens": 1048576, "output_tokens": 65536},
+    "gemini-2.5-flash-lite": {"input_tokens": 1000000, "output_tokens": 64000},
+    
+    # Gemini 2.0 Models  
+    "gemini-2.0-flash": {"input_tokens": 1048576, "output_tokens": 8192},
+    "gemini-2.0-flash-lite": {"input_tokens": 1048576, "output_tokens": 8192},
+    
+    # Gemini 1.5 Models
+    "gemini-1.5-flash": {"input_tokens": 1048576, "output_tokens": 8192},
+    "gemini-1.5-flash-8b": {"input_tokens": 1048576, "output_tokens": 8192},
+    "gemini-1.5-pro": {"input_tokens": 2097152, "output_tokens": 8192},
+}
+
 
 def _get_session_id() -> str:
     """Get the persistent session ID for this MCP server process."""
     return get_session_id(mcp)
+
+
+def _get_model_config(model: str) -> Dict[str, int]:
+    """Get token limits for a specific model."""
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-1.5-flash"])  # default to 1.5-flash
 
 
 def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -230,15 +252,35 @@ def ask(
     model: str = "flash",
     temperature: float = 0.7,
     grounding: bool = False,
-    files: Optional[List[Union[str, Dict[str, str]]]] = None
+    files: Optional[List[Union[str, Dict[str, str]]]] = None,
+    max_output_tokens: Optional[int] = None
 ) -> str:
-    """Ask Gemini a question with optional persistent memory."""
+    """Ask Gemini a question with optional persistent memory.
+    
+    Args:
+        prompt: The question or instruction to send to Gemini
+        output_file: File path to save the response (use '-' for stdout)
+        agent_name: Named agent for persistent memory (None=session, False=disabled)
+        model: Gemini model name (flash, pro, or full model name like gemini-2.5-flash)
+        temperature: Creativity level 0.0-1.0 (default: 0.7)
+        grounding: Enable Google Search integration for current information
+        files: List of files to include as context
+        max_output_tokens: Override model's default output token limit
+    
+    Token Limits by Model:
+        - gemini-2.5-flash/pro: 65,536 tokens (default)
+        - gemini-1.5-flash/pro: 8,192 tokens (default)
+        - Use max_output_tokens parameter to override defaults
+    
+    Example with custom token limit:
+        ask(prompt="Write a long essay", model="gemini-2.5-flash", max_output_tokens=32000)
+    """
     # Input validation
     if not prompt or not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file or not output_file.strip():
         raise ValueError("Output file is required")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     if not client:
@@ -276,10 +318,16 @@ def ask(
         # Resolve file contents to structured parts
         file_parts = _resolve_files(files)
         
+        # Get model-specific configuration
+        model_config = _get_model_config(model)
+        
+        # Use provided max_output_tokens or fall back to model default
+        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        
         # Prepare the config
         config_params = {
             "temperature": temperature,
-            "max_output_tokens": 8192,
+            "max_output_tokens": output_tokens,
         }
         
         if system_instruction:
@@ -426,7 +474,8 @@ def analyze_image(
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
     model: str = "pro",
-    agent_name: Optional[Union[str, bool]] = None
+    agent_name: Optional[Union[str, bool]] = None,
+    max_output_tokens: Optional[int] = None
 ) -> str:
     """Analyze images with Gemini vision model."""
     # Input validation
@@ -436,7 +485,7 @@ def analyze_image(
         raise ValueError("Output file is required")
     if not image_data and not images:
         raise ValueError("Either image_data or images must be provided")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     if not client:
@@ -453,13 +502,26 @@ def analyze_image(
         if focus != "general":
             prompt = f"Focus on {focus} aspects. {prompt}"
         
+        # Get model-specific configuration
+        model_config = _get_model_config(model)
+        
+        # Use provided max_output_tokens or fall back to model default
+        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        
         # Prepare content with images - google-genai expects PIL Image objects directly
         content = [prompt] + image_list
+        
+        # Prepare the config
+        config = GenerateContentConfig(
+            max_output_tokens=output_tokens,
+            temperature=0.7
+        )
         
         # Generate response
         response = client.models.generate_content(
             model=model_name,
-            contents=content
+            contents=content,
+            config=config
         )
         
         # Extract response text
@@ -551,7 +613,7 @@ def generate_image(
     # Input validation
     if not prompt or not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     if not client:

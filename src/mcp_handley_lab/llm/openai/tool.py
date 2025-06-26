@@ -21,6 +21,32 @@ mcp = FastMCP("OpenAI Tool")
 # Configure OpenAI client
 client = OpenAI(api_key=settings.openai_api_key)
 
+# Model configurations with token limits from OpenAI documentation
+MODEL_CONFIGS = {
+    # O3 Series (2025)
+    "o3-mini": {"input_tokens": 200000, "output_tokens": 100000, "param": "max_completion_tokens"},
+    
+    # O1 Series (Reasoning Models)
+    "o1-preview": {"input_tokens": 128000, "output_tokens": 32768, "param": "max_completion_tokens"},
+    "o1-mini": {"input_tokens": 128000, "output_tokens": 65536, "param": "max_completion_tokens"},
+    
+    # GPT-4o Series
+    "gpt-4o": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-mini": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-2024-11-20": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-2024-08-06": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-mini-2024-07-18": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    
+    # GPT-4.1 Series (if released)
+    "gpt-4.1": {"input_tokens": 1000000, "output_tokens": 32768, "param": "max_tokens"},
+    "gpt-4.1-mini": {"input_tokens": 1000000, "output_tokens": 16384, "param": "max_tokens"},
+}
+
+
+def _get_model_config(model: str) -> Dict[str, Any]:
+    """Get token limits and parameter name for a specific model."""
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gpt-4o"])  # default to gpt-4o
+
 
 def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[List[Dict], List[str]]:
     """Resolve file inputs to OpenAI chat content format.
@@ -206,8 +232,15 @@ File Input Formats:
 Key Parameters:
 - `model`: "gpt-4o" (default, multimodal), "gpt-4o-mini" (fast), "o1-preview" (reasoning), "o1-mini" (fast reasoning)
 - `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7)
-- `max_tokens`: Maximum response length (default: model maximum)
+- `max_output_tokens`: Override model's default output token limit
 - `agent_name`: Store conversation in persistent memory for ongoing interactions
+
+Token Limits by Model:
+- o3-mini: 100,000 tokens (default)
+- o1-mini: 65,536 tokens (default)
+- o1-preview: 32,768 tokens (default)
+- gpt-4o/gpt-4o-mini: 16,384 tokens (default)
+- Use max_output_tokens parameter to override defaults
 
 Model Selection Guide:
 - gpt-4o: Best for complex analysis, coding, and multimodal tasks (128k context)
@@ -257,7 +290,7 @@ ask(
         {"path": "/path/to/impl2.py"},
         {"content": "Additional context"}
     ],
-    max_tokens=2000
+    max_output_tokens=2000
 )
 ```""")
 def ask(
@@ -266,7 +299,7 @@ def ask(
     agent_name: Optional[str] = None,
     model: str = "gpt-4o",
     temperature: float = 0.7,
-    max_tokens: Optional[int] = None,
+    max_output_tokens: Optional[int] = None,
     files: Optional[List[Union[str, Dict[str, str]]]] = None
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
@@ -297,13 +330,27 @@ def ask(
             message_content["attachments"] = file_attachments
         messages.append(message_content)
         
+        # Get model-specific configuration
+        model_config = _get_model_config(model)
+        
+        # Use provided max_output_tokens or fall back to model default
+        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        
+        # Prepare API call parameters based on model type
+        api_params = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+        }
+        
+        # Use correct parameter name based on model
+        if model_config["param"] == "max_completion_tokens":
+            api_params["max_completion_tokens"] = output_tokens
+        else:
+            api_params["max_tokens"] = output_tokens
+        
         # Make API call
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
+        response = client.chat.completions.create(**api_params)
         
         response_text = response.choices[0].message.content
         
@@ -396,7 +443,8 @@ def analyze_image(
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
     model: str = "gpt-4o",
-    agent_name: Optional[str] = None
+    agent_name: Optional[str] = None,
+    max_output_tokens: Optional[int] = None
 ) -> str:
     """Analyze images with OpenAI vision model."""
     # Input validation
@@ -435,12 +483,26 @@ def analyze_image(
         # Add current message with images
         messages.append({"role": "user", "content": content})
         
+        # Get model-specific configuration
+        model_config = _get_model_config(model)
+        
+        # Use provided max_output_tokens or fall back to model default
+        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        
+        # Prepare API call parameters based on model type
+        api_params = {
+            "model": model,
+            "messages": messages,
+        }
+        
+        # Use correct parameter name based on model
+        if model_config["param"] == "max_completion_tokens":
+            api_params["max_completion_tokens"] = output_tokens
+        else:
+            api_params["max_tokens"] = output_tokens
+        
         # Make API call
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            max_tokens=4096
-        )
+        response = client.chat.completions.create(**api_params)
         
         response_text = response.choices[0].message.content
         

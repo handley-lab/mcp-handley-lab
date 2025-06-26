@@ -1,0 +1,68 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What data is in this JSON file?"}, {"text":
+      "[File: tmpbqwd9igg.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}],
+      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      8192}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '239'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"The JSON file contains two key-value
+        pairs:\\n\\n* **`\\\"test\\\"`:**  This key has a string value of `\\\"data\\\"`.\\n*
+        **`\\\"numbers\\\"`:** This key has an array value containing the integers
+        `1`, `2`, and `3`.\\n\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"avgLogprobs\": -0.050534610237394063\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 38,\n    \"candidatesTokenCount\":
+        56,\n    \"totalTokenCount\": 94,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 38\n      }\n    ],\n
+        \   \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 56\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-flash\",\n
+        \ \"responseId\": \"K2tcaIvWOfOVsbQP47aG4Ag\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 25 Jun 2025 21:33:32 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=708
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '850'
+    status:
+      code: 200
+      message: OK
+version: 1

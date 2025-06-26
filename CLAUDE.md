@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## ⚠️ CRITICAL SECURITY RULE
+## ⚠️ CRITICAL SECURITY RULES
 
 **NEVER USE --break-system-packages FLAG**
 
@@ -11,6 +11,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - If package installation fails, use virtual environments: `python -m venv venv && source venv/bin/activate`
 - System package management must remain intact for system stability
 - Breaking system packages can corrupt the entire Python installation
+
+**NEVER MODIFY FILES OUTSIDE THE PROJECT DIRECTORY**
+
+- NEVER copy, move, overwrite, or delete files outside `/home/will/code/mcp.3/`
+- NEVER modify credential files in `~/` (home directory)
+- NEVER touch system files, config files, or user data outside the project
+- If testing requires different credentials, configure within the codebase using fixtures/environment variables
+- When in doubt, ask the user before touching ANY file outside the project directory
+- This prevents data loss and maintains system integrity
 
 ## Project Overview
 

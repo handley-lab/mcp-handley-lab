@@ -280,6 +280,14 @@ def ask(
     files: Optional[List[Union[str, Dict[str, str]]]] = None
 ) -> str:
     """Ask Gemini a question with optional persistent memory."""
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if not output_file or not output_file.strip():
+        raise ValueError("Output file is required")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
+    
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
@@ -444,11 +452,18 @@ def analyze_image(
     agent_name: Optional[str] = None
 ) -> str:
     """Analyze images with Gemini vision model."""
-    if not client:
-        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-    
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if not output_file or not output_file.strip():
+        raise ValueError("Output file is required")
     if not image_data and not images:
         raise ValueError("Either image_data or images must be provided")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
+    
+    if not client:
+        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
     # Resolve model name
     model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
@@ -529,6 +544,12 @@ def generate_image(
     agent_name: Optional[str] = None
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
+    # Input validation
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if agent_name is not None and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty when provided")
+    
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
@@ -611,6 +632,10 @@ create_agent(
 ```""")
 def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
+    # Input validation
+    if not agent_name or not agent_name.strip():
+        raise ValueError("Agent name is required and cannot be empty")
+    
     try:
         agent = memory_manager.create_agent(agent_name, personality)
         personality_info = f" with personality: {personality}" if personality else ""
@@ -694,6 +719,10 @@ def clear_agent(agent_name: str) -> str:
 @mcp.tool(description="Permanently deletes an agent and all associated conversation data. WARNING: This action cannot be undone. Use clear_agent() instead if you only want to reset the conversation history.")
 def delete_agent(agent_name: str) -> str:
     """Delete an agent permanently."""
+    # Input validation
+    if not agent_name or not agent_name.strip():
+        raise ValueError("Agent name is required and cannot be empty")
+    
     success = memory_manager.delete_agent(agent_name)
     if success:
         return f"✅ Agent '{agent_name}' deleted permanently!"

@@ -1,0 +1,225 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "Got it, Alice! How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "My name is
+      Alice. Remember this."}], "model": "gpt-4o-mini", "max_tokens": null, "temperature":
+      0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '544'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.91.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.91.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BmRyunRYO3KvFvQxfuZWpibTcSbib\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1750887004,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Understood, Alice! How can I help you
+        today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 99,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 111,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 9557905f994d075a-MAN
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Jun 2025 21:30:04 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=VkbJ.3DqBWG5hPr6cUr3Qh5wUIwmeABe2Uz6A0SlmuI-1750887004-1.0.1.1-JtR1x9gQu8Htfuith5p0bHxhgECSm3s.K8NXerIer.qzuKFS2tTGxypGbW3NqyvjHd0Dz_Aks7_9zIkDOxZFjPZDL2ukBOGT8ibanfRrPSs;
+        path=/; expires=Wed, 25-Jun-25 22:00:04 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=IXF6Txcox3hD.Yrjqzb7GIAiosTA778gHgJLVC7EOs8-1750887004560-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '852'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '307'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '313'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999927'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_45dc5185f25971f668c5776e9b51cb1c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "Got it, Alice! How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "My name is
+      Alice. Remember this."}, {"role": "assistant", "content": "Understood, Alice!
+      How can I help you today?"}, {"role": "user", "content": "What is my name?"}],
+      "model": "gpt-4o-mini", "max_tokens": null, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '667'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.91.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.91.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BmRyuplpTBDtu4cynQ46xhLK3DHxP\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1750887004,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Your name is Alice. How can I assist
+        you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 124,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 136,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 955790634cb4075a-MAN
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Jun 2025 21:30:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '856'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '374'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '379'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999910'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_1b1234843562b3a1d67d48b3783f98e5
+    status:
+      code: 200
+      message: OK
+version: 1

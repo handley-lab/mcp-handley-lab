@@ -1,18 +1,18 @@
 """ArXiv source code retrieval MCP server."""
 
 import os
-import sys
 import tarfile
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any
+
 import requests
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("ArXiv Tool")
 
-def _get_cached_source(arxiv_id: str) -> Optional[bytes]:
+def _get_cached_source(arxiv_id: str) -> bytes | None:
     """Get cached source archive if it exists."""
     cache_file = Path(tempfile.gettempdir()) / f"arxiv_{arxiv_id}.tar"
     if cache_file.exists():
@@ -30,7 +30,7 @@ def _get_source_archive(arxiv_id: str) -> bytes:
     cached = _get_cached_source(arxiv_id)
     if cached:
         return cached
-    
+
     # Download and cache
     url = f'https://arxiv.org/src/{arxiv_id}'
     try:
@@ -56,23 +56,23 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
     """
     if format not in ['src', 'pdf', 'tex']:
         raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
-    
+
     # Determine default output path
     if output_path is None:
         if format == 'pdf':
             output_path = f'{arxiv_id}.pdf'
         else:
             output_path = arxiv_id
-    
+
     if format == 'pdf':
         url = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
-        
+
         try:
             response = requests.get(url)
             response.raise_for_status()
         except Exception as e:
             raise RuntimeError(f'Error fetching ArXiv PDF: {e}')
-        
+
         if output_path == '-':
             # Return file info for stdout
             size_mb = len(response.content) / (1024 * 1024)
@@ -82,11 +82,11 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
                 f.write(response.content)
             size_mb = len(response.content) / (1024 * 1024)
             return f'ArXiv PDF saved to: {output_path} ({size_mb:.2f} MB)'
-    
+
     else:  # src or tex format
         content = _get_source_archive(arxiv_id)
         tar_stream = BytesIO(content)
-        
+
         try:
             with tarfile.open(fileobj=tar_stream, mode='r') as tar:
                 if output_path == '-':
@@ -99,7 +99,7 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
                                 if not any(member.name.endswith(ext) for ext in ['.tex', '.bib', '.bbl']):
                                     continue
                             files.append(f'{member.name} ({member.size} bytes)')
-                    
+
                     if format == 'tex':
                         return f'ArXiv LaTeX files for {arxiv_id}:\\n' + '\\n'.join(files)
                     else:
@@ -107,7 +107,7 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
                 else:
                     # Save to directory
                     os.makedirs(output_path, exist_ok=True)
-                    
+
                     if format == 'tex':
                         # Extract .tex, .bib, .bbl files
                         extracted_files = []
@@ -125,7 +125,7 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
             raise ValueError(f'Error extracting tar archive: {e}')
 
 @mcp.tool()
-def list_files(arxiv_id: str) -> List[str]:
+def list_files(arxiv_id: str) -> list[str]:
     """
     List all files in an ArXiv source archive.
     
@@ -138,7 +138,7 @@ def list_files(arxiv_id: str) -> List[str]:
     content = _get_source_archive(arxiv_id)
     tar_stream = BytesIO(content)
     filenames = []
-    
+
     try:
         with tarfile.open(fileobj=tar_stream, mode='r') as tar:
             for member in tar.getmembers():
@@ -146,12 +146,12 @@ def list_files(arxiv_id: str) -> List[str]:
                     filenames.append(member.name)
     except tarfile.TarError as e:
         raise ValueError(f'Error reading tar archive: {e}')
-    
+
     return filenames
 
 
 @mcp.tool()
-def server_info() -> Dict[str, Any]:
+def server_info() -> dict[str, Any]:
     """
     Get information about the ArXiv tool server.
     
@@ -164,7 +164,7 @@ def server_info() -> Dict[str, Any]:
         "description": "Tool for downloading ArXiv papers in multiple formats",
         "functions": [
             "download - Download ArXiv papers in src/pdf/tex format",
-            "list_files - List files in ArXiv source archive", 
+            "list_files - List files in ArXiv source archive",
             "server_info - Get server information"
         ],
         "supported_formats": ["src", "pdf", "tex"],

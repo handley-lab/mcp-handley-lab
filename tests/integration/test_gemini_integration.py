@@ -149,11 +149,12 @@ def test_gemini_high_token_limits(skip_if_no_api_key, test_output_file):
     skip_if_no_api_key("GEMINI_API_KEY")
     
     # Test with higher token limit using gemini-2.5-flash
+    # Gemini 2.5 uses many tokens for internal reasoning, so we need a much higher limit
     result = ask(
-        prompt="Write a brief explanation of photosynthesis in plants.",
+        prompt="What is photosynthesis?",
         output_file=test_output_file,
         model="gemini-2.5-flash",
-        max_output_tokens=1000,
+        max_output_tokens=2000,
         agent_name=False
     )
     

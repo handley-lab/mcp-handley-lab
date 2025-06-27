@@ -1,0 +1,90 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What is photosynthesis?"}], "role":
+      "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2000}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '147'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      x-goog-api-client:
+      - google-genai-sdk/1.22.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Photosynthesis is a fundamental biological
+        process by which **plants, algae, and some bacteria convert light energy (usually
+        from the sun) into chemical energy.** This chemical energy is stored in the
+        form of sugars (glucose), which serve as their food source.\\n\\nIn essence,
+        you can think of it as these organisms acting as tiny \\\"solar-powered food
+        factories.\\\"\\n\\nHere's a breakdown of the key components:\\n\\n1.  **Inputs
+        (What goes in):**\\n    *   **Sunlight:** Provides the energy needed to drive
+        the reaction.\\n    *   **Carbon Dioxide (CO2):** Absorbed from the atmosphere
+        through tiny pores (stomata) in leaves.\\n    *   **Water (H2O):** Absorbed
+        from the soil through the roots.\\n\\n2.  **Location:**\\n    *   Photosynthesis
+        primarily occurs in specialized organelles within plant cells called **chloroplasts**.\\n
+        \   *   Chloroplasts contain a green pigment called **chlorophyll**, which
+        is responsible for absorbing light energy. This is why most plants are green!\\n\\n3.
+        \ **Outputs (What comes out):**\\n    *   **Glucose (C6H12O6):** A type of
+        sugar that the plant uses for energy, growth, and building other complex molecules
+        (like cellulose for cell walls, or starches for storage).\\n    *   **Oxygen
+        (O2):** Released as a byproduct into the atmosphere. This is the oxygen that
+        most living things (including humans) breathe to survive.\\n\\n**The Simplified
+        Chemical Equation:**\\n\\n6CO\u2082 (Carbon Dioxide) + 6H\u2082O (Water) +
+        Light Energy \u2192 C\u2086H\u2081\u2082O\u2086 (Glucose) + 6O\u2082 (Oxygen)\\n\\n**Why
+        is Photosynthesis Important?**\\n\\n1.  **Base of the Food Chain:** Plants
+        are \\\"producers.\\\" They create their own food, and in doing so, they form
+        the foundation of almost all food chains on Earth. Herbivores eat plants,
+        carnivores eat herbivores, and so on. Without photosynthesis, there would
+        be no food for most life forms.\\n2.  **Oxygen Production:** It's the primary
+        source of the oxygen in our atmosphere, which is essential for the respiration
+        (breathing) of most living organisms.\\n3.  **Carbon Dioxide Removal:** It
+        plays a crucial role in regulating Earth's climate by absorbing carbon dioxide,
+        a greenhouse gas, from the atmosphere.\\n\\nIn summary, photosynthesis is
+        the miraculous process that converts light energy into the chemical energy
+        that sustains life on our planet, while also providing the oxygen we breathe.\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        5,\n    \"candidatesTokenCount\": 536,\n    \"totalTokenCount\": 1440,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 5\n      }\n
+        \   ],\n    \"thoughtsTokenCount\": 899\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"GQlfaK7sLNSCvdIP3cflqQg\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 27 Jun 2025 21:11:53 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=7826
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '2876'
+    status:
+      code: 200
+      message: OK
+version: 1

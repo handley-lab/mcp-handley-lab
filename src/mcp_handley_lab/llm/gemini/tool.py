@@ -367,11 +367,23 @@ def ask(
                     config=config
                 )
         
-        # Extract response text
+        # Extract response text with proper error handling
         if response.text:
             response_text = response.text
         else:
-            raise RuntimeError("No response text generated")
+            # Handle cases where the API succeeded but didn't return text
+            finish_reason = None
+            if response.candidates and len(response.candidates) > 0:
+                finish_reason = response.candidates[0].finish_reason
+            
+            if finish_reason == "MAX_TOKENS":
+                raise RuntimeError(f"Response truncated due to token limit. Model hit the maximum output token limit of {output_tokens}. Consider increasing max_output_tokens parameter or using a shorter prompt.")
+            elif finish_reason == "SAFETY":
+                raise RuntimeError("Response blocked due to safety filters. Content may have triggered safety policies.")
+            elif finish_reason == "RECITATION":
+                raise RuntimeError("Response blocked due to recitation concerns. Content may have been flagged as potentially copying training data.")
+            else:
+                raise RuntimeError(f"No response text generated. Finish reason: {finish_reason or 'unknown'}")
         
         # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count
@@ -524,11 +536,23 @@ def analyze_image(
             config=config
         )
         
-        # Extract response text
+        # Extract response text with proper error handling
         if response.text:
             response_text = response.text
         else:
-            raise RuntimeError("No response text generated")
+            # Handle cases where the API succeeded but didn't return text
+            finish_reason = None
+            if response.candidates and len(response.candidates) > 0:
+                finish_reason = response.candidates[0].finish_reason
+            
+            if finish_reason == "MAX_TOKENS":
+                raise RuntimeError(f"Response truncated due to token limit. Model hit the maximum output token limit of {output_tokens}. Consider increasing max_output_tokens parameter or using a shorter prompt.")
+            elif finish_reason == "SAFETY":
+                raise RuntimeError("Response blocked due to safety filters. Content may have triggered safety policies.")
+            elif finish_reason == "RECITATION":
+                raise RuntimeError("Response blocked due to recitation concerns. Content may have been flagged as potentially copying training data.")
+            else:
+                raise RuntimeError(f"No response text generated. Finish reason: {finish_reason or 'unknown'}")
         
         # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count

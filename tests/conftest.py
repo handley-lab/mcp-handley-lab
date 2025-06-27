@@ -14,6 +14,7 @@ def vcr_config():
             "x-goog-api-key",
             "cookie",
             "set-cookie",
+            "user-agent",  # Filter user agent for ArXiv
         ],
         "filter_query_parameters": [
             "key",
@@ -26,6 +27,7 @@ def vcr_config():
             "access_token",
         ],
         "decode_compressed_response": True,
+        "ignore_hosts": [],  # Allow ArXiv hosts
     }
 
 @pytest.fixture

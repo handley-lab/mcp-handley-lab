@@ -1,5 +1,6 @@
 """Tests for ArXiv tool."""
 
+import gzip
 import os
 import tarfile
 import tempfile
@@ -227,6 +228,74 @@ class TestArxivTool:
         assert '.bib' in info['tex_format_includes']
         assert '.bbl' in info['tex_format_includes']
 
+    @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
+    def test_download_single_file_to_disk(self, mock_get_source):
+        """Test downloading single gzipped file to disk."""
+        # Mock single gzipped file content
+        tex_content = b'\\documentclass{article}\\nTest content'
+        gzipped_content = gzip.compress(tex_content)
+        mock_get_source.return_value = gzipped_content
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            save_path = os.path.join(temp_dir, 'test_paper')
+            result = download('0704.0005', format='src', output_path=save_path)
+
+            assert 'ArXiv source saved to directory:' in result
+            assert save_path in result
+            assert 'File: 0704.0005.tex' in result
+
+            # Verify file was saved
+            assert os.path.exists(save_path)
+            saved_file = os.path.join(save_path, '0704.0005.tex')
+            assert os.path.exists(saved_file)
+            with open(saved_file, 'rb') as f:
+                assert f.read() == tex_content
+
+    def test_tar_archive_extraction_error(self):
+        """Test tar archive extraction error handling."""
+        from mcp_handley_lab.arxiv.tool import _handle_tar_archive
+        
+        # Use corrupted tar data
+        corrupted_data = b'corrupted tar data'
+
+        with pytest.raises(ValueError, match='Error extracting tar archive'):
+            _handle_tar_archive('test_id', corrupted_data, 'src', '/tmp/test')
+
+    def test_list_files_tar_error(self):
+        """Test list_files with corrupted tar that falls back to single file."""
+        from mcp_handley_lab.arxiv.tool import _is_tar_archive
+        
+        # Use corrupted data that can't be opened as tar but also can't be decompressed
+        corrupted_data = b'corrupted data'
+        
+        # Verify it's not detected as a tar archive
+        assert not _is_tar_archive(corrupted_data)
+
+    @patch('mcp_handley_lab.arxiv.tool.gzip.decompress')
+    def test_single_file_decompression_error(self, mock_decompress):
+        """Test single file decompression error."""
+        from mcp_handley_lab.arxiv.tool import _handle_single_file
+        
+        mock_decompress.side_effect = Exception('Decompression failed')
+
+        with pytest.raises(ValueError, match='Error processing single file'):
+            _handle_single_file('test_id', b'corrupted gzip data', 'src', '-')
+
+
+    @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
+    def test_list_files_tar_error_exception(self, mock_get_source):
+        """Test list_files with tar that raises TarError."""
+        # Return a mock tar archive
+        mock_get_source.return_value = create_mock_tar_archive()
+        
+        # Patch _is_tar_archive to return True, and then make the actual tar.open fail
+        with patch('mcp_handley_lab.arxiv.tool._is_tar_archive', return_value=True):
+            with patch('mcp_handley_lab.arxiv.tool.tarfile.open') as mock_tar_open:
+                mock_tar_open.side_effect = tarfile.TarError('Corrupted tar')
+                
+                with pytest.raises(ValueError, match='Error reading tar archive'):
+                    list_files('test_id')
+
 
 class TestArxivCaching:
     """Test caching functionality."""
@@ -262,44 +331,80 @@ class TestArxivCaching:
         mock_cache.assert_not_called()
         assert len(files2) == 4
 
+    def test_real_cache_writing(self):
+        """Test actual cache file writing and reading."""
+        from mcp_handley_lab.arxiv.tool import _cache_source, _get_cached_source
+        from pathlib import Path
+        
+        test_id = 'test_cache_12345'
+        test_content = b'test cache content'
+        
+        # Cache should not exist initially
+        assert _get_cached_source(test_id) is None
+        
+        # Write to cache
+        _cache_source(test_id, test_content)
+        
+        # Read from cache
+        cached = _get_cached_source(test_id)
+        assert cached == test_content
+        
+        # Clean up
+        cache_file = Path(tempfile.gettempdir()) / f"arxiv_{test_id}.tar"
+        cache_file.unlink(missing_ok=True)
+
 
 class TestArxivIntegration:
-    """Integration tests for ArXiv tool (require network access)."""
+    """Integration tests for ArXiv tool using VCR cassettes."""
 
+    @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_paper_src(self):
-        """Test with a real ArXiv paper source download."""
-        # Use a small, simple paper
-        arxiv_id = '0704.0001'  # First paper on ArXiv
+    def test_real_arxiv_paper_src_single_file(self):
+        """Test with a real ArXiv paper that's a single gzipped file."""
+        # Use a very small ArXiv paper (8KB source) - single gzipped file
+        arxiv_id = '0704.0005'  # Small paper with minimal source
+        
+        # Test listing files
+        files = list_files(arxiv_id)
+        assert isinstance(files, list)
+        assert len(files) == 1
+        assert f'{arxiv_id}.tex' in files
+        
+        # Test downloading source with stdout
+        result = download(arxiv_id, format='src', output_path='-')
+        assert f'ArXiv source file for {arxiv_id}:' in result
+        assert 'single .tex file' in result
+        assert 'bytes' in result
 
-        try:
-            # Test listing files
-            files = list_files(arxiv_id)
-            assert isinstance(files, list)
-            assert len(files) > 0
+    @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
+    @pytest.mark.integration
+    def test_real_arxiv_paper_src_tar_archive(self):
+        """Test with a real ArXiv paper that's a tar archive."""
+        # Use the first ArXiv paper - it's a tar archive with multiple files
+        arxiv_id = '0704.0001'  # First paper on ArXiv (tar archive)
+        
+        # Test listing files
+        files = list_files(arxiv_id)
+        assert isinstance(files, list)
+        assert len(files) > 1  # Multiple files in tar archive
+        
+        # Test downloading source with stdout
+        result = download(arxiv_id, format='src', output_path='-')
+        assert f'ArXiv source files for {arxiv_id}:' in result
+        assert 'bytes' in result
 
-            # Test downloading source with stdout
-            result = download(arxiv_id, format='src', output_path='-')
-            assert f'ArXiv source files for {arxiv_id}:' in result
-            assert len(result) > 0
-
-        except Exception as e:
-            pytest.skip(f"Network test failed: {e}")
-
+    @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
     def test_real_arxiv_paper_pdf(self):
         """Test with a real ArXiv paper PDF download."""
-        arxiv_id = '0704.0001'
+        arxiv_id = '0704.0001'  # Use first paper for PDF test
+        
+        # Test PDF info with stdout
+        result = download(arxiv_id, format='pdf', output_path='-')
+        assert f'ArXiv PDF for {arxiv_id}:' in result
+        assert 'MB' in result
 
-        try:
-            # Test PDF info with stdout
-            result = download(arxiv_id, format='pdf', output_path='-')
-            assert f'ArXiv PDF for {arxiv_id}:' in result
-            assert 'MB' in result
-
-        except Exception as e:
-            pytest.skip(f"Network test failed: {e}")
-
+    @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
     def test_invalid_arxiv_id(self):
         """Test with invalid ArXiv ID."""

@@ -2,14 +2,14 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Union
-from pydantic import constr
+
 from mcp.server.fastmcp import FastMCP
+from pydantic import constr
 
 mcp = FastMCP("JQ Tool")
 
 
-def _resolve_data(data: Union[str, dict, list]) -> str:
+def _resolve_data(data: str | dict | list) -> str:
     """Resolves input, handling strings, dicts, lists, or file paths.
     
     This function gracefully handles cases where FastMCP auto-parses JSON strings
@@ -18,14 +18,14 @@ def _resolve_data(data: Union[str, dict, list]) -> str:
     # If it's a dict or list (FastMCP parsed JSON), convert back to string
     if isinstance(data, (dict, list)):
         return json.dumps(data)
-    
+
     # If it's a string, check if it's a file path
     if isinstance(data, str):
         p = Path(data)
         if p.is_file():
             return p.read_text()
         return data
-    
+
     # Fallback: convert to string
     return str(data)
 
@@ -85,21 +85,21 @@ query('{"message": "Hello World"}', '.message', raw_output=True)
 query('{"a": 1, "b": 2}', '.', compact=True)
 # Returns: {"a":1,"b":2}
 ```""")
-def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
+def query(data: constr(min_length=1) | dict | list, filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
     flags = [(compact, "-c"), (raw_output, "-r")]
     args = [flag for condition, flag in flags if condition] + [filter]
-    
+
     # Resolve data to handle various input types
     data_content = _resolve_data(data)
-    
+
     # Check if original data is a file path - if so, pass directly to jq for efficiency
     if isinstance(data, str):
         p = Path(data)
         if p.is_file():
             args.append(str(p))
             return _run_jq(args)
-    
+
     # Otherwise use the resolved content
     return _run_jq(args, input_text=data_content)
 
@@ -137,18 +137,18 @@ edit('/path/products.json', '.products[].price *= 1.1')
 def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
     path = Path(file_path)
-    
+
     # Create backup if requested
     if backup:
         backup_path = path.with_suffix(path.suffix + ".bak")
         backup_path.write_text(path.read_text())
-    
+
     # Apply transformation
     result = _run_jq([filter, str(path)])
-    
+
     # Write result back
     path.write_text(result)
-    
+
     msg = f"Successfully edited {file_path}"
     if backup:
         msg += f" (backup saved to {backup_path})"
@@ -197,10 +197,10 @@ validate('/path/data.json')
 validate('{invalid: json}')
 # Raises: ValueError("Invalid JSON: ...")
 ```""")
-def validate(data: Union[constr(min_length=1), dict, list]) -> str:
+def validate(data: constr(min_length=1) | dict | list) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
-    
+
     try:
         json.loads(data_content)
         return "JSON is valid"
@@ -238,11 +238,11 @@ format('{"b":2,"a":1}', compact=True, sort_keys=True)
 # Format file
 format('/path/data.json', sort_keys=True)
 ```""")
-def format(data: Union[constr(min_length=1), dict, list], compact: bool = False, sort_keys: bool = False) -> str:
+def format(data: constr(min_length=1) | dict | list, compact: bool = False, sort_keys: bool = False) -> str:
     """Format JSON data."""
     data_content = _resolve_data(data)
     parsed = json.loads(data_content)
-    
+
     if compact:
         return json.dumps(parsed, separators=(',', ':'), sort_keys=sort_keys)
     else:
@@ -254,7 +254,7 @@ def server_info() -> str:
     """Get server status and jq version."""
     try:
         version = _run_jq(["--version"])
-        
+
         return f"""JQ Tool Server Status
 ====================
 Status: Connected and ready

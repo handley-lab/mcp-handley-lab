@@ -254,7 +254,7 @@ class TestArxivTool:
     def test_tar_archive_extraction_error(self):
         """Test tar archive extraction error handling."""
         from mcp_handley_lab.arxiv.tool import _handle_tar_archive
-        
+
         # Use corrupted tar data
         corrupted_data = b'corrupted tar data'
 
@@ -264,10 +264,10 @@ class TestArxivTool:
     def test_list_files_tar_error(self):
         """Test list_files with corrupted tar that falls back to single file."""
         from mcp_handley_lab.arxiv.tool import _is_tar_archive
-        
+
         # Use corrupted data that can't be opened as tar but also can't be decompressed
         corrupted_data = b'corrupted data'
-        
+
         # Verify it's not detected as a tar archive
         assert not _is_tar_archive(corrupted_data)
 
@@ -275,7 +275,7 @@ class TestArxivTool:
     def test_single_file_decompression_error(self, mock_decompress):
         """Test single file decompression error."""
         from mcp_handley_lab.arxiv.tool import _handle_single_file
-        
+
         mock_decompress.side_effect = Exception('Decompression failed')
 
         with pytest.raises(ValueError, match='Error processing single file'):
@@ -287,12 +287,12 @@ class TestArxivTool:
         """Test list_files with tar that raises TarError."""
         # Return a mock tar archive
         mock_get_source.return_value = create_mock_tar_archive()
-        
+
         # Patch _is_tar_archive to return True, and then make the actual tar.open fail
         with patch('mcp_handley_lab.arxiv.tool._is_tar_archive', return_value=True):
             with patch('mcp_handley_lab.arxiv.tool.tarfile.open') as mock_tar_open:
                 mock_tar_open.side_effect = tarfile.TarError('Corrupted tar')
-                
+
                 with pytest.raises(ValueError, match='Error reading tar archive'):
                     list_files('test_id')
 
@@ -333,22 +333,23 @@ class TestArxivCaching:
 
     def test_real_cache_writing(self):
         """Test actual cache file writing and reading."""
-        from mcp_handley_lab.arxiv.tool import _cache_source, _get_cached_source
         from pathlib import Path
-        
+
+        from mcp_handley_lab.arxiv.tool import _cache_source, _get_cached_source
+
         test_id = 'test_cache_12345'
         test_content = b'test cache content'
-        
+
         # Cache should not exist initially
         assert _get_cached_source(test_id) is None
-        
+
         # Write to cache
         _cache_source(test_id, test_content)
-        
+
         # Read from cache
         cached = _get_cached_source(test_id)
         assert cached == test_content
-        
+
         # Clean up
         cache_file = Path(tempfile.gettempdir()) / f"arxiv_{test_id}.tar"
         cache_file.unlink(missing_ok=True)
@@ -363,13 +364,13 @@ class TestArxivIntegration:
         """Test with a real ArXiv paper that's a single gzipped file."""
         # Use a very small ArXiv paper (8KB source) - single gzipped file
         arxiv_id = '0704.0005'  # Small paper with minimal source
-        
+
         # Test listing files
         files = list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) == 1
         assert f'{arxiv_id}.tex' in files
-        
+
         # Test downloading source with stdout
         result = download(arxiv_id, format='src', output_path='-')
         assert f'ArXiv source file for {arxiv_id}:' in result
@@ -382,12 +383,12 @@ class TestArxivIntegration:
         """Test with a real ArXiv paper that's a tar archive."""
         # Use the first ArXiv paper - it's a tar archive with multiple files
         arxiv_id = '0704.0001'  # First paper on ArXiv (tar archive)
-        
+
         # Test listing files
         files = list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) > 1  # Multiple files in tar archive
-        
+
         # Test downloading source with stdout
         result = download(arxiv_id, format='src', output_path='-')
         assert f'ArXiv source files for {arxiv_id}:' in result
@@ -398,7 +399,7 @@ class TestArxivIntegration:
     def test_real_arxiv_paper_pdf(self):
         """Test with a real ArXiv paper PDF download."""
         arxiv_id = '0704.0001'  # Use first paper for PDF test
-        
+
         # Test PDF info with stdout
         result = download(arxiv_id, format='pdf', output_path='-')
         assert f'ArXiv PDF for {arxiv_id}:' in result

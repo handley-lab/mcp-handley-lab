@@ -63,7 +63,7 @@ def _handle_single_file(arxiv_id: str, content: bytes, format: str, output_path:
     try:
         # Decompress the gzipped content
         decompressed = gzip.decompress(content)
-        
+
         if output_path == '-':
             # Return file info for stdout
             return f'ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)'
@@ -177,7 +177,7 @@ def list_files(arxiv_id: str) -> list[str]:
         List of filenames in the archive
     """
     content = _get_source_archive(arxiv_id)
-    
+
     if _is_tar_archive(content):
         # Handle tar archive
         tar_stream = BytesIO(content)

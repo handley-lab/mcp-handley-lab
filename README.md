@@ -17,6 +17,7 @@ This toolkit aims to be a complete research lab management system covering:
 - **Data Visualization**: Comprehensive plotting and analysis tools
 - **HPC Access**: High-performance computing cluster management
 - **Code Analysis**: Advanced codebase analysis and summarization via code2prompt
+- **Academic Research**: ArXiv paper source code retrieval and analysis
 
 ### Lab Administration
 - **Google Cloud Compute**: Infrastructure management and provisioning
@@ -29,6 +30,7 @@ This toolkit aims to be a complete research lab management system covering:
 - **Vim Tool**: Interactive text editing capabilities using the Vim editor.
 - **Code2Prompt**: Codebase analysis and summarization.
 - **Google Calendar**: Full calendar management integration, including creating, listing, and updating events.
+- **ArXiv Tool**: Multi-format ArXiv paper downloads (source/PDF/LaTeX), with intelligent caching and output control.
 - **LLM Integration**: Access to Google Gemini and OpenAI models with support for persistent agents.
     - **ask**: General-purpose question answering.
     - **analyze_image**: Image analysis with vision models.
@@ -76,6 +78,9 @@ python -m mcp_handley_lab.llm.gemini
 # OpenAI Tool
 python -m mcp_handley_lab.llm.openai
 
+# ArXiv Tool  
+python -m mcp_handley_lab.arxiv
+
 # Tool Chainer
 python -m mcp_handley_lab.tool_chainer
 ```
@@ -87,6 +92,7 @@ mcp-jq
 mcp-vim
 mcp-code2prompt
 mcp-google-calendar
+mcp-arxiv
 mcp-gemini
 mcp-openai
 mcp-tool-chainer
@@ -110,6 +116,7 @@ mcp-cli connect stdio python -m mcp_handley_lab.jq
 - Vim Tool
 - Code2Prompt
 - Google Calendar
+- ArXiv Tool
 - LLM Integration (Gemini and OpenAI)
 - Tool Chainer
 

@@ -136,6 +136,11 @@ edit('/path/products.json', '.products[].price *= 1.1')
 ```""")
 def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
+    if not file_path or not file_path.strip():
+        raise ValueError("File path is required and cannot be empty")
+    if not filter or not filter.strip():
+        raise ValueError("Filter is required and cannot be empty")
+    
     path = Path(file_path)
     
     # Create backup if requested

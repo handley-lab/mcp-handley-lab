@@ -69,10 +69,11 @@ class TestJQUnit:
             json.dump({"test": "value"}, f)
             f.flush()
             
-            result = edit(file_path=f.name, filter='.test = "new_value"')
-            assert "success" in result.lower() or "updated" in result.lower()
-            
-            Path(f.name).unlink()
+            try:
+                result = edit(file_path=f.name, filter='.test = "new_value"')
+                assert "success" in result.lower() or "updated" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')  
     def test_query_compact_raw(self, mock_run):
@@ -96,14 +97,15 @@ class TestJQUnit:
             f.write('{"test": "value"}')
             f.flush()
             
-            result = query(f.name, '.test')
-            assert '"value"' in result
-            
-            # Verify file path was passed to jq
-            call_args = mock_run.call_args[0][0]
-            assert f.name in call_args
-            
-            Path(f.name).unlink()
+            try:
+                result = query(f.name, '.test')
+                assert '"value"' in result
+                
+                # Verify file path was passed to jq
+                call_args = mock_run.call_args[0][0]
+                assert f.name in call_args
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_read_file(self, mock_run):
@@ -152,11 +154,21 @@ class TestVimUnit:
         assert "test content" in result or "no changes" in result.lower()
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="file content")
-    def test_open_file_success(self, mock_file, mock_run):
+    @patch('pathlib.Path.read_text')
+    @patch('pathlib.Path.write_text')
+    def test_open_file_success(self, mock_write, mock_read, mock_run):
         mock_run.return_value = None
-        result = open_file("/tmp/test.txt", show_diff=False)
-        assert "file edited" in result.lower() or "backup saved" in result.lower()
+        mock_read.return_value = "file content"
+        mock_write.return_value = None
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("file content")
+            
+            try:
+                result = open_file(f.name, show_diff=False)
+                assert "file edited" in result.lower() or "backup saved" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     @patch('builtins.open', new_callable=mock_open, read_data="quick content")
@@ -166,35 +178,56 @@ class TestVimUnit:
         assert "quick content" in result or "created successfully" in result.lower()
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="file content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_backup(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_backup(self, mock_write, mock_read, mock_run):
         mock_read.return_value = "original content"
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", backup=True, show_diff=False)
-        assert "backup saved" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, backup=True, show_diff=False)
+                assert "backup saved" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="edited content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_instructions(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_instructions(self, mock_write, mock_read, mock_run):
         mock_read.return_value = "original content"
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", instructions="Edit this file carefully")
-        assert "file edited" in result.lower() or "no changes" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, instructions="Edit this file carefully")
+                assert "file edited" in result.lower() or "no changes" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')  
-    @patch('builtins.open', new_callable=mock_open, read_data="different content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_diff(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_diff(self, mock_write, mock_read, mock_run):
         # Return different content to trigger diff
         mock_read.side_effect = ["original content", "different content"]
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", show_diff=True)
-        assert "changes made" in result.lower() or "diff" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, show_diff=True)
+                assert "changes made" in result.lower() or "diff" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_vim_server_info(self, mock_run):

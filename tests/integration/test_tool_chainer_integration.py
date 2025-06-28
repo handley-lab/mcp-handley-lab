@@ -62,11 +62,7 @@ def test_tool_chainer_conditional_chain(temp_storage_dir):
     # Register jq tool
     register_tool(
         tool_id="conditional_jq",
-<<<<<<< HEAD
-        server_command="python -m mcp_handley_lab.jq", 
-=======
         server_command="python -m mcp_handley_lab jq", 
->>>>>>> master
         tool_name="query",
         storage_dir=temp_storage_dir
     )

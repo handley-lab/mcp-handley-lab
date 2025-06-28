@@ -733,7 +733,22 @@ async def find_time(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="Checks the Google Calendar Tool server status and API connectivity. Returns authentication status, accessible calendars count, and available commands. Use this to verify the tool is operational before making other requests.")
+@mcp.tool(description="""Checks the status of the Google Calendar Tool server and API connectivity.
+
+Use this to verify that the tool is operational before making other requests.
+
+**Input/Output:**
+- **Input**: None.
+- **Output**: A string containing the server status, API connection status, and a list of available tools.
+
+**Error Handling:**
+- Returns an error message if the server is not configured correctly or if there is a connection error.
+
+**Examples:**
+```python
+# Check the server status.
+server_info()
+```""")
 async def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
     try:

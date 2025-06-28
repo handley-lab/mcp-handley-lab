@@ -260,7 +260,22 @@ async def format(data: Union[constr(min_length=1), dict, list], compact: bool = 
         return json.dumps(parsed, indent=2, sort_keys=sort_keys)
 
 
-@mcp.tool(description="Checks JQ tool server status and command availability. Returns version information and available functions. Use this to verify jq is properly installed and accessible.")
+@mcp.tool(description="""Checks the status of the JQ tool server and the availability of the `jq` command.
+
+Use this to verify that the tool is operational before making other requests.
+
+**Input/Output:**
+- **Input**: None.
+- **Output**: A string containing the server status, `jq` version, and a list of available tools.
+
+**Error Handling:**
+- Raises `RuntimeError` if the `jq` command is not found.
+
+**Examples:**
+```python
+# Check the server status.
+server_info()
+```""")
 async def server_info() -> str:
     """Get server status and jq version."""
     try:

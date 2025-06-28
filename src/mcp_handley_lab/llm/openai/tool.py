@@ -669,7 +669,22 @@ async def get_response(agent_name: str, index: int = -1) -> str:
     return response
 
 
-@mcp.tool(description="Checks OpenAI server status, API connectivity, available models, and agent statistics. Returns configuration status and available commands. Use this to verify the tool is properly configured before making requests.")
+@mcp.tool(description="""Checks the status of the OpenAI Tool server and API connectivity.
+
+Use this to verify that the tool is operational before making other requests.
+
+**Input/Output:**
+- **Input**: None.
+- **Output**: A string containing the server status, API connection status, and a list of available tools.
+
+**Error Handling:**
+- Raises `RuntimeError` if the OpenAI API is not configured correctly.
+
+**Examples:**
+```python
+# Check the server status.
+server_info()
+```""")
 async def server_info() -> str:
     """Get server status and OpenAI configuration."""
     try:

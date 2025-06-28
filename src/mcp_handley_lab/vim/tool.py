@@ -66,55 +66,29 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
     return content
 
 
-@mcp.tool(description="""Opens Vim to edit provided content in a temporary file with optional instructions.
+@mcp.tool(description="""Opens Vim to edit content in a temporary file.
 
-Creates a temporary file with the content, optionally adds instruction comments at the top, opens Vim for editing, then returns the result.
+**Key Parameters:**
+- `content`: The initial content to edit.
+- `file_extension`: The file extension to use for the temporary file. Defaults to ".txt".
+- `instructions`: Optional instructions to display as comments at the top of the file.
+- `show_diff`: If `True`, returns a diff of the changes. Otherwise, returns the full edited content. Defaults to `True`.
+- `keep_file`: If `True`, the temporary file is not deleted after editing. Defaults to `False`.
 
-Behavior:
-- Opens vim directly in the current terminal environment
-- Requires interactive terminal access for proper functionality
+**Input/Output:**
+- **Input**: Initial content and optional instructions.
+- **Output**: A string containing either a diff of the changes or the full edited content.
 
-File Handling:
-- Temporary file is created with specified extension
-- File is deleted after editing (unless `keep_file=True`)
-- Instructions are added as comments and automatically stripped from output
+**Error Handling:**
+- Raises `subprocess.CalledProcessError` if Vim exits with a non-zero status.
 
-Error Handling:
-- Raises subprocess.CalledProcessError if vim exits with non-zero status
-- File creation errors raise OSError with specific details
-- Instructions are safely handled even with special characters
-
-Output Options:
-- `show_diff=True` (default): Returns unified diff showing changes made
-- `show_diff=False`: Returns full edited content
-
-Comment Style:
-- Python/Shell/YAML files (.py, .sh, .yaml, .yml): Uses `#` comments
-- Other files: Uses `//` comments
-
-Examples:
+**Examples:**
 ```python
-# Edit code with guidance
+# Edit a Python code snippet with instructions.
 prompt_user_edit(
     content="def hello():\n    pass",
     file_extension=".py",
-    instructions="Add proper implementation and docstring",
-    show_diff=True
-)
-
-# Edit configuration
-prompt_user_edit(
-    content="server:\n  port: 8080",
-    file_extension=".yaml", 
-    instructions="Update port to 3000 and add host configuration"
-)
-
-# Keep temporary file for debugging
-prompt_user_edit(
-    content="Some content",
-    instructions="Make improvements",
-    keep_file=True,
-    show_diff=False
+    instructions="Add a docstring and a print statement."
 )
 ```""")
 async def prompt_user_edit(

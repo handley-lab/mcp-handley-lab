@@ -1,15 +1,36 @@
 """Unit tests for Gemini LLM tool functionality."""
 import pytest
+import tempfile
+import base64
+import io
 from unittest.mock import patch, Mock, MagicMock
 from pathlib import Path
+from PIL import Image
 
 from mcp_handley_lab.llm.gemini.tool import (
-    _get_model_config, MODEL_CONFIGS, ask, analyze_image
+    _get_model_config, MODEL_CONFIGS, ask, analyze_image, generate_image,
+    create_agent, list_agents, agent_stats, clear_agent, delete_agent,
+    get_response, server_info, _get_session_id, _resolve_files, _resolve_images,
+    _handle_agent_and_usage
 )
 
 
 class TestModelConfiguration:
     """Test model configuration and token limit functionality."""
+    
+    @pytest.mark.parametrize("model_name,expected_output_tokens", [
+        ("gemini-2.5-pro", 65536),
+        ("gemini-2.5-flash", 65536),
+        ("gemini-2.5-flash-lite", 64000),
+        ("gemini-2.0-flash", 8192),
+        ("gemini-2.0-flash-lite", 8192),
+        ("gemini-1.5-flash", 8192),
+        ("gemini-1.5-flash-8b", 8192),
+        ("gemini-1.5-pro", 8192),
+    ])
+    def test_model_output_token_limits_parameterized(self, model_name, expected_output_tokens):
+        """Test model output token limits for all models."""
+        assert MODEL_CONFIGS[model_name]["output_tokens"] == expected_output_tokens
     
     def test_model_configs_all_present(self):
         """Test that all expected models are in MODEL_CONFIGS."""
@@ -20,44 +41,31 @@ class TestModelConfiguration:
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
     
-    def test_model_configs_token_limits(self):
-        """Test that model configurations have correct token limits."""
-        # Gemini 2.5 models
-        assert MODEL_CONFIGS["gemini-2.5-pro"]["output_tokens"] == 65536
-        assert MODEL_CONFIGS["gemini-2.5-flash"]["output_tokens"] == 65536
-        assert MODEL_CONFIGS["gemini-2.5-flash-lite"]["output_tokens"] == 64000
-        
-        # Gemini 2.0 models
-        assert MODEL_CONFIGS["gemini-2.0-flash"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-2.0-flash-lite"]["output_tokens"] == 8192
-        
-        # Gemini 1.5 models
-        assert MODEL_CONFIGS["gemini-1.5-flash"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-1.5-flash-8b"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-1.5-pro"]["output_tokens"] == 8192
     
-    def test_model_configs_input_limits(self):
-        """Test that model configurations have correct input limits."""
-        # Most models have 1M input tokens
-        assert MODEL_CONFIGS["gemini-2.5-flash"]["input_tokens"] == 1048576
-        assert MODEL_CONFIGS["gemini-2.0-flash"]["input_tokens"] == 1048576
-        assert MODEL_CONFIGS["gemini-1.5-flash"]["input_tokens"] == 1048576
-        
-        # Gemini 1.5 Pro has 2M input tokens
-        assert MODEL_CONFIGS["gemini-1.5-pro"]["input_tokens"] == 2097152
-        
-        # Gemini 2.5 Flash Lite has 1M input tokens  
-        assert MODEL_CONFIGS["gemini-2.5-flash-lite"]["input_tokens"] == 1000000
+    @pytest.mark.parametrize("model_name,expected_input_tokens", [
+        ("gemini-2.5-pro", 1048576),
+        ("gemini-2.5-flash", 1048576),
+        ("gemini-2.5-flash-lite", 1000000),
+        ("gemini-2.0-flash", 1048576),
+        ("gemini-2.0-flash-lite", 1048576),
+        ("gemini-1.5-flash", 1048576),
+        ("gemini-1.5-flash-8b", 1048576),
+        ("gemini-1.5-pro", 2097152),
+    ])
+    def test_model_input_token_limits_parameterized(self, model_name, expected_input_tokens):
+        """Test model input token limits for all models."""
+        assert MODEL_CONFIGS[model_name]["input_tokens"] == expected_input_tokens
     
-    def test_get_model_config_known_models(self):
-        """Test _get_model_config with known model names."""
-        config = _get_model_config("gemini-2.5-flash")
-        assert config["output_tokens"] == 65536
-        assert config["input_tokens"] == 1048576
-        
-        config = _get_model_config("gemini-1.5-pro")
-        assert config["output_tokens"] == 8192
-        assert config["input_tokens"] == 2097152
+    @pytest.mark.parametrize("model_name,expected_output_tokens,expected_input_tokens", [
+        ("gemini-2.5-flash", 65536, 1048576),
+        ("gemini-1.5-pro", 8192, 2097152),
+        ("gemini-2.0-flash", 8192, 1048576),
+    ])
+    def test_get_model_config_parameterized(self, model_name, expected_output_tokens, expected_input_tokens):
+        """Test _get_model_config with various known models."""
+        config = _get_model_config(model_name)
+        assert config["output_tokens"] == expected_output_tokens
+        assert config["input_tokens"] == expected_input_tokens
     
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""

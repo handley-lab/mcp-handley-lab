@@ -6,24 +6,32 @@ from unittest.mock import patch, Mock, mock_open
 from pathlib import Path
 from mcp_handley_lab.tool_chainer.tool import (
     register_tool, chain_tools, execute_chain, discover_tools, ToolStep,
-    _load_state, _save_state, show_history, clear_cache, server_info
+    _load_state, _save_state, show_history, clear_cache, server_info,
+    _evaluate_condition, _substitute_variables, _execute_mcp_tool
 )
 
 class TestToolChainerCore:
     """Test core functionality that works reliably."""
     
-    def test_tool_step_creation(self):
-        """Test ToolStep data structure creation."""
-        step = ToolStep(tool_id="test", arguments={"data": "test"})
-        assert step.tool_id == "test"
-        assert step.arguments == {"data": "test"}
-        
-        step_with_condition = ToolStep(
-            tool_id="test",
-            arguments={"data": "test"}, 
-            condition="{result} contains 'success'"
+    @pytest.mark.parametrize("tool_id,arguments,condition,output_to", [
+        ("test_tool", {"data": "test"}, None, None),
+        ("jq_tool", {"filter": ".test"}, "{result} contains 'success'", "result_var"),
+        ("complex_tool", {"input": "data", "format": "json"}, "{status} == 'completed'", "output"),
+        ("simple_tool", {}, "{error_count} != '0'", None),
+        ("chain_tool", {"nested": {"key": "value"}}, None, "nested_result"),
+    ])
+    def test_tool_step_creation_parameterized(self, tool_id, arguments, condition, output_to):
+        """Test ToolStep creation with various configurations."""
+        step = ToolStep(
+            tool_id=tool_id,
+            arguments=arguments,
+            condition=condition,
+            output_to=output_to
         )
-        assert step_with_condition.condition == "{result} contains 'success'"
+        assert step.tool_id == tool_id
+        assert step.arguments == arguments
+        assert step.condition == condition
+        assert step.output_to == output_to
 
 class TestToolChainerBasicOperations:
     """Test basic operations without complex file system checks."""
@@ -40,6 +48,43 @@ class TestToolChainerBasicOperations:
         assert isinstance(result, str)
         assert len(result) > 0
 
+    @pytest.mark.parametrize("chain_id,steps,save_to_file", [
+        ("simple_chain", [ToolStep(tool_id="test_tool", arguments={"data": "test"})], None),
+        ("conditional_chain", [
+            ToolStep(tool_id="test_tool", arguments={"data": "test"}, condition="{result} contains 'success'")
+        ], None),
+        ("multi_step_chain", [
+            ToolStep(tool_id="test_tool", arguments={"data": "test"}, output_to="first_result"),
+            ToolStep(tool_id="test_tool", arguments={"input": "{first_result}"})
+        ], None),
+        ("file_output_chain", [
+            ToolStep(tool_id="test_tool", arguments={"data": "test"})
+        ], "/tmp/output.txt"),
+        ("complex_chain", [
+            ToolStep(tool_id="test_tool", arguments={"data": "test"}, output_to="step1"),
+            ToolStep(tool_id="test_tool", arguments={"input": "{step1}"}, condition="{step1} != ''", output_to="step2")
+        ], None),
+    ])
+    def test_chain_tools_parameterized(self, temp_storage_dir, chain_id, steps, save_to_file):
+        """Test chain creation with various configurations."""
+        # Register required tool
+        register_tool(
+            tool_id="test_tool",
+            server_command="python -m test",
+            tool_name="query",
+            storage_dir=temp_storage_dir
+        )
+        
+        result = chain_tools(
+            chain_id=chain_id,
+            steps=steps,
+            save_to_file=save_to_file,
+            storage_dir=temp_storage_dir
+        )
+        assert isinstance(result, str)
+        assert len(result) > 0
+        assert "success" in result.lower() or "created" in result.lower()
+    
     def test_chain_tools_success(self, temp_storage_dir):
         """Test successful chain creation returns success message."""
         # First register a tool
@@ -72,29 +117,23 @@ def temp_storage_dir():
 class TestToolChainerStateManagement:
     """Test state loading and saving with error conditions."""
     
-    def test_load_state_corrupted_json(self, temp_storage_dir):
-        """Test loading state with corrupted JSON file."""
+    @pytest.mark.parametrize("file_content,description", [
+        ("invalid json content", "corrupted JSON"),
+        ('{"incomplete": "data"}', "missing keys"),
+        ('{"registered_tools": "not_dict"}', "invalid data types"),
+        ('', "empty file"),
+        ('[1, 2, 3]', "wrong root type"),
+        ('{"registered_tools": {}, "defined_chains": []}', "wrong chain type"),
+    ])
+    def test_load_state_error_conditions_parameterized(self, temp_storage_dir, file_content, description):
+        """Test state loading with various error conditions."""
         storage_path = Path(temp_storage_dir)
         state_file = storage_path / "tool_chainer_state.json"
         
-        # Write invalid JSON
-        state_file.write_text("invalid json content")
+        # Write problematic content
+        state_file.write_text(file_content)
         
         # Should return empty state without crashing
-        tools, chains, history = _load_state(storage_path)
-        assert tools == {}
-        assert chains == {}
-        assert history == []
-    
-    def test_load_state_missing_keys(self, temp_storage_dir):
-        """Test loading state with missing required keys."""
-        storage_path = Path(temp_storage_dir)
-        state_file = storage_path / "tool_chainer_state.json"
-        
-        # Write JSON with missing keys
-        state_file.write_text('{"incomplete": "data"}')
-        
-        # Should return empty state
         tools, chains, history = _load_state(storage_path)
         assert tools == {}
         assert chains == {}
@@ -118,6 +157,118 @@ class TestToolChainerStateManagement:
         # Currently raises exception - this documents the current behavior
         with pytest.raises(PermissionError):
             _save_state(storage_path, {}, {}, [])
+
+
+class TestConditionEvaluation:
+    """Test condition evaluation logic."""
+    
+    @pytest.mark.parametrize("condition,variables,step_outputs,expected", [
+        # Equality tests
+        ("success == success", {}, {}, True),
+        ("success == failure", {}, {}, False),
+        ("'completed' == 'completed'", {}, {}, True),
+        ("'completed' == 'failed'", {}, {}, False),
+        
+        # Inequality tests
+        ("success != failure", {}, {}, True),
+        ("success != success", {}, {}, False),
+        ("'0' != '1'", {}, {}, True),
+        ("'0' != '0'", {}, {}, False),
+        
+        # Contains tests
+        ("success contains suc", {}, {}, True),
+        ("failure contains suc", {}, {}, False),
+        ("'hello world' contains 'world'", {}, {}, True),
+        ("'hello world' contains 'foo'", {}, {}, False),
+        
+        # Variable substitution
+        ("{result} == 'success'", {}, {"result": "success"}, True),
+        ("{result} == 'success'", {}, {"result": "failure"}, False),
+        ("{status} contains 'done'", {"status": "completed"}, {}, False),
+        ("{status} contains 'done'", {}, {"status": "done successfully"}, True),
+        
+        # Empty condition (should be True)
+        ("", {}, {}, True),
+        (None, {}, {}, True),
+    ])
+    def test_evaluate_condition_parameterized(self, condition, variables, step_outputs, expected):
+        """Test condition evaluation with various scenarios."""
+        result = _evaluate_condition(condition, variables, step_outputs)
+        assert result == expected
+    
+    @pytest.mark.parametrize("condition,variables,step_outputs", [
+        ("invalid condition syntax", {}, {}),
+        ("result ==", {}, {}),
+        ("== value", {}, {}),
+        ("{missing_var} == 'test'", {}, {}),
+        ("eval('malicious_code')", {}, {}),
+    ])
+    def test_evaluate_condition_error_cases(self, condition, variables, step_outputs):
+        """Test condition evaluation with error cases."""
+        # Should return False for invalid conditions
+        result = _evaluate_condition(condition, variables, step_outputs)
+        assert result == False
+
+
+class TestVariableSubstitution:
+    """Test variable substitution logic."""
+    
+    @pytest.mark.parametrize("text,variables,step_outputs,expected", [
+        # Simple substitution
+        ("Hello {name}", {"name": "World"}, {}, "Hello World"),
+        ("Value: {value}", {}, {"value": "42"}, "Value: 42"),
+        ("Test {var1} and {var2}", {"var1": "A"}, {"var2": "B"}, "Test A and B"),
+        
+        # No substitution needed
+        ("No variables here", {}, {}, "No variables here"),
+        ("", {}, {}, ""),
+        
+        # Missing variables (should remain unchanged)
+        ("Missing {unknown}", {}, {}, "Missing {unknown}"),
+        ("Partial {known} and {unknown}", {"known": "KNOWN"}, {}, "Partial KNOWN and {unknown}"),
+        
+        # Step outputs take precedence over variables
+        ("Value: {key}", {"key": "var_value"}, {"key": "step_value"}, "Value: step_value"),
+        
+        # Complex substitution
+        ('{"input": "{data}", "format": "{fmt}"}', {}, {"data": "test", "fmt": "json"}, '{"input": "test", "format": "json"}'),
+        
+        # Multiple same variable
+        ("{name} loves {name}", {"name": "Alice"}, {}, "Alice loves Alice"),
+    ])
+    def test_substitute_variables_parameterized(self, text, variables, step_outputs, expected):
+        """Test variable substitution with various scenarios."""
+        result = _substitute_variables(text, variables, step_outputs)
+        assert result == expected
+
+
+class TestToolRegistration:
+    """Test tool registration with various parameters."""
+    
+    @pytest.mark.parametrize("tool_id,server_command,tool_name,description,timeout", [
+        ("jq_tool", "python -m mcp_handley_lab jq", "query", "JQ JSON processor", 30),
+        ("vim_tool", "python -m mcp_handley_lab vim", "prompt_user_edit", "Vim editor", 60),
+        ("simple_tool", "echo", "test", None, None),
+        ("complex_tool", "python -m complex_server", "process", "Complex processing tool", 120),
+    ])
+    def test_register_tool_parameterized(self, temp_storage_dir, tool_id, server_command, tool_name, description, timeout):
+        """Test tool registration with various configurations."""
+        kwargs = {
+            "tool_id": tool_id,
+            "server_command": server_command,
+            "tool_name": tool_name,
+            "storage_dir": temp_storage_dir
+        }
+        if description:
+            kwargs["description"] = description
+        if timeout:
+            kwargs["timeout"] = timeout
+            
+        result = register_tool(**kwargs)
+        
+        assert isinstance(result, str)
+        assert len(result) > 0
+        assert "success" in result.lower() or "registered" in result.lower()
 
 
 class TestToolChainerValidation:

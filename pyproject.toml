@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.0.0a9"
+version = "0.0.0a10"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -70,3 +70,10 @@ target-version = "py310"
 line-length = 88
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
 ignore = ["E501"]  # Line too long, handled by black
+
+[tool.coverage.run]
+omit = [
+    "src/mcp_handley_lab/__main__.py",
+    "tests/*",
+    "venv/*",
+]

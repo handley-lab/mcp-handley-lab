@@ -2,9 +2,10 @@ import pytest
 import json
 import tempfile
 import subprocess
-from unittest.mock import patch, Mock, mock_open
+import asyncio
+from unittest.mock import patch, Mock, mock_open, AsyncMock
 from pathlib import Path
-from mcp_handley_lab.jq.tool import query, edit, validate, format as jq_format, read
+from mcp_handley_lab.jq.tool import query, edit, validate, format as jq_format, read, server_info
 from mcp_handley_lab.vim.tool import prompt_user_edit, open_file, quick_edit
 from mcp_handley_lab.code2prompt.tool import generate_prompt
 
@@ -20,19 +21,23 @@ class TestJQUnit:
         ('[1,2,3]', '.[1]', '2'),
         ('{"array": [1,2,3]}', '.array[0]', '1'),
     ])
-    @patch('subprocess.run')
-    def test_query_parameterized(self, mock_run, data, filter, expected):
-        mock_run.return_value.stdout = expected
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_query_parameterized(self, mock_subprocess, data, filter, expected):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (expected.encode(), b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = query(data=data, filter=filter)
+        result = await query(data=data, filter=filter)
         assert expected in result
-        mock_run.assert_called()
+        mock_subprocess.assert_called()
     
-    def test_edit_validation(self):
+    @pytest.mark.asyncio
+    async def test_edit_validation(self):
         with pytest.raises(ValueError):
-            edit(file_path="", filter=".test")
+            await edit(file_path="", filter=".test")
         
         # Create a temporary file for filter validation
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -41,91 +46,94 @@ class TestJQUnit:
             
             try:
                 with pytest.raises(ValueError):
-                    edit(file_path=f.name, filter="")
+                    await edit(file_path=f.name, filter="")
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
-    def test_validate_valid_json(self, mock_run):
-        mock_run.return_value.stdout = ""
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
-        
-        result = validate(data='{"valid": true}')
+    @pytest.mark.asyncio
+    async def test_validate_valid_json(self):
+        result = await validate(data='{"valid": true}')
         assert "valid" in result.lower()
     
-    @patch('subprocess.run')
-    def test_validate_invalid_json(self, mock_run):
-        mock_run.return_value.stdout = ""
-        mock_run.return_value.stderr = "parse error"
-        mock_run.return_value.returncode = 1
-        
+    @pytest.mark.asyncio
+    async def test_validate_invalid_json(self):
         with pytest.raises(ValueError):
-            validate(data='{"invalid": json}')
+            await validate(data='{"invalid": json}')
     
-    @patch('subprocess.run')
-    def test_format_compact(self, mock_run):
-        mock_run.return_value.stdout = '{"compact":true}'
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
-        
-        result = jq_format(data='{"compact": true}', compact=True)
+    @pytest.mark.asyncio
+    async def test_format_compact(self):
+        result = await jq_format(data='{"compact": true}', compact=True)
         assert "compact" in result
     
-    @patch('subprocess.run')
-    def test_edit_success(self, mock_run):
-        mock_run.return_value.stdout = ""
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_edit_success(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'{"test": "new_value"}', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump({"test": "value"}, f)
             f.flush()
             
             try:
-                result = edit(file_path=f.name, filter='.test = "new_value"')
+                result = await edit(file_path=f.name, filter='.test = "new_value"')
                 assert "success" in result.lower() or "updated" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')  
-    def test_query_compact_raw(self, mock_run):
-        mock_run.return_value.stdout = "value"
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')  
+    async def test_query_compact_raw(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"value", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = query('{"test": "value"}', '.test', compact=True, raw_output=True)
+        result = await query('{"test": "value"}', '.test', compact=True, raw_output=True)
         assert "value" in result
         
         # Verify compact and raw flags were used
-        call_args = mock_run.call_args[0][0]
+        call_args = mock_subprocess.call_args[0]
         assert "-c" in call_args
         assert "-r" in call_args
     
-    @patch('subprocess.run')
-    def test_query_file_path(self, mock_run):
-        mock_run.return_value.stdout = '"value"'
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_query_file_path(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'"value"', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
             f.write('{"test": "value"}')
             f.flush()
             
             try:
-                result = query(f.name, '.test')
+                result = await query(f.name, '.test')
                 assert '"value"' in result
                 
                 # Verify file path was passed to jq
-                call_args = mock_run.call_args[0][0]
+                call_args = mock_subprocess.call_args[0]
                 assert f.name in call_args
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
-    def test_read_file(self, mock_run):
-        mock_run.return_value.stdout = '{"formatted": true}'
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_read_file(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'{"formatted": true}', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = read("/tmp/test.json", ".formatted")
+        result = await read("/tmp/test.json", ".formatted")
         assert "formatted" in result
     
     @pytest.mark.parametrize("data,filter,error_msg,expected_exception", [
@@ -134,70 +142,90 @@ class TestJQUnit:
         ('{"test": "value"}', '.nonexistent | error', 'Cannot index', ValueError),
         ('[]', '.[10]', 'Cannot index array with string', ValueError),
     ])
-    @patch('subprocess.run')
-    def test_jq_error_handling_parameterized(self, mock_run, data, filter, error_msg, expected_exception):
-        from subprocess import CalledProcessError
-        mock_run.side_effect = CalledProcessError(1, "jq", stderr=error_msg)
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_jq_error_handling_parameterized(self, mock_subprocess, data, filter, error_msg, expected_exception):
+        # Mock the async subprocess to return an error
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"", error_msg.encode())
+        mock_process.returncode = 1
+        mock_subprocess.return_value = mock_process
         
         with pytest.raises(expected_exception, match="jq error"):
-            query(data, filter)
+            await query(data, filter)
     
-    @patch('subprocess.run')
-    def test_query_with_dict_input(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_query_with_dict_input(self, mock_subprocess):
         """Test query with dict input (line 20)."""
-        mock_run.return_value.stdout = '"Alice"'
-        mock_run.return_value.returncode = 0
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'"Alice"', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         # Pass dict directly (FastMCP auto-parses JSON to dict)
-        result = query({"name": "Alice"}, '.name')
+        result = await query({"name": "Alice"}, '.name')
         assert '"Alice"' in result
     
-    @patch('subprocess.run')
-    def test_query_with_list_input(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_query_with_list_input(self, mock_subprocess):
         """Test query with list input (line 20)."""
-        mock_run.return_value.stdout = '3'
-        mock_run.return_value.returncode = 0
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'3', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         # Pass list directly (FastMCP auto-parses JSON to list)
-        result = query([1, 2, 3], 'length')
+        result = await query([1, 2, 3], 'length')
         assert '3' in result
     
-    @patch('subprocess.run')
-    def test_query_with_non_string_fallback(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_query_with_non_string_fallback(self, mock_subprocess):
         """Test query with non-string data fallback (line 30)."""
-        mock_run.return_value.stdout = '123'
-        mock_run.return_value.returncode = 0
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'123', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         # Pass integer (should convert to string)
-        result = query(123, '.')
+        result = await query(123, '.')
         assert '123' in result
     
-    @patch('subprocess.run')
-    def test_jq_command_not_found(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_jq_command_not_found(self, mock_subprocess):
         """Test jq command not found error (lines 46-47)."""
-        mock_run.side_effect = FileNotFoundError("jq: command not found")
+        mock_subprocess.side_effect = FileNotFoundError("jq: command not found")
         
         with pytest.raises(RuntimeError, match="jq command not found"):
-            query('{"test": "value"}', '.test')
+            await query('{"test": "value"}', '.test')
     
-    def test_format_pretty_print(self):
+    @pytest.mark.asyncio
+    async def test_format_pretty_print(self):
         """Test non-compact formatting (line 249)."""
         data = '{"b": 2, "a": 1}'
-        result = jq_format(data, compact=False, sort_keys=True)
+        result = await jq_format(data, compact=False, sort_keys=True)
         
         # Should have indentation (non-compact)
         assert '{\n' in result
         assert '"a"' in result
         assert '"b"' in result
     
-    @patch('mcp_handley_lab.jq.tool._run_jq')
-    def test_server_info_success(self, mock_run_jq):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.jq.tool._run_jq', new_callable=AsyncMock)
+    async def test_server_info_success(self, mock_run_jq):
         """Test server_info function (lines 255-271)."""
         from mcp_handley_lab.jq.tool import server_info
         
+        # Mock the async function
         mock_run_jq.return_value = "jq-1.6"
         
-        result = server_info()
+        result = await server_info()
         assert "JQ Tool Server Status" in result
         assert "jq-1.6" in result
         assert "Connected and ready" in result
@@ -205,15 +233,17 @@ class TestJQUnit:
         assert "edit:" in result
         assert "validate:" in result
     
-    @patch('mcp_handley_lab.jq.tool._run_jq')
-    def test_server_info_error(self, mock_run_jq):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.jq.tool._run_jq', new_callable=AsyncMock)
+    async def test_server_info_error(self, mock_run_jq):
         """Test server_info error handling (line 271)."""
         from mcp_handley_lab.jq.tool import server_info
         
+        # Mock the async function to raise an exception directly
         mock_run_jq.side_effect = RuntimeError("jq command not found")
         
         with pytest.raises(RuntimeError, match="jq command not found"):
-            server_info()
+            await server_info()
 
 class TestVimUnit:
     

@@ -1,5 +1,6 @@
 """ArXiv source code retrieval MCP server."""
 
+import asyncio
 import gzip
 import os
 import tarfile
@@ -8,7 +9,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-import requests
+import httpx
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("ArXiv Tool")
@@ -25,7 +26,7 @@ def _cache_source(arxiv_id: str, content: bytes) -> None:
     cache_file = Path(tempfile.gettempdir()) / f"arxiv_{arxiv_id}.tar"
     cache_file.write_bytes(content)
 
-def _get_source_archive(arxiv_id: str) -> bytes:
+async def _get_source_archive(arxiv_id: str) -> bytes:
     """Get source archive, using cache if available."""
     # Check cache first
     cached = _get_cached_source(arxiv_id)
@@ -35,10 +36,11 @@ def _get_source_archive(arxiv_id: str) -> bytes:
     # Download and cache
     url = f'https://arxiv.org/src/{arxiv_id}'
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        _cache_source(arxiv_id, response.content)
-        return response.content
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            _cache_source(arxiv_id, response.content)
+            return response.content
     except Exception as e:
         raise RuntimeError(f'Error fetching ArXiv data: {e}')
 
@@ -120,7 +122,7 @@ def _handle_tar_archive(arxiv_id: str, content: bytes, format: str, output_path:
         raise ValueError(f'Error extracting tar archive: {e}')
 
 @mcp.tool()
-def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str:
+async def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str:
     """
     Download ArXiv paper in specified format.
     
@@ -146,8 +148,9 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
         url = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
 
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            async with httpx.AsyncClient(follow_redirects=True) as client:
+                response = await client.get(url)
+                response.raise_for_status()
         except Exception as e:
             raise RuntimeError(f'Error fetching ArXiv PDF: {e}')
 
@@ -162,11 +165,11 @@ def download(arxiv_id: str, format: str = 'src', output_path: str = None) -> str
             return f'ArXiv PDF saved to: {output_path} ({size_mb:.2f} MB)'
 
     else:  # src or tex format
-        content = _get_source_archive(arxiv_id)
+        content = await _get_source_archive(arxiv_id)
         return _handle_source_content(arxiv_id, content, format, output_path)
 
 @mcp.tool()
-def list_files(arxiv_id: str) -> list[str]:
+async def list_files(arxiv_id: str) -> list[str]:
     """
     List all files in an ArXiv source archive.
     
@@ -176,7 +179,7 @@ def list_files(arxiv_id: str) -> list[str]:
     Returns:
         List of filenames in the archive
     """
-    content = _get_source_archive(arxiv_id)
+    content = await _get_source_archive(arxiv_id)
 
     if _is_tar_archive(content):
         # Handle tar archive
@@ -196,7 +199,7 @@ def list_files(arxiv_id: str) -> list[str]:
 
 
 @mcp.tool()
-def server_info() -> dict[str, Any]:
+async def server_info() -> dict[str, Any]:
     """
     Get information about the ArXiv tool server.
     

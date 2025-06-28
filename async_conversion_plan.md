@@ -1,199 +1,160 @@
-# Async Conversion Plan for MCP Tools
+# MCP Tool Async Conversion Complexity Analysis
 
-## Context
-Converting MCP tools to async to enable concurrent operations and improve I/O efficiency. Starting with the simplest tool first.
+This document analyzes the complexity of converting each MCP tool from synchronous to asynchronous operation, ranking them from easiest to hardest based on dependencies, function count, and async operation types.
 
-## Research Findings
-From Gemini analysis, key benefits of async MCP tools:
-- **Performance**: Concurrent operations, I/O efficiency, higher throughput
-- **Resource efficiency**: Better memory usage, simplified thread management
-- **Scalability**: Handle multiple requests, backpressure management
-- **Trade-offs**: Implementation complexity, testing challenges
+## Analysis Criteria
 
-## Target: JQ Tool (First Conversion)
+1. **External Dependencies**: subprocess, HTTP APIs, file I/O operations
+2. **Function Count**: Number of functions requiring conversion
+3. **Async Operation Types**: Simple vs complex async patterns
+4. **State Management**: Complexity of shared state and error handling
 
-**File**: `src/mcp_handley_lab/jq/tool.py`
+## Tool Analysis Details
 
-**Why JQ tool is ideal for first async conversion**:
-- Pure I/O operations (subprocess calls to jq CLI)
-- No complex state management
-- Minimal dependencies (subprocess, json, pathlib)
-- Self-contained in single file
-- All functions are independent with clear inputs/outputs
+### 1. JQ Tool (`src/mcp_handley_lab/jq/tool.py`)
+- **Functions**: 6 tools (query, edit, read, validate, format, server_info)
+- **Dependencies**: subprocess (jq command), file I/O
+- **Current State**: **Already async-ready** - uses `async def` and `asyncio.create_subprocess_exec`
+- **Complexity**: ✅ **COMPLETE** - No conversion needed
 
-## Detailed Conversion Steps
+### 2. ArXiv Tool (`src/mcp_handley_lab/arxiv/tool.py`)
+- **Functions**: 3 tools (download, list_files, server_info)
+- **Dependencies**: HTTP requests (requests library), file I/O, tarfile/gzip operations
+- **Async Operations**: 
+  - HTTP requests (`requests.get()` → `aiohttp` or `httpx`)
+  - File I/O operations (synchronous file operations)
+- **Complexity**: **LOW** - Simple HTTP + file operations, no state management
 
-### 1. Update Imports
-```python
-# Add to existing imports
-import asyncio
-```
+### 3. Code2Prompt Tool (`src/mcp_handley_lab/code2prompt/tool.py`)
+- **Functions**: 2 tools (generate_prompt, server_info)
+- **Dependencies**: subprocess (code2prompt CLI), file I/O
+- **Async Operations**:
+  - Subprocess execution (`subprocess.run()` → `asyncio.create_subprocess_exec`)
+  - File I/O operations
+- **Complexity**: **LOW** - Simple subprocess + file operations, minimal error handling
 
-### 2. Convert `_run_jq` Helper Function
-**Current** (sync):
-```python
-def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    try:
-        result = subprocess.run(
-            ["jq"] + args,
-            input=input_text,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        raise ValueError(f"jq error: {e.stderr.strip()}")
-    except FileNotFoundError:
-        raise RuntimeError("jq command not found. Please install jq.")
-```
+### 4. Vim Tool (`src/mcp_handley_lab/vim/tool.py`)
+- **Functions**: 4 tools (prompt_user_edit, quick_edit, open_file, server_info)
+- **Dependencies**: subprocess (vim command), file I/O, difflib
+- **Async Operations**:
+  - Interactive subprocess execution (`subprocess.run()` → async subprocess)
+  - File I/O operations (temp files, diffs)
+- **Complexity**: **LOW-MEDIUM** - Interactive processes require careful async handling, but straightforward patterns
 
-**Target** (async):
-```python
-async def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    try:
-        process = await asyncio.create_subprocess_exec(
-            "jq", *args,
-            stdin=asyncio.subprocess.PIPE if input_text else None,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            text=True
-        )
-        
-        stdout, stderr = await process.communicate(input=input_text)
-        
-        if process.returncode != 0:
-            raise ValueError(f"jq error: {stderr.strip()}")
-            
-        return stdout.strip()
-    except FileNotFoundError:
-        raise RuntimeError("jq command not found. Please install jq.")
-```
+### 5. OpenAI Tool (`src/mcp_handley_lab/llm/openai/tool.py`)
+- **Functions**: 4 tools (ask, analyze_image, generate_image, get_response, server_info)
+- **Dependencies**: OpenAI API (openai library), file I/O, image processing, agent memory
+- **Async Operations**:
+  - OpenAI API calls (HTTP-based, library has async support)
+  - File I/O operations
+  - Agent memory management (shared state)
+- **Complexity**: **MEDIUM** - OpenAI library has good async support, memory management adds complexity
 
-### 3. Convert All Tool Functions to Async
+### 6. Google Calendar Tool (`src/mcp_handley_lab/google_calendar/tool.py`)
+- **Functions**: 8 tools (list_events, get_event, create_event, update_event, delete_event, list_calendars, find_time, server_info)
+- **Dependencies**: Google Calendar API (googleapiclient), OAuth authentication, file I/O
+- **Async Operations**:
+  - Google API calls (HTTP-based, complex authentication)
+  - OAuth token management
+  - Complex API response handling
+- **Complexity**: **MEDIUM-HIGH** - Google API client doesn't have native async support, requires aiohttp wrapper or thread pool
 
-**Functions to convert** (6 total):
-1. `query` - Main JSON querying function
-2. `edit` - In-place JSON file editing
-3. `read` - Read and pretty-print JSON files
-4. `validate` - JSON syntax validation
-5. `format` - JSON formatting
-6. `server_info` - Server status
+### 7. Gemini Tool (`src/mcp_handley_lab/llm/gemini/tool.py`)
+- **Functions**: 10 tools (ask, analyze_image, generate_image, create_agent, list_agents, agent_stats, get_response, clear_agent, delete_agent, server_info)
+- **Dependencies**: Google Gemini API (google-genai), file I/O, image processing, agent memory, Files API
+- **Async Operations**:
+  - Gemini API calls (HTTP-based)
+  - File upload to Google Files API
+  - Complex agent memory management
+  - Image processing with PIL
+- **Complexity**: **HIGH** - Most functions, complex memory management, multiple API integrations, new google-genai SDK may lack async support
 
-**Pattern for conversion**:
-- Change `def function_name(...)` to `async def function_name(...)`
-- Change `_run_jq(...)` calls to `await _run_jq(...)`
-- Update any file I/O to async if needed (or keep sync since it's minimal)
+### 8. Tool Chainer (`src/mcp_handley_lab/tool_chainer/tool.py`)
+- **Functions**: 7 tools (discover_tools, register_tool, chain_tools, execute_chain, show_history, clear_cache, server_info)
+- **Dependencies**: subprocess (MCP servers), JSON-RPC protocol, file I/O, complex state management
+- **Async Operations**:
+  - Multiple subprocess executions (chained tools)
+  - JSON-RPC communication protocols
+  - Complex variable substitution and conditional logic
+  - Execution history and state persistence
+- **Complexity**: **HIGHEST** - Most complex async patterns, orchestrates other tools, complex error handling and state management
 
-### 4. Key Implementation Notes
+## Conversion Order Ranking (Easiest → Hardest)
 
-**Error Handling**: Keep existing exception types (ValueError, RuntimeError) - FastMCP handles conversion to MCP errors automatically.
+### 1. ✅ JQ Tool (COMPLETE)
+**Status**: Already async-ready
+**Reasoning**: No conversion needed, already uses proper async patterns
 
-**File Operations**: The `_resolve_data` helper and file read operations can remain sync since they're fast local operations. Only subprocess calls need to be async.
+### 2. 🟢 ArXiv Tool (EASY)
+**Functions**: 3 tools
+**Key Changes**: 
+- Replace `requests.get()` with `aiohttp.ClientSession.get()`
+- Convert file I/O to async where beneficial
+- Simple error handling patterns
 
-**FastMCP Compatibility**: FastMCP automatically handles both async and sync tool functions, so the API surface remains identical to clients.
+### 3. 🟢 Code2Prompt Tool (EASY)  
+**Functions**: 2 tools
+**Key Changes**:
+- Replace `subprocess.run()` with `asyncio.create_subprocess_exec()`
+- Convert file I/O operations
+- Minimal complexity, follows JQ tool patterns
 
-## Testing Strategy
+### 4. 🟡 Vim Tool (LOW-MEDIUM)
+**Functions**: 4 tools  
+**Key Changes**:
+- Handle interactive subprocess execution asynchronously
+- Convert file I/O and diff operations
+- Manage temporary files with async cleanup
 
-### 1. Verify Existing Unit Tests Pass
-```bash
-python -m pytest tests/test_jq.py -v
-```
+### 5. 🟡 OpenAI Tool (MEDIUM)
+**Functions**: 4 tools
+**Key Changes**:
+- Use OpenAI's async client (`AsyncOpenAI`)
+- Convert agent memory operations to async
+- Handle file uploads and image processing asynchronously
 
-### 2. JSON-RPC Functionality Test
-Create test script to verify MCP protocol still works:
-```python
-#!/usr/bin/env python3
-import subprocess
-import json
+### 6. 🟠 Google Calendar Tool (MEDIUM-HIGH)
+**Functions**: 8 tools
+**Key Changes**:
+- Wrap Google API calls with async HTTP client or thread pool
+- Handle OAuth token refresh asynchronously  
+- Complex API response processing
+- Most functions to convert
 
-def test_async_jq_jsonrpc():
-    process = subprocess.Popen(
-        ['python', '-m', 'mcp_handley_lab', 'jq'], 
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, 
-        stderr=subprocess.PIPE, text=True, bufsize=0)
-    
-    try:
-        # Initialize
-        init_request = {
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2024-11-05", "capabilities": {}, 
-                      "clientInfo": {"name": "test-client", "version": "1.0.0"}}
-        }
-        process.stdin.write(json.dumps(init_request) + '\n')
-        process.stdin.flush()
-        response = process.stdout.readline()
-        print("Initialize:", response.strip())
-        
-        # Send initialized notification
-        process.stdin.write('{"jsonrpc": "2.0", "method": "notifications/initialized"}\n')
-        process.stdin.flush()
-        
-        # Test query tool
-        query_request = {
-            "jsonrpc": "2.0", "id": 2, "method": "tools/call",
-            "params": {"name": "query", "arguments": {"data": '{"test": "value"}', "filter": ".test"}}
-        }
-        process.stdin.write(json.dumps(query_request) + '\n')
-        process.stdin.flush()
-        response = process.stdout.readline()
-        print("Query result:", response.strip())
-        
-        if '"isError":true' in response:
-            print("❌ Async conversion failed!")
-        else:
-            print("✅ Async conversion successful!")
-            
-    finally:
-        process.terminate()
-        process.wait()
+### 7. 🔴 Gemini Tool (HIGH)
+**Functions**: 10 tools
+**Key Changes**:
+- Check if google-genai SDK supports async, otherwise wrap in thread pool
+- Convert complex agent memory management to async
+- Handle Files API uploads asynchronously
+- Image processing with async I/O
+- Most complex memory management
 
-if __name__ == "__main__": test_async_jq_jsonrpc()
-```
+### 8. 🔴 Tool Chainer (HIGHEST)
+**Functions**: 7 tools
+**Key Changes**:
+- Convert MCP server communication to async
+- Handle chained tool execution with proper async coordination
+- Complex state management and variable substitution
+- Error handling across multiple async operations
+- Orchestration of other async tools
 
-### 3. Performance Verification
-Test concurrent operations to verify async benefits:
-```python
-import asyncio
-import time
+## Implementation Strategy
 
-async def test_concurrent_queries():
-    # Multiple concurrent jq operations should be faster than sequential
-    start = time.time()
-    # Test with multiple concurrent query calls
-    end = time.time()
-    print(f"Concurrent operations took: {end - start:.2f}s")
-```
+1. **Start with completed (JQ) as reference pattern**
+2. **Build up complexity gradually** - each tool can reference patterns from previous conversions
+3. **Test each tool thoroughly** before moving to the next
+4. **Use consistent async patterns** across all tools
+5. **Maintain backward compatibility** where possible
+6. **Focus on proper error handling** for async operations
 
-## Expected Benefits After Conversion
+## Key Async Patterns to Implement
 
-1. **Multiple JQ operations can run concurrently**
-2. **Non-blocking I/O for CLI subprocess calls**
-3. **Foundation for converting other tools to async**
-4. **Same API surface** - FastMCP handles async/sync transparently
+- `aiohttp.ClientSession` for HTTP requests
+- `asyncio.create_subprocess_exec` for subprocess calls  
+- `aiofiles` for file I/O operations
+- `asyncio.gather()` for concurrent operations
+- Proper async context managers for resource cleanup
+- Thread pool executors for CPU-bound operations
 
-## Verification Checklist
-
-- [ ] All imports updated
-- [ ] `_run_jq` helper converted to async subprocess
-- [ ] All 6 tool functions converted to `async def`
-- [ ] Existing unit tests pass
-- [ ] JSON-RPC functionality verified
-- [ ] Performance improvement measured (optional)
-- [ ] No breaking changes to client API
-
-## Next Tools for Async Conversion
-
-After JQ tool success:
-1. **Vim tool** - Interactive operations, could benefit from async
-2. **Code2Prompt tool** - CLI subprocess operations
-3. **LLM tools** (Gemini/OpenAI) - Network I/O, high async benefit
-4. **Google Calendar** - Network API calls
-5. **Tool Chainer** - Orchestrates other tools, would benefit from async composition
-
-## Notes
-
-- FastMCP handles async/sync compatibility automatically
-- No changes needed to client code
-- Error handling patterns remain the same
-- This is alpha software - breaking changes acceptable for improvements
+This ranking provides a clear path for systematic async conversion, building complexity gradually while maintaining working tools at each step.

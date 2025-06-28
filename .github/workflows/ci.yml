@@ -22,6 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install packaging  # For version comparison
         pip install -e ".[dev]"
     
     - name: Setup Rust toolchain
@@ -45,6 +46,10 @@ jobs:
         if ! command -v code2prompt &> /dev/null; then
           cargo install code2prompt
         fi
+    
+    - name: Check version bump
+      run: |
+        python scripts/check_version_bump.py
         
     - name: Test with pytest
       run: |

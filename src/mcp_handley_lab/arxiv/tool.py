@@ -205,7 +205,6 @@ def server_info() -> dict[str, Any]:
     """
     return {
         "name": "ArXiv Tool",
-        "version": "2.0.0",
         "description": "Tool for downloading ArXiv papers in multiple formats",
         "functions": [
             "download - Download ArXiv papers in src/pdf/tex format",

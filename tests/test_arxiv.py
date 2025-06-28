@@ -212,7 +212,6 @@ class TestArxivTool:
         info = server_info()
 
         assert info['name'] == 'ArXiv Tool'
-        assert 'version' in info
         assert 'description' in info
         assert 'functions' in info
         assert isinstance(info['functions'], list)

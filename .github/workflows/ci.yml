@@ -15,6 +15,17 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.13"
+        cache: 'pip'
+        cache-dependency-path: |
+          pyproject.toml
+          
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
         
     - name: Install dependencies
       run: |
@@ -24,6 +35,12 @@ jobs:
     - name: Setup Rust toolchain
       uses: dtolnay/rust-toolchain@stable
     
+    - name: Cache cargo binaries
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/bin
+        key: ${{ runner.os }}-cargo-bin-code2prompt
+        
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
       with:

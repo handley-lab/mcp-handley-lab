@@ -1,9 +1,17 @@
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
+
+# Check if code2prompt is available
+try:
+    subprocess.run(["code2prompt", "--version"], check=True, capture_output=True)
+    CODE2PROMPT_AVAILABLE = True
+except (subprocess.CalledProcessError, FileNotFoundError):
+    CODE2PROMPT_AVAILABLE = False
 
 from mcp_handley_lab.code2prompt.tool import generate_prompt
 from mcp_handley_lab.jq.tool import edit, query, read, validate
@@ -32,8 +40,16 @@ class TestJQUnit:
         with pytest.raises(ValueError):
             edit(file_path="", filter=".test")
 
-        with pytest.raises(ValueError):
-            edit(file_path="/tmp/test.json", filter="")
+        # Create a temporary file for the second test
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            f.write('{"test": "data"}')
+            temp_path = f.name
+        
+        try:
+            with pytest.raises(ValueError):
+                edit(file_path=temp_path, filter="")
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
 
     @patch('subprocess.run')
     def test_validate_valid_json(self, mock_run):
@@ -155,11 +171,22 @@ class TestVimUnit:
         assert "test content" in result or "no changes" in result.lower()
 
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="file content")
-    def test_open_file_success(self, mock_file, mock_run):
+    def test_open_file_success(self, mock_run):
         mock_run.return_value = None
-        result = open_file("/tmp/test.txt", show_diff=False)
-        assert "file edited" in result.lower() or "backup saved" in result.lower()
+        
+        # Create a real temporary file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write("file content")
+            temp_path = f.name
+        
+        try:
+            result = open_file(temp_path, show_diff=False)
+            assert "file edited" in result.lower() or "backup saved" in result.lower()
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+            # Also clean up backup file if it exists
+            backup_path = Path(temp_path + ".bak")
+            backup_path.unlink(missing_ok=True)
 
     @patch('subprocess.run')
     @patch('builtins.open', new_callable=mock_open, read_data="quick content")
@@ -208,6 +235,7 @@ class TestVimUnit:
         result = server_info()
         assert "vim" in result.lower() and "status" in result.lower()
 
+@pytest.mark.skipif(not CODE2PROMPT_AVAILABLE, reason="code2prompt CLI not available")
 class TestCode2PromptUnit:
 
     def test_generate_prompt_validation(self):

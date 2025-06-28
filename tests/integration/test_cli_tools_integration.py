@@ -1,8 +1,16 @@
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 
 import pytest
+
+# Check if code2prompt is available
+try:
+    subprocess.run(["code2prompt", "--version"], check=True, capture_output=True)
+    CODE2PROMPT_AVAILABLE = True
+except (subprocess.CalledProcessError, FileNotFoundError):
+    CODE2PROMPT_AVAILABLE = False
 
 from mcp_handley_lab.code2prompt.tool import generate_prompt
 from mcp_handley_lab.code2prompt.tool import server_info as code2prompt_server_info
@@ -101,6 +109,7 @@ class TestVimIntegration:
         assert "vim" in result.lower()
         assert "version" in result.lower() or "available" in result.lower()
 
+@pytest.mark.skipif(not CODE2PROMPT_AVAILABLE, reason="code2prompt CLI not available")
 class TestCode2PromptIntegration:
 
     @pytest.mark.vcr

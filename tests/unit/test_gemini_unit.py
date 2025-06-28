@@ -239,3 +239,86 @@ class TestInputValidation:
         except Exception:
             # Other exceptions are expected (like the mock exception)
             pass
+
+
+class TestErrorHandling:
+    """Test error handling scenarios for coverage."""
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.settings')
+    @patch('mcp_handley_lab.llm.gemini.tool.google_genai.Client')
+    def test_client_initialization_error(self, mock_client_class, mock_settings):
+        """Test client initialization error handling (lines 32-34)."""
+        # Force the initialization to fail
+        mock_settings.gemini_api_key = 'test_key'
+        mock_client_class.side_effect = Exception("API key invalid")
+        
+        # Import the module to trigger initialization
+        import importlib
+        import mcp_handley_lab.llm.gemini.tool
+        importlib.reload(mcp_handley_lab.llm.gemini.tool)
+        
+        # The module should load but client should be None
+        assert mcp_handley_lab.llm.gemini.tool.client is None
+        assert mcp_handley_lab.llm.gemini.tool.initialization_error == "API key invalid"
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.is_text_file')
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.stat')
+    @patch('pathlib.Path.read_text')
+    def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
+        """Test file reading error in _resolve_files (lines 127-131)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_files
+        
+        mock_exists.return_value = True
+        mock_stat.return_value.st_size = 100  # Small file
+        mock_is_text.return_value = True
+        # Make read_text fail
+        mock_read_text.side_effect = Exception("Permission denied")
+        
+        files = [{"path": "/tmp/test.txt"}]
+        parts = _resolve_files(files)
+        
+        # Should have error message part
+        assert len(parts) == 1
+        assert "Error reading file" in parts[0].text
+        assert "Permission denied" in parts[0].text
+    
+    @patch('pathlib.Path.exists')
+    def test_resolve_files_processing_error(self, mock_exists):
+        """Test file processing error in _resolve_files (lines 130-131)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_files
+        
+        # Make the path check itself fail
+        mock_exists.side_effect = Exception("Invalid path")
+        
+        files = [{"path": "/invalid/path"}]
+        parts = _resolve_files(files)
+        
+        # Should have error message part
+        assert len(parts) == 1
+        assert "Error processing file /invalid/path: Invalid path" in parts[0].text
+    
+    @patch('pathlib.Path.read_bytes')
+    @patch('PIL.Image.open')
+    def test_resolve_images_load_error(self, mock_image_open, mock_read_bytes):
+        """Test image loading error in _resolve_images (lines 161-162)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_images
+        
+        # Return valid bytes but make PIL.Image.open fail
+        mock_read_bytes.return_value = b"some image data"
+        mock_image_open.side_effect = Exception("Invalid image format")
+        
+        with pytest.raises(ValueError, match="Failed to load image"):
+            _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
+    
+    def test_analyze_image_output_file_validation(self):
+        """Test output file validation in analyze_image (line 485)."""
+        from mcp_handley_lab.llm.gemini.tool import analyze_image
+        
+        # Test with whitespace-only output file
+        with pytest.raises(ValueError, match="Output file is required"):
+            analyze_image(
+                prompt="Test",
+                output_file="   ",  # Whitespace only
+                image_data="data:image/png;base64,test"
+            )

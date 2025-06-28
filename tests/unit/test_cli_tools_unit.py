@@ -218,25 +218,29 @@ class TestCode2PromptUnit:
         mock_run.return_value.returncode = 0
         
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = generate_prompt(
-                path=temp_dir,
-                output_file="/tmp/test_output.md"
-            )
-            assert "success" in result.lower()
-    
-    @patch('subprocess.run')
-    @patch('pathlib.Path.stat')
-    def test_generate_prompt_with_filters(self, mock_stat, mock_run):
-        mock_run.return_value.stdout = "Generated with filters"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
-        mock_stat.return_value.st_size = 1024  # Mock file size
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create the output file to avoid stat error
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
                 f.write("test content")
                 
+            try:
+                result = generate_prompt(
+                    path=temp_dir,
+                    output_file=f.name
+                )
+                assert "success" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
+    
+    @patch('subprocess.run')
+    def test_generate_prompt_with_filters(self, mock_run):
+        mock_run.return_value.stdout = "Generated with filters"
+        mock_run.return_value.stderr = ""
+        mock_run.return_value.returncode = 0
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
+                f.write("test content")
+
+            try:
                 result = generate_prompt(
                     path=temp_dir,
                     include=["*.py"],
@@ -244,7 +248,7 @@ class TestCode2PromptUnit:
                     output_file=f.name
                 )
                 assert "success" in result.lower() or "generated" in result.lower()
-                
+            finally:
                 Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')

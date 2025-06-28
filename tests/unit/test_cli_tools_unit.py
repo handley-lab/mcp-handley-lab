@@ -254,43 +254,47 @@ class TestVimUnit:
         (".py", "", False, "content"),
         (".js", "console.log('test')", True, "changes"),
     ])
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('builtins.open', new_callable=mock_open)
-    def test_prompt_user_edit_parameterized(self, mock_file, mock_run, file_ext, initial_content, show_diff, expected_in_result):
+    async def test_prompt_user_edit_parameterized(self, mock_file, mock_run_vim, file_ext, initial_content, show_diff, expected_in_result):
         mock_file.return_value.read.return_value = initial_content or "default content"
-        mock_run.return_value = None
+        mock_run_vim.return_value = None
         
-        result = prompt_user_edit(initial_content, file_extension=file_ext, show_diff=show_diff)
+        result = await prompt_user_edit(initial_content, file_extension=file_ext, show_diff=show_diff)
         assert expected_in_result in result.lower()
-        mock_run.assert_called_once()
+        mock_run_vim.assert_called_once()
     
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('builtins.open', new_callable=mock_open)
-    def test_prompt_user_edit_with_diff(self, mock_file, mock_run):
+    async def test_prompt_user_edit_with_diff(self, mock_file, mock_run_vim):
         # First read returns original, second returns modified
         mock_file.return_value.read.side_effect = ["original content", "modified content"]
-        mock_run.return_value = None
+        mock_run_vim.return_value = None
         
-        result = prompt_user_edit("original content", show_diff=True)
+        result = await prompt_user_edit("original content", show_diff=True)
         assert "Changes made:" in result or "No changes made" in result
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('builtins.open', new_callable=mock_open, read_data="test content")
-    def test_prompt_user_edit_with_instructions(self, mock_file, mock_run):
-        mock_run.return_value = None
-        result = prompt_user_edit(
+    async def test_prompt_user_edit_with_instructions(self, mock_file, mock_run_vim):
+        mock_run_vim.return_value = None
+        result = await prompt_user_edit(
             "test content", 
             instructions="Edit this file",
             file_extension=".py"
         )
         assert "test content" in result or "no changes" in result.lower()
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('pathlib.Path.read_text')
     @patch('pathlib.Path.write_text')
-    def test_open_file_success(self, mock_write, mock_read, mock_run):
-        mock_run.return_value = None
+    async def test_open_file_success(self, mock_write, mock_read, mock_run_vim):
+        mock_run_vim.return_value = None
         mock_read.return_value = "file content"
         mock_write.return_value = None
         
@@ -298,110 +302,126 @@ class TestVimUnit:
             f.write("file content")
             
             try:
-                result = open_file(f.name, show_diff=False)
+                result = await open_file(f.name, show_diff=False)
                 assert "file edited" in result.lower() or "backup saved" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('builtins.open', new_callable=mock_open, read_data="quick content")
-    def test_quick_edit_success(self, mock_file, mock_run):
-        mock_run.return_value = None
-        result = quick_edit(initial_content="test", file_extension=".txt")
+    async def test_quick_edit_success(self, mock_file, mock_run_vim):
+        mock_run_vim.return_value = None
+        result = await quick_edit(initial_content="test", file_extension=".txt")
         assert "quick content" in result or "created successfully" in result.lower()
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('pathlib.Path.read_text')
     @patch('pathlib.Path.write_text')
-    def test_open_file_with_backup(self, mock_write, mock_read, mock_run):
+    async def test_open_file_with_backup(self, mock_write, mock_read, mock_run_vim):
         mock_read.return_value = "original content"
         mock_write.return_value = None
-        mock_run.return_value = None
+        mock_run_vim.return_value = None
         
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
             f.write("original content")
             
             try:
-                result = open_file(f.name, backup=True, show_diff=False)
+                result = await open_file(f.name, backup=True, show_diff=False)
                 assert "backup saved" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
     @patch('pathlib.Path.read_text')
     @patch('pathlib.Path.write_text')
-    def test_open_file_with_instructions(self, mock_write, mock_read, mock_run):
+    async def test_open_file_with_instructions(self, mock_write, mock_read, mock_run_vim):
         mock_read.return_value = "original content"
         mock_write.return_value = None
-        mock_run.return_value = None
+        mock_run_vim.return_value = None
         
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
             f.write("original content")
             
             try:
-                result = open_file(f.name, instructions="Edit this file carefully")
+                result = await open_file(f.name, instructions="Edit this file carefully")
                 assert "file edited" in result.lower() or "no changes" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')  
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)  
     @patch('pathlib.Path.read_text')
     @patch('pathlib.Path.write_text')
-    def test_open_file_with_diff(self, mock_write, mock_read, mock_run):
+    async def test_open_file_with_diff(self, mock_write, mock_read, mock_run_vim):
         # Return different content to trigger diff
         mock_read.side_effect = ["original content", "different content"]
         mock_write.return_value = None
-        mock_run.return_value = None
+        mock_run_vim.return_value = None
         
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
             f.write("original content")
             
             try:
-                result = open_file(f.name, show_diff=True)
+                result = await open_file(f.name, show_diff=True)
                 assert "changes made" in result.lower() or "diff" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
-    def test_vim_server_info(self, mock_run):
-        mock_run.return_value.stdout = "VIM - Vi IMproved 8.2"
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_vim_server_info(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"VIM - Vi IMproved 8.2", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         from mcp_handley_lab.vim.tool import server_info
-        result = server_info()
+        result = await server_info()
         assert "vim" in result.lower() and "status" in result.lower()
     
+    @pytest.mark.asyncio
     @patch('os.isatty')
-    @patch('subprocess.run')
-    def test_run_vim_no_tty(self, mock_run, mock_isatty):
+    @patch('asyncio.create_subprocess_exec')
+    async def test_run_vim_no_tty(self, mock_subprocess, mock_isatty):
         """Test vim without TTY (line 19)."""
         from mcp_handley_lab.vim.tool import _run_vim
         
         mock_isatty.return_value = False  # No TTY
-        mock_run.return_value = None
+        mock_process = AsyncMock()
+        mock_process.wait.return_value = None
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        _run_vim("/tmp/test.txt")
-        mock_run.assert_called()
+        await _run_vim("/tmp/test.txt")
+        mock_subprocess.assert_called()
         
-        # Should call subprocess.run without special handling
-        call_args = mock_run.call_args[0][0]
+        # Should call create_subprocess_exec
+        call_args = mock_subprocess.call_args[0]
         assert 'vim' in call_args
         assert '/tmp/test.txt' in call_args
     
+    @pytest.mark.asyncio
     @patch('os.isatty')
-    @patch('subprocess.run')
-    def test_run_vim_with_tty(self, mock_run, mock_isatty):
+    @patch('asyncio.create_subprocess_exec')
+    async def test_run_vim_with_tty(self, mock_subprocess, mock_isatty):
         """Test vim with TTY (line 19)."""
         from mcp_handley_lab.vim.tool import _run_vim
         
         mock_isatty.return_value = True  # TTY available
-        mock_run.return_value = None
+        mock_process = AsyncMock()
+        mock_process.wait.return_value = None
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        _run_vim("/tmp/test.txt")
-        mock_run.assert_called()
+        await _run_vim("/tmp/test.txt")
+        mock_subprocess.assert_called()
         
-        # Should call subprocess.run 
-        call_args = mock_run.call_args[0][0]
+        # Should call create_subprocess_exec 
+        call_args = mock_subprocess.call_args[0]
         assert 'vim' in call_args
         assert '/tmp/test.txt' in call_args
     
@@ -419,21 +439,22 @@ more content"""
         result = _strip_instructions(content, "Instructions here", ".py")
         assert result == "actual content\nmore content"
     
-    @patch('subprocess.run') 
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock) 
     @patch('builtins.open', new_callable=mock_open, read_data="original content")
-    def test_prompt_user_edit_with_changes(self, mock_file, mock_run):
+    async def test_prompt_user_edit_with_changes(self, mock_file, mock_run_vim):
         """Test diff calculation when changes are made (lines 143-147)."""
         from mcp_handley_lab.vim.tool import prompt_user_edit
         
         # Mock vim writing different content
-        def side_effect(*args, **kwargs):
+        async def side_effect(*args, **kwargs):
             # Simulate vim changing the file
             mock_file.return_value.read.return_value = "new content\nadded line"
         
-        mock_run.side_effect = side_effect
+        mock_run_vim.side_effect = side_effect
         mock_file.return_value.read.return_value = "new content\nadded line"
         
-        result = prompt_user_edit("original content", show_diff=True)
+        result = await prompt_user_edit("original content", show_diff=True)
         
         # Should show added/removed line counts
         assert ("added" in result and "removed" in result) or "Changes made" in result
@@ -443,25 +464,27 @@ more content"""
         (PermissionError("Permission denied"), "Permission denied", PermissionError),
         (subprocess.CalledProcessError(1, "vim", stderr="Vim error"), "Vim error", subprocess.CalledProcessError),
     ])
-    @patch('subprocess.run')
-    def test_vim_error_handling_parameterized(self, mock_run, exception, error_msg, expected_exception):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.vim.tool._run_vim', new_callable=AsyncMock)
+    async def test_vim_error_handling_parameterized(self, mock_run_vim, exception, error_msg, expected_exception):
         """Test various vim error conditions."""
         from mcp_handley_lab.vim.tool import _run_vim
         
-        mock_run.side_effect = exception
+        mock_run_vim.side_effect = exception
         
         with pytest.raises(expected_exception):
-            _run_vim("/tmp/test.txt")
+            await _run_vim("/tmp/test.txt")
     
-    @patch('subprocess.run')
-    def test_server_info_vim_not_found(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_server_info_vim_not_found(self, mock_subprocess):
         """Test server_info when vim not found (lines 386-387)."""
         from mcp_handley_lab.vim.tool import server_info
         
-        mock_run.side_effect = FileNotFoundError("vim: command not found")
+        mock_subprocess.side_effect = FileNotFoundError("vim: command not found")
         
         with pytest.raises(RuntimeError, match="vim command not found"):
-            server_info()
+            await server_info()
 
 class TestCode2PromptUnit:
     

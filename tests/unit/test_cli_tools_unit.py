@@ -465,16 +465,20 @@ more content"""
 
 class TestCode2PromptUnit:
     
-    def test_generate_prompt_validation(self):
+    @pytest.mark.asyncio
+    async def test_generate_prompt_validation(self):
         with pytest.raises(ValueError):
-            generate_prompt(path="")
+            await generate_prompt(path="")
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
     @patch('pathlib.Path.stat')
-    def test_generate_prompt_success(self, mock_stat, mock_run):
-        mock_run.return_value.stdout = "Generated prompt successfully"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    async def test_generate_prompt_success(self, mock_stat, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Generated prompt successfully", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         mock_stat.return_value.st_size = 1024  # Mock file size
         
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -482,7 +486,7 @@ class TestCode2PromptUnit:
                 f.write("test content")
                 
             try:
-                result = generate_prompt(
+                result = await generate_prompt(
                     path=temp_dir,
                     output_file=f.name
                 )
@@ -490,18 +494,21 @@ class TestCode2PromptUnit:
             finally:
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
-    def test_generate_prompt_with_filters(self, mock_run):
-        mock_run.return_value.stdout = "Generated with filters"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_generate_prompt_with_filters(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Generated with filters", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         with tempfile.TemporaryDirectory() as temp_dir:
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
                 f.write("test content")
 
             try:
-                result = generate_prompt(
+                result = await generate_prompt(
                     path=temp_dir,
                     include=["*.py"],
                     exclude=["__pycache__"],
@@ -517,28 +524,40 @@ class TestCode2PromptUnit:
         (FileNotFoundError("code2prompt not found"), "code2prompt command not found", RuntimeError),
         (PermissionError("Permission denied"), "Permission denied", PermissionError),
     ])
-    @patch('subprocess.run')
-    def test_code2prompt_error_handling_parameterized(self, mock_run, exception, error_msg, expected_exception):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_code2prompt_error_handling_parameterized(self, mock_subprocess, exception, error_msg, expected_exception):
         """Test various code2prompt error conditions."""
-        mock_run.side_effect = exception
+        if isinstance(exception, subprocess.CalledProcessError):
+            # Mock subprocess that returns with error code
+            mock_process = AsyncMock()
+            mock_process.communicate.return_value = (b"", exception.stderr.encode() if exception.stderr else b"Command failed")
+            mock_process.returncode = exception.returncode
+            mock_subprocess.return_value = mock_process
+        else:
+            # Mock subprocess creation that raises exception
+            mock_subprocess.side_effect = exception
         
         with pytest.raises(expected_exception):
-            generate_prompt(path="/tmp/test")
+            await generate_prompt(path="/tmp/test")
     
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
     @patch('pathlib.Path.stat')
-    def test_generate_prompt_all_options(self, mock_stat, mock_run):
-        mock_run.return_value.stdout = "Generated with all options"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    async def test_generate_prompt_all_options(self, mock_stat, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Generated with all options", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         mock_stat.return_value.st_size = 2048
         
         with tempfile.TemporaryDirectory() as temp_dir:
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
                 f.write("test content")
                 
-                result = generate_prompt(
+                result = await generate_prompt(
                     path=temp_dir,
                     output_file=f.name,
                     include_priority=True,
@@ -558,19 +577,22 @@ class TestCode2PromptUnit:
                 
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
     @patch('pathlib.Path.stat')
-    def test_generate_prompt_git_options(self, mock_stat, mock_run):
-        mock_run.return_value.stdout = "Generated with git options"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    async def test_generate_prompt_git_options(self, mock_stat, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Generated with git options", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         mock_stat.return_value.st_size = 1024
         
         with tempfile.TemporaryDirectory() as temp_dir:
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
                 f.write("test content")
                 
-                result = generate_prompt(
+                result = await generate_prompt(
                     path=temp_dir,
                     output_file=f.name,
                     git_log_branch1="v1.0.0",
@@ -580,23 +602,27 @@ class TestCode2PromptUnit:
                 
                 Path(f.name).unlink(missing_ok=True)
     
-    @patch('subprocess.run')
-    def test_server_info(self, mock_run):
-        mock_run.return_value.stdout = "code2prompt version 1.2.3"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_server_info(self, mock_subprocess):
+        # Mock the async subprocess
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"code2prompt version 1.2.3", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
         # Import the server_info function 
         from mcp_handley_lab.code2prompt.tool import server_info
-        result = server_info()
+        result = await server_info()
         assert "status" in result.lower() and "code2prompt" in result.lower()
     
-    @patch('subprocess.run')
-    def test_server_info_error_handling(self, mock_run):
+    @pytest.mark.asyncio
+    @patch('asyncio.create_subprocess_exec')
+    async def test_server_info_error_handling(self, mock_subprocess):
         """Test server_info error handling (lines 168-169)."""
         from mcp_handley_lab.code2prompt.tool import server_info
         
-        mock_run.side_effect = FileNotFoundError("code2prompt: command not found")
+        mock_subprocess.side_effect = FileNotFoundError("code2prompt: command not found")
         
         with pytest.raises(RuntimeError, match="code2prompt command not found"):
-            server_info()
+            await server_info()

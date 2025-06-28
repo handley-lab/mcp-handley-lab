@@ -1,5 +1,5 @@
 """Code2Prompt tool for codebase analysis via MCP."""
-import subprocess
+import asyncio
 import tempfile
 from pathlib import Path
 from typing import List, Optional
@@ -8,18 +8,21 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Code2Prompt Tool")
 
 
-def _run_code2prompt(args: List[str]) -> str:
+async def _run_code2prompt(args: List[str]) -> str:
     """Runs a code2prompt command and handles errors."""
     try:
-        result = subprocess.run(
-            ["code2prompt"] + args,
-            capture_output=True,
-            text=True,
-            check=True
+        process = await asyncio.create_subprocess_exec(
+            "code2prompt", *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        raise ValueError(f"code2prompt error: {e.stderr.strip()}")
+        
+        stdout, stderr = await process.communicate()
+        
+        if process.returncode != 0:
+            raise ValueError(f"code2prompt error: {stderr.decode('utf-8').strip()}")
+            
+        return stdout.decode('utf-8').strip()
     except FileNotFoundError:
         raise RuntimeError("code2prompt command not found. Please install code2prompt.")
 
@@ -71,7 +74,7 @@ generate_prompt(
     output_format="json"
 )
 ```""")
-def generate_prompt(
+async def generate_prompt(
     path: str,
     output_file: Optional[str] = None,
     include: Optional[List[str]] = None,
@@ -140,7 +143,7 @@ def generate_prompt(
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
     
     # Run code2prompt
-    _run_code2prompt(args)
+    await _run_code2prompt(args)
     
     # Get file size for reporting
     output_path = Path(output_file)
@@ -152,10 +155,10 @@ def generate_prompt(
 
 
 @mcp.tool(description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands.")
-def server_info() -> str:
+async def server_info() -> str:
     """Get server status and code2prompt version."""
     try:
-        version = _run_code2prompt(["--version"])
+        version = await _run_code2prompt(["--version"])
         
         return f"""Code2Prompt Tool Server Status
 ==============================

@@ -20,6 +20,22 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
+    
+    - name: Setup Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        cache-targets: false
+        cache-on-failure: true
+    
+    - name: Install code2prompt
+      run: |
+        # Check if code2prompt is already cached
+        if ! command -v code2prompt &> /dev/null; then
+          cargo install code2prompt
+        fi
         
     - name: Test with pytest
       run: |

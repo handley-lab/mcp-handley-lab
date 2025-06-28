@@ -24,7 +24,7 @@ def get_master_version() -> str:
     try:
         # Get pyproject.toml content from master branch
         result = subprocess.run(
-            ["git", "show", "master:pyproject.toml"],
+            ["git", "show", "origin/master:pyproject.toml"],
             capture_output=True,
             text=True,
             check=True
@@ -32,7 +32,7 @@ def get_master_version() -> str:
         
         match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', result.stdout)
         if not match:
-            raise ValueError("Version not found in master:pyproject.toml")
+            raise ValueError("Version not found in origin/master:pyproject.toml")
         
         return match.group(1)
     except subprocess.CalledProcessError as e:

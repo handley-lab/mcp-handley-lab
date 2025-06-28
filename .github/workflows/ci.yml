@@ -25,6 +25,7 @@ jobs:
     
     - name: Check version bump
       run: |
+        git branch -a  # Debug: show available branches
         python scripts/check_version_bump.py
 
   test:

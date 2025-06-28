@@ -39,18 +39,18 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 # Model configurations with token limits from https://ai.google.dev/gemini-api/docs/models
 MODEL_CONFIGS = {
     # Gemini 2.5 Models
-    "gemini-2.5-pro": {"input_tokens": 1048576, "output_tokens": 65536},
-    "gemini-2.5-flash": {"input_tokens": 1048576, "output_tokens": 65536},
-    "gemini-2.5-flash-lite": {"input_tokens": 1000000, "output_tokens": 64000},
+    "gemini-2.5-pro": {"output_tokens": 65536},
+    "gemini-2.5-flash": {"output_tokens": 65536},
+    "gemini-2.5-flash-lite": {"output_tokens": 64000},
     
     # Gemini 2.0 Models  
-    "gemini-2.0-flash": {"input_tokens": 1048576, "output_tokens": 8192},
-    "gemini-2.0-flash-lite": {"input_tokens": 1048576, "output_tokens": 8192},
+    "gemini-2.0-flash": {"output_tokens": 8192},
+    "gemini-2.0-flash-lite": {"output_tokens": 8192},
     
     # Gemini 1.5 Models
-    "gemini-1.5-flash": {"input_tokens": 1048576, "output_tokens": 8192},
-    "gemini-1.5-flash-8b": {"input_tokens": 1048576, "output_tokens": 8192},
-    "gemini-1.5-pro": {"input_tokens": 2097152, "output_tokens": 8192},
+    "gemini-1.5-flash": {"output_tokens": 8192},
+    "gemini-1.5-flash-8b": {"output_tokens": 8192},
+    "gemini-1.5-pro": {"output_tokens": 8192},
 }
 
 

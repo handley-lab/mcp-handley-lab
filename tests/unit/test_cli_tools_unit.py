@@ -172,6 +172,13 @@ class TestJQUnit:
         result = query(123, '.')
         assert '123' in result
     
+    @patch('subprocess.run')
+    def test_jq_command_not_found(self, mock_run):
+        """Test jq command not found error (lines 46-47)."""
+        mock_run.side_effect = FileNotFoundError("jq: command not found")
+        
+        with pytest.raises(RuntimeError, match="jq command not found"):
+            query('{"test": "value"}', '.test')
     
     def test_format_pretty_print(self):
         """Test non-compact formatting (line 249)."""

@@ -875,22 +875,19 @@ def clear_cache(storage_dir: Optional[str] = None) -> str:
     return "Cache cleared successfully"
 
 
-@mcp.tool(description="""Shows comprehensive Tool Chainer status including registered tools, chains, execution history, and usage examples.
+@mcp.tool(description="""Shows the status of the Tool Chainer server.
 
-Provides complete overview of:
-- Registered tools and their configurations
-- Defined chains and step counts
-- Execution history statistics
-- Usage examples and best practices
-- Variable syntax guidelines
+**Key Parameters:**
+- `storage_dir`: An optional path to a custom storage directory.
 
-Example:
+**Input/Output:**
+- **Input**: An optional storage directory path.
+- **Output**: A string containing a comprehensive overview of the Tool Chainer's status, including registered tools, defined chains, and execution history.
+
+**Examples:**
 ```python
-# Get status overview
+# Show the Tool Chainer server status.
 server_info()
-
-# Get status from custom storage
-server_info(storage_dir="/custom/path")
 ```""")
 def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""

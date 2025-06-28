@@ -1,4 +1,5 @@
 """Gemini LLM tool for AI interactions via MCP."""
+import asyncio
 import base64
 import io
 import tempfile
@@ -64,7 +65,7 @@ def _get_model_config(model: str) -> Dict[str, int]:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-1.5-flash"])  # default to 1.5-flash
 
 
-def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
+async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
     """Resolve file inputs to structured content parts for google-genai API.
     
     Uses inlineData for files <20MB and Files API for larger files.
@@ -95,10 +96,14 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Pa
                     if file_size > 20 * 1024 * 1024:  # 20MB threshold
                         # Large file - use Files API
                         try:
-                            uploaded_file = client.files.upload(
-                                file=str(file_path),
-                                mime_type=determine_mime_type(file_path)
-                            )
+                            def _sync_upload_file():
+                                return client.files.upload(
+                                    file=str(file_path),
+                                    mime_type=determine_mime_type(file_path)
+                                )
+                            
+                            loop = asyncio.get_running_loop()
+                            uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
                             parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
                         except Exception as e:
                             # Fallback to reading as text if upload fails
@@ -245,7 +250,7 @@ ask(
     grounding=True
 )
 ```""")
-def ask(
+async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
@@ -316,7 +321,7 @@ def ask(
             agent_name = None
         
         # Resolve file contents to structured parts
-        file_parts = _resolve_files(files)
+        file_parts = await _resolve_files(files)
         
         # Get model-specific configuration
         model_config = _get_model_config(model)
@@ -344,28 +349,38 @@ def ask(
             # Create user message with prompt and any file parts
             user_parts = [Part(text=prompt)] + file_parts
             contents = history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
-            response = client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=config
-            )
+            def _sync_generate_content_history():
+                return client.models.generate_content(
+                    model=model_name,
+                    contents=contents,
+                    config=config
+                )
+            
+            loop = asyncio.get_running_loop()
+            response = await loop.run_in_executor(None, _sync_generate_content_history)
         else:
             # New conversation - create content with prompt and files
             if file_parts:
                 # Include files as separate parts
                 content_parts = [Part(text=prompt)] + file_parts
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=content_parts,
-                    config=config
-                )
+                def _sync_generate_content_files():
+                    return client.models.generate_content(
+                        model=model_name,
+                        contents=content_parts,
+                        config=config
+                    )
+                
+                response = await loop.run_in_executor(None, _sync_generate_content_files)
             else:
                 # Simple text-only prompt
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                    config=config
-                )
+                def _sync_generate_content_text():
+                    return client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=config
+                    )
+                
+                response = await loop.run_in_executor(None, _sync_generate_content_text)
         
         # Extract response text
         if response.text:
@@ -467,7 +482,7 @@ analyze_image(
     agent_name=False
 )
 ```""")
-def analyze_image(
+async def analyze_image(
     prompt: str,
     output_file: str,
     image_data: Optional[str] = None,
@@ -518,11 +533,15 @@ def analyze_image(
         )
         
         # Generate response
-        response = client.models.generate_content(
-            model=model_name,
-            contents=content,
-            config=config
-        )
+        def _sync_generate_content_image():
+            return client.models.generate_content(
+                model=model_name,
+                contents=content,
+                config=config
+            )
+        
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, _sync_generate_content_image)
         
         # Extract response text
         if response.text:
@@ -604,7 +623,7 @@ Error Handling:
 - Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
 - Raises ValueError for prompts that violate content policies
 - Generated images are PNG format, saved to system temp directory""")
-def generate_image(
+async def generate_image(
     prompt: str,
     model: str = "imagen-3",
     agent_name: Optional[Union[str, bool]] = None
@@ -630,14 +649,18 @@ def generate_image(
     
     try:
         # Generate image
-        response = client.models.generate_images(
-            model=actual_model,
-            prompt=prompt,
-            config=GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio="1:1"
+        def _sync_generate_images():
+            return client.models.generate_images(
+                model=actual_model,
+                prompt=prompt,
+                config=GenerateImagesConfig(
+                    number_of_images=1,
+                    aspect_ratio="1:1"
+                )
             )
-        )
+        
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, _sync_generate_images)
         
         if not response.generated_images:
             raise RuntimeError("No images were generated")
@@ -702,7 +725,7 @@ create_agent(
     personality="Senior software engineer who provides constructive code reviews with focus on maintainability and performance"
 )
 ```""")
-def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
+async def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
     # Input validation
     if not agent_name or not agent_name.strip():
@@ -717,7 +740,7 @@ def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Lists all persistent agents with summary statistics including creation date, message count, token usage, and total cost. Use this to manage and monitor agent usage across your projects.")
-def list_agents() -> str:
+async def list_agents() -> str:
     """List all agents with their statistics."""
     agents = memory_manager.list_agents()
     
@@ -748,7 +771,7 @@ Example:
 agent_stats("code_mentor")
 # Returns creation date, message count, token usage, cost, personality, and recent messages
 ```""")
-def agent_stats(agent_name: str) -> str:
+async def agent_stats(agent_name: str) -> str:
     """Get detailed statistics for a specific agent."""
     agent = memory_manager.get_agent(agent_name)
     if not agent:
@@ -779,7 +802,7 @@ def agent_stats(agent_name: str) -> str:
 
 
 @mcp.tool(description="Clears all conversation history for an agent while preserving the agent itself and its personality. Use this to start fresh conversations while maintaining the agent's configuration.")
-def clear_agent(agent_name: str) -> str:
+async def clear_agent(agent_name: str) -> str:
     """Clear an agent's conversation history."""
     success = memory_manager.clear_agent_history(agent_name)
     if success:
@@ -789,7 +812,7 @@ def clear_agent(agent_name: str) -> str:
 
 
 @mcp.tool(description="Permanently deletes an agent and all associated conversation data. WARNING: This action cannot be undone. Use clear_agent() instead if you only want to reset the conversation history.")
-def delete_agent(agent_name: str) -> str:
+async def delete_agent(agent_name: str) -> str:
     """Delete an agent permanently."""
     # Input validation
     if not agent_name or not agent_name.strip():
@@ -820,7 +843,7 @@ get_response("code_mentor", index=0)
 # Get third message
 get_response("code_mentor", index=2)
 ```""")
-def get_response(agent_name: str, index: int = -1) -> str:
+async def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
     response = memory_manager.get_response(agent_name, index)
     if response is None:
@@ -833,14 +856,18 @@ def get_response(agent_name: str, index: int = -1) -> str:
 
 
 @mcp.tool(description="Checks Gemini server status, API connectivity, available models, and agent statistics. Returns configuration status and available commands. Use this to verify the tool is properly configured before making requests.")
-def server_info() -> str:
+async def server_info() -> str:
     """Get server status and Gemini configuration."""
     try:
         if not client:
             raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
         
         # Test API by listing models
-        models_response = client.models.list()
+        def _sync_list_models():
+            return client.models.list()
+        
+        loop = asyncio.get_running_loop()
+        models_response = await loop.run_in_executor(None, _sync_list_models)
         available_models = []
         for model in models_response:
             if 'gemini' in model.name:

@@ -1,34 +1,24 @@
 """Gemini LLM tool for AI interactions via MCP."""
 import base64
 import io
-import os
 import tempfile
+import os
 import time
 from pathlib import Path
+from typing import List, Optional, Dict, Any, Union
+from PIL import Image
+from mcp.server.fastmcp import FastMCP
 
 from google import genai as google_genai
-from google.genai.types import (
-    Blob,
-    FileData,
-    GenerateContentConfig,
-    GenerateImagesConfig,
-    GoogleSearchRetrieval,
-    Part,
-    Tool,
-)
-from mcp.server.fastmcp import FastMCP
-from PIL import Image
+from google.genai.types import GenerateContentConfig, GenerateImagesConfig, Tool, GoogleSearch, GoogleSearchRetrieval, Part, Blob, FileData, Content
+from google.genai.errors import ClientError
 
 from ...common.config import settings
-from ...common.memory import memory_manager
 from ...common.pricing import calculate_cost, format_usage
+from ...common.memory import memory_manager
 from ..common import (
-    determine_mime_type,
-    get_session_id,
-    handle_agent_memory,
-    handle_output,
-    is_text_file,
-    resolve_image_data,
+    get_session_id, determine_mime_type, is_text_file, 
+    resolve_image_data, handle_output, handle_agent_memory
 )
 
 mcp = FastMCP("Gemini Tool")
@@ -52,11 +42,11 @@ MODEL_CONFIGS = {
     "gemini-2.5-pro": {"input_tokens": 1048576, "output_tokens": 65536},
     "gemini-2.5-flash": {"input_tokens": 1048576, "output_tokens": 65536},
     "gemini-2.5-flash-lite": {"input_tokens": 1000000, "output_tokens": 64000},
-
-    # Gemini 2.0 Models
+    
+    # Gemini 2.0 Models  
     "gemini-2.0-flash": {"input_tokens": 1048576, "output_tokens": 8192},
     "gemini-2.0-flash-lite": {"input_tokens": 1048576, "output_tokens": 8192},
-
+    
     # Gemini 1.5 Models
     "gemini-1.5-flash": {"input_tokens": 1048576, "output_tokens": 8192},
     "gemini-1.5-flash-8b": {"input_tokens": 1048576, "output_tokens": 8192},
@@ -69,12 +59,12 @@ def _get_session_id() -> str:
     return get_session_id(mcp)
 
 
-def _get_model_config(model: str) -> dict[str, int]:
+def _get_model_config(model: str) -> Dict[str, int]:
     """Get token limits for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-1.5-flash"])  # default to 1.5-flash
 
 
-def _resolve_files(files: list[str | dict[str, str]] | None) -> list[Part]:
+def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
     """Resolve file inputs to structured content parts for google-genai API.
     
     Uses inlineData for files <20MB and Files API for larger files.
@@ -82,7 +72,7 @@ def _resolve_files(files: list[str | dict[str, str]] | None) -> list[Part]:
     """
     if not files:
         return []
-
+    
     parts = []
     for file_item in files:
         if isinstance(file_item, str):
@@ -99,9 +89,9 @@ def _resolve_files(files: list[str | dict[str, str]] | None) -> list[Part]:
                     if not file_path.exists():
                         parts.append(Part(text=f"Error: File not found: {file_path}"))
                         continue
-
+                    
                     file_size = file_path.stat().st_size
-
+                    
                     if file_size > 20 * 1024 * 1024:  # 20MB threshold
                         # Large file - use Files API
                         try:
@@ -136,10 +126,10 @@ def _resolve_files(files: list[str | dict[str, str]] | None) -> list[Part]:
                                 ))
                         except Exception as e:
                             parts.append(Part(text=f"Error reading file {file_path}: {e}"))
-
+                            
                 except Exception as e:
                     parts.append(Part(text=f"Error processing file {file_path}: {e}"))
-
+    
     return parts
 
 
@@ -148,12 +138,12 @@ def _resolve_files(files: list[str | dict[str, str]] | None) -> list[Part]:
 
 
 def _resolve_images(
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None
-) -> list[Image.Image]:
+    image_data: Optional[str] = None, 
+    images: Optional[List[Union[str, Dict[str, str]]]] = None
+) -> List[Image.Image]:
     """Resolve image inputs to PIL Image objects."""
     image_list = []
-
+    
     # Handle single image_data parameter
     if image_data:
         try:
@@ -161,7 +151,7 @@ def _resolve_images(
             image_list.append(Image.open(io.BytesIO(image_bytes)))
         except Exception as e:
             raise ValueError(f"Failed to load image: {e}")
-
+    
     # Handle images array
     if images:
         for image_item in images:
@@ -170,32 +160,32 @@ def _resolve_images(
                 image_list.append(Image.open(io.BytesIO(image_bytes)))
             except Exception as e:
                 raise ValueError(f"Failed to load image: {e}")
-
+    
     return image_list
 
 
 def _handle_agent_and_usage(
-    agent_name: str | bool | None,
-    user_prompt: str,
-    response_text: str,
+    agent_name: Optional[Union[str, bool]], 
+    user_prompt: str, 
+    response_text: str, 
     model: str,
-    input_tokens: int,
+    input_tokens: int, 
     output_tokens: int,
     output_file: str,
     provider: str = "gemini"
 ) -> str:
     """Handle agent memory, file output, and return formatted usage info."""
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
-
+    
     # Handle agent memory
     handle_agent_memory(
-        agent_name, user_prompt, response_text,
+        agent_name, user_prompt, response_text, 
         input_tokens, output_tokens, cost, _get_session_id
     )
-
+    
     # Handle output
     return handle_output(
-        response_text, output_file, model,
+        response_text, output_file, model, 
         input_tokens, output_tokens, cost, provider
     )
 
@@ -258,12 +248,12 @@ ask(
 def ask(
     prompt: str,
     output_file: str,
-    agent_name: str | bool | None = None,
+    agent_name: Optional[Union[str, bool]] = None,
     model: str = "flash",
     temperature: float = 0.7,
     grounding: bool = False,
-    files: list[str | dict[str, str]] | None = None,
-    max_output_tokens: int | None = None
+    files: Optional[List[Union[str, Dict[str, str]]]] = None,
+    max_output_tokens: Optional[int] = None
 ) -> str:
     """Ask Gemini a question with optional persistent memory.
     
@@ -292,30 +282,30 @@ def ask(
         raise ValueError("Output file is required")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-
+    
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-
+    
     # Resolve model name
     model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
-
+    
     try:
         # Configure tools for grounding if requested
         tools = []
         if grounding:
             tools.append(Tool(googleSearchRetrieval=GoogleSearchRetrieval()))
-
+        
         # Handle agent setup and system instruction (personality)
         system_instruction = None
         history = []
         use_memory = agent_name is not False
-
+        
         # Only use memory if not explicitly disabled
         if use_memory:
             # Use session-specific agent if no agent_name provided (same logic as _handle_agent_and_usage)
             if not agent_name:
                 agent_name = _get_session_id()
-
+            
             agent = memory_manager.get_agent(agent_name)
             if agent:
                 if agent.personality:
@@ -324,30 +314,30 @@ def ask(
         else:
             # No memory - set agent_name to None to skip memory operations
             agent_name = None
-
+        
         # Resolve file contents to structured parts
         file_parts = _resolve_files(files)
-
+        
         # Get model-specific configuration
         model_config = _get_model_config(model)
-
+        
         # Use provided max_output_tokens or fall back to model default
         output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
-
+        
         # Prepare the config
         config_params = {
             "temperature": temperature,
             "max_output_tokens": output_tokens,
         }
-
+        
         if system_instruction:
             config_params["system_instruction"] = system_instruction
-
+            
         if tools:
             config_params["tools"] = tools
-
+        
         config = GenerateContentConfig(**config_params)
-
+        
         # Generate content
         if history:
             # Continue existing conversation by adding history
@@ -376,29 +366,17 @@ def ask(
                     contents=prompt,
                     config=config
                 )
-
-        # Extract response text with proper error handling
+        
+        # Extract response text
         if response.text:
             response_text = response.text
         else:
-            # Handle cases where the API succeeded but didn't return text
-            finish_reason = None
-            if response.candidates and len(response.candidates) > 0:
-                finish_reason = response.candidates[0].finish_reason
-
-            if finish_reason == "MAX_TOKENS":
-                raise RuntimeError(f"Response truncated due to token limit. Model hit the maximum output token limit of {output_tokens}. Consider increasing max_output_tokens parameter or using a shorter prompt.")
-            elif finish_reason == "SAFETY":
-                raise RuntimeError("Response blocked due to safety filters. Content may have triggered safety policies.")
-            elif finish_reason == "RECITATION":
-                raise RuntimeError("Response blocked due to recitation concerns. Content may have been flagged as potentially copying training data.")
-            else:
-                raise RuntimeError(f"No response text generated. Finish reason: {finish_reason or 'unknown'}")
-
+            raise RuntimeError("No response text generated")
+        
         # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
-
+        
         # Handle agent and usage (only if memory is enabled)
         if use_memory:
             return _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens, output_file)
@@ -415,7 +393,7 @@ def ask(
             else:
                 usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
                 return f"{response_text}\n\n{usage_info}"
-
+        
     except Exception as e:
         raise RuntimeError(f"Gemini API error: {e}")
 
@@ -492,12 +470,12 @@ analyze_image(
 def analyze_image(
     prompt: str,
     output_file: str,
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    image_data: Optional[str] = None,
+    images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
     model: str = "pro",
-    agent_name: str | bool | None = None,
-    max_output_tokens: int | None = None
+    agent_name: Optional[Union[str, bool]] = None,
+    max_output_tokens: Optional[int] = None
 ) -> str:
     """Analyze images with Gemini vision model."""
     # Input validation
@@ -509,69 +487,57 @@ def analyze_image(
         raise ValueError("Either image_data or images must be provided")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-
+    
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-
+    
     # Resolve model name
     model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
-
+    
     try:
         # Load images
         image_list = _resolve_images(image_data, images)
-
+        
         # Enhance prompt based on focus
         if focus != "general":
             prompt = f"Focus on {focus} aspects. {prompt}"
-
+        
         # Get model-specific configuration
         model_config = _get_model_config(model)
-
+        
         # Use provided max_output_tokens or fall back to model default
         output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
-
+        
         # Prepare content with images - google-genai expects PIL Image objects directly
         content = [prompt] + image_list
-
+        
         # Prepare the config
         config = GenerateContentConfig(
             max_output_tokens=output_tokens,
             temperature=0.7
         )
-
+        
         # Generate response
         response = client.models.generate_content(
             model=model_name,
             contents=content,
             config=config
         )
-
-        # Extract response text with proper error handling
+        
+        # Extract response text
         if response.text:
             response_text = response.text
         else:
-            # Handle cases where the API succeeded but didn't return text
-            finish_reason = None
-            if response.candidates and len(response.candidates) > 0:
-                finish_reason = response.candidates[0].finish_reason
-
-            if finish_reason == "MAX_TOKENS":
-                raise RuntimeError(f"Response truncated due to token limit. Model hit the maximum output token limit of {output_tokens}. Consider increasing max_output_tokens parameter or using a shorter prompt.")
-            elif finish_reason == "SAFETY":
-                raise RuntimeError("Response blocked due to safety filters. Content may have triggered safety policies.")
-            elif finish_reason == "RECITATION":
-                raise RuntimeError("Response blocked due to recitation concerns. Content may have been flagged as potentially copying training data.")
-            else:
-                raise RuntimeError(f"No response text generated. Finish reason: {finish_reason or 'unknown'}")
-
+            raise RuntimeError("No response text generated")
+        
         # Calculate usage
         input_tokens = response.usage_metadata.prompt_token_count
         output_tokens = response.usage_metadata.candidates_token_count
-
+        
         # Handle agent and usage (only if memory is enabled)
         image_desc = f"[Image analysis: {len(image_list)} image(s)]"
         use_memory = agent_name is not False
-
+        
         if use_memory:
             return _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens, output_file)
         else:
@@ -587,7 +553,7 @@ def analyze_image(
             else:
                 usage_info = format_usage(model, input_tokens, output_tokens, cost, "gemini")
                 return f"{response_text}\n\n{usage_info}"
-
+        
     except Exception as e:
         raise RuntimeError(f"Gemini vision API error: {e}")
 
@@ -641,7 +607,7 @@ Error Handling:
 def generate_image(
     prompt: str,
     model: str = "imagen-3",
-    agent_name: str | bool | None = None
+    agent_name: Optional[Union[str, bool]] = None
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
     # Input validation
@@ -649,19 +615,19 @@ def generate_image(
         raise ValueError("Prompt is required and cannot be empty")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-
+    
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-
+    
     # Map model names to actual model IDs
     model_mapping = {
         "imagen-3": "imagen-3.0-generate-002",
         "image": "imagen-3.0-generate-002",
         "image-flash": "imagen-3.0-generate-002"
     }
-
+    
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
-
+    
     try:
         # Generate image
         response = client.models.generate_images(
@@ -672,49 +638,49 @@ def generate_image(
                 aspect_ratio="1:1"
             )
         )
-
+        
         if not response.generated_images:
             raise RuntimeError("No images were generated")
-
+        
         # Save the generated image
         generated_image = response.generated_images[0]
         if not generated_image.image or not generated_image.image.image_bytes:
             raise RuntimeError("Generated image has no data")
-
+        
         # Save to temporary file
         import uuid
         file_id = str(uuid.uuid4())[:8]
         filename = f"gemini_generated_{file_id}.png"
         filepath = Path(tempfile.gettempdir()) / filename
-
+        
         filepath.write_bytes(generated_image.image.image_bytes)
-
+        
         # Calculate usage and cost (estimate)
         input_tokens = len(prompt.split()) * 2  # Rough estimate
         output_tokens = 1  # Image generation
         cost = calculate_cost(actual_model, input_tokens, output_tokens, "gemini")
-
+        
         # Handle agent memory (only if enabled)
         use_memory = agent_name is not False
-
+        
         if use_memory:
             # Use session-specific agent if no agent_name provided
             if not agent_name:
                 agent_name = _get_session_id()
-
+            
             agent = memory_manager.get_agent(agent_name)
             if not agent:
                 agent = memory_manager.create_agent(agent_name)
-
+            
             memory_manager.add_message(agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2)
             memory_manager.add_message(agent_name, "assistant", f"Generated image saved to {filepath}", output_tokens, cost / 2)
-
+        
         # Format response
         file_size = len(generated_image.image.image_bytes)
         usage_info = format_usage(actual_model, input_tokens, output_tokens, cost, "gemini")
-
+        
         return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
-
+        
     except Exception as e:
         raise RuntimeError(f"Error generating image with Imagen: {e}")
 
@@ -736,12 +702,12 @@ create_agent(
     personality="Senior software engineer who provides constructive code reviews with focus on maintainability and performance"
 )
 ```""")
-def create_agent(agent_name: str, personality: str | None = None) -> str:
+def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
     # Input validation
     if not agent_name or not agent_name.strip():
         raise ValueError("Agent name is required and cannot be empty")
-
+    
     try:
         agent = memory_manager.create_agent(agent_name, personality)
         personality_info = f" with personality: {personality}" if personality else ""
@@ -754,10 +720,10 @@ def create_agent(agent_name: str, personality: str | None = None) -> str:
 def list_agents() -> str:
     """List all agents with their statistics."""
     agents = memory_manager.list_agents()
-
+    
     if not agents:
         return "No agents found. Create an agent with create_agent()."
-
+    
     result = "📋 **Agent List**\n\n"
     for agent in agents:
         stats = agent.get_stats()
@@ -769,7 +735,7 @@ def list_agents() -> str:
         if stats['personality']:
             result += f"- Personality: {stats['personality']}\n"
         result += "\n"
-
+    
     return result
 
 
@@ -787,28 +753,28 @@ def agent_stats(agent_name: str) -> str:
     agent = memory_manager.get_agent(agent_name)
     if not agent:
         raise ValueError(f"Agent '{agent_name}' not found")
-
+    
     stats = agent.get_stats()
-
+    
     result = f"📊 **Agent Statistics: {agent_name}**\n\n"
-    result += "**Overview:**\n"
+    result += f"**Overview:**\n"
     result += f"- Created: {stats['created_at']}\n"
     result += f"- Total Messages: {stats['message_count']}\n"
     result += f"- Total Tokens: {stats['total_tokens']:,}\n"
     result += f"- Total Cost: ${stats['total_cost']:.4f}\n"
-
+    
     if stats['personality']:
         result += f"- Personality: {stats['personality']}\n"
-
+    
     # Recent message history (last 5)
     if agent.messages:
-        result += "\n**Recent Messages:**\n"
+        result += f"\n**Recent Messages:**\n"
         recent_messages = agent.messages[-5:]
         for msg in recent_messages:
             timestamp = msg.timestamp.strftime("%Y-%m-%d %H:%M")
             role_icon = "👤" if msg.role == "user" else "🤖"
             result += f"- {timestamp} {role_icon} {msg.role}: {msg.content[:100]}...\n"
-
+    
     return result
 
 
@@ -828,7 +794,7 @@ def delete_agent(agent_name: str) -> str:
     # Input validation
     if not agent_name or not agent_name.strip():
         raise ValueError("Agent name is required and cannot be empty")
-
+    
     success = memory_manager.delete_agent(agent_name)
     if success:
         return f"✅ Agent '{agent_name}' deleted permanently!"
@@ -862,7 +828,7 @@ def get_response(agent_name: str, index: int = -1) -> str:
             raise ValueError(f"Agent '{agent_name}' not found")
         else:
             raise ValueError(f"No message found at index {index}")
-
+    
     return response
 
 
@@ -872,17 +838,17 @@ def server_info() -> str:
     try:
         if not client:
             raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-
+        
         # Test API by listing models
         models_response = client.models.list()
         available_models = []
         for model in models_response:
             if 'gemini' in model.name:
                 available_models.append(model.name.split('/')[-1])
-
+        
         # Get agent count
         agent_count = len(memory_manager.list_agents())
-
+        
         return f"""Gemini Tool Server Status
 ==========================
 Status: Connected and ready
@@ -905,6 +871,6 @@ Available tools:
 - clear_agent: Clear agent conversation history
 - delete_agent: Permanently delete agents
 - server_info: Get server status"""
-
+        
     except Exception as e:
         raise RuntimeError(f"Gemini API configuration error: {e}")

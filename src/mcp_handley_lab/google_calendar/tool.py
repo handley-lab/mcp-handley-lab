@@ -1,8 +1,12 @@
 """Google Calendar tool for calendar management via MCP."""
+import os
 import pickle
 from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
+from pathlib import Path
 
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -20,12 +24,12 @@ def _get_calendar_service():
     creds = None
     token_file = settings.google_token_path
     credentials_file = settings.google_credentials_path
-
+    
     # Load existing token
     if token_file.exists():
         with open(token_file, 'rb') as f:
             creds = pickle.load(f)
-
+    
     # Refresh or get new credentials
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -36,15 +40,15 @@ def _get_calendar_service():
                     f"Google Calendar credentials file not found at {credentials_file}. "
                     "Please download credentials.json from Google Cloud Console."
                 )
-
+            
             flow = InstalledAppFlow.from_client_secrets_file(str(credentials_file), SCOPES)
             creds = flow.run_local_server(port=0)
-
+        
         # Save credentials for next run
         token_file.parent.mkdir(parents=True, exist_ok=True)
         with open(token_file, 'wb') as f:
             pickle.dump(creds, f)
-
+    
     return build('calendar', 'v3', credentials=creds)
 
 
@@ -52,7 +56,7 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
     """Resolve calendar name to calendar ID."""
     if calendar_id in ['primary', 'all'] or '@' in calendar_id:
         return calendar_id
-
+    
     # Try to find calendar by name
     try:
         calendar_list = service.calendarList().list().execute()
@@ -61,7 +65,7 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
                 return calendar['id']
     except HttpError:
         pass
-
+    
     # If not found, assume it's already an ID
     return calendar_id
 
@@ -110,14 +114,14 @@ list_events(
 ```""")
 def list_events(
     calendar_id: str = "primary",
-    start_date: str | None = None,
-    end_date: str | None = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     max_results: int = 100
 ) -> str:
     """List calendar events."""
     try:
         service = _get_calendar_service()
-
+        
         # Set default date range if not provided
         if not start_date:
             start_date = datetime.now().isoformat() + 'Z'
@@ -132,7 +136,7 @@ def list_events(
             else:
                 # Date only format
                 start_date = start_date + 'T00:00:00Z'
-
+        
         if not end_date:
             end_dt = datetime.now() + timedelta(days=7)
             end_date = end_dt.isoformat() + 'Z'
@@ -147,9 +151,9 @@ def list_events(
             else:
                 # Date only format
                 end_date = end_date + 'T23:59:59Z'
-
+        
         events_list = []
-
+        
         if calendar_id == "all":
             # Search all calendars
             calendar_list = service.calendarList().list().execute()
@@ -164,7 +168,7 @@ def list_events(
                         singleEvents=True,
                         orderBy='startTime'
                     ).execute()
-
+                    
                     cal_events = events_result.get('items', [])
                     for event in cal_events:
                         event['calendar_name'] = calendar.get('summary', cal_id)
@@ -183,34 +187,34 @@ def list_events(
                 orderBy='startTime'
             ).execute()
             events_list = events_result.get('items', [])
-
+        
         if not events_list:
-            return "No events found in the specified date range."
-
+            return f"No events found in the specified date range."
+        
         # Sort by start time
         events_list.sort(key=lambda x: x.get('start', {}).get('dateTime', x.get('start', {}).get('date', '')))
-
+        
         result = f"Found {len(events_list)} events:\n\n"
-
+        
         for event in events_list:
             start = event['start'].get('dateTime', event['start'].get('date'))
             title = event.get('summary', 'No Title')
             event_id = event['id']
-
+            
             result += f"• {title}\n"
             result += f"  Time: {_format_datetime(start)}\n"
             result += f"  ID: {event_id}\n"
-
+            
             if 'calendar_name' in event:
                 result += f"  Calendar: {event['calendar_name']}\n"
-
+            
             if event.get('location'):
                 result += f"  Location: {event['location']}\n"
-
+            
             result += "\n"
-
+        
         return result.strip()
-
+        
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -226,36 +230,36 @@ def get_event(
     try:
         service = _get_calendar_service()
         resolved_id = _resolve_calendar_id(calendar_id, service)
-
+        
         event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-
-        result = "Event Details:\n"
+        
+        result = f"Event Details:\n"
         result += f"Title: {event.get('summary', 'No Title')}\n"
-
+        
         start = event['start'].get('dateTime', event['start'].get('date'))
         end = event['end'].get('dateTime', event['end'].get('date'))
         result += f"Start: {_format_datetime(start)}\n"
         result += f"End: {_format_datetime(end)}\n"
-
+        
         if event.get('description'):
             result += f"Description: {event['description']}\n"
-
+        
         if event.get('location'):
             result += f"Location: {event['location']}\n"
-
+        
         if event.get('attendees'):
-            result += "Attendees:\n"
+            result += f"Attendees:\n"
             for attendee in event['attendees']:
                 email = attendee.get('email', 'Unknown')
                 status = attendee.get('responseStatus', 'needsAction')
                 result += f"  - {email} ({status})\n"
-
+        
         result += f"Event ID: {event['id']}\n"
         result += f"Created: {event.get('created', 'Unknown')}\n"
         result += f"Updated: {event.get('updated', 'Unknown')}\n"
-
+        
         return result
-
+        
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -307,16 +311,16 @@ def create_event(
     summary: str,
     start_datetime: str,
     end_datetime: str,
-    description: str | None = None,
+    description: Optional[str] = None,
     calendar_id: str = "primary",
     timezone: str = "UTC",
-    attendees: list[str] | None = None
+    attendees: Optional[List[str]] = None
 ) -> str:
     """Create a new calendar event."""
     try:
         service = _get_calendar_service()
         resolved_id = _resolve_calendar_id(calendar_id, service)
-
+        
         # Build event object
         event_body = {
             'summary': summary,
@@ -324,7 +328,7 @@ def create_event(
             'start': {},
             'end': {}
         }
-
+        
         # Handle all-day vs timed events
         if 'T' in start_datetime:
             # Timed event
@@ -336,30 +340,30 @@ def create_event(
             # All-day event
             event_body['start']['date'] = start_datetime
             event_body['end']['date'] = end_datetime
-
+        
         # Add attendees if provided
         if attendees:
             event_body['attendees'] = [{'email': email} for email in attendees]
-
+        
         # Create the event
         created_event = service.events().insert(
             calendarId=resolved_id,
             body=event_body
         ).execute()
-
+        
         start = created_event['start'].get('dateTime', created_event['start'].get('date'))
-
-        result = "Event created successfully!\n"
+        
+        result = f"Event created successfully!\n"
         result += f"Title: {created_event['summary']}\n"
         result += f"Time: {_format_datetime(start)}\n"
         result += f"Event ID: {created_event['id']}\n"
         result += f"Calendar: {calendar_id}\n"
-
+        
         if attendees:
             result += f"Attendees: {', '.join(attendees)}\n"
-
+        
         return result
-
+        
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -406,64 +410,64 @@ def update_event(
     event_summary: str,
     event_id: str,
     calendar_id: str = "primary",
-    summary: str | None = None,
-    start_datetime: str | None = None,
-    end_datetime: str | None = None,
-    description: str | None = None
+    summary: Optional[str] = None,
+    start_datetime: Optional[str] = None,
+    end_datetime: Optional[str] = None,
+    description: Optional[str] = None
 ) -> str:
     """Update an existing calendar event."""
     try:
         service = _get_calendar_service()
         resolved_id = _resolve_calendar_id(calendar_id, service)
-
+        
         # Get existing event to verify and for safety
         existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-
+        
         # Verify event summary matches for safety
         if existing_event.get('summary', '') != event_summary:
             raise ValueError(
                 f"Event summary mismatch. Expected '{event_summary}', "
                 f"found '{existing_event.get('summary', '')}'"
             )
-
+        
         # Prepare updates
         updates = {}
         if summary:
             updates['summary'] = summary
         if description is not None:
             updates['description'] = description
-
+        
         if start_datetime:
             if 'T' in start_datetime:
                 updates['start'] = {'dateTime': start_datetime, 'timeZone': 'UTC'}
             else:
                 updates['start'] = {'date': start_datetime}
-
+        
         if end_datetime:
             if 'T' in end_datetime:
                 updates['end'] = {'dateTime': end_datetime, 'timeZone': 'UTC'}
             else:
                 updates['end'] = {'date': end_datetime}
-
+        
         if not updates:
             return "No updates specified."
-
+        
         # Apply updates
         for key, value in updates.items():
             existing_event[key] = value
-
+        
         updated_event = service.events().update(
             calendarId=resolved_id,
             eventId=event_id,
             body=existing_event
         ).execute()
-
-        result = "Event updated successfully!\n"
+        
+        result = f"Event updated successfully!\n"
         result += f"Event ID: {updated_event['id']}\n"
         result += f"Updated fields: {', '.join(updates.keys())}\n"
-
+        
         return result
-
+        
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -503,22 +507,22 @@ def delete_event(
     try:
         service = _get_calendar_service()
         resolved_id = _resolve_calendar_id(calendar_id, service)
-
+        
         # Get existing event to verify summary for safety
         existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-
+        
         # Verify event summary matches for safety
         if existing_event.get('summary', '') != event_summary:
             raise ValueError(
                 f"Event summary mismatch. Expected '{event_summary}', "
                 f"found '{existing_event.get('summary', '')}'"
             )
-
+        
         # Delete the event
         service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
-
+        
         return f"Event '{event_summary}' (ID: {event_id}) has been permanently deleted."
-
+        
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -534,28 +538,28 @@ def list_calendars() -> str:
     """List all accessible calendars."""
     try:
         service = _get_calendar_service()
-
+        
         calendar_list = service.calendarList().list().execute()
         calendars = calendar_list.get('items', [])
-
+        
         if not calendars:
             return "No calendars found."
-
+        
         result = f"Found {len(calendars)} accessible calendars:\n\n"
-
+        
         for calendar in calendars:
             name = calendar.get('summary', 'Unknown')
             cal_id = calendar['id']
             access_role = calendar.get('accessRole', 'unknown')
             color_id = calendar.get('colorId', 'default')
-
+            
             result += f"• {name}\n"
             result += f"  ID: {cal_id}\n"
             result += f"  Access: {access_role}\n"
             result += f"  Color: {color_id}\n\n"
-
+        
         return result.strip()
-
+        
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -597,8 +601,8 @@ find_time(
 ```""")
 def find_time(
     calendar_id: str = "primary",
-    start_date: str | None = None,
-    end_date: str | None = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     duration_minutes: int = 60,
     work_hours_only: bool = True
 ) -> str:
@@ -606,69 +610,69 @@ def find_time(
     try:
         service = _get_calendar_service()
         resolved_id = _resolve_calendar_id(calendar_id, service)
-
+        
         # Set default date range
         if not start_date:
             start_dt = datetime.now()
         else:
             start_dt = datetime.fromisoformat(start_date)
-
+        
         if not end_date:
             end_dt = start_dt + timedelta(days=7)
         else:
             end_dt = datetime.fromisoformat(end_date)
-
+        
         # Get busy times
         freebusy_request = {
             'timeMin': start_dt.isoformat() + 'Z',
             'timeMax': end_dt.isoformat() + 'Z',
             'items': [{'id': resolved_id}]
         }
-
+        
         freebusy_result = service.freebusy().query(body=freebusy_request).execute()
         busy_times = freebusy_result['calendars'][resolved_id].get('busy', [])
-
+        
         # Generate time slots
         slots = []
         current = start_dt.replace(tzinfo=None) if start_dt.tzinfo else start_dt
         end_dt = end_dt.replace(tzinfo=None) if end_dt.tzinfo else end_dt
         slot_duration = timedelta(minutes=duration_minutes)
-
+        
         while current + slot_duration <= end_dt:
             if work_hours_only and (current.hour < 9 or current.hour >= 17):
                 current += timedelta(hours=1)
                 continue
-
+            
             slot_end = current + slot_duration
-
+            
             # Check if slot conflicts with busy times
             is_free = True
             for busy in busy_times:
                 busy_start = datetime.fromisoformat(busy['start'].replace('Z', '+00:00')).replace(tzinfo=None)
                 busy_end = datetime.fromisoformat(busy['end'].replace('Z', '+00:00')).replace(tzinfo=None)
-
+                
                 if (current < busy_end and slot_end > busy_start):
                     is_free = False
                     break
-
+            
             if is_free:
                 slots.append((current, slot_end))
-
+            
             current += timedelta(minutes=30)  # Check every 30 minutes
-
+        
         if not slots:
             return f"No free {duration_minutes}-minute slots found in the specified time range."
-
+        
         result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
-
+        
         for start_time, end_time in slots[:20]:  # Limit to first 20 slots
             result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
-
+        
         if len(slots) > 20:
             result += f"\n... and {len(slots) - 20} more slots"
-
+        
         return result
-
+        
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -680,10 +684,10 @@ def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
     try:
         service = _get_calendar_service()
-
+        
         # Test API connection by getting calendar list
         calendar_list = service.calendarList().list(maxResults=1).execute()
-
+        
         return f"""Google Calendar Tool Server Status
 ========================================
 Status: Connected and ready
@@ -699,7 +703,7 @@ Available tools:
 - list_calendars: List all accessible calendars
 - find_time: Find free time slots
 - server_info: Get server status"""
-
+        
     except FileNotFoundError as e:
         return f"""Google Calendar Tool Server Status
 ========================================
@@ -707,7 +711,7 @@ Status: Configuration Error
 Error: {str(e)}
 
 Please ensure Google Calendar credentials are properly configured."""
-
+        
     except Exception as e:
         return f"""Google Calendar Tool Server Status
 ========================================

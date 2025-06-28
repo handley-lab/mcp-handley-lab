@@ -8,15 +8,17 @@ interactions:
       - gzip, deflate
       content-length:
       - '0'
+      user-agent:
+      - (gzip)
       x-goog-api-client:
       - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32fojelfqe7os0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p327rranrl278s0o\\\"\",\n
         \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-06-26T17:51:27.155Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"updated\": \"2025-06-26T05:09:03.820Z\",\n \"timeZone\": \"Europe/London\",\n
         \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
         \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
     headers:
@@ -27,9 +29,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 27 Jun 2025 21:12:38 GMT
+      - Thu, 26 Jun 2025 05:15:32 GMT
       Expires:
-      - Fri, 27 Jun 2025 21:12:38 GMT
+      - Thu, 26 Jun 2025 05:15:32 GMT
       Server:
       - ESF
       Transfer-Encoding:

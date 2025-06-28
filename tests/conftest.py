@@ -1,9 +1,7 @@
 import os
+import pytest
 import tempfile
 from pathlib import Path
-
-import pytest
-
 
 @pytest.fixture(scope="session")
 def vcr_config():
@@ -12,11 +10,10 @@ def vcr_config():
         "match_on": ["uri", "method"],
         "filter_headers": [
             "authorization",
-            "x-api-key",
+            "x-api-key", 
             "x-goog-api-key",
             "cookie",
             "set-cookie",
-            "user-agent",  # Filter user agent for ArXiv
         ],
         "filter_query_parameters": [
             "key",
@@ -29,7 +26,6 @@ def vcr_config():
             "access_token",
         ],
         "decode_compressed_response": True,
-        "ignore_hosts": [],  # Allow ArXiv hosts
     }
 
 @pytest.fixture
@@ -62,23 +58,23 @@ def skip_if_no_api_key():
 def google_calendar_test_config():
     """Configure Google Calendar to use test credentials during testing."""
     from mcp_handley_lab.common.config import settings
-
+    
     # Check if test credentials exist
     test_creds_path = Path("~/.google_calendar_test_credentials.json").expanduser()
     test_token_path = Path("~/.google_calendar_test_token.json").expanduser()
-
+    
     if not test_creds_path.exists():
         pytest.skip("Google Calendar test credentials not available")
-
+    
     # Temporarily override settings for testing
     original_creds = settings.google_credentials_file
     original_token = settings.google_token_file
-
+    
     settings.google_credentials_file = str(test_creds_path)
     settings.google_token_file = str(test_token_path)
-
+    
     yield
-
+    
     # Restore original settings
     settings.google_credentials_file = original_creds
     settings.google_token_file = original_token

@@ -34,8 +34,16 @@ class TestJQUnit:
         with pytest.raises(ValueError):
             edit(file_path="", filter=".test")
         
-        with pytest.raises(ValueError):
-            edit(file_path="/tmp/test.json", filter="")
+        # Create a temporary file for filter validation
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump({"test": "value"}, f)
+            f.flush()
+            
+            try:
+                with pytest.raises(ValueError):
+                    edit(file_path=f.name, filter="")
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_validate_valid_json(self, mock_run):

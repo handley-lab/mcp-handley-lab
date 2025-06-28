@@ -552,7 +552,7 @@ class TestAdvancedChainExecution:
         # Execute chain
         result = execute_chain("failing_chain", storage_dir=temp_storage_dir)
         
-        assert "Chain execution failed" in result
+        assert "❌ Failed" in result
         assert "Tool execution failed" in result
 
 
@@ -563,7 +563,7 @@ class TestHistoryAndCacheManagement:
         """Test showing history when empty."""
         result = show_history(storage_dir=temp_storage_dir)
         
-        assert "No execution history found" in result
+        assert "No chain executions found" in result
     
     def test_show_history_with_data(self, temp_storage_dir):
         """Test showing history with execution data."""
@@ -638,8 +638,8 @@ class TestServerInfo:
         result = server_info(storage_dir=temp_storage_dir)
         
         assert "Tool Chainer Server Status" in result
-        assert "Registered Tools: 0" in result
-        assert "Defined Chains: 0" in result
+        assert "**Registered Tools:** 0" in result
+        assert "**Defined Chains:** 0" in result
         assert "Execution History: 0 entries" in result
     
     def test_server_info_with_data(self, temp_storage_dir):
@@ -659,10 +659,10 @@ class TestServerInfo:
         
         result = server_info(storage_dir=temp_storage_dir)
         
-        assert "Registered Tools: 2" in result
+        assert "**Registered Tools:** 2" in result
         assert "tool1" in result
         assert "tool2" in result
-        assert "Defined Chains: 2" in result
+        assert "**Defined Chains:** 2" in result
         assert "chain1" in result
         assert "chain2" in result
         assert "Execution History: 2 entries" in result
@@ -673,22 +673,18 @@ class TestErrorHandling:
     
     def test_register_tool_missing_fields(self, temp_storage_dir):
         """Test registering tool with missing required fields."""
-        # This should still work as the function doesn't validate inputs strictly
-        result = register_tool(
-            tool_id="",
-            server_command="",
-            tool_name="",
-            storage_dir=temp_storage_dir
-        )
-        
-        assert isinstance(result, str)
-        assert len(result) > 0
+        with pytest.raises(ValueError, match="Tool ID is required"):
+            register_tool(
+                tool_id="",
+                server_command="",
+                tool_name="",
+                storage_dir=temp_storage_dir
+            )
     
     def test_execute_chain_nonexistent_chain(self, temp_storage_dir):
         """Test executing non-existent chain."""
-        result = execute_chain("nonexistent_chain", storage_dir=temp_storage_dir)
-        
-        assert "Chain 'nonexistent_chain' not found" in result
+        with pytest.raises(ValueError, match="Chain 'nonexistent_chain' not found"):
+            execute_chain("nonexistent_chain", storage_dir=temp_storage_dir)
     
     def test_execute_chain_nonexistent_tool(self, temp_storage_dir):
         """Test executing chain with non-existent tool."""
@@ -711,7 +707,31 @@ class TestErrorHandling:
     @patch('mcp_handley_lab.tool_chainer.tool._save_state')
     def test_execute_chain_save_error(self, mock_save_state, temp_storage_dir):
         """Test chain execution with save error."""
-        mock_save_state.side_effect = Exception("Save failed")
+        # Allow first few saves to succeed, then fail later ones
+        call_count = 0
+        
+        original_save_state = mock_save_state._mock_wraps or mock_save_state._mock_side_effect
+        
+        def save_side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:  # Allow first two saves (register_tool and chain_tools)
+                # Call the real function to actually save state
+                storage_path, registered_tools, defined_chains, execution_history = args
+                storage_path.mkdir(parents=True, exist_ok=True)
+                state = {
+                    "registered_tools": registered_tools,
+                    "defined_chains": defined_chains,
+                    "execution_history": execution_history
+                }
+                import json
+                with open(storage_path / "state.json", "w") as f:
+                    json.dump(state, f, indent=2, default=str)
+                return None
+            else:
+                raise Exception("Save failed")
+        
+        mock_save_state.side_effect = save_side_effect
         
         # Register tool first
         register_tool(

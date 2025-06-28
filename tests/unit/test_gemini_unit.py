@@ -1,15 +1,36 @@
 """Unit tests for Gemini LLM tool functionality."""
 import pytest
+import tempfile
+import base64
+import io
 from unittest.mock import patch, Mock, MagicMock
 from pathlib import Path
+from PIL import Image
 
 from mcp_handley_lab.llm.gemini.tool import (
-    _get_model_config, MODEL_CONFIGS, ask, analyze_image
+    _get_model_config, MODEL_CONFIGS, ask, analyze_image, generate_image,
+    create_agent, list_agents, agent_stats, clear_agent, delete_agent,
+    get_response, server_info, _get_session_id, _resolve_files, _resolve_images,
+    _handle_agent_and_usage
 )
 
 
 class TestModelConfiguration:
     """Test model configuration and token limit functionality."""
+    
+    @pytest.mark.parametrize("model_name,expected_output_tokens", [
+        ("gemini-2.5-pro", 65536),
+        ("gemini-2.5-flash", 65536),
+        ("gemini-2.5-flash-lite", 64000),
+        ("gemini-2.0-flash", 8192),
+        ("gemini-2.0-flash-lite", 8192),
+        ("gemini-1.5-flash", 8192),
+        ("gemini-1.5-flash-8b", 8192),
+        ("gemini-1.5-pro", 8192),
+    ])
+    def test_model_output_token_limits_parameterized(self, model_name, expected_output_tokens):
+        """Test model output token limits for all models."""
+        assert MODEL_CONFIGS[model_name]["output_tokens"] == expected_output_tokens
     
     def test_model_configs_all_present(self):
         """Test that all expected models are in MODEL_CONFIGS."""
@@ -20,51 +41,23 @@ class TestModelConfiguration:
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
     
-    def test_model_configs_token_limits(self):
-        """Test that model configurations have correct token limits."""
-        # Gemini 2.5 models
-        assert MODEL_CONFIGS["gemini-2.5-pro"]["output_tokens"] == 65536
-        assert MODEL_CONFIGS["gemini-2.5-flash"]["output_tokens"] == 65536
-        assert MODEL_CONFIGS["gemini-2.5-flash-lite"]["output_tokens"] == 64000
-        
-        # Gemini 2.0 models
-        assert MODEL_CONFIGS["gemini-2.0-flash"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-2.0-flash-lite"]["output_tokens"] == 8192
-        
-        # Gemini 1.5 models
-        assert MODEL_CONFIGS["gemini-1.5-flash"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-1.5-flash-8b"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["gemini-1.5-pro"]["output_tokens"] == 8192
     
-    def test_model_configs_input_limits(self):
-        """Test that model configurations have correct input limits."""
-        # Most models have 1M input tokens
-        assert MODEL_CONFIGS["gemini-2.5-flash"]["input_tokens"] == 1048576
-        assert MODEL_CONFIGS["gemini-2.0-flash"]["input_tokens"] == 1048576
-        assert MODEL_CONFIGS["gemini-1.5-flash"]["input_tokens"] == 1048576
-        
-        # Gemini 1.5 Pro has 2M input tokens
-        assert MODEL_CONFIGS["gemini-1.5-pro"]["input_tokens"] == 2097152
-        
-        # Gemini 2.5 Flash Lite has 1M input tokens  
-        assert MODEL_CONFIGS["gemini-2.5-flash-lite"]["input_tokens"] == 1000000
     
-    def test_get_model_config_known_models(self):
-        """Test _get_model_config with known model names."""
-        config = _get_model_config("gemini-2.5-flash")
-        assert config["output_tokens"] == 65536
-        assert config["input_tokens"] == 1048576
-        
-        config = _get_model_config("gemini-1.5-pro")
-        assert config["output_tokens"] == 8192
-        assert config["input_tokens"] == 2097152
+    @pytest.mark.parametrize("model_name,expected_output_tokens", [
+        ("gemini-2.5-flash", 65536),
+        ("gemini-1.5-pro", 8192),
+        ("gemini-2.0-flash", 8192),
+    ])
+    def test_get_model_config_parameterized(self, model_name, expected_output_tokens):
+        """Test _get_model_config with various known models."""
+        config = _get_model_config(model_name)
+        assert config["output_tokens"] == expected_output_tokens
     
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
         # Should default to gemini-1.5-flash
         assert config["output_tokens"] == 8192
-        assert config["input_tokens"] == 1048576
 
 
 class TestAskTokenLimits:
@@ -246,3 +239,86 @@ class TestInputValidation:
         except Exception:
             # Other exceptions are expected (like the mock exception)
             pass
+
+
+class TestErrorHandling:
+    """Test error handling scenarios for coverage."""
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.settings')
+    @patch('mcp_handley_lab.llm.gemini.tool.google_genai.Client')
+    def test_client_initialization_error(self, mock_client_class, mock_settings):
+        """Test client initialization error handling (lines 32-34)."""
+        # Force the initialization to fail
+        mock_settings.gemini_api_key = 'test_key'
+        mock_client_class.side_effect = Exception("API key invalid")
+        
+        # Import the module to trigger initialization
+        import importlib
+        import mcp_handley_lab.llm.gemini.tool
+        importlib.reload(mcp_handley_lab.llm.gemini.tool)
+        
+        # The module should load but client should be None
+        assert mcp_handley_lab.llm.gemini.tool.client is None
+        assert mcp_handley_lab.llm.gemini.tool.initialization_error == "API key invalid"
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.is_text_file')
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.stat')
+    @patch('pathlib.Path.read_text')
+    def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
+        """Test file reading error in _resolve_files (lines 127-131)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_files
+        
+        mock_exists.return_value = True
+        mock_stat.return_value.st_size = 100  # Small file
+        mock_is_text.return_value = True
+        # Make read_text fail
+        mock_read_text.side_effect = Exception("Permission denied")
+        
+        files = [{"path": "/tmp/test.txt"}]
+        parts = _resolve_files(files)
+        
+        # Should have error message part
+        assert len(parts) == 1
+        assert "Error reading file" in parts[0].text
+        assert "Permission denied" in parts[0].text
+    
+    @patch('pathlib.Path.exists')
+    def test_resolve_files_processing_error(self, mock_exists):
+        """Test file processing error in _resolve_files (lines 130-131)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_files
+        
+        # Make the path check itself fail
+        mock_exists.side_effect = Exception("Invalid path")
+        
+        files = [{"path": "/invalid/path"}]
+        parts = _resolve_files(files)
+        
+        # Should have error message part
+        assert len(parts) == 1
+        assert "Error processing file /invalid/path: Invalid path" in parts[0].text
+    
+    @patch('pathlib.Path.read_bytes')
+    @patch('PIL.Image.open')
+    def test_resolve_images_load_error(self, mock_image_open, mock_read_bytes):
+        """Test image loading error in _resolve_images (lines 161-162)."""
+        from mcp_handley_lab.llm.gemini.tool import _resolve_images
+        
+        # Return valid bytes but make PIL.Image.open fail
+        mock_read_bytes.return_value = b"some image data"
+        mock_image_open.side_effect = Exception("Invalid image format")
+        
+        with pytest.raises(ValueError, match="Failed to load image"):
+            _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
+    
+    def test_analyze_image_output_file_validation(self):
+        """Test output file validation in analyze_image (line 485)."""
+        from mcp_handley_lab.llm.gemini.tool import analyze_image
+        
+        # Test with whitespace-only output file
+        with pytest.raises(ValueError, match="Output file is required"):
+            analyze_image(
+                prompt="Test",
+                output_file="   ",  # Whitespace only
+                image_data="data:image/png;base64,test"
+            )

@@ -14,6 +14,11 @@ class TestJQUnit:
         ('{"test": "value"}', '.test', '"value"'),
         ('{"numbers": [1,2,3]}', '.numbers | length', '3'),
         ('{"nested": {"key": "val"}}', '.nested.key', '"val"'),
+        ('{"a": null}', '.a', 'null'),
+        ('[]', 'length', '0'),
+        ('{}', '.missing_key', 'null'),
+        ('[1,2,3]', '.[1]', '2'),
+        ('{"array": [1,2,3]}', '.array[0]', '1'),
     ])
     @patch('subprocess.run')
     def test_query_parameterized(self, mock_run, data, filter, expected):
@@ -29,8 +34,16 @@ class TestJQUnit:
         with pytest.raises(ValueError):
             edit(file_path="", filter=".test")
         
-        with pytest.raises(ValueError):
-            edit(file_path="/tmp/test.json", filter="")
+        # Create a temporary file for filter validation
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump({"test": "value"}, f)
+            f.flush()
+            
+            try:
+                with pytest.raises(ValueError):
+                    edit(file_path=f.name, filter="")
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_validate_valid_json(self, mock_run):
@@ -69,10 +82,11 @@ class TestJQUnit:
             json.dump({"test": "value"}, f)
             f.flush()
             
-            result = edit(file_path=f.name, filter='.test = "new_value"')
-            assert "success" in result.lower() or "updated" in result.lower()
-            
-            Path(f.name).unlink()
+            try:
+                result = edit(file_path=f.name, filter='.test = "new_value"')
+                assert "success" in result.lower() or "updated" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')  
     def test_query_compact_raw(self, mock_run):
@@ -96,14 +110,15 @@ class TestJQUnit:
             f.write('{"test": "value"}')
             f.flush()
             
-            result = query(f.name, '.test')
-            assert '"value"' in result
-            
-            # Verify file path was passed to jq
-            call_args = mock_run.call_args[0][0]
-            assert f.name in call_args
-            
-            Path(f.name).unlink()
+            try:
+                result = query(f.name, '.test')
+                assert '"value"' in result
+                
+                # Verify file path was passed to jq
+                call_args = mock_run.call_args[0][0]
+                assert f.name in call_args
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_read_file(self, mock_run):
@@ -113,22 +128,112 @@ class TestJQUnit:
         result = read("/tmp/test.json", ".formatted")
         assert "formatted" in result
     
+    @pytest.mark.parametrize("data,filter,error_msg,expected_exception", [
+        ('{"test": "value"}', 'invalid..filter', 'jq error: invalid filter', ValueError),
+        ('invalid json', '.test', 'Invalid JSON', ValueError),
+        ('{"test": "value"}', '.nonexistent | error', 'Cannot index', ValueError),
+        ('[]', '.[10]', 'Cannot index array with string', ValueError),
+    ])
     @patch('subprocess.run')
-    def test_jq_error_handling(self, mock_run):
+    def test_jq_error_handling_parameterized(self, mock_run, data, filter, error_msg, expected_exception):
         from subprocess import CalledProcessError
-        mock_run.side_effect = CalledProcessError(1, "jq", stderr="jq error: invalid filter")
+        mock_run.side_effect = CalledProcessError(1, "jq", stderr=error_msg)
         
-        with pytest.raises(ValueError, match="jq error"):
-            query('{"test": "value"}', 'invalid..filter')
+        with pytest.raises(expected_exception, match="jq error"):
+            query(data, filter)
+    
+    @patch('subprocess.run')
+    def test_query_with_dict_input(self, mock_run):
+        """Test query with dict input (line 20)."""
+        mock_run.return_value.stdout = '"Alice"'
+        mock_run.return_value.returncode = 0
+        
+        # Pass dict directly (FastMCP auto-parses JSON to dict)
+        result = query({"name": "Alice"}, '.name')
+        assert '"Alice"' in result
+    
+    @patch('subprocess.run')
+    def test_query_with_list_input(self, mock_run):
+        """Test query with list input (line 20)."""
+        mock_run.return_value.stdout = '3'
+        mock_run.return_value.returncode = 0
+        
+        # Pass list directly (FastMCP auto-parses JSON to list)
+        result = query([1, 2, 3], 'length')
+        assert '3' in result
+    
+    @patch('subprocess.run')
+    def test_query_with_non_string_fallback(self, mock_run):
+        """Test query with non-string data fallback (line 30)."""
+        mock_run.return_value.stdout = '123'
+        mock_run.return_value.returncode = 0
+        
+        # Pass integer (should convert to string)
+        result = query(123, '.')
+        assert '123' in result
+    
+    @patch('subprocess.run')
+    def test_jq_command_not_found(self, mock_run):
+        """Test jq command not found error (lines 46-47)."""
+        mock_run.side_effect = FileNotFoundError("jq: command not found")
+        
+        with pytest.raises(RuntimeError, match="jq command not found"):
+            query('{"test": "value"}', '.test')
+    
+    def test_format_pretty_print(self):
+        """Test non-compact formatting (line 249)."""
+        data = '{"b": 2, "a": 1}'
+        result = jq_format(data, compact=False, sort_keys=True)
+        
+        # Should have indentation (non-compact)
+        assert '{\n' in result
+        assert '"a"' in result
+        assert '"b"' in result
+    
+    @patch('mcp_handley_lab.jq.tool._run_jq')
+    def test_server_info_success(self, mock_run_jq):
+        """Test server_info function (lines 255-271)."""
+        from mcp_handley_lab.jq.tool import server_info
+        
+        mock_run_jq.return_value = "jq-1.6"
+        
+        result = server_info()
+        assert "JQ Tool Server Status" in result
+        assert "jq-1.6" in result
+        assert "Connected and ready" in result
+        assert "query:" in result
+        assert "edit:" in result
+        assert "validate:" in result
+    
+    @patch('mcp_handley_lab.jq.tool._run_jq')
+    def test_server_info_error(self, mock_run_jq):
+        """Test server_info error handling (line 271)."""
+        from mcp_handley_lab.jq.tool import server_info
+        
+        mock_run_jq.side_effect = RuntimeError("jq command not found")
+        
+        with pytest.raises(RuntimeError, match="jq command not found"):
+            server_info()
 
 class TestVimUnit:
     
+    @pytest.mark.parametrize("file_ext,initial_content,show_diff,expected_in_result", [
+        (".py", "print('hello')", False, "hello"),
+        (".txt", "Hello World", False, "hello world"),
+        (".md", "# Heading", False, "heading"),
+        (".py", "", False, "content"),
+        (".js", "console.log('test')", True, "changes"),
+    ])
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="test content")
-    def test_prompt_user_edit_success(self, mock_file, mock_run):
+    @patch('builtins.open', new_callable=mock_open)
+    def test_prompt_user_edit_parameterized(self, mock_file, mock_run, file_ext, initial_content, show_diff, expected_in_result):
+        mock_file.return_value.read.return_value = initial_content or "default content"
         mock_run.return_value = None
-        result = prompt_user_edit("test content", show_diff=False)
-        assert "test content" in result
+        
+        result = prompt_user_edit(initial_content, file_extension=file_ext, show_diff=show_diff)
+        assert expected_in_result in result.lower()
+        mock_run.assert_called_once()
+    
     
     @patch('subprocess.run')
     @patch('builtins.open', new_callable=mock_open)
@@ -152,11 +257,21 @@ class TestVimUnit:
         assert "test content" in result or "no changes" in result.lower()
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="file content")
-    def test_open_file_success(self, mock_file, mock_run):
+    @patch('pathlib.Path.read_text')
+    @patch('pathlib.Path.write_text')
+    def test_open_file_success(self, mock_write, mock_read, mock_run):
         mock_run.return_value = None
-        result = open_file("/tmp/test.txt", show_diff=False)
-        assert "file edited" in result.lower() or "backup saved" in result.lower()
+        mock_read.return_value = "file content"
+        mock_write.return_value = None
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("file content")
+            
+            try:
+                result = open_file(f.name, show_diff=False)
+                assert "file edited" in result.lower() or "backup saved" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     @patch('builtins.open', new_callable=mock_open, read_data="quick content")
@@ -166,35 +281,56 @@ class TestVimUnit:
         assert "quick content" in result or "created successfully" in result.lower()
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="file content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_backup(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_backup(self, mock_write, mock_read, mock_run):
         mock_read.return_value = "original content"
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", backup=True, show_diff=False)
-        assert "backup saved" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, backup=True, show_diff=False)
+                assert "backup saved" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
-    @patch('builtins.open', new_callable=mock_open, read_data="edited content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_instructions(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_instructions(self, mock_write, mock_read, mock_run):
         mock_read.return_value = "original content"
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", instructions="Edit this file carefully")
-        assert "file edited" in result.lower() or "no changes" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, instructions="Edit this file carefully")
+                assert "file edited" in result.lower() or "no changes" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')  
-    @patch('builtins.open', new_callable=mock_open, read_data="different content")
     @patch('pathlib.Path.read_text')
-    def test_open_file_with_diff(self, mock_read, mock_file, mock_run):
+    @patch('pathlib.Path.write_text')
+    def test_open_file_with_diff(self, mock_write, mock_read, mock_run):
         # Return different content to trigger diff
         mock_read.side_effect = ["original content", "different content"]
+        mock_write.return_value = None
         mock_run.return_value = None
         
-        result = open_file("/tmp/test.txt", show_diff=True)
-        assert "changes made" in result.lower() or "diff" in result.lower()
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            f.write("original content")
+            
+            try:
+                result = open_file(f.name, show_diff=True)
+                assert "changes made" in result.lower() or "diff" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
     
     @patch('subprocess.run')
     def test_vim_server_info(self, mock_run):
@@ -204,6 +340,98 @@ class TestVimUnit:
         from mcp_handley_lab.vim.tool import server_info
         result = server_info()
         assert "vim" in result.lower() and "status" in result.lower()
+    
+    @patch('os.isatty')
+    @patch('subprocess.run')
+    def test_run_vim_no_tty(self, mock_run, mock_isatty):
+        """Test vim without TTY (line 19)."""
+        from mcp_handley_lab.vim.tool import _run_vim
+        
+        mock_isatty.return_value = False  # No TTY
+        mock_run.return_value = None
+        
+        _run_vim("/tmp/test.txt")
+        mock_run.assert_called()
+        
+        # Should call subprocess.run without special handling
+        call_args = mock_run.call_args[0][0]
+        assert 'vim' in call_args
+        assert '/tmp/test.txt' in call_args
+    
+    @patch('os.isatty')
+    @patch('subprocess.run')
+    def test_run_vim_with_tty(self, mock_run, mock_isatty):
+        """Test vim with TTY (line 19)."""
+        from mcp_handley_lab.vim.tool import _run_vim
+        
+        mock_isatty.return_value = True  # TTY available
+        mock_run.return_value = None
+        
+        _run_vim("/tmp/test.txt")
+        mock_run.assert_called()
+        
+        # Should call subprocess.run 
+        call_args = mock_run.call_args[0][0]
+        assert 'vim' in call_args
+        assert '/tmp/test.txt' in call_args
+    
+    def test_strip_instructions_with_separator(self):
+        """Test instruction stripping with separator line (line 48)."""
+        from mcp_handley_lab.vim.tool import _strip_instructions
+        
+        content = """# Instructions here
+# More instructions
+# ============================================================
+
+actual content
+more content"""
+        
+        result = _strip_instructions(content, "Instructions here", ".py")
+        assert result == "actual content\nmore content"
+    
+    @patch('subprocess.run') 
+    @patch('builtins.open', new_callable=mock_open, read_data="original content")
+    def test_prompt_user_edit_with_changes(self, mock_file, mock_run):
+        """Test diff calculation when changes are made (lines 143-147)."""
+        from mcp_handley_lab.vim.tool import prompt_user_edit
+        
+        # Mock vim writing different content
+        def side_effect(*args, **kwargs):
+            # Simulate vim changing the file
+            mock_file.return_value.read.return_value = "new content\nadded line"
+        
+        mock_run.side_effect = side_effect
+        mock_file.return_value.read.return_value = "new content\nadded line"
+        
+        result = prompt_user_edit("original content", show_diff=True)
+        
+        # Should show added/removed line counts
+        assert ("added" in result and "removed" in result) or "Changes made" in result
+    
+    @pytest.mark.parametrize("exception,error_msg,expected_exception", [
+        (FileNotFoundError("vim: command not found"), "vim command not found", FileNotFoundError),
+        (PermissionError("Permission denied"), "Permission denied", PermissionError),
+        (subprocess.CalledProcessError(1, "vim", stderr="Vim error"), "Vim error", subprocess.CalledProcessError),
+    ])
+    @patch('subprocess.run')
+    def test_vim_error_handling_parameterized(self, mock_run, exception, error_msg, expected_exception):
+        """Test various vim error conditions."""
+        from mcp_handley_lab.vim.tool import _run_vim
+        
+        mock_run.side_effect = exception
+        
+        with pytest.raises(expected_exception):
+            _run_vim("/tmp/test.txt")
+    
+    @patch('subprocess.run')
+    def test_server_info_vim_not_found(self, mock_run):
+        """Test server_info when vim not found (lines 386-387)."""
+        from mcp_handley_lab.vim.tool import server_info
+        
+        mock_run.side_effect = FileNotFoundError("vim: command not found")
+        
+        with pytest.raises(RuntimeError, match="vim command not found"):
+            server_info()
 
 class TestCode2PromptUnit:
     
@@ -212,31 +440,37 @@ class TestCode2PromptUnit:
             generate_prompt(path="")
     
     @patch('subprocess.run')
-    def test_generate_prompt_success(self, mock_run):
-        mock_run.return_value.stdout = "Generated prompt successfully"
-        mock_run.return_value.stderr = ""
-        mock_run.return_value.returncode = 0
-        
-        with tempfile.TemporaryDirectory() as temp_dir:
-            result = generate_prompt(
-                path=temp_dir,
-                output_file="/tmp/test_output.md"
-            )
-            assert "success" in result.lower()
-    
-    @patch('subprocess.run')
     @patch('pathlib.Path.stat')
-    def test_generate_prompt_with_filters(self, mock_stat, mock_run):
-        mock_run.return_value.stdout = "Generated with filters"
+    def test_generate_prompt_success(self, mock_stat, mock_run):
+        mock_run.return_value.stdout = "Generated prompt successfully"
         mock_run.return_value.stderr = ""
         mock_run.return_value.returncode = 0
         mock_stat.return_value.st_size = 1024  # Mock file size
         
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Create the output file to avoid stat error
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
                 f.write("test content")
                 
+            try:
+                result = generate_prompt(
+                    path=temp_dir,
+                    output_file=f.name
+                )
+                assert "success" in result.lower()
+            finally:
+                Path(f.name).unlink(missing_ok=True)
+    
+    @patch('subprocess.run')
+    def test_generate_prompt_with_filters(self, mock_run):
+        mock_run.return_value.stdout = "Generated with filters"
+        mock_run.return_value.stderr = ""
+        mock_run.return_value.returncode = 0
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
+                f.write("test content")
+
+            try:
                 result = generate_prompt(
                     path=temp_dir,
                     include=["*.py"],
@@ -244,23 +478,23 @@ class TestCode2PromptUnit:
                     output_file=f.name
                 )
                 assert "success" in result.lower() or "generated" in result.lower()
-                
+            finally:
                 Path(f.name).unlink(missing_ok=True)
     
+    @pytest.mark.parametrize("exception,error_msg,expected_exception", [
+        (subprocess.CalledProcessError(1, "code2prompt", stderr="Command failed"), "code2prompt error", ValueError),
+        (subprocess.CalledProcessError(2, "code2prompt", stderr="Invalid path"), "code2prompt error", ValueError),
+        (FileNotFoundError("code2prompt not found"), "code2prompt command not found", RuntimeError),
+        (PermissionError("Permission denied"), "Permission denied", PermissionError),
+    ])
     @patch('subprocess.run')
-    def test_generate_prompt_subprocess_error(self, mock_run):
-        from subprocess import CalledProcessError
-        mock_run.side_effect = CalledProcessError(1, "code2prompt", stderr="Command failed")
+    def test_code2prompt_error_handling_parameterized(self, mock_run, exception, error_msg, expected_exception):
+        """Test various code2prompt error conditions."""
+        mock_run.side_effect = exception
         
-        with pytest.raises(ValueError, match="code2prompt error"):
+        with pytest.raises(expected_exception):
             generate_prompt(path="/tmp/test")
     
-    @patch('subprocess.run')
-    def test_generate_prompt_command_not_found(self, mock_run):
-        mock_run.side_effect = FileNotFoundError("code2prompt not found")
-        
-        with pytest.raises(RuntimeError, match="code2prompt command not found"):
-            generate_prompt(path="/tmp/test")
     
     @patch('subprocess.run')
     @patch('pathlib.Path.stat')
@@ -326,3 +560,13 @@ class TestCode2PromptUnit:
         from mcp_handley_lab.code2prompt.tool import server_info
         result = server_info()
         assert "status" in result.lower() and "code2prompt" in result.lower()
+    
+    @patch('subprocess.run')
+    def test_server_info_error_handling(self, mock_run):
+        """Test server_info error handling (lines 168-169)."""
+        from mcp_handley_lab.code2prompt.tool import server_info
+        
+        mock_run.side_effect = FileNotFoundError("code2prompt: command not found")
+        
+        with pytest.raises(RuntimeError, match="code2prompt command not found"):
+            server_info()

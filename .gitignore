@@ -46,6 +46,9 @@ htmlcov/
 # MCP Handley Lab local data
 .mcp_handley_lab/
 
+# ArXiv paper downloads (testing artifacts)
+[0-9][0-9][0-9][0-9].[0-9][0-9][0-9][0-9][0-9]/
+
 # PKGBUILD generated files
 pkg/
 *.pkg.tar.zst

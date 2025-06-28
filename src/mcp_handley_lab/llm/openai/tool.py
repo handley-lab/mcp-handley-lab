@@ -24,22 +24,22 @@ client = OpenAI(api_key=settings.openai_api_key)
 # Model configurations with token limits from OpenAI documentation
 MODEL_CONFIGS = {
     # O3 Series (2025)
-    "o3-mini": {"input_tokens": 200000, "output_tokens": 100000, "param": "max_completion_tokens"},
+    "o3-mini": {"output_tokens": 100000, "param": "max_completion_tokens"},
     
     # O1 Series (Reasoning Models)
-    "o1-preview": {"input_tokens": 128000, "output_tokens": 32768, "param": "max_completion_tokens"},
-    "o1-mini": {"input_tokens": 128000, "output_tokens": 65536, "param": "max_completion_tokens"},
+    "o1-preview": {"output_tokens": 32768, "param": "max_completion_tokens"},
+    "o1-mini": {"output_tokens": 65536, "param": "max_completion_tokens"},
     
     # GPT-4o Series
-    "gpt-4o": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-mini": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-2024-11-20": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-2024-08-06": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-mini-2024-07-18": {"input_tokens": 128000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o": {"output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-mini": {"output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-2024-11-20": {"output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-2024-08-06": {"output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4o-mini-2024-07-18": {"output_tokens": 16384, "param": "max_tokens"},
     
     # GPT-4.1 Series (if released)
-    "gpt-4.1": {"input_tokens": 1000000, "output_tokens": 32768, "param": "max_tokens"},
-    "gpt-4.1-mini": {"input_tokens": 1000000, "output_tokens": 16384, "param": "max_tokens"},
+    "gpt-4.1": {"output_tokens": 32768, "param": "max_tokens"},
+    "gpt-4.1-mini": {"output_tokens": 16384, "param": "max_tokens"},
 }
 
 

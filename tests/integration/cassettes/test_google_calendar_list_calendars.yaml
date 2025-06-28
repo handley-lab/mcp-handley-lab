@@ -16,8 +16,8 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33vsbftcpm6os0o\\\"\",\n
-        \"nextSyncToken\": \"CP_Fv6zNjY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32vqjoviu29os0o\\\"\",\n
+        \"nextSyncToken\": \"CL-p4_Lwk44DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
@@ -61,9 +61,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 26 Jun 2025 05:09:01 GMT
+      - Sat, 28 Jun 2025 18:56:53 GMT
       Expires:
-      - Thu, 26 Jun 2025 05:09:01 GMT
+      - Sat, 28 Jun 2025 18:56:53 GMT
       Server:
       - ESF
       Transfer-Encoding:

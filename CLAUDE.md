@@ -28,6 +28,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Code & Git Interaction**: Analyzing, summarizing, and diffing codebases via `code2prompt`
 - **AI Model Integration**: Managing interactions with Google Gemini and OpenAI models
 - **Productivity & Scheduling**: Google Calendar management
+- **Academic Research**: ArXiv paper source code retrieval and analysis
 - **Data Manipulation**: JSON querying and editing via `jq`
 - **Interactive Editing**: Programmatic `vim` invocation
 - **Workflow Automation**: Tool chaining for multi-step automated tasks
@@ -146,6 +147,14 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 6 integration tests covering all functionality
 - **Status**: Production ready
 
+### ArXiv Tool ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/arxiv/`
+- **Functions**: `download`, `list_files`, `server_info`
+- **Features**: Multi-format ArXiv download (src/pdf/tex), file listing, output control ('-' for stdout), caching in /tmp
+- **Formats**: 'src' (full source), 'pdf' (PDF file), 'tex' (LaTeX files: .tex/.bib/.bbl only)
+- **Tests**: 16 test cases covering all formats, caching, error handling, and integration tests
+- **Status**: Production ready with comprehensive caching and output control
+
 ## Running Tools
 
 ### Unified Entry Point
@@ -169,6 +178,7 @@ python -m mcp_handley_lab llm.gemini            # Run Gemini LLM tool
 python -m mcp_handley_lab llm.openai          # Run OpenAI LLM tool
 python -m mcp_handley_lab google_calendar       # Run Google Calendar tool
 python -m mcp_handley_lab tool_chainer        # Run Tool Chainer tool
+python -m mcp_handley_lab arxiv                 # Run ArXiv tool
 
 # Or use direct script entries
 mcp-handley-lab --help                          # Unified entry point
@@ -179,6 +189,7 @@ mcp-gemini                                      # Direct Gemini tool
 mcp-openai                                    # Direct OpenAI tool
 mcp-google-calendar                             # Direct Google Calendar tool
 mcp-tool-chainer                              # Direct Tool Chainer tool
+mcp-arxiv                                       # Direct ArXiv tool
 ```
 
 ### JSON-RPC MCP Server Usage
@@ -438,6 +449,21 @@ if __name__ == "__main__": test_mcp_jsonrpc()
       "path": "/path/to/code",
       "include": ["*.py"],
       "output_file": "/tmp/code_summary.md"
+    }
+  }
+}
+```
+
+**ArXiv Tool:**
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "download",
+    "arguments": {
+      "arxiv_id": "2301.07041",
+      "format": "tex",
+      "output_path": "-"
     }
   }
 }

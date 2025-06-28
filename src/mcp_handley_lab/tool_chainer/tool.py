@@ -82,8 +82,7 @@ def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, 
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "tool-chainer",
-                    "version": "1.0.0"
+                    "name": "tool-chainer"
                 }
             }
         }
@@ -270,8 +269,7 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "tool-chainer",
-                    "version": "1.0.0"
+                    "name": "tool-chainer"
                 }
             }
         }

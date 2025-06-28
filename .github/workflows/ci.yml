@@ -18,14 +18,6 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           pyproject.toml
-          
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
         
     - name: Install dependencies
       run: |

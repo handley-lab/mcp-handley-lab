@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"timeMin": "2025-06-26T06:09:03.969736Z", "timeMax": "2025-07-03T06:09:03.969736Z",
+    body: '{"timeMin": "2025-06-28T19:57:12.234418Z", "timeMax": "2025-07-05T19:57:12.234418Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -19,8 +19,8 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/freeBusy?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-06-26T06:09:03.969Z\",\n
-        \"timeMax\": \"2025-07-03T06:09:03.969Z\",\n \"calendars\": {\n  \"primary\":
+      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-06-28T19:57:12.234Z\",\n
+        \"timeMax\": \"2025-07-05T19:57:12.234Z\",\n \"calendars\": {\n  \"primary\":
         {\n   \"busy\": []\n  }\n }\n}\n"
     headers:
       Alt-Svc:
@@ -30,7 +30,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 26 Jun 2025 05:09:04 GMT
+      - Sat, 28 Jun 2025 18:57:12 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

@@ -1,4 +1,5 @@
 """Google Calendar tool for calendar management via MCP."""
+import asyncio
 import os
 import pickle
 from datetime import datetime, timedelta
@@ -19,47 +20,57 @@ mcp = FastMCP("Google Calendar Tool")
 # Google Calendar API scopes
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-def _get_calendar_service():
+async def _get_calendar_service():
     """Get authenticated Google Calendar service."""
-    creds = None
-    token_file = settings.google_token_path
-    credentials_file = settings.google_credentials_path
-    
-    # Load existing token
-    if token_file.exists():
-        with open(token_file, 'rb') as f:
-            creds = pickle.load(f)
-    
-    # Refresh or get new credentials
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            if not credentials_file.exists():
-                raise FileNotFoundError(
-                    f"Google Calendar credentials file not found at {credentials_file}. "
-                    "Please download credentials.json from Google Cloud Console."
-                )
-            
-            flow = InstalledAppFlow.from_client_secrets_file(str(credentials_file), SCOPES)
-            creds = flow.run_local_server(port=0)
+    def _sync_get_service():
+        creds = None
+        token_file = settings.google_token_path
+        credentials_file = settings.google_credentials_path
         
-        # Save credentials for next run
-        token_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(token_file, 'wb') as f:
-            pickle.dump(creds, f)
+        # Load existing token
+        if token_file.exists():
+            with open(token_file, 'rb') as f:
+                creds = pickle.load(f)
+        
+        # Refresh or get new credentials
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                if not credentials_file.exists():
+                    raise FileNotFoundError(
+                        f"Google Calendar credentials file not found at {credentials_file}. "
+                        "Please download credentials.json from Google Cloud Console."
+                    )
+                
+                flow = InstalledAppFlow.from_client_secrets_file(str(credentials_file), SCOPES)
+                creds = flow.run_local_server(port=0)
+            
+            # Save credentials for next run
+            token_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(token_file, 'wb') as f:
+                pickle.dump(creds, f)
+        
+        return build('calendar', 'v3', credentials=creds)
     
-    return build('calendar', 'v3', credentials=creds)
+    # Run in thread pool to avoid blocking
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _sync_get_service)
 
 
-def _resolve_calendar_id(calendar_id: str, service) -> str:
+async def _resolve_calendar_id(calendar_id: str, service) -> str:
     """Resolve calendar name to calendar ID."""
     if calendar_id in ['primary', 'all'] or '@' in calendar_id:
         return calendar_id
     
     # Try to find calendar by name
     try:
-        calendar_list = service.calendarList().list().execute()
+        def _sync_list_calendars():
+            return service.calendarList().list().execute()
+        
+        loop = asyncio.get_running_loop()
+        calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
+        
         for calendar in calendar_list.get('items', []):
             if calendar.get('summary', '').lower() == calendar_id.lower():
                 return calendar['id']
@@ -112,7 +123,7 @@ list_events(
     end_date="2024-06-25"
 )
 ```""")
-def list_events(
+async def list_events(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -120,7 +131,7 @@ def list_events(
 ) -> str:
     """List calendar events."""
     try:
-        service = _get_calendar_service()
+        service = await _get_calendar_service()
         
         # Set default date range if not provided
         if not start_date:
@@ -156,18 +167,26 @@ def list_events(
         
         if calendar_id == "all":
             # Search all calendars
-            calendar_list = service.calendarList().list().execute()
+            def _sync_list_calendars():
+                return service.calendarList().list().execute()
+            
+            loop = asyncio.get_running_loop()
+            calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
+            
             for calendar in calendar_list.get('items', []):
                 cal_id = calendar['id']
                 try:
-                    events_result = service.events().list(
-                        calendarId=cal_id,
-                        timeMin=start_date,
-                        timeMax=end_date,
-                        maxResults=max_results,
-                        singleEvents=True,
-                        orderBy='startTime'
-                    ).execute()
+                    def _sync_list_events():
+                        return service.events().list(
+                            calendarId=cal_id,
+                            timeMin=start_date,
+                            timeMax=end_date,
+                            maxResults=max_results,
+                            singleEvents=True,
+                            orderBy='startTime'
+                        ).execute()
+                    
+                    events_result = await loop.run_in_executor(None, _sync_list_events)
                     
                     cal_events = events_result.get('items', [])
                     for event in cal_events:
@@ -177,15 +196,20 @@ def list_events(
                     continue  # Skip inaccessible calendars
         else:
             # Search specific calendar
-            resolved_id = _resolve_calendar_id(calendar_id, service)
-            events_result = service.events().list(
-                calendarId=resolved_id,
-                timeMin=start_date,
-                timeMax=end_date,
-                maxResults=max_results,
-                singleEvents=True,
-                orderBy='startTime'
-            ).execute()
+            resolved_id = await _resolve_calendar_id(calendar_id, service)
+            
+            def _sync_list_events():
+                return service.events().list(
+                    calendarId=resolved_id,
+                    timeMin=start_date,
+                    timeMax=end_date,
+                    maxResults=max_results,
+                    singleEvents=True,
+                    orderBy='startTime'
+                ).execute()
+            
+            loop = asyncio.get_running_loop()
+            events_result = await loop.run_in_executor(None, _sync_list_events)
             events_list = events_result.get('items', [])
         
         if not events_list:
@@ -222,16 +246,20 @@ def list_events(
 
 
 @mcp.tool(description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.")
-def get_event(
+async def get_event(
     event_id: str,
     calendar_id: str = "primary"
 ) -> str:
     """Get detailed information about a specific event."""
     try:
-        service = _get_calendar_service()
-        resolved_id = _resolve_calendar_id(calendar_id, service)
+        service = await _get_calendar_service()
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
         
-        event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        def _sync_get_event():
+            return service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        loop = asyncio.get_running_loop()
+        event = await loop.run_in_executor(None, _sync_get_event)
         
         result = f"Event Details:\n"
         result += f"Title: {event.get('summary', 'No Title')}\n"
@@ -307,7 +335,7 @@ create_event(
     timezone="America/New_York"
 )
 ```""")
-def create_event(
+async def create_event(
     summary: str,
     start_datetime: str,
     end_datetime: str,
@@ -318,8 +346,8 @@ def create_event(
 ) -> str:
     """Create a new calendar event."""
     try:
-        service = _get_calendar_service()
-        resolved_id = _resolve_calendar_id(calendar_id, service)
+        service = await _get_calendar_service()
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
         
         # Build event object
         event_body = {
@@ -346,10 +374,14 @@ def create_event(
             event_body['attendees'] = [{'email': email} for email in attendees]
         
         # Create the event
-        created_event = service.events().insert(
-            calendarId=resolved_id,
-            body=event_body
-        ).execute()
+        def _sync_create_event():
+            return service.events().insert(
+                calendarId=resolved_id,
+                body=event_body
+            ).execute()
+        
+        loop = asyncio.get_running_loop()
+        created_event = await loop.run_in_executor(None, _sync_create_event)
         
         start = created_event['start'].get('dateTime', created_event['start'].get('date'))
         
@@ -406,7 +438,7 @@ update_event(
     description=""  # Empty string clears the field
 )
 ```""")
-def update_event(
+async def update_event(
     event_summary: str,
     event_id: str,
     calendar_id: str = "primary",
@@ -417,11 +449,15 @@ def update_event(
 ) -> str:
     """Update an existing calendar event."""
     try:
-        service = _get_calendar_service()
-        resolved_id = _resolve_calendar_id(calendar_id, service)
+        service = await _get_calendar_service()
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
         
         # Get existing event to verify and for safety
-        existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        def _sync_get_event():
+            return service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        loop = asyncio.get_running_loop()
+        existing_event = await loop.run_in_executor(None, _sync_get_event)
         
         # Verify event summary matches for safety
         if existing_event.get('summary', '') != event_summary:
@@ -456,11 +492,14 @@ def update_event(
         for key, value in updates.items():
             existing_event[key] = value
         
-        updated_event = service.events().update(
-            calendarId=resolved_id,
-            eventId=event_id,
-            body=existing_event
-        ).execute()
+        def _sync_update_event():
+            return service.events().update(
+                calendarId=resolved_id,
+                eventId=event_id,
+                body=existing_event
+            ).execute()
+        
+        updated_event = await loop.run_in_executor(None, _sync_update_event)
         
         result = f"Event updated successfully!\n"
         result += f"Event ID: {updated_event['id']}\n"
@@ -498,18 +537,22 @@ delete_event(
     calendar_id="primary"
 )
 ```""")
-def delete_event(
+async def delete_event(
     event_summary: str,
     event_id: str,
     calendar_id: str = "primary"
 ) -> str:
     """Delete a calendar event."""
     try:
-        service = _get_calendar_service()
-        resolved_id = _resolve_calendar_id(calendar_id, service)
+        service = await _get_calendar_service()
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
         
         # Get existing event to verify summary for safety
-        existing_event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        def _sync_get_event():
+            return service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        
+        loop = asyncio.get_running_loop()
+        existing_event = await loop.run_in_executor(None, _sync_get_event)
         
         # Verify event summary matches for safety
         if existing_event.get('summary', '') != event_summary:
@@ -519,7 +562,10 @@ def delete_event(
             )
         
         # Delete the event
-        service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
+        def _sync_delete_event():
+            return service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
+        
+        await loop.run_in_executor(None, _sync_delete_event)
         
         return f"Event '{event_summary}' (ID: {event_id}) has been permanently deleted."
         
@@ -534,12 +580,16 @@ def delete_event(
 
 
 @mcp.tool(description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools.")
-def list_calendars() -> str:
+async def list_calendars() -> str:
     """List all accessible calendars."""
     try:
-        service = _get_calendar_service()
+        service = await _get_calendar_service()
         
-        calendar_list = service.calendarList().list().execute()
+        def _sync_list_calendars():
+            return service.calendarList().list().execute()
+        
+        loop = asyncio.get_running_loop()
+        calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
         calendars = calendar_list.get('items', [])
         
         if not calendars:
@@ -599,7 +649,7 @@ find_time(
     duration_minutes=90
 )
 ```""")
-def find_time(
+async def find_time(
     calendar_id: str = "primary",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -608,8 +658,8 @@ def find_time(
 ) -> str:
     """Find free time slots in a calendar."""
     try:
-        service = _get_calendar_service()
-        resolved_id = _resolve_calendar_id(calendar_id, service)
+        service = await _get_calendar_service()
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
         
         # Set default date range
         if not start_date:
@@ -629,7 +679,11 @@ def find_time(
             'items': [{'id': resolved_id}]
         }
         
-        freebusy_result = service.freebusy().query(body=freebusy_request).execute()
+        def _sync_freebusy_query():
+            return service.freebusy().query(body=freebusy_request).execute()
+        
+        loop = asyncio.get_running_loop()
+        freebusy_result = await loop.run_in_executor(None, _sync_freebusy_query)
         busy_times = freebusy_result['calendars'][resolved_id].get('busy', [])
         
         # Generate time slots
@@ -680,13 +734,17 @@ def find_time(
 
 
 @mcp.tool(description="Checks the Google Calendar Tool server status and API connectivity. Returns authentication status, accessible calendars count, and available commands. Use this to verify the tool is operational before making other requests.")
-def server_info() -> str:
+async def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
     try:
-        service = _get_calendar_service()
+        service = await _get_calendar_service()
         
         # Test API connection by getting calendar list
-        calendar_list = service.calendarList().list(maxResults=1).execute()
+        def _sync_test_connection():
+            return service.calendarList().list(maxResults=1).execute()
+        
+        loop = asyncio.get_running_loop()
+        calendar_list = await loop.run_in_executor(None, _sync_test_connection)
         
         return f"""Google Calendar Tool Server Status
 ========================================

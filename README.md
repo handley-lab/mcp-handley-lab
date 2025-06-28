@@ -35,6 +35,7 @@ This toolkit aims to be a complete research lab management system covering:
     - **generate_image**: Image generation with DALL-E and Imagen.
     - **Agent Management**: Create, list, and manage persistent agents for conversational memory.
 - **Tool Chainer**: A tool for creating and executing workflows by chaining together other tools.
+- **ArXiv Tool**: A tool for downloading and interacting with papers from the ArXiv preprint server.
 
 ## Installation
 
@@ -78,6 +79,9 @@ python -m mcp_handley_lab.llm.openai
 
 # Tool Chainer
 python -m mcp_handley_lab.tool_chainer
+
+# ArXiv Tool
+python -m mcp_handley_lab.arxiv
 ```
 
 You can also use the console scripts:
@@ -90,6 +94,7 @@ mcp-google-calendar
 mcp-gemini
 mcp-openai
 mcp-tool-chainer
+mcp-arxiv
 mcp-handley-lab
 ```
 
@@ -112,6 +117,7 @@ mcp-cli connect stdio python -m mcp_handley_lab.jq
 - Google Calendar
 - LLM Integration (Gemini and OpenAI)
 - Tool Chainer
+- ArXiv Tool
 
 ### Partially Implemented
 - **Gemini Improvements**: Grounding has been added. Schema improvements and output formatting are ongoing.

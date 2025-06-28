@@ -343,6 +343,9 @@ async def ask(
         
         config = GenerateContentConfig(**config_params)
         
+        # Get event loop for all async operations
+        loop = asyncio.get_running_loop()
+        
         # Generate content
         if history:
             # Continue existing conversation by adding history
@@ -356,7 +359,6 @@ async def ask(
                     config=config
                 )
             
-            loop = asyncio.get_running_loop()
             response = await loop.run_in_executor(None, _sync_generate_content_history)
         else:
             # New conversation - create content with prompt and files

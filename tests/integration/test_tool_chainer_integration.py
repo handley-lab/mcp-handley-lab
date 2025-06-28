@@ -8,8 +8,9 @@ from mcp_handley_lab.tool_chainer.tool import (
 )
 
 @pytest.mark.vcr
-def test_tool_chainer_jq_discovery(temp_storage_dir):
-    result = discover_tools(
+@pytest.mark.asyncio
+async def test_tool_chainer_jq_discovery(temp_storage_dir):
+    result = await discover_tools(
         server_command="python -m mcp_handley_lab jq",
         timeout=10
     )
@@ -19,9 +20,10 @@ def test_tool_chainer_jq_discovery(temp_storage_dir):
     assert "jq" in result.lower()
 
 @pytest.mark.vcr 
-def test_tool_chainer_basic_workflow(temp_storage_dir):
+@pytest.mark.asyncio
+async def test_tool_chainer_basic_workflow(temp_storage_dir):
     # Register a jq tool
-    register_result = register_tool(
+    register_result = await register_tool(
         tool_id="test_jq",
         server_command="python -m mcp_handley_lab jq",
         tool_name="query",
@@ -37,7 +39,7 @@ def test_tool_chainer_basic_workflow(temp_storage_dir):
     # Create a simple chain
     from mcp_handley_lab.tool_chainer.tool import ToolStep
     
-    chain_result = chain_tools(
+    chain_result = await chain_tools(
         chain_id="test_chain",
         steps=[
             ToolStep(
@@ -51,16 +53,17 @@ def test_tool_chainer_basic_workflow(temp_storage_dir):
     assert "defined" in chain_result.lower() or "created" in chain_result.lower()
     
     # Execute the chain
-    execute_result = execute_chain(
+    execute_result = await execute_chain(
         chain_id="test_chain",
         storage_dir=temp_storage_dir
     )
     assert "success" in execute_result.lower() or "alice" in execute_result.lower()
 
 @pytest.mark.vcr
-def test_tool_chainer_conditional_chain(temp_storage_dir):
+@pytest.mark.asyncio
+async def test_tool_chainer_conditional_chain(temp_storage_dir):
     # Register jq tool
-    register_tool(
+    await register_tool(
         tool_id="conditional_jq",
         server_command="python -m mcp_handley_lab jq", 
         tool_name="query",
@@ -74,7 +77,7 @@ def test_tool_chainer_conditional_chain(temp_storage_dir):
     from mcp_handley_lab.tool_chainer.tool import ToolStep
     
     # Chain with conditional step
-    chain_tools(
+    await chain_tools(
         chain_id="conditional_test",
         steps=[
             ToolStep(
@@ -92,40 +95,43 @@ def test_tool_chainer_conditional_chain(temp_storage_dir):
         storage_dir=temp_storage_dir
     )
     
-    result = execute_chain(
+    result = await execute_chain(
         chain_id="conditional_test",
         storage_dir=temp_storage_dir
     )
     assert "42" in result
 
 @pytest.mark.vcr
-def test_tool_chainer_history_and_cache(temp_storage_dir):
+@pytest.mark.asyncio
+async def test_tool_chainer_history_and_cache(temp_storage_dir):
     # Show history
-    history_result = show_history(storage_dir=temp_storage_dir)
+    history_result = await show_history(storage_dir=temp_storage_dir)
     assert "history" in history_result.lower() or "executions" in history_result.lower()
     
     # Clear cache
-    clear_result = clear_cache(storage_dir=temp_storage_dir)
+    clear_result = await clear_cache(storage_dir=temp_storage_dir)
     assert "cleared" in clear_result.lower()
 
 @pytest.mark.vcr
-def test_tool_chainer_server_info():
-    result = server_info()
+@pytest.mark.asyncio
+async def test_tool_chainer_server_info():
+    result = await server_info()
     
     assert "tool chainer" in result.lower()
     assert "status" in result.lower()
 
 @pytest.mark.vcr
-def test_tool_chainer_file_processing_chain(temp_storage_dir):
+@pytest.mark.asyncio
+async def test_tool_chainer_file_processing_chain(temp_storage_dir):
     # Register multiple tools
-    register_tool(
+    await register_tool(
         tool_id="file_jq",
         server_command="python -m mcp_handley_lab jq",
         tool_name="query", 
         storage_dir=temp_storage_dir
     )
     
-    register_tool(
+    await register_tool(
         tool_id="file_format",
         server_command="python -m mcp_handley_lab jq",
         tool_name="format",
@@ -139,7 +145,7 @@ def test_tool_chainer_file_processing_chain(temp_storage_dir):
     from mcp_handley_lab.tool_chainer.tool import ToolStep
     
     # Multi-step processing chain
-    chain_tools(
+    await chain_tools(
         chain_id="file_processing",
         steps=[
             ToolStep(
@@ -156,7 +162,7 @@ def test_tool_chainer_file_processing_chain(temp_storage_dir):
         storage_dir=temp_storage_dir
     )
     
-    result = execute_chain(
+    result = await execute_chain(
         chain_id="file_processing",
         storage_dir=temp_storage_dir
     )

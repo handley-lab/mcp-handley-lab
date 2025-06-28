@@ -11,6 +11,7 @@ Example workflow:
 2. gemini analyzes with file path: {"files": [{"path": "/tmp/code_summary.md"}]}
    NOT: {"files": [{"path": "{summary}"}]}
 """
+import asyncio
 import json
 import subprocess
 import tempfile
@@ -68,7 +69,7 @@ def _save_state(storage_dir: Path, registered_tools: Dict[str, Dict[str, Any]],
         json.dump(state, f, indent=2, default=str)
 
 
-def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
+async def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
     """Execute a tool on an MCP server using MCP protocol."""
     try:
         # Create MCP request messages
@@ -82,7 +83,8 @@ def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, 
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "tool-chainer"
+                    "name": "tool-chainer",
+                    "version": "1.0.0"
                 }
             }
         }
@@ -108,21 +110,25 @@ def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, 
             json.dumps(initialize_request) + "\n" +
             json.dumps(initialized_notification) + "\n" +
             json.dumps(tools_call_request) + "\n"
-        )
+        ).encode('utf-8')
         
         # Execute the MCP server with stdio communication
         cmd = server_command.split()
-        process = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
             cwd=Path.cwd()
         )
         
         try:
-            stdout, stderr = process.communicate(input=input_data, timeout=timeout)
+            stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                process.communicate(input=input_data), 
+                timeout=timeout
+            )
+            stdout = stdout_bytes.decode('utf-8', errors='replace')
+            stderr = stderr_bytes.decode('utf-8', errors='replace')
             
             if process.returncode != 0:
                 return {
@@ -177,9 +183,9 @@ def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict[str, 
                     "output": stdout
                 }
         
-        except subprocess.TimeoutExpired:
+        except asyncio.TimeoutError:
             process.kill()
-            process.wait()
+            await process.wait()
             return {
                 "success": False,
                 "error": f"Tool execution timed out after {timeout} seconds",
@@ -261,7 +267,7 @@ discover_tools("node dist/index.js")
 # Discover with timeout
 discover_tools("python -m my_server", timeout=10)
 ```""")
-def discover_tools(server_command: str, timeout: int = 5) -> str:
+async def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
     try:
         # Create MCP request messages
@@ -275,7 +281,8 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "tool-chainer"
+                    "name": "tool-chainer",
+                    "version": "1.0.0"
                 }
             }
         }
@@ -298,21 +305,25 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
             json.dumps(initialize_request) + "\n" +
             json.dumps(initialized_notification) + "\n" +
             json.dumps(tools_list_request) + "\n"
-        )
+        ).encode('utf-8')
         
         # Execute the MCP server with stdio communication
         cmd = server_command.split()
-        process = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
             cwd=Path.cwd()
         )
         
         try:
-            stdout, stderr = process.communicate(input=input_data, timeout=timeout)
+            stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                process.communicate(input=input_data), 
+                timeout=timeout
+            )
+            stdout = stdout_bytes.decode('utf-8', errors='replace')
+            stderr = stderr_bytes.decode('utf-8', errors='replace')
             
             if process.returncode != 0:
                 return f"Failed to start server: {stderr}"
@@ -349,9 +360,9 @@ def discover_tools(server_command: str, timeout: int = 5) -> str:
             
             return result_text
         
-        except subprocess.TimeoutExpired:
+        except asyncio.TimeoutError:
             process.kill()
-            process.wait()
+            await process.wait()
             return f"Discovery timed out after {timeout} seconds"
             
     except Exception as e:
@@ -403,7 +414,7 @@ register_tool(
     description="Ask Gemini questions"
 )
 ```""")
-def register_tool(
+async def register_tool(
     tool_id: str,
     server_command: str,
     tool_name: str,
@@ -528,7 +539,7 @@ chain_tools(
     ]
 )
 ```""")
-def chain_tools(
+async def chain_tools(
     chain_id: str,
     steps: List[ToolStep],
     save_to_file: Optional[str] = None,
@@ -653,7 +664,7 @@ Error Handling:
 - Server communication failures are retried once automatically
 - Variables are validated before each step execution
 - File save errors are logged but don't fail the chain""")
-def execute_chain(
+async def execute_chain(
     chain_id: str,
     initial_input: Optional[str] = None,
     variables: Optional[Dict[str, Any]] = None,
@@ -723,7 +734,7 @@ def execute_chain(
                     substituted_args[key] = value
             
             # Execute the tool
-            result = _execute_mcp_tool(
+            result = await _execute_mcp_tool(
                 tool_config["server_command"],
                 tool_config["tool_name"],
                 substituted_args,
@@ -819,7 +830,7 @@ show_history(limit=20)
 # Show history from custom storage
 show_history(limit=5, storage_dir="/custom/path")
 ```""")
-def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
+async def show_history(limit: int = 10, storage_dir: Optional[str] = None) -> str:
     """Show recent chain execution history."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     _, _, execution_history = _load_state(storage_path)
@@ -863,7 +874,7 @@ clear_cache()
 # Clear data from custom storage
 clear_cache(storage_dir="/custom/path")
 ```""")
-def clear_cache(storage_dir: Optional[str] = None) -> str:
+async def clear_cache(storage_dir: Optional[str] = None) -> str:
     """Clear all cached data."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     
@@ -892,7 +903,7 @@ server_info()
 # Get status from custom storage
 server_info(storage_dir="/custom/path")
 ```""")
-def server_info(storage_dir: Optional[str] = None) -> str:
+async def server_info(storage_dir: Optional[str] = None) -> str:
     """Get server status and registered tools information."""
     storage_path = Path(storage_dir) if storage_dir else DEFAULT_STORAGE_DIR
     registered_tools, defined_chains, execution_history = _load_state(storage_path)

@@ -4,9 +4,12 @@ import gzip
 import os
 import tarfile
 import tempfile
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List
+from urllib.parse import quote_plus
+from xml.etree import ElementTree as ET
 
 import requests
 from mcp.server.fastmcp import FastMCP
@@ -195,6 +198,145 @@ def list_files(arxiv_id: str) -> list[str]:
         return [f'{arxiv_id}.tex']  # Single tex file
 
 
+def _parse_arxiv_entry(entry: ET.Element) -> Dict[str, Any]:
+    """Parse a single ArXiv entry from the Atom feed."""
+    # Define namespaces
+    ns = {
+        'atom': 'http://www.w3.org/2005/Atom',
+        'arxiv': 'http://arxiv.org/schemas/atom'
+    }
+    
+    # Extract basic information
+    title = entry.find('atom:title', ns).text.strip() if entry.find('atom:title', ns) is not None else ""
+    summary = entry.find('atom:summary', ns).text.strip() if entry.find('atom:summary', ns) is not None else ""
+    
+    # Extract ArXiv ID from the ID field
+    id_elem = entry.find('atom:id', ns)
+    arxiv_id = ""
+    if id_elem is not None:
+        # Extract ID from URL like "http://arxiv.org/abs/2301.07041v1"
+        arxiv_id = id_elem.text.split('/')[-1].replace('v1', '').replace('v2', '').replace('v3', '')
+    
+    # Extract authors
+    authors = []
+    for author in entry.findall('atom:author', ns):
+        name_elem = author.find('atom:name', ns)
+        if name_elem is not None:
+            authors.append(name_elem.text)
+    
+    # Extract published date
+    published = entry.find('atom:published', ns)
+    published_date = ""
+    if published is not None:
+        try:
+            # Parse ISO format date
+            dt = datetime.fromisoformat(published.text.replace('Z', '+00:00'))
+            published_date = dt.strftime('%Y-%m-%d')
+        except:
+            published_date = published.text
+    
+    # Extract categories
+    categories = []
+    for category in entry.findall('atom:category', ns):
+        term = category.get('term')
+        if term:
+            categories.append(term)
+    
+    # Extract links
+    pdf_url = ""
+    abs_url = ""
+    for link in entry.findall('atom:link', ns):
+        if link.get('title') == 'pdf':
+            pdf_url = link.get('href', '')
+        elif link.get('rel') == 'alternate':
+            abs_url = link.get('href', '')
+    
+    return {
+        'id': arxiv_id,
+        'title': title,
+        'authors': authors,
+        'summary': summary,
+        'published': published_date,
+        'categories': categories,
+        'pdf_url': pdf_url,
+        'abs_url': abs_url
+    }
+
+
+@mcp.tool()
+def search(
+    query: str,
+    max_results: int = 10,
+    start: int = 0,
+    sort_by: str = 'relevance',
+    sort_order: str = 'descending'
+) -> List[Dict[str, Any]]:
+    """
+    Search ArXiv papers using the official ArXiv API.
+    
+    Args:
+        query: Search query string. Supports field prefixes like 'ti:' (title), 'au:' (author), 
+               'abs:' (abstract), 'cat:' (category), 'all:' (all fields). 
+               Boolean operators: AND, OR, NOT. Example: 'ti:transformer AND cat:cs.AI'
+        max_results: Maximum number of results to return (default: 10, max: 100)
+        start: Starting index for pagination (default: 0)
+        sort_by: Sort criterion - 'relevance', 'lastUpdatedDate', 'submittedDate' (default: 'relevance')
+        sort_order: Sort order - 'ascending', 'descending' (default: 'descending')
+    
+    Returns:
+        List of paper dictionaries with id, title, authors, summary, published date, categories, and URLs
+    """
+    if max_results > 100:
+        max_results = 100
+    
+    # Construct API URL
+    base_url = "http://export.arxiv.org/api/query"
+    encoded_query = quote_plus(query)
+    
+    params = {
+        'search_query': encoded_query,
+        'start': start,
+        'max_results': max_results,
+        'sortBy': sort_by,
+        'sortOrder': sort_order
+    }
+    
+    # Build URL with parameters
+    param_str = '&'.join([f'{k}={v}' for k, v in params.items()])
+    url = f"{base_url}?{param_str}"
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except Exception as e:
+        raise RuntimeError(f'Error fetching ArXiv search results: {e}')
+    
+    # Parse XML response
+    try:
+        root = ET.fromstring(response.content)
+        
+        # Define namespaces
+        ns = {
+            'atom': 'http://www.w3.org/2005/Atom',
+            'opensearch': 'http://a9.com/-/spec/opensearch/1.1/'
+        }
+        
+        # Extract search results
+        results = []
+        for entry in root.findall('atom:entry', ns):
+            try:
+                paper = _parse_arxiv_entry(entry)
+                results.append(paper)
+            except Exception as e:
+                # Skip entries that can't be parsed
+                continue
+        
+        return results
+        
+    except ET.ParseError as e:
+        raise ValueError(f'Error parsing ArXiv API response: {e}')
+
+
 @mcp.tool()
 def server_info() -> dict[str, Any]:
     """
@@ -205,14 +347,24 @@ def server_info() -> dict[str, Any]:
     """
     return {
         "name": "ArXiv Tool",
-        "description": "Tool for downloading ArXiv papers in multiple formats",
+        "description": "Tool for searching and downloading ArXiv papers",
         "functions": [
+            "search - Search ArXiv papers using official API with advanced query syntax",
             "download - Download ArXiv papers in src/pdf/tex format",
             "list_files - List files in ArXiv source archive",
             "server_info - Get server information"
         ],
         "supported_formats": ["src", "pdf", "tex"],
+        "search_features": {
+            "field_prefixes": ["ti:", "au:", "abs:", "cat:", "all:"],
+            "boolean_operators": ["AND", "OR", "NOT"],
+            "sort_options": ["relevance", "lastUpdatedDate", "submittedDate"],
+            "max_results": 100
+        },
         "example_usage": {
+            "search_basic": "search('machine learning')",
+            "search_advanced": "search('ti:transformer AND cat:cs.AI', max_results=20)",
+            "search_author": "search('au:Hinton', sort_by='submittedDate')",
             "download_src": "download('2301.07041', format='src')",
             "download_pdf": "download('2301.07041', format='pdf')",
             "download_tex": "download('2301.07041', format='tex')",

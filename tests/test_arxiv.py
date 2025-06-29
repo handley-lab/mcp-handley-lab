@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from mcp_handley_lab.arxiv.tool import download, list_files, server_info
+from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info
 
 
 def create_mock_tar_archive():
@@ -235,7 +235,7 @@ class TestArxivTool:
         assert 'description' in info
         assert 'functions' in info
         assert isinstance(info['functions'], list)
-        assert len(info['functions']) == 3  # download, list_files, server_info
+        assert len(info['functions']) == 4  # search, download, list_files, server_info
         assert 'supported_formats' in info
         assert 'src' in info['supported_formats']
         assert 'pdf' in info['supported_formats']
@@ -246,6 +246,178 @@ class TestArxivTool:
         assert '.tex' in info['tex_format_includes']
         assert '.bib' in info['tex_format_includes']
         assert '.bbl' in info['tex_format_includes']
+        assert 'search_features' in info
+        assert 'field_prefixes' in info['search_features']
+        assert 'ti:' in info['search_features']['field_prefixes']
+
+
+class TestArxivSearch:
+    """Test cases for ArXiv search functionality."""
+
+    def create_mock_search_response(self):
+        """Create a mock XML response from ArXiv API."""
+        return """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <link href="http://arxiv.org/api/query?search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=2" rel="self" type="application/atom+xml"/>
+  <title type="html">ArXiv Query: search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=2</title>
+  <id>http://arxiv.org/api/query?search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=2</id>
+  <updated>2024-06-25T00:00:00-04:00</updated>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">2</opensearch:totalResults>
+  <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+  <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">2</opensearch:itemsPerPage>
+  <entry>
+    <id>http://arxiv.org/abs/2301.07041v1</id>
+    <updated>2023-01-17T18:39:18Z</updated>
+    <published>2023-01-17T18:39:18Z</published>
+    <title>Test Paper on Electrons</title>
+    <summary>This is a test paper about electrons and their properties.</summary>
+    <author>
+      <name>John Doe</name>
+    </author>
+    <author>
+      <name>Jane Smith</name>
+    </author>
+    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.1000/182</arxiv:doi>
+    <link title="doi" href="http://dx.doi.org/10.1000/182" rel="related"/>
+    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">5 pages, 2 figures</arxiv:comment>
+    <arxiv:journal_ref xmlns:arxiv="http://arxiv.org/schemas/atom">Phys. Rev. A 1, 1 (2023)</arxiv:journal_ref>
+    <link href="http://arxiv.org/abs/2301.07041v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/2301.07041v1.pdf" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="physics.atom-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="physics.atom-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="quant-ph" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2301.07042v1</id>
+    <updated>2023-01-17T18:40:00Z</updated>
+    <published>2023-01-17T18:40:00Z</published>
+    <title>Another Electron Study</title>
+    <summary>This paper studies electron behavior in quantum systems.</summary>
+    <author>
+      <name>Alice Johnson</name>
+    </author>
+    <link href="http://arxiv.org/abs/2301.07042v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/2301.07042v1.pdf" rel="related" type="application/pdf"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="quant-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="quant-ph" scheme="http://arxiv.org/schemas/atom"/>
+  </entry>
+</feed>"""
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_basic(self, mock_get):
+        """Test basic search functionality."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.content = self.create_mock_search_response().encode()
+        mock_get.return_value = mock_response
+
+        results = search('electron')
+
+        assert len(results) == 2
+        assert results[0]['id'] == '2301.07041'
+        assert results[0]['title'] == 'Test Paper on Electrons'
+        assert 'John Doe' in results[0]['authors']
+        assert 'Jane Smith' in results[0]['authors']
+        assert results[0]['published'] == '2023-01-17'
+        assert 'physics.atom-ph' in results[0]['categories']
+        assert 'quant-ph' in results[0]['categories']
+        assert results[0]['pdf_url'] == 'http://arxiv.org/pdf/2301.07041v1.pdf'
+        assert results[0]['abs_url'] == 'http://arxiv.org/abs/2301.07041v1'
+
+        assert results[1]['id'] == '2301.07042'
+        assert results[1]['title'] == 'Another Electron Study'
+        assert 'Alice Johnson' in results[1]['authors']
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_with_parameters(self, mock_get):
+        """Test search with custom parameters."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.content = self.create_mock_search_response().encode()
+        mock_get.return_value = mock_response
+
+        results = search('ti:transformer AND cat:cs.AI', max_results=5, start=10, sort_by='submittedDate')
+
+        # Check that request was made with correct parameters
+        mock_get.assert_called_once()
+        call_args = mock_get.call_args[0][0]
+        assert 'search_query=ti%3Atransformer+AND+cat%3Acs.AI' in call_args
+        assert 'max_results=5' in call_args
+        assert 'start=10' in call_args
+        assert 'sortBy=submittedDate' in call_args
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_max_results_limit(self, mock_get):
+        """Test that max_results is capped at 100."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.content = self.create_mock_search_response().encode()
+        mock_get.return_value = mock_response
+
+        search('electron', max_results=150)
+
+        call_args = mock_get.call_args[0][0]
+        assert 'max_results=100' in call_args
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_network_error(self, mock_get):
+        """Test search with network error."""
+        mock_get.side_effect = Exception('Network error')
+
+        with pytest.raises(RuntimeError, match='Error fetching ArXiv search results'):
+            search('electron')
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_invalid_xml(self, mock_get):
+        """Test search with invalid XML response."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.content = b'invalid xml content'
+        mock_get.return_value = mock_response
+
+        with pytest.raises(ValueError, match='Error parsing ArXiv API response'):
+            search('electron')
+
+    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    def test_search_empty_results(self, mock_get):
+        """Test search with no results."""
+        empty_response = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title type="html">ArXiv Query: search_query=nonexistent&amp;start=0&amp;max_results=10</title>
+  <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:totalResults>
+</feed>"""
+        
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.content = empty_response.encode()
+        mock_get.return_value = mock_response
+
+        results = search('nonexistent')
+        assert len(results) == 0
+
+    def test_parse_arxiv_entry_missing_fields(self):
+        """Test parsing entry with missing optional fields."""
+        from mcp_handley_lab.arxiv.tool import _parse_arxiv_entry
+        from xml.etree import ElementTree as ET
+
+        # Create minimal entry
+        minimal_entry = """<entry xmlns="http://www.w3.org/2005/Atom">
+    <id>http://arxiv.org/abs/2301.07041v1</id>
+    <title>Minimal Entry</title>
+    <summary>Basic summary</summary>
+</entry>"""
+        
+        entry_elem = ET.fromstring(minimal_entry)
+        result = _parse_arxiv_entry(entry_elem)
+
+        assert result['id'] == '2301.07041'
+        assert result['title'] == 'Minimal Entry'
+        assert result['summary'] == 'Basic summary'
+        assert result['authors'] == []
+        assert result['categories'] == []
+        assert result['pdf_url'] == ''
+        assert result['abs_url'] == ''
+
 
     @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
@@ -440,3 +612,34 @@ class TestArxivIntegration:
         """Test with invalid ArXiv ID."""
         with pytest.raises(RuntimeError):
             await list_files('invalid-id-99999999')
+
+    @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
+    @pytest.mark.integration
+    def test_real_arxiv_search(self):
+        """Test real ArXiv search functionality."""
+        # Search for a specific topic
+        results = search('machine learning', max_results=5)
+        
+        assert isinstance(results, list)
+        assert len(results) <= 5
+        
+        if len(results) > 0:
+            # Check first result structure
+            result = results[0]
+            assert 'id' in result
+            assert 'title' in result
+            assert 'authors' in result
+            assert 'summary' in result
+            assert 'published' in result
+            assert 'categories' in result
+            assert 'pdf_url' in result
+            assert 'abs_url' in result
+            
+            # Check data types
+            assert isinstance(result['id'], str)
+            assert isinstance(result['title'], str)
+            assert isinstance(result['authors'], list)
+            assert isinstance(result['summary'], str)
+            assert isinstance(result['categories'], list)
+            assert result['pdf_url'].startswith('http')
+            assert result['abs_url'].startswith('http')

@@ -11,7 +11,7 @@ async def test_gemini_ask_basic(skip_if_no_api_key, test_output_file):
     result = await ask(
         prompt="What is 3+3? Answer with just the number.",
         output_file=test_output_file,
-        model="flash",
+        model="gemini-2.5-flash",
         temperature=0.0
     )
     
@@ -29,7 +29,7 @@ async def test_gemini_ask_with_grounding(skip_if_no_api_key, test_output_file):
         prompt="What is the current date today?",
         output_file=test_output_file,
         grounding=True,
-        model="flash"
+        model="gemini-2.5-flash"
     )
     
     assert "saved" in result.lower() or "success" in result.lower()
@@ -45,7 +45,7 @@ async def test_gemini_ask_with_file(skip_if_no_api_key, test_output_file, test_j
         prompt="What data is in this JSON file?",
         output_file=test_output_file,
         files=[{"path": test_json_file}],
-        model="flash"
+        model="gemini-2.5-flash"
     )
     
     assert "saved" in result.lower() or "success" in result.lower()

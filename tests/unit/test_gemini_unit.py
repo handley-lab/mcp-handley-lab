@@ -56,8 +56,8 @@ class TestModelConfiguration:
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to gemini-1.5-flash
-        assert config["output_tokens"] == 8192
+        # Should default to gemini-2.5-flash
+        assert config["output_tokens"] == 65536
 
 
 class TestAskTokenLimits:
@@ -160,7 +160,7 @@ class TestAnalyzeImageTokenLimits:
         mock_client.models.generate_content.return_value = mock_response
         mock_handle_output.return_value = "Response saved"
         
-        # Call analyze_image with default model (pro -> gemini-1.5-pro)
+        # Call analyze_image with default model (gemini-2.5-pro)
         result = await analyze_image(
             prompt="Analyze this image",
             output_file="/tmp/analysis.txt",
@@ -171,7 +171,7 @@ class TestAnalyzeImageTokenLimits:
         # Verify generate_content was called with correct config
         call_args = mock_client.models.generate_content.call_args
         config = call_args.kwargs['config']
-        assert config.max_output_tokens == 8192  # gemini-1.5-pro default
+        assert config.max_output_tokens == 65536  # gemini-2.5-pro default
     
     @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')

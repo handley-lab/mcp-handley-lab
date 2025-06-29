@@ -29,6 +29,7 @@ client = None
 initialization_error = None
 
 try:
+    # Client initialization - let SDK use default API version
     client = google_genai.Client(api_key=settings.gemini_api_key)
 except Exception as e:
     client = None
@@ -296,7 +297,12 @@ async def ask(
         # Configure tools for grounding if requested
         tools = []
         if grounding:
-            tools.append(Tool(googleSearchRetrieval=GoogleSearchRetrieval()))
+            if model.startswith("gemini-1.5"):
+                # Use legacy GoogleSearchRetrieval for 1.5 models
+                tools.append(Tool(google_search_retrieval=GoogleSearchRetrieval()))
+            else:
+                # Use recommended GoogleSearch for 2.0+ models (2.5 Pro, 2.5 Flash, etc.)
+                tools.append(Tool(google_search=GoogleSearch()))
         
         # Handle agent setup and system instruction (personality)
         system_instruction = None

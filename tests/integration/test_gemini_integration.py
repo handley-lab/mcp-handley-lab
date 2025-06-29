@@ -22,26 +22,37 @@ async def test_gemini_ask_basic(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_ask_with_grounding(skip_if_no_api_key, test_output_file):
+async def test_gemini_ask_with_grounding_1_5(skip_if_no_api_key, test_output_file):
+    """Test grounding with Gemini 1.5 models (legacy GoogleSearchRetrieval)."""
     skip_if_no_api_key("GEMINI_API_KEY")
     
-    # Test grounding functionality - skip if grounding not supported
-    try:
-        result = await ask(
-            prompt="What is the current date today?",
-            output_file=test_output_file,
-            grounding=True,
-            model="gemini-2.5-flash"
-        )
-        
-        assert "saved" in result.lower() or "success" in result.lower()
-        content = Path(test_output_file).read_text()
-        assert "2025" in content
-    except RuntimeError as e:
-        if "Search Grounding is not supported" in str(e):
-            pytest.skip("Search Grounding not supported by current Gemini API")
-        else:
-            raise
+    result = await ask(
+        prompt="What is the current date today?",
+        output_file=test_output_file,
+        grounding=True,
+        model="gemini-1.5-pro"  # Use 1.5 model with GoogleSearchRetrieval
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    content = Path(test_output_file).read_text()
+    assert "2025" in content
+
+@pytest.mark.asyncio
+@pytest.mark.vcr
+async def test_gemini_ask_with_grounding_2_5(skip_if_no_api_key, test_output_file):
+    """Test grounding with Gemini 2.5 models (recommended GoogleSearch)."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+    
+    result = await ask(
+        prompt="What is the current date today?",
+        output_file=test_output_file,
+        grounding=True,
+        model="gemini-2.5-flash"  # Use 2.5 model with GoogleSearch
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    content = Path(test_output_file).read_text()
+    assert "2025" in content
 
 @pytest.mark.asyncio
 @pytest.mark.vcr

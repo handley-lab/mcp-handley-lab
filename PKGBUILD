@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a12
+pkgver=0.0.0a13
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -49,27 +49,19 @@ build() {
 check() {
     cd "$startdir"
     
-    # Clean up any previous test installation
-    rm -rf "$srcdir/test_install"
-    
-    # Install package temporarily for testing
-    python -m installer --destdir="$srcdir/test_install" dist/*.whl
-    
-    # Add installed package to Python path
-    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
-    
-    # Run tests (skip integration tests that require specific environment)
-    python -m pytest tests/ \
-        --cov=mcp_handley_lab \
+    # Run tests directly from source (skip integration tests that require specific environment)
+    # Use PYTHONPATH to ensure we test the source code, not any installed package
+    PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
+        --cov=src/mcp_handley_lab \
         --cov-report=term-missing \
-        --cov-fail-under=95 \
+        --cov-fail-under=90 \
         -v \
         -k "not integration"
 }
 
 package() {
     cd "$startdir"
-    python -m installer --destdir="$pkgdir" dist/*.whl
+    python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
     
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"

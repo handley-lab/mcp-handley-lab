@@ -1,4 +1,5 @@
 """JQ tool for JSON manipulation via MCP."""
+import asyncio
 import json
 import subprocess
 from pathlib import Path
@@ -30,19 +31,24 @@ def _resolve_data(data: Union[str, dict, list]) -> str:
     return str(data)
 
 
-def _run_jq(args: list[str], input_text: str | None = None) -> str:
+async def _run_jq(args: list[str], input_text: str | None = None) -> str:
     """Runs a jq command and handles errors."""
     try:
-        result = subprocess.run(
-            ["jq"] + args,
-            input=input_text,
-            capture_output=True,
-            text=True,
-            check=True
+        process = await asyncio.create_subprocess_exec(
+            "jq", *args,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        raise ValueError(f"jq error: {e.stderr.strip()}")
+        
+        # Convert input to bytes if provided
+        input_bytes = input_text.encode('utf-8') if input_text else None
+        stdout, stderr = await process.communicate(input=input_bytes)
+        
+        if process.returncode != 0:
+            raise ValueError(f"jq error: {stderr.decode('utf-8').strip()}")
+            
+        return stdout.decode('utf-8').strip()
     except FileNotFoundError:
         raise RuntimeError("jq command not found. Please install jq.")
 
@@ -85,7 +91,7 @@ query('{"message": "Hello World"}', '.message', raw_output=True)
 query('{"a": 1, "b": 2}', '.', compact=True)
 # Returns: {"a":1,"b":2}
 ```""")
-def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
+async def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", compact: bool = False, raw_output: bool = False) -> str:
     """Query JSON data using jq filter."""
     flags = [(compact, "-c"), (raw_output, "-r")]
     args = [flag for condition, flag in flags if condition] + [filter]
@@ -98,10 +104,10 @@ def query(data: Union[constr(min_length=1), dict, list], filter: str = ".", comp
         p = Path(data)
         if p.is_file():
             args.append(str(p))
-            return _run_jq(args)
+            return await _run_jq(args)
     
     # Otherwise use the resolved content
-    return _run_jq(args, input_text=data_content)
+    return await _run_jq(args, input_text=data_content)
 
 
 @mcp.tool(description="""Edits a JSON file in-place using a jq transformation filter.
@@ -134,7 +140,7 @@ edit('/path/data.json', 'del(.temp_field)')
 # Transform all array items
 edit('/path/products.json', '.products[].price *= 1.1')
 ```""")
-def edit(file_path: str, filter: str, backup: bool = True) -> str:
+async def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
     if not file_path or not file_path.strip():
         raise ValueError("File path is required and cannot be empty")
@@ -149,7 +155,7 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
         backup_path.write_text(path.read_text())
     
     # Apply transformation
-    result = _run_jq([filter, str(path)])
+    result = await _run_jq([filter, str(path)])
     
     # Write result back
     path.write_text(result)
@@ -175,9 +181,9 @@ read('/path/data.json', '.users')
 # Read with transformation
 read('/path/products.json', '.items | length')
 ```""")
-def read(file_path: str, filter: str = ".") -> str:
+async def read(file_path: str, filter: str = ".") -> str:
     """Read and pretty-print a JSON file."""
-    return _run_jq([filter, file_path])
+    return await _run_jq([filter, file_path])
 
 
 @mcp.tool(description="""Validates JSON syntax for strings or files.
@@ -202,7 +208,7 @@ validate('/path/data.json')
 validate('{invalid: json}')
 # Raises: ValueError("Invalid JSON: ...")
 ```""")
-def validate(data: Union[constr(min_length=1), dict, list]) -> str:
+async def validate(data: Union[constr(min_length=1), dict, list]) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
     
@@ -243,7 +249,7 @@ format('{"b":2,"a":1}', compact=True, sort_keys=True)
 # Format file
 format('/path/data.json', sort_keys=True)
 ```""")
-def format(data: Union[constr(min_length=1), dict, list], compact: bool = False, sort_keys: bool = False) -> str:
+async def format(data: Union[constr(min_length=1), dict, list], compact: bool = False, sort_keys: bool = False) -> str:
     """Format JSON data."""
     data_content = _resolve_data(data)
     parsed = json.loads(data_content)
@@ -270,10 +276,10 @@ Use this to verify that the tool is operational before making other requests.
 # Check the server status.
 server_info()
 ```""")
-def server_info() -> str:
+async def server_info() -> str:
     """Get server status and jq version."""
     try:
-        version = _run_jq(["--version"])
+        version = await _run_jq(["--version"])
         
         return f"""JQ Tool Server Status
 ====================

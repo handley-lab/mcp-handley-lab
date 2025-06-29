@@ -5,7 +5,7 @@ import os
 import tarfile
 import tempfile
 from io import BytesIO
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -53,14 +53,15 @@ def create_mock_pdf():
 class TestArxivTool:
     """Test cases for ArXiv tool functions."""
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_src_format(self, mock_get_source):
+    async def test_download_src_format(self, mock_get_source):
         """Test downloading source format."""
         mock_get_source.return_value = create_mock_tar_archive()
 
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, 'test_paper')
-            result = download('2301.07041', format='src', output_path=save_path)
+            result = await download('2301.07041', format='src', output_path=save_path)
 
             assert 'ArXiv source saved to directory:' in result
             assert save_path in result
@@ -71,14 +72,15 @@ class TestArxivTool:
             assert os.path.exists(os.path.join(save_path, 'paper.tex'))
             assert os.path.exists(os.path.join(save_path, 'references.bib'))
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_tex_format(self, mock_get_source):
+    async def test_download_tex_format(self, mock_get_source):
         """Test downloading tex format (tex, bib, bbl only)."""
         mock_get_source.return_value = create_mock_tar_archive()
 
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, 'test_paper')
-            result = download('2301.07041', format='tex', output_path=save_path)
+            result = await download('2301.07041', format='tex', output_path=save_path)
 
             assert 'ArXiv LaTeX files saved to directory:' in result
             assert save_path in result
@@ -93,17 +95,21 @@ class TestArxivTool:
             assert os.path.exists(os.path.join(save_path, 'paper.bbl'))
             assert not os.path.exists(os.path.join(save_path, 'figure.png'))
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_download_pdf_format(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_download_pdf_format(self, mock_client):
         """Test downloading PDF format."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = create_mock_pdf()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, 'test.pdf')
-            result = download('2301.07041', format='pdf', output_path=save_path)
+            result = await download('2301.07041', format='pdf', output_path=save_path)
 
             assert 'ArXiv PDF saved to:' in result
             assert save_path in result
@@ -115,12 +121,13 @@ class TestArxivTool:
                 content = f.read()
                 assert content.startswith(b'%PDF')
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_src_stdout(self, mock_get_source):
+    async def test_download_src_stdout(self, mock_get_source):
         """Test downloading with stdout output."""
         mock_get_source.return_value = create_mock_tar_archive()
 
-        result = download('2301.07041', format='src', output_path='-')
+        result = await download('2301.07041', format='src', output_path='-')
 
         assert 'ArXiv source files for 2301.07041:' in result
         assert 'paper.tex' in result
@@ -128,12 +135,13 @@ class TestArxivTool:
         assert 'figure.png' in result
         assert 'bytes' in result
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_tex_stdout(self, mock_get_source):
+    async def test_download_tex_stdout(self, mock_get_source):
         """Test downloading tex format with stdout output."""
         mock_get_source.return_value = create_mock_tar_archive()
 
-        result = download('2301.07041', format='tex', output_path='-')
+        result = await download('2301.07041', format='tex', output_path='-')
 
         assert 'ArXiv LaTeX files for 2301.07041:' in result
         assert 'paper.tex' in result
@@ -142,22 +150,27 @@ class TestArxivTool:
         # Should not include non-tex files
         assert 'figure.png' not in result
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_download_pdf_stdout(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_download_pdf_stdout(self, mock_client):
         """Test downloading PDF with stdout output."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = create_mock_pdf()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        result = download('2301.07041', format='pdf', output_path='-')
+        result = await download('2301.07041', format='pdf', output_path='-')
 
         assert 'ArXiv PDF for 2301.07041:' in result
         assert 'MB' in result
         assert 'Use output_path to save to file' in result
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_default_output_path(self, mock_get_source):
+    async def test_download_default_output_path(self, mock_get_source):
         """Test download with default output path."""
         mock_get_source.return_value = create_mock_tar_archive()
 
@@ -166,31 +179,36 @@ class TestArxivTool:
             with tempfile.TemporaryDirectory() as temp_dir:
                 os.chdir(temp_dir)
                 try:
-                    result = download('2301.07041', format='src')
+                    result = await download('2301.07041', format='src')
                     assert 'ArXiv source saved to directory: 2301.07041' in result
                     assert os.path.exists('2301.07041')
                 finally:
                     os.chdir(original_cwd)
 
-    def test_download_invalid_format(self):
+    @pytest.mark.asyncio
+    async def test_download_invalid_format(self):
         """Test download with invalid format."""
         with pytest.raises(ValueError, match="Invalid format 'invalid'"):
-            download('2301.07041', format='invalid')
+            await download('2301.07041', format='invalid')
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_download_network_error(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_download_network_error(self, mock_client):
         """Test download with network error."""
-        mock_get.side_effect = Exception('Network error')
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.side_effect = Exception('Network error')
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with pytest.raises(RuntimeError, match='Error fetching ArXiv'):
-            download('2301.07041', format='pdf')
+            await download('2301.07041', format='pdf')
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_list_files_success(self, mock_get_source):
+    async def test_list_files_success(self, mock_get_source):
         """Test successful file listing."""
         mock_get_source.return_value = create_mock_tar_archive()
 
-        files = list_files('2301.07041')
+        files = await list_files('2301.07041')
 
         assert isinstance(files, list)
         assert 'paper.tex' in files
@@ -199,17 +217,19 @@ class TestArxivTool:
         assert 'figure.png' in files
         assert len(files) == 4
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_list_files_network_error(self, mock_get_source):
+    async def test_list_files_network_error(self, mock_get_source):
         """Test file listing with network error."""
         mock_get_source.side_effect = RuntimeError('Error fetching ArXiv data: Network error')
 
         with pytest.raises(RuntimeError, match='Error fetching ArXiv data'):
-            list_files('2301.07041')
+            await list_files('2301.07041')
 
-    def test_server_info(self):
+    @pytest.mark.asyncio
+    async def test_server_info(self):
         """Test server info function."""
-        info = server_info()
+        info = await server_info()
 
         assert info['name'] == 'ArXiv Tool'
         assert 'description' in info
@@ -283,15 +303,19 @@ class TestArxivSearch:
   </entry>
 </feed>"""
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_basic(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_basic(self, mock_client):
         """Test basic search functionality."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('electron')
+        results = await search('electron')
 
         assert len(results) == 2
         assert results[0]['id'] == '2301.07041'
@@ -308,58 +332,74 @@ class TestArxivSearch:
         assert results[1]['title'] == 'Another Electron Study'
         assert 'Alice Johnson' in results[1]['authors']
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_with_parameters(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_with_parameters(self, mock_client):
         """Test search with custom parameters."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('ti:transformer AND cat:cs.AI', max_results=5, start=10, sort_by='submittedDate')
+        results = await search('ti:transformer AND cat:cs.AI', max_results=5, start=10, sort_by='submittedDate')
 
         # Check that request was made with correct parameters
-        mock_get.assert_called_once()
-        call_args = mock_get.call_args[0][0]
+        mock_client_instance.get.assert_called_once()
+        call_args = mock_client_instance.get.call_args[0][0]
         assert 'search_query=ti%3Atransformer+AND+cat%3Acs.AI' in call_args
         assert 'max_results=5' in call_args
         assert 'start=10' in call_args
         assert 'sortBy=submittedDate' in call_args
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_max_results_limit(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_max_results_limit(self, mock_client):
         """Test that max_results is capped at 100."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        search('electron', max_results=150)
+        await search('electron', max_results=150)
 
-        call_args = mock_get.call_args[0][0]
+        call_args = mock_client_instance.get.call_args[0][0]
         assert 'max_results=100' in call_args
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_network_error(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_network_error(self, mock_client):
         """Test search with network error."""
-        mock_get.side_effect = Exception('Network error')
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.side_effect = Exception('Network error')
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with pytest.raises(RuntimeError, match='Error fetching ArXiv search results'):
-            search('electron')
+            await search('electron')
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_invalid_xml(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_invalid_xml(self, mock_client):
         """Test search with invalid XML response."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = b'invalid xml content'
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with pytest.raises(ValueError, match='Error parsing ArXiv API response'):
-            search('electron')
+            await search('electron')
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_empty_results(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_empty_results(self, mock_client):
         """Test search with no results."""
         empty_response = """<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -370,9 +410,12 @@ class TestArxivSearch:
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = empty_response.encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('nonexistent')
+        results = await search('nonexistent')
         assert len(results) == 0
 
     def test_parse_arxiv_entry_missing_fields(self):
@@ -399,8 +442,9 @@ class TestArxivSearch:
         assert result['abs_url'] == ''
 
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_download_single_file_to_disk(self, mock_get_source):
+    async def test_download_single_file_to_disk(self, mock_get_source):
         """Test downloading single gzipped file to disk."""
         # Mock single gzipped file content
         tex_content = b'\\documentclass{article}\\nTest content'
@@ -409,7 +453,7 @@ class TestArxivSearch:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, 'test_paper')
-            result = download('0704.0005', format='src', output_path=save_path)
+            result = await download('0704.0005', format='src', output_path=save_path)
 
             assert 'ArXiv source saved to directory:' in result
             assert save_path in result
@@ -453,8 +497,9 @@ class TestArxivSearch:
             _handle_single_file('test_id', b'corrupted gzip data', 'src', '-')
 
 
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.arxiv.tool._get_source_archive')
-    def test_list_files_tar_error_exception(self, mock_get_source):
+    async def test_list_files_tar_error_exception(self, mock_get_source):
         """Test list_files with tar that raises TarError."""
         # Return a mock tar archive
         mock_get_source.return_value = create_mock_tar_archive()
@@ -465,40 +510,44 @@ class TestArxivSearch:
                 mock_tar_open.side_effect = tarfile.TarError('Corrupted tar')
 
                 with pytest.raises(ValueError, match='Error reading tar archive'):
-                    list_files('test_id')
+                    await list_files('test_id')
 
 
 class TestArxivCaching:
     """Test caching functionality."""
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
     @patch('mcp_handley_lab.arxiv.tool._get_cached_source')
     @patch('mcp_handley_lab.arxiv.tool._cache_source')
-    def test_caching_behavior(self, mock_cache, mock_get_cached, mock_get):
+    async def test_caching_behavior(self, mock_cache, mock_get_cached, mock_client):
         """Test that caching works correctly."""
         # First call - no cache
         mock_get_cached.return_value = None
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = create_mock_tar_archive()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        files = list_files('2301.07041')
+        files = await list_files('2301.07041')
 
-        # Should have called requests.get and _cache_source
-        mock_get.assert_called_once()
+        # Should have called httpx client and _cache_source
+        mock_client_instance.get.assert_called_once()
         mock_cache.assert_called_once()
         assert len(files) == 4
 
         # Reset mocks for second call
-        mock_get.reset_mock()
+        mock_client_instance.get.reset_mock()
         mock_cache.reset_mock()
         mock_get_cached.return_value = create_mock_tar_archive()
 
-        files2 = list_files('2301.07041')
+        files2 = await list_files('2301.07041')
 
-        # Should not have called requests.get again, only used cache
-        mock_get.assert_not_called()
+        # Should not have called httpx client again, only used cache
+        mock_client_instance.get.assert_not_called()
         mock_cache.assert_not_called()
         assert len(files2) == 4
 
@@ -529,66 +578,71 @@ class TestArxivCaching:
 class TestArxivIntegration:
     """Integration tests for ArXiv tool using VCR cassettes."""
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_paper_src_single_file(self):
+    async def test_real_arxiv_paper_src_single_file(self):
         """Test with a real ArXiv paper that's a single gzipped file."""
         # Use a very small ArXiv paper (8KB source) - single gzipped file
         arxiv_id = '0704.0005'  # Small paper with minimal source
 
         # Test listing files
-        files = list_files(arxiv_id)
+        files = await list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) == 1
         assert f'{arxiv_id}.tex' in files
 
         # Test downloading source with stdout
-        result = download(arxiv_id, format='src', output_path='-')
+        result = await download(arxiv_id, format='src', output_path='-')
         assert f'ArXiv source file for {arxiv_id}:' in result
         assert 'single .tex file' in result
         assert 'bytes' in result
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_paper_src_tar_archive(self):
+    async def test_real_arxiv_paper_src_tar_archive(self):
         """Test with a real ArXiv paper that's a tar archive."""
         # Use the first ArXiv paper - it's a tar archive with multiple files
         arxiv_id = '0704.0001'  # First paper on ArXiv (tar archive)
 
         # Test listing files
-        files = list_files(arxiv_id)
+        files = await list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) > 1  # Multiple files in tar archive
 
         # Test downloading source with stdout
-        result = download(arxiv_id, format='src', output_path='-')
+        result = await download(arxiv_id, format='src', output_path='-')
         assert f'ArXiv source files for {arxiv_id}:' in result
         assert 'bytes' in result
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_paper_pdf(self):
+    async def test_real_arxiv_paper_pdf(self):
         """Test with a real ArXiv paper PDF download."""
         arxiv_id = '0704.0001'  # Use first paper for PDF test
 
         # Test PDF info with stdout
-        result = download(arxiv_id, format='pdf', output_path='-')
+        result = await download(arxiv_id, format='pdf', output_path='-')
         assert f'ArXiv PDF for {arxiv_id}:' in result
         assert 'MB' in result
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_invalid_arxiv_id(self):
+    async def test_invalid_arxiv_id(self):
         """Test with invalid ArXiv ID."""
         with pytest.raises(RuntimeError):
-            list_files('invalid-id-99999999')
+            await list_files('invalid-id-99999999')
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_search(self):
+    async def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
         # Search for a specific topic
-        results = search('machine learning', max_results=5)
+        results = await search('machine learning', max_results=5)
         
         assert isinstance(results, list)
         assert len(results) <= 5

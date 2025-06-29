@@ -112,7 +112,7 @@ def handle_output(
         output_path.write_text(response_text)
         char_count = len(response_text)
         line_count = response_text.count('\n') + 1
-        return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n\n{usage_info}"
+        return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n{usage_info}"
     else:
         return f"{response_text}\n\n{usage_info}"
 

@@ -101,6 +101,11 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 5. **Stateless Design**: Functions take explicit storage_dir parameters instead of using global state
 6. **Alpha Development**: This is alpha software - APIs may change without notice to improve design
 
+### Version Management
+- **CRITICAL**: When bumping versions, update ALL version files: `pyproject.toml` AND `PKGBUILD`
+- **GitHub CI requires**: Both files must have matching version numbers to pass version check
+- **Version format**: Use semantic versioning with alpha suffix (e.g., `0.0.0a13`)
+
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**

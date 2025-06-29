@@ -2,7 +2,8 @@ import pytest
 import tempfile
 import json
 import subprocess
-from unittest.mock import patch, Mock, mock_open
+import asyncio
+from unittest.mock import patch, Mock, mock_open, AsyncMock
 from pathlib import Path
 from mcp_handley_lab.tool_chainer.tool import (
     register_tool, chain_tools, execute_chain, discover_tools, ToolStep,
@@ -20,7 +21,8 @@ class TestToolChainerCore:
         ("simple_tool", {}, "{error_count} != '0'", None),
         ("chain_tool", {"nested": {"key": "value"}}, None, "nested_result"),
     ])
-    def test_tool_step_creation_parameterized(self, tool_id, arguments, condition, output_to):
+    @pytest.mark.asyncio
+    async def test_tool_step_creation_parameterized(self, tool_id, arguments, condition, output_to):
         """Test ToolStep creation with various configurations."""
         step = ToolStep(
             tool_id=tool_id,
@@ -36,9 +38,10 @@ class TestToolChainerCore:
 class TestToolChainerBasicOperations:
     """Test basic operations without complex file system checks."""
     
-    def test_register_tool_success(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_register_tool_success(self, temp_storage_dir):
         """Test successful tool registration returns success message."""
-        result = register_tool(
+        result = await register_tool(
             tool_id="test_tool",
             server_command="python -m test",
             tool_name="query",
@@ -65,17 +68,18 @@ class TestToolChainerBasicOperations:
             ToolStep(tool_id="test_tool", arguments={"input": "{step1}"}, condition="{step1} != ''", output_to="step2")
         ], None),
     ])
-    def test_chain_tools_parameterized(self, temp_storage_dir, chain_id, steps, save_to_file):
+    @pytest.mark.asyncio
+    async def test_chain_tools_parameterized(self, temp_storage_dir, chain_id, steps, save_to_file):
         """Test chain creation with various configurations."""
         # Register required tool
-        register_tool(
+        await register_tool(
             tool_id="test_tool",
             server_command="python -m test",
             tool_name="query",
             storage_dir=temp_storage_dir
         )
         
-        result = chain_tools(
+        result = await chain_tools(
             chain_id=chain_id,
             steps=steps,
             save_to_file=save_to_file,
@@ -85,10 +89,11 @@ class TestToolChainerBasicOperations:
         assert len(result) > 0
         assert "success" in result.lower() or "created" in result.lower()
     
-    def test_chain_tools_success(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_chain_tools_success(self, temp_storage_dir):
         """Test successful chain creation returns success message."""
         # First register a tool
-        register_tool(
+        await register_tool(
             tool_id="test_tool",
             server_command="python -m test",
             tool_name="query",
@@ -99,7 +104,7 @@ class TestToolChainerBasicOperations:
             ToolStep(tool_id="test_tool", arguments={"data": "test"})
         ]
         
-        result = chain_tools(
+        result = await chain_tools(
             chain_id="test_chain",
             steps=steps,
             storage_dir=temp_storage_dir
@@ -125,7 +130,8 @@ class TestToolChainerStateManagement:
         ('[1, 2, 3]', "wrong root type"),
         ('{"registered_tools": {}, "defined_chains": []}', "wrong chain type"),
     ])
-    def test_load_state_error_conditions_parameterized(self, temp_storage_dir, file_content, description):
+    @pytest.mark.asyncio
+    async def test_load_state_error_conditions_parameterized(self, temp_storage_dir, file_content, description):
         """Test state loading with various error conditions."""
         storage_path = Path(temp_storage_dir)
         state_file = storage_path / "tool_chainer_state.json"
@@ -139,7 +145,8 @@ class TestToolChainerStateManagement:
         assert chains == {}
         assert history == []
     
-    def test_load_state_file_not_exists(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_load_state_file_not_exists(self, temp_storage_dir):
         """Test loading state when file doesn't exist."""
         storage_path = Path(temp_storage_dir)
         
@@ -150,7 +157,8 @@ class TestToolChainerStateManagement:
         assert history == []
     
     @patch('builtins.open', side_effect=PermissionError("Access denied"))
-    def test_save_state_permission_error(self, mock_open_func, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_save_state_permission_error(self, mock_open_func, temp_storage_dir):
         """Test saving state with permission error."""
         storage_path = Path(temp_storage_dir)
         
@@ -191,7 +199,8 @@ class TestConditionEvaluation:
         ("", {}, {}, True),
         (None, {}, {}, True),
     ])
-    def test_evaluate_condition_parameterized(self, condition, variables, step_outputs, expected):
+    @pytest.mark.asyncio
+    async def test_evaluate_condition_parameterized(self, condition, variables, step_outputs, expected):
         """Test condition evaluation with various scenarios."""
         result = _evaluate_condition(condition, variables, step_outputs)
         assert result == expected
@@ -203,7 +212,8 @@ class TestConditionEvaluation:
         ("{missing_var} == 'test'", {}, {}),
         ("eval('malicious_code')", {}, {}),
     ])
-    def test_evaluate_condition_error_cases(self, condition, variables, step_outputs):
+    @pytest.mark.asyncio
+    async def test_evaluate_condition_error_cases(self, condition, variables, step_outputs):
         """Test condition evaluation with error cases."""
         # Should return False for invalid conditions
         result = _evaluate_condition(condition, variables, step_outputs)
@@ -236,7 +246,8 @@ class TestVariableSubstitution:
         # Multiple same variable
         ("{name} loves {name}", {"name": "Alice"}, {}, "Alice loves Alice"),
     ])
-    def test_substitute_variables_parameterized(self, text, variables, step_outputs, expected):
+    @pytest.mark.asyncio
+    async def test_substitute_variables_parameterized(self, text, variables, step_outputs, expected):
         """Test variable substitution with various scenarios."""
         result = _substitute_variables(text, variables, step_outputs)
         assert result == expected
@@ -251,7 +262,8 @@ class TestToolRegistration:
         ("simple_tool", "echo", "test", None, None),
         ("complex_tool", "python -m complex_server", "process", "Complex processing tool", 120),
     ])
-    def test_register_tool_parameterized(self, temp_storage_dir, tool_id, server_command, tool_name, description, timeout):
+    @pytest.mark.asyncio
+    async def test_register_tool_parameterized(self, temp_storage_dir, tool_id, server_command, tool_name, description, timeout):
         """Test tool registration with various configurations."""
         kwargs = {
             "tool_id": tool_id,
@@ -264,7 +276,7 @@ class TestToolRegistration:
         if timeout:
             kwargs["timeout"] = timeout
             
-        result = register_tool(**kwargs)
+        result = await register_tool(**kwargs)
         
         assert isinstance(result, str)
         assert len(result) > 0
@@ -274,66 +286,73 @@ class TestToolRegistration:
 class TestToolChainerValidation:
     """Test input validation and error handling."""
     
-    def test_register_tool_empty_tool_id(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_register_tool_empty_tool_id(self, temp_storage_dir):
         """Test registering tool with empty tool_id."""
         with pytest.raises(ValueError, match="Tool ID is required"):
-            register_tool(
+            await register_tool(
                 tool_id="",
                 server_command="python test.py",
                 tool_name="test",
                 storage_dir=temp_storage_dir
             )
     
-    def test_register_tool_empty_server_command(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_register_tool_empty_server_command(self, temp_storage_dir):
         """Test registering tool with empty server_command."""
         with pytest.raises(ValueError, match="Server command is required"):
-            register_tool(
+            await register_tool(
                 tool_id="test",
                 server_command="",
                 tool_name="test",
                 storage_dir=temp_storage_dir
             )
     
-    def test_register_tool_empty_tool_name(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_register_tool_empty_tool_name(self, temp_storage_dir):
         """Test registering tool with empty tool_name."""
         with pytest.raises(ValueError, match="Tool name is required"):
-            register_tool(
+            await register_tool(
                 tool_id="test",
                 server_command="python test.py",
                 tool_name="",
                 storage_dir=temp_storage_dir
             )
     
-    def test_chain_tools_empty_chain_id(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_chain_tools_empty_chain_id(self, temp_storage_dir):
         """Test creating chain with empty chain_id."""
         with pytest.raises(ValueError, match="Chain ID is required"):
-            chain_tools(
+            await chain_tools(
                 chain_id="",
                 steps=[ToolStep(tool_id="test", arguments={})],
                 storage_dir=temp_storage_dir
             )
     
-    def test_chain_tools_empty_steps(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_chain_tools_empty_steps(self, temp_storage_dir):
         """Test creating chain with empty steps."""
         with pytest.raises(ValueError, match="Steps are required and cannot be empty"):
-            chain_tools(
+            await chain_tools(
                 chain_id="test_chain",
                 steps=[],
                 storage_dir=temp_storage_dir
             )
     
-    def test_execute_chain_empty_chain_id(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_empty_chain_id(self, temp_storage_dir):
         """Test executing chain with empty chain_id."""
         with pytest.raises(ValueError, match="Chain ID is required"):
-            execute_chain(
+            await execute_chain(
                 chain_id="",
                 storage_dir=temp_storage_dir
             )
     
-    def test_execute_chain_nonexistent_chain(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_nonexistent_chain(self, temp_storage_dir):
         """Test executing non-existent chain."""
         with pytest.raises(ValueError, match="Chain 'nonexistent' not found"):
-            execute_chain(
+            await execute_chain(
                 chain_id="nonexistent",
                 storage_dir=temp_storage_dir
             )
@@ -342,62 +361,71 @@ class TestToolChainerValidation:
 class TestToolChainerEdgeCases:
     """Test edge cases and error conditions."""
     
-    @patch('mcp_handley_lab.tool_chainer.tool.subprocess.Popen')
-    def test_discover_tools_timeout(self, mock_popen, temp_storage_dir):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_timeout(self, mock_create_subprocess, temp_storage_dir):
         """Test discover tools with timeout."""
-        mock_process = Mock()
-        mock_process.communicate.side_effect = subprocess.TimeoutExpired("cmd", 1)
-        mock_popen.return_value = mock_process
+        mock_process = AsyncMock()
+        mock_process.communicate.side_effect = asyncio.TimeoutError()
+        mock_process.returncode = 0
+        mock_process.kill = AsyncMock()
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools(
+        result = await discover_tools(
             server_command="python slow_server.py",
             timeout=1
         )
-        assert "timed out" in result
+        assert "timed out" in result or "Discovery timed out" in result
+        mock_process.kill.assert_called_once()
     
-    @patch('mcp_handley_lab.tool_chainer.tool.subprocess.Popen')
-    def test_discover_tools_malformed_response(self, mock_popen, temp_storage_dir):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_malformed_response(self, mock_create_subprocess, temp_storage_dir):
         """Test discover tools with malformed MCP response."""
-        mock_process = Mock()
-        mock_process.communicate.return_value = ("invalid mcp response", "")
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"invalid mcp response", b"")
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools(
+        result = await discover_tools(
             server_command="python malformed_server.py"
         )
         assert "Discovery error:" in result
     
-    def test_show_history_empty(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_show_history_empty(self, temp_storage_dir):
         """Test showing history when no executions exist."""
-        result = show_history(storage_dir=temp_storage_dir)
+        result = await show_history(storage_dir=temp_storage_dir)
         assert "No chain executions found" in result
     
-    def test_clear_cache_success(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_clear_cache_success(self, temp_storage_dir):
         """Test clearing cache successfully."""
         # Create some state first
-        register_tool(
+        await register_tool(
             tool_id="test",
             server_command="python test.py",
             tool_name="test",
             storage_dir=temp_storage_dir
         )
         
-        result = clear_cache(storage_dir=temp_storage_dir)
+        result = await clear_cache(storage_dir=temp_storage_dir)
         assert "cleared successfully" in result
     
-    def test_clear_cache_permission_error(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_clear_cache_permission_error(self, temp_storage_dir):
         """Test clearing cache handles permission errors gracefully."""
         # Clear cache should handle errors gracefully and still report success
         # Since the actual implementation doesn't have try/catch around unlink,
         # this test verifies current behavior
-        result = clear_cache(storage_dir=temp_storage_dir)
+        result = await clear_cache(storage_dir=temp_storage_dir)
         assert "cleared successfully" in result
     
-    def test_server_info_with_data(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_server_info_with_data(self, temp_storage_dir):
         """Test server info with existing tools and chains."""
         # Register a tool
-        register_tool(
+        await register_tool(
             tool_id="test_tool",
             server_command="python test.py",
             tool_name="test",
@@ -405,13 +433,13 @@ class TestToolChainerEdgeCases:
         )
         
         # Create a chain
-        chain_tools(
+        await chain_tools(
             chain_id="test_chain",
             steps=[ToolStep(tool_id="test_tool", arguments={})],
             storage_dir=temp_storage_dir
         )
         
-        result = server_info(storage_dir=temp_storage_dir)
+        result = await server_info(storage_dir=temp_storage_dir)
         assert "Tool Chainer Server Status" in result
         assert "**Registered Tools:** 1" in result
         assert "**Defined Chains:** 1" in result
@@ -420,10 +448,11 @@ class TestToolChainerEdgeCases:
 class TestToolChainerConditionalExecution:
     """Test conditional execution logic."""
     
-    def test_execute_chain_with_conditions(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_with_conditions(self, temp_storage_dir):
         """Test chain execution with conditional steps."""
         # Register a mock tool
-        register_tool(
+        await register_tool(
             tool_id="mock_tool",
             server_command="python mock.py",
             tool_name="mock",
@@ -431,7 +460,7 @@ class TestToolChainerConditionalExecution:
         )
         
         # Create chain with conditional step
-        chain_tools(
+        await chain_tools(
             chain_id="conditional_chain",
             steps=[
                 ToolStep(tool_id="mock_tool", arguments={"input": "test"}, output_to="result"),
@@ -445,7 +474,7 @@ class TestToolChainerConditionalExecution:
         )
         
         # Execution will fail due to mock tool not existing, but chain is registered
-        result = execute_chain(chain_id="conditional_chain", storage_dir=temp_storage_dir)
+        result = await execute_chain(chain_id="conditional_chain", storage_dir=temp_storage_dir)
         assert "❌ Failed" in result  # Should return error result, not raise exception
 
 
@@ -453,14 +482,15 @@ class TestToolChainerFileOperations:
     """Test file I/O error handling."""
     
     @patch('pathlib.Path.mkdir')
-    def test_storage_dir_creation_error(self, mock_mkdir):
+    @pytest.mark.asyncio
+    async def test_storage_dir_creation_error(self, mock_mkdir):
         """Test error handling when storage directory cannot be created."""
         mock_mkdir.side_effect = PermissionError("Cannot create directory")
         
         # Should handle gracefully
         with tempfile.TemporaryDirectory() as temp_dir:
             try:
-                register_tool(
+                await register_tool(
                     tool_id="test",
                     server_command="python test.py", 
                     tool_name="test",

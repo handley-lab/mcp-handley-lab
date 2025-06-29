@@ -309,7 +309,7 @@ async def search(
     url = f"{base_url}?{param_str}"
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(url)
             response.raise_for_status()
     except Exception as e:

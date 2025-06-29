@@ -59,6 +59,12 @@ async def test_gemini_agent_lifecycle(skip_if_no_api_key, test_output_file, temp
     
     agent_name = "test_agent_lifecycle"
     
+    # Clean up any existing agent from previous test runs
+    try:
+        await delete_agent(agent_name=agent_name)
+    except (ValueError, RuntimeError):
+        pass  # Agent doesn't exist, which is fine
+    
     # Create agent
     result = await create_agent(
         agent_name=agent_name,

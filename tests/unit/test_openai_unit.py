@@ -4,7 +4,7 @@ import tempfile
 import json
 import base64
 from pathlib import Path
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock, MagicMock, AsyncMock
 from PIL import Image
 import io
 
@@ -19,7 +19,8 @@ from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 class TestOpenAIModelConfiguration:
     """Test OpenAI model configuration and token limit functionality."""
     
-    def test_model_configs_all_present(self):
+    @pytest.mark.asyncio
+    async def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
             "o3-mini", "o1-preview", "o1-mini",
@@ -28,7 +29,8 @@ class TestOpenAIModelConfiguration:
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
     
-    def test_model_configs_token_limits(self):
+    @pytest.mark.asyncio
+    async def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
         # O3 series
         assert MODEL_CONFIGS["o3-mini"]["output_tokens"] == 100000
@@ -45,7 +47,8 @@ class TestOpenAIModelConfiguration:
         assert MODEL_CONFIGS["gpt-4.1"]["output_tokens"] == 32768
         assert MODEL_CONFIGS["gpt-4.1-mini"]["output_tokens"] == 16384
     
-    def test_model_configs_param_names(self):
+    @pytest.mark.asyncio
+    async def test_model_configs_param_names(self):
         """Test that model configurations use correct parameter names."""
         # O1/O3 series use max_completion_tokens
         assert MODEL_CONFIGS["o3-mini"]["param"] == "max_completion_tokens"
@@ -57,7 +60,8 @@ class TestOpenAIModelConfiguration:
         assert MODEL_CONFIGS["gpt-4o-mini"]["param"] == "max_tokens"
         assert MODEL_CONFIGS["gpt-4.1"]["param"] == "max_tokens"
     
-    def test_get_model_config_known_models(self):
+    @pytest.mark.asyncio
+    async def test_get_model_config_known_models(self):
         """Test _get_model_config with known model names."""
         config = _get_model_config("o3-mini")
         assert config["output_tokens"] == 100000
@@ -67,7 +71,8 @@ class TestOpenAIModelConfiguration:
         assert config["output_tokens"] == 16384
         assert config["param"] == "max_tokens"
     
-    def test_get_model_config_unknown_model(self):
+    @pytest.mark.asyncio
+    async def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
         # Should default to gpt-4o
@@ -78,7 +83,8 @@ class TestOpenAIModelConfiguration:
 class TestOpenAIHelperFunctions:
     """Test helper functions that don't require API calls."""
     
-    def test_determine_mime_type_text(self):
+    @pytest.mark.asyncio
+    async def test_determine_mime_type_text(self):
         """Test MIME type detection for text files."""
         # Test common text file extensions
         assert determine_mime_type(Path("test.txt")) == "text/plain"
@@ -86,26 +92,30 @@ class TestOpenAIHelperFunctions:
         assert determine_mime_type(Path("test.js")) == "text/javascript"
         assert determine_mime_type(Path("test.json")) == "application/json"
         
-    def test_determine_mime_type_images(self):
+    @pytest.mark.asyncio
+    async def test_determine_mime_type_images(self):
         """Test MIME type detection for image files."""
         assert determine_mime_type(Path("test.jpg")) == "image/jpeg"
         assert determine_mime_type(Path("test.png")) == "image/png"
         assert determine_mime_type(Path("test.gif")) == "image/gif"
         assert determine_mime_type(Path("test.webp")) == "image/webp"
         
-    def test_determine_mime_type_unknown(self):
+    @pytest.mark.asyncio
+    async def test_determine_mime_type_unknown(self):
         """Test MIME type detection for unknown extensions."""
         assert determine_mime_type(Path("test.unknown")) == "application/octet-stream"
         assert determine_mime_type(Path("no_extension")) == "application/octet-stream"
     
-    def test_is_text_file_true(self):
+    @pytest.mark.asyncio
+    async def test_is_text_file_true(self):
         """Test text file detection for text files."""
         assert is_text_file(Path("test.txt")) is True
         assert is_text_file(Path("test.py")) is True
         assert is_text_file(Path("test.md")) is True
         assert is_text_file(Path("test.json")) is True
         
-    def test_is_text_file_false(self):
+    @pytest.mark.asyncio
+    async def test_is_text_file_false(self):
         """Test text file detection for binary files."""
         assert is_text_file(Path("test.jpg")) is False
         assert is_text_file(Path("test.png")) is False
@@ -116,33 +126,38 @@ class TestOpenAIHelperFunctions:
 class TestResolveFiles:
     """Test file resolution logic."""
     
-    def test_resolve_files_none(self):
+    @pytest.mark.asyncio
+    async def test_resolve_files_none(self):
         """Test resolve_files with None input."""
-        file_attachments, inline_content = _resolve_files(None)
+        file_attachments, inline_content = await _resolve_files(None)
         assert file_attachments == []
         assert inline_content == []
         
-    def test_resolve_files_empty_list(self):
+    @pytest.mark.asyncio
+    async def test_resolve_files_empty_list(self):
         """Test resolve_files with empty list."""
-        file_attachments, inline_content = _resolve_files([])
+        file_attachments, inline_content = await _resolve_files([])
         assert file_attachments == []
         assert inline_content == []
         
-    def test_resolve_files_direct_string(self):
+    @pytest.mark.asyncio
+    async def test_resolve_files_direct_string(self):
         """Test resolve_files with direct string content."""
         files = ["This is direct content", "More content"]
-        file_attachments, inline_content = _resolve_files(files)
+        file_attachments, inline_content = await _resolve_files(files)
         assert file_attachments == []
         assert inline_content == ["This is direct content", "More content"]
         
-    def test_resolve_files_dict_content(self):
+    @pytest.mark.asyncio
+    async def test_resolve_files_dict_content(self):
         """Test resolve_files with dict content."""
         files = [{"content": "Dict content"}, {"content": "More dict content"}]
-        file_attachments, inline_content = _resolve_files(files)
+        file_attachments, inline_content = await _resolve_files(files)
         assert file_attachments == []
         assert inline_content == ["Dict content", "More dict content"]
         
-    def test_resolve_files_small_text_file(self):
+    @pytest.mark.asyncio
+    async def test_resolve_files_small_text_file(self):
         """Test resolve_files with small text file."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
             f.write("Small text file content")
@@ -150,7 +165,7 @@ class TestResolveFiles:
             
         try:
             files = [{"path": temp_path}]
-            file_attachments, inline_content = _resolve_files(files)
+            file_attachments, inline_content = await _resolve_files(files)
             
             assert file_attachments == []
             assert len(inline_content) == 1
@@ -163,12 +178,14 @@ class TestResolveFiles:
 class TestResolveImages:
     """Test image resolution for vision models."""
     
-    def test_resolve_images_none(self):
+    @pytest.mark.asyncio
+    async def test_resolve_images_none(self):
         """Test resolve_images with None input."""
         images = _resolve_images()
         assert images == []
         
-    def test_resolve_images_direct_data_url(self):
+    @pytest.mark.asyncio
+    async def test_resolve_images_direct_data_url(self):
         """Test resolve_images with data URL."""
         data_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
         resolved_images = _resolve_images(image_data=data_url)
@@ -176,7 +193,8 @@ class TestResolveImages:
         assert len(resolved_images) == 1
         assert resolved_images[0] == data_url
         
-    def test_resolve_images_dict_data(self):
+    @pytest.mark.asyncio
+    async def test_resolve_images_dict_data(self):
         """Test resolve_images with dict containing base64 data."""
         base64_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
         images = [{"data": base64_data}]
@@ -189,43 +207,50 @@ class TestResolveImages:
 class TestInputValidation:
     """Test input validation for main functions."""
     
-    def test_ask_empty_prompt(self):
+    @pytest.mark.asyncio
+    async def test_ask_empty_prompt(self):
         """Test ask with empty prompt."""
         with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            ask("", "/tmp/output.txt")
+            await ask("", "/tmp/output.txt")
             
-    def test_ask_empty_output_file(self):
+    @pytest.mark.asyncio
+    async def test_ask_empty_output_file(self):
         """Test ask with empty output file."""
         with pytest.raises(ValueError, match="Output file is required"):
-            ask("Test prompt", "")
+            await ask("Test prompt", "")
             
-    def test_ask_empty_agent_name(self):
+    @pytest.mark.asyncio
+    async def test_ask_empty_agent_name(self):
         """Test ask with empty agent name."""
         with pytest.raises(ValueError, match="Agent name cannot be empty when provided"):
-            ask("Test prompt", "/tmp/output.txt", agent_name="")
+            await ask("Test prompt", "/tmp/output.txt", agent_name="")
             
-    def test_analyze_image_empty_prompt(self):
+    @pytest.mark.asyncio
+    async def test_analyze_image_empty_prompt(self):
         """Test analyze_image with empty prompt."""
         with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            analyze_image("", "/tmp/output.txt")
+            await analyze_image("", "/tmp/output.txt")
             
-    def test_analyze_image_empty_output_file(self):
+    @pytest.mark.asyncio
+    async def test_analyze_image_empty_output_file(self):
         """Test analyze_image with empty output file."""
         with pytest.raises(ValueError, match="Output file is required"):
-            analyze_image("Test prompt", "")
+            await analyze_image("Test prompt", "")
             
-    def test_generate_image_empty_prompt(self):
+    @pytest.mark.asyncio
+    async def test_generate_image_empty_prompt(self):
         """Test generate_image with empty prompt."""
         with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            generate_image("")
+            await generate_image("")
             
-    def test_get_response_nonexistent_agent(self, mock_memory_manager):
+    @pytest.mark.asyncio
+    async def test_get_response_nonexistent_agent(self, mock_memory_manager):
         """Test get_response with nonexistent agent."""
         mock_memory_manager.get_response.return_value = None
         mock_memory_manager.get_agent.return_value = None
         
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
-            get_response("nonexistent")
+            await get_response("nonexistent")
 
 
 @pytest.fixture
@@ -236,10 +261,28 @@ def temp_storage_dir():
 
 
 @pytest.fixture
-def mock_openai_client():
-    """Mock OpenAI client for testing."""
-    with patch('mcp_handley_lab.llm.openai.tool.client') as mock_client:
-        yield mock_client
+def mock_openai_client(mocker):
+    """Fixture to provide a fully mocked async OpenAI client."""
+    from unittest.mock import AsyncMock, Mock
+    
+    # Create the main client mock
+    mock_client = Mock()
+    
+    # Create async method mocks with proper structure
+    mock_client.chat = Mock()
+    mock_client.chat.completions = Mock()
+    mock_client.chat.completions.create = AsyncMock()
+    
+    mock_client.images = Mock()
+    mock_client.images.generate = AsyncMock()
+    
+    mock_client.models = Mock()
+    mock_client.models.list = AsyncMock()
+    
+    # Patch the actual client
+    mocker.patch('mcp_handley_lab.llm.openai.tool.client', mock_client)
+    
+    return mock_client
 
 
 @pytest.fixture
@@ -252,7 +295,8 @@ def mock_memory_manager():
 class TestOpenAIApiCalls:
     """Test main functions with mocked API calls."""
     
-    def test_ask_basic_success(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_ask_basic_success(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
         """Test basic ask function with successful API call."""
         # Mock API response
         mock_response = Mock()
@@ -273,7 +317,7 @@ class TestOpenAIApiCalls:
              patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Response saved successfully"):
             
             output_file = Path(temp_storage_dir) / "output.txt"
-            result = ask("Test prompt", str(output_file))
+            result = await ask("Test prompt", str(output_file))
             
             # Verify API was called
             mock_openai_client.chat.completions.create.assert_called_once()
@@ -281,7 +325,8 @@ class TestOpenAIApiCalls:
             # Verify result message
             assert "Response saved successfully" in result
         
-    def test_ask_with_agent(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_ask_with_agent(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
         """Test ask function with agent memory."""
         # Mock API response
         mock_response = Mock()
@@ -306,7 +351,7 @@ class TestOpenAIApiCalls:
              patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Response saved successfully"):
             
             output_file = Path(temp_storage_dir) / "output.txt"
-            result = ask("New prompt", str(output_file), agent_name="test_agent")
+            result = await ask("New prompt", str(output_file), agent_name="test_agent")
             
             # Verify agent history was used
             mock_agent.get_openai_conversation_history.assert_called_once()
@@ -314,7 +359,8 @@ class TestOpenAIApiCalls:
             # Verify result contains success message
             assert "Response saved successfully" in result
         
-    def test_generate_image_success(self, mock_openai_client, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_generate_image_success(self, mock_openai_client, temp_storage_dir):
         """Test generate_image with successful API call."""
         # Mock DALL-E response
         mock_response = Mock()
@@ -322,12 +368,18 @@ class TestOpenAIApiCalls:
         mock_response.data[0].url = "https://example.com/generated_image.png"
         mock_openai_client.images.generate.return_value = mock_response
         
-        # Mock image download
+        # Mock httpx async client and image download
         mock_image_data = b"fake_image_data"
-        with patch('requests.get') as mock_get:
-            mock_get.return_value.content = mock_image_data
+        with patch('httpx.AsyncClient') as mock_httpx_client:
+            mock_client_instance = Mock()
+            mock_httpx_client.return_value.__aenter__.return_value = mock_client_instance
             
-            result = generate_image("A beautiful sunset")
+            mock_http_response = Mock()
+            mock_http_response.content = mock_image_data
+            mock_http_response.raise_for_status = Mock()
+            mock_client_instance.get = AsyncMock(return_value=mock_http_response)
+            
+            result = await generate_image("A beautiful sunset")
             
             # Verify API was called
             mock_openai_client.images.generate.assert_called_once()
@@ -339,7 +391,8 @@ class TestOpenAIApiCalls:
             assert "Image generated successfully!" in result
             assert "Saved to:" in result
             
-    def test_analyze_image_success(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_analyze_image_success(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
         """Test analyze_image with successful API call."""
         # Mock GPT-4 Vision response
         mock_response = Mock()
@@ -364,7 +417,7 @@ class TestOpenAIApiCalls:
              patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Analysis saved successfully"):
             
             output_file = Path(temp_storage_dir) / "analysis.txt"
-            result = analyze_image("Describe this image", str(output_file), image_data=str(img_path))
+            result = await analyze_image("Describe this image", str(output_file), image_data=str(img_path))
             
             # Verify API was called with image
             mock_openai_client.chat.completions.create.assert_called_once()
@@ -379,7 +432,8 @@ class TestOpenAIApiCalls:
 class TestErrorHandling:
     """Test error handling scenarios."""
     
-    def test_ask_api_error(self, mock_openai_client, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_ask_api_error(self, mock_openai_client, temp_storage_dir):
         """Test ask function with API error."""
         # Mock API error
         from openai import OpenAIError
@@ -388,11 +442,10 @@ class TestErrorHandling:
         output_file = Path(temp_storage_dir) / "output.txt"
         
         with pytest.raises(RuntimeError, match="OpenAI API error"):
-            ask("Test prompt", str(output_file))
+            await ask("Test prompt", str(output_file))
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_ask_uses_model_default_tokens(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_ask_uses_model_default_tokens(self, mock_openai_client):
         """Test that ask uses model's default token limit when max_output_tokens not specified."""
         # Setup mock
         mock_response = Mock()
@@ -400,25 +453,24 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Test response"
         mock_response.usage.prompt_tokens = 10
         mock_response.usage.completion_tokens = 5
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
-        # Call ask with o3-mini (should use 100,000 tokens)
-        ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="o3-mini",
-            agent_name=None
-        )
+        with patch('mcp_handley_lab.llm.openai.tool.handle_output', return_value="Response saved"):
+            # Call ask with o3-mini (should use 100,000 tokens)
+            await ask(
+                prompt="Test prompt",
+                output_file="/tmp/test.txt",
+                model="o3-mini",
+                agent_name=None
+            )
         
         # Verify API was called with max_completion_tokens (not max_tokens)
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
         assert call_kwargs["max_completion_tokens"] == 100000
         assert "max_tokens" not in call_kwargs
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_ask_uses_custom_tokens(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_ask_uses_custom_tokens(self, mock_openai_client):
         """Test that ask uses custom max_output_tokens when specified."""
         # Setup mock
         mock_response = Mock()
@@ -426,25 +478,24 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Test response"
         mock_response.usage.prompt_tokens = 10
         mock_response.usage.completion_tokens = 5
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
-        # Call ask with custom token limit
-        ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="gpt-4o",
-            max_output_tokens=1000,
-            agent_name=None
-        )
+        with patch("mcp_handley_lab.llm.openai.tool.handle_output", return_value="Response saved"):
+            # Call ask with custom token limit
+            await ask(
+                prompt="Test prompt",
+                output_file="/tmp/test.txt",
+                model="gpt-4o",
+                max_output_tokens=1000,
+                agent_name=None
+            )
         
         # Verify API was called with custom max_tokens
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
         assert call_kwargs["max_tokens"] == 1000
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_ask_different_param_names(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_ask_different_param_names(self, mock_openai_client):
         """Test that ask uses correct parameter names for different model types."""
         # Setup mock
         mock_response = Mock()
@@ -452,35 +503,34 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Test response"
         mock_response.usage.prompt_tokens = 10
         mock_response.usage.completion_tokens = 5
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
-        # Test gpt-4o (uses max_tokens)
-        ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="gpt-4o",
-            agent_name=None
-        )
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
-        assert "max_tokens" in call_kwargs
-        assert call_kwargs["max_tokens"] == 16384
-        
-        # Test o1-preview (uses max_completion_tokens)
-        ask(
-            prompt="Test prompt", 
-            output_file="/tmp/test.txt",
-            model="o1-preview",
-            agent_name=None
-        )
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
-        assert "max_completion_tokens" in call_kwargs
-        assert call_kwargs["max_completion_tokens"] == 32768
-        assert "max_tokens" not in call_kwargs
+        with patch("mcp_handley_lab.llm.openai.tool.handle_output", return_value="Response saved"):
+            # Test gpt-4o (uses max_tokens)
+            await ask(
+                prompt="Test prompt",
+                output_file="/tmp/test.txt",
+                model="gpt-4o",
+                agent_name=None
+            )
+            call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
+            assert "max_tokens" in call_kwargs
+            assert call_kwargs["max_tokens"] == 16384
+            
+            # Test o1-preview (uses max_completion_tokens)
+            await ask(
+                prompt="Test prompt", 
+                output_file="/tmp/test.txt",
+                model="o1-preview",
+                agent_name=None
+            )
+            call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
+            assert "max_completion_tokens" in call_kwargs
+            assert call_kwargs["max_completion_tokens"] == 32768
+            assert "max_tokens" not in call_kwargs
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_analyze_image_uses_model_default_tokens(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_analyze_image_uses_model_default_tokens(self, mock_openai_client):
         """Test that analyze_image uses model's default token limit when max_output_tokens not specified."""
         # Setup mock
         mock_response = Mock()
@@ -488,26 +538,25 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Image analysis"
         mock_response.usage.prompt_tokens = 15
         mock_response.usage.completion_tokens = 10
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Analysis saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
-        # Call analyze_image with gpt-4o (should use 16384 tokens)
-        analyze_image(
-            prompt="Describe this image",
-            output_file="/tmp/test.txt",
-            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-            model="gpt-4o",
-            agent_name=None
-        )
+        with patch("mcp_handley_lab.llm.openai.tool.handle_output", return_value="Analysis saved"):
+            # Call analyze_image with gpt-4o (should use 16384 tokens)
+            await analyze_image(
+                prompt="Describe this image",
+                output_file="/tmp/test.txt",
+                image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+                model="gpt-4o",
+                agent_name=None
+            )
         
         # Verify API was called with max_tokens (not max_completion_tokens)
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
         assert call_kwargs["max_tokens"] == 16384
         assert "max_completion_tokens" not in call_kwargs
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_analyze_image_uses_custom_tokens(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_analyze_image_uses_custom_tokens(self, mock_openai_client):
         """Test that analyze_image uses custom max_output_tokens when specified."""
         # Setup mock
         mock_response = Mock()
@@ -515,26 +564,25 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Custom analysis"
         mock_response.usage.prompt_tokens = 15
         mock_response.usage.completion_tokens = 10
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Analysis saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
-        # Call analyze_image with custom token limit
-        analyze_image(
-            prompt="Describe this image",
-            output_file="/tmp/test.txt",
-            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-            model="gpt-4o",
-            max_output_tokens=500,
-            agent_name=None
-        )
+        with patch("mcp_handley_lab.llm.openai.tool.handle_output", return_value="Analysis saved"):
+            # Call analyze_image with custom token limit
+            await analyze_image(
+                prompt="Describe this image",
+                output_file="/tmp/test.txt",
+                image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+                model="gpt-4o",
+                max_output_tokens=500,
+                agent_name=None
+            )
         
         # Verify API was called with custom max_tokens
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
+        call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
         assert call_kwargs["max_tokens"] == 500
 
-    @patch('mcp_handley_lab.llm.openai.tool.client')
-    @patch('mcp_handley_lab.llm.openai.tool.handle_output')
-    def test_analyze_image_different_param_names(self, mock_handle_output, mock_client):
+    @pytest.mark.asyncio
+    async def test_analyze_image_different_param_names(self, mock_openai_client):
         """Test that analyze_image uses correct parameter names for different model types."""
         # Setup mock
         mock_response = Mock()
@@ -542,38 +590,39 @@ class TestErrorHandling:
         mock_response.choices[0].message.content = "Test analysis"
         mock_response.usage.prompt_tokens = 15
         mock_response.usage.completion_tokens = 10
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_handle_output.return_value = "Analysis saved"
+        mock_openai_client.chat.completions.create.return_value = mock_response
         
         base64_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
         
-        # Test gpt-4o (uses max_tokens)
-        analyze_image(
-            prompt="Describe image",
-            output_file="/tmp/test.txt",
-            image_data=base64_image,
-            model="gpt-4o",
-            agent_name=None
-        )
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
-        assert "max_tokens" in call_kwargs
-        assert call_kwargs["max_tokens"] == 16384
-        
-        # Test o1-preview (uses max_completion_tokens) - though o1 models don't support vision
-        # This tests the parameter selection logic
-        analyze_image(
-            prompt="Describe image", 
-            output_file="/tmp/test.txt",
-            image_data=base64_image,
-            model="o1-preview",
-            agent_name=None
-        )
-        call_kwargs = mock_client.chat.completions.create.call_args.kwargs
-        assert "max_completion_tokens" in call_kwargs
-        assert call_kwargs["max_completion_tokens"] == 32768
-        assert "max_tokens" not in call_kwargs
+        with patch("mcp_handley_lab.llm.openai.tool.handle_output", return_value="Analysis saved"):
+            # Test gpt-4o (uses max_tokens)
+            await analyze_image(
+                prompt="Describe image",
+                output_file="/tmp/test.txt",
+                image_data=base64_image,
+                model="gpt-4o",
+                agent_name=None
+            )
+            call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
+            assert "max_tokens" in call_kwargs
+            assert call_kwargs["max_tokens"] == 16384
             
-    def test_generate_image_invalid_model(self, mock_openai_client):
+            # Test o1-preview (uses max_completion_tokens) - though o1 models don't support vision
+            # This tests the parameter selection logic
+            await analyze_image(
+                prompt="Describe image", 
+                output_file="/tmp/test.txt",
+                image_data=base64_image,
+                model="o1-preview",
+                agent_name=None
+            )
+            call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs
+            assert "max_completion_tokens" in call_kwargs
+            assert call_kwargs["max_completion_tokens"] == 32768
+            assert "max_tokens" not in call_kwargs
+            
+    @pytest.mark.asyncio
+    async def test_generate_image_invalid_model(self, mock_openai_client):
         """Test generate_image with invalid model parameters."""
         # DALL-E 2 doesn't support quality parameter
         mock_response = Mock()
@@ -581,10 +630,16 @@ class TestErrorHandling:
         mock_response.data[0].url = "https://example.com/image.png"
         mock_openai_client.images.generate.return_value = mock_response
         
-        with patch('requests.get') as mock_get:
-            mock_get.return_value.content = b"fake_image"
+        with patch('httpx.AsyncClient') as mock_httpx_client:
+            mock_client_instance = Mock()
+            mock_httpx_client.return_value.__aenter__.return_value = mock_client_instance
             
-            result = generate_image("Test prompt", model="dall-e-2", quality="hd")
+            mock_http_response = Mock()
+            mock_http_response.content = b"fake_image"
+            mock_http_response.raise_for_status = Mock()
+            mock_client_instance.get = AsyncMock(return_value=mock_http_response)
+            
+            result = await generate_image("Test prompt", model="dall-e-2", quality="hd")
             
             # Should call API without quality parameter for DALL-E 2
             call_args = mock_openai_client.images.generate.call_args[1]
@@ -595,7 +650,8 @@ class TestErrorHandling:
 class TestServerInfo:
     """Test server_info function."""
     
-    def test_server_info_basic(self, mock_openai_client, mock_memory_manager):
+    @pytest.mark.asyncio
+    async def test_server_info_basic(self, mock_openai_client, mock_memory_manager):
         """Test server_info returns basic information."""
         # Mock API response with proper structure
         mock_models_response = Mock()
@@ -610,14 +666,15 @@ class TestServerInfo:
         mock_memory_manager.list_agents.return_value = []
         mock_memory_manager.storage_dir = "/tmp/test"
         
-        result = server_info()
+        result = await server_info()
         
         assert "OpenAI Tool Server Status" in result
         assert "Status: Connected and ready" in result
         assert "Available Models:" in result
         assert "Active Agents: 0" in result
         
-    def test_server_info_with_agents(self, mock_openai_client, mock_memory_manager):
+    @pytest.mark.asyncio
+    async def test_server_info_with_agents(self, mock_openai_client, mock_memory_manager):
         """Test server_info with existing agents."""
         # Mock API response with proper structure
         mock_models_response = Mock()
@@ -629,6 +686,6 @@ class TestServerInfo:
         mock_memory_manager.list_agents.return_value = [mock_agent]
         mock_memory_manager.storage_dir = "/tmp/test"
         
-        result = server_info()
+        result = await server_info()
         
         assert "Active Agents: 1" in result

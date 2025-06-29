@@ -29,7 +29,8 @@ class TestDateTimeParsing:
         ("2024-13-45T14:30:00Z", True),
         ("not-a-dateT14:30:00Z", True),
     ])
-    def test_parse_datetime_parameterized(self, date_string, expected_has_exception):
+    @pytest.mark.asyncio
+    async def test_parse_datetime_parameterized(self, date_string, expected_has_exception):
         """Test date/time parsing with various formats."""
         if expected_has_exception:
             with pytest.raises(ValueError):
@@ -46,7 +47,8 @@ class TestDateTimeParsing:
         ("invalid-date", "all-day"),
         ("", "all-day"),
     ])
-    def test_all_day_format_parameterized(self, date_string, expected_contains):
+    @pytest.mark.asyncio
+    async def test_all_day_format_parameterized(self, date_string, expected_contains):
         """Test all-day date formatting."""
         result = _format_datetime(date_string)
         assert expected_contains in result
@@ -63,7 +65,8 @@ class TestEventCreation:
     ])
     @patch('mcp_handley_lab.google_calendar.tool._resolve_calendar_id')
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_create_event_parameterized(self, mock_get_service, mock_resolve_calendar_id, summary, start_dt, end_dt, description, attendees, timezone):
+    @pytest.mark.asyncio
+    async def test_create_event_parameterized(self, mock_get_service, mock_resolve_calendar_id, summary, start_dt, end_dt, description, attendees, timezone):
         """Test event creation with various configurations."""
         # Mock the service and its methods
         mock_service = Mock()
@@ -89,7 +92,7 @@ class TestEventCreation:
         mock_get_service.return_value = mock_service
         mock_resolve_calendar_id.return_value = "primary"
         
-        result = create_event(
+        result = await create_event(
             summary=summary,
             start_datetime=start_dt,
             end_datetime=end_dt,
@@ -113,7 +116,8 @@ class TestEventListing:
         ("primary", "2024-12-01T00:00:00Z", "2024-12-31T23:59:59Z", 50),
     ])
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_list_events_parameterized(self, mock_get_service, calendar_id, start_date, end_date, max_results):
+    @pytest.mark.asyncio
+    async def test_list_events_parameterized(self, mock_get_service, calendar_id, start_date, end_date, max_results):
         """Test event listing with various configurations."""
         # Mock the service
         mock_service = Mock()
@@ -131,7 +135,7 @@ class TestEventListing:
         }
         mock_get_service.return_value = mock_service
         
-        result = list_events(
+        result = await list_events(
             calendar_id=calendar_id,
             start_date=start_date,
             end_date=end_date,
@@ -143,7 +147,8 @@ class TestEventListing:
         mock_events.list.assert_called_once()
 
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_list_events_all_calendars(self, mock_get_service):
+    @pytest.mark.asyncio
+    async def test_list_events_all_calendars(self, mock_get_service):
         """Test listing events from all calendars."""
         # Mock the service
         mock_service = Mock()
@@ -162,7 +167,7 @@ class TestEventListing:
         mock_events.list.return_value.execute.return_value = {'items': []}
         mock_get_service.return_value = mock_service
         
-        result = list_events(calendar_id="all")
+        result = await list_events(calendar_id="all")
         
         assert isinstance(result, str)
         assert len(result) > 0
@@ -178,7 +183,8 @@ class TestEventUpdate:
         ("Client Call", "event101", {"summary": "Client Review", "description": "Important review"}),
     ])
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_update_event_parameterized(self, mock_get_service, event_summary, event_id, updates):
+    @pytest.mark.asyncio
+    async def test_update_event_parameterized(self, mock_get_service, event_summary, event_id, updates):
         """Test event updating with various fields."""
         # Mock the service
         mock_service = Mock()
@@ -203,7 +209,7 @@ class TestEventUpdate:
         
         mock_get_service.return_value = mock_service
         
-        result = update_event(
+        result = await update_event(
             event_summary=event_summary,
             event_id=event_id,
             **updates
@@ -226,13 +232,14 @@ class TestCalendarErrorHandling:
         (ConnectionError, "Network timeout", ConnectionError),
     ])
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_error_handling_parameterized(self, mock_get_service, exception_type, error_message, expected_exception):
+    @pytest.mark.asyncio
+    async def test_error_handling_parameterized(self, mock_get_service, exception_type, error_message, expected_exception):
         """Test error handling with various exception types."""
         # Mock service to raise exception
         mock_get_service.side_effect = exception_type(error_message)
         
         with pytest.raises((expected_exception, RuntimeError)):
-            list_events()
+            await list_events()
 
 
 class TestTimezoneParsing:
@@ -244,7 +251,8 @@ class TestTimezoneParsing:
         ("2024-06-24T14:00:00Z", "UTC", "Z"),
         ("2024-06-24", "UTC", "date"),
     ])
-    def test_timezone_handling_parameterized(self, datetime_str, timezone, expected_contains):
+    @pytest.mark.asyncio
+    async def test_timezone_handling_parameterized(self, datetime_str, timezone, expected_contains):
         """Test timezone handling in datetime parsing."""
         # This would test the internal datetime parsing logic
         # For now, just verify the parameters are reasonable
@@ -263,7 +271,8 @@ class TestFindTime:
         (30, False),  # More slots when including evenings/weekends
     ])
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_find_time_parameterized(self, mock_get_service, duration_minutes, work_hours_only):
+    @pytest.mark.asyncio
+    async def test_find_time_parameterized(self, mock_get_service, duration_minutes, work_hours_only):
         """Test find time with various durations and work hour settings."""
         # Mock the service to return some busy times
         mock_service = Mock()
@@ -278,7 +287,7 @@ class TestFindTime:
         }
         mock_get_service.return_value = mock_service
         
-        result = find_time(
+        result = await find_time(
             duration_minutes=duration_minutes,
             work_hours_only=work_hours_only
         )
@@ -292,7 +301,8 @@ class TestCalendarServiceOperations:
     """Test basic service operations."""
     
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_list_calendars(self, mock_get_service):
+    @pytest.mark.asyncio
+    async def test_list_calendars(self, mock_get_service):
         """Test listing calendars."""
         mock_service = Mock()
         mock_calendar_list = Mock()
@@ -304,14 +314,15 @@ class TestCalendarServiceOperations:
         }
         mock_get_service.return_value = mock_service
         
-        result = list_calendars()
+        result = await list_calendars()
         
         assert isinstance(result, str)
         assert len(result) > 0
         assert "calendar" in result.lower()
     
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_get_event(self, mock_get_service):
+    @pytest.mark.asyncio
+    async def test_get_event(self, mock_get_service):
         """Test getting a specific event."""
         mock_service = Mock()
         mock_events = Mock()
@@ -325,14 +336,15 @@ class TestCalendarServiceOperations:
         }
         mock_get_service.return_value = mock_service
         
-        result = get_event(event_id="test_event")
+        result = await get_event(event_id="test_event")
         
         assert isinstance(result, str)
         assert len(result) > 0
         assert "test event" in result.lower()
     
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_delete_event(self, mock_get_service):
+    @pytest.mark.asyncio
+    async def test_delete_event(self, mock_get_service):
         """Test deleting an event."""
         mock_service = Mock()
         mock_events = Mock()
@@ -348,7 +360,7 @@ class TestCalendarServiceOperations:
         mock_events.delete.return_value.execute.return_value = {}
         mock_get_service.return_value = mock_service
         
-        result = delete_event(event_summary="Test Event", event_id="test_event")
+        result = await delete_event(event_summary="Test Event", event_id="test_event")
         
         assert isinstance(result, str)
         assert len(result) > 0
@@ -357,7 +369,8 @@ class TestCalendarServiceOperations:
         mock_events.delete.assert_called_once()
     
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
-    def test_server_info(self, mock_get_service):
+    @pytest.mark.asyncio
+    async def test_server_info(self, mock_get_service):
         """Test server info function."""
         mock_service = Mock()
         mock_calendar_list = Mock()
@@ -367,7 +380,7 @@ class TestCalendarServiceOperations:
         }
         mock_get_service.return_value = mock_service
         
-        result = server_info()
+        result = await server_info()
         
         assert isinstance(result, str)
         assert len(result) > 0

@@ -3,8 +3,9 @@ import pytest
 import tempfile
 import json
 import subprocess
+import asyncio
 import time
-from unittest.mock import patch, Mock, mock_open, MagicMock
+from unittest.mock import patch, Mock, mock_open, MagicMock, AsyncMock
 from pathlib import Path
 
 from mcp_handley_lab.tool_chainer.tool import (
@@ -24,19 +25,20 @@ def temp_storage_dir():
 class TestExecuteMcpTool:
     """Test MCP tool execution with subprocess handling."""
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_success(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_success(self, mock_create_subprocess):
         """Test successful MCP tool execution."""
         # Mock successful subprocess
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            '{"result": {"content": [{"text": "Success response"}]}}\n',
-            ""
+            b'{"result": {"content": [{"text": "Success response"}]}}\n',
+            b""
         )
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"},
@@ -45,20 +47,21 @@ class TestExecuteMcpTool:
         
         assert result["success"] is True
         assert result["result"] == "Success response"
-        mock_popen.assert_called_once()
+        mock_create_subprocess.assert_called_once()
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_server_error(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_server_error(self, mock_create_subprocess):
         """Test MCP tool execution with server error."""
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            "Server output",
-            "Error message"
+            b"Server output",
+            b"Error message"
         )
         mock_process.returncode = 1
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -68,35 +71,16 @@ class TestExecuteMcpTool:
         assert "Server command failed" in result["error"]
         assert "Error message" in result["error"]
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_invalid_response_format(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_invalid_response_format(self, mock_create_subprocess):
         """Test MCP tool execution with invalid response format."""
-        mock_process = Mock()
-        mock_process.communicate.return_value = ("", "")
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Invalid JSON response", b"")
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"}
-        )
-        
-        assert result["success"] is False
-        assert "Invalid response format" in result["error"]
-    
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_json_parse_error(self, mock_popen):
-        """Test MCP tool execution with JSON parse error."""
-        mock_process = Mock()
-        mock_process.communicate.return_value = (
-            "Invalid JSON response\n",
-            ""
-        )
-        mock_process.returncode = 0
-        mock_popen.return_value = mock_process
-        
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -105,14 +89,38 @@ class TestExecuteMcpTool:
         assert result["success"] is False
         assert "Failed to parse server response" in result["error"]
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_timeout(self, mock_popen):
-        """Test MCP tool execution timeout."""
-        mock_process = Mock()
-        mock_process.communicate.side_effect = subprocess.TimeoutExpired("test", 1)
-        mock_popen.return_value = mock_process
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_json_parse_error(self, mock_create_subprocess):
+        """Test MCP tool execution with JSON parse error."""
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (
+            b"Invalid JSON response\n",
+            b""
+        )
+        mock_process.returncode = 0
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
+            server_command="python -m test",
+            tool_name="test_tool",
+            arguments={"input": "test"}
+        )
+        
+        assert result["success"] is False
+        assert "Failed to parse server response" in result["error"]
+    
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_timeout(self, mock_create_subprocess):
+        """Test MCP tool execution timeout."""
+        mock_process = AsyncMock()
+        mock_process.communicate.side_effect = asyncio.TimeoutError()
+        mock_process.kill = AsyncMock()
+        mock_process.wait = AsyncMock()
+        mock_create_subprocess.return_value = mock_process
+        
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"},
@@ -124,18 +132,19 @@ class TestExecuteMcpTool:
         mock_process.kill.assert_called_once()
         mock_process.wait.assert_called_once()
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_mcp_error_response(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_mcp_error_response(self, mock_create_subprocess):
         """Test MCP tool execution with MCP error in response."""
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            '{"error": {"message": "Tool not found"}}\n',
-            ""
+            b'{"error": {"message": "Tool not found"}}\n',
+            b""
         )
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -144,18 +153,19 @@ class TestExecuteMcpTool:
         assert result["success"] is False
         assert result["error"] == "Tool not found"
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_simple_result(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_simple_result(self, mock_create_subprocess):
         """Test MCP tool execution with simple result format."""
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            '{"result": "Simple string result"}\n',
-            ""
+            b'{"result": "Simple string result"}\n',
+            b""
         )
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -164,18 +174,19 @@ class TestExecuteMcpTool:
         assert result["success"] is True
         assert result["result"] == "Simple string result"
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_dict_result(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_dict_result(self, mock_create_subprocess):
         """Test MCP tool execution with dict result format."""
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            '{"result": {"data": "complex", "status": "ok"}}\n',
-            ""
+            b'{"result": {"data": "complex", "status": "ok"}}\n',
+            b""
         )
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -184,12 +195,13 @@ class TestExecuteMcpTool:
         assert result["success"] is True
         assert "{'data': 'complex', 'status': 'ok'}" in result["result"]
     
-    @patch('subprocess.Popen')
-    def test_execute_mcp_tool_exception(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_execute_mcp_tool_exception(self, mock_create_subprocess):
         """Test MCP tool execution with unexpected exception."""
-        mock_popen.side_effect = Exception("Unexpected error")
+        mock_create_subprocess.side_effect = Exception("Unexpected error")
         
-        result = _execute_mcp_tool(
+        result = await _execute_mcp_tool(
             server_command="python -m test",
             tool_name="test_tool",
             arguments={"input": "test"}
@@ -318,56 +330,61 @@ class TestConditionEvaluation:
 class TestDiscoverTools:
     """Test tool discovery functionality."""
     
-    @patch('subprocess.Popen')
-    def test_discover_tools_success(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_success(self, mock_create_subprocess):
         """Test successful tool discovery."""
-        mock_process = Mock()
+        mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            '{"result": [{"name": "tool1", "description": "Test tool 1"}, {"name": "tool2", "description": "Test tool 2"}]}\n',
-            ""
+            b'{"result": [{"name": "tool1", "description": "Test tool 1"}, {"name": "tool2", "description": "Test tool 2"}]}\n',
+            b""
         )
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools("python -m test_server")
+        result = await discover_tools("python -m test_server")
         
         assert "Discovered 2 tools" in result
         assert "tool1" in result
         assert "tool2" in result
     
-    @patch('subprocess.Popen')
-    def test_discover_tools_timeout(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_timeout(self, mock_create_subprocess):
         """Test tool discovery timeout."""
-        mock_process = Mock()
-        mock_process.communicate.side_effect = subprocess.TimeoutExpired("test", 5)
-        mock_popen.return_value = mock_process
+        mock_process = AsyncMock()
+        mock_process.communicate.side_effect = asyncio.TimeoutError()
+        mock_process.kill = AsyncMock()
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools("python -m test_server", timeout=5)
+        result = await discover_tools("python -m test_server", timeout=5)
         
         assert "Discovery timed out" in result
         mock_process.kill.assert_called_once()
     
-    @patch('subprocess.Popen')
-    def test_discover_tools_server_error(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_server_error(self, mock_create_subprocess):
         """Test tool discovery with server error."""
-        mock_process = Mock()
-        mock_process.communicate.return_value = ("", "Server error message")
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"", b"Server error message")
         mock_process.returncode = 1
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools("python -m test_server")
+        result = await discover_tools("python -m test_server")
         
         assert "Failed to start server" in result
     
-    @patch('subprocess.Popen')
-    def test_discover_tools_invalid_response(self, mock_popen):
+    @patch('asyncio.create_subprocess_exec')
+    @pytest.mark.asyncio
+    async def test_discover_tools_invalid_response(self, mock_create_subprocess):
         """Test tool discovery with invalid response."""
-        mock_process = Mock()
-        mock_process.communicate.return_value = ("Invalid JSON", "")
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Invalid JSON", b"")
         mock_process.returncode = 0
-        mock_popen.return_value = mock_process
+        mock_create_subprocess.return_value = mock_process
         
-        result = discover_tools("python -m test_server")
+        result = await discover_tools("python -m test_server")
         
         assert "Failed to parse response" in result
 
@@ -433,7 +450,8 @@ class TestAdvancedChainExecution:
         assert saved_state["execution_history"] == execution_history
     
     @patch('mcp_handley_lab.tool_chainer.tool._execute_mcp_tool')
-    def test_execute_chain_with_conditions(self, mock_execute, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_with_conditions(self, mock_execute, temp_storage_dir):
         """Test chain execution with conditional steps."""
         # Mock tool execution
         mock_execute.side_effect = [
@@ -442,13 +460,13 @@ class TestAdvancedChainExecution:
         ]
         
         # Register tools first
-        register_tool(
+        await register_tool(
             tool_id="primary_tool",
             server_command="python -m primary",
             tool_name="execute",
             storage_dir=temp_storage_dir
         )
-        register_tool(
+        await register_tool(
             tool_id="backup_tool", 
             server_command="python -m backup",
             tool_name="create",
@@ -456,7 +474,7 @@ class TestAdvancedChainExecution:
         )
         
         # Create chain with conditions
-        chain_tools(
+        await chain_tools(
             chain_id="conditional_chain",
             steps=[
                 ToolStep(
@@ -474,25 +492,26 @@ class TestAdvancedChainExecution:
         )
         
         # Execute chain
-        result = execute_chain("conditional_chain", storage_dir=temp_storage_dir)
+        result = await execute_chain("conditional_chain", storage_dir=temp_storage_dir)
         
         assert "Chain executed successfully" in result
         assert mock_execute.call_count == 2  # Both steps should execute
     
     @patch('mcp_handley_lab.tool_chainer.tool._execute_mcp_tool')
-    def test_execute_chain_condition_false(self, mock_execute, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_condition_false(self, mock_execute, temp_storage_dir):
         """Test chain execution with false condition."""
         # Mock tool execution
         mock_execute.return_value = {"success": True, "result": "Operation failed"}
         
         # Register tools
-        register_tool(
+        await register_tool(
             tool_id="primary_tool",
             server_command="python -m primary", 
             tool_name="execute",
             storage_dir=temp_storage_dir
         )
-        register_tool(
+        await register_tool(
             tool_id="backup_tool",
             server_command="python -m backup",
             tool_name="create", 
@@ -500,7 +519,7 @@ class TestAdvancedChainExecution:
         )
         
         # Create chain with condition that will be false
-        chain_tools(
+        await chain_tools(
             chain_id="conditional_chain",
             steps=[
                 ToolStep(
@@ -518,19 +537,20 @@ class TestAdvancedChainExecution:
         )
         
         # Execute chain
-        result = execute_chain("conditional_chain", storage_dir=temp_storage_dir)
+        result = await execute_chain("conditional_chain", storage_dir=temp_storage_dir)
         
         assert "Chain executed successfully" in result
         assert mock_execute.call_count == 1  # Only first step should execute
     
     @patch('mcp_handley_lab.tool_chainer.tool._execute_mcp_tool')
-    def test_execute_chain_tool_failure(self, mock_execute, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_tool_failure(self, mock_execute, temp_storage_dir):
         """Test chain execution with tool failure."""
         # Mock tool failure
         mock_execute.return_value = {"success": False, "error": "Tool execution failed"}
         
         # Register tool
-        register_tool(
+        await register_tool(
             tool_id="failing_tool",
             server_command="python -m failing",
             tool_name="execute",
@@ -538,7 +558,7 @@ class TestAdvancedChainExecution:
         )
         
         # Create simple chain
-        chain_tools(
+        await chain_tools(
             chain_id="failing_chain",
             steps=[
                 ToolStep(
@@ -550,7 +570,7 @@ class TestAdvancedChainExecution:
         )
         
         # Execute chain
-        result = execute_chain("failing_chain", storage_dir=temp_storage_dir)
+        result = await execute_chain("failing_chain", storage_dir=temp_storage_dir)
         
         assert "❌ Failed" in result
         assert "Tool execution failed" in result
@@ -559,13 +579,15 @@ class TestAdvancedChainExecution:
 class TestHistoryAndCacheManagement:
     """Test history and cache management functions."""
     
-    def test_show_history_empty(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_show_history_empty(self, temp_storage_dir):
         """Test showing history when empty."""
-        result = show_history(storage_dir=temp_storage_dir)
+        result = await show_history(storage_dir=temp_storage_dir)
         
         assert "No chain executions found" in result
     
-    def test_show_history_with_data(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_show_history_with_data(self, temp_storage_dir):
         """Test showing history with execution data."""
         # Create some execution history
         execution_history = [
@@ -586,7 +608,7 @@ class TestHistoryAndCacheManagement:
         # Save state with history
         _save_state(temp_storage_dir, {}, {}, execution_history)
         
-        result = show_history(storage_dir=temp_storage_dir)
+        result = await show_history(storage_dir=temp_storage_dir)
         
         assert "test_chain" in result
         assert "another_chain" in result
@@ -594,7 +616,8 @@ class TestHistoryAndCacheManagement:
         assert "❌" in result  # Failure indicator
         assert "5.5s" in result
     
-    def test_show_history_with_limit(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_show_history_with_limit(self, temp_storage_dir):
         """Test showing history with limit."""
         # Create multiple history entries
         execution_history = [
@@ -604,7 +627,7 @@ class TestHistoryAndCacheManagement:
         
         _save_state(temp_storage_dir, {}, {}, execution_history)
         
-        result = show_history(limit=2, storage_dir=temp_storage_dir)
+        result = await show_history(limit=2, storage_dir=temp_storage_dir)
         
         # Should only show last 2 entries
         assert result.count("chain_") == 2
@@ -612,20 +635,22 @@ class TestHistoryAndCacheManagement:
         assert "chain_4" in result
         assert "chain_1" not in result
     
-    def test_clear_cache_success(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_clear_cache_success(self, temp_storage_dir):
         """Test successful cache clearing."""
         # Create some state
         state_file = temp_storage_dir / "state.json"
         state_file.write_text('{"test": "data"}')
         
-        result = clear_cache(storage_dir=temp_storage_dir)
+        result = await clear_cache(storage_dir=temp_storage_dir)
         
         assert "Cache cleared successfully" in result
         assert not state_file.exists()
     
-    def test_clear_cache_no_files(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_clear_cache_no_files(self, temp_storage_dir):
         """Test cache clearing when no files exist."""
-        result = clear_cache(storage_dir=temp_storage_dir)
+        result = await clear_cache(storage_dir=temp_storage_dir)
         
         assert "Cache cleared successfully" in result
 
@@ -633,16 +658,18 @@ class TestHistoryAndCacheManagement:
 class TestServerInfo:
     """Test server info functionality."""
     
-    def test_server_info_empty_state(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_server_info_empty_state(self, temp_storage_dir):
         """Test server info with empty state."""
-        result = server_info(storage_dir=temp_storage_dir)
+        result = await server_info(storage_dir=temp_storage_dir)
         
         assert "Tool Chainer Server Status" in result
         assert "**Registered Tools:** 0" in result
         assert "**Defined Chains:** 0" in result
         assert "Execution History: 0 entries" in result
     
-    def test_server_info_with_data(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_server_info_with_data(self, temp_storage_dir):
         """Test server info with existing data."""
         # Create state with data
         registered_tools = {
@@ -657,7 +684,7 @@ class TestServerInfo:
         
         _save_state(temp_storage_dir, registered_tools, defined_chains, execution_history)
         
-        result = server_info(storage_dir=temp_storage_dir)
+        result = await server_info(storage_dir=temp_storage_dir)
         
         assert "**Registered Tools:** 2" in result
         assert "tool1" in result
@@ -671,25 +698,28 @@ class TestServerInfo:
 class TestErrorHandling:
     """Test comprehensive error handling."""
     
-    def test_register_tool_missing_fields(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_register_tool_missing_fields(self, temp_storage_dir):
         """Test registering tool with missing required fields."""
         with pytest.raises(ValueError, match="Tool ID is required"):
-            register_tool(
+            await register_tool(
                 tool_id="",
                 server_command="",
                 tool_name="",
                 storage_dir=temp_storage_dir
             )
     
-    def test_execute_chain_nonexistent_chain(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_nonexistent_chain(self, temp_storage_dir):
         """Test executing non-existent chain."""
         with pytest.raises(ValueError, match="Chain 'nonexistent_chain' not found"):
-            execute_chain("nonexistent_chain", storage_dir=temp_storage_dir)
+            await execute_chain("nonexistent_chain", storage_dir=temp_storage_dir)
     
-    def test_execute_chain_nonexistent_tool(self, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_nonexistent_tool(self, temp_storage_dir):
         """Test executing chain with non-existent tool."""
         # Create chain with non-existent tool
-        chain_tools(
+        await chain_tools(
             chain_id="invalid_chain",
             steps=[
                 ToolStep(
@@ -700,12 +730,13 @@ class TestErrorHandling:
             storage_dir=temp_storage_dir
         )
         
-        result = execute_chain("invalid_chain", storage_dir=temp_storage_dir)
+        result = await execute_chain("invalid_chain", storage_dir=temp_storage_dir)
         
         assert "Tool 'nonexistent_tool' not found" in result
     
     @patch('mcp_handley_lab.tool_chainer.tool._save_state')
-    def test_execute_chain_save_error(self, mock_save_state, temp_storage_dir):
+    @pytest.mark.asyncio
+    async def test_execute_chain_save_error(self, mock_save_state, temp_storage_dir):
         """Test chain execution with save error."""
         # Allow first few saves to succeed, then fail later ones
         call_count = 0
@@ -734,7 +765,7 @@ class TestErrorHandling:
         mock_save_state.side_effect = save_side_effect
         
         # Register tool first
-        register_tool(
+        await register_tool(
             tool_id="test_tool",
             server_command="python -m test",
             tool_name="execute",
@@ -742,12 +773,12 @@ class TestErrorHandling:
         )
         
         # This should still complete despite save error
-        chain_tools(
+        await chain_tools(
             chain_id="test_chain",
             steps=[ToolStep(tool_id="test_tool", arguments={})],
             storage_dir=temp_storage_dir
         )
         
         # The chain should be defined even if save fails
-        result = server_info(storage_dir=temp_storage_dir)
+        result = await server_info(storage_dir=temp_storage_dir)
         assert "test_chain" in result

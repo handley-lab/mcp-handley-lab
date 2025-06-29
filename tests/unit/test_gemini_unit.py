@@ -63,9 +63,10 @@ class TestModelConfiguration:
 class TestAskTokenLimits:
     """Test ask function with max_output_tokens parameter."""
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    def test_ask_uses_model_default_tokens(self, mock_handle_output, mock_client):
+    async def test_ask_uses_model_default_tokens(self, mock_handle_output, mock_client):
         """Test that ask uses model's default token limit when max_output_tokens not specified."""
         # Setup mock
         mock_response = Mock()
@@ -76,7 +77,7 @@ class TestAskTokenLimits:
         mock_handle_output.return_value = "Response saved"
         
         # Call ask with gemini-2.5-flash (should use 65536 tokens)
-        result = ask(
+        result = await ask(
             prompt="Test prompt",
             output_file="/tmp/test.txt",
             model="gemini-2.5-flash",
@@ -88,9 +89,10 @@ class TestAskTokenLimits:
         config = call_args.kwargs['config']
         assert config.max_output_tokens == 65536
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    def test_ask_uses_custom_tokens(self, mock_handle_output, mock_client):
+    async def test_ask_uses_custom_tokens(self, mock_handle_output, mock_client):
         """Test that ask uses custom max_output_tokens when specified."""
         # Setup mock
         mock_response = Mock()
@@ -101,7 +103,7 @@ class TestAskTokenLimits:
         mock_handle_output.return_value = "Response saved"
         
         # Call ask with custom token limit
-        result = ask(
+        result = await ask(
             prompt="Test prompt",
             output_file="/tmp/test.txt",
             model="gemini-2.5-flash",
@@ -114,9 +116,10 @@ class TestAskTokenLimits:
         config = call_args.kwargs['config']
         assert config.max_output_tokens == 1000
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    def test_ask_different_model_defaults(self, mock_handle_output, mock_client):
+    async def test_ask_different_model_defaults(self, mock_handle_output, mock_client):
         """Test that ask uses correct defaults for different models."""
         # Setup mock
         mock_response = Mock()
@@ -127,7 +130,7 @@ class TestAskTokenLimits:
         mock_handle_output.return_value = "Response saved"
         
         # Test gemini-1.5-pro (should use 8192 tokens)
-        ask(
+        await ask(
             prompt="Test prompt",
             output_file="/tmp/test.txt",
             model="gemini-1.5-pro",
@@ -142,10 +145,11 @@ class TestAskTokenLimits:
 class TestAnalyzeImageTokenLimits:
     """Test analyze_image function with max_output_tokens parameter."""
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    def test_analyze_image_uses_model_default_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
+    async def test_analyze_image_uses_model_default_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
         """Test that analyze_image uses model's default token limit."""
         # Setup mocks
         mock_resolve_images.return_value = []
@@ -157,7 +161,7 @@ class TestAnalyzeImageTokenLimits:
         mock_handle_output.return_value = "Response saved"
         
         # Call analyze_image with default model (pro -> gemini-1.5-pro)
-        result = analyze_image(
+        result = await analyze_image(
             prompt="Analyze this image",
             output_file="/tmp/analysis.txt",
             image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
@@ -169,10 +173,11 @@ class TestAnalyzeImageTokenLimits:
         config = call_args.kwargs['config']
         assert config.max_output_tokens == 8192  # gemini-1.5-pro default
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
     @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    def test_analyze_image_uses_custom_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
+    async def test_analyze_image_uses_custom_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
         """Test that analyze_image uses custom max_output_tokens when specified."""
         # Setup mocks
         mock_resolve_images.return_value = []
@@ -184,7 +189,7 @@ class TestAnalyzeImageTokenLimits:
         mock_handle_output.return_value = "Response saved"
         
         # Call analyze_image with custom token limit
-        result = analyze_image(
+        result = await analyze_image(
             prompt="Analyze this image",
             output_file="/tmp/analysis.txt",
             image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
@@ -201,14 +206,15 @@ class TestAnalyzeImageTokenLimits:
 class TestInputValidation:
     """Test input validation for token limits and boolean handling."""
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
-    def test_ask_agent_name_false_validation(self, mock_client):
+    async def test_ask_agent_name_false_validation(self, mock_client):
         """Test that agent_name=False doesn't cause validation errors."""
         mock_client.models.generate_content.side_effect = Exception("Should not be called")
         
         # This should not raise a validation error
         try:
-            ask(
+            await ask(
                 prompt="Test",
                 output_file="/tmp/test.txt",
                 agent_name=False
@@ -220,14 +226,15 @@ class TestInputValidation:
             # Other exceptions are expected (like the mock exception)
             pass
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
-    def test_analyze_image_agent_name_false_validation(self, mock_client):
+    async def test_analyze_image_agent_name_false_validation(self, mock_client):
         """Test that agent_name=False doesn't cause validation errors in analyze_image."""
         mock_client.models.generate_content.side_effect = Exception("Should not be called")
         
         # This should not raise a validation error
         try:
-            analyze_image(
+            await analyze_image(
                 prompt="Test",
                 output_file="/tmp/test.txt",
                 image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
@@ -261,11 +268,12 @@ class TestErrorHandling:
         assert mcp_handley_lab.llm.gemini.tool.client is None
         assert mcp_handley_lab.llm.gemini.tool.initialization_error == "API key invalid"
     
+    @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.is_text_file')
     @patch('pathlib.Path.exists')
     @patch('pathlib.Path.stat')
     @patch('pathlib.Path.read_text')
-    def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
+    async def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
         """Test file reading error in _resolve_files (lines 127-131)."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
@@ -276,15 +284,16 @@ class TestErrorHandling:
         mock_read_text.side_effect = Exception("Permission denied")
         
         files = [{"path": "/tmp/test.txt"}]
-        parts = _resolve_files(files)
+        parts = await _resolve_files(files)
         
         # Should have error message part
         assert len(parts) == 1
         assert "Error reading file" in parts[0].text
         assert "Permission denied" in parts[0].text
     
+    @pytest.mark.asyncio
     @patch('pathlib.Path.exists')
-    def test_resolve_files_processing_error(self, mock_exists):
+    async def test_resolve_files_processing_error(self, mock_exists):
         """Test file processing error in _resolve_files (lines 130-131)."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
@@ -292,7 +301,7 @@ class TestErrorHandling:
         mock_exists.side_effect = Exception("Invalid path")
         
         files = [{"path": "/invalid/path"}]
-        parts = _resolve_files(files)
+        parts = await _resolve_files(files)
         
         # Should have error message part
         assert len(parts) == 1
@@ -311,13 +320,14 @@ class TestErrorHandling:
         with pytest.raises(ValueError, match="Failed to load image"):
             _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
     
-    def test_analyze_image_output_file_validation(self):
+    @pytest.mark.asyncio
+    async def test_analyze_image_output_file_validation(self):
         """Test output file validation in analyze_image (line 485)."""
         from mcp_handley_lab.llm.gemini.tool import analyze_image
         
         # Test with whitespace-only output file
         with pytest.raises(ValueError, match="Output file is required"):
-            analyze_image(
+            await analyze_image(
                 prompt="Test",
                 output_file="   ",  # Whitespace only
                 image_data="data:image/png;base64,test"

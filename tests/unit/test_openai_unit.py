@@ -422,7 +422,7 @@ class TestOpenAIApiCalls:
             # Verify API was called with image
             mock_openai_client.chat.completions.create.assert_called_once()
             call_args = mock_openai_client.chat.completions.create.call_args[1]
-            assert call_args['model'] == "o3-mini"
+            assert call_args['model'] == "gpt-4o"
             assert any(msg['role'] == 'user' for msg in call_args['messages'])
             
             # Verify result contains success message

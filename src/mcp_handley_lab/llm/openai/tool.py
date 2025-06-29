@@ -443,7 +443,7 @@ async def analyze_image(
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
-    model: str = "o3-mini",
+    model: str = "gpt-4o",
     agent_name: Optional[str] = None,
     max_output_tokens: Optional[int] = None
 ) -> str:

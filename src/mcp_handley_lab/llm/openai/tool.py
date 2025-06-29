@@ -2,9 +2,10 @@
 import base64
 import io
 import tempfile
+import httpx
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-from openai import OpenAI
+from openai import AsyncOpenAI
 from PIL import Image
 from mcp.server.fastmcp import FastMCP
 
@@ -18,8 +19,8 @@ from ..common import (
 
 mcp = FastMCP("OpenAI Tool")
 
-# Configure OpenAI client
-client = OpenAI(api_key=settings.openai_api_key)
+# Configure AsyncOpenAI client
+client = AsyncOpenAI(api_key=settings.openai_api_key)
 
 # Model configurations with token limits from OpenAI documentation
 MODEL_CONFIGS = {
@@ -48,7 +49,7 @@ def _get_model_config(model: str) -> Dict[str, Any]:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gpt-4o"])  # default to gpt-4o
 
 
-def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[List[Dict], List[str]]:
+async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[List[Dict], List[str]]:
     """Resolve file inputs to OpenAI chat content format.
     
     Returns tuple of (file_attachments, inline_content):
@@ -88,7 +89,7 @@ def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[L
                     if file_size > 1024 * 1024:  # 1MB threshold for Files API
                         # Large file - use Files API for assistant-compatible upload
                         try:
-                            uploaded_file = client.files.create(
+                            uploaded_file = await client.files.create(
                                 file=open(file_path, "rb"),
                                 purpose="assistants"
                             )
@@ -293,7 +294,7 @@ ask(
     max_output_tokens=2000
 )
 ```""")
-def ask(
+async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[str] = None,
@@ -320,7 +321,7 @@ def ask(
                 messages = agent.get_openai_conversation_history()
         
         # Resolve files using improved strategy
-        file_attachments, inline_content = _resolve_files(files)
+        file_attachments, inline_content = await _resolve_files(files)
         if inline_content:
             prompt += "\n\n" + "\n\n".join(inline_content)
         
@@ -350,7 +351,7 @@ def ask(
             api_params["max_tokens"] = output_tokens
         
         # Make API call
-        response = client.chat.completions.create(**api_params)
+        response = await client.chat.completions.create(**api_params)
         
         response_text = response.choices[0].message.content
         
@@ -436,7 +437,7 @@ analyze_image(
     agent_name="code_reviewer"
 )
 ```""")
-def analyze_image(
+async def analyze_image(
     prompt: str,
     output_file: str,
     image_data: Optional[str] = None,
@@ -502,7 +503,7 @@ def analyze_image(
             api_params["max_tokens"] = output_tokens
         
         # Make API call
-        response = client.chat.completions.create(**api_params)
+        response = await client.chat.completions.create(**api_params)
         
         response_text = response.choices[0].message.content
         
@@ -578,7 +579,7 @@ Error Handling:
 - Raises ValueError for prompts violating OpenAI's usage policies
 - Image download may fail due to network issues; temporary URLs expire quickly
 - DALL-E 3 may revise prompts for safety compliance""")
-def generate_image(
+async def generate_image(
     prompt: str,
     model: str = "dall-e-3",
     quality: str = "standard",
@@ -603,20 +604,20 @@ def generate_image(
         if model == "dall-e-3":
             params["quality"] = quality
             
-        response = client.images.generate(**params)
+        response = await client.images.generate(**params)
         
         # Get the image URL
         image_url = response.data[0].url
         
-        # Download and save the image
-        import requests
-        image_response = requests.get(image_url)
-        image_response.raise_for_status()
-        
-        # Save to temp file
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            f.write(image_response.content)
-            saved_path = f.name
+        # Download and save the image using httpx
+        async with httpx.AsyncClient() as http_client:
+            image_response = await http_client.get(image_url)
+            image_response.raise_for_status()
+            
+            # Save to temp file
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+                f.write(image_response.content)
+                saved_path = f.name
         
         # Calculate cost (DALL-E pricing is per image)
         cost = calculate_cost(model, 1, 0, "openai")  # 1 image
@@ -656,7 +657,7 @@ get_response("code_mentor", index=0)
 # Get third message
 get_response("code_mentor", index=2)
 ```""")
-def get_response(agent_name: str, index: int = -1) -> str:
+async def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
     response = memory_manager.get_response(agent_name, index)
     if response is None:
@@ -684,11 +685,11 @@ Use this to verify that the tool is operational before making other requests.
 # Check the server status.
 server_info()
 ```""")
-def server_info() -> str:
+async def server_info() -> str:
     """Get server status and OpenAI configuration."""
     try:
         # Test API key by listing models
-        models = client.models.list()
+        models = await client.models.list()
         available_models = [m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))]
         
         # Get agent count

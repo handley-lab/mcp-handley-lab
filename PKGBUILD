@@ -1,13 +1,14 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
+_pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a13
+pkgver=0.0.0a15
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
-license=('custom')
+license=('custom') # TODO: Replace with actual license when specified
 depends=(
-    'python>=3.10'
+    'python'
     'python-mcp>=1.0.0'
     'python-pydantic>=2.0.0'
     'python-pydantic-settings>=2.0.0'
@@ -31,44 +32,36 @@ checkdepends=(
     'python-pytest-mock>=3.0.0'
 )
 optdepends=(
-    'jq: JSON processing for jq tool'
-    'vim: Text editing for vim tool'
-    'code2prompt: Codebase analysis functionality'
-    'python-black: Code formatting for development'
-    'python-ruff: Linting for development'
+    'jq: JSON processing'
+    'vim: Text editing'
+    'python-code2prompt: Codebase analysis'
+    'python-black: Code formatting'
+    'python-ruff: Linting'
 )
 source=()
 sha256sums=()
 
 build() {
     cd "$startdir"
-    python -m build --wheel --no-isolation
+    python -m build --wheel
 }
 
-#check() {
-#    cd "$startdir"
-#    
-#    # Clean up any previous test installation
-#    rm -rf "$srcdir/test_install"
-#    
-#    # Install package temporarily for testing
-#    python -m installer --destdir="$srcdir/test_install" dist/*.whl
-#    
-#    # Add installed package to Python path
-#    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
-#    
-#    # Run tests (skip integration tests that require specific environment)
-#    python -m pytest tests/ \
-#        --cov=mcp_handley_lab \
-#        --cov-report=term-missing \
-#        --cov-fail-under=95 \
-#        -v \
-#        -k "not TestGoogleCalendarIntegration"
-#}
+check() {
+    cd "$startdir"
+    
+    # Run tests directly from source (skip integration tests that require specific environment)
+    # Use PYTHONPATH to ensure we test the source code, not any installed package
+    PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
+        --cov=src/mcp_handley_lab \
+        --cov-report=term-missing \
+        --cov-fail-under=90 \
+        -v \
+        -k "not integration"
+}
 
 package() {
     cd "$startdir"
-    python -m installer --destdir="$pkgdir" dist/*.whl
+    python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
     
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"

@@ -38,21 +38,16 @@ optdepends=(
     'python-black: Code formatting'
     'python-ruff: Linting'
 )
-source=("$_pkgname-$pkgver.tar.gz::https://github.com/handley-lab/mcp-handley-lab/archive/v$pkgver.tar.gz")
-sha256sums=('SKIP') # TODO: Replace with actual SHA256 sum
-
-prepare() {
-    cd "$srcdir"
-    tar -xf "$_pkgname-$pkgver.tar.gz"
-}
+source=()
+sha256sums=()
 
 build() {
-    cd "$_pkgname-$pkgver"
+    cd "$startdir"
     python -m build --wheel
 }
 
 check() {
-    cd "$_pkgname-$pkgver"
+    cd "$startdir"
     
     # Clean up any previous test installation
     rm -rf "$srcdir/test_install"
@@ -73,7 +68,7 @@ check() {
 }
 
 package() {
-    cd "$_pkgname-$pkgver"
+    cd "$startdir"
     python -m installer --destdir="$pkgdir" dist/*.whl
     
     # Install documentation

@@ -29,6 +29,7 @@ client = None
 initialization_error = None
 
 try:
+    # Client initialization - let SDK use default API version
     client = google_genai.Client(api_key=settings.gemini_api_key)
 except Exception as e:
     client = None
@@ -62,7 +63,7 @@ def _get_session_id() -> str:
 
 def _get_model_config(model: str) -> Dict[str, int]:
     """Get token limits for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-1.5-flash"])  # default to 1.5-flash
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-2.5-flash"])  # default to 2.5-flash
 
 
 async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -254,7 +255,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
-    model: str = "flash",
+    model: str = "gemini-2.5-flash",
     temperature: float = 0.7,
     grounding: bool = False,
     files: Optional[List[Union[str, Dict[str, str]]]] = None,
@@ -266,7 +267,7 @@ async def ask(
         prompt: The question or instruction to send to Gemini
         output_file: File path to save the response (use '-' for stdout)
         agent_name: Named agent for persistent memory (None=session, False=disabled)
-        model: Gemini model name (flash, pro, or full model name like gemini-2.5-flash)
+        model: Gemini model name (gemini-2.5-flash for speed, gemini-2.5-pro for complex reasoning)
         temperature: Creativity level 0.0-1.0 (default: 0.7)
         grounding: Enable Google Search integration for current information
         files: List of files to include as context
@@ -291,14 +292,17 @@ async def ask(
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
-    # Resolve model name
-    model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
     
     try:
         # Configure tools for grounding if requested
         tools = []
         if grounding:
-            tools.append(Tool(googleSearchRetrieval=GoogleSearchRetrieval()))
+            if model.startswith("gemini-1.5"):
+                # Use legacy GoogleSearchRetrieval for 1.5 models
+                tools.append(Tool(google_search_retrieval=GoogleSearchRetrieval()))
+            else:
+                # Use recommended GoogleSearch for 2.0+ models (2.5 Pro, 2.5 Flash, etc.)
+                tools.append(Tool(google_search=GoogleSearch()))
         
         # Handle agent setup and system instruction (personality)
         system_instruction = None
@@ -355,7 +359,7 @@ async def ask(
             contents = history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
             def _sync_generate_content_history():
                 return client.models.generate_content(
-                    model=model_name,
+                    model=model,
                     contents=contents,
                     config=config
                 )
@@ -368,7 +372,7 @@ async def ask(
                 content_parts = [Part(text=prompt)] + file_parts
                 def _sync_generate_content_files():
                     return client.models.generate_content(
-                        model=model_name,
+                        model=model,
                         contents=content_parts,
                         config=config
                     )
@@ -378,7 +382,7 @@ async def ask(
                 # Simple text-only prompt
                 def _sync_generate_content_text():
                     return client.models.generate_content(
-                        model=model_name,
+                        model=model,
                         contents=prompt,
                         config=config
                     )
@@ -491,7 +495,7 @@ async def analyze_image(
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
-    model: str = "pro",
+    model: str = "gemini-2.5-pro",
     agent_name: Optional[Union[str, bool]] = None,
     max_output_tokens: Optional[int] = None
 ) -> str:
@@ -509,8 +513,6 @@ async def analyze_image(
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
-    # Resolve model name
-    model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
     
     try:
         # Load images
@@ -539,7 +541,7 @@ async def analyze_image(
         # Generate response
         def _sync_generate_content_image():
             return client.models.generate_content(
-                model=model_name,
+                model=model,
                 contents=content,
                 config=config
             )

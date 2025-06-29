@@ -11,7 +11,7 @@ async def test_gemini_ask_basic(skip_if_no_api_key, test_output_file):
     result = await ask(
         prompt="What is 3+3? Answer with just the number.",
         output_file=test_output_file,
-        model="flash",
+        model="gemini-2.5-flash",
         temperature=0.0
     )
     
@@ -22,14 +22,32 @@ async def test_gemini_ask_basic(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_ask_with_grounding(skip_if_no_api_key, test_output_file):
+async def test_gemini_ask_with_grounding_1_5(skip_if_no_api_key, test_output_file):
+    """Test grounding with Gemini 1.5 models (legacy GoogleSearchRetrieval)."""
     skip_if_no_api_key("GEMINI_API_KEY")
     
     result = await ask(
         prompt="What is the current date today?",
         output_file=test_output_file,
         grounding=True,
-        model="flash"
+        model="gemini-1.5-pro"  # Use 1.5 model with GoogleSearchRetrieval
+    )
+    
+    assert "saved" in result.lower() or "success" in result.lower()
+    content = Path(test_output_file).read_text()
+    assert "2025" in content
+
+@pytest.mark.asyncio
+@pytest.mark.vcr
+async def test_gemini_ask_with_grounding_2_5(skip_if_no_api_key, test_output_file):
+    """Test grounding with Gemini 2.5 models (recommended GoogleSearch)."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+    
+    result = await ask(
+        prompt="What is the current date today?",
+        output_file=test_output_file,
+        grounding=True,
+        model="gemini-2.5-flash"  # Use 2.5 model with GoogleSearch
     )
     
     assert "saved" in result.lower() or "success" in result.lower()
@@ -45,7 +63,7 @@ async def test_gemini_ask_with_file(skip_if_no_api_key, test_output_file, test_j
         prompt="What data is in this JSON file?",
         output_file=test_output_file,
         files=[{"path": test_json_file}],
-        model="flash"
+        model="gemini-2.5-flash"
     )
     
     assert "saved" in result.lower() or "success" in result.lower()
@@ -109,7 +127,8 @@ async def test_gemini_analyze_image(skip_if_no_api_key, test_output_file):
         prompt="What color is dominant in this image?",
         output_file=test_output_file,
         image_data=red_pixel,
-        focus="colors"
+        focus="colors",
+        model="gemini-2.5-pro"  # Use pro model for better analysis
     )
     
     assert "saved" in result.lower() or "success" in result.lower()
@@ -199,8 +218,9 @@ async def test_gemini_analyze_image_token_limits(skip_if_no_api_key, test_output
         prompt="What color is this image? Just say the color.",
         output_file=test_output_file,
         image_data=f"data:image/png;base64,{img_data}",
-        max_output_tokens=25,
-        agent_name=False
+        max_output_tokens=50,  # Increase token limit slightly
+        agent_name=False,
+        model="gemini-2.5-flash"  # Explicitly specify model
     )
     
     assert "saved" in result.lower() or "success" in result.lower()

@@ -321,8 +321,9 @@ def ask(
         # Get model-specific configuration
         model_config = _get_model_config(model)
         
-        # Use provided max_output_tokens or fall back to model default
-        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        # Use provided max_output_tokens, respecting model's maximum limit to prevent API token reallocation bugs
+        max_output = model_config["output_tokens"]
+        output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
         
         # Prepare the config
         config_params = {
@@ -505,8 +506,9 @@ def analyze_image(
         # Get model-specific configuration
         model_config = _get_model_config(model)
         
-        # Use provided max_output_tokens or fall back to model default
-        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
+        # Use provided max_output_tokens, respecting model's maximum limit to prevent API token reallocation bugs
+        max_output = model_config["output_tokens"]
+        output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
         
         # Prepare content with images - google-genai expects PIL Image objects directly
         content = [prompt] + image_list

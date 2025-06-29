@@ -1,0 +1,73 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Write a brief explanation of photosynthesis
+      in plants."}], "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      1000}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '178'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Photosynthesis is the vital process
+        by which **plants** (and some other organisms like algae) create their own
+        food.\\n\\nHere's a brief breakdown:\\n\\n1.  **Ingredients:** Plants take
+        in **carbon dioxide** from the air through tiny pores in their leaves, and
+        **water** from the soil through their roots.\\n2.  **Energy Source:** They
+        use **sunlight** as the energy source.\\n3.  **The \\\"Cookbook\\\":** This
+        all happens in specialized structures within their cells called **chloroplasts**,
+        which contain a green pigment called **chlorophyll**. Chlorophyll is what
+        captures the sunlight.\\n4.  **The Transformation:** Inside the chloroplasts,
+        the plant uses the captured light energy to convert the carbon dioxide and
+        water into **glucose** (a type of sugar, which is the plant's food\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"MAX_TOKENS\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n
+        \   \"promptTokenCount\": 10,\n    \"candidatesTokenCount\": 174,\n    \"totalTokenCount\":
+        1008,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 10\n      }\n    ],\n    \"thoughtsTokenCount\": 824\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"jn1haJ79N_P6xs0P4PKFyQs\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sun, 29 Jun 2025 17:53:18 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=5595
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1328'
+    status:
+      code: 200
+      message: OK
+version: 1

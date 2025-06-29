@@ -1,0 +1,264 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Understood, Alice! How can I help you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I help
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I assist you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I help you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Understood,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Understood, Alice! How can I assist you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I help you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I help you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I help you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."}],
+      "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '2238'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - AsyncOpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '1'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BnqVU2SnIB2EJ9hd59CLs4CokisAQ\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751219608,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Understood, Alice! How can I assist
+        you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 439,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 451,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 957748983aae0036-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 29 Jun 2025 17:53:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '855'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '404'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '410'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999683'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_2fc5f326028b640924f6cfe993ea6ce8
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Understood, Alice! How can I help you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I help
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I assist you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I help you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Understood,
+      Alice! How can I assist you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Understood, Alice! How can I assist you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I help you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Got it, Alice! How can I help you today?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "Got it,
+      Alice! How can I help you today?"}, {"role": "user", "content": "What is my
+      name?"}, {"role": "assistant", "content": "Your name is Alice. How can I assist
+      you today?"}, {"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "Understood, Alice! How can I assist you today?"},
+      {"role": "user", "content": "What is my name?"}], "model": "gpt-4o-mini", "max_tokens":
+      16384, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '2363'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - AsyncOpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BnqVVzpqwQujnvrjbuTKfiHQeJVSq\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751219609,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Your name is Alice. How can I help
+        you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 464,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 476,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 9577489d3ced0036-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 29 Jun 2025 17:53:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '854'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '616'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '619'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999666'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_fe54153f3ce77a8f6d55dcdde59735de
+    status:
+      code: 200
+      message: OK
+version: 1

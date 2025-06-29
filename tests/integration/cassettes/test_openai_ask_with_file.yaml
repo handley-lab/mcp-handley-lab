@@ -1,0 +1,111 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is in this JSON file?\n\n[File:
+      tmpr_4g98g7.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}], "model":
+      "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '202'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - AsyncOpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '1'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BnqVRRNmU1Rnnc2LBcQ9QVeoAiIqj\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751219605,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"The JSON file you provided contains
+        a simple structure with two key-value pairs. Here's a breakdown of its contents:\\n\\n-
+        **\\\"test\\\": \\\"data\\\"**: This is a key-value pair where the key is
+        \\\"test\\\" and the value is the string \\\"data\\\".\\n  \\n- **\\\"numbers\\\":
+        [1, 2, 3]**: This is another key-value pair where the key is \\\"numbers\\\"
+        and the value is an array containing three integers: 1, 2, and 3.\\n\\nIn
+        summary, the JSON file represents an object with two properties: one is a
+        string and the other is an array of numbers.\",\n        \"refusal\": null,\n
+        \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
+        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 45,\n    \"completion_tokens\":
+        130,\n    \"total_tokens\": 175,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 9577488719b25f17-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 29 Jun 2025 17:53:27 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '1329'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '1739'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '1741'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999974'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_c5773ecf159dd8ebc7b97b1123d5cae0
+    status:
+      code: 200
+      message: OK
+version: 1

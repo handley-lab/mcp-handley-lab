@@ -267,7 +267,7 @@ def _parse_arxiv_entry(entry: ET.Element) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def search(
+async def search(
     query: str,
     max_results: int = 10,
     start: int = 0,
@@ -309,8 +309,9 @@ def search(
     url = f"{base_url}?{param_str}"
     
     try:
-        response = requests.get(url)
-        response.raise_for_status()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
     except Exception as e:
         raise RuntimeError(f'Error fetching ArXiv search results: {e}')
     

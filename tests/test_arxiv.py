@@ -303,15 +303,19 @@ class TestArxivSearch:
   </entry>
 </feed>"""
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_basic(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_basic(self, mock_client):
         """Test basic search functionality."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('electron')
+        results = await search('electron')
 
         assert len(results) == 2
         assert results[0]['id'] == '2301.07041'
@@ -328,58 +332,74 @@ class TestArxivSearch:
         assert results[1]['title'] == 'Another Electron Study'
         assert 'Alice Johnson' in results[1]['authors']
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_with_parameters(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_with_parameters(self, mock_client):
         """Test search with custom parameters."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('ti:transformer AND cat:cs.AI', max_results=5, start=10, sort_by='submittedDate')
+        results = await search('ti:transformer AND cat:cs.AI', max_results=5, start=10, sort_by='submittedDate')
 
         # Check that request was made with correct parameters
-        mock_get.assert_called_once()
-        call_args = mock_get.call_args[0][0]
+        mock_client_instance.get.assert_called_once()
+        call_args = mock_client_instance.get.call_args[0][0]
         assert 'search_query=ti%3Atransformer+AND+cat%3Acs.AI' in call_args
         assert 'max_results=5' in call_args
         assert 'start=10' in call_args
         assert 'sortBy=submittedDate' in call_args
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_max_results_limit(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_max_results_limit(self, mock_client):
         """Test that max_results is capped at 100."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = self.create_mock_search_response().encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        search('electron', max_results=150)
+        await search('electron', max_results=150)
 
-        call_args = mock_get.call_args[0][0]
+        call_args = mock_client_instance.get.call_args[0][0]
         assert 'max_results=100' in call_args
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_network_error(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_network_error(self, mock_client):
         """Test search with network error."""
-        mock_get.side_effect = Exception('Network error')
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.side_effect = Exception('Network error')
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with pytest.raises(RuntimeError, match='Error fetching ArXiv search results'):
-            search('electron')
+            await search('electron')
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_invalid_xml(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_invalid_xml(self, mock_client):
         """Test search with invalid XML response."""
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = b'invalid xml content'
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
         with pytest.raises(ValueError, match='Error parsing ArXiv API response'):
-            search('electron')
+            await search('electron')
 
-    @patch('mcp_handley_lab.arxiv.tool.requests.get')
-    def test_search_empty_results(self, mock_get):
+    @pytest.mark.asyncio
+    @patch('mcp_handley_lab.arxiv.tool.httpx.AsyncClient')
+    async def test_search_empty_results(self, mock_client):
         """Test search with no results."""
         empty_response = """<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -390,9 +410,12 @@ class TestArxivSearch:
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
         mock_response.content = empty_response.encode()
-        mock_get.return_value = mock_response
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
 
-        results = search('nonexistent')
+        results = await search('nonexistent')
         assert len(results) == 0
 
     def test_parse_arxiv_entry_missing_fields(self):
@@ -613,12 +636,13 @@ class TestArxivIntegration:
         with pytest.raises(RuntimeError):
             await list_files('invalid-id-99999999')
 
+    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir='tests/integration/cassettes')
     @pytest.mark.integration
-    def test_real_arxiv_search(self):
+    async def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
         # Search for a specific topic
-        results = search('machine learning', max_results=5)
+        results = await search('machine learning', max_results=5)
         
         assert isinstance(results, list)
         assert len(results) <= 5

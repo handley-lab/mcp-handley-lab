@@ -1,13 +1,14 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
+_pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 pkgver=0.0.0a11
-pkgrel=2
+pkgrel=3
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
-license=('custom')
+license=('custom') # TODO: Replace with actual license when specified
 depends=(
-    'python>=3.10'
+    'python'
     'python-mcp>=1.0.0'
     'python-pydantic>=2.0.0'
     'python-pydantic-settings>=2.0.0'
@@ -31,43 +32,48 @@ checkdepends=(
     'python-pytest-mock>=3.0.0'
 )
 optdepends=(
-    'jq: JSON processing for jq tool'
-    'vim: Text editing for vim tool'
-    'code2prompt: Codebase analysis functionality'
-    'python-black: Code formatting for development'
-    'python-ruff: Linting for development'
+    'jq: JSON processing'
+    'vim: Text editing'
+    'python-code2prompt: Codebase analysis'
+    'python-black: Code formatting'
+    'python-ruff: Linting'
 )
-source=()
-sha256sums=()
+source=("$_pkgname-$pkgver.tar.gz::https://github.com/handley-lab/mcp-handley-lab/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP') # TODO: Replace with actual SHA256 sum
 
-build() {
-    cd "$startdir"
-    python -m build --wheel --no-isolation
+prepare() {
+    cd "$srcdir"
+    tar -xf "$_pkgname-$pkgver.tar.gz"
 }
 
-#check() {
-#    cd "$startdir"
-#    
-#    # Clean up any previous test installation
-#    rm -rf "$srcdir/test_install"
-#    
-#    # Install package temporarily for testing
-#    python -m installer --destdir="$srcdir/test_install" dist/*.whl
-#    
-#    # Add installed package to Python path
-#    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
-#    
-#    # Run tests (skip integration tests that require specific environment)
-#    python -m pytest tests/ \
-#        --cov=mcp_handley_lab \
-#        --cov-report=term-missing \
-#        --cov-fail-under=95 \
-#        -v \
-#        -k "not TestGoogleCalendarIntegration"
-#}
+build() {
+    cd "$_pkgname-$pkgver"
+    python -m build --wheel
+}
+
+check() {
+    cd "$_pkgname-$pkgver"
+    
+    # Clean up any previous test installation
+    rm -rf "$srcdir/test_install"
+    
+    # Install package temporarily for testing
+    python -m installer --destdir="$srcdir/test_install" dist/*.whl
+    
+    # Add installed package to Python path
+    export PYTHONPATH="$srcdir/test_install/usr/lib/python$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')/site-packages"
+    
+    # Run tests (skip integration tests that require specific environment)
+    python -m pytest tests/ \
+        --cov=mcp_handley_lab \
+        --cov-report=term-missing \
+        --cov-fail-under=95 \
+        -v \
+        -k "not integration"
+}
 
 package() {
-    cd "$startdir"
+    cd "$_pkgname-$pkgver"
     python -m installer --destdir="$pkgdir" dist/*.whl
     
     # Install documentation

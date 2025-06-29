@@ -51,22 +51,35 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
     
     - name: Cache cargo binaries
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: ~/.cargo/bin
-        key: ${{ runner.os }}-cargo-bin-code2prompt
+        path: |
+          ~/.cargo/bin
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+        key: ${{ runner.os }}-cargo-bin-code2prompt-v2
+        restore-keys: |
+          ${{ runner.os }}-cargo-bin-code2prompt-
+          ${{ runner.os }}-cargo-bin-
         
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
       with:
         cache-targets: false
         cache-on-failure: true
+        shared-key: "code2prompt-build"
     
     - name: Install code2prompt
       run: |
         # Check if code2prompt is already cached
-        if ! command -v code2prompt &> /dev/null; then
+        if command -v code2prompt &> /dev/null; then
+          echo "✅ code2prompt found in cache"
+          code2prompt --version
+        else
+          echo "⏳ Installing code2prompt from source..."
           cargo install code2prompt
+          echo "✅ code2prompt installed successfully"
+          code2prompt --version
         fi
         
     - name: Test with pytest

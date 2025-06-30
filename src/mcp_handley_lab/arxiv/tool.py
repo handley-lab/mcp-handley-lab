@@ -309,12 +309,8 @@ async def search(
         # Extract search results
         results = []
         for entry in root.findall('atom:entry', ns):
-            try:
-                paper = _parse_arxiv_entry(entry)
-                results.append(paper)
-            except Exception as e:
-                # Skip entries that can't be parsed
-                continue
+            paper = _parse_arxiv_entry(entry)
+            results.append(paper)
         
         return results
         

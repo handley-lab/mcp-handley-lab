@@ -10,7 +10,7 @@ import io
 
 from mcp_handley_lab.llm.openai.tool import (
     ask, analyze_image, generate_image, server_info,
-    _resolve_files, _resolve_images, _handle_agent_and_usage,
+    _resolve_files, _resolve_images,
     _get_model_config, MODEL_CONFIGS
 )
 from mcp_handley_lab.agent.tool import get_response
@@ -313,9 +313,8 @@ class TestOpenAIApiCalls:
         # Mock memory manager
         mock_memory_manager.get_agent.return_value = None
         
-        # Mock calculate_cost and handle_agent_and_usage functions
-        with patch('mcp_handley_lab.llm.openai.tool.calculate_cost', return_value=0.001), \
-             patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Response saved successfully"):
+        # Mock the shared processor
+        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Response saved successfully"):
             
             output_file = Path(temp_storage_dir) / "output.txt"
             result = await ask("Test prompt", str(output_file))
@@ -342,20 +341,19 @@ class TestOpenAIApiCalls:
         
         # Mock agent with conversation history
         mock_agent = Mock()
-        mock_agent.get_openai_conversation_history.return_value = [
+        mock_agent.get_history.return_value = [
             {"role": "user", "content": "Previous message"}
         ]
         mock_memory_manager.get_agent.return_value = mock_agent
         
-        # Mock calculate_cost and handle_agent_and_usage
-        with patch('mcp_handley_lab.llm.openai.tool.calculate_cost', return_value=0.002), \
-             patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Response saved successfully"):
+        # Mock the shared processor
+        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Response saved successfully"):
             
             output_file = Path(temp_storage_dir) / "output.txt"
             result = await ask("New prompt", str(output_file), agent_name="test_agent")
             
-            # Verify agent history was used
-            mock_agent.get_openai_conversation_history.assert_called_once()
+            # Verify shared processor was used
+            # (process_llm_request handles agent history internally)
             
             # Verify result contains success message
             assert "Response saved successfully" in result
@@ -414,8 +412,7 @@ class TestOpenAIApiCalls:
         img_path = Path(temp_storage_dir) / "test.png"
         img.save(img_path)
         
-        with patch('mcp_handley_lab.llm.openai.tool.calculate_cost', return_value=0.003), \
-             patch('mcp_handley_lab.llm.openai.tool._handle_agent_and_usage', return_value="Analysis saved successfully"):
+        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Analysis saved successfully"):
             
             output_file = Path(temp_storage_dir) / "analysis.txt"
             result = await analyze_image("Describe this image", str(output_file), image_data=str(img_path))

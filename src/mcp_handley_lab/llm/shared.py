@@ -41,11 +41,22 @@ async def process_llm_request(
         
         agent = memory_manager.get_agent(actual_agent_name)
         if agent:
-            if provider == "gemini":
-                history = agent.get_conversation_history()
-            else:  # openai
-                history = agent.get_openai_conversation_history()
+            history = agent.get_history()
             system_instruction = agent.personality
+
+    # Handle image analysis specific prompt modification
+    if 'image_data' in kwargs or 'images' in kwargs:
+        focus = kwargs.get('focus', 'general')
+        if focus != 'general':
+            prompt = f"Focus on {focus} aspects. {prompt}"
+        # Add image description for memory
+        image_count = 0
+        if kwargs.get('image_data'):
+            image_count += 1
+        if kwargs.get('images'):
+            image_count += len(kwargs.get('images', []))
+        if image_count > 0:
+            user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
 
     # Call provider-specific generation function
     response_data = await generation_func(

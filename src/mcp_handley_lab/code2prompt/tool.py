@@ -1,32 +1,26 @@
 """Code2Prompt tool for codebase analysis via MCP."""
-import asyncio
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import List, Optional
 from mcp.server.fastmcp import FastMCP
+from ..common.process import run_command
 
 mcp = FastMCP("Code2Prompt Tool")
 
 
 async def _run_code2prompt(args: List[str]) -> str:
     """Runs a code2prompt command and raises errors on failure."""
+    cmd = ["code2prompt"] + args
+    
     try:
-        process = await asyncio.create_subprocess_exec(
-            "code2prompt", *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-    except FileNotFoundError:
-        raise RuntimeError("code2prompt command not found")
-    
-    stdout, stderr = await process.communicate()
-    
-    if process.returncode != 0:
-        error_msg = stderr.decode('utf-8').strip()
-        raise ValueError(f"code2prompt error: {error_msg}")
-        
-    return stdout.decode('utf-8').strip()
+        stdout, stderr = await run_command(cmd)
+        return stdout.decode('utf-8').strip()
+    except RuntimeError as e:
+        if "Command failed" in str(e):
+            # Extract stderr for better code2prompt error messages
+            error_msg = str(e).split(": ", 1)[-1]
+            raise ValueError(f"code2prompt error: {error_msg}")
+        raise
 
 
 @mcp.tool(description="""Generates a structured, token-counted summary of a codebase and saves it to a file.
@@ -98,48 +92,41 @@ async def generate_prompt(
         output_file = temp_file.name
         temp_file.close()
     
-    # Build argument options
-    options = {
-        "--output-file": output_file,
-        "--output-format": output_format,
-        "--encoding": encoding,
-        "--tokens": tokens,
-        "--sort": sort,
-    }
-    
-    # Boolean flags
-    bool_flags = {
-        include_priority: "--include-priority",
-        no_ignore: "--no-ignore",
-        line_numbers: "--line-numbers",
-        full_directory_tree: "--full-directory-tree",
-        follow_symlinks: "--follow-symlinks",
-        hidden: "--hidden",
-        no_codeblock: "--no-codeblock",
-        absolute_paths: "--absolute-paths",
-        include_git_diff: "--diff",
-    }
-    
+    # Define all arguments in one data structure
+    arg_definitions = [
+        {"name": "--output-file", "value": output_file, "type": "value"},
+        {"name": "--output-format", "value": output_format, "type": "value"},
+        {"name": "--encoding", "value": encoding, "type": "value"},
+        {"name": "--tokens", "value": tokens, "type": "value"},
+        {"name": "--sort", "value": sort, "type": "value"},
+        {"name": "--template", "value": template, "type": "optional_value"},
+        {"name": "--include-priority", "condition": include_priority, "type": "flag"},
+        {"name": "--no-ignore", "condition": no_ignore, "type": "flag"},
+        {"name": "--line-numbers", "condition": line_numbers, "type": "flag"},
+        {"name": "--full-directory-tree", "condition": full_directory_tree, "type": "flag"},
+        {"name": "--follow-symlinks", "condition": follow_symlinks, "type": "flag"},
+        {"name": "--hidden", "condition": hidden, "type": "flag"},
+        {"name": "--no-codeblock", "condition": no_codeblock, "type": "flag"},
+        {"name": "--absolute-paths", "condition": absolute_paths, "type": "flag"},
+        {"name": "--diff", "condition": include_git_diff, "type": "flag"},
+        {"name": "--include", "values": include or [], "type": "multi_value"},
+        {"name": "--exclude", "values": exclude or [], "type": "multi_value"},
+    ]
+
     # Build command args
     args = [path]
+    for arg_def in arg_definitions:
+        if arg_def["type"] == "value" and arg_def.get("value"):
+            args.extend([arg_def["name"], str(arg_def["value"])])
+        elif arg_def["type"] == "optional_value" and arg_def.get("value"):
+            args.extend([arg_def["name"], str(arg_def["value"])])
+        elif arg_def["type"] == "flag" and arg_def.get("condition"):
+            args.append(arg_def["name"])
+        elif arg_def["type"] == "multi_value":
+            for val in arg_def.get("values", []):
+                args.extend([arg_def["name"], val])
     
-    # Add options with values
-    for flag, value in options.items():
-        args.extend([flag, value])
-    
-    # Add boolean flags
-    args.extend(flag for condition, flag in bool_flags.items() if condition)
-    
-    # Add multi-value options
-    for pattern in include or []:
-        args.extend(["--include", pattern])
-    for pattern in exclude or []:
-        args.extend(["--exclude", pattern])
-    
-    if template:
-        args.extend(["--template", template])
-    
-    # Git options
+    # Special handling for git branch options
     if git_diff_branch1 and git_diff_branch2:
         args.extend(["--git-diff-branch", git_diff_branch1, git_diff_branch2])
     

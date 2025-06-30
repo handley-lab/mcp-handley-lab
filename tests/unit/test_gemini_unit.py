@@ -10,7 +10,7 @@ from PIL import Image
 from mcp_handley_lab.llm.gemini.tool import (
     MODEL_CONFIGS, ask, analyze_image, generate_image, server_info,
     client, initialization_error, _get_session_id, _get_model_config,
-    _resolve_files, _resolve_images, _handle_agent_and_usage
+    _resolve_files, _resolve_images
 )
 from mcp_handley_lab.llm.common import (
     get_session_id, resolve_image_data, handle_agent_memory, handle_output,

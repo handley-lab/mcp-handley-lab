@@ -16,6 +16,7 @@ from ..common import (
     determine_mime_type, is_text_file, resolve_image_data, 
     handle_output, handle_agent_memory
 )
+from ..shared import process_llm_request
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -192,31 +193,140 @@ def _resolve_images(
     return image_list
 
 
-def _handle_agent_and_usage(
-    agent_name: Optional[str], 
-    user_prompt: str, 
-    response_text: str, 
+
+async def _openai_generation_adapter(
+    prompt: str,
     model: str,
-    input_tokens: int, 
-    output_tokens: int,
-    output_file: str,
-    provider: str = "openai"
-) -> str:
-    """Handle agent memory, file output, and return formatted usage info."""
-    cost = calculate_cost(model, input_tokens, output_tokens, provider)
+    history: List[Dict[str, str]],
+    system_instruction: Optional[str],
+    **kwargs
+) -> Dict[str, Any]:
+    """OpenAI-specific text generation function for the shared processor."""
+    # Extract OpenAI-specific parameters
+    temperature = kwargs.get("temperature", 0.7)
+    files = kwargs.get("files")
+    max_output_tokens = kwargs.get("max_output_tokens")
     
-    # Handle agent memory (OpenAI doesn't use session-based memory like Gemini)
-    if agent_name:
-        handle_agent_memory(
-            agent_name, user_prompt, response_text, 
-            input_tokens, output_tokens, cost, lambda: agent_name
-        )
+    # Build messages
+    messages = []
     
-    # Handle output
-    return handle_output(
-        response_text, output_file, model, 
-        input_tokens, output_tokens, cost, provider
-    )
+    # Add system instruction if provided
+    if system_instruction:
+        messages.append({"role": "system", "content": system_instruction})
+    
+    # Add history (already in OpenAI format)
+    messages.extend(history)
+    
+    # Resolve files
+    file_attachments, inline_content = await _resolve_files(files)
+    
+    # Add user message with any inline content
+    user_content = prompt
+    if inline_content:
+        user_content += "\n\n" + "\n\n".join(inline_content)
+    messages.append({"role": "user", "content": user_content})
+    
+    # Get model configuration
+    model_config = _get_model_config(model)
+    param_name = model_config["param"]
+    default_tokens = model_config["output_tokens"]
+    
+    # Build request parameters
+    request_params = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+    }
+    
+    # Add max tokens with correct parameter name
+    if max_output_tokens is not None:
+        request_params[param_name] = max_output_tokens
+    else:
+        request_params[param_name] = default_tokens
+        
+    # Make API call
+    response = await client.chat.completions.create(**request_params)
+    
+    if not response.choices or not response.choices[0].message.content:
+        raise RuntimeError("No response generated")
+    
+    return {
+        "text": response.choices[0].message.content,
+        "input_tokens": response.usage.prompt_tokens,
+        "output_tokens": response.usage.completion_tokens,
+    }
+
+
+async def _openai_image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: List[Dict[str, str]],
+    system_instruction: Optional[str],
+    **kwargs
+) -> Dict[str, Any]:
+    """OpenAI-specific image analysis function for the shared processor."""
+    # Extract image analysis specific parameters
+    image_data = kwargs.get("image_data")
+    images = kwargs.get("images")
+    focus = kwargs.get("focus", "general")
+    max_output_tokens = kwargs.get("max_output_tokens")
+    
+    # Load images
+    image_list = _resolve_images(image_data, images)
+    
+    # Enhance prompt based on focus
+    if focus != "general":
+        prompt = f"Focus on {focus} aspects. {prompt}"
+    
+    # Build message content with images
+    content = [{"type": "text", "text": prompt}]
+    for image_url in image_list:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": image_url}
+        })
+    
+    # Build messages
+    messages = []
+    
+    # Add system instruction if provided
+    if system_instruction:
+        messages.append({"role": "system", "content": system_instruction})
+    
+    # Add history (already in OpenAI format)
+    messages.extend(history)
+    
+    # Add current message with images
+    messages.append({"role": "user", "content": content})
+    
+    # Get model configuration
+    model_config = _get_model_config(model)
+    param_name = model_config["param"]
+    default_tokens = model_config["output_tokens"]
+    
+    # Build request parameters
+    request_params = {
+        "model": model,
+        "messages": messages,
+    }
+    
+    # Add max tokens with correct parameter name
+    if max_output_tokens is not None:
+        request_params[param_name] = max_output_tokens
+    else:
+        request_params[param_name] = default_tokens
+    
+    # Make API call
+    response = await client.chat.completions.create(**request_params)
+    
+    if not response.choices or not response.choices[0].message.content:
+        raise RuntimeError("No response generated")
+    
+    return {
+        "text": response.choices[0].message.content,
+        "input_tokens": response.usage.prompt_tokens,
+        "output_tokens": response.usage.completion_tokens,
+    }
 
 
 @mcp.tool(description="""Asks a question to an OpenAI GPT model with optional file context and persistent memory.
@@ -304,66 +414,18 @@ async def ask(
     files: Optional[List[Union[str, Dict[str, str]]]] = None
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
-    # Input validation
-    if not prompt or not prompt.strip():
-        raise ValueError("Prompt is required and cannot be empty")
-    if not output_file or not output_file.strip():
-        raise ValueError("Output file is required")
-    if agent_name is not None and agent_name is not False and not agent_name.strip():
-        raise ValueError("Agent name cannot be empty when provided")
-    
-    try:
-        # Build conversation history
-        messages = []
-        if agent_name:
-            agent = memory_manager.get_agent(agent_name)
-            if agent:
-                messages = agent.get_openai_conversation_history()
-        
-        # Resolve files using improved strategy
-        file_attachments, inline_content = await _resolve_files(files)
-        if inline_content:
-            prompt += "\n\n" + "\n\n".join(inline_content)
-        
-        # Add current prompt with file attachments if any
-        message_content = {"role": "user", "content": prompt}
-        if file_attachments:
-            message_content["attachments"] = file_attachments
-        messages.append(message_content)
-        
-        # Get model-specific configuration
-        model_config = _get_model_config(model)
-        
-        # Use provided max_output_tokens or fall back to model default
-        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
-        
-        # Prepare API call parameters based on model type
-        api_params = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-        }
-        
-        # Use correct parameter name based on model
-        if model_config["param"] == "max_completion_tokens":
-            api_params["max_completion_tokens"] = output_tokens
-        else:
-            api_params["max_tokens"] = output_tokens
-        
-        # Make API call
-        response = await client.chat.completions.create(**api_params)
-        
-        response_text = response.choices[0].message.content
-        
-        # Extract usage info
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-        
-        # Handle agent and usage
-        return _handle_agent_and_usage(agent_name, prompt, response_text, model, input_tokens, output_tokens, output_file)
-        
-    except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {e}")
+    return await process_llm_request(
+        prompt=prompt,
+        output_file=output_file,
+        agent_name=agent_name,
+        model=model,
+        provider="openai",
+        generation_func=_openai_generation_adapter,
+        mcp_instance=mcp,
+        temperature=temperature,
+        files=files,
+        max_output_tokens=max_output_tokens
+    )
 
 
 @mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
@@ -448,75 +510,19 @@ async def analyze_image(
     max_output_tokens: Optional[int] = None
 ) -> str:
     """Analyze images with OpenAI vision model."""
-    # Input validation
-    if not prompt or not prompt.strip():
-        raise ValueError("Prompt is required and cannot be empty")
-    if not output_file or not output_file.strip():
-        raise ValueError("Output file is required")
-    if not image_data and not images:
-        raise ValueError("Either image_data or images must be provided")
-    if agent_name is not None and agent_name is not False and not agent_name.strip():
-        raise ValueError("Agent name cannot be empty when provided")
-    
-    try:
-        # Load images
-        image_list = _resolve_images(image_data, images)
-        
-        # Enhance prompt based on focus
-        if focus != "general":
-            prompt = f"Focus on {focus} aspects. {prompt}"
-        
-        # Build message content with images
-        content = [{"type": "text", "text": prompt}]
-        for image_url in image_list:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": image_url}
-            })
-        
-        # Build conversation history
-        messages = []
-        if agent_name:
-            agent = memory_manager.get_agent(agent_name)
-            if agent:
-                messages = agent.get_openai_conversation_history()
-        
-        # Add current message with images
-        messages.append({"role": "user", "content": content})
-        
-        # Get model-specific configuration
-        model_config = _get_model_config(model)
-        
-        # Use provided max_output_tokens or fall back to model default
-        output_tokens = max_output_tokens if max_output_tokens is not None else model_config["output_tokens"]
-        
-        # Prepare API call parameters based on model type
-        api_params = {
-            "model": model,
-            "messages": messages,
-        }
-        
-        # Use correct parameter name based on model
-        if model_config["param"] == "max_completion_tokens":
-            api_params["max_completion_tokens"] = output_tokens
-        else:
-            api_params["max_tokens"] = output_tokens
-        
-        # Make API call
-        response = await client.chat.completions.create(**api_params)
-        
-        response_text = response.choices[0].message.content
-        
-        # Extract usage info
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-        
-        # Handle agent and usage
-        image_desc = f"[Image analysis: {len(image_list)} image(s)]"
-        return _handle_agent_and_usage(agent_name, f"{prompt} {image_desc}", response_text, model, input_tokens, output_tokens, output_file)
-        
-    except Exception as e:
-        raise RuntimeError(f"OpenAI vision API error: {e}")
+    return await process_llm_request(
+        prompt=prompt,
+        output_file=output_file,
+        agent_name=agent_name,
+        model=model,
+        provider="openai",
+        generation_func=_openai_image_analysis_adapter,
+        mcp_instance=mcp,
+        image_data=image_data,
+        images=images,
+        focus=focus,
+        max_output_tokens=max_output_tokens
+    )
 
 
 @mcp.tool(description="""Generates high-quality images using OpenAI's DALL-E models.

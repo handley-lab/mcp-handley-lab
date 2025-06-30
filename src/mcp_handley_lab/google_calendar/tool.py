@@ -46,12 +46,6 @@ async def _get_calendar_service():
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                if not credentials_file.exists():
-                    raise FileNotFoundError(
-                        f"Google Calendar credentials file not found at {credentials_file}. "
-                        "Please download credentials.json from Google Cloud Console."
-                    )
-                
                 flow = InstalledAppFlow.from_client_secrets_file(str(credentials_file), SCOPES)
                 creds = flow.run_local_server(port=0)
             
@@ -73,18 +67,15 @@ async def _resolve_calendar_id(calendar_id: str, service) -> str:
         return calendar_id
     
     # Try to find calendar by name
-    try:
-        def _sync_list_calendars():
-            return service.calendarList().list().execute()
-        
-        loop = asyncio.get_running_loop()
-        calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
-        
-        for calendar in calendar_list.get('items', []):
-            if calendar.get('summary', '').lower() == calendar_id.lower():
-                return calendar['id']
-    except HttpError:
-        pass
+    def _sync_list_calendars():
+        return service.calendarList().list().execute()
+    
+    loop = asyncio.get_running_loop()
+    calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
+    
+    for calendar in calendar_list.get('items', []):
+        if calendar.get('summary', '').lower() == calendar_id.lower():
+            return calendar['id']
     
     # If not found, assume it's already an ID
     return calendar_id
@@ -177,25 +168,23 @@ async def list_events(
             
             for calendar in calendar_list.get('items', []):
                 cal_id = calendar['id']
-                try:
-                    def _sync_list_events():
-                        return service.events().list(
-                            calendarId=cal_id,
-                            timeMin=start_time,
-                            timeMax=end_time,
-                            maxResults=max_results,
-                            singleEvents=True,
-                            orderBy='startTime'
-                        ).execute()
-                    
-                    events_result = await loop.run_in_executor(None, _sync_list_events)
-                    
-                    cal_events = events_result.get('items', [])
-                    for event in cal_events:
-                        event['calendar_name'] = calendar.get('summary', cal_id)
-                    events_list.extend(cal_events)
-                except HttpError:
-                    continue  # Skip inaccessible calendars
+                
+                def _sync_list_events():
+                    return service.events().list(
+                        calendarId=cal_id,
+                        timeMin=start_time,
+                        timeMax=end_time,
+                        maxResults=max_results,
+                        singleEvents=True,
+                        orderBy='startTime'
+                    ).execute()
+                
+                events_result = await loop.run_in_executor(None, _sync_list_events)
+                
+                cal_events = events_result.get('items', [])
+                for event in cal_events:
+                    event['calendar_name'] = calendar.get('summary', cal_id)
+                events_list.extend(cal_events)
         else:
             # Search specific calendar
             resolved_id = await _resolve_calendar_id(calendar_id, service)

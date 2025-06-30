@@ -1,5 +1,6 @@
 """Agent management tool for persistent conversation memory across LLM providers."""
 from typing import Optional
+from pydantic import constr
 from mcp.server.fastmcp import FastMCP
 from ..common.memory import memory_manager
 
@@ -7,11 +8,8 @@ mcp = FastMCP("Agent Management Tool")
 
 
 @mcp.tool(description="Creates a new persistent conversation agent with optional personality.")
-async def create_agent(agent_name: str, personality: Optional[str] = None) -> str:
+async def create_agent(agent_name: constr(min_length=1), personality: Optional[str] = None) -> str:
     """Create a new agent with optional personality."""
-    if not agent_name or not agent_name.strip():
-        raise ValueError("Agent name is required and cannot be empty")
-    
     agent = memory_manager.create_agent(agent_name, personality)
     personality_info = f" with personality: {personality}" if personality else ""
     return f"✅ Agent '{agent_name}' created successfully{personality_info}!"
@@ -87,11 +85,8 @@ async def clear_agent(agent_name: str) -> str:
 
 
 @mcp.tool(description="Permanently deletes an agent and all associated conversation data. WARNING: This action cannot be undone. Use clear_agent() instead if you only want to reset the conversation history.")
-async def delete_agent(agent_name: str) -> str:
+async def delete_agent(agent_name: constr(min_length=1)) -> str:
     """Delete an agent permanently."""
-    if not agent_name or not agent_name.strip():
-        raise ValueError("Agent name is required and cannot be empty")
-    
     success = memory_manager.delete_agent(agent_name)
     if success:
         return f"✅ Agent '{agent_name}' deleted permanently!"

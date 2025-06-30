@@ -43,36 +43,12 @@ class AgentMemory(BaseModel):
         self.total_tokens = 0
         self.total_cost = 0.0
     
-    def get_conversation_history(self) -> List[Dict[str, Any]]:
-        """Get conversation history in format suitable for Gemini API."""
-        history = []
-        
-        # For Gemini, personality/system messages should be added differently
-        # We'll handle this in the tool itself rather than here
-        
-        for message in self.messages:
-            # Convert to Gemini's expected format with 'parts'
-            # Map "assistant" role to "model" for Gemini
-            role = "model" if message.role == "assistant" else message.role
-            history.append({
-                "role": role,
-                "parts": [{"text": message.content}]
-            })
-        
-        return history
-    
-    def get_openai_conversation_history(self) -> List[Dict[str, str]]:
-        """Get conversation history in format suitable for OpenAI API."""
-        history = []
-        
-        for message in self.messages:
-            # OpenAI format: simple role/content structure
-            history.append({
-                "role": message.role,  # Keep original role (user/assistant)
-                "content": message.content
-            })
-        
-        return history
+    def get_history(self) -> List[Dict[str, str]]:
+        """Get conversation history in provider-agnostic format."""
+        return [
+            {"role": message.role, "content": message.content}
+            for message in self.messages
+        ]
     
     def get_stats(self) -> Dict[str, Any]:
         """Get summary statistics for the agent."""
@@ -117,12 +93,9 @@ class MemoryManager:
             
         for agent_file in self.agents_dir.glob("*.json"):
             try:
-                with open(agent_file) as f:
-                    data = json.load(f)
-                
-                agent = self._deserialize_agent_data(data)
+                agent = AgentMemory.model_validate_json(agent_file.read_text())
                 self._agents[agent.name] = agent
-            except (json.JSONDecodeError, KeyError, ValueError):
+            except (json.JSONDecodeError, ValueError):
                 # Skip corrupted files
                 continue
     
@@ -143,10 +116,8 @@ class MemoryManager:
 
     def _save_agent(self, agent: AgentMemory):
         """Save a single agent to disk."""
-        data = self._serialize_agent_data(agent)
         agent_file = self._get_agent_file(agent.name)
-        with open(agent_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        agent_file.write_text(agent.model_dump_json(indent=2))
     
     def create_agent(self, name: str, personality: Optional[str] = None) -> AgentMemory:
         """Create a new agent."""

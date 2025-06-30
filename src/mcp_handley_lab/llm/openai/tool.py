@@ -304,7 +304,9 @@ async def _openai_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Asks a question to an OpenAI GPT model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
+
+**Agent Recommendation**: For best results, consider creating a specialized agent with memory_manager.create_agent() before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -403,7 +405,9 @@ async def ask(
     )
 
 
-@mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
+@mcp.tool(description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
@@ -500,7 +504,9 @@ async def analyze_image(
     )
 
 
-@mcp.tool(description="""Generates high-quality images using OpenAI's DALL-E models.
+@mcp.tool(description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 Model Options:
 - "dall-e-3" (default) - Latest model with best quality and prompt adherence

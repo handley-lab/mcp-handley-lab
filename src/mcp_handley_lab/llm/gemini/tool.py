@@ -305,9 +305,11 @@ async def _gemini_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
 
-**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
+
+**Memory Behavior**: Conversations with Gemini are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -319,7 +321,7 @@ File Input Formats:
 - "direct string" - Treats string as literal content
 
 Key Parameters:
-- `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
+- `model`: "gemini-2.5-flash" (fast, default), "gemini-2.5-pro" (advanced reasoning), or full model name
 - `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
@@ -349,7 +351,7 @@ ask(
     prompt="Review this codebase",
     output_file="/tmp/review.md",
     agent_name="code_reviewer",
-    model="pro"
+    model="gemini-2.5-pro"
 )
 
 # Disable memory for one-off queries
@@ -406,7 +408,9 @@ async def ask(
     )
 
 
-@mcp.tool(description="""Analyzes images using Gemini's advanced vision capabilities.
+@mcp.tool(description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
@@ -429,8 +433,8 @@ Analysis Focus Options:
 - "technical" - Focus on technical aspects, quality, metadata
 
 Model Options:
-- "pro" (default) - Best for detailed analysis and complex reasoning
-- "flash" - Faster response, good for simple image descriptions
+- "gemini-2.5-pro" (default) - Best for detailed analysis and complex reasoning
+- "gemini-2.5-flash" - Faster response, good for simple image descriptions
 
 Key Parameters:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
@@ -502,7 +506,9 @@ async def analyze_image(
     )
 
 
-@mcp.tool(description="""Generates high-quality images using Gemini's Imagen 3 model.
+@mcp.tool(description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 **Memory Behavior**: Image generation requests are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 

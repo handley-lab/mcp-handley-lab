@@ -223,7 +223,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_ask_empty_agent_name(self):
         """Test ask with empty agent name."""
-        with pytest.raises(ValueError, match="Agent name cannot be empty when provided"):
+        with pytest.raises(ValueError, match="Agent name cannot be empty"):
             await ask("Test prompt", "/tmp/output.txt", agent_name="")
             
     @pytest.mark.asyncio
@@ -313,14 +313,14 @@ class TestOpenAIApiCalls:
         # Mock memory manager
         mock_memory_manager.get_agent.return_value = None
         
-        # Mock the shared processor
-        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Response saved successfully"):
+        # Mock the shared processor and the adapter
+        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Response saved successfully") as mock_processor:
             
             output_file = Path(temp_storage_dir) / "output.txt"
             result = await ask("Test prompt", str(output_file))
             
-            # Verify API was called
-            mock_openai_client.chat.completions.create.assert_called_once()
+            # Verify shared processor was called
+            mock_processor.assert_called_once()
             
             # Verify result message
             assert "Response saved successfully" in result
@@ -412,16 +412,13 @@ class TestOpenAIApiCalls:
         img_path = Path(temp_storage_dir) / "test.png"
         img.save(img_path)
         
-        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Analysis saved successfully"):
+        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Analysis saved successfully") as mock_processor:
             
             output_file = Path(temp_storage_dir) / "analysis.txt"
             result = await analyze_image("Describe this image", str(output_file), image_data=str(img_path))
             
-            # Verify API was called with image
-            mock_openai_client.chat.completions.create.assert_called_once()
-            call_args = mock_openai_client.chat.completions.create.call_args[1]
-            assert call_args['model'] == "gpt-4o"
-            assert any(msg['role'] == 'user' for msg in call_args['messages'])
+            # Verify shared processor was called
+            mock_processor.assert_called_once()
             
             # Verify result contains success message
             assert "Analysis saved successfully" in result
@@ -439,7 +436,7 @@ class TestErrorHandling:
         
         output_file = Path(temp_storage_dir) / "output.txt"
         
-        with pytest.raises(RuntimeError, match="OpenAI API error"):
+        with pytest.raises(OpenAIError, match="API Error"):
             await ask("Test prompt", str(output_file))
 
     @pytest.mark.asyncio

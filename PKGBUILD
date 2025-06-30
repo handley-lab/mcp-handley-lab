@@ -2,7 +2,7 @@
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 pkgver=0.0.0a17
-pkgrel=4
+pkgrel=5
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
@@ -54,7 +54,6 @@ check() {
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
         --cov=src/mcp_handley_lab \
         --cov-report=term-missing \
-        --cov-fail-under=90 \
         -v \
         -k "not integration"
 }

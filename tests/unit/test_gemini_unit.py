@@ -276,42 +276,34 @@ class TestErrorHandling:
     
     @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.is_text_file')
-    @patch('pathlib.Path.exists')
     @patch('pathlib.Path.stat')
     @patch('pathlib.Path.read_text')
-    async def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
-        """Test file reading error in _resolve_files (lines 127-131)."""
+    async def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_is_text):
+        """Test file reading error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
-        mock_exists.return_value = True
         mock_stat.return_value.st_size = 100  # Small file
         mock_is_text.return_value = True
         # Make read_text fail
         mock_read_text.side_effect = Exception("Permission denied")
         
         files = [{"path": "/tmp/test.txt"}]
-        parts = await _resolve_files(files)
         
-        # Should have error message part
-        assert len(parts) == 1
-        assert "Error reading file" in parts[0].text
-        assert "Permission denied" in parts[0].text
+        # Should raise exception instead of adding error text
+        with pytest.raises(Exception, match="Permission denied"):
+            await _resolve_files(files)
     
     @pytest.mark.asyncio
-    @patch('pathlib.Path.exists')
-    async def test_resolve_files_processing_error(self, mock_exists):
-        """Test file processing error in _resolve_files (lines 130-131)."""
+    async def test_resolve_files_processing_error(self):
+        """Test file processing error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
-        # Make the path check itself fail
-        mock_exists.side_effect = Exception("Invalid path")
+        # Use invalid path that will cause stat() to fail
+        files = [{"path": "/invalid/nonexistent/path"}]
         
-        files = [{"path": "/invalid/path"}]
-        parts = await _resolve_files(files)
-        
-        # Should have error message part
-        assert len(parts) == 1
-        assert "Error processing file /invalid/path: Invalid path" in parts[0].text
+        # Should raise FileNotFoundError instead of adding error text
+        with pytest.raises(FileNotFoundError):
+            await _resolve_files(files)
     
     @patch('pathlib.Path.read_bytes')
     @patch('PIL.Image.open')

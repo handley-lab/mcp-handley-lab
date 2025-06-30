@@ -80,57 +80,32 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> t
             elif "path" in file_item:
                 # File path - determine optimal handling strategy
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        inline_content.append(f"Error: File not found: {file_path}")
-                        continue
-                    
-                    file_size = file_path.stat().st_size
-                    
-                    if file_size > 1024 * 1024:  # 1MB threshold for Files API
-                        # Large file - use Files API for assistant-compatible upload
-                        try:
-                            uploaded_file = await client.files.create(
-                                file=open(file_path, "rb"),
-                                purpose="assistants"
-                            )
-                            file_attachments.append({
-                                "file_id": uploaded_file.id,
-                                "tools": [{"type": "file_search"}]
-                            })
-                        except Exception as e:
-                            # Fallback to chunked text inclusion for large files
-                            try:
-                                if is_text_file(file_path):
-                                    content = file_path.read_text(encoding='utf-8')
-                                    # Truncate very large text files to prevent token overflow
-                                    if len(content) > 50000:  # ~12.5k tokens rough estimate
-                                        content = content[:50000] + "\n\n[Content truncated due to size]"
-                                    inline_content.append(f"[File: {file_path.name}]\n{content}")
-                                else:
-                                    inline_content.append(f"Error: Could not upload large binary file {file_path}: {e}")
-                            except UnicodeDecodeError:
-                                inline_content.append(f"Error: Could not process large file {file_path}: {e}")
+                file_size = file_path.stat().st_size
+                
+                if file_size > 1024 * 1024:  # 1MB threshold for Files API
+                    # Large file - use Files API for assistant-compatible upload
+                    uploaded_file = await client.files.create(
+                        file=open(file_path, "rb"),
+                        purpose="assistants"
+                    )
+                    file_attachments.append({
+                        "file_id": uploaded_file.id,
+                        "tools": [{"type": "file_search"}]
+                    })
+                else:
+                    # Small file - include directly
+                    if is_text_file(file_path):
+                        # Text file - read as string with header
+                        content = file_path.read_text(encoding='utf-8')
+                        inline_content.append(f"[File: {file_path.name}]\n{content}")
                     else:
-                        # Small file - include directly
-                        try:
-                            if is_text_file(file_path):
-                                # Text file - read as string with header
-                                content = file_path.read_text(encoding='utf-8')
-                                inline_content.append(f"[File: {file_path.name}]\n{content}")
-                            else:
-                                # Small binary file - base64 encode with metadata
-                                file_content = file_path.read_bytes()
-                                encoded_content = base64.b64encode(file_content).decode()
-                                mime_type = determine_mime_type(file_path)
-                                inline_content.append(
-                                    f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
-                                )
-                        except Exception as e:
-                            inline_content.append(f"Error reading file {file_path}: {e}")
-                            
-                except Exception as e:
-                    inline_content.append(f"Error processing file {file_path}: {e}")
+                        # Small binary file - base64 encode with metadata
+                        file_content = file_path.read_bytes()
+                        encoded_content = base64.b64encode(file_content).decode()
+                        mime_type = determine_mime_type(file_path)
+                        inline_content.append(
+                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
+                        )
     
     return file_attachments, inline_content
 

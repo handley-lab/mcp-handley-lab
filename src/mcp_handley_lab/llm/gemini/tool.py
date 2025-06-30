@@ -110,54 +110,35 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
             elif "path" in file_item:
                 # File path - determine optimal handling based on size
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        parts.append(Part(text=f"Error: File not found: {file_path}"))
-                        continue
+                file_size = file_path.stat().st_size
+                
+                if file_size > 20 * 1024 * 1024:  # 20MB threshold
+                    # Large file - use Files API
+                    def _sync_upload_file():
+                        return client.files.upload(
+                            file=str(file_path),
+                            mime_type=determine_mime_type(file_path)
+                        )
                     
-                    file_size = file_path.stat().st_size
-                    
-                    if file_size > 20 * 1024 * 1024:  # 20MB threshold
-                        # Large file - use Files API
-                        try:
-                            def _sync_upload_file():
-                                return client.files.upload(
-                                    file=str(file_path),
-                                    mime_type=determine_mime_type(file_path)
-                                )
-                            
-                            loop = asyncio.get_running_loop()
-                            uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
-                            parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
-                        except Exception as e:
-                            # Fallback to reading as text if upload fails
-                            try:
-                                content = file_path.read_text(encoding='utf-8')
-                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
-                            except UnicodeDecodeError:
-                                parts.append(Part(text=f"Error: Could not upload or read file {file_path}: {e}"))
+                    loop = asyncio.get_running_loop()
+                    uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
+                    parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
+                else:
+                    # Small file - use inlineData with base64 encoding
+                    if is_text_file(file_path):
+                        # For text files, read directly as text
+                        content = file_path.read_text(encoding='utf-8')
+                        parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
                     else:
-                        # Small file - use inlineData with base64 encoding
-                        try:
-                            if is_text_file(file_path):
-                                # For text files, read directly as text
-                                content = file_path.read_text(encoding='utf-8')
-                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
-                            else:
-                                # For binary files, use inlineData
-                                file_content = file_path.read_bytes()
-                                encoded_content = base64.b64encode(file_content).decode()
-                                parts.append(Part(
-                                    inlineData=Blob(
-                                        mimeType=determine_mime_type(file_path),
-                                        data=encoded_content
-                                    )
-                                ))
-                        except Exception as e:
-                            parts.append(Part(text=f"Error reading file {file_path}: {e}"))
-                            
-                except Exception as e:
-                    parts.append(Part(text=f"Error processing file {file_path}: {e}"))
+                        # For binary files, use inlineData
+                        file_content = file_path.read_bytes()
+                        encoded_content = base64.b64encode(file_content).decode()
+                        parts.append(Part(
+                            inlineData=Blob(
+                                mimeType=determine_mime_type(file_path),
+                                data=encoded_content
+                            )
+                        ))
     
     return parts
 

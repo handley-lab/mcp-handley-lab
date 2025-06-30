@@ -10,6 +10,23 @@ from ..common.terminal import launch_interactive
 mcp = FastMCP("Mutt Tool")
 
 
+def get_mutt_alias_file() -> Path:
+    """Get mutt alias file path from mutt configuration."""
+    try:
+        result = subprocess.run(['mutt', '-Q', 'alias_file'], 
+                              capture_output=True, text=True, check=True)
+        # Parse: alias_file="~/.mutt/addressbook" 
+        path = result.stdout.strip().split('=')[1].strip('"\'')
+        # Expand ~ to home directory
+        if path.startswith('~'):
+            path = str(Path.home()) + path[1:]
+        return Path(path)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to query mutt configuration: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to parse mutt alias_file setting: {e}")
+
+
 @mcp.tool(description="""Compose and send an email using mutt with interactive editing.
 
 Opens mutt in compose mode with the specified recipient and subject. This allows you to:
@@ -486,11 +503,18 @@ add_contact(
     name="John Doe"
 )
 
-# Add group/project contacts
+# Add group with email addresses
 add_contact(
     alias="gw-team",
     email="alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk",
     name="GW Project Team"
+)
+
+# Add group with existing aliases
+add_contact(
+    alias="my-students",
+    email="alice-smith bob-jones carol-white",  # Space-separated aliases
+    name="My Research Students"
 )
 ```""")
 def add_contact(
@@ -507,14 +531,22 @@ def add_contact(
     # Clean up alias (mutt aliases can't have spaces)
     clean_alias = alias.lower().replace(' ', '_').replace('-', '_')
     
-    # Determine mutt alias file path
-    alias_file = Path.home() / ".mutt" / "aliases"
+    # Get mutt alias file path from configuration
+    alias_file = get_mutt_alias_file()
     
-    # Create alias entry
-    if name:
-        alias_line = f'alias {clean_alias} "{name}" <{email}>\n'
+    # Determine alias format based on email content
+    if '@' in email:
+        # Email addresses - use email format
+        if name:
+            alias_line = f'alias {clean_alias} "{name}" <{email}>\n'
+        else:
+            alias_line = f'alias {clean_alias} {email}\n'
     else:
-        alias_line = f'alias {clean_alias} {email}\n'
+        # Space-separated aliases - use alias group format
+        if name:
+            alias_line = f'alias {clean_alias} {email}  # {name}\n'
+        else:
+            alias_line = f'alias {clean_alias} {email}\n'
     
     try:
         # Append to alias file
@@ -542,7 +574,7 @@ list_contacts(pattern="gw")
 def list_contacts(pattern: str = "") -> str:
     """List contacts from mutt address book."""
     
-    alias_file = Path.home() / ".mutt" / "aliases"
+    alias_file = get_mutt_alias_file()
     
     if not alias_file.exists():
         return "No mutt alias file found. Use add_contact() to create contacts."
@@ -584,7 +616,7 @@ def remove_contact(alias: str) -> str:
     clean_alias = alias.lower().replace(' ', '_').replace('-', '_')
     
     # Determine file path
-    alias_file = Path.home() / ".mutt" / "aliases"
+    alias_file = get_mutt_alias_file()
     
     if not alias_file.exists():
         return "No mutt alias file found"

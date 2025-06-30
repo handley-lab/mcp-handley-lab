@@ -105,7 +105,7 @@ def list_accounts(config_file: str = None) -> str:
 @mcp.tool(description="Synchronize emails using offlineimap with one-time sync.")
 def sync(account: Optional[str] = None) -> str:
     """Run offlineimap to synchronize emails."""
-    cmd = ["offlineimap", "-o"]  # -o for one-time sync
+    cmd = ["offlineimap", "-o1"]  # -o1 for one-time sync
     
     if account:
         cmd.extend(["-a", account])
@@ -132,7 +132,7 @@ def sync_status(config_file: str = None) -> str:
             return "No offlineimap configuration found at ~/.offlineimaprc"
         
         # Run dry-run to check configuration
-        output = _run_command(["offlineimap", "--dry-run", "-o"])
+        output = _run_command(["offlineimap", "--dry-run", "-o1"])
         return f"Offlineimap configuration valid:\n{output}"
     except RuntimeError as e:
         return f"Offlineimap status check failed: {e}"
@@ -151,7 +151,7 @@ def repo_info(config_file: str = None) -> str:
 @mcp.tool(description="Preview what would be synced without actually syncing.")
 def sync_preview(account: Optional[str] = None) -> str:
     """Preview email sync operations without making changes."""
-    cmd = ["offlineimap", "--dry-run", "-o"]
+    cmd = ["offlineimap", "--dry-run", "-o1"]
     
     if account:
         cmd.extend(["-a", account])
@@ -166,7 +166,7 @@ def sync_preview(account: Optional[str] = None) -> str:
 @mcp.tool(description="Perform quick sync without updating message flags.")
 def quick_sync(account: Optional[str] = None) -> str:
     """Perform quick email sync without updating flags."""
-    cmd = ["offlineimap", "-q", "-o"]
+    cmd = ["offlineimap", "-q", "-o1"]
     
     if account:
         cmd.extend(["-a", account])
@@ -184,7 +184,7 @@ def quick_sync(account: Optional[str] = None) -> str:
 @mcp.tool(description="Sync specific folders only.")
 def sync_folders(folders: str, account: Optional[str] = None) -> str:
     """Sync only specified folders."""
-    cmd = ["offlineimap", "-o", "-f", folders]
+    cmd = ["offlineimap", "-o1", "-f", folders]
     
     if account:
         cmd.extend(["-a", account])

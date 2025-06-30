@@ -1,0 +1,55 @@
+# Test OfflineIMAP configuration for handleylab@gmail.com  
+# Based on user's existing Gmail configuration
+
+[general]
+
+# Test account only
+accounts = HandleyLab
+
+# Python helper file for password functions
+pythonfile = offlineimap_test.py 
+
+maxsyncaccounts = 1
+
+###############################################################################
+[Account HandleyLab]
+
+# Name for local repository
+localrepository = HandleyLab-Local
+
+# Name for remote repository  
+remoterepository = HandleyLab-Remote
+
+# Sync once per hour
+autorefresh = 1
+quick = 0
+holdconnectionopen = no
+
+# Run notmuch after synchronising
+postsynchook = notmuch new
+
+###############################################################################
+[Repository HandleyLab-Local]
+type = Maildir
+localfolders = ../../../.test_mail/HandleyLab
+maxconnections = 1
+
+###############################################################################
+[Repository HandleyLab-Remote]
+type = Gmail
+remoteuser = handleylab@gmail.com
+realdelete = no
+# For testing, use environment variable authentication
+remotepasseval = get_test_password()
+sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+keepalive = 60
+
+###############################################################################
+# Automatically generate mutt mailboxes for test
+[mbnames]
+enabled = yes
+filename = ../../../.test_mail/mailboxes_auto
+header = "mailboxes "
+peritem = "+%(accountname)s/%(foldername)s"
+sep = " "
+footer = "\n"

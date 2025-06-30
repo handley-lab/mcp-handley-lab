@@ -143,7 +143,7 @@ user personal@gmail.com
             
             args = mock_run.call_args[0][0]
             assert "offlineimap" in args
-            assert "-o" in args
+            assert "-o1" in args
             assert "Email sync completed successfully" in result
 
     def test_sync_with_account(self):

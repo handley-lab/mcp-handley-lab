@@ -1,0 +1,28 @@
+# Test notmuch configuration for handleylab@gmail.com
+# Based on user's existing notmuch setup
+
+# Database configuration
+[database]
+path=/home/will/code/mcp.2/.test_mail
+
+# User configuration
+[user]
+name=Handley Lab
+primary_email=handleylab@gmail.com
+
+# Configuration for "notmuch new"
+[new]
+tags=unread;inbox;
+ignore=
+
+# Search configuration
+[search]
+exclude_tags=deleted;spam;
+
+# Maildir compatibility configuration
+[maildir]
+synchronize_flags=true
+
+# Cryptography related configuration
+[crypto]
+gpg_path=gpg

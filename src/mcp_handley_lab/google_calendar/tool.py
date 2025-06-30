@@ -129,7 +129,8 @@ def _format_datetime(dt_str: str) -> str:
                 dt = dt.replace(tzinfo=timezone.utc)
                 return dt.strftime('%Y-%m-%d %H:%M:%S UTC')
         except ValueError:
-            return dt_str + " (invalid format)"
+            # Re-raise ValueError for invalid datetime formats to maintain test compatibility
+            raise ValueError(f"Invalid datetime format: {dt_str}")
     else:
         # Date format (all-day event)
         return dt_str + " (all-day)"

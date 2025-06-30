@@ -92,38 +92,49 @@ async def generate_prompt(
     no_ignore: bool = False
 ) -> str:
     """Generate a structured prompt from codebase."""
-    args = [path]
-    
     # Create output file if not provided
     if not output_file:
         temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False)
         output_file = temp_file.name
         temp_file.close()
     
-    args.extend(["--output-file", output_file])
-    args.extend(["--output-format", output_format])
-    args.extend(["--encoding", encoding])
-    args.extend(["--tokens", tokens])
-    args.extend(["--sort", sort])
+    # Build argument options
+    options = {
+        "--output-file": output_file,
+        "--output-format": output_format,
+        "--encoding": encoding,
+        "--tokens": tokens,
+        "--sort": sort,
+    }
     
+    # Boolean flags
+    bool_flags = {
+        include_priority: "--include-priority",
+        no_ignore: "--no-ignore",
+        line_numbers: "--line-numbers",
+        full_directory_tree: "--full-directory-tree",
+        follow_symlinks: "--follow-symlinks",
+        hidden: "--hidden",
+        no_codeblock: "--no-codeblock",
+        absolute_paths: "--absolute-paths",
+        include_git_diff: "--diff",
+    }
+    
+    # Build command args
+    args = [path]
+    
+    # Add options with values
+    for flag, value in options.items():
+        args.extend([flag, value])
+    
+    # Add boolean flags
+    args.extend(flag for condition, flag in bool_flags.items() if condition)
+    
+    # Add multi-value options
     for pattern in include or []:
         args.extend(["--include", pattern])
     for pattern in exclude or []:
         args.extend(["--exclude", pattern])
-    
-    # Boolean flags
-    flags = [
-        (include_priority, "--include-priority"),
-        (no_ignore, "--no-ignore"),
-        (line_numbers, "--line-numbers"),
-        (full_directory_tree, "--full-directory-tree"),
-        (follow_symlinks, "--follow-symlinks"),
-        (hidden, "--hidden"),
-        (no_codeblock, "--no-codeblock"),
-        (absolute_paths, "--absolute-paths"),
-        (include_git_diff, "--diff")
-    ]
-    args.extend(flag for condition, flag in flags if condition)
     
     if template:
         args.extend(["--template", template])

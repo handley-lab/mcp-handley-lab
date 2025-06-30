@@ -327,7 +327,8 @@ class TestErrorHandling:
             _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
     
     @pytest.mark.asyncio
-    async def test_analyze_image_output_file_validation(self):
+    @patch('mcp_handley_lab.llm.gemini.tool.client')
+    async def test_analyze_image_output_file_validation(self, mock_client):
         """Test output file validation in analyze_image (line 485)."""
         from mcp_handley_lab.llm.gemini.tool import analyze_image
         

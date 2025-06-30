@@ -120,24 +120,30 @@ class MemoryManager:
                 with open(agent_file) as f:
                     data = json.load(f)
                 
-                # Convert datetime strings back to datetime objects
-                data["created_at"] = datetime.fromisoformat(data["created_at"])
-                for msg in data.get("messages", []):
-                    msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-                
-                agent = AgentMemory(**data)
+                agent = self._deserialize_agent_data(data)
                 self._agents[agent.name] = agent
             except (json.JSONDecodeError, KeyError, ValueError):
                 # Skip corrupted files
                 continue
     
-    def _save_agent(self, agent: AgentMemory):
-        """Save a single agent to disk."""
+    def _serialize_agent_data(self, agent: AgentMemory) -> dict:
+        """Convert agent to JSON-serializable dictionary."""
         data = agent.model_dump()
         data["created_at"] = data["created_at"].isoformat()
-        for msg in data["messages"]:
+        for msg in data.get("messages", []):
             msg["timestamp"] = msg["timestamp"].isoformat()
-        
+        return data
+
+    def _deserialize_agent_data(self, data: dict) -> AgentMemory:
+        """Convert dictionary to AgentMemory object, parsing datetimes."""
+        data["created_at"] = datetime.fromisoformat(data["created_at"])
+        for msg in data.get("messages", []):
+            msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
+        return AgentMemory(**data)
+
+    def _save_agent(self, agent: AgentMemory):
+        """Save a single agent to disk."""
+        data = self._serialize_agent_data(agent)
         agent_file = self._get_agent_file(agent.name)
         with open(agent_file, 'w') as f:
             json.dump(data, f, indent=2)
@@ -197,11 +203,7 @@ class MemoryManager:
             return False
         
         try:
-            data = agent.model_dump()
-            data["created_at"] = data["created_at"].isoformat()
-            for msg in data["messages"]:
-                msg["timestamp"] = msg["timestamp"].isoformat()
-            
+            data = self._serialize_agent_data(agent)
             with open(export_path, 'w') as f:
                 json.dump(data, f, indent=2)
             return True
@@ -214,12 +216,7 @@ class MemoryManager:
             with open(import_path) as f:
                 data = json.load(f)
             
-            # Convert datetime strings back to datetime objects
-            data["created_at"] = datetime.fromisoformat(data["created_at"])
-            for msg in data.get("messages", []):
-                msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-            
-            agent = AgentMemory(**data)
+            agent = self._deserialize_agent_data(data)
             
             # Check if agent already exists
             if agent.name in self._agents and not overwrite:

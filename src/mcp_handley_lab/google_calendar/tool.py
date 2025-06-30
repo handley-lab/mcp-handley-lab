@@ -93,12 +93,31 @@ async def _resolve_calendar_id(calendar_id: str, service) -> str:
 def _format_datetime(dt_str: str) -> str:
     """Format datetime string for display."""
     if 'T' in dt_str:
-        # DateTime format
         dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
         return dt.strftime('%Y-%m-%d %H:%M:%S %Z').strip()
     else:
-        # Date format (all-day event)
         return dt_str + " (all-day)"
+
+
+def _format_iso_datetime(date_str: Optional[str], default_offset_days: int = 0) -> str:
+    """Format date string into full ISO 8601 datetime with UTC timezone."""
+    if not date_str:
+        dt = datetime.now() + timedelta(days=default_offset_days)
+        return dt.isoformat() + 'Z'
+    
+    if date_str.endswith('Z'):
+        return date_str
+    elif 'T' not in date_str:
+        # Date only - add appropriate time
+        suffix = 'T00:00:00Z' if default_offset_days == 0 else 'T23:59:59Z'
+        return date_str + suffix
+    elif '+' in date_str:
+        # Has timezone - parse and convert to UTC
+        dt = datetime.fromisoformat(date_str)
+        return dt.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+    else:
+        # Datetime without timezone - assume UTC
+        return date_str + 'Z' if not date_str.endswith('Z') else date_str
 
 
 @mcp.tool(description="""Lists calendar events within a specified date range. The end date is exclusive (events on the `end_date` itself are *not* included). 
@@ -142,35 +161,9 @@ async def list_events(
     try:
         service = await _get_calendar_service()
         
-        # Set default date range if not provided
-        if not start_date:
-            start_date = datetime.now().isoformat() + 'Z'
-        else:
-            # Handle existing Z suffix or timezone info
-            if start_date.endswith('Z'):
-                start_date = start_date  # Already formatted correctly
-            elif '+' in start_date or start_date.count('T') > 0:
-                # Parse and ensure proper Z format without double timezone
-                dt = datetime.fromisoformat(start_date.replace('Z', ''))
-                start_date = dt.replace(tzinfo=None).isoformat() + 'Z'
-            else:
-                # Date only format
-                start_date = start_date + 'T00:00:00Z'
-        
-        if not end_date:
-            end_dt = datetime.now() + timedelta(days=7)
-            end_date = end_dt.isoformat() + 'Z'
-        else:
-            # Handle existing Z suffix or timezone info
-            if end_date.endswith('Z'):
-                end_date = end_date  # Already formatted correctly
-            elif '+' in end_date or end_date.count('T') > 0:
-                # Parse and ensure proper Z format without double timezone
-                dt = datetime.fromisoformat(end_date.replace('Z', ''))
-                end_date = dt.replace(tzinfo=None).isoformat() + 'Z'
-            else:
-                # Date only format
-                end_date = end_date + 'T23:59:59Z'
+        # Format date range
+        start_time = _format_iso_datetime(start_date)
+        end_time = _format_iso_datetime(end_date, default_offset_days=7)
         
         events_list = []
         
@@ -188,8 +181,8 @@ async def list_events(
                     def _sync_list_events():
                         return service.events().list(
                             calendarId=cal_id,
-                            timeMin=start_date,
-                            timeMax=end_date,
+                            timeMin=start_time,
+                            timeMax=end_time,
                             maxResults=max_results,
                             singleEvents=True,
                             orderBy='startTime'
@@ -210,8 +203,8 @@ async def list_events(
             def _sync_list_events():
                 return service.events().list(
                     calendarId=resolved_id,
-                    timeMin=start_date,
-                    timeMax=end_date,
+                    timeMin=start_time,
+                    timeMax=end_time,
                     maxResults=max_results,
                     singleEvents=True,
                     orderBy='startTime'

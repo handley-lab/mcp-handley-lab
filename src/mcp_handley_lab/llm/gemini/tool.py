@@ -21,6 +21,7 @@ from ..common import (
     get_session_id, determine_mime_type, is_text_file, 
     resolve_image_data, handle_output, handle_agent_memory
 )
+from ..shared import create_client_decorator
 
 mcp = FastMCP("Gemini Tool")
 
@@ -37,6 +38,15 @@ except Exception as e:
 
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
+
+# Create client decorator with dynamic error message
+def _get_error_message():
+    return f"Gemini client not initialized: {initialization_error or 'API key not configured'}"
+
+require_client = create_client_decorator(
+    lambda: client is not None,
+    _get_error_message()
+)
 
 # Model configurations with token limits from https://ai.google.dev/gemini-api/docs/models
 MODEL_CONFIGS = {
@@ -251,6 +261,7 @@ ask(
     grounding=True
 )
 ```""")
+@require_client
 async def ask(
     prompt: str,
     output_file: str,
@@ -288,10 +299,6 @@ async def ask(
         raise ValueError("Output file is required")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-    
-    if not client:
-        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-    
     
     try:
         # Configure tools for grounding if requested
@@ -489,6 +496,7 @@ analyze_image(
     agent_name=False
 )
 ```""")
+@require_client
 async def analyze_image(
     prompt: str,
     output_file: str,
@@ -509,10 +517,6 @@ async def analyze_image(
         raise ValueError("Either image_data or images must be provided")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-    
-    if not client:
-        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-    
     
     try:
         # Load images
@@ -629,6 +633,7 @@ Error Handling:
 - Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
 - Raises ValueError for prompts that violate content policies
 - Generated images are PNG format, saved to system temp directory""")
+@require_client
 async def generate_image(
     prompt: str,
     model: str = "imagen-3",
@@ -640,9 +645,6 @@ async def generate_image(
         raise ValueError("Prompt is required and cannot be empty")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-    
-    if not client:
-        raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
     # Map model names to actual model IDs
     model_mapping = {
@@ -731,12 +733,10 @@ Use this to verify that the tool is operational before making other requests.
 # Check the server status.
 server_info()
 ```""")
+@require_client
 async def server_info() -> str:
     """Get server status and Gemini configuration."""
     try:
-        if not client:
-            raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
-        
         # Test API by listing models
         def _sync_list_models():
             return client.models.list()

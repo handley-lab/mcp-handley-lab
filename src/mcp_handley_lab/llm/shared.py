@@ -1,0 +1,91 @@
+"""Shared utilities for LLM providers."""
+import asyncio
+from typing import Optional, Union, Dict, Any, List, Callable
+from pathlib import Path
+
+from ..common.memory import memory_manager
+from ..common.pricing import calculate_cost
+from .common import get_session_id, handle_output, handle_agent_memory
+
+
+async def process_llm_request(
+    prompt: str,
+    output_file: str,
+    agent_name: Optional[Union[str, bool]],
+    model: str,
+    provider: str,
+    generation_func: Callable,
+    mcp_instance,
+    **kwargs
+) -> str:
+    """Generic handler for LLM requests that abstracts common patterns."""
+    # Input validation
+    if not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+    if not output_file.strip():
+        raise ValueError("Output file is required and cannot be empty")
+    if isinstance(agent_name, str) and not agent_name.strip():
+        raise ValueError("Agent name cannot be empty")
+
+    # Store original prompt for memory
+    user_prompt = prompt
+    history = []
+    system_instruction = None
+    actual_agent_name = agent_name
+
+    # Handle agent memory
+    use_memory = agent_name is not False
+    if use_memory:
+        if not actual_agent_name:
+            actual_agent_name = get_session_id(mcp_instance)
+        
+        agent = memory_manager.get_agent(actual_agent_name)
+        if agent:
+            if provider == "gemini":
+                history = agent.get_conversation_history()
+            else:  # openai
+                history = agent.get_openai_conversation_history()
+            system_instruction = agent.personality
+
+    # Call provider-specific generation function
+    response_data = await generation_func(
+        prompt=prompt,
+        model=model,
+        history=history,
+        system_instruction=system_instruction,
+        **kwargs
+    )
+
+    # Extract common response data
+    response_text = response_data['text']
+    input_tokens = response_data['input_tokens']
+    output_tokens = response_data['output_tokens']
+    cost = calculate_cost(model, input_tokens, output_tokens, provider)
+
+    # Handle memory
+    if use_memory:
+        handle_agent_memory(
+            actual_agent_name, user_prompt, response_text,
+            input_tokens, output_tokens, cost,
+            lambda: actual_agent_name
+        )
+
+    # Handle output
+    return handle_output(
+        response_text, output_file, model,
+        input_tokens, output_tokens, cost, provider
+    )
+
+
+def create_client_decorator(client_check_func: Callable, error_message: str):
+    """Create a decorator that ensures client is initialized."""
+    from functools import wraps
+    
+    def require_client(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if not client_check_func():
+                raise RuntimeError(error_message)
+            return await func(*args, **kwargs)
+        return wrapper
+    return require_client

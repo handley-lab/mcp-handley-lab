@@ -519,37 +519,23 @@ class TestServerInfo:
 class TestInputValidationComprehensive:
     """Test comprehensive input validation across all functions."""
     
+    @pytest.mark.parametrize(
+        "tool_func, kwargs, error_msg",
+        [
+            (ask, {"prompt": "", "output_file": "/tmp/test.txt"}, "Prompt is required"),
+            (ask, {"prompt": "Test", "output_file": ""}, "Output file is required"),
+            (ask, {"prompt": "Test", "output_file": "/tmp/test.txt", "agent_name": " "}, "Agent name cannot be empty"),
+            (analyze_image, {"prompt": "", "output_file": "/tmp/test.txt", "image_data": "data"}, "Prompt is required"),
+            (analyze_image, {"prompt": "Test", "output_file": "/tmp/test.txt"}, "image_data or images must be provided"),
+            (generate_image, {"prompt": ""}, "Prompt is required"),
+        ]
+    )
     @patch('mcp_handley_lab.llm.gemini.tool.client')
     @pytest.mark.asyncio
-    async def test_ask_input_validation(self, mock_client):
-        """Test ask function input validation."""
-        # Empty prompt
-        with pytest.raises(ValueError, match="Prompt is required"):
-            await ask("", "/tmp/test.txt")
-        
-        # Empty output file
-        with pytest.raises(ValueError, match="Output file is required"):
-            await ask("Test", "")
-        
-        # Empty agent name when provided
-        with pytest.raises(ValueError, match="Agent name cannot be empty"):
-            await ask("Test", "/tmp/test.txt", agent_name="   ")
-    
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @pytest.mark.asyncio
-    async def test_analyze_image_input_validation(self, mock_client):
-        """Test analyze_image function input validation."""
-        # Empty prompt
-        with pytest.raises(ValueError, match="Prompt is required"):
-            await analyze_image("", "/tmp/test.txt", image_data="test")
-        
-        # No images provided
-        with pytest.raises(ValueError, match="Either image_data or images must be provided"):
-            await analyze_image("Test", "/tmp/test.txt")
-        
-        # Empty agent name when provided
-        with pytest.raises(ValueError, match="Agent name cannot be empty"):
-            await analyze_image("Test", "/tmp/test.txt", image_data="test", agent_name="   ")
+    async def test_input_validation(self, mock_client, tool_func, kwargs, error_msg):
+        """Test input validation for various tool functions."""
+        with pytest.raises(ValueError, match=error_msg):
+            await tool_func(**kwargs)
 
 
 class TestMemoryDisabling:

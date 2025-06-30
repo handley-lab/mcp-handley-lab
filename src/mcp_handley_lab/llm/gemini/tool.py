@@ -29,6 +29,7 @@ client = None
 initialization_error = None
 
 try:
+    # Client initialization - let SDK use default API version
     client = google_genai.Client(api_key=settings.gemini_api_key)
 except Exception as e:
     client = None
@@ -62,7 +63,7 @@ def _get_session_id() -> str:
 
 def _get_model_config(model: str) -> Dict[str, int]:
     """Get token limits for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-1.5-flash"])  # default to 1.5-flash
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-2.5-flash"])  # default to 2.5-flash
 
 
 async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -195,9 +196,11 @@ def _handle_agent_and_usage(
     )
 
 
-@mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
 
-**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
+
+**Memory Behavior**: Conversations with Gemini are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -209,7 +212,7 @@ File Input Formats:
 - "direct string" - Treats string as literal content
 
 Key Parameters:
-- `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
+- `model`: "gemini-2.5-flash" (fast, default), "gemini-2.5-pro" (advanced reasoning), or full model name
 - `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
@@ -239,7 +242,7 @@ ask(
     prompt="Review this codebase",
     output_file="/tmp/review.md",
     agent_name="code_reviewer",
-    model="pro"
+    model="gemini-2.5-pro"
 )
 
 # Disable memory for one-off queries
@@ -254,7 +257,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
-    model: str = "flash",
+    model: str = "gemini-2.5-flash",
     temperature: float = 0.7,
     grounding: bool = False,
     files: Optional[List[Union[str, Dict[str, str]]]] = None,
@@ -266,7 +269,7 @@ async def ask(
         prompt: The question or instruction to send to Gemini
         output_file: File path to save the response (use '-' for stdout)
         agent_name: Named agent for persistent memory (None=session, False=disabled)
-        model: Gemini model name (flash, pro, or full model name like gemini-2.5-flash)
+        model: Gemini model name (gemini-2.5-flash for speed, gemini-2.5-pro for complex reasoning)
         temperature: Creativity level 0.0-1.0 (default: 0.7)
         grounding: Enable Google Search integration for current information
         files: List of files to include as context
@@ -291,14 +294,17 @@ async def ask(
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
-    # Resolve model name
-    model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
     
     try:
         # Configure tools for grounding if requested
         tools = []
         if grounding:
-            tools.append(Tool(googleSearchRetrieval=GoogleSearchRetrieval()))
+            if model.startswith("gemini-1.5"):
+                # Use legacy GoogleSearchRetrieval for 1.5 models
+                tools.append(Tool(google_search_retrieval=GoogleSearchRetrieval()))
+            else:
+                # Use recommended GoogleSearch for 2.0+ models (2.5 Pro, 2.5 Flash, etc.)
+                tools.append(Tool(google_search=GoogleSearch()))
         
         # Handle agent setup and system instruction (personality)
         system_instruction = None
@@ -355,7 +361,7 @@ async def ask(
             contents = history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
             def _sync_generate_content_history():
                 return client.models.generate_content(
-                    model=model_name,
+                    model=model,
                     contents=contents,
                     config=config
                 )
@@ -368,7 +374,7 @@ async def ask(
                 content_parts = [Part(text=prompt)] + file_parts
                 def _sync_generate_content_files():
                     return client.models.generate_content(
-                        model=model_name,
+                        model=model,
                         contents=content_parts,
                         config=config
                     )
@@ -378,7 +384,7 @@ async def ask(
                 # Simple text-only prompt
                 def _sync_generate_content_text():
                     return client.models.generate_content(
-                        model=model_name,
+                        model=model,
                         contents=prompt,
                         config=config
                     )
@@ -416,7 +422,9 @@ async def ask(
         raise RuntimeError(f"Gemini API error: {e}")
 
 
-@mcp.tool(description="""Analyzes images using Gemini's advanced vision capabilities.
+@mcp.tool(description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
@@ -439,8 +447,8 @@ Analysis Focus Options:
 - "technical" - Focus on technical aspects, quality, metadata
 
 Model Options:
-- "pro" (default) - Best for detailed analysis and complex reasoning
-- "flash" - Faster response, good for simple image descriptions
+- "gemini-2.5-pro" (default) - Best for detailed analysis and complex reasoning
+- "gemini-2.5-flash" - Faster response, good for simple image descriptions
 
 Key Parameters:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
@@ -491,7 +499,7 @@ async def analyze_image(
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
-    model: str = "pro",
+    model: str = "gemini-2.5-pro",
     agent_name: Optional[Union[str, bool]] = None,
     max_output_tokens: Optional[int] = None
 ) -> str:
@@ -509,8 +517,6 @@ async def analyze_image(
     if not client:
         raise RuntimeError(f"Gemini client not initialized: {initialization_error}")
     
-    # Resolve model name
-    model_name = f"gemini-1.5-{model}" if model in ["flash", "pro"] else model
     
     try:
         # Load images
@@ -539,7 +545,7 @@ async def analyze_image(
         # Generate response
         def _sync_generate_content_image():
             return client.models.generate_content(
-                model=model_name,
+                model=model,
                 contents=content,
                 config=config
             )
@@ -581,7 +587,9 @@ async def analyze_image(
         raise RuntimeError(f"Gemini vision API error: {e}")
 
 
-@mcp.tool(description="""Generates high-quality images using Gemini's Imagen 3 model.
+@mcp.tool(description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 **Memory Behavior**: Image generation requests are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 

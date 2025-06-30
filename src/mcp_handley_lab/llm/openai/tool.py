@@ -219,7 +219,9 @@ def _handle_agent_and_usage(
     )
 
 
-@mcp.tool(description="""Asks a question to an OpenAI GPT model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
+
+**Agent Recommendation**: For best results, consider creating a specialized agent with memory_manager.create_agent() before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -231,7 +233,7 @@ File Input Formats:
 - "direct string" - Treats string as literal content
 
 Key Parameters:
-- `model`: "gpt-4o" (default, multimodal), "gpt-4o-mini" (fast), "o1-preview" (reasoning), "o1-mini" (fast reasoning)
+- `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
 - `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7)
 - `max_output_tokens`: Override model's default output token limit
 - `agent_name`: Store conversation in persistent memory for ongoing interactions
@@ -244,10 +246,10 @@ Token Limits by Model:
 - Use max_output_tokens parameter to override defaults
 
 Model Selection Guide:
-- gpt-4o: Best for complex analysis, coding, and multimodal tasks (128k context)
-- gpt-4o-mini: Fast and cost-effective for simple tasks (128k context)
-- o1-preview: Advanced reasoning for complex problems (128k context, no system messages)
-- o1-mini: Fast reasoning for mathematical and coding tasks (128k context, no system messages)
+- o3-mini: Fast reasoning for most tasks, cost-effective (128k context, default)
+- o3: Best reasoning for complex problems (128k context)
+- gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)
+- gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)
 
 Error Handling:
 - Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)
@@ -262,7 +264,7 @@ ask(
     prompt="Explain this code and suggest improvements",
     output_file="/tmp/analysis.md",
     files=[{"path": "/path/to/code.py"}],
-    model="gpt-4o"
+    model="o3-mini"
 )
 
 # Persistent agent conversation
@@ -270,7 +272,7 @@ ask(
     prompt="Continue reviewing the codebase",
     output_file="/tmp/review.md",
     agent_name="code_reviewer",
-    model="gpt-4o",
+    model="o3-mini",
     temperature=0.3
 )
 
@@ -298,7 +300,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[str] = None,
-    model: str = "gpt-4o",
+    model: str = "o3-mini",
     temperature: float = 0.7,
     max_output_tokens: Optional[int] = None,
     files: Optional[List[Union[str, Dict[str, str]]]] = None
@@ -366,7 +368,9 @@ async def ask(
         raise RuntimeError(f"OpenAI API error: {e}")
 
 
-@mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
+@mcp.tool(description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
@@ -425,7 +429,7 @@ analyze_image(
     output_file="/tmp/extracted_text.md",
     image_data={"path": "/path/to/document.jpg"},
     focus="text",
-    model="gpt-4o"
+    model="o3-mini"
 )
 
 # Code analysis from screenshot
@@ -519,7 +523,9 @@ async def analyze_image(
         raise RuntimeError(f"OpenAI vision API error: {e}")
 
 
-@mcp.tool(description="""Generates high-quality images using OpenAI's DALL-E models.
+@mcp.tool(description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 Model Options:
 - "dall-e-3" (default) - Latest model with best quality and prompt adherence

@@ -400,6 +400,15 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 - Integration issues with shared utilities are caught during JSON-RPC testing
 - Claude Code uses JSON-RPC exclusively - direct function calls don't match real usage
 
+**CRITICAL: Test Changes Locally Before Using MCP Tools:**
+- After making changes to tool implementations, ALWAYS test locally first
+- MCP tools won't reflect your changes until the server is restarted
+- Test options:
+  1. JSON-RPC testing (preferred): Send test messages to the server
+  2. Python direct testing: Create test scripts that import and call functions
+  3. Unit tests: Run pytest on modified functionality
+- Example: After adding search_events to Google Calendar, test with JSON-RPC before attempting mcp__google-calendar__search_events
+
 **Error Examples to Watch For:**
 ```json
 // Missing import error

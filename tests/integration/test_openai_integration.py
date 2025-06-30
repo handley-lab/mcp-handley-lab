@@ -73,7 +73,8 @@ async def test_openai_analyze_image_simple(skip_if_no_api_key, test_output_file)
         prompt="What color is this image?",
         output_file=test_output_file,
         image_data=red_pixel,
-        focus="colors"
+        focus="colors",
+        model="gpt-4o"  # Use gpt-4o for vision tasks since o3-mini doesn't support vision
     )
     
     assert "saved" in result.lower() or "success" in result.lower()

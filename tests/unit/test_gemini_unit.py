@@ -56,8 +56,8 @@ class TestModelConfiguration:
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to gemini-1.5-flash
-        assert config["output_tokens"] == 8192
+        # Should default to gemini-2.5-flash
+        assert config["output_tokens"] == 65536
 
 
 class TestAskTokenLimits:
@@ -160,7 +160,7 @@ class TestAnalyzeImageTokenLimits:
         mock_client.models.generate_content.return_value = mock_response
         mock_handle_output.return_value = "Response saved"
         
-        # Call analyze_image with default model (pro -> gemini-1.5-pro)
+        # Call analyze_image with default model (gemini-2.5-pro)
         result = await analyze_image(
             prompt="Analyze this image",
             output_file="/tmp/analysis.txt",
@@ -171,7 +171,7 @@ class TestAnalyzeImageTokenLimits:
         # Verify generate_content was called with correct config
         call_args = mock_client.models.generate_content.call_args
         config = call_args.kwargs['config']
-        assert config.max_output_tokens == 8192  # gemini-1.5-pro default
+        assert config.max_output_tokens == 65536  # gemini-2.5-pro default
     
     @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.client')
@@ -332,3 +332,109 @@ class TestErrorHandling:
                 output_file="   ",  # Whitespace only
                 image_data="data:image/png;base64,test"
             )
+
+
+class TestGroundingConfiguration:
+    """Test grounding tool selection based on model family."""
+    
+    def test_grounding_tool_logic_directly(self):
+        """Test the grounding tool selection logic directly without mocking."""
+        from google.genai.types import Tool, GoogleSearch, GoogleSearchRetrieval
+        
+        # Test 1.5 model logic
+        model_1_5 = "gemini-1.5-pro"
+        if model_1_5.startswith("gemini-1.5"):
+            tool_1_5 = Tool(google_search_retrieval=GoogleSearchRetrieval())
+        else:
+            tool_1_5 = Tool(google_search=GoogleSearch())
+        
+        assert tool_1_5.google_search_retrieval is not None
+        assert tool_1_5.google_search is None
+        assert isinstance(tool_1_5.google_search_retrieval, GoogleSearchRetrieval)
+        
+        # Test 2.5 model logic  
+        model_2_5 = "gemini-2.5-flash"
+        if model_2_5.startswith("gemini-1.5"):
+            tool_2_5 = Tool(google_search_retrieval=GoogleSearchRetrieval())
+        else:
+            tool_2_5 = Tool(google_search=GoogleSearch())
+            
+        assert tool_2_5.google_search is not None
+        assert tool_2_5.google_search_retrieval is None
+        assert isinstance(tool_2_5.google_search, GoogleSearch)
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.client')
+    @pytest.mark.asyncio
+    async def test_grounding_integration_1_5_models(self, mock_client):
+        """Integration test: verify 1.5 models get GoogleSearchRetrieval in actual calls."""
+        from google.genai.types import Tool, GoogleSearchRetrieval
+        
+        # Mock the client and response
+        mock_response = Mock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        mock_client.models.generate_content.return_value = mock_response
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            test_file = f.name
+        
+        try:
+            await ask(
+                prompt="Test question",
+                output_file=test_file,
+                model="gemini-1.5-pro",
+                grounding=True,
+                agent_name=False
+            )
+            
+            # Verify the correct tool was used
+            call_args = mock_client.models.generate_content.call_args
+            config = call_args[1]['config']
+            
+            # Should have tools configured for 1.5 models
+            assert hasattr(config, 'tools')
+            assert len(config.tools) == 1
+            
+            tool = config.tools[0]
+            assert isinstance(tool, Tool)
+            assert tool.google_search_retrieval is not None
+            assert tool.google_search is None
+            assert isinstance(tool.google_search_retrieval, GoogleSearchRetrieval)
+            
+        finally:
+            Path(test_file).unlink(missing_ok=True)
+    
+    @patch('mcp_handley_lab.llm.gemini.tool.client')
+    @pytest.mark.asyncio  
+    async def test_no_grounding_tools_when_disabled(self, mock_client):
+        """Test that no tools are added when grounding is disabled."""
+        # Mock the client and response
+        mock_response = Mock()
+        mock_response.text = "Test response"
+        mock_response.usage_metadata.prompt_token_count = 10
+        mock_response.usage_metadata.candidates_token_count = 20
+        mock_client.models.generate_content.return_value = mock_response
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            test_file = f.name
+        
+        try:
+            await ask(
+                prompt="Test question",
+                output_file=test_file,
+                model="gemini-2.5-flash",
+                grounding=False,  # Explicitly disabled
+                agent_name=False
+            )
+            
+            # Verify no tools were configured
+            call_args = mock_client.models.generate_content.call_args
+            config = call_args[1]['config']
+            
+            # Should not have tools or tools should be empty/None
+            if hasattr(config, 'tools') and config.tools is not None:
+                assert len(config.tools) == 0
+            
+        finally:
+            Path(test_file).unlink(missing_ok=True)

@@ -118,15 +118,17 @@ class TestMuttContactManagement:
         # Should write back only the gw_team line
         mock_file.return_value.writelines.assert_called_once_with(['alias gw_team "GW Team" <alice@cam.ac.uk>\n'])
     
+    @patch("mcp_handley_lab.mutt.tool._find_contact_fuzzy")
     @patch("builtins.open", new_callable=mock_open, read_data='alias gw_team "GW Team" <alice@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_remove_contact_not_found(self, mock_home, mock_exists, mock_file):
+    def test_remove_contact_not_found(self, mock_home, mock_exists, mock_file, mock_fuzzy):
         """Test removing a contact that doesn't exist."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
         
         mock_file.return_value.readlines.return_value = ['alias gw_team "GW Team" <alice@cam.ac.uk>\n']
+        mock_fuzzy.return_value = []  # No fuzzy matches found
         
         result = remove_contact("nonexistent")
         

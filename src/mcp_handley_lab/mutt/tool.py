@@ -10,11 +10,47 @@ from ..common.terminal import launch_interactive
 mcp = FastMCP("Mutt Tool")
 
 
-def get_mutt_alias_file() -> Path:
+def _get_all_contacts(config_file: str = None) -> list[str]:
+    """Get all contacts from mutt address book."""
+    alias_file = get_mutt_alias_file(config_file)
+    if not alias_file.exists():
+        return []
+    
+    contacts = []
+    with open(alias_file, 'r') as f:
+        for line in f:
+            if line.startswith('alias '):
+                contacts.append(line.strip())
+    
+    return contacts
+
+
+def _find_contact_fuzzy(query: str, max_results: int = 5, config_file: str = None) -> list[str]:
+    """Find contacts using fzf-style fuzzy matching."""
+    from pyfzf.pyfzf import FzfPrompt
+    
+    contacts = _get_all_contacts(config_file)
+    if not contacts:
+        return []
+    
+    fzf = FzfPrompt()
+    # Use fzf non-interactive filter mode (without --print-query)
+    matches = fzf.prompt(contacts, f'--filter="{query}" --no-sort')
+    
+    # Check if matches exist and return them
+    if matches:
+        return [m for m in matches[:max_results] if m.startswith('alias ')]
+    else:
+        return []
+
+
+def get_mutt_alias_file(config_file: str = None) -> Path:
     """Get mutt alias file path from mutt configuration."""
     try:
-        result = subprocess.run(['mutt', '-Q', 'alias_file'], 
-                              capture_output=True, text=True, check=True)
+        cmd = ['mutt', '-Q', 'alias_file']
+        if config_file:
+            cmd.extend(['-F', config_file])
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         # Parse: alias_file="~/.mutt/addressbook" 
         path = result.stdout.strip().split('=')[1].strip('"\'')
         # Expand ~ to home directory
@@ -520,7 +556,8 @@ add_contact(
 def add_contact(
     alias: str,
     email: str,
-    name: str = ""
+    name: str = "",
+    config_file: str = None
 ) -> str:
     """Add a contact to mutt's address book."""
     
@@ -528,11 +565,11 @@ def add_contact(
     if not alias or not email:
         raise ValueError("Both alias and email are required")
     
-    # Clean up alias (mutt aliases can't have spaces)
-    clean_alias = alias.lower().replace(' ', '_').replace('-', '_')
+    # Use alias as-is (your addressbook uses consistent hyphen format)
+    clean_alias = alias.lower()
     
     # Get mutt alias file path from configuration
-    alias_file = get_mutt_alias_file()
+    alias_file = get_mutt_alias_file(config_file)
     
     # Determine alias format based on email content
     if '@' in email:
@@ -571,10 +608,10 @@ list_contacts()
 # Filter contacts by pattern
 list_contacts(pattern="gw")
 ```""")
-def list_contacts(pattern: str = "") -> str:
+def list_contacts(pattern: str = "", config_file: str = None) -> str:
     """List contacts from mutt address book."""
     
-    alias_file = get_mutt_alias_file()
+    alias_file = get_mutt_alias_file(config_file)
     
     if not alias_file.exists():
         return "No mutt alias file found. Use add_contact() to create contacts."
@@ -597,26 +634,86 @@ def list_contacts(pattern: str = "") -> str:
         return f"Error reading contacts: {e}"
 
 
-@mcp.tool(description="""Remove contact from mutt address book.
+@mcp.tool(description="""Find contacts using fuzzy matching.
 
-Removes a contact by alias name from the address book.
+Searches for contacts using fuzzy string matching, useful when you remember part of a name.
 
 Examples:
 ```python
-# Remove specific contact
-remove_contact("old_contact")
+# Find contacts with partial names
+find_contact("lhergt")      # Finds lukas-hergt
+find_contact("handley")     # Finds will-handley-*, mike-handley-*, etc.
+find_contact("partiii")     # Finds partiii groups
 ```""")
-def remove_contact(alias: str) -> str:
+def find_contact(query: str, max_results: int = 10, config_file: str = None) -> str:
+    """Find contacts using fuzzy matching."""
+    
+    if not query:
+        raise ValueError("Search query is required")
+    
+    matches = _find_contact_fuzzy(query, max_results, config_file)
+    
+    if not matches:
+        return f"No contacts found matching '{query}'"
+    
+    return f"Fuzzy matches for '{query}':\n" + "\n".join(f"- {match}" for match in matches)
+
+
+@mcp.tool(description="""Interactive contact selection using fzf fuzzy finder.
+
+Opens fzf interface for interactive contact selection. Much more powerful than text-based search.
+
+Examples:
+```python
+# Interactive contact picker
+select_contact()
+
+# Start with a query
+select_contact("handley")
+```""")
+def select_contact(query: str = "", config_file: str = None) -> str:
+    """Interactive contact selection using fzf."""
+    from pyfzf.pyfzf import FzfPrompt
+    
+    contacts = _get_all_contacts(config_file)
+    if not contacts:
+        return "No contacts found in address book"
+    
+    fzf = FzfPrompt()
+    selection = fzf.prompt(
+        contacts,
+        f'--query="{query}" --height=40% --preview="echo {{}}" --preview-window=right:30%'
+    )
+    
+    if selection:
+        return f"Selected contact:\n{selection}"
+    else:
+        return "No contact selected"
+
+
+@mcp.tool(description="""Remove contact from mutt address book with fuzzy matching.
+
+Removes a contact by alias name. If exact match not found, shows fuzzy matches.
+
+Examples:
+```python
+# Remove exact contact
+remove_contact("lukas-hergt")
+
+# Fuzzy matching helps with partial names
+remove_contact("lhergt")  # Will find lukas-hergt
+```""")
+def remove_contact(alias: str, config_file: str = None) -> str:
     """Remove a contact from mutt's address book."""
     
     if not alias:
         raise ValueError("Alias is required")
     
-    # Clean up alias to match what was stored
-    clean_alias = alias.lower().replace(' ', '_').replace('-', '_')
+    # Use alias as-is for exact match first
+    clean_alias = alias.lower()
     
     # Determine file path
-    alias_file = get_mutt_alias_file()
+    alias_file = get_mutt_alias_file(config_file)
     
     if not alias_file.exists():
         return "No mutt alias file found"
@@ -626,12 +723,25 @@ def remove_contact(alias: str) -> str:
         with open(alias_file, 'r') as f:
             lines = f.readlines()
         
-        # Filter out the contact to remove
+        # Try exact match first
         target_line = f"alias {clean_alias} "
         filtered_lines = [line for line in lines if not line.startswith(target_line)]
         
         if len(filtered_lines) == len(lines):
-            return f"Contact '{clean_alias}' not found"
+            # No exact match, try fuzzy matching
+            fuzzy_matches = _find_contact_fuzzy(alias, max_results=5, config_file=config_file)
+            if not fuzzy_matches:
+                return f"Contact '{clean_alias}' not found"
+            elif len(fuzzy_matches) == 1:
+                # Single fuzzy match, remove it
+                fuzzy_alias = fuzzy_matches[0].split()[1]  # Extract alias from "alias name ..."
+                target_line = f"alias {fuzzy_alias} "
+                filtered_lines = [line for line in lines if not line.startswith(target_line)]
+                clean_alias = fuzzy_alias  # Update for return message
+            else:
+                # Multiple matches, ask user to be more specific
+                matches_str = "\n".join(f"- {match}" for match in fuzzy_matches)
+                return f"Multiple matches found for '{alias}':\n{matches_str}\n\nPlease be more specific."
         
         # Write back filtered contents
         with open(alias_file, 'w') as f:

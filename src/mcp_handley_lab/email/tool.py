@@ -26,9 +26,12 @@ def _run_command(cmd: List[str], input_text: Optional[str] = None, cwd: Optional
         raise RuntimeError(f"Command '{cmd[0]}' not found. Please install {cmd[0]}.")
 
 
-def _parse_msmtprc() -> List[str]:
-    """Parse ~/.msmtprc to extract account names."""
-    msmtprc_path = Path.home() / ".msmtprc"
+def _parse_msmtprc(config_file: str = None) -> List[str]:
+    """Parse msmtp config to extract account names."""
+    if config_file:
+        msmtprc_path = Path(config_file)
+    else:
+        msmtprc_path = Path.home() / ".msmtprc"
     if not msmtprc_path.exists():
         return []
     
@@ -89,9 +92,9 @@ def send(
 
 
 @mcp.tool(description="List available msmtp accounts from ~/.msmtprc.")
-def list_accounts() -> str:
-    """List available msmtp accounts by parsing ~/.msmtprc."""
-    accounts = _parse_msmtprc()
+def list_accounts(config_file: str = None) -> str:
+    """List available msmtp accounts by parsing msmtp config."""
+    accounts = _parse_msmtprc(config_file)
     
     if not accounts:
         return "No msmtp accounts found in ~/.msmtprc"
@@ -119,12 +122,12 @@ def sync(account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Get offlineimap sync status and information.")
-def sync_status() -> str:
+def sync_status(config_file: str = None) -> str:
     """Check offlineimap sync status."""
     # Try to get basic account info
     try:
         # Check if offlineimap config exists
-        config_path = Path.home() / ".offlineimaprc"
+        config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
         if not config_path.exists():
             return "No offlineimap configuration found at ~/.offlineimaprc"
         
@@ -136,7 +139,7 @@ def sync_status() -> str:
 
 
 @mcp.tool(description="Get information about configured email repositories.")
-def repo_info() -> str:
+def repo_info(config_file: str = None) -> str:
     """Get information about configured offlineimap repositories."""
     try:
         output = _run_command(["offlineimap", "--info"])
@@ -320,7 +323,7 @@ def tag(message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[s
 
 
 @mcp.tool(description="Check email tool server status and verify tool availability.")
-def server_info() -> str:
+def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
     status = ["Email Tool Server Status:"]
     
@@ -336,7 +339,8 @@ def server_info() -> str:
     # Check offlineimap
     try:
         offlineimap_version = _run_command(["offlineimap", "--version"]).split('\n')[0]
-        config_exists = (Path.home() / ".offlineimaprc").exists()
+        config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
+        config_exists = config_path.exists()
         status.append(f"✓ offlineimap: {offlineimap_version}")
         status.append(f"  Config: {'found' if config_exists else 'not found'}")
     except RuntimeError as e:

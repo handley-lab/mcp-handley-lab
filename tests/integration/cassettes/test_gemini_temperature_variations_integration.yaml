@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is 3+3? Answer with just the number."}],
+    body: '{"contents": [{"parts": [{"text": "Say exactly: DETERMINISTIC_TEST"}],
       "role": "user"}], "generationConfig": {"temperature": 0.0, "maxOutputTokens":
       65536}}'
     headers:
@@ -11,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '166'
+      - '156'
       content-type:
       - application/json
       host:
@@ -25,24 +25,24 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"6\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 14,\n    \"candidatesTokenCount\":
-        1,\n    \"totalTokenCount\": 51,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 36\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"PzpiaIDXMOz_nsEPk4iegAQ\"\n}\n"
+        [\n          {\n            \"text\": \"DETERMINISTIC_TEST\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        8,\n    \"candidatesTokenCount\": 6,\n    \"totalTokenCount\": 38,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 8\n      }\n
+        \   ],\n    \"thoughtsTokenCount\": 24\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"bTpiaKr3M73PnsEPr5Hv8Ak\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:18:23 GMT
+      - Mon, 30 Jun 2025 07:19:09 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=701
+      - gfet4t7; dur=906
       Transfer-Encoding:
       - chunked
       Vary:
@@ -56,7 +56,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '542'
+      - '557'
     status:
       code: 200
       message: OK

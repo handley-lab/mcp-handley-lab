@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": "What is in this JSON file?\n\n[File:
-      tmpr_4g98g7.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}], "model":
+      tmpf4eql1x_.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}], "model":
       "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
@@ -40,33 +40,31 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BnqVRRNmU1Rnnc2LBcQ9QVeoAiIqj\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751219605,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bo35qsxjgIXRbVNAFV2dtN6kCPmhN\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751267990,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"The JSON file you provided contains
-        a simple structure with two key-value pairs. Here's a breakdown of its contents:\\n\\n-
-        **\\\"test\\\": \\\"data\\\"**: This is a key-value pair where the key is
-        \\\"test\\\" and the value is the string \\\"data\\\".\\n  \\n- **\\\"numbers\\\":
-        [1, 2, 3]**: This is another key-value pair where the key is \\\"numbers\\\"
-        and the value is an array containing three integers: 1, 2, and 3.\\n\\nIn
-        summary, the JSON file represents an object with two properties: one is a
-        string and the other is an array of numbers.\",\n        \"refusal\": null,\n
+        a simple JSON structure with two key-value pairs. Here's a breakdown of its
+        contents:\\n\\n1. **Key**: `\\\"test\\\"`\\n   - **Value**: `\\\"data\\\"`
+        (a string)\\n\\n2. **Key**: `\\\"numbers\\\"`\\n   - **Value**: `[1, 2, 3]`
+        (an array of numbers)\\n\\nIn summary, the JSON file represents an object
+        with a string property and an array of numbers.\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
         \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 45,\n    \"completion_tokens\":
-        130,\n    \"total_tokens\": 175,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        95,\n    \"total_tokens\": 140,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 9577488719b25f17-LHR
+      - 957be5c9bb8694ae-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 29 Jun 2025 17:53:27 GMT
+      - Mon, 30 Jun 2025 07:19:51 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -80,17 +78,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1329'
+      - '1172'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1739'
+      - '1781'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1741'
+      - '1784'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -104,7 +102,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_c5773ecf159dd8ebc7b97b1123d5cae0
+      - req_30cde6e2ce8792968391033ceaeaa495
     status:
       code: 200
       message: OK

@@ -1,0 +1,139 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Remember that I''m learning multiplication
+      tables. What is 6 x 7?"}], "role": "user"}], "systemInstruction": {"parts":
+      [{"text": "You are a math tutor who always shows your work step by step"}],
+      "role": "user"}, "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '313'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Hello! I can definitely help you with
+        that.\\n\\nTo find out what **6 x 7** is, we can think of it as adding the
+        number 6, seven times:\\n\\n6 + 6 + 6 + 6 + 6 + 6 + 6 = 42\\n\\nOr, we can
+        think of it as adding the number 7, six times:\\n\\n7 + 7 + 7 + 7 + 7 + 7
+        = 42\\n\\nSo, **6 x 7 = 42**\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\":
+        114,\n    \"totalTokenCount\": 181,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 32\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 35\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"aTpiaNjZHZOE7M8Pu_i--Qk\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 30 Jun 2025 07:19:05 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=2693
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '824'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"contents": [{"parts": [{"text": "Remember that I''m learning multiplication
+      tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "Hello! I can
+      definitely help you with that.\n\nTo find out what **6 x 7** is, we can think
+      of it as adding the number 6, seven times:\n\n6 + 6 + 6 + 6 + 6 + 6 + 6 = 42\n\nOr,
+      we can think of it as adding the number 7, six times:\n\n7 + 7 + 7 + 7 + 7 +
+      7 = 42\n\nSo, **6 x 7 = 42**"}], "role": "model"}, {"parts": [{"text": "Now
+      test me: what multiplication problem did I just ask about?"}], "role": "user"}],
+      "systemInstruction": {"parts": [{"text": "You are a math tutor who always shows
+      your work step by step"}], "role": "user"}, "generationConfig": {"temperature":
+      0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '742'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Great question! It's good to review.\\n\\nThe
+        multiplication problem we just talked about was:\\n\\n**6 x 7**\\n\\nCan you
+        tell me what the answer was again?\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 161,\n    \"candidatesTokenCount\":
+        38,\n    \"totalTokenCount\": 242,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 161\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 43\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"azpiaKq5B4W1nsEP0ovhaQ\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 30 Jun 2025 07:19:07 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=1600
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '695'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,8 +1,11 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
-      the number."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
-      0.0}'
+    body: '{"messages": [{"role": "user", "content": "What framework should I use
+      for the calculator based on these files?\n\n[File: instructions.txt]\nBuild
+      a calculator app using FRAMEWORK_X\n\n[File: config.json]\n{\"framework\": \"FRAMEWORK_X\",
+      \"version\": \"2.1\", \"features\": [\"math\", \"gui\"]}\n\nNote: FRAMEWORK_X
+      is the recommended choice for this project"}], "model": "gpt-4o-mini", "max_tokens":
+      16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -11,7 +14,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '143'
+      - '418'
       content-type:
       - application/json
       host:
@@ -31,7 +34,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '0'
+      - '1'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -40,34 +43,33 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35p6Akh8eQa751texPpkqk0Mded\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267989,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bo36DoDAjHLawJRrCmfegvz1Zp2Lp\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751268013,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"4\",\n        \"refusal\": null,\n
-        \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 20,\n    \"completion_tokens\":
-        1,\n    \"total_tokens\": 21,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"assistant\",\n        \"content\": \"Based on the provided files, you should
+        use **FRAMEWORK_X** for building your calculator app. According to `instructions.txt`,
+        it explicitly states to use FRAMEWORK_X, and `config.json` also confirms that
+        FRAMEWORK_X is the recommended framework, specifying its version as 2.1 and
+        listing features like \\\"math\\\" and \\\"gui\\\" that you might find useful
+        for your project.\",\n        \"refusal\": null,\n        \"annotations\":
+        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
+        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 79,\n    \"completion_tokens\":
+        79,\n    \"total_tokens\": 158,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5c46b3e7778-LHR
+      - 957be6518a7893e5-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:49 GMT
+      - Mon, 30 Jun 2025 07:20:15 GMT
       Server:
       - cloudflare
-      Set-Cookie:
-      - __cf_bm=4773VOj4AJo431OXzXS3p8P9ziChB4ukr0aCFpzlLQM-1751267989-1.0.1.1-ixepDqmG6OCyBNRNMXYTsCkKvo12a85mi6g2OIi4dgXpiqcqiGXGyR.sHcK7WW7wtol2hf5YgJprlgT5der6Wg2WlU6Qe_Spdd0NmbtRDqo;
-        path=/; expires=Mon, 30-Jun-25 07:49:49 GMT; domain=.api.openai.com; HttpOnly;
-        Secure; SameSite=None
-      - _cfuvid=ePkz.zsdvv2P0ZTbYkaE5aJ4lwz7Sqs8p2hY3HaF2Nc-1751267989450-0.0.1.1-604800000;
-        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -79,17 +81,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '807'
+      - '1176'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '140'
+      - '1579'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '142'
+      - '1583'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -97,13 +99,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999987'
+      - '149999923'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_911fc9261961b246912123747644a7f2
+      - req_ab3d41f90c42d549eaa673067c5952e9
     status:
       code: 200
       message: OK

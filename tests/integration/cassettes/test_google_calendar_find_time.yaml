@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"timeMin": "2025-06-29T18:53:23.693433Z", "timeMax": "2025-07-06T18:53:23.693433Z",
+    body: '{"timeMin": "2025-06-30T14:01:32.119117Z", "timeMax": "2025-07-07T14:01:32.119117Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -19,10 +19,11 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/freeBusy?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-06-29T18:53:23.693Z\",\n
-        \"timeMax\": \"2025-07-06T18:53:23.693Z\",\n \"calendars\": {\n  \"primary\":
-        {\n   \"busy\": [\n    {\n     \"start\": \"2025-06-30T14:00:00Z\",\n     \"end\":
-        \"2025-06-30T15:00:00Z\"\n    }\n   ]\n  }\n }\n}\n"
+      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-06-30T14:01:32.119Z\",\n
+        \"timeMax\": \"2025-07-07T14:01:32.119Z\",\n \"calendars\": {\n  \"primary\":
+        {\n   \"busy\": [\n    {\n     \"start\": \"2025-06-30T14:01:32Z\",\n     \"end\":
+        \"2025-06-30T15:00:00Z\"\n    },\n    {\n     \"start\": \"2025-07-01T14:00:00Z\",\n
+        \    \"end\": \"2025-07-01T15:00:00Z\"\n    }\n   ]\n  }\n }\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
@@ -31,7 +32,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 29 Jun 2025 17:53:23 GMT
+      - Mon, 30 Jun 2025 13:01:33 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -51,7 +52,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '255'
+      - '341'
       x-l2-request-path:
       - l2-managed-14
     status:

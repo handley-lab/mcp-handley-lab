@@ -309,7 +309,7 @@ async def ask(
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file or not output_file.strip():
         raise ValueError("Output file is required")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     try:
@@ -455,7 +455,7 @@ async def analyze_image(
         raise ValueError("Output file is required")
     if not image_data and not images:
         raise ValueError("Either image_data or images must be provided")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     try:
@@ -590,7 +590,7 @@ async def generate_image(
     # Input validation
     if not prompt or not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
-    if agent_name is not None and not agent_name.strip():
+    if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
     
     try:

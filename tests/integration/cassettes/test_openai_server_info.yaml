@@ -197,13 +197,13 @@ interactions:
         \"openai-internal\"\n    }\n  ]\n}"
     headers:
       CF-RAY:
-      - 95774908bf44ef27-LHR
+      - 957be6378850593c-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 29 Jun 2025 17:53:47 GMT
+      - Mon, 30 Jun 2025 07:20:08 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -217,13 +217,13 @@ interactions:
       content-length:
       - '10975'
       openai-processing-ms:
-      - '490'
+      - '174'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-request-id:
-      - f64ad6934a10d9dfe312c13b07652c6c
+      - c11ef0a220475daa00b49a083f8050a9
     status:
       code: 200
       message: OK

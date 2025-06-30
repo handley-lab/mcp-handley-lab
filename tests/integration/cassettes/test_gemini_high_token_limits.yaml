@@ -25,34 +25,35 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Photosynthesis is the vital process
-        by which **plants** (and some other organisms like algae) create their own
-        food.\\n\\nHere's a brief breakdown:\\n\\n1.  **Ingredients:** Plants take
-        in **carbon dioxide** from the air through tiny pores in their leaves, and
-        **water** from the soil through their roots.\\n2.  **Energy Source:** They
-        use **sunlight** as the energy source.\\n3.  **The \\\"Cookbook\\\":** This
-        all happens in specialized structures within their cells called **chloroplasts**,
-        which contain a green pigment called **chlorophyll**. Chlorophyll is what
-        captures the sunlight.\\n4.  **The Transformation:** Inside the chloroplasts,
-        the plant uses the captured light energy to convert the carbon dioxide and
-        water into **glucose** (a type of sugar, which is the plant's food\"\n          }\n
-        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
-        \"MAX_TOKENS\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n
-        \   \"promptTokenCount\": 10,\n    \"candidatesTokenCount\": 174,\n    \"totalTokenCount\":
-        1008,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 10\n      }\n    ],\n    \"thoughtsTokenCount\": 824\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"jn1haJ79N_P6xs0P4PKFyQs\"\n}\n"
+        [\n          {\n            \"text\": \"Photosynthesis is the process plants
+        use to **create their own food** (sugars) for energy and growth.\\n\\nHere's
+        how it works:\\n\\n1.  **Ingredients:** Plants take in **carbon dioxide**
+        from the air (through tiny pores in their leaves), **water** from the soil
+        (through their roots), and absorb **sunlight** (using a green pigment called
+        chlorophyll, primarily in their leaves).\\n2.  **The \\\"Cookbook\\\":** Using
+        the energy from sunlight, the plant converts the carbon dioxide and water
+        into **glucose** (a type of sugar), which is its food.\\n3.  **Byproduct:**
+        As a \\\"waste product\\\" of this process, **oxygen** is released into the
+        atmosphere.\\n\\nIn essence, plants convert light energy into chemical energy,
+        forming the basis of most life on Earth by producing both food for themselves
+        and oxygen for us to breathe.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
+        187,\n    \"totalTokenCount\": 954,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 757\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"ZTpiaK6iB7y9kdUPu_W48Qk\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 29 Jun 2025 17:53:18 GMT
+      - Mon, 30 Jun 2025 07:19:01 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=5595
+      - gfet4t7; dur=5099
       Transfer-Encoding:
       - chunked
       Vary:
@@ -66,7 +67,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1328'
+      - '1360'
     status:
       code: 200
       message: OK

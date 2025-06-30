@@ -25,25 +25,25 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Today's date is Friday, June 27, 2025.\"\n
-        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
-        \"STOP\",\n      \"index\": 0,\n      \"groundingMetadata\": {}\n    }\n  ],\n
-        \ \"usageMetadata\": {\n    \"promptTokenCount\": 8,\n    \"candidatesTokenCount\":
-        18,\n    \"totalTokenCount\": 53,\n    \"promptTokensDetails\": [\n      {\n
+        [\n          {\n            \"text\": \"The current date today is Monday,
+        June 30, 2025.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        \     \"finishReason\": \"STOP\",\n      \"index\": 0,\n      \"groundingMetadata\":
+        {}\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 8,\n    \"candidatesTokenCount\":
+        18,\n    \"totalTokenCount\": 67,\n    \"promptTokensDetails\": [\n      {\n
         \       \"modality\": \"TEXT\",\n        \"tokenCount\": 8\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 27\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"dn1haK-TJNL5vdIP9syO0A0\"\n}\n"
+        \   \"thoughtsTokenCount\": 41\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"RTpiaKrfCJ3NkdUP3PuLQQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 29 Jun 2025 17:52:54 GMT
+      - Mon, 30 Jun 2025 07:18:29 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=905
+      - gfet4t7; dur=1851
       Transfer-Encoding:
       - chunked
       Vary:
@@ -57,7 +57,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '609'
+      - '618'
     status:
       code: 200
       message: OK

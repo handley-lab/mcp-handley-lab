@@ -16,9 +16,9 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p337tb3f0hebos0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p337rfoeipmc8s0o\\\"\",\n
         \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-06-29T16:52:19.742Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"updated\": \"2025-06-30T07:19:48.233Z\",\n \"timeZone\": \"Europe/London\",\n
         \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
         \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
     headers:
@@ -29,9 +29,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 29 Jun 2025 17:53:21 GMT
+      - Mon, 30 Jun 2025 13:01:31 GMT
       Expires:
-      - Sun, 29 Jun 2025 17:53:21 GMT
+      - Mon, 30 Jun 2025 13:01:31 GMT
       Server:
       - ESF
       Transfer-Encoding:

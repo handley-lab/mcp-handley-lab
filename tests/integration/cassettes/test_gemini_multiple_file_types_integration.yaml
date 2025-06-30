@@ -1,7 +1,9 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What data is in this JSON file?"}, {"text":
-      "[File: tmpvpub_z4_.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}],
+    body: '{"contents": [{"parts": [{"text": "What project name appears in both files?"},
+      {"text": "[File: test.txt]\nThis is a test text file with important data: PROJECT_X"},
+      {"text": "[File: test.json]\n{\"project\": \"PROJECT_X\", \"status\": \"active\",
+      \"count\": 42}"}, {"text": "Additional context: PROJECT_X is the main project"}],
       "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
       65536}}'
     headers:
@@ -12,7 +14,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '240'
+      - '415'
       content-type:
       - application/json
       host:
@@ -26,27 +28,25 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The JSON file contains a single JSON
-        object with the following data:\\n\\n*   A key named `\\\"test\\\"` with the
-        string value `\\\"data\\\"`.\\n*   A key named `\\\"numbers\\\"` with an array
-        containing the integers `1`, `2`, and `3`.\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 40,\n    \"candidatesTokenCount\":
-        55,\n    \"totalTokenCount\": 504,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 40\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 409\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"RzpiaJKoKOmlkdUPjerKUA\"\n}\n"
+        [\n          {\n            \"text\": \"The project name that appears in both
+        files is **PROJECT_X**.\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
+        \ \"usageMetadata\": {\n    \"promptTokenCount\": 69,\n    \"candidatesTokenCount\":
+        14,\n    \"totalTokenCount\": 400,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 69\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 317\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"bDpiaNjPN8iynsEP6diZ4Ak\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:18:31 GMT
+      - Mon, 30 Jun 2025 07:19:08 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=2438
+      - gfet4t7; dur=1694
       Transfer-Encoding:
       - chunked
       Vary:
@@ -60,7 +60,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '763'
+      - '605'
     status:
       code: 200
       message: OK

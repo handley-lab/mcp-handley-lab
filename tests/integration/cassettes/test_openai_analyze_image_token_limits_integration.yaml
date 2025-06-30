@@ -1,8 +1,9 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
-      the number."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
-      0.0}'
+    body: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "What
+      color is this image? Just say the color."}, {"type": "image_url", "image_url":
+      {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAE0lEQVR4nGP8/58BD2DCJzlypQF0BwISHGyJPgAAAABJRU5ErkJggg=="}}]}],
+      "model": "gpt-4o", "max_tokens": 30}'
     headers:
       accept:
       - application/json
@@ -11,7 +12,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '143'
+      - '316'
       content-type:
       - application/json
       host:
@@ -31,7 +32,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '0'
+      - '1'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -40,34 +41,28 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35p6Akh8eQa751texPpkqk0Mded\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267989,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bo36h5OIIRVUEjeIMMFmuTnyBtQ9u\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751268043,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"4\",\n        \"refusal\": null,\n
+        \"assistant\",\n        \"content\": \"Yellow.\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 20,\n    \"completion_tokens\":
-        1,\n    \"total_tokens\": 21,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 273,\n    \"completion_tokens\":
+        2,\n    \"total_tokens\": 275,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+        \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5c46b3e7778-LHR
+      - 957be7150d299532-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:49 GMT
+      - Mon, 30 Jun 2025 07:20:43 GMT
       Server:
       - cloudflare
-      Set-Cookie:
-      - __cf_bm=4773VOj4AJo431OXzXS3p8P9ziChB4ukr0aCFpzlLQM-1751267989-1.0.1.1-ixepDqmG6OCyBNRNMXYTsCkKvo12a85mi6g2OIi4dgXpiqcqiGXGyR.sHcK7WW7wtol2hf5YgJprlgT5der6Wg2WlU6Qe_Spdd0NmbtRDqo;
-        path=/; expires=Mon, 30-Jun-25 07:49:49 GMT; domain=.api.openai.com; HttpOnly;
-        Secure; SameSite=None
-      - _cfuvid=ePkz.zsdvv2P0ZTbYkaE5aJ4lwz7Sqs8p2hY3HaF2Nc-1751267989450-0.0.1.1-604800000;
-        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -79,31 +74,37 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '807'
+      - '810'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '140'
+      - '364'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '142'
+      - '339'
+      x-ratelimit-limit-input-images:
+      - '250000'
       x-ratelimit-limit-requests:
-      - '30000'
+      - '10000'
       x-ratelimit-limit-tokens:
-      - '150000000'
+      - '30000000'
+      x-ratelimit-remaining-input-images:
+      - '249999'
       x-ratelimit-remaining-requests:
-      - '29999'
+      - '9999'
       x-ratelimit-remaining-tokens:
-      - '149999987'
-      x-ratelimit-reset-requests:
-      - 2ms
-      x-ratelimit-reset-tokens:
+      - '29999220'
+      x-ratelimit-reset-input-images:
       - 0s
+      x-ratelimit-reset-requests:
+      - 6ms
+      x-ratelimit-reset-tokens:
+      - 1ms
       x-request-id:
-      - req_911fc9261961b246912123747644a7f2
+      - req_b45d6f77e0ee6cca722dda7a39cf505f
     status:
       code: 200
       message: OK

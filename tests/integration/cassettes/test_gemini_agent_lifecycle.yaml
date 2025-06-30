@@ -27,24 +27,23 @@ interactions:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"Okay, I've noted that your favorite
-        color is blue! I'll remember that.\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 13,\n    \"candidatesTokenCount\":
-        19,\n    \"totalTokenCount\": 69,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 13\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 37\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"en1haLuFCunYvdIPn9jNsAg\"\n}\n"
+        color is blue!\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
+        {\n    \"promptTokenCount\": 13,\n    \"candidatesTokenCount\": 13,\n    \"totalTokenCount\":
+        66,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 13\n      }\n    ],\n    \"thoughtsTokenCount\": 40\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"SDpiaNytOtzInsEPjLOz6Qk\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 29 Jun 2025 17:52:58 GMT
+      - Mon, 30 Jun 2025 07:18:32 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=673
+      - gfet4t7; dur=1171
       Transfer-Encoding:
       - chunked
       Vary:
@@ -58,7 +57,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '612'
+      - '592'
     status:
       code: 200
       message: OK

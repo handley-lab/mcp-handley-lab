@@ -203,49 +203,30 @@ async def list_files(arxiv_id: str) -> list[str]:
 
 def _parse_arxiv_entry(entry: ET.Element) -> Dict[str, Any]:
     """Parse a single ArXiv entry from the Atom feed."""
-    # Define namespaces
-    ns = {
-        'atom': 'http://www.w3.org/2005/Atom',
-        'arxiv': 'http://arxiv.org/schemas/atom'
-    }
+    ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
     
+    def find_text(path, default=""):
+        elem = entry.find(path, ns)
+        return elem.text.strip() if elem is not None and elem.text else default
+
     # Extract basic information
-    title = entry.find('atom:title', ns).text.strip() if entry.find('atom:title', ns) is not None else ""
-    summary = entry.find('atom:summary', ns).text.strip() if entry.find('atom:summary', ns) is not None else ""
-    
-    # Extract ArXiv ID from the ID field
-    id_elem = entry.find('atom:id', ns)
-    arxiv_id = ""
-    if id_elem is not None:
-        # Extract ID from URL like "http://arxiv.org/abs/2301.07041v1"
-        arxiv_id = id_elem.text.split('/')[-1].replace('v1', '').replace('v2', '').replace('v3', '')
-    
-    # Extract authors
-    authors = []
-    for author in entry.findall('atom:author', ns):
-        name_elem = author.find('atom:name', ns)
-        if name_elem is not None:
-            authors.append(name_elem.text)
+    title = find_text('atom:title')
+    summary = find_text('atom:summary')
+    id_text = find_text('atom:id')
+    arxiv_id = id_text.split('/')[-1].split('v')[0] if id_text else ""
+    authors = [author.text for author in entry.findall('atom:author/atom:name', ns) if author.text]
     
     # Extract published date
-    published = entry.find('atom:published', ns)
-    published_date = ""
-    if published is not None:
-        try:
-            # Parse ISO format date
-            dt = datetime.fromisoformat(published.text.replace('Z', '+00:00'))
-            published_date = dt.strftime('%Y-%m-%d')
-        except:
-            published_date = published.text
+    published_text = find_text('atom:published')
+    try:
+        dt = datetime.fromisoformat(published_text.replace('Z', '+00:00'))
+        published_date = dt.strftime('%Y-%m-%d')
+    except:
+        published_date = published_text
     
-    # Extract categories
-    categories = []
-    for category in entry.findall('atom:category', ns):
-        term = category.get('term')
-        if term:
-            categories.append(term)
+    # Extract categories and links
+    categories = [cat.get('term') for cat in entry.findall('atom:category', ns) if cat.get('term')]
     
-    # Extract links
     pdf_url = ""
     abs_url = ""
     for link in entry.findall('atom:link', ns):

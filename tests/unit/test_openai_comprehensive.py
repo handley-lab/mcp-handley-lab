@@ -10,10 +10,11 @@ from unittest.mock import patch, Mock, MagicMock, mock_open, AsyncMock
 from PIL import Image
 
 from mcp_handley_lab.llm.openai.tool import (
-    ask, analyze_image, generate_image, get_response, server_info,
+    ask, analyze_image, generate_image, server_info,
     _resolve_files, _resolve_images, _handle_agent_and_usage,
     _get_model_config, MODEL_CONFIGS, client
 )
+from mcp_handley_lab.agent.tool import get_response
 
 
 @pytest.fixture
@@ -508,7 +509,7 @@ class TestErrorHandlingComprehensive:
 class TestGetResponse:
     """Test get_response function."""
     
-    @patch('mcp_handley_lab.llm.openai.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_success(self, mock_memory_manager):
         """Test successful response retrieval."""
@@ -518,7 +519,7 @@ class TestGetResponse:
         assert result == "Test response"
         mock_memory_manager.get_response.assert_called_once_with("test_agent", 0)
     
-    @patch('mcp_handley_lab.llm.openai.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_agent_not_found(self, mock_memory_manager):
         """Test get_response when agent doesn't exist."""
@@ -528,7 +529,7 @@ class TestGetResponse:
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
             await get_response("nonexistent")
     
-    @patch('mcp_handley_lab.llm.openai.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_no_message(self, mock_memory_manager):
         """Test get_response when message doesn't exist."""

@@ -639,35 +639,6 @@ async def generate_image(
         raise RuntimeError(f"DALL-E API error: {e}")
 
 
-@mcp.tool(description="""Retrieves a specific message from an agent's conversation history by index.
-
-Index Usage:
-- -1 (default): Last/most recent message
-- 0: First message in history  
-- Positive integers: Specific message position
-
-Example:
-```python
-# Get the last response
-get_response("code_mentor")
-
-# Get the first message
-get_response("code_mentor", index=0)
-
-# Get third message
-get_response("code_mentor", index=2)
-```""")
-async def get_response(agent_name: str, index: int = -1) -> str:
-    """Get a message from an agent's conversation history by index."""
-    response = memory_manager.get_response(agent_name, index)
-    if response is None:
-        if memory_manager.get_agent(agent_name) is None:
-            raise ValueError(f"Agent '{agent_name}' not found")
-        else:
-            raise ValueError(f"No message found at index {index}")
-    
-    return response
-
 
 @mcp.tool(description="""Checks the status of the OpenAI Tool server and API connectivity.
 

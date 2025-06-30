@@ -8,21 +8,20 @@ from pathlib import Path
 def get_available_tools():
     """Discover available tools by finding directories with tool.py files."""
     tools_dir = Path(__file__).parent
-    tools = []
     
-    # Check direct tool directories
-    for item in tools_dir.iterdir():
-        if item.is_dir() and (item / "tool.py").exists():
-            tools.append(item.name)
-    
-    # Check LLM subdirectories
-    llm_dir = tools_dir / "llm"
-    if llm_dir.exists():
-        for item in llm_dir.iterdir():
-            if item.is_dir() and (item / "tool.py").exists():
-                tools.append(f"llm.{item.name}")
-    
-    return sorted(tools)
+    def find_tools_recursive(base_dir: Path, prefix=""):
+        tools = []
+        for item in base_dir.iterdir():
+            if not item.is_dir():
+                continue
+            if (item / "tool.py").exists():
+                tools.append(f"{prefix}{item.name}")
+            else:
+                # Recurse into subdirectories that don't contain a tool.py
+                tools.extend(find_tools_recursive(item, prefix=f"{prefix}{item.name}."))
+        return tools
+
+    return sorted(find_tools_recursive(tools_dir))
 
 
 def show_help():

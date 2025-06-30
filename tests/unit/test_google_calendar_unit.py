@@ -200,8 +200,8 @@ class TestEventUpdate:
             'end': {'dateTime': '2024-06-24T11:00:00Z'}
         }
         
-        # Mock update()
-        mock_events.update.return_value.execute.return_value = {
+        # Mock patch()
+        mock_events.patch.return_value.execute.return_value = {
             'id': event_id,
             'summary': updates.get('summary', event_summary),
             'htmlLink': 'https://calendar.google.com/event?eid=updated'
@@ -210,7 +210,6 @@ class TestEventUpdate:
         mock_get_service.return_value = mock_service
         
         result = await update_event(
-            event_summary=event_summary,
             event_id=event_id,
             **updates
         )
@@ -218,8 +217,7 @@ class TestEventUpdate:
         assert isinstance(result, str)
         assert len(result) > 0
         assert "updated" in result.lower() or "success" in result.lower()
-        mock_events.get.assert_called_once()
-        mock_events.update.assert_called_once()
+        mock_events.patch.assert_called_once()
 
 
 class TestCalendarErrorHandling:
@@ -360,12 +358,11 @@ class TestCalendarServiceOperations:
         mock_events.delete.return_value.execute.return_value = {}
         mock_get_service.return_value = mock_service
         
-        result = await delete_event(event_summary="Test Event", event_id="test_event")
+        result = await delete_event(event_id="test_event")
         
         assert isinstance(result, str)
         assert len(result) > 0
         assert "deleted" in result.lower()
-        mock_events.get.assert_called_once()
         mock_events.delete.assert_called_once()
     
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')

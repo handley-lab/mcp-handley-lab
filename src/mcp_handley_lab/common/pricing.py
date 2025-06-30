@@ -5,42 +5,53 @@ from typing import Dict, Tuple
 class PricingCalculator:
     """Calculates costs for various LLM models."""
     
-    # Pricing per 1M tokens (input/output) as of January 2025
-    GEMINI_PRICING = {
-        # Gemini 2.5 models
-        "gemini-2.5-pro": (2.50, 15.00),        # pro model
-        "gemini-2.5-flash": (0.30, 2.50),       # flash model
-        "gemini-2.5-flash-lite-preview-06-17": (0.15, 1.25),  # lite model
-        
-        # Image generation
-        "imagen-3": (0.030, 0.030),             # per image
-        "imagen-3.0-generate-002": (0.030, 0.030),  # per image (full model ID)
+    PRICING_TABLES = {
+        "gemini": {
+            # Gemini 2.5 models
+            "gemini-2.5-pro": (2.50, 15.00),        # pro model
+            "gemini-2.5-flash": (0.30, 2.50),       # flash model
+            "gemini-2.5-flash-lite-preview-06-17": (0.15, 1.25),  # lite model
+            
+            # Image generation
+            "imagen-3": (0.030, 0.030),             # per image
+            "imagen-3.0-generate-002": (0.030, 0.030),  # per image (full model ID)
+        },
+        "openai": {
+            # GPT-4.1 models (latest - launched April 2025)
+            "gpt-4.1": (5.00, 15.00),        # New flagship model
+            "gpt-4.1-mini": (0.10, 0.40),    # 83% cheaper than gpt-4o
+            "gpt-4.1-nano": (0.05, 0.20),    # Fastest and cheapest
+            
+            # GPT-4o models 
+            "gpt-4o": (2.50, 10.00),
+            "gpt-4o-mini": (0.150, 0.600),
+            
+            # Legacy models
+            "gpt-4-turbo": (10.00, 30.00),
+            "gpt-4": (30.00, 60.00),
+            "gpt-3.5-turbo": (0.50, 1.50),
+            
+            # o1 models
+            "o1": (15.00, 60.00),
+            "o1-mini": (3.00, 12.00),
+            "o1-preview": (15.00, 60.00),
+            
+            # Image generation
+            "dall-e-3": (0.040, 0.040),     # per image (1024x1024 standard)
+            "dall-e-3-hd": (0.080, 0.080),  # per image (1024x1024 HD)
+            "dall-e-2": (0.020, 0.020),     # per image (1024x1024)
+        }
     }
     
-    OPENAI_PRICING = {
-        # GPT-4.1 models (latest - launched April 2025)
-        "gpt-4.1": (5.00, 15.00),        # New flagship model
-        "gpt-4.1-mini": (0.10, 0.40),    # 83% cheaper than gpt-4o
-        "gpt-4.1-nano": (0.05, 0.20),    # Fastest and cheapest
-        
-        # GPT-4o models 
-        "gpt-4o": (2.50, 10.00),
-        "gpt-4o-mini": (0.150, 0.600),
-        
-        # Legacy models
-        "gpt-4-turbo": (10.00, 30.00),
-        "gpt-4": (30.00, 60.00),
-        "gpt-3.5-turbo": (0.50, 1.50),
-        
-        # o1 models
-        "o1": (15.00, 60.00),
-        "o1-mini": (3.00, 12.00),
-        "o1-preview": (15.00, 60.00),
-        
-        # Image generation
-        "dall-e-3": (0.040, 0.040),     # per image (1024x1024 standard)
-        "dall-e-3-hd": (0.080, 0.080),  # per image (1024x1024 HD)
-        "dall-e-2": (0.020, 0.020),     # per image (1024x1024)
+    MODEL_ALIASES = {
+        "gemini": {
+            "flash": "gemini-2.5-flash",
+            "gemini-flash": "gemini-2.5-flash",
+            "pro": "gemini-2.5-pro",
+            "gemini-pro": "gemini-2.5-pro",
+            "image": "imagen-3",
+        },
+        "openai": {}
     }
     
     @classmethod
@@ -52,20 +63,17 @@ class PricingCalculator:
         provider: str = "gemini"
     ) -> float:
         """Calculate cost for token usage."""
-        pricing_table = self.GEMINI_PRICING if provider == "gemini" else self.OPENAI_PRICING
+        # Fail fast if provider is unknown
+        pricing_table = self.PRICING_TABLES[provider]
+        aliases = self.MODEL_ALIASES.get(provider, {})
         
-        # Normalize model names
-        if provider == "gemini":
-            if model in ["flash", "gemini-flash"]:
-                model = "gemini-2.5-flash"  # Use latest flash by default
-            elif model in ["pro", "gemini-pro"]:
-                model = "gemini-2.5-pro"    # Use latest pro by default
-            elif model == "image":
-                model = "imagen-3"
+        # Resolve alias
+        model = aliases.get(model, model)
         
+        # Return zero cost for unknown models
         if model not in pricing_table:
             return 0.0
-        
+            
         input_price_per_1m, output_price_per_1m = pricing_table[model]
         
         # Image models (DALL-E, Imagen) use per-image pricing

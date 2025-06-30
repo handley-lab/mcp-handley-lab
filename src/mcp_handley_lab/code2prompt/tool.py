@@ -1,5 +1,6 @@
 """Code2Prompt tool for codebase analysis via MCP."""
 import asyncio
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import List, Optional
@@ -9,22 +10,23 @@ mcp = FastMCP("Code2Prompt Tool")
 
 
 async def _run_code2prompt(args: List[str]) -> str:
-    """Runs a code2prompt command and handles errors."""
+    """Runs a code2prompt command and raises errors on failure."""
     try:
         process = await asyncio.create_subprocess_exec(
             "code2prompt", *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        
-        stdout, stderr = await process.communicate()
-        
-        if process.returncode != 0:
-            raise ValueError(f"code2prompt error: {stderr.decode('utf-8').strip()}")
-            
-        return stdout.decode('utf-8').strip()
     except FileNotFoundError:
-        raise RuntimeError("code2prompt command not found. Please install code2prompt.")
+        raise RuntimeError("code2prompt command not found")
+    
+    stdout, stderr = await process.communicate()
+    
+    if process.returncode != 0:
+        error_msg = stderr.decode('utf-8').strip()
+        raise ValueError(f"code2prompt error: {error_msg}")
+        
+    return stdout.decode('utf-8').strip()
 
 
 @mcp.tool(description="""Generates a structured, token-counted summary of a codebase and saves it to a file.

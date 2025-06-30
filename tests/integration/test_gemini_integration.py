@@ -1,7 +1,8 @@
 import pytest
 import tempfile
 from pathlib import Path
-from mcp_handley_lab.llm.gemini.tool import ask, analyze_image, generate_image, create_agent, list_agents, agent_stats, clear_agent, delete_agent, server_info
+from mcp_handley_lab.llm.gemini.tool import ask, analyze_image, generate_image, server_info
+from mcp_handley_lab.agent.tool import create_agent, list_agents, agent_stats, clear_agent, delete_agent
 
 @pytest.mark.asyncio
 @pytest.mark.vcr

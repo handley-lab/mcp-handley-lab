@@ -9,10 +9,11 @@ from PIL import Image
 import io
 
 from mcp_handley_lab.llm.openai.tool import (
-    ask, analyze_image, generate_image, get_response, server_info,
+    ask, analyze_image, generate_image, server_info,
     _resolve_files, _resolve_images, _handle_agent_and_usage,
     _get_model_config, MODEL_CONFIGS
 )
+from mcp_handley_lab.agent.tool import get_response
 from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 
 

@@ -32,7 +32,7 @@ def _resolve_data(data: Union[str, dict, list]) -> str:
 
 
 async def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    """Runs a jq command and handles errors."""
+    """Runs a jq command and raises errors on failure."""
     try:
         process = await asyncio.create_subprocess_exec(
             "jq", *args,
@@ -40,17 +40,18 @@ async def _run_jq(args: list[str], input_text: str | None = None) -> str:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        
-        # Convert input to bytes if provided
-        input_bytes = input_text.encode('utf-8') if input_text else None
-        stdout, stderr = await process.communicate(input=input_bytes)
-        
-        if process.returncode != 0:
-            raise ValueError(f"jq error: {stderr.decode('utf-8').strip()}")
-            
-        return stdout.decode('utf-8').strip()
     except FileNotFoundError:
-        raise RuntimeError("jq command not found. Please install jq.")
+        raise RuntimeError("jq command not found")
+    
+    # Convert input to bytes if provided
+    input_bytes = input_text.encode('utf-8') if input_text else None
+    stdout, stderr = await process.communicate(input=input_bytes)
+    
+    if process.returncode != 0:
+        error_msg = stderr.decode('utf-8').strip()
+        raise ValueError(f"jq error: {error_msg}")
+        
+    return stdout.decode('utf-8').strip()
 
 
 @mcp.tool(description="""Queries JSON data using a jq filter expression.

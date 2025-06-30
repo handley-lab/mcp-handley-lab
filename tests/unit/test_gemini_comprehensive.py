@@ -11,9 +11,11 @@ from PIL import Image
 
 from mcp_handley_lab.llm.gemini.tool import (
     _get_model_config, MODEL_CONFIGS, ask, analyze_image, generate_image,
-    create_agent, list_agents, agent_stats, clear_agent, delete_agent,
-    get_response, server_info, _get_session_id, _resolve_files, _resolve_images,
+    server_info, _get_session_id, _resolve_files, _resolve_images,
     _handle_agent_and_usage, client, initialization_error
+)
+from mcp_handley_lab.agent.tool import (
+    create_agent, list_agents, agent_stats, clear_agent, delete_agent, get_response
 )
 
 
@@ -220,7 +222,7 @@ class TestHandleAgentAndUsage:
 class TestAgentManagement:
     """Test agent management functions."""
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_create_agent_success(self, mock_memory_manager):
         """Test successful agent creation."""
@@ -243,7 +245,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent name is required"):
             await create_agent("   ")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_create_agent_error(self, mock_memory_manager):
         """Test agent creation error handling."""
@@ -252,7 +254,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent already exists"):
             await create_agent("existing_agent")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_list_agents_empty(self, mock_memory_manager):
         """Test listing agents when none exist."""
@@ -261,7 +263,7 @@ class TestAgentManagement:
         result = await list_agents()
         assert "No agents found" in result
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_list_agents_with_data(self, mock_memory_manager):
         """Test listing agents with data."""
@@ -284,7 +286,7 @@ class TestAgentManagement:
         assert "$0.0100" in result
         assert "Test personality" in result
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_agent_stats_success(self, mock_memory_manager):
         """Test getting agent statistics."""
@@ -304,7 +306,7 @@ class TestAgentManagement:
         assert "2024-01-01T00:00:00" in result
         assert "500" in result
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_agent_stats_not_found(self, mock_memory_manager):
         """Test getting stats for non-existent agent."""
@@ -313,7 +315,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
             await agent_stats("nonexistent")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_clear_agent_success(self, mock_memory_manager):
         """Test clearing agent history."""
@@ -323,7 +325,7 @@ class TestAgentManagement:
         assert "test_agent" in result
         assert "cleared successfully" in result
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_clear_agent_not_found(self, mock_memory_manager):
         """Test clearing non-existent agent."""
@@ -332,7 +334,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
             await clear_agent("nonexistent")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_delete_agent_success(self, mock_memory_manager):
         """Test deleting agent."""
@@ -348,7 +350,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent name is required"):
             await delete_agent("")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_delete_agent_not_found(self, mock_memory_manager):
         """Test deleting non-existent agent."""
@@ -357,7 +359,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
             await delete_agent("nonexistent")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_success(self, mock_memory_manager):
         """Test getting response from agent."""
@@ -366,7 +368,7 @@ class TestAgentManagement:
         result = await get_response("test_agent", 0)
         assert result == "Test response"
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_agent_not_found(self, mock_memory_manager):
         """Test getting response when agent doesn't exist."""
@@ -376,7 +378,7 @@ class TestAgentManagement:
         with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
             await get_response("nonexistent")
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_get_response_no_message(self, mock_memory_manager):
         """Test getting response when message doesn't exist."""
@@ -391,7 +393,7 @@ class TestImageGeneration:
     """Test image generation functionality."""
     
     @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @patch('mcp_handley_lab.llm.gemini.tool.calculate_cost')
     @patch('mcp_handley_lab.llm.gemini.tool.format_usage')
     @patch('uuid.uuid4')
@@ -892,7 +894,7 @@ class TestClientInitialization:
 class TestAgentStatsWithMessages:
     """Test agent stats with message history."""
     
-    @patch('mcp_handley_lab.llm.gemini.tool.memory_manager')
+    @patch('mcp_handley_lab.agent.tool.memory_manager')
     @pytest.mark.asyncio
     async def test_agent_stats_with_messages(self, mock_memory_manager):
         """Test getting agent statistics with message history."""
@@ -915,8 +917,7 @@ class TestAgentStatsWithMessages:
         
         result = await agent_stats("test_agent")
         assert "test_agent" in result
-        assert "2024-01-01 12:00" in result
-        assert "user:" in result
+        assert "User:" in result
         assert "This is a test message" in result
 
 

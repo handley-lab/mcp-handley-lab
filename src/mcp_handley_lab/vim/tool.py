@@ -365,15 +365,19 @@ async def server_info() -> str:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        stdout, stderr = await process.communicate()
+    except FileNotFoundError:
+        raise RuntimeError("vim command not found")
+    stdout, stderr = await process.communicate()
+    
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(
+            process.returncode, "vim --version", stderr.decode('utf-8')
+        )
         
-        if process.returncode != 0:
-            raise RuntimeError(f"vim --version failed: {stderr.decode('utf-8')}")
-            
-        # Extract first line of version info
-        version_line = stdout.decode('utf-8').split('\n')[0]
-        
-        return f"""Vim Tool Server Status
+    # Extract first line of version info
+    version_line = stdout.decode('utf-8').split('\n')[0]
+    
+    return f"""Vim Tool Server Status
 =====================
 Status: Connected and ready
 Vim Version: {version_line}
@@ -383,5 +387,3 @@ Available tools:
 - quick_edit: Create new content in vim
 - open_file: Edit existing files in vim
 - server_info: Get server status"""
-    except FileNotFoundError:
-        raise RuntimeError("vim command not found. Please install vim.")

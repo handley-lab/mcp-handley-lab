@@ -59,15 +59,14 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
         
         # Update event
         update_result = await update_event(
-            event_summary=event_title,
             event_id=event_id,
+            summary=event_title,
             description="Updated description for VCR test"
         )
         assert "updated" in update_result.lower()
         
         # Delete event
         delete_result = await delete_event(
-            event_summary=event_title,
             event_id=event_id
         )
         assert "deleted" in delete_result.lower()

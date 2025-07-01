@@ -1,4 +1,5 @@
 """Code2Prompt tool for codebase analysis via MCP."""
+import asyncio
 import tempfile
 from pathlib import Path
 from typing import List, Optional
@@ -133,8 +134,11 @@ async def generate_prompt(
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
     
-    # Run code2prompt
-    await _run_code2prompt(args)
+    # Run code2prompt with cancellation support
+    try:
+        await _run_code2prompt(args)
+    except asyncio.CancelledError:
+        raise RuntimeError("Code2prompt analysis was cancelled by user")
     
     # Get file size for reporting
     output_path = Path(output_file)

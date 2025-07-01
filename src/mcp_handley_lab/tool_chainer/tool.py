@@ -191,6 +191,16 @@ async def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict
                 "error": f"Tool execution timed out after {timeout} seconds",
                 "output": ""
             }
+        except asyncio.CancelledError:
+            # Handle cancellation gracefully
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+            return {
+                "success": False,
+                "error": "Tool execution was cancelled by user",
+                "output": ""
+            }
     
     except Exception as e:
         return {

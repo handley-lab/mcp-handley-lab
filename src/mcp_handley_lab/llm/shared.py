@@ -58,14 +58,24 @@ async def process_llm_request(
         if image_count > 0:
             user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
 
-    # Call provider-specific generation function
-    response_data = await generation_func(
-        prompt=prompt,
-        model=model,
-        history=history,
-        system_instruction=system_instruction,
-        **kwargs
-    )
+    # Call provider-specific generation function with cancellation support
+    try:
+        response_data = await generation_func(
+            prompt=prompt,
+            model=model,
+            history=history,
+            system_instruction=system_instruction,
+            **kwargs
+        )
+    except asyncio.CancelledError:
+        # Handle graceful cancellation
+        if use_memory:
+            handle_agent_memory(
+                actual_agent_name, user_prompt, "[Request cancelled by user]",
+                0, 0, 0.0,
+                lambda: actual_agent_name
+            )
+        raise RuntimeError("Request was cancelled by user")
 
     # Extract common response data
     response_text = response_data['text']

@@ -12,32 +12,43 @@ mcp = FastMCP("Vim Tool")
 
 
 async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
-    """Run vim directly using async subprocess."""
+    """Run vim directly using async subprocess with cancellation support."""
     vim_cmd = ['vim'] + (vim_args or []) + [file_path]
     
-    # Check if we have a TTY - if yes, run vim directly
-    if os.isatty(0):  # stdin is a tty
-        process = await asyncio.create_subprocess_exec(
-            *vim_cmd,
-            stdin=None,  # Use inherited stdin for TTY
-            stdout=None,  # Use inherited stdout
-            stderr=None   # Use inherited stderr
-        )
-        await process.wait()
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, vim_cmd)
-    else:
-        # No TTY available - this will happen in non-interactive environments
-        # Just run vim anyway and let it handle the situation
-        process = await asyncio.create_subprocess_exec(
-            *vim_cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        await process.wait()
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, vim_cmd)
+    try:
+        # Check if we have a TTY - if yes, run vim directly
+        if os.isatty(0):  # stdin is a tty
+            process = await asyncio.create_subprocess_exec(
+                *vim_cmd,
+                stdin=None,  # Use inherited stdin for TTY
+                stdout=None,  # Use inherited stdout
+                stderr=None   # Use inherited stderr
+            )
+            await process.wait()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, vim_cmd)
+        else:
+            # No TTY available - this will happen in non-interactive environments
+            # Just run vim anyway and let it handle the situation
+            process = await asyncio.create_subprocess_exec(
+                *vim_cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            await process.wait()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, vim_cmd)
+    except asyncio.CancelledError:
+        # If vim process exists, terminate it gracefully
+        if 'process' in locals() and process.returncode is None:
+            try:
+                process.terminate()
+                await asyncio.wait_for(process.wait(), timeout=2.0)
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+        raise RuntimeError("Vim editing was cancelled by user")
 
 
 def _handle_instructions_and_content(temp_path: str, suffix: str, instructions: str, initial_content: str) -> None:

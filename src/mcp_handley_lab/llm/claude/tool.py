@@ -1,0 +1,706 @@
+"""Claude LLM tool for AI interactions via MCP."""
+import asyncio
+import base64
+import os
+import time
+from pathlib import Path
+from typing import List, Optional, Dict, Any, Union
+
+from anthropic import AsyncAnthropic
+from mcp.server.fastmcp import FastMCP
+
+from ...common.config import settings
+from ...common.pricing import calculate_cost, format_usage
+from ...common.memory import memory_manager
+from ..common import (
+    get_session_id, determine_mime_type, is_text_file, 
+    resolve_image_data, handle_output, handle_agent_memory
+)
+from ..shared import create_client_decorator, process_llm_request
+
+mcp = FastMCP("Claude Tool")
+
+# Configure Claude client
+client = None
+initialization_error = None
+
+try:
+    client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+except Exception as e:
+    client = None
+    initialization_error = str(e)
+
+def _get_error_message():
+    return f"Claude client not initialized: {initialization_error or 'API key not configured'}"
+
+require_client = create_client_decorator(
+    lambda: client is not None,
+    _get_error_message()
+)
+
+# Model configurations with token limits from Claude documentation
+MODEL_CONFIGS = {
+    # Claude 3 Opus
+    "claude-3-opus-20240229": {"input_tokens": 200000, "output_tokens": 4096},
+    
+    # Claude 3.5 Sonnet (latest stable)
+    "claude-3-5-sonnet-20240620": {"input_tokens": 200000, "output_tokens": 8192},
+    
+    # Claude 3 Sonnet
+    "claude-3-sonnet-20240229": {"input_tokens": 200000, "output_tokens": 4096},
+    
+    # Claude 3.5 Haiku (latest stable)
+    "claude-3-5-haiku-20241022": {"input_tokens": 200000, "output_tokens": 8192},
+    
+    # Claude 3 Haiku
+    "claude-3-haiku-20240307": {"input_tokens": 200000, "output_tokens": 4096},
+}
+
+
+def _get_session_id() -> str:
+    """Get the persistent session ID for this MCP server process."""
+    return get_session_id(mcp)
+
+
+def _get_model_config(model: str) -> Dict[str, int]:
+    """Get token limits for a specific model."""
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["claude-3-5-sonnet-20240620"])
+
+
+def _convert_history_to_claude_format(history: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    """Convert generic history to Claude's expected format.
+    
+    Claude requires alternating user/assistant messages. This function validates
+    and fixes the sequence if needed.
+    """
+    if not history:
+        return []
+    
+    claude_history = []
+    last_role = None
+    
+    for message in history:
+        role = message["role"]
+        content = message["content"]
+        
+        # Skip system messages (handled separately in Claude)
+        if role == "system":
+            continue
+            
+        # If we have consecutive messages from the same role, merge them
+        if role == last_role and claude_history:
+            # Merge with previous message
+            claude_history[-1]["content"] += "\n\n" + content
+        else:
+            # Add as new message
+            claude_history.append({
+                "role": role,
+                "content": content
+            })
+            last_role = role
+    
+    # Ensure history starts with user message (Claude requirement)
+    if claude_history and claude_history[0]["role"] != "user":
+        # Prepend a placeholder user message if needed
+        claude_history.insert(0, {
+            "role": "user", 
+            "content": "[Previous conversation context]"
+        })
+    
+    return claude_history
+
+
+async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> str:
+    """Resolve file inputs to text content for Claude.
+    
+    Claude has a large context window (200K tokens), so we can include most files directly.
+    Returns a string with all file contents concatenated.
+    """
+    if not files:
+        return ""
+    
+    file_contents = []
+    
+    for file_item in files:
+        if isinstance(file_item, str):
+            # Direct content string
+            file_contents.append(file_item)
+        elif isinstance(file_item, dict):
+            if "content" in file_item:
+                # Direct content from dict
+                file_contents.append(file_item["content"])
+            elif "path" in file_item:
+                # File path - read content
+                file_path = Path(file_item["path"])
+                try:
+                    if not file_path.exists():
+                        file_contents.append(f"Error: File not found: {file_path}")
+                        continue
+                    
+                    file_size = file_path.stat().st_size
+                    
+                    # Claude can handle large files, but let's be reasonable (20MB limit)
+                    if file_size > 20 * 1024 * 1024:
+                        file_contents.append(f"Error: File too large: {file_path} ({file_size} bytes)")
+                        continue
+                    
+                    if is_text_file(file_path):
+                        # Text file - read directly
+                        content = file_path.read_text(encoding='utf-8')
+                        file_contents.append(f"[File: {file_path.name}]\n{content}")
+                    else:
+                        # Binary file - describe only (Claude doesn't need base64 for non-image files)
+                        mime_type = determine_mime_type(file_path)
+                        file_contents.append(f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]")
+                        
+                except Exception as e:
+                    file_contents.append(f"Error reading file {file_path}: {e}")
+    
+    return "\n\n".join(file_contents)
+
+
+def _resolve_images_to_content_blocks(
+    image_data: Optional[str] = None, 
+    images: Optional[List[Union[str, Dict[str, str]]]] = None
+) -> List[Dict[str, Any]]:
+    """Resolve image inputs to Claude content blocks."""
+    image_blocks = []
+    
+    # Handle single image_data parameter
+    if image_data:
+        try:
+            image_bytes = resolve_image_data(image_data)
+            # Determine media type
+            if isinstance(image_data, str) and image_data.startswith("data:image"):
+                media_type = image_data.split(";")[0].split(":")[1]
+            else:
+                # Assume JPEG for file paths without extension info
+                media_type = "image/jpeg"
+            
+            encoded_data = base64.b64encode(image_bytes).decode('utf-8')
+            image_blocks.append({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": encoded_data,
+                },
+            })
+        except Exception as e:
+            # Add text block with error
+            image_blocks.append({
+                "type": "text",
+                "text": f"Error loading image: {e}"
+            })
+    
+    # Handle images array
+    if images:
+        for image_item in images:
+            try:
+                image_bytes = resolve_image_data(image_item)
+                
+                # Determine media type
+                if isinstance(image_item, str):
+                    if image_item.startswith("data:image"):
+                        media_type = image_item.split(";")[0].split(":")[1]
+                    else:
+                        # File path - try to infer from extension
+                        ext = Path(image_item).suffix.lower()
+                        media_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}" if ext else "image/jpeg"
+                elif isinstance(image_item, dict) and "path" in image_item:
+                    ext = Path(image_item["path"]).suffix.lower()
+                    media_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}" if ext else "image/jpeg"
+                else:
+                    media_type = "image/jpeg"
+                
+                encoded_data = base64.b64encode(image_bytes).decode('utf-8')
+                image_blocks.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": encoded_data,
+                    },
+                })
+            except Exception as e:
+                image_blocks.append({
+                    "type": "text",
+                    "text": f"Error loading image: {e}"
+                })
+    
+    return image_blocks
+
+
+async def _claude_generation_adapter(
+    prompt: str,
+    model: str,
+    history: List[Dict[str, str]],
+    system_instruction: Optional[str],
+    **kwargs
+) -> Dict[str, Any]:
+    """Claude-specific text generation function for the shared processor."""
+    # Extract Claude-specific parameters
+    temperature = kwargs.get("temperature", 0.7)
+    files = kwargs.get("files")
+    max_output_tokens = kwargs.get("max_output_tokens")
+    
+    # Get model configuration
+    model_config = _get_model_config(model)
+    max_output = model_config["output_tokens"]
+    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
+    
+    # Resolve file contents
+    file_content = await _resolve_files(files)
+    
+    # Build user content
+    user_content = prompt
+    if file_content:
+        user_content += "\n\n" + file_content
+    
+    # Convert history to Claude format
+    claude_history = _convert_history_to_claude_format(history)
+    
+    # Add current user message
+    claude_history.append({
+        "role": "user",
+        "content": user_content
+    })
+    
+    # Prepare request parameters
+    request_params = {
+        "model": model,
+        "messages": claude_history,
+        "max_tokens": output_tokens,
+        "temperature": temperature,
+    }
+    
+    # Add system instruction if provided
+    if system_instruction:
+        request_params["system"] = system_instruction
+    
+    # Make API call
+    response = await client.messages.create(**request_params)
+    
+    if not response.content or not response.content[0].text:
+        raise RuntimeError("No response text generated")
+    
+    return {
+        "text": response.content[0].text,
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+    }
+
+
+async def _claude_image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: List[Dict[str, str]],
+    system_instruction: Optional[str],
+    **kwargs
+) -> Dict[str, Any]:
+    """Claude-specific image analysis function for the shared processor."""
+    # Extract image analysis specific parameters
+    image_data = kwargs.get("image_data")
+    images = kwargs.get("images")
+    focus = kwargs.get("focus", "general")
+    max_output_tokens = kwargs.get("max_output_tokens")
+    
+    # Enhance prompt based on focus
+    if focus != "general":
+        prompt = f"Focus on {focus} aspects. {prompt}"
+    
+    # Get model configuration
+    model_config = _get_model_config(model)
+    max_output = model_config["output_tokens"]
+    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
+    
+    # Resolve images to content blocks
+    image_blocks = _resolve_images_to_content_blocks(image_data, images)
+    
+    # Build content with text and images
+    content_blocks = [{"type": "text", "text": prompt}] + image_blocks
+    
+    # Convert history to Claude format
+    claude_history = _convert_history_to_claude_format(history)
+    
+    # Add current user message with images
+    claude_history.append({
+        "role": "user",
+        "content": content_blocks
+    })
+    
+    # Prepare request parameters
+    request_params = {
+        "model": model,
+        "messages": claude_history,
+        "max_tokens": output_tokens,
+        "temperature": 0.7,
+    }
+    
+    # Add system instruction if provided
+    if system_instruction:
+        request_params["system"] = system_instruction
+    
+    # Make API call
+    response = await client.messages.create(**request_params)
+    
+    if not response.content or not response.content[0].text:
+        raise RuntimeError("No response text generated")
+    
+    return {
+        "text": response.content[0].text,
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+    }
+
+
+@mcp.tool(description="""Asks a question to a Claude model with optional file context and persistent memory.
+
+**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the response for future processing (recommended for large responses)
+- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
+
+File Input Formats:
+- {"path": "/path/to/file"} - Reads file from filesystem
+- {"content": "text content"} - Uses provided text directly
+- "direct string" - Treats string as literal content
+
+Key Parameters:
+- `model`: "sonnet" (balanced, default), "opus" (best reasoning), "haiku" (fast), or full model name
+- `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
+- `max_output_tokens`: Override model's default output token limit
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+
+Token Limits by Model:
+- claude-3-opus: 4,096 tokens (default), 200k context
+- claude-3-5-sonnet: 8,192 tokens (default), 200k context
+- claude-3-5-haiku: 8,192 tokens (default), 200k context
+- Use max_output_tokens parameter to override defaults
+
+Model Selection Guide:
+- sonnet: Best balance of speed and capability (default)
+- opus: Best for complex reasoning and analysis
+- haiku: Fastest and most cost-effective
+
+Error Handling:
+- Raises RuntimeError for Claude API errors (authentication, quota, network)
+- Raises ValueError for invalid file paths or malformed requests
+- Large responses automatically saved to avoid MCP message size limits
+
+Examples:
+```python
+# Basic question with session memory (default)
+ask(
+    prompt="Explain this code",
+    output_file="/tmp/explanation.md",
+    files=[{"path": "/path/to/code.py"}]
+)
+
+# Continue conversation in same session
+ask(
+    prompt="Now show me how to optimize it",
+    output_file="/tmp/optimization.md"
+)
+
+# Named agent for cross-session persistence
+ask(
+    prompt="Review this codebase",
+    output_file="/tmp/review.md",
+    agent_name="code_reviewer",
+    model="opus"
+)
+
+# Disable memory for one-off queries
+ask(
+    prompt="What's the weather like?",
+    output_file="/tmp/weather.md",
+    agent_name=False,
+    model="haiku"
+)
+```""")
+@require_client
+async def ask(
+    prompt: str,
+    output_file: str,
+    agent_name: Optional[Union[str, bool]] = None,
+    model: str = "claude-3-5-sonnet-20240620",
+    temperature: float = 0.7,
+    files: Optional[List[Union[str, Dict[str, str]]]] = None,
+    max_output_tokens: Optional[int] = None
+) -> str:
+    """Ask Claude a question with optional persistent memory."""
+    return await process_llm_request(
+        prompt=prompt,
+        output_file=output_file,
+        agent_name=agent_name,
+        model=model,
+        provider="claude",
+        generation_func=_claude_generation_adapter,
+        mcp_instance=mcp,
+        temperature=temperature,
+        files=files,
+        max_output_tokens=max_output_tokens
+    )
+
+
+@mcp.tool(description="""Analyzes images using Claude's advanced vision capabilities.
+
+**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+CRITICAL: The `output_file` parameter is REQUIRED. Use:
+- A file path to save the analysis for future processing (recommended)
+- '-' to output directly to stdout (use sparingly for large analyses)
+
+Image Input Formats:
+- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
+- {"data": "base64_encoded_data"} - Base64 encoded image data
+- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
+- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+
+Analysis Focus Options:
+- "general" (default) - Overall image description
+- "objects" - Focus on object detection and identification
+- "colors" - Analyze color palette and composition
+- "composition" - Focus on artistic composition and layout
+- "text" - Extract and analyze text within images
+- "technical" - Focus on technical aspects, quality, metadata
+- "code" - Analyze screenshots of code or diagrams
+
+Model Options:
+- "claude-3-5-sonnet-20240620" (default) - Best for detailed analysis
+- "claude-3-opus-20240229" - Best for complex visual reasoning
+- "claude-3-5-haiku-20241022" - Faster response for simple descriptions
+
+Key Parameters:
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+
+Error Handling:
+- Raises ValueError for missing or invalid image inputs
+- Raises RuntimeError for Claude API errors (quota, authentication, unsupported formats)
+- Supports common formats: JPEG, PNG, GIF, WebP
+- Large images may be automatically resized by the API
+
+Examples:
+```python
+# Analyze image with session memory (default)
+analyze_image(
+    prompt="Describe what you see in this image",
+    output_file="/tmp/analysis.md",
+    image_data="/path/to/photo.jpg",
+    focus="general"
+)
+
+# Continue analysis in same session
+analyze_image(
+    prompt="Now focus on the text in the image",
+    output_file="/tmp/text_analysis.md",
+    focus="text"
+)
+
+# Named agent for cross-session persistence
+analyze_image(
+    prompt="Analyze this architectural diagram",
+    output_file="/tmp/architecture.md",
+    image_data={"path": "/path/to/diagram.png"},
+    agent_name="architect_reviewer",
+    focus="technical"
+)
+
+# One-off analysis without memory
+analyze_image(
+    prompt="What's in this random image?",
+    output_file="/tmp/random.md",
+    image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
+    agent_name=False
+)
+```""")
+@require_client
+async def analyze_image(
+    prompt: str,
+    output_file: str,
+    image_data: Optional[str] = None,
+    images: Optional[List[Union[str, Dict[str, str]]]] = None,
+    focus: str = "general",
+    model: str = "claude-3-5-sonnet-20240620",
+    agent_name: Optional[Union[str, bool]] = None,
+    max_output_tokens: Optional[int] = None
+) -> str:
+    """Analyze images with Claude vision model."""
+    return await process_llm_request(
+        prompt=prompt,
+        output_file=output_file,
+        agent_name=agent_name,
+        model=model,
+        provider="claude",
+        generation_func=_claude_image_analysis_adapter,
+        mcp_instance=mcp,
+        image_data=image_data,
+        images=images,
+        focus=focus,
+        max_output_tokens=max_output_tokens
+    )
+
+
+@mcp.tool(description="""Lists all available Claude models with descriptions, capabilities, and pricing information.
+
+Returns comprehensive information about:
+- Model IDs and descriptions
+- Context windows and token limits
+- Pricing per 1M tokens (input/output)
+- Model capabilities and recommended use cases
+- Model generations (Claude 3, 3.5, 4)
+
+Examples:
+```python
+# List all available models
+list_models()
+
+# Shows models like:
+# claude-sonnet-4: Latest Claude 4 model with enhanced capabilities
+# claude-3-5-sonnet: Advanced Claude 3.5 for complex tasks
+# claude-3-5-haiku: Fast, cost-effective Claude 3.5
+```""")
+async def list_models() -> str:
+    """List available Claude models with detailed information."""
+    try:
+        # Build comprehensive model information
+        model_info = []
+        
+        # Group models by category
+        categories = {
+            "🚀 Claude 4 Series": [
+                ("claude-opus-4", "Most capable Claude 4 model for the most complex tasks"),
+                ("claude-sonnet-4", "Balanced Claude 4 model for most use cases"),
+                ("claude-sonnet-3.7", "Enhanced Claude 3.7 with improved capabilities")
+            ],
+            "⚡ Claude 3.5 Series": [
+                ("claude-3-5-sonnet-20241022", "Latest Claude 3.5 Sonnet with enhanced reasoning"),
+                ("claude-3-5-sonnet-20240620", "Claude 3.5 Sonnet from June 2024"),
+                ("claude-3-5-haiku-20241022", "Fast, efficient Claude 3.5 for quick tasks")
+            ],
+            "📚 Claude 3 Legacy": [
+                ("claude-3-opus-20240229", "Most capable Claude 3 model"),
+                ("claude-3-sonnet-20240229", "Balanced Claude 3 model"),
+                ("claude-3-haiku-20240307", "Fastest Claude 3 model")
+            ]
+        }
+        
+        # Get pricing information
+        from ...common.pricing import calculate_cost
+        
+        for category, models in categories.items():
+            model_info.append(f"\n{category}")
+            model_info.append("=" * len(category))
+            
+            for model_id, description in models:
+                # Get pricing
+                try:
+                    input_cost = calculate_cost(model_id, 1000000, 0, "claude")
+                    output_cost = calculate_cost(model_id, 0, 1000000, "claude")
+                    pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
+                except:
+                    pricing = "Pricing not available"
+                
+                # Context window info (all Claude models have 200k context)
+                context_window = "200,000 tokens (~150,000 words)"
+                
+                # Capabilities based on model
+                if "opus" in model_id:
+                    capabilities = "🎯 Best for: Complex analysis, creative writing, advanced reasoning"
+                elif "sonnet" in model_id:
+                    capabilities = "⚖️ Best for: General tasks, coding, analysis, balanced performance"
+                elif "haiku" in model_id:
+                    capabilities = "⚡ Best for: Quick tasks, simple queries, cost-sensitive applications"
+                else:
+                    capabilities = "🔧 General purpose model"
+                
+                model_info.append(f"""
+📋 {model_id}
+   Description: {description}
+   Context Window: {context_window}
+   Pricing: {pricing}
+   {capabilities}""")
+        
+        # Add summary and usage notes
+        summary = f"""
+📊 Claude Model Summary
+=======================
+• Total Models: {sum(len(models) for models in categories.values())}
+• Model Generations: Claude 3, Claude 3.5, Claude 4
+• Context Window: 200K tokens for all models
+• All models support: Text, images, documents, code
+
+💡 Usage Notes:
+• All Claude models have 200,000 token context windows
+• Models support vision/image analysis capabilities
+• Newer models (Claude 4, 3.5) have enhanced reasoning
+• Haiku models are fastest and most cost-effective
+• Opus models are most capable for complex tasks
+• System prompts are supported via separate parameter
+"""
+        
+        return summary + "\n".join(model_info)
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to list Claude models: {e}")
+
+
+@mcp.tool(description="""Checks the status of the Claude Tool server and API connectivity.
+
+Use this to verify that the tool is operational before making other requests.
+
+**Input/Output:**
+- **Input**: None.
+- **Output**: A string containing the server status, API connection status, and a list of available tools.
+
+**Error Handling:**
+- Raises `RuntimeError` if the Claude API is not configured correctly.
+
+**Examples:**
+```python
+# Check the server status.
+server_info()
+```""")
+@require_client
+async def server_info() -> str:
+    """Get server status and Claude configuration."""
+    try:
+        # Test API by making a simple request
+        test_response = await client.messages.create(
+            model="claude-3-5-haiku-20241022",
+            messages=[{"role": "user", "content": "Hello"}],
+            max_tokens=10
+        )
+        
+        # Get agent count
+        agent_count = len(memory_manager.list_agents())
+        
+        available_models = list(MODEL_CONFIGS.keys())
+        
+        return f"""Claude Tool Server Status
+==========================
+Status: Connected and ready
+API Key: Configured ✓
+Available Models: {len(available_models)} models
+- {', '.join(available_models[:3])}{'...' if len(available_models) > 3 else ''}
+
+Model Features:
+- Context Window: 200,000 tokens (all models)
+- Vision Support: ✓ (all models)
+- Image Generation: ✗ (not available)
+
+Agent Management:
+- Active Agents: {agent_count}
+- Memory Storage: {memory_manager.storage_dir}
+
+Available tools:
+- ask: Chat with Claude models (persistent memory by default, agent_name=False to disable)
+- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=False to disable)
+- server_info: Get server status
+
+Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
+        
+    except Exception as e:
+        raise RuntimeError(f"Claude API configuration error: {e}")

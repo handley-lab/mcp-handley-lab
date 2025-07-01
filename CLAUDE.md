@@ -495,6 +495,15 @@ mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_rev
 ```
 
 
+## Reference Documentation
+
+### Official Pricing and Model Information
+- **OpenAI Pricing**: https://platform.openai.com/docs/pricing (Note: Requires authentication)
+- **Google Gemini Pricing**: https://ai.google.dev/gemini-api/docs/pricing
+- **Anthropic Claude Pricing**: https://docs.anthropic.com/en/docs/about-claude/models/overview#model-pricing
+
+Always verify pricing and model specifications from official sources before updating configurations.
+
 ## Task Management
 
 **CRITICAL**: Maintain detailed todo lists with sub-tasks for all work. Break down every major task into smaller, testable components. This ensures nothing is overlooked and provides clear progress tracking.

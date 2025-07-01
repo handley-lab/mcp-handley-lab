@@ -651,6 +651,148 @@ async def generate_image(
 
 
 
+@mcp.tool(description="""Lists all available Gemini models with descriptions, capabilities, and pricing information.
+
+Returns comprehensive information about:
+- Model IDs and descriptions
+- Context windows and token limits
+- Pricing per 1M tokens (input/output)
+- Model capabilities (text, vision, code, etc.)
+- Model generations (Gemini 1.5, 2.5)
+
+Examples:
+```python
+# List all available models
+list_models()
+
+# Shows models like:
+# gemini-2.5-pro: Latest pro model with advanced reasoning
+# gemini-2.5-flash: Fast, efficient model for most tasks
+# imagen-4: High-quality image generation model
+```""")
+@require_client
+async def list_models() -> str:
+    """List available Gemini models with detailed information."""
+    try:
+        # Get models from API
+        def _sync_list_models():
+            return client.models.list()
+        
+        loop = asyncio.get_running_loop()
+        models_response = await loop.run_in_executor(None, _sync_list_models)
+        api_model_names = {model.name.split('/')[-1] for model in models_response}
+        
+        # Build comprehensive model information
+        model_info = []
+        
+        # Group models by category
+        categories = {
+            "🚀 Gemini 2.5 Series": [
+                ("gemini-2.5-pro", "Latest pro model with advanced reasoning and multimodal capabilities"),
+                ("gemini-2.5-flash", "Fast, efficient model balancing speed and intelligence"),
+                ("gemini-2.5-flash-lite", "Fastest, most cost-effective model for simple tasks")
+            ],
+            "⚡ Gemini 1.5 Series": [
+                ("gemini-1.5-pro", "Advanced pro model with large context window"),
+                ("gemini-1.5-flash", "Fast, cost-effective model for most tasks"),
+                ("gemini-1.5-flash-8b", "Lightweight model for high-volume tasks")
+            ],
+            "🎨 Image Generation": [
+                ("imagen-4", "Latest high-quality image generation model"),
+                ("imagen-4-ultra", "Ultra-high quality image generation"),
+                ("imagen-3", "Previous generation image model")
+            ]
+        }
+        
+        # Get pricing information
+        from ...common.pricing import calculate_cost
+        
+        for category, models in categories.items():
+            model_info.append(f"\n{category}")
+            model_info.append("=" * len(category))
+            
+            for model_id, description in models:
+                # Check if model is available via API
+                availability = "✅ Available" if model_id in api_model_names else "❓ Not listed in API"
+                
+                # Get pricing
+                try:
+                    if model_id.startswith("imagen"):
+                        # Image models charge per image
+                        cost_per_image = calculate_cost(model_id, 1, 0, "gemini")
+                        pricing = f"${cost_per_image:.3f} per image"
+                    else:
+                        # Text models charge per token
+                        input_cost = calculate_cost(model_id, 1000000, 0, "gemini")
+                        output_cost = calculate_cost(model_id, 0, 1000000, "gemini")
+                        pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
+                except:
+                    pricing = "Pricing not available"
+                
+                # Context window and capabilities based on model
+                if "2.5-pro" in model_id:
+                    context_window = "2,000,000 tokens"
+                    capabilities = "🎯 Best for: Complex reasoning, analysis, multimodal tasks, long documents"
+                elif "2.5-flash" in model_id:
+                    context_window = "1,000,000 tokens"
+                    if "lite" in model_id:
+                        capabilities = "⚡ Best for: Simple queries, high-volume tasks, cost-sensitive applications"
+                    else:
+                        capabilities = "⚖️ Best for: Most general tasks, balanced performance and speed"
+                elif "1.5-pro" in model_id:
+                    context_window = "2,000,000 tokens"
+                    capabilities = "📚 Best for: Complex analysis, long documents, research tasks"
+                elif "1.5-flash" in model_id:
+                    context_window = "1,000,000 tokens"
+                    if "8b" in model_id:
+                        capabilities = "🚀 Best for: High-volume, lightweight tasks"
+                    else:
+                        capabilities = "⚡ Best for: Fast responses, everyday tasks"
+                elif "imagen" in model_id:
+                    context_window = "N/A (Image generation)"
+                    if "ultra" in model_id:
+                        capabilities = "🎨 Best for: Ultra-high quality artistic images"
+                    else:
+                        capabilities = "🎨 Best for: High-quality image generation"
+                else:
+                    context_window = "Unknown"
+                    capabilities = "🔧 General purpose model"
+                
+                model_info.append(f"""
+📋 {model_id}
+   Description: {description}
+   Status: {availability}
+   Context Window: {context_window}
+   Pricing: {pricing}
+   {capabilities}""")
+        
+        # Add summary and usage notes
+        total_configured = len([m for category in categories.values() for m in category])
+        total_api = len(api_model_names)
+        
+        summary = f"""
+📊 Gemini Model Summary
+=======================
+• Configured Models: {total_configured}
+• API Available Models: {total_api}
+• Model Generations: Gemini 1.5, Gemini 2.5
+• All text models support: Text, images, video, audio, code
+
+💡 Usage Notes:
+• Gemini 2.5 models have enhanced reasoning and capabilities
+• Pro models have 2M token context windows
+• Flash models balance speed and capability
+• All models support multimodal input (text, images, video)
+• Image generation models charge per image, not per token
+• Google Search grounding available for real-time information
+"""
+        
+        return summary + "\n".join(model_info)
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to list Gemini models: {e}")
+
+
 @mcp.tool(description="""Checks the status of the Gemini Tool server and API connectivity.
 
 Use this to verify that the tool is operational before making other requests.

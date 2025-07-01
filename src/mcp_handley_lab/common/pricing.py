@@ -6,44 +6,81 @@ class PricingCalculator:
     """Calculates costs for various LLM models."""
     
     PRICING_TABLES = {
-        "gemini": {
-            # Gemini 2.5 models
-            "gemini-2.5-pro": (2.50, 15.00),        # pro model
-            "gemini-2.5-flash": (0.30, 2.50),       # flash model
-            "gemini-2.5-flash-lite-preview-06-17": (0.15, 1.25),  # lite model
+        "claude": {
+            # Claude 4 models (prices per 1M tokens - Input, Output)
+            "claude-opus-4": (15.00, 75.00),
+            "claude-sonnet-4": (3.00, 15.00),
+            "claude-sonnet-3.7": (3.00, 15.00),
             
-            # Image generation
-            "imagen-3": (0.030, 0.030),             # per image
-            "imagen-3.0-generate-002": (0.030, 0.030),  # per image (full model ID)
+            # Claude 3.5 models 
+            "claude-3-5-sonnet-20241022": (3.00, 15.00),
+            "claude-3-5-sonnet-20240620": (3.00, 15.00),
+            "claude-3-5-haiku-20241022": (0.80, 4.00),
+            
+            # Claude 3 models (legacy)
+            "claude-3-opus-20240229": (15.00, 75.00),
+            "claude-3-sonnet-20240229": (3.00, 15.00),
+            "claude-3-haiku-20240307": (0.25, 1.25),
+        },
+        "gemini": {
+            # Gemini 2.5 models (updated pricing - ≤200k tokens, paid tier)
+            "gemini-2.5-pro": (1.25, 10.00),        # Input $1.25, Output $10 per 1M tokens
+            "gemini-2.5-flash": (0.30, 2.50),       # Input $0.30, Output $2.50 per 1M tokens
+            "gemini-2.5-flash-lite": (0.10, 0.40),  # Input $0.10, Output $0.40 per 1M tokens
+            
+            # Gemini 1.5 models (≤128k tokens, paid tier)
+            "gemini-1.5-pro": (1.25, 5.00),         # Input $1.25, Output $5.00 per 1M tokens
+            "gemini-1.5-flash": (0.075, 0.30),      # Input $0.075, Output $0.30 per 1M tokens
+            "gemini-1.5-flash-8b": (0.0375, 0.15),  # Legacy pricing
+            
+            # Image generation (Imagen 4)
+            "imagen-4": (0.040, 0.040),             # Standard image per image
+            "imagen-4-ultra": (0.060, 0.060),       # Ultra image per image
+            "imagen-3": (0.040, 0.040),             # Legacy Imagen 3
         },
         "openai": {
-            # GPT-4.1 models (latest - launched April 2025)
-            "gpt-4.1": (5.00, 15.00),        # New flagship model
-            "gpt-4.1-mini": (0.10, 0.40),    # 83% cheaper than gpt-4o
-            "gpt-4.1-nano": (0.05, 0.20),    # Fastest and cheapest
+            # Official pricing from https://platform.openai.com/docs/pricing (2025)
             
-            # GPT-4o models 
-            "gpt-4o": (2.50, 10.00),
-            "gpt-4o-mini": (0.150, 0.600),
+            # GPT-4.1 Series (Latest models)
+            "gpt-4.1": (2.00, 8.00),        # Smartest model for complex tasks
+            "gpt-4.1-mini": (0.40, 1.60),   # Affordable model balancing speed and intelligence
+            "gpt-4.1-nano": (0.10, 0.40),   # Fastest, most cost-effective model
             
-            # Legacy models
+            # Reasoning Models
+            "o3": (2.00, 8.00),             # Most powerful reasoning model
+            "o4-mini": (1.10, 4.40),        # Faster, cost-efficient reasoning model
+            
+            # GPT-4o models (current pricing)
+            "gpt-4o": (5.00, 20.00),        # Updated pricing
+            "gpt-4o-mini": (0.60, 2.40),    # Updated pricing
+            "gpt-4o-2024-11-20": (5.00, 20.00),
+            "gpt-4o-2024-08-06": (5.00, 20.00),
+            "gpt-4o-mini-2024-07-18": (0.60, 2.40),
+            
+            # Legacy GPT-4 models
             "gpt-4-turbo": (10.00, 30.00),
             "gpt-4": (30.00, 60.00),
             "gpt-3.5-turbo": (0.50, 1.50),
             
-            # o1 models
+            # Legacy reasoning models
             "o1": (15.00, 60.00),
             "o1-mini": (3.00, 12.00),
             "o1-preview": (15.00, 60.00),
             
-            # Image generation
-            "dall-e-3": (0.040, 0.040),     # per image (1024x1024 standard)
-            "dall-e-3-hd": (0.080, 0.080),  # per image (1024x1024 HD)
-            "dall-e-2": (0.020, 0.020),     # per image (1024x1024)
+            # Image generation models
+            "gpt-image-1": (5.00, 40.00),   # New image generation model (text input, image output)
+            "dall-e-3": (0.040, 0.040),     # per image (legacy)
+            "dall-e-3-hd": (0.080, 0.080),  # per image (legacy)
+            "dall-e-2": (0.020, 0.020),     # per image (legacy)
         }
     }
     
     MODEL_ALIASES = {
+        "claude": {
+            "opus": "claude-3-opus-20240229",
+            "sonnet": "claude-3-5-sonnet-20240620",
+            "haiku": "claude-3-5-haiku-20241022",
+        },
         "gemini": {
             "flash": "gemini-2.5-flash",
             "gemini-flash": "gemini-2.5-flash",

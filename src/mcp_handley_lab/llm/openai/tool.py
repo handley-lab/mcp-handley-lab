@@ -23,50 +23,55 @@ mcp = FastMCP("OpenAI Tool")
 # Configure AsyncOpenAI client
 client = AsyncOpenAI(api_key=settings.openai_api_key)
 
-# Model configurations with token limits from OpenAI documentation
+# Model configurations with token limits (Official OpenAI 2025)
 MODEL_CONFIGS = {
-    # O3 Series (2025)
-    "o3-mini": {"output_tokens": 100000, "param": "max_completion_tokens"},
+    # GPT-4.1 Series (2025 - Latest models) - use max_tokens
+    "gpt-4.1": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4.1-mini": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4.1-nano": {"output_tokens": 4096, "param": "max_tokens"},
     
-    # O1 Series (Reasoning Models)
+    # O3 Series (2025 - Latest Reasoning Models) - use max_completion_tokens
+    "o3": {"output_tokens": 100000, "param": "max_completion_tokens"},
+    "o4-mini": {"output_tokens": 100000, "param": "max_completion_tokens"},
+    
+    # O1 Series (Legacy Reasoning Models) - use max_completion_tokens
+    "o1": {"output_tokens": 100000, "param": "max_completion_tokens"},
     "o1-preview": {"output_tokens": 32768, "param": "max_completion_tokens"},
     "o1-mini": {"output_tokens": 65536, "param": "max_completion_tokens"},
     
-    # GPT-4o Series
-    "gpt-4o": {"output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-mini": {"output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-2024-11-20": {"output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-2024-08-06": {"output_tokens": 16384, "param": "max_tokens"},
-    "gpt-4o-mini-2024-07-18": {"output_tokens": 16384, "param": "max_tokens"},
+    # GPT-4o Series - use max_tokens
+    "gpt-4o": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4o-mini": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4o-2024-11-20": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4o-2024-08-06": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4o-mini-2024-07-18": {"output_tokens": 4096, "param": "max_tokens"},
     
-    # GPT-4.1 Series (if released)
-    "gpt-4.1": {"output_tokens": 32768, "param": "max_tokens"},
-    "gpt-4.1-mini": {"output_tokens": 16384, "param": "max_tokens"},
+    # Legacy GPT-4 models
+    "gpt-4-turbo": {"output_tokens": 4096, "param": "max_tokens"},
+    "gpt-4": {"output_tokens": 8192, "param": "max_tokens"},
+    
+    # Image generation models
+    "gpt-image-1": {"output_tokens": 4096, "param": "max_tokens"},
 }
 
 
 def _get_model_config(model: str) -> Dict[str, Any]:
     """Get token limits and parameter name for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gpt-4o"])  # default to gpt-4o
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["o4-mini"])  # default to o4-mini
 
 
-async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> tuple[List[Dict], List[str]]:
-    """Resolve file inputs to OpenAI chat content format.
+async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[str]:
+    """Resolve file inputs to text content for OpenAI Chat Completions.
     
-    Returns tuple of (file_attachments, inline_content):
-    - file_attachments: List of dicts for Files API (large files)
-    - inline_content: List of strings for direct inclusion (small files)
+    NOTE: Chat Completions API requires all content to be inline. 
+    Files API is only for Assistants API, not Chat Completions.
     
-    Uses intelligent size-based strategy:
-    - Small files (<1MB): Include content directly in messages
-    - Large files (1MB-20MB): Upload via Files API for Assistants
-    - Text files: Direct content inclusion with filename header
-    - Binary files: Base64 encoding for small files, Files API for large
+    Returns list of strings with file contents for inclusion in messages.
+    Large files are truncated to prevent token overflow.
     """
     if not files:
-        return [], []
+        return []
     
-    file_attachments = []
     inline_content = []
     
     for file_item in files:
@@ -78,7 +83,7 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> t
                 # Direct content from dict
                 inline_content.append(file_item["content"])
             elif "path" in file_item:
-                # File path - determine optimal handling strategy
+                # File path - read content directly
                 file_path = Path(file_item["path"])
                 try:
                     if not file_path.exists():
@@ -87,52 +92,38 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> t
                     
                     file_size = file_path.stat().st_size
                     
-                    if file_size > 1024 * 1024:  # 1MB threshold for Files API
-                        # Large file - use Files API for assistant-compatible upload
+                    # For Chat Completions, all content must be inline
+                    if is_text_file(file_path):
+                        # Text file - read as string with header
                         try:
-                            uploaded_file = await client.files.create(
-                                file=open(file_path, "rb"),
-                                purpose="assistants"
-                            )
-                            file_attachments.append({
-                                "file_id": uploaded_file.id,
-                                "tools": [{"type": "file_search"}]
-                            })
-                        except Exception as e:
-                            # Fallback to chunked text inclusion for large files
-                            try:
-                                if is_text_file(file_path):
-                                    content = file_path.read_text(encoding='utf-8')
-                                    # Truncate very large text files to prevent token overflow
-                                    if len(content) > 50000:  # ~12.5k tokens rough estimate
-                                        content = content[:50000] + "\n\n[Content truncated due to size]"
-                                    inline_content.append(f"[File: {file_path.name}]\n{content}")
-                                else:
-                                    inline_content.append(f"Error: Could not upload large binary file {file_path}: {e}")
-                            except UnicodeDecodeError:
-                                inline_content.append(f"Error: Could not process large file {file_path}: {e}")
+                            content = file_path.read_text(encoding='utf-8')
+                            # Truncate very large text files to prevent token overflow
+                            if len(content) > 100000:  # ~25k tokens rough estimate  
+                                content = content[:100000] + "\n\n[Content truncated due to size - file too large]"
+                            inline_content.append(f"[File: {file_path.name}]\n{content}")
+                        except UnicodeDecodeError:
+                            inline_content.append(f"Error: Could not read text file {file_path} - encoding issue")
                     else:
-                        # Small file - include directly
-                        try:
-                            if is_text_file(file_path):
-                                # Text file - read as string with header
-                                content = file_path.read_text(encoding='utf-8')
-                                inline_content.append(f"[File: {file_path.name}]\n{content}")
-                            else:
-                                # Small binary file - base64 encode with metadata
+                        # Binary file - describe only, no base64 for large files
+                        if file_size > 1024 * 1024:  # 1MB+
+                            mime_type = determine_mime_type(file_path)
+                            inline_content.append(f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included (too large)]")
+                        else:
+                            # Small binary file - base64 encode
+                            try:
                                 file_content = file_path.read_bytes()
                                 encoded_content = base64.b64encode(file_content).decode()
                                 mime_type = determine_mime_type(file_path)
                                 inline_content.append(
                                     f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
                                 )
-                        except Exception as e:
-                            inline_content.append(f"Error reading file {file_path}: {e}")
+                            except Exception as e:
+                                inline_content.append(f"Error reading binary file {file_path}: {e}")
                             
                 except Exception as e:
                     inline_content.append(f"Error processing file {file_path}: {e}")
     
-    return file_attachments, inline_content
+    return inline_content
 
 
 
@@ -218,7 +209,7 @@ async def _openai_generation_adapter(
     messages.extend(history)
     
     # Resolve files
-    file_attachments, inline_content = await _resolve_files(files)
+    inline_content = await _resolve_files(files)
     
     # Add user message with any inline content
     user_content = prompt
@@ -235,8 +226,11 @@ async def _openai_generation_adapter(
     request_params = {
         "model": model,
         "messages": messages,
-        "temperature": temperature,
     }
+    
+    # Only add temperature for models that support it (reasoning models don't)
+    if not model.startswith(("o1", "o3", "o4")):
+        request_params["temperature"] = temperature
     
     # Add max tokens with correct parameter name
     if max_output_tokens is not None:
@@ -310,6 +304,10 @@ async def _openai_image_analysis_adapter(
         "messages": messages,
     }
     
+    # Only add temperature for models that support it (reasoning models don't)
+    if not model.startswith(("o1", "o3", "o4")):
+        request_params["temperature"] = 0.7
+    
     # Add max tokens with correct parameter name
     if max_output_tokens is not None:
         request_params[param_name] = max_output_tokens
@@ -342,20 +340,20 @@ File Input Formats:
 
 Key Parameters:
 - `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
-- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7)
+- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)
 - `max_output_tokens`: Override model's default output token limit
 - `agent_name`: Store conversation in persistent memory for ongoing interactions
 
 Token Limits by Model:
-- o3-mini: 100,000 tokens (default)
+- o3/o3-mini: 100,000 tokens (default)
 - o1-mini: 65,536 tokens (default)
 - o1-preview: 32,768 tokens (default)
-- gpt-4o/gpt-4o-mini: 16,384 tokens (default)
+- gpt-4o/gpt-4o-mini: 4,096 tokens (default)
 - Use max_output_tokens parameter to override defaults
 
 Model Selection Guide:
-- o3-mini: Fast reasoning for most tasks, cost-effective (128k context, default)
-- o3: Best reasoning for complex problems (128k context)
+- o3-mini: Fast reasoning for most tasks, cost-effective (200k context, default)
+- o3: Best reasoning for complex problems (200k context)
 - gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)
 - gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)
 
@@ -407,8 +405,8 @@ ask(
 async def ask(
     prompt: str,
     output_file: str,
-    agent_name: Optional[str] = None,
-    model: str = "o3-mini",
+    agent_name: Optional[Union[str, bool]] = None,
+    model: str = "o4-mini",
     temperature: float = 0.7,
     max_output_tokens: Optional[int] = None,
     files: Optional[List[Union[str, Dict[str, str]]]] = None
@@ -506,7 +504,7 @@ async def analyze_image(
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
     model: str = "gpt-4o",
-    agent_name: Optional[str] = None,
+    agent_name: Optional[Union[str, bool]] = None,
     max_output_tokens: Optional[int] = None
 ) -> str:
     """Analyze images with OpenAI vision model."""
@@ -644,6 +642,133 @@ async def generate_image(
     except Exception as e:
         raise RuntimeError(f"DALL-E API error: {e}")
 
+
+
+@mcp.tool(description="""Lists all available OpenAI models with descriptions, capabilities, and pricing information.
+
+Returns comprehensive information about:
+- Model IDs and descriptions
+- Token limits and context windows
+- Pricing per 1M tokens (input/output)
+- Model capabilities (text, vision, reasoning, etc.)
+- Recommended use cases
+
+Examples:
+```python
+# List all available models
+list_models()
+
+# Shows models like:
+# GPT-4.1: Smartest model for complex tasks
+# o3: Most powerful reasoning model
+# gpt-4o: Multimodal model with vision capabilities
+```""")
+async def list_models() -> str:
+    """List available OpenAI models with detailed information."""
+    try:
+        # Get models from API
+        api_models = await client.models.list()
+        api_model_ids = {m.id for m in api_models.data}
+        
+        # Build comprehensive model information
+        model_info = []
+        
+        # Group models by category
+        categories = {
+            "🧠 Reasoning Models": [
+                ("o3", "Most powerful reasoning model with leading performance on coding, math, science, and vision"),
+                ("o4-mini", "Faster, cost-efficient reasoning model delivering strong performance on math, coding and vision"),
+                ("o1", "Advanced reasoning model for complex problems"),
+                ("o1-preview", "Preview version of o1 reasoning model"),
+                ("o1-mini", "Smaller, faster reasoning model")
+            ],
+            "💭 Latest Language Models": [
+                ("gpt-4.1", "Smartest model for complex tasks"),
+                ("gpt-4.1-mini", "Affordable model balancing speed and intelligence"),
+                ("gpt-4.1-nano", "Fastest, most cost-effective model for low-latency tasks")
+            ],
+            "👁️ Multimodal Models": [
+                ("gpt-4o", "Advanced multimodal model with vision and text capabilities"),
+                ("gpt-4o-mini", "Faster, cost-effective multimodal model"),
+                ("gpt-4o-2024-11-20", "GPT-4o snapshot from November 2024"),
+                ("gpt-4o-2024-08-06", "GPT-4o snapshot from August 2024"),
+                ("gpt-4o-mini-2024-07-18", "GPT-4o-mini snapshot from July 2024")
+            ],
+            "🎨 Image Generation": [
+                ("gpt-image-1", "Latest multimodal model for precise, high-fidelity image generation"),
+                ("dall-e-3", "High-quality image generation with prompt adherence"),
+                ("dall-e-2", "Previous generation image model")
+            ],
+            "📜 Legacy Models": [
+                ("gpt-4-turbo", "Previous generation GPT-4 model"),
+                ("gpt-4", "Original GPT-4 model"),
+                ("gpt-3.5-turbo", "Fast, cost-effective model for simple tasks")
+            ]
+        }
+        
+        for category, models in categories.items():
+            model_info.append(f"\n{category}")
+            model_info.append("=" * len(category))
+            
+            for model_id, description in models:
+                # Check if model is available via API
+                availability = "✅ Available" if model_id in api_model_ids else "❓ Not listed in API"
+                
+                # Get pricing and config info
+                from ...common.pricing import calculate_cost
+                config = MODEL_CONFIGS.get(model_id)
+                
+                if config:
+                    output_limit = config["output_tokens"]
+                    param_type = config["param"]
+                    
+                    # Get pricing (if available)
+                    try:
+                        # Test with 1M tokens to get rate
+                        cost = calculate_cost(model_id, 1000000, 1000000, "openai")
+                        if cost > 0:
+                            input_cost = calculate_cost(model_id, 1000000, 0, "openai")
+                            output_cost = calculate_cost(model_id, 0, 1000000, "openai")
+                            pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
+                        else:
+                            pricing = "Pricing not available"
+                    except:
+                        pricing = "Pricing not available"
+                    
+                    model_info.append(f"""
+📋 {model_id}
+   Description: {description}
+   Status: {availability}
+   Output Limit: {output_limit:,} tokens ({param_type})
+   Pricing: {pricing}""")
+                else:
+                    model_info.append(f"""
+📋 {model_id}
+   Description: {description}
+   Status: {availability}
+   Configuration: Not configured in tool""")
+        
+        # Add summary
+        total_configured = len(MODEL_CONFIGS)
+        total_api = len(api_model_ids)
+        
+        summary = f"""
+📊 Model Summary
+================
+• Configured Models: {total_configured}
+• API Available Models: {total_api}
+• Model Categories: {len(categories)}
+
+💡 Usage Notes:
+• Reasoning models (o1, o3, o4) don't support temperature parameter
+• Vision models (gpt-4o series) support image analysis
+• Image generation models charge per image, not per token
+"""
+        
+        return summary + "\n".join(model_info)
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to list OpenAI models: {e}")
 
 
 @mcp.tool(description="""Checks the status of the OpenAI Tool server and API connectivity.

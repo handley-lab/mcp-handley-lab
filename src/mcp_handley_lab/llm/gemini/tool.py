@@ -101,54 +101,35 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
             elif "path" in file_item:
                 # File path - determine optimal handling based on size
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        parts.append(Part(text=f"Error: File not found: {file_path}"))
-                        continue
+                file_size = file_path.stat().st_size
+                
+                if file_size > 20 * 1024 * 1024:  # 20MB threshold
+                    # Large file - use Files API
+                    def _sync_upload_file():
+                        return client.files.upload(
+                            file=str(file_path),
+                            mime_type=determine_mime_type(file_path)
+                        )
                     
-                    file_size = file_path.stat().st_size
-                    
-                    if file_size > 20 * 1024 * 1024:  # 20MB threshold
-                        # Large file - use Files API
-                        try:
-                            def _sync_upload_file():
-                                return client.files.upload(
-                                    file=str(file_path),
-                                    mime_type=determine_mime_type(file_path)
-                                )
-                            
-                            loop = asyncio.get_running_loop()
-                            uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
-                            parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
-                        except Exception as e:
-                            # Fallback to reading as text if upload fails
-                            try:
-                                content = file_path.read_text(encoding='utf-8')
-                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
-                            except UnicodeDecodeError:
-                                parts.append(Part(text=f"Error: Could not upload or read file {file_path}: {e}"))
+                    loop = asyncio.get_running_loop()
+                    uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
+                    parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
+                else:
+                    # Small file - use inlineData with base64 encoding
+                    if is_text_file(file_path):
+                        # For text files, read directly as text
+                        content = file_path.read_text(encoding='utf-8')
+                        parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
                     else:
-                        # Small file - use inlineData with base64 encoding
-                        try:
-                            if is_text_file(file_path):
-                                # For text files, read directly as text
-                                content = file_path.read_text(encoding='utf-8')
-                                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
-                            else:
-                                # For binary files, use inlineData
-                                file_content = file_path.read_bytes()
-                                encoded_content = base64.b64encode(file_content).decode()
-                                parts.append(Part(
-                                    inlineData=Blob(
-                                        mimeType=determine_mime_type(file_path),
-                                        data=encoded_content
-                                    )
-                                ))
-                        except Exception as e:
-                            parts.append(Part(text=f"Error reading file {file_path}: {e}"))
-                            
-                except Exception as e:
-                    parts.append(Part(text=f"Error processing file {file_path}: {e}"))
+                        # For binary files, use inlineData
+                        file_content = file_path.read_bytes()
+                        encoded_content = base64.b64encode(file_content).decode()
+                        parts.append(Part(
+                            inlineData=Blob(
+                                mimeType=determine_mime_type(file_path),
+                                data=encoded_content
+                            )
+                        ))
     
     return parts
 
@@ -315,9 +296,11 @@ async def _gemini_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Asks a question to a Gemini model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
 
-**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
+
+**Memory Behavior**: Conversations with Gemini are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -329,7 +312,7 @@ File Input Formats:
 - "direct string" - Treats string as literal content
 
 Key Parameters:
-- `model`: "flash" (fast, default), "pro" (advanced reasoning), or full model name (e.g., "gemini-1.5-pro-002")
+- `model`: "gemini-2.5-flash" (fast, default), "gemini-2.5-pro" (advanced reasoning), or full model name
 - `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
@@ -359,7 +342,7 @@ ask(
     prompt="Review this codebase",
     output_file="/tmp/review.md",
     agent_name="code_reviewer",
-    model="pro"
+    model="gemini-2.5-pro"
 )
 
 # Disable memory for one-off queries
@@ -416,7 +399,9 @@ async def ask(
     )
 
 
-@mcp.tool(description="""Analyzes images using Gemini's advanced vision capabilities.
+@mcp.tool(description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
@@ -439,8 +424,8 @@ Analysis Focus Options:
 - "technical" - Focus on technical aspects, quality, metadata
 
 Model Options:
-- "pro" (default) - Best for detailed analysis and complex reasoning
-- "flash" - Faster response, good for simple image descriptions
+- "gemini-2.5-pro" (default) - Best for detailed analysis and complex reasoning
+- "gemini-2.5-flash" - Faster response, good for simple image descriptions
 
 Key Parameters:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
@@ -512,7 +497,9 @@ async def analyze_image(
     )
 
 
-@mcp.tool(description="""Generates high-quality images using Gemini's Imagen 3 model.
+@mcp.tool(description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
+
+**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 **Memory Behavior**: Image generation requests are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 

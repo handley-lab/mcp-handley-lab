@@ -269,104 +269,97 @@ discover_tools("python -m my_server", timeout=10)
 ```""")
 async def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
-    try:
-        # Create MCP request messages
-        initialize_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {
-                    "tools": {}
-                },
-                "clientInfo": {
-                    "name": "tool-chainer",
-                    "version": "1.0.0"
-                }
+    # Create MCP request messages
+    initialize_request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+                "tools": {}
+            },
+            "clientInfo": {
+                "name": "tool-chainer",
+                "version": "1.0.0"
             }
         }
-        
-        tools_list_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/list",
-            "params": {}
-        }
-        
-        initialized_notification = {
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized",
-            "params": {}
-        }
-        
-        # Prepare input for MCP server
-        input_data = (
-            json.dumps(initialize_request) + "\n" +
-            json.dumps(initialized_notification) + "\n" +
-            json.dumps(tools_list_request) + "\n"
-        ).encode('utf-8')
-        
-        # Execute the MCP server with stdio communication
-        cmd = server_command.split()
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=Path.cwd()
+    }
+    
+    tools_list_request = {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {}
+    }
+    
+    initialized_notification = {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized",
+        "params": {}
+    }
+    
+    # Prepare input for MCP server
+    input_data = (
+        json.dumps(initialize_request) + "\n" +
+        json.dumps(initialized_notification) + "\n" +
+        json.dumps(tools_list_request) + "\n"
+    ).encode('utf-8')
+    
+    # Execute the MCP server with stdio communication
+    cmd = server_command.split()
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=Path.cwd()
+    )
+    
+    try:
+        stdout_bytes, stderr_bytes = await asyncio.wait_for(
+            process.communicate(input=input_data), 
+            timeout=timeout
         )
+        stdout = stdout_bytes.decode('utf-8', errors='replace')
+        stderr = stderr_bytes.decode('utf-8', errors='replace')
         
-        try:
-            stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                process.communicate(input=input_data), 
-                timeout=timeout
-            )
-            stdout = stdout_bytes.decode('utf-8', errors='replace')
-            stderr = stderr_bytes.decode('utf-8', errors='replace')
-            
-            if process.returncode != 0:
-                return f"Failed to start server: {stderr}"
-            
-            # Parse responses - expect one JSON line (tools/list response)
-            lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
-            if len(lines) < 1:
-                return f"Failed to parse response: expected at least 1 line, got {len(lines)}"
-            
-            # Parse the tools/list response (last line)
-            try:
-                response = json.loads(lines[-1])
-                if "error" in response:
-                    return f"Server error: {response['error'].get('message', 'Unknown error')}"
-            except json.JSONDecodeError:
-                return f"Discovery error: Failed to parse response"
-            
-            # Handle both MCP format variations
-            result = response.get("result", {})
-            if isinstance(result, list):
-                # Direct list format from test
-                tools = result
-            else:
-                # Standard MCP format
-                tools = result.get("tools", [])
-            
-            if not tools:
-                return "No tools found on this server."
-            
-            result_text = f"Discovered {len(tools)} tools:\n\n"
-            for tool in tools:
-                result_text += f"**{tool['name']}**\n"
-                result_text += f"- {tool.get('description', 'No description')}\n\n"
-            
-            return result_text
+        if process.returncode != 0:
+            raise RuntimeError(f"Failed to start server: {stderr}")
         
-        except asyncio.TimeoutError:
-            process.kill()
-            await process.wait()
-            return f"Discovery timed out after {timeout} seconds"
-            
-    except Exception as e:
-        return f"Discovery error: {e}"
+        # Parse responses - expect one JSON line (tools/list response)
+        lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
+        if len(lines) < 1:
+            raise ValueError(f"Failed to parse response: expected at least 1 line, got {len(lines)}")
+        
+        # Parse the tools/list response (last line)
+        response = json.loads(lines[-1])
+        if "error" in response:
+            raise RuntimeError(f"Server error: {response['error'].get('message', 'Unknown error')}")
+        
+        # Handle both MCP format variations
+        result = response.get("result", {})
+        if isinstance(result, list):
+            # Direct list format from test
+            tools = result
+        else:
+            # Standard MCP format
+            tools = result.get("tools", [])
+        
+        if not tools:
+            return "No tools found on this server."
+        
+        result_text = f"Discovered {len(tools)} tools:\n\n"
+        for tool in tools:
+            result_text += f"**{tool['name']}**\n"
+            result_text += f"- {tool.get('description', 'No description')}\n\n"
+        
+        return result_text
+    
+    except asyncio.TimeoutError:
+        process.kill()
+        await process.wait()
+        raise TimeoutError(f"Discovery timed out after {timeout} seconds")
 
 
 @mcp.tool(description="""Registers a tool from an MCP server for use in chains.
@@ -444,10 +437,7 @@ async def register_tool(
         "registered_at": datetime.now().isoformat()
     }
     
-    try:
-        _save_state(storage_path, registered_tools, defined_chains, execution_history)
-    except Exception:
-        pass  # Continue even if save fails
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
@@ -575,10 +565,7 @@ async def chain_tools(
         "created_at": datetime.now().isoformat()
     }
     
-    try:
-        _save_state(storage_path, registered_tools, defined_chains, execution_history)
-    except Exception:
-        pass  # Continue even if save fails
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     result = f"✅ Chain '{chain_id}' defined successfully!\n\n**Steps:**\n"
     for i, step in enumerate(steps, 1):
@@ -787,10 +774,7 @@ async def execute_chain(
     
     # Save final result to file if requested
     if chain_config.get("save_to_file") and execution_log.get("final_result"):
-        try:
-            Path(chain_config["save_to_file"]).write_text(execution_log["final_result"])
-        except Exception as e:
-            execution_log["save_error"] = f"Failed to save to file: {e}"
+        Path(chain_config["save_to_file"]).write_text(execution_log["final_result"])
     
     # Format execution summary
     if execution_log["error"]:

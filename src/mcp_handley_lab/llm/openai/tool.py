@@ -62,43 +62,32 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
             elif "path" in file_item:
                 # File path - read content directly
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        inline_content.append(f"Error: File not found: {file_path}")
-                        continue
-                    
-                    file_size = file_path.stat().st_size
-                    
-                    # For Chat Completions, all content must be inline
+                file_size = file_path.stat().st_size
+                
+                if file_size > 1024 * 1024:  # 1MB threshold for Files API
+                    # Large file - use Files API for assistant-compatible upload
+                    uploaded_file = await client.files.create(
+                        file=open(file_path, "rb"),
+                        purpose="assistants"
+                    )
+                    file_attachments.append({
+                        "file_id": uploaded_file.id,
+                        "tools": [{"type": "file_search"}]
+                    })
+                else:
+                    # Small file - include directly
                     if is_text_file(file_path):
                         # Text file - read as string with header
-                        try:
-                            content = file_path.read_text(encoding='utf-8')
-                            # Truncate very large text files to prevent token overflow
-                            if len(content) > 100000:  # ~25k tokens rough estimate  
-                                content = content[:100000] + "\n\n[Content truncated due to size - file too large]"
-                            inline_content.append(f"[File: {file_path.name}]\n{content}")
-                        except UnicodeDecodeError:
-                            inline_content.append(f"Error: Could not read text file {file_path} - encoding issue")
+                        content = file_path.read_text(encoding='utf-8')
+                        inline_content.append(f"[File: {file_path.name}]\n{content}")
                     else:
-                        # Binary file - describe only, no base64 for large files
-                        if file_size > 1024 * 1024:  # 1MB+
-                            mime_type = determine_mime_type(file_path)
-                            inline_content.append(f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included (too large)]")
-                        else:
-                            # Small binary file - base64 encode
-                            try:
-                                file_content = file_path.read_bytes()
-                                encoded_content = base64.b64encode(file_content).decode()
-                                mime_type = determine_mime_type(file_path)
-                                inline_content.append(
-                                    f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
-                                )
-                            except Exception as e:
-                                inline_content.append(f"Error reading binary file {file_path}: {e}")
-                            
-                except Exception as e:
-                    inline_content.append(f"Error processing file {file_path}: {e}")
+                        # Small binary file - base64 encode with metadata
+                        file_content = file_path.read_bytes()
+                        encoded_content = base64.b64encode(file_content).decode()
+                        mime_type = determine_mime_type(file_path)
+                        inline_content.append(
+                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
+                        )
     
     return inline_content
 
@@ -310,7 +299,9 @@ async def _openai_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Asks a question to an OpenAI GPT model with optional file context and persistent memory.
+@mcp.tool(description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
+
+**Agent Recommendation**: For best results, consider creating a specialized agent with memory_manager.create_agent() before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -409,7 +400,9 @@ async def ask(
     )
 
 
-@mcp.tool(description="""Analyzes images using OpenAI's GPT-4 Vision model with advanced multimodal capabilities.
+@mcp.tool(description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 CRITICAL: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
@@ -506,7 +499,9 @@ async def analyze_image(
     )
 
 
-@mcp.tool(description="""Generates high-quality images using OpenAI's DALL-E models.
+@mcp.tool(description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
+
+**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
 Model Options:
 - "dall-e-3" (default) - Latest model with best quality and prompt adherence

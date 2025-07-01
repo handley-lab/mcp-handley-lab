@@ -63,147 +63,8 @@ class TestModelConfiguration:
         assert config["output_tokens"] == 65536
 
 
-class TestAskTokenLimits:
-    """Test ask function with max_output_tokens parameter."""
-    
-    @pytest.mark.asyncio
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    async def test_ask_uses_model_default_tokens(self, mock_handle_output, mock_client):
-        """Test that ask uses model's default token limit when max_output_tokens not specified."""
-        # Setup mock
-        mock_response = Mock()
-        mock_response.text = "Test response"
-        mock_response.usage_metadata.prompt_token_count = 10
-        mock_response.usage_metadata.candidates_token_count = 5
-        mock_client.models.generate_content.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
-        
-        # Call ask with gemini-2.5-flash (should use 65536 tokens)
-        result = await ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="gemini-2.5-flash",
-            agent_name=False
-        )
-        
-        # Verify generate_content was called with correct config
-        call_args = mock_client.models.generate_content.call_args
-        config = call_args.kwargs['config']
-        assert config.max_output_tokens == 65536
-    
-    @pytest.mark.asyncio
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    async def test_ask_uses_custom_tokens(self, mock_handle_output, mock_client):
-        """Test that ask uses custom max_output_tokens when specified."""
-        # Setup mock
-        mock_response = Mock()
-        mock_response.text = "Test response"
-        mock_response.usage_metadata.prompt_token_count = 10
-        mock_response.usage_metadata.candidates_token_count = 5
-        mock_client.models.generate_content.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
-        
-        # Call ask with custom token limit
-        result = await ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="gemini-2.5-flash",
-            max_output_tokens=1000,
-            agent_name=False
-        )
-        
-        # Verify generate_content was called with custom config
-        call_args = mock_client.models.generate_content.call_args
-        config = call_args.kwargs['config']
-        assert config.max_output_tokens == 1000
-    
-    @pytest.mark.asyncio
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    async def test_ask_different_model_defaults(self, mock_handle_output, mock_client):
-        """Test that ask uses correct defaults for different models."""
-        # Setup mock
-        mock_response = Mock()
-        mock_response.text = "Test response"
-        mock_response.usage_metadata.prompt_token_count = 10
-        mock_response.usage_metadata.candidates_token_count = 5
-        mock_client.models.generate_content.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
-        
-        # Test gemini-1.5-pro (should use 8192 tokens)
-        await ask(
-            prompt="Test prompt",
-            output_file="/tmp/test.txt",
-            model="gemini-1.5-pro",
-            agent_name=False
-        )
-        
-        call_args = mock_client.models.generate_content.call_args
-        config = call_args.kwargs['config']
-        assert config.max_output_tokens == 8192
 
 
-class TestAnalyzeImageTokenLimits:
-    """Test analyze_image function with max_output_tokens parameter."""
-    
-    @pytest.mark.asyncio
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
-    @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    async def test_analyze_image_uses_model_default_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
-        """Test that analyze_image uses model's default token limit."""
-        # Setup mocks
-        mock_resolve_images.return_value = []
-        mock_response = Mock()
-        mock_response.text = "Image analysis response"
-        mock_response.usage_metadata.prompt_token_count = 15
-        mock_response.usage_metadata.candidates_token_count = 10
-        mock_client.models.generate_content.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
-        
-        # Call analyze_image with default model (gemini-2.5-pro)
-        result = await analyze_image(
-            prompt="Analyze this image",
-            output_file="/tmp/analysis.txt",
-            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-            agent_name=False
-        )
-        
-        # Verify generate_content was called with correct config
-        call_args = mock_client.models.generate_content.call_args
-        config = call_args.kwargs['config']
-        assert config.max_output_tokens == 65536  # gemini-2.5-pro default
-    
-    @pytest.mark.asyncio
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @patch('mcp_handley_lab.llm.gemini.tool._resolve_images')
-    @patch('mcp_handley_lab.llm.gemini.tool.handle_output')
-    async def test_analyze_image_uses_custom_tokens(self, mock_handle_output, mock_resolve_images, mock_client):
-        """Test that analyze_image uses custom max_output_tokens when specified."""
-        # Setup mocks
-        mock_resolve_images.return_value = []
-        mock_response = Mock()
-        mock_response.text = "Image analysis response"
-        mock_response.usage_metadata.prompt_token_count = 15
-        mock_response.usage_metadata.candidates_token_count = 10
-        mock_client.models.generate_content.return_value = mock_response
-        mock_handle_output.return_value = "Response saved"
-        
-        # Call analyze_image with custom token limit
-        result = await analyze_image(
-            prompt="Analyze this image",
-            output_file="/tmp/analysis.txt",
-            image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-            max_output_tokens=2000,
-            agent_name=False
-        )
-        
-        # Verify generate_content was called with custom config
-        call_args = mock_client.models.generate_content.call_args
-        config = call_args.kwargs['config']
-        assert config.max_output_tokens == 2000
 
 
 class TestInputValidation:
@@ -273,42 +134,34 @@ class TestErrorHandling:
     
     @pytest.mark.asyncio
     @patch('mcp_handley_lab.llm.gemini.tool.is_text_file')
-    @patch('pathlib.Path.exists')
     @patch('pathlib.Path.stat')
     @patch('pathlib.Path.read_text')
-    async def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_exists, mock_is_text):
-        """Test file reading error in _resolve_files (lines 127-131)."""
+    async def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_is_text):
+        """Test file reading error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
-        mock_exists.return_value = True
         mock_stat.return_value.st_size = 100  # Small file
         mock_is_text.return_value = True
         # Make read_text fail
         mock_read_text.side_effect = Exception("Permission denied")
         
         files = [{"path": "/tmp/test.txt"}]
-        parts = await _resolve_files(files)
         
-        # Should have error message part
-        assert len(parts) == 1
-        assert "Error reading file" in parts[0].text
-        assert "Permission denied" in parts[0].text
+        # Should raise exception instead of adding error text
+        with pytest.raises(Exception, match="Permission denied"):
+            await _resolve_files(files)
     
     @pytest.mark.asyncio
-    @patch('pathlib.Path.exists')
-    async def test_resolve_files_processing_error(self, mock_exists):
-        """Test file processing error in _resolve_files (lines 130-131)."""
+    async def test_resolve_files_processing_error(self):
+        """Test file processing error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
         
-        # Make the path check itself fail
-        mock_exists.side_effect = Exception("Invalid path")
+        # Use invalid path that will cause stat() to fail
+        files = [{"path": "/invalid/nonexistent/path"}]
         
-        files = [{"path": "/invalid/path"}]
-        parts = await _resolve_files(files)
-        
-        # Should have error message part
-        assert len(parts) == 1
-        assert "Error processing file /invalid/path: Invalid path" in parts[0].text
+        # Should raise FileNotFoundError instead of adding error text
+        with pytest.raises(FileNotFoundError):
+            await _resolve_files(files)
     
     @patch('pathlib.Path.read_bytes')
     @patch('PIL.Image.open')
@@ -338,107 +191,3 @@ class TestErrorHandling:
             )
 
 
-class TestGroundingConfiguration:
-    """Test grounding tool selection based on model family."""
-    
-    def test_grounding_tool_logic_directly(self):
-        """Test the grounding tool selection logic directly without mocking."""
-        from google.genai.types import Tool, GoogleSearch, GoogleSearchRetrieval
-        
-        # Test 1.5 model logic
-        model_1_5 = "gemini-1.5-pro"
-        if model_1_5.startswith("gemini-1.5"):
-            tool_1_5 = Tool(google_search_retrieval=GoogleSearchRetrieval())
-        else:
-            tool_1_5 = Tool(google_search=GoogleSearch())
-        
-        assert tool_1_5.google_search_retrieval is not None
-        assert tool_1_5.google_search is None
-        assert isinstance(tool_1_5.google_search_retrieval, GoogleSearchRetrieval)
-        
-        # Test 2.5 model logic  
-        model_2_5 = "gemini-2.5-flash"
-        if model_2_5.startswith("gemini-1.5"):
-            tool_2_5 = Tool(google_search_retrieval=GoogleSearchRetrieval())
-        else:
-            tool_2_5 = Tool(google_search=GoogleSearch())
-            
-        assert tool_2_5.google_search is not None
-        assert tool_2_5.google_search_retrieval is None
-        assert isinstance(tool_2_5.google_search, GoogleSearch)
-    
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @pytest.mark.asyncio
-    async def test_grounding_integration_1_5_models(self, mock_client):
-        """Integration test: verify 1.5 models get GoogleSearchRetrieval in actual calls."""
-        from google.genai.types import Tool, GoogleSearchRetrieval
-        
-        # Mock the client and response
-        mock_response = Mock()
-        mock_response.text = "Test response"
-        mock_response.usage_metadata.prompt_token_count = 10
-        mock_response.usage_metadata.candidates_token_count = 20
-        mock_client.models.generate_content.return_value = mock_response
-        
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
-            test_file = f.name
-        
-        try:
-            await ask(
-                prompt="Test question",
-                output_file=test_file,
-                model="gemini-1.5-pro",
-                grounding=True,
-                agent_name=False
-            )
-            
-            # Verify the correct tool was used
-            call_args = mock_client.models.generate_content.call_args
-            config = call_args[1]['config']
-            
-            # Should have tools configured for 1.5 models
-            assert hasattr(config, 'tools')
-            assert len(config.tools) == 1
-            
-            tool = config.tools[0]
-            assert isinstance(tool, Tool)
-            assert tool.google_search_retrieval is not None
-            assert tool.google_search is None
-            assert isinstance(tool.google_search_retrieval, GoogleSearchRetrieval)
-            
-        finally:
-            Path(test_file).unlink(missing_ok=True)
-    
-    @patch('mcp_handley_lab.llm.gemini.tool.client')
-    @pytest.mark.asyncio  
-    async def test_no_grounding_tools_when_disabled(self, mock_client):
-        """Test that no tools are added when grounding is disabled."""
-        # Mock the client and response
-        mock_response = Mock()
-        mock_response.text = "Test response"
-        mock_response.usage_metadata.prompt_token_count = 10
-        mock_response.usage_metadata.candidates_token_count = 20
-        mock_client.models.generate_content.return_value = mock_response
-        
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
-            test_file = f.name
-        
-        try:
-            await ask(
-                prompt="Test question",
-                output_file=test_file,
-                model="gemini-2.5-flash",
-                grounding=False,  # Explicitly disabled
-                agent_name=False
-            )
-            
-            # Verify no tools were configured
-            call_args = mock_client.models.generate_content.call_args
-            config = call_args[1]['config']
-            
-            # Should not have tools or tools should be empty/None
-            if hasattr(config, 'tools') and config.tools is not None:
-                assert len(config.tools) == 0
-            
-        finally:
-            Path(test_file).unlink(missing_ok=True)

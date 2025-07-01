@@ -357,9 +357,9 @@ class TestDiscoverTools:
         mock_process.kill = AsyncMock()
         mock_create_subprocess.return_value = mock_process
         
-        result = await discover_tools("python -m test_server", timeout=5)
+        with pytest.raises(TimeoutError, match="Discovery timed out"):
+            await discover_tools("python -m test_server", timeout=5)
         
-        assert "Discovery timed out" in result
         mock_process.kill.assert_called_once()
     
     @patch('asyncio.create_subprocess_exec')
@@ -371,9 +371,8 @@ class TestDiscoverTools:
         mock_process.returncode = 1
         mock_create_subprocess.return_value = mock_process
         
-        result = await discover_tools("python -m test_server")
-        
-        assert "Failed to start server" in result
+        with pytest.raises(RuntimeError, match="Failed to start server"):
+            await discover_tools("python -m test_server")
     
     @patch('asyncio.create_subprocess_exec')
     @pytest.mark.asyncio
@@ -384,9 +383,9 @@ class TestDiscoverTools:
         mock_process.returncode = 0
         mock_create_subprocess.return_value = mock_process
         
-        result = await discover_tools("python -m test_server")
-        
-        assert "Failed to parse response" in result
+        # Should raise JSONDecodeError instead of returning error string
+        with pytest.raises(json.JSONDecodeError):
+            await discover_tools("python -m test_server")
 
 
 class TestAdvancedChainExecution:

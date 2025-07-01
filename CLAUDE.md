@@ -513,6 +513,38 @@ mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_rev
 
 Always verify pricing and model specifications from official sources before updating configurations.
 
+## MCP Tool Interruption and ESC Key Behavior
+
+### ESC Key Behavior in Claude Desktop
+
+**Expected Behavior**: Pressing ESC during MCP tool execution is intended to interrupt incorrect tool calls - this is normal UX behavior.
+
+**Previous Issue**: ESC interruption could break MCP connections, requiring reconnection.
+
+**Solution Implemented**: Added graceful `asyncio.CancelledError` handling to all long-running tools:
+- **LLM tools** (Gemini, OpenAI): Convert cancellation to `RuntimeError` with agent memory recording
+- **Code2prompt**: Graceful cancellation during codebase analysis
+- **Vim tools**: Process cleanup with graceful termination
+- **Tool chainer**: Subprocess cleanup during tool execution
+
+### Usage Recommendations
+
+1. **Use stdout for quick queries**: LLM tools default to `output_file="-"` for immediate responses
+2. **ESC interruption is safe**: Connection remains stable after cancellation
+3. **Long operations can be cancelled**: Users can safely interrupt incorrect tool calls
+
+### Technical Implementation
+
+```python
+try:
+    await long_running_operation()
+except asyncio.CancelledError:
+    # Clean up resources (processes, memory, etc.)
+    raise RuntimeError("Operation was cancelled by user")
+```
+
+This pattern ensures MCP connection stability while allowing user control over tool execution.
+
 ## Task Management
 
 **CRITICAL**: Maintain detailed todo lists with sub-tasks for all work. Break down every major task into smaller, testable components. This ensures nothing is overlooked and provides clear progress tracking.

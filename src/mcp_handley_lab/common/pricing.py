@@ -9,23 +9,12 @@ class PricingCalculator:
     
     @classmethod
     def _load_pricing_config(cls, provider: str) -> Dict[str, Any]:
-        """Load pricing configuration from YAML file."""
-        # Look for pricing files in the project root directory
+        """Load pricing configuration from unified model YAML file."""
         current_dir = Path(__file__).parent
-        pricing_file = None
+        models_file = current_dir.parent / "llm" / provider / "models.yaml"
         
-        # Search up the directory tree for the pricing file
-        for path in [current_dir] + list(current_dir.parents):
-            potential_file = path / f"pricing-{provider}.yaml"
-            if potential_file.exists():
-                pricing_file = potential_file
-                break
-        
-        if not pricing_file:
-            return {}
-            
         try:
-            with open(pricing_file, 'r', encoding='utf-8') as f:
+            with open(models_file, 'r', encoding='utf-8') as f:
                 return yaml.safe_load(f)
         except Exception as e:
             print(f"Warning: Failed to load pricing for {provider}: {e}")
@@ -91,6 +80,23 @@ class PricingCalculator:
             total_cost += (input_tokens / 1_000_000) * modality_price
             total_cost += (output_tokens / 1_000_000) * model_config.get("output_per_1m", 0.0)
             
+        elif pricing_type == "complex":
+            # Handle complex models with special pricing (e.g., GPT-image-1)
+            if model == "gpt-image-1":
+                # Handle GPT-image-1 special pricing
+                if input_modality == "text":
+                    total_cost += (input_tokens / 1_000_000) * model_config["text_input_per_1m"]
+                    total_cost += (cached_input_tokens / 1_000_000) * model_config["cached_text_input_per_1m"]
+                elif input_modality == "image":
+                    total_cost += (input_tokens / 1_000_000) * model_config["image_input_per_1m"]
+                    total_cost += (cached_input_tokens / 1_000_000) * model_config["cached_image_input_per_1m"]
+                
+                # Add per-image output cost
+                if images_generated > 0:
+                    image_pricing = model_config["image_output_pricing"]
+                    per_image_cost = image_pricing.get(output_quality, 0.04)
+                    total_cost += images_generated * per_image_cost
+                    
         else:
             # Standard per-token pricing
             input_price = model_config.get("input_per_1m", 0.0)
@@ -103,26 +109,6 @@ class PricingCalculator:
             if cached_input_tokens > 0 and "cached_input_per_1m" in model_config:
                 cached_price = model_config["cached_input_per_1m"]
                 total_cost += (cached_input_tokens / 1_000_000) * cached_price
-                
-        # Handle complex models with special pricing (e.g., GPT-image-1)
-        complex_models = config.get("complex_models", {})
-        if model in complex_models:
-            complex_config = complex_models[model]
-            
-            if model == "gpt-image-1":
-                # Handle GPT-image-1 special pricing
-                if input_modality == "text":
-                    total_cost += (input_tokens / 1_000_000) * complex_config["text_input_per_1m"]
-                    total_cost += (cached_input_tokens / 1_000_000) * complex_config["cached_text_input_per_1m"]
-                elif input_modality == "image":
-                    total_cost += (input_tokens / 1_000_000) * complex_config["image_input_per_1m"]
-                    total_cost += (cached_input_tokens / 1_000_000) * complex_config["cached_image_input_per_1m"]
-                
-                # Add per-image output cost
-                if images_generated > 0:
-                    image_pricing = complex_config["image_output_pricing"]
-                    per_image_cost = image_pricing.get(output_quality, 0.04)
-                    total_cost += images_generated * per_image_cost
                     
         return total_cost
     

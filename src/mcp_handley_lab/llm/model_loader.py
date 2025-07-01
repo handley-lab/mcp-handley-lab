@@ -83,21 +83,21 @@ def build_model_configs_dict(provider: str) -> Dict[str, Dict[str, Any]]:
     for model_id, model_info in config['models'].items():
         if provider == 'openai':
             # OpenAI format - handle image generation models differently
-            if model_info.get('pricing_type') == 'image':
-                # Image generation models don't need output_limit/param_type
+            if model_info.get('pricing_type') == 'per_image':
+                # Image generation models don't need output_tokens/param
                 model_configs[model_id] = {
                     "output_tokens": None,  # N/A for image generation
                     "param": None
                 }
             else:
                 # Text generation models require explicit values in YAML
-                if 'output_limit' not in model_info:
-                    raise ValueError(f"Missing 'output_limit' for OpenAI model {model_id}")
-                if 'param_type' not in model_info:
-                    raise ValueError(f"Missing 'param_type' for OpenAI model {model_id}")
+                if 'output_tokens' not in model_info:
+                    raise ValueError(f"Missing 'output_tokens' for OpenAI model {model_id}")
+                if 'param' not in model_info:
+                    raise ValueError(f"Missing 'param' for OpenAI model {model_id}")
                 model_configs[model_id] = {
-                    "output_tokens": model_info['output_limit'],
-                    "param": model_info['param_type']
+                    "output_tokens": model_info['output_tokens'],
+                    "param": model_info['param']
                 }
         elif provider == 'claude':
             # Claude format - require explicit values in YAML
@@ -110,11 +110,11 @@ def build_model_configs_dict(provider: str) -> Dict[str, Dict[str, Any]]:
                 "output_tokens": model_info['output_tokens']
             }
         elif provider == 'gemini':
-            # Gemini format - skip image generation models or require explicit values
-            if model_info.get('pricing_type') == 'image':
-                # Image generation models don't need output_tokens
+            # Gemini format - skip image/video generation models or require explicit values
+            if model_info.get('pricing_type') in ['per_image', 'per_second']:
+                # Image/video generation models don't need output_tokens
                 model_configs[model_id] = {
-                    "output_tokens": None  # N/A for image generation
+                    "output_tokens": None  # N/A for image/video generation
                 }
             else:
                 # Text generation models require explicit values in YAML
@@ -181,9 +181,12 @@ def format_model_listing(provider: str, api_model_ids: Optional[set] = None) -> 
             # Get pricing
             try:
                 pricing_type = model_config.get('pricing_type', 'token')
-                if pricing_type == 'image':
-                    cost_per_image = calculate_cost(model_id, 1, 0, provider)
+                if pricing_type == 'per_image':
+                    cost_per_image = calculate_cost(model_id, 1, 0, provider, images_generated=1)
                     pricing = f"${cost_per_image:.3f} per image"
+                elif pricing_type == 'per_second':
+                    cost_per_second = calculate_cost(model_id, 1, 0, provider, seconds_generated=1)
+                    pricing = f"${cost_per_second:.3f} per second"
                 else:
                     input_cost = calculate_cost(model_id, 1000000, 0, provider)
                     output_cost = calculate_cost(model_id, 0, 1000000, provider)

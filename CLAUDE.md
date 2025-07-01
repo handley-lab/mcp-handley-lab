@@ -489,7 +489,7 @@ Leverage Gemini agents as intelligent helpers for code review and brainstorming:
 
 1. **Generate code summary**: Use `mcp__code2prompt__generate_prompt` to create a structured representation of the code
 2. **Initialize or select agent**: Create a new agent with `mcp__gemini__create_agent` or use an existing one for the session
-3. **Review and ideate**: Use `mcp__gemini__ask` with the pro model, passing the code2prompt output as a file
+3. **Review and ideate**: Use `mcp__gemini__ask` with the gemini-2.5-pro model, passing the code2prompt output as a file
 
 Example workflow:
 ```bash
@@ -500,7 +500,7 @@ mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_re
 mcp__gemini__create_agent agent_name="code_reviewer" personality="Expert Python developer focused on clean code and best practices"
 
 # Get review and suggestions
-mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="pro" files=[{"path": "/tmp/code_review.md"}]
+mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini-2.5-pro" files=[{"path": "/tmp/code_review.md"}]
 ```
 
 

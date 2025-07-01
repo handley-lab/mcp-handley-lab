@@ -324,17 +324,17 @@ Error Handling:
 
 Examples:
 ```python
-# Basic question with session memory (default)
-ask(
-    prompt="Explain this code",
-    output_file="/tmp/explanation.md",
-    files=[{"path": "/path/to/code.py"}]
-)
+# Quick question with stdout (default, immediate response)
+ask(prompt="What is 2+2?")
 
 # Continue conversation in same session
+ask(prompt="Now multiply that by 3")
+
+# Longer response saved to file
 ask(
-    prompt="Now show me how to optimize it",
-    output_file="/tmp/optimization.md"
+    prompt="Explain this code in detail",
+    output_file="/tmp/explanation.md",
+    files=[{"path": "/path/to/code.py"}]
 )
 
 # Named agent for cross-session persistence
@@ -345,10 +345,9 @@ ask(
     model="gemini-2.5-pro"
 )
 
-# Disable memory for one-off queries
+# One-off query with grounding
 ask(
     prompt="What is the weather like?",
-    output_file="/tmp/weather.md",
     agent_name=False,
     grounding=True
 )
@@ -356,7 +355,7 @@ ask(
 @require_client
 async def ask(
     prompt: str,
-    output_file: str,
+    output_file: str = "-",
     agent_name: Optional[Union[str, bool]] = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
@@ -368,7 +367,7 @@ async def ask(
     
     Args:
         prompt: The question or instruction to send to Gemini
-        output_file: File path to save the response (use '-' for stdout)
+        output_file: Output destination - use '-' for immediate stdout (default, faster for short queries) or file path for longer responses
         agent_name: Named agent for persistent memory (None=session, False=disabled)
         model: Gemini model name (gemini-2.5-flash for speed, gemini-2.5-pro for complex reasoning)
         temperature: Creativity level 0.0-1.0 (default: 0.7)
@@ -438,24 +437,21 @@ Error Handling:
 
 Examples:
 ```python
-# Analyze image with session memory (default)
+# Quick image analysis with stdout (default)
 analyze_image(
-    prompt="Describe what you see in this image",
-    output_file="/tmp/analysis.md",
-    image_data="/path/to/photo.jpg",
-    focus="general"
+    prompt="What's in this image?",
+    image_data="/path/to/photo.jpg"
 )
 
 # Continue analysis in same session
 analyze_image(
     prompt="Now focus on the text in the image",
-    output_file="/tmp/text_analysis.md",
     focus="text"
 )
 
-# Named agent for cross-session persistence
+# Detailed analysis saved to file
 analyze_image(
-    prompt="Analyze this architectural diagram",
+    prompt="Analyze this architectural diagram in detail",
     output_file="/tmp/architecture.md",
     image_data={"path": "/path/to/diagram.png"},
     agent_name="architect_reviewer",
@@ -465,7 +461,6 @@ analyze_image(
 # One-off analysis without memory
 analyze_image(
     prompt="What's in this random image?",
-    output_file="/tmp/random.md",
     image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
     agent_name=False
 )
@@ -473,7 +468,7 @@ analyze_image(
 @require_client
 async def analyze_image(
     prompt: str,
-    output_file: str,
+    output_file: str = "-",
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",

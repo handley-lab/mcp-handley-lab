@@ -547,24 +547,36 @@ async def analyze_image(
     )
 
 
-@mcp.tool(description="""Lists all available Claude models with descriptions, capabilities, and pricing information.
+@mcp.tool(description="""Retrieves a comprehensive catalog of all available Claude models to aid in model discovery and selection.
 
-Returns comprehensive information about:
+**Purpose & Benefits:**
+This tool helps users:
+- Discover all models offered by Anthropic's Claude family
+- Compare models based on cost, performance, context windows, and capabilities
+- Identify the most suitable Claude model for specific tasks or budget constraints
+- Understand model generations and performance tiers (Opus, Sonnet, Haiku)
+
+**Returns:**
+Formatted listing with detailed information including:
 - Model IDs and descriptions
-- Context windows and token limits
+- Context windows (all Claude models: 200K tokens)
 - Pricing per 1M tokens (input/output)
-- Model capabilities and recommended use cases
-- Model generations (Claude 3, 3.5, 4)
+- Capabilities (text generation, vision, coding, analysis, etc.)
+- Model tiers (Opus: most capable, Sonnet: balanced, Haiku: fastest)
+- Cache pricing options for repeated content
 
-Examples:
+**Examples:**
 ```python
-# List all available models
+# Discover all available models
 list_models()
 
-# Shows models like:
-# claude-sonnet-4: Latest Claude 4 model with enhanced capabilities
-# claude-3-5-sonnet: Advanced Claude 3.5 for complex tasks
-# claude-3-5-haiku: Fast, cost-effective Claude 3.5
+# Use cases this enables:
+# - "Which Claude model is fastest?" → claude-3-5-haiku ($0.80/M input)
+# - "What's the most capable model?" → claude-opus-4 ($15.00/M input)
+# - "Which models support vision?" → All Claude models support image analysis
+# - "Show me balanced cost/performance" → claude-sonnet-4, claude-sonnet-3.7
+# - "What's the latest Claude generation?" → Claude 4 series
+# - "Which models have cache pricing?" → All models (5-min and 1-hour tiers)
 ```""")
 async def list_models() -> str:
     """List available Claude models with detailed information."""

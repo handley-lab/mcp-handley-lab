@@ -642,24 +642,35 @@ async def generate_image(
 
 
 
-@mcp.tool(description="""Lists all available Gemini models with descriptions, capabilities, and pricing information.
+@mcp.tool(description="""Retrieves a comprehensive catalog of all available Gemini models to aid in model discovery and selection.
 
-Returns comprehensive information about:
+**Purpose & Benefits:**
+This tool helps users:
+- Discover all models offered by Google's Gemini family and related models (Imagen, Veo)
+- Compare models based on cost, performance, context windows, and capabilities
+- Identify the most suitable Gemini model for specific tasks or budget constraints
+- Understand model generations and recommended use cases
+
+**Returns:**
+Formatted listing with detailed information including:
 - Model IDs and descriptions
-- Context windows and token limits
-- Pricing per 1M tokens (input/output)
-- Model capabilities (text, vision, code, etc.)
-- Model generations (Gemini 1.5, 2.5)
+- Context windows and token limits  
+- Pricing per 1M tokens (tiered, modality-based, or per-image/second)
+- Capabilities (text generation, image understanding, multimodal, etc.)
+- Recommended use cases and performance characteristics
+- API availability status
 
-Examples:
+**Examples:**
 ```python
-# List all available models
+# Discover all available models
 list_models()
 
-# Shows models like:
-# gemini-2.5-pro: Latest pro model with advanced reasoning
-# gemini-2.5-flash: Fast, efficient model for most tasks
-# imagen-4: High-quality image generation model
+# Use cases this enables:
+# - "Which models support image input?" → gemini-2.5-pro, gemini-2.5-flash, etc.
+# - "What's the cheapest text model?" → gemini-1.5-flash-8b ($0.0375/M input)
+# - "Which model has the largest context?" → gemini-2.5-pro (2M tokens)
+# - "Show me image generation models" → imagen-4, imagen-4-ultra, imagen-3
+# - "What models support video generation?" → veo-2 ($0.35/second)
 ```""")
 @require_client
 async def list_models() -> str:

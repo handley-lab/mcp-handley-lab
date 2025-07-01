@@ -627,24 +627,36 @@ async def generate_image(
 
 
 
-@mcp.tool(description="""Lists all available OpenAI models with descriptions, capabilities, and pricing information.
+@mcp.tool(description="""Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.
 
-Returns comprehensive information about:
+**Purpose & Benefits:**
+This tool helps users:
+- Discover all models offered by OpenAI (GPT, DALL-E, reasoning models)
+- Compare models based on cost, performance, context windows, and capabilities
+- Identify the most suitable OpenAI model for specific tasks or budget constraints
+- Understand model generations and specialized features (reasoning, vision, etc.)
+
+**Returns:**
+Formatted listing with detailed information including:
 - Model IDs and descriptions
-- Token limits and context windows
-- Pricing per 1M tokens (input/output)
-- Model capabilities (text, vision, reasoning, etc.)
-- Recommended use cases
+- Context windows and token limits
+- Pricing per 1M tokens (including cached input pricing)
+- Capabilities (text generation, vision, reasoning, image generation, etc.)
+- Model categories (reasoning, multimodal, legacy, etc.)
+- API availability status
 
-Examples:
+**Examples:**
 ```python
-# List all available models
+# Discover all available models
 list_models()
 
-# Shows models like:
-# GPT-4.1: Smartest model for complex tasks
-# o3: Most powerful reasoning model
-# gpt-4o: Multimodal model with vision capabilities
+# Use cases this enables:
+# - "Which models can reason?" → o3, o4-mini, o1 series
+# - "What's the cheapest multimodal model?" → gpt-4o-mini ($0.15/M input)
+# - "Which model is best for coding?" → o4-mini, gpt-4.1
+# - "Show me image generation models" → dall-e-3, dall-e-2, gpt-image-1
+# - "What models support vision?" → gpt-4o series, gpt-image-1
+# - "Which models support caching?" → gpt-4.1 series, gpt-4o series
 ```""")
 async def list_models() -> str:
     """List available OpenAI models with detailed information."""

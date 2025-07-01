@@ -212,25 +212,29 @@ async def _gemini_generation_adapter(
     # Convert history to Gemini format
     gemini_history = _convert_history_to_gemini_format(history)
     
-    # Generate content
-    if gemini_history:
-        # Continue existing conversation
-        user_parts = [Part(text=prompt)] + file_parts
-        contents = gemini_history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
-        response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-            model=model, contents=contents, config=config
-        ))
-    else:
-        # New conversation
-        if file_parts:
-            content_parts = [Part(text=prompt)] + file_parts
+    # Generate content with cancellation support
+    try:
+        if gemini_history:
+            # Continue existing conversation
+            user_parts = [Part(text=prompt)] + file_parts
+            contents = gemini_history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
             response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                model=model, contents=content_parts, config=config
+                model=model, contents=contents, config=config
             ))
         else:
-            response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                model=model, contents=prompt, config=config
-            ))
+            # New conversation
+            if file_parts:
+                content_parts = [Part(text=prompt)] + file_parts
+                response = await loop.run_in_executor(None, lambda: client.models.generate_content(
+                    model=model, contents=content_parts, config=config
+                ))
+            else:
+                response = await loop.run_in_executor(None, lambda: client.models.generate_content(
+                    model=model, contents=prompt, config=config
+                ))
+    except asyncio.CancelledError:
+        # Handle cancellation at the executor level
+        raise
     
     if not response.text:
         raise RuntimeError("No response text generated")
@@ -284,7 +288,11 @@ async def _gemini_image_analysis_adapter(
         return client.models.generate_content(model=model, contents=content, config=config)
     
     loop = asyncio.get_running_loop()
-    response = await loop.run_in_executor(None, _sync_generate_content_image)
+    try:
+        response = await loop.run_in_executor(None, _sync_generate_content_image)
+    except asyncio.CancelledError:
+        # Handle cancellation at the executor level
+        raise
     
     if not response.text:
         raise RuntimeError("No response text generated")

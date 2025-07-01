@@ -17,47 +17,24 @@ from ..common import (
     handle_output, handle_agent_memory
 )
 from ..shared import process_llm_request
+from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("OpenAI Tool")
 
 # Configure AsyncOpenAI client
 client = AsyncOpenAI(api_key=settings.openai_api_key)
 
-# Model configurations with token limits (Official OpenAI 2025)
-MODEL_CONFIGS = {
-    # GPT-4.1 Series (2025 - Latest models) - use max_tokens
-    "gpt-4.1": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4.1-mini": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4.1-nano": {"output_tokens": 4096, "param": "max_tokens"},
-    
-    # O3 Series (2025 - Latest Reasoning Models) - use max_completion_tokens
-    "o3": {"output_tokens": 100000, "param": "max_completion_tokens"},
-    "o4-mini": {"output_tokens": 100000, "param": "max_completion_tokens"},
-    
-    # O1 Series (Legacy Reasoning Models) - use max_completion_tokens
-    "o1": {"output_tokens": 100000, "param": "max_completion_tokens"},
-    "o1-preview": {"output_tokens": 32768, "param": "max_completion_tokens"},
-    "o1-mini": {"output_tokens": 65536, "param": "max_completion_tokens"},
-    
-    # GPT-4o Series - use max_tokens
-    "gpt-4o": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4o-mini": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4o-2024-11-20": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4o-2024-08-06": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4o-mini-2024-07-18": {"output_tokens": 4096, "param": "max_tokens"},
-    
-    # Legacy GPT-4 models
-    "gpt-4-turbo": {"output_tokens": 4096, "param": "max_tokens"},
-    "gpt-4": {"output_tokens": 8192, "param": "max_tokens"},
-    
-    # Image generation models
-    "gpt-image-1": {"output_tokens": 4096, "param": "max_tokens"},
-}
+# Load model configurations from YAML
+MODEL_CONFIGS = build_model_configs_dict("openai")
+
+# Load default model from YAML
+_config = load_model_config("openai")
+DEFAULT_MODEL = _config["default_model"]
 
 
 def _get_model_config(model: str) -> Dict[str, Any]:
     """Get token limits and parameter name for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["o4-mini"])  # default to o4-mini
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
 async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[str]:
@@ -239,7 +216,10 @@ async def _openai_generation_adapter(
         request_params[param_name] = default_tokens
         
     # Make API call
-    response = await client.chat.completions.create(**request_params)
+    try:
+        response = await client.chat.completions.create(**request_params)
+    except Exception as e:
+        raise RuntimeError(f"OpenAI API error: {e}")
     
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -315,7 +295,10 @@ async def _openai_image_analysis_adapter(
         request_params[param_name] = default_tokens
     
     # Make API call
-    response = await client.chat.completions.create(**request_params)
+    try:
+        response = await client.chat.completions.create(**request_params)
+    except Exception as e:
+        raise RuntimeError(f"OpenAI API error: {e}")
     
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -406,7 +389,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
-    model: str = "o4-mini",
+    model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     max_output_tokens: Optional[int] = None,
     files: Optional[List[Union[str, Dict[str, str]]]] = None
@@ -666,106 +649,12 @@ list_models()
 async def list_models() -> str:
     """List available OpenAI models with detailed information."""
     try:
-        # Get models from API
+        # Get models from API for availability checking
         api_models = await client.models.list()
         api_model_ids = {m.id for m in api_models.data}
         
-        # Build comprehensive model information
-        model_info = []
-        
-        # Group models by category
-        categories = {
-            "🧠 Reasoning Models": [
-                ("o3", "Most powerful reasoning model with leading performance on coding, math, science, and vision"),
-                ("o4-mini", "Faster, cost-efficient reasoning model delivering strong performance on math, coding and vision"),
-                ("o1", "Advanced reasoning model for complex problems"),
-                ("o1-preview", "Preview version of o1 reasoning model"),
-                ("o1-mini", "Smaller, faster reasoning model")
-            ],
-            "💭 Latest Language Models": [
-                ("gpt-4.1", "Smartest model for complex tasks"),
-                ("gpt-4.1-mini", "Affordable model balancing speed and intelligence"),
-                ("gpt-4.1-nano", "Fastest, most cost-effective model for low-latency tasks")
-            ],
-            "👁️ Multimodal Models": [
-                ("gpt-4o", "Advanced multimodal model with vision and text capabilities"),
-                ("gpt-4o-mini", "Faster, cost-effective multimodal model"),
-                ("gpt-4o-2024-11-20", "GPT-4o snapshot from November 2024"),
-                ("gpt-4o-2024-08-06", "GPT-4o snapshot from August 2024"),
-                ("gpt-4o-mini-2024-07-18", "GPT-4o-mini snapshot from July 2024")
-            ],
-            "🎨 Image Generation": [
-                ("gpt-image-1", "Latest multimodal model for precise, high-fidelity image generation"),
-                ("dall-e-3", "High-quality image generation with prompt adherence"),
-                ("dall-e-2", "Previous generation image model")
-            ],
-            "📜 Legacy Models": [
-                ("gpt-4-turbo", "Previous generation GPT-4 model"),
-                ("gpt-4", "Original GPT-4 model"),
-                ("gpt-3.5-turbo", "Fast, cost-effective model for simple tasks")
-            ]
-        }
-        
-        for category, models in categories.items():
-            model_info.append(f"\n{category}")
-            model_info.append("=" * len(category))
-            
-            for model_id, description in models:
-                # Check if model is available via API
-                availability = "✅ Available" if model_id in api_model_ids else "❓ Not listed in API"
-                
-                # Get pricing and config info
-                from ...common.pricing import calculate_cost
-                config = MODEL_CONFIGS.get(model_id)
-                
-                if config:
-                    output_limit = config["output_tokens"]
-                    param_type = config["param"]
-                    
-                    # Get pricing (if available)
-                    try:
-                        # Test with 1M tokens to get rate
-                        cost = calculate_cost(model_id, 1000000, 1000000, "openai")
-                        if cost > 0:
-                            input_cost = calculate_cost(model_id, 1000000, 0, "openai")
-                            output_cost = calculate_cost(model_id, 0, 1000000, "openai")
-                            pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
-                        else:
-                            pricing = "Pricing not available"
-                    except:
-                        pricing = "Pricing not available"
-                    
-                    model_info.append(f"""
-📋 {model_id}
-   Description: {description}
-   Status: {availability}
-   Output Limit: {output_limit:,} tokens ({param_type})
-   Pricing: {pricing}""")
-                else:
-                    model_info.append(f"""
-📋 {model_id}
-   Description: {description}
-   Status: {availability}
-   Configuration: Not configured in tool""")
-        
-        # Add summary
-        total_configured = len(MODEL_CONFIGS)
-        total_api = len(api_model_ids)
-        
-        summary = f"""
-📊 Model Summary
-================
-• Configured Models: {total_configured}
-• API Available Models: {total_api}
-• Model Categories: {len(categories)}
-
-💡 Usage Notes:
-• Reasoning models (o1, o3, o4) don't support temperature parameter
-• Vision models (gpt-4o series) support image analysis
-• Image generation models charge per image, not per token
-"""
-        
-        return summary + "\n".join(model_info)
+        # Use YAML-based model listing
+        return format_model_listing("openai", api_model_ids)
         
     except Exception as e:
         raise RuntimeError(f"Failed to list OpenAI models: {e}")

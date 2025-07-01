@@ -123,7 +123,7 @@ async def test_openai_memory_disabled_integration(skip_if_no_api_key, test_outpu
     )
     
     assert "saved" in result.lower() or "success" in result.lower()
-    assert "usage" in result.lower()  # Should show usage stats for non-memory mode
+    assert "tokens" in result.lower()  # Should show token stats for non-memory mode
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert "15" in content

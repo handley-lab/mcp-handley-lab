@@ -1,0 +1,41 @@
+Gemini Model Pricing Reference (as of 2025-06-24)
+
+Gemini 2.5 Pro
+- Paid Tier: 
+  * Input: $1.25 (≤200k tokens), $2.50 (>200k tokens)
+  * Output: $10.00 (≤200k tokens), $15.00 (>200k tokens)
+- Free Tier: Not available for input/output pricing
+
+Gemini 2.5 Flash
+- Paid Tier:
+  * Input: $0.30 (text/image/video), $1.00 (audio)
+  * Output: $2.50
+- Free Tier: Free of charge for input/output
+
+Gemini 2.5 Flash-Lite Preview
+- Paid Tier:
+  * Input: $0.10 (text/image/video), $0.50 (audio)
+  * Output: $0.40
+- Free Tier: Free of charge for input/output
+
+Imagen 4 Preview
+- Paid Tier:
+  * Standard image: $0.04
+  * Ultra image: $0.06
+- Free Tier: Not available
+
+Imagen 3
+- Paid Tier: $0.03 per image
+- Free Tier: Not available
+
+Veo 2
+- Paid Tier: $0.35 per second
+- Free Tier: Not available
+
+Additional Notes:
+- Google AI Studio usage is free in available regions
+- Context caching and storage have separate pricing
+- Grounding with Google Search has free and paid tiers
+- Preview models may have more restrictive rate limits
+
+Disclaimer: Prices are subject to change. Refer to the official Google AI pricing page for the most current information.

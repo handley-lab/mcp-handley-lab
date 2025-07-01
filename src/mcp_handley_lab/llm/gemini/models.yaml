@@ -1,0 +1,105 @@
+models:
+  gemini-2.5-pro:
+    description: "Latest pro model with advanced reasoning and multimodal capabilities"
+    capabilities: "🎯 Best for: Complex reasoning, analysis, multimodal tasks, long documents"
+    tags: ["gemini-2.5", "pro", "latest", "multimodal"]
+    context_window: "2,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 65536
+
+  gemini-2.5-flash:
+    description: "Fast, efficient model balancing speed and intelligence"
+    capabilities: "⚖️ Best for: Most general tasks, balanced performance and speed"
+    tags: ["gemini-2.5", "flash", "general", "multimodal"]
+    context_window: "1,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 65536
+
+  gemini-2.5-flash-lite:
+    description: "Fastest, most cost-effective model for simple tasks"
+    capabilities: "⚡ Best for: Simple queries, high-volume tasks, cost-sensitive applications"
+    tags: ["gemini-2.5", "flash", "cost-effective", "fast"]
+    context_window: "1,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 64000
+
+  gemini-1.5-pro:
+    description: "Advanced pro model with large context window"
+    capabilities: "📚 Best for: Complex analysis, long documents, research tasks"
+    tags: ["gemini-1.5", "pro", "legacy", "multimodal"]
+    context_window: "2,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 8192
+
+  gemini-1.5-flash:
+    description: "Fast, cost-effective model for most tasks"
+    capabilities: "⚡ Best for: Fast responses, everyday tasks"
+    tags: ["gemini-1.5", "flash", "legacy", "multimodal"]
+    context_window: "1,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 8192
+
+  gemini-1.5-flash-8b:
+    description: "Lightweight model for high-volume tasks"
+    capabilities: "🚀 Best for: High-volume, lightweight tasks"
+    tags: ["gemini-1.5", "flash", "legacy", "cost-effective"]
+    context_window: "1,000,000 tokens"
+    supports_vision: true
+    supports_grounding: true
+    output_tokens: 8192
+
+  imagen-4:
+    description: "Latest high-quality image generation model"
+    capabilities: "🎨 Best for: High-quality image generation"
+    tags: ["image-generation", "latest"]
+    context_window: "N/A (Image generation)"
+    supports_vision: false
+    supports_grounding: false
+    pricing_type: "image"
+
+  imagen-4-ultra:
+    description: "Ultra-high quality image generation"
+    capabilities: "🎨 Best for: Ultra-high quality artistic images"
+    tags: ["image-generation", "latest", "premium"]
+    context_window: "N/A (Image generation)"
+    supports_vision: false
+    supports_grounding: false
+    pricing_type: "image"
+
+  imagen-3:
+    description: "Previous generation image model"
+    capabilities: "🎨 Best for: High-quality image generation"
+    tags: ["image-generation", "legacy"]
+    context_window: "N/A (Image generation)"
+    supports_vision: false
+    supports_grounding: false
+    pricing_type: "image"
+
+# Display categories (how to group models by tags for presentation)
+display_categories:
+  - name: "🚀 Gemini 2.5 Series"
+    tags: ["gemini-2.5"]
+    description: "Latest generation with enhanced reasoning and capabilities"
+  - name: "⚡ Gemini 1.5 Series"
+    tags: ["gemini-1.5"]
+    description: "Previous generation with proven performance"
+  - name: "🎨 Image Generation"
+    tags: ["image-generation"]
+    description: "High-quality image generation models"
+
+# Default model
+default_model: "gemini-2.5-pro"
+
+# Usage notes
+usage_notes:
+  - "Gemini 2.5 models have enhanced reasoning and capabilities"
+  - "Pro models have 2M token context windows"
+  - "Flash models balance speed and capability"
+  - "All models support multimodal input (text, images, video)"
+  - "Image generation models charge per image, not per token"
+  - "Google Search grounding available for real-time information"

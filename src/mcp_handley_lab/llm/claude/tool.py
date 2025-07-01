@@ -17,6 +17,7 @@ from ..common import (
     resolve_image_data, handle_output, handle_agent_memory
 )
 from ..shared import create_client_decorator, process_llm_request
+from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("Claude Tool")
 
@@ -30,6 +31,13 @@ except Exception as e:
     client = None
     initialization_error = str(e)
 
+# Load model configurations from YAML
+MODEL_CONFIGS = build_model_configs_dict("claude")
+
+# Load default model from YAML
+_config = load_model_config("claude")
+DEFAULT_MODEL = _config["default_model"]
+
 def _get_error_message():
     return f"Claude client not initialized: {initialization_error or 'API key not configured'}"
 
@@ -38,23 +46,6 @@ require_client = create_client_decorator(
     _get_error_message()
 )
 
-# Model configurations with token limits from Claude documentation
-MODEL_CONFIGS = {
-    # Claude 3 Opus
-    "claude-3-opus-20240229": {"input_tokens": 200000, "output_tokens": 4096},
-    
-    # Claude 3.5 Sonnet (latest stable)
-    "claude-3-5-sonnet-20240620": {"input_tokens": 200000, "output_tokens": 8192},
-    
-    # Claude 3 Sonnet
-    "claude-3-sonnet-20240229": {"input_tokens": 200000, "output_tokens": 4096},
-    
-    # Claude 3.5 Haiku (latest stable)
-    "claude-3-5-haiku-20241022": {"input_tokens": 200000, "output_tokens": 8192},
-    
-    # Claude 3 Haiku
-    "claude-3-haiku-20240307": {"input_tokens": 200000, "output_tokens": 4096},
-}
 
 
 def _get_session_id() -> str:
@@ -62,9 +53,20 @@ def _get_session_id() -> str:
     return get_session_id(mcp)
 
 
+def _resolve_model_alias(model: str) -> str:
+    """Resolve model aliases to full model names."""
+    aliases = {
+        "sonnet": "claude-3-5-sonnet-20241022",
+        "opus": "claude-3-opus-20240229", 
+        "haiku": "claude-3-5-haiku-20241022"
+    }
+    return aliases.get(model, model)
+
+
 def _get_model_config(model: str) -> Dict[str, int]:
     """Get token limits for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["claude-3-5-sonnet-20240620"])
+    resolved_model = _resolve_model_alias(model)
+    return MODEL_CONFIGS.get(resolved_model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
 def _convert_history_to_claude_format(history: List[Dict[str, str]]) -> List[Dict[str, Any]]:
@@ -266,9 +268,10 @@ async def _claude_generation_adapter(
         "content": user_content
     })
     
-    # Prepare request parameters
+    # Resolve model alias and prepare request parameters
+    resolved_model = _resolve_model_alias(model)
     request_params = {
-        "model": model,
+        "model": resolved_model,
         "messages": claude_history,
         "max_tokens": output_tokens,
         "temperature": temperature,
@@ -329,9 +332,10 @@ async def _claude_image_analysis_adapter(
         "content": content_blocks
     })
     
-    # Prepare request parameters
+    # Resolve model alias and prepare request parameters  
+    resolved_model = _resolve_model_alias(model)
     request_params = {
-        "model": model,
+        "model": resolved_model,
         "messages": claude_history,
         "max_tokens": output_tokens,
         "temperature": 0.7,
@@ -425,7 +429,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
-    model: str = "claude-3-5-sonnet-20240620",
+    model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     files: Optional[List[Union[str, Dict[str, str]]]] = None,
     max_output_tokens: Optional[int] = None
@@ -565,83 +569,8 @@ list_models()
 async def list_models() -> str:
     """List available Claude models with detailed information."""
     try:
-        # Build comprehensive model information
-        model_info = []
-        
-        # Group models by category
-        categories = {
-            "🚀 Claude 4 Series": [
-                ("claude-opus-4", "Most capable Claude 4 model for the most complex tasks"),
-                ("claude-sonnet-4", "Balanced Claude 4 model for most use cases"),
-                ("claude-sonnet-3.7", "Enhanced Claude 3.7 with improved capabilities")
-            ],
-            "⚡ Claude 3.5 Series": [
-                ("claude-3-5-sonnet-20241022", "Latest Claude 3.5 Sonnet with enhanced reasoning"),
-                ("claude-3-5-sonnet-20240620", "Claude 3.5 Sonnet from June 2024"),
-                ("claude-3-5-haiku-20241022", "Fast, efficient Claude 3.5 for quick tasks")
-            ],
-            "📚 Claude 3 Legacy": [
-                ("claude-3-opus-20240229", "Most capable Claude 3 model"),
-                ("claude-3-sonnet-20240229", "Balanced Claude 3 model"),
-                ("claude-3-haiku-20240307", "Fastest Claude 3 model")
-            ]
-        }
-        
-        # Get pricing information
-        from ...common.pricing import calculate_cost
-        
-        for category, models in categories.items():
-            model_info.append(f"\n{category}")
-            model_info.append("=" * len(category))
-            
-            for model_id, description in models:
-                # Get pricing
-                try:
-                    input_cost = calculate_cost(model_id, 1000000, 0, "claude")
-                    output_cost = calculate_cost(model_id, 0, 1000000, "claude")
-                    pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
-                except:
-                    pricing = "Pricing not available"
-                
-                # Context window info (all Claude models have 200k context)
-                context_window = "200,000 tokens (~150,000 words)"
-                
-                # Capabilities based on model
-                if "opus" in model_id:
-                    capabilities = "🎯 Best for: Complex analysis, creative writing, advanced reasoning"
-                elif "sonnet" in model_id:
-                    capabilities = "⚖️ Best for: General tasks, coding, analysis, balanced performance"
-                elif "haiku" in model_id:
-                    capabilities = "⚡ Best for: Quick tasks, simple queries, cost-sensitive applications"
-                else:
-                    capabilities = "🔧 General purpose model"
-                
-                model_info.append(f"""
-📋 {model_id}
-   Description: {description}
-   Context Window: {context_window}
-   Pricing: {pricing}
-   {capabilities}""")
-        
-        # Add summary and usage notes
-        summary = f"""
-📊 Claude Model Summary
-=======================
-• Total Models: {sum(len(models) for models in categories.values())}
-• Model Generations: Claude 3, Claude 3.5, Claude 4
-• Context Window: 200K tokens for all models
-• All models support: Text, images, documents, code
-
-💡 Usage Notes:
-• All Claude models have 200,000 token context windows
-• Models support vision/image analysis capabilities
-• Newer models (Claude 4, 3.5) have enhanced reasoning
-• Haiku models are fastest and most cost-effective
-• Opus models are most capable for complex tasks
-• System prompts are supported via separate parameter
-"""
-        
-        return summary + "\n".join(model_info)
+        # Use YAML-based model listing
+        return format_model_listing("claude")
         
     except Exception as e:
         raise RuntimeError(f"Failed to list Claude models: {e}")

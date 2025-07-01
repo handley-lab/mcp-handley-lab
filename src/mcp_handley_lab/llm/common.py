@@ -105,7 +105,7 @@ def handle_output(
     """Handle file output and return formatted response."""
     from ..common.pricing import format_usage
     
-    usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
+    usage_info = format_usage(input_tokens, output_tokens, cost)
     
     if output_file != '-':
         output_path = Path(output_file)

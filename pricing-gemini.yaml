@@ -1,0 +1,88 @@
+models:
+  # Gemini 2.5 Series
+  gemini-2.5-pro:
+    input_tiers:
+      - threshold: 200000
+        price: 1.25
+      - threshold: .inf
+        price: 2.50
+    output_tiers:
+      - threshold: 200000
+        price: 10.00
+      - threshold: .inf
+        price: 15.00
+    supports_grounding: true
+    supports_vision: true
+    
+  gemini-2.5-flash:
+    input_by_modality:
+      text: 0.30
+      image: 0.30
+      video: 0.30
+      audio: 1.00
+    output_per_1m: 2.50
+    free_tier: true
+    supports_grounding: true
+    supports_vision: true
+    
+  gemini-2.5-flash-lite:
+    input_by_modality:
+      text: 0.10
+      image: 0.10
+      video: 0.10
+      audio: 0.50
+    output_per_1m: 0.40
+    free_tier: true
+    supports_grounding: true
+    supports_vision: true
+
+  # Gemini 1.5 Series (Legacy)
+  gemini-1.5-pro:
+    input_per_1m: 1.25
+    output_per_1m: 5.00
+    supports_grounding: true
+    supports_vision: true
+    
+  gemini-1.5-flash:
+    input_per_1m: 0.075
+    output_per_1m: 0.30
+    supports_grounding: true
+    supports_vision: true
+    
+  gemini-1.5-flash-8b:
+    input_per_1m: 0.0375
+    output_per_1m: 0.15
+    supports_grounding: true
+    supports_vision: true
+
+  # Image generation models
+  imagen-4:
+    price_per_image: 0.040
+    pricing_type: "per_image"
+    quality: "standard"
+    
+  imagen-4-ultra:
+    price_per_image: 0.060
+    pricing_type: "per_image"
+    quality: "ultra"
+    
+  imagen-3:
+    price_per_image: 0.030
+    pricing_type: "per_image"
+    quality: "standard"
+
+  # Video generation models
+  veo-2:
+    price_per_second: 0.35
+    pricing_type: "per_second"
+
+# Usage notes
+notes:
+  - "Gemini 2.5 Flash and Flash-Lite have free tiers available"
+  - "Pro models support 2M token context windows"
+  - "All models support multimodal input (text, images, video)"
+  - "Audio input costs more than text/image/video for Flash models"
+  - "Tiered pricing applies to 2.5 Pro based on token count thresholds"
+  - "Google Search grounding available with additional costs"
+  - "Image generation models charge per image"
+  - "Video generation models charge per second"

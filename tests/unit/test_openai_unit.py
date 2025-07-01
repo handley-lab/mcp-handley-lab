@@ -24,17 +24,19 @@ class TestOpenAIModelConfiguration:
     async def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
-            "o3-mini", "o1-preview", "o1-mini",
+            "o3", "o4-mini", "o1", "o1-preview", "o1-mini",
             "gpt-4o", "gpt-4o-mini", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini-2024-07-18",
-            "gpt-4.1", "gpt-4.1-mini"
+            "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
+            "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
+            "dall-e-3", "dall-e-2", "gpt-image-1"
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
     
     @pytest.mark.asyncio
     async def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
-        # O3 series
-        assert MODEL_CONFIGS["o3-mini"]["output_tokens"] == 100000
+        # O3/O4 series
+        assert MODEL_CONFIGS["o4-mini"]["output_tokens"] == 100000
         
         # O1 series 
         assert MODEL_CONFIGS["o1-preview"]["output_tokens"] == 32768
@@ -45,14 +47,14 @@ class TestOpenAIModelConfiguration:
         assert MODEL_CONFIGS["gpt-4o-mini"]["output_tokens"] == 16384
         
         # GPT-4.1 series
-        assert MODEL_CONFIGS["gpt-4.1"]["output_tokens"] == 32768
+        assert MODEL_CONFIGS["gpt-4.1"]["output_tokens"] == 16384
         assert MODEL_CONFIGS["gpt-4.1-mini"]["output_tokens"] == 16384
     
     @pytest.mark.asyncio
     async def test_model_configs_param_names(self):
         """Test that model configurations use correct parameter names."""
-        # O1/O3 series use max_completion_tokens
-        assert MODEL_CONFIGS["o3-mini"]["param"] == "max_completion_tokens"
+        # O1/O4 series use max_completion_tokens
+        assert MODEL_CONFIGS["o4-mini"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["o1-preview"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["o1-mini"]["param"] == "max_completion_tokens"
         
@@ -64,7 +66,7 @@ class TestOpenAIModelConfiguration:
     @pytest.mark.asyncio
     async def test_get_model_config_known_models(self):
         """Test _get_model_config with known model names."""
-        config = _get_model_config("o3-mini")
+        config = _get_model_config("o4-mini")
         assert config["output_tokens"] == 100000
         assert config["param"] == "max_completion_tokens"
         
@@ -76,9 +78,9 @@ class TestOpenAIModelConfiguration:
     async def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to gpt-4o
-        assert config["output_tokens"] == 16384
-        assert config["param"] == "max_tokens"
+        # Should default to o4-mini
+        assert config["output_tokens"] == 100000
+        assert config["param"] == "max_completion_tokens"
 
 
 class TestOpenAIHelperFunctions:
@@ -130,31 +132,27 @@ class TestResolveFiles:
     @pytest.mark.asyncio
     async def test_resolve_files_none(self):
         """Test resolve_files with None input."""
-        file_attachments, inline_content = await _resolve_files(None)
-        assert file_attachments == []
+        inline_content = await _resolve_files(None)
         assert inline_content == []
         
     @pytest.mark.asyncio
     async def test_resolve_files_empty_list(self):
         """Test resolve_files with empty list."""
-        file_attachments, inline_content = await _resolve_files([])
-        assert file_attachments == []
+        inline_content = await _resolve_files([])
         assert inline_content == []
         
     @pytest.mark.asyncio
     async def test_resolve_files_direct_string(self):
         """Test resolve_files with direct string content."""
         files = ["This is direct content", "More content"]
-        file_attachments, inline_content = await _resolve_files(files)
-        assert file_attachments == []
+        inline_content = await _resolve_files(files)
         assert inline_content == ["This is direct content", "More content"]
         
     @pytest.mark.asyncio
     async def test_resolve_files_dict_content(self):
         """Test resolve_files with dict content."""
         files = [{"content": "Dict content"}, {"content": "More dict content"}]
-        file_attachments, inline_content = await _resolve_files(files)
-        assert file_attachments == []
+        inline_content = await _resolve_files(files)
         assert inline_content == ["Dict content", "More dict content"]
         
     @pytest.mark.asyncio
@@ -166,9 +164,8 @@ class TestResolveFiles:
             
         try:
             files = [{"path": temp_path}]
-            file_attachments, inline_content = await _resolve_files(files)
+            inline_content = await _resolve_files(files)
             
-            assert file_attachments == []
             assert len(inline_content) == 1
             assert "Small text file content" in inline_content[0]
             assert Path(temp_path).name in inline_content[0]  # Should include filename header
@@ -223,7 +220,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_ask_empty_agent_name(self):
         """Test ask with empty agent name."""
-        with pytest.raises(ValueError, match="Agent name cannot be empty when provided"):
+        with pytest.raises(ValueError, match="Agent name cannot be empty"):
             await ask("Test prompt", "/tmp/output.txt", agent_name="")
             
     @pytest.mark.asyncio
@@ -313,17 +310,15 @@ class TestOpenAIApiCalls:
         # Mock memory manager
         mock_memory_manager.get_agent.return_value = None
         
-        # Mock the shared processor
-        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Response saved successfully"):
-            
-            output_file = Path(temp_storage_dir) / "output.txt"
-            result = await ask("Test prompt", str(output_file))
-            
-            # Verify API was called
-            mock_openai_client.chat.completions.create.assert_called_once()
-            
-            # Verify result message
-            assert "Response saved successfully" in result
+        output_file = Path(temp_storage_dir) / "output.txt"
+        result = await ask("Test prompt", str(output_file))
+        
+        # Verify API was called
+        mock_openai_client.chat.completions.create.assert_called_once()
+        
+        # Verify output file was created
+        assert output_file.exists()
+        assert "Test response" in output_file.read_text()
         
     @pytest.mark.asyncio
     async def test_ask_with_agent(self, mock_openai_client, mock_memory_manager, temp_storage_dir):
@@ -412,19 +407,18 @@ class TestOpenAIApiCalls:
         img_path = Path(temp_storage_dir) / "test.png"
         img.save(img_path)
         
-        with patch('mcp_handley_lab.llm.openai.tool.process_llm_request', return_value="Analysis saved successfully"):
-            
-            output_file = Path(temp_storage_dir) / "analysis.txt"
-            result = await analyze_image("Describe this image", str(output_file), image_data=str(img_path))
-            
-            # Verify API was called with image
-            mock_openai_client.chat.completions.create.assert_called_once()
-            call_args = mock_openai_client.chat.completions.create.call_args[1]
-            assert call_args['model'] == "gpt-4o"
-            assert any(msg['role'] == 'user' for msg in call_args['messages'])
-            
-            # Verify result contains success message
-            assert "Analysis saved successfully" in result
+        output_file = Path(temp_storage_dir) / "analysis.txt"
+        result = await analyze_image("Describe this image", str(output_file), image_data=str(img_path))
+        
+        # Verify API was called with image
+        mock_openai_client.chat.completions.create.assert_called_once()
+        call_args = mock_openai_client.chat.completions.create.call_args[1]
+        assert call_args['model'] == "gpt-4o"
+        assert any(msg['role'] == 'user' for msg in call_args['messages'])
+        
+        # Verify output file was created
+        assert output_file.exists()
+        assert "Image analysis result" in output_file.read_text()
 
 
 class TestErrorHandling:

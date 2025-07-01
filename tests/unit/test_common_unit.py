@@ -55,9 +55,9 @@ class TestPricingCalculator:
         expected = (1000 / 1_000_000) * 0.30 + (500 / 1_000_000) * 2.50
         assert cost == expected
         
-        # Test pro model
+        # Test pro model (under 200k tokens - lower tier)
         cost = calc.calculate_cost("gemini-2.5-pro", 2000, 1000, "gemini")
-        expected = (2000 / 1_000_000) * 2.50 + (1000 / 1_000_000) * 15.00
+        expected = (2000 / 1_000_000) * 1.25 + (1000 / 1_000_000) * 10.00
         assert cost == expected
     
     def test_openai_cost_calculation(self):
@@ -78,32 +78,29 @@ class TestPricingCalculator:
         """Test image model pricing (per image, not per token)."""
         calc = PricingCalculator()
         
-        # Test DALL-E (input_tokens = number of images)
-        cost = calc.calculate_cost("dall-e-3", 2, 0, "openai")  # 2 images
+        # Test DALL-E with images_generated parameter
+        cost = calc.calculate_cost("dall-e-3", 0, 0, "openai", images_generated=2)  # 2 images
         assert cost == 2 * 0.040
         
-        # Test Imagen
-        cost = calc.calculate_cost("imagen-3", 3, 0, "gemini")  # 3 images
+        # Test Imagen with images_generated parameter
+        cost = calc.calculate_cost("imagen-3", 0, 0, "gemini", images_generated=3)  # 3 images
         assert cost == 3 * 0.030
     
     def test_model_name_normalization(self):
-        """Test model name normalization for Gemini."""
+        """Test that invalid model names return 0 cost."""
         calc = PricingCalculator()
         
-        # Test flash aliases
-        cost1 = calc.calculate_cost("flash", 1000, 500, "gemini")
-        cost2 = calc.calculate_cost("gemini-2.5-flash", 1000, 500, "gemini")
-        assert cost1 == cost2
+        # Test invalid model names return 0
+        cost = calc.calculate_cost("flash", 1000, 500, "gemini")
+        assert cost == 0.0
         
-        # Test pro aliases
-        cost1 = calc.calculate_cost("pro", 1000, 500, "gemini")
-        cost2 = calc.calculate_cost("gemini-2.5-pro", 1000, 500, "gemini")
-        assert cost1 == cost2
+        # Test invalid model names return 0
+        cost = calc.calculate_cost("pro", 1000, 500, "gemini")
+        assert cost == 0.0
         
-        # Test image alias
-        cost1 = calc.calculate_cost("image", 2, 0, "gemini")
-        cost2 = calc.calculate_cost("imagen-3", 2, 0, "gemini")
-        assert cost1 == cost2
+        # Test valid model name works
+        cost = calc.calculate_cost("gemini-2.5-flash", 1000, 500, "gemini")
+        assert cost > 0
     
     def test_unknown_model_returns_zero(self):
         """Test unknown model returns zero cost."""
@@ -119,30 +116,30 @@ class TestPricingCalculator:
         """Test cost formatting with different precision levels."""
         calc = PricingCalculator()
         
-        # Very small cost (< 0.001)
+        # Very small cost (< 0.01)
         formatted = calc.format_cost(0.0005)
-        assert "$0.000500" == formatted
+        assert formatted == "$0.0005"
         
         # Small cost (< 0.01)
         formatted = calc.format_cost(0.005)
-        assert "$0.0050" == formatted
+        assert formatted == "$0.0050"
         
         # Regular cost (>= 0.01)
         formatted = calc.format_cost(0.25)
-        assert "$0.25" == formatted
+        assert formatted == "$0.25"
         
         # Large cost
         formatted = calc.format_cost(15.789)
-        assert "$15.79" == formatted
+        assert formatted == "$15.79"
     
     def test_format_usage_summary(self):
         """Test usage summary formatting."""
         calc = PricingCalculator()
         
-        summary = calc.format_usage_summary("gpt-4o", 1000, 500, 0.01, "openai")
+        # format_usage only takes tokens and cost, not model/provider
+        summary = calc.format_usage(1000, 500, 0.01)
         
-        assert "💰 Usage:" in summary
-        assert "1,500 tokens" in summary  # total tokens
+        assert "1,000 tokens" in summary  # input tokens
         assert "↑1,000" in summary        # input tokens
         assert "↓500" in summary          # output tokens
         assert "$0.01" in summary         # cost
@@ -155,8 +152,8 @@ class TestPricingCalculator:
         assert cost1 == cost2
         
         # Test format_usage function
-        usage1 = format_usage("gpt-4o", 1000, 500, 0.01, "openai")
-        usage2 = PricingCalculator.format_usage_summary("gpt-4o", 1000, 500, 0.01, "openai")
+        usage1 = format_usage(1000, 500, 0.01)
+        usage2 = PricingCalculator.format_usage(1000, 500, 0.01)
         assert usage1 == usage2
     
     def test_o1_model_pricing(self):
@@ -179,10 +176,10 @@ class TestPricingCalculator:
         
         # Test gpt-4.1
         cost = calc.calculate_cost("gpt-4.1", 1000, 500, "openai")
-        expected = (1000 / 1_000_000) * 5.00 + (500 / 1_000_000) * 15.00
+        expected = (1000 / 1_000_000) * 2.00 + (500 / 1_000_000) * 8.00
         assert cost == expected
         
         # Test gpt-4.1-mini
         cost = calc.calculate_cost("gpt-4.1-mini", 1000, 500, "openai")
-        expected = (1000 / 1_000_000) * 0.10 + (500 / 1_000_000) * 0.40
+        expected = (1000 / 1_000_000) * 0.40 + (500 / 1_000_000) * 1.60
         assert cost == expected

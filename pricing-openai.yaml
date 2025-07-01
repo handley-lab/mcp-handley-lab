@@ -1,0 +1,159 @@
+models:
+  # GPT-4.1 Series (Latest models)
+  gpt-4.1:
+    input_per_1m: 2.00
+    output_per_1m: 8.00
+    cached_input_per_1m: 0.50
+    supports_caching: true
+    
+  gpt-4.1-mini:
+    input_per_1m: 0.40
+    output_per_1m: 1.60
+    cached_input_per_1m: 0.10
+    supports_caching: true
+    
+  gpt-4.1-nano:
+    input_per_1m: 0.10
+    output_per_1m: 0.40
+    cached_input_per_1m: 0.025
+    supports_caching: true
+
+  # Reasoning Models
+  o3:
+    input_per_1m: 2.00
+    output_per_1m: 8.00
+    supports_temperature: false
+    
+  o4-mini:
+    input_per_1m: 1.00
+    output_per_1m: 4.00
+    supports_temperature: false
+    
+  o1:
+    input_per_1m: 15.00
+    output_per_1m: 60.00
+    supports_temperature: false
+    
+  o1-mini:
+    input_per_1m: 3.00
+    output_per_1m: 12.00
+    supports_temperature: false
+    
+  o1-preview:
+    input_per_1m: 15.00
+    output_per_1m: 60.00
+    supports_temperature: false
+
+  # GPT-4o Series
+  gpt-4o:
+    input_per_1m: 2.50
+    output_per_1m: 10.00
+    cached_input_per_1m: 1.25
+    supports_caching: true
+    
+  gpt-4o-mini:
+    input_per_1m: 0.15
+    output_per_1m: 0.60
+    cached_input_per_1m: 0.075
+    supports_caching: true
+    
+  gpt-4o-2024-11-20:
+    input_per_1m: 2.50
+    output_per_1m: 10.00
+    supports_caching: false
+    
+  gpt-4o-2024-08-06:
+    input_per_1m: 2.50
+    output_per_1m: 10.00
+    supports_caching: false
+    
+  gpt-4o-mini-2024-07-18:
+    input_per_1m: 0.15
+    output_per_1m: 0.60
+    supports_caching: false
+
+  # Legacy models
+  gpt-4-turbo:
+    input_per_1m: 10.00
+    output_per_1m: 30.00
+    supports_caching: false
+    
+  gpt-4:
+    input_per_1m: 30.00
+    output_per_1m: 60.00
+    supports_caching: false
+    
+  gpt-3.5-turbo:
+    input_per_1m: 0.50
+    output_per_1m: 1.50
+    supports_caching: false
+
+  # Image generation models
+  dall-e-3:
+    price_per_image: 0.040
+    pricing_type: "per_image"
+    
+  dall-e-3-hd:
+    price_per_image: 0.080
+    pricing_type: "per_image"
+    
+  dall-e-2:
+    price_per_image: 0.020
+    pricing_type: "per_image"
+
+# Complex pricing models
+complex_models:
+  gpt-image-1:
+    text_input_per_1m: 5.00
+    image_input_per_1m: 10.00
+    cached_text_input_per_1m: 1.25
+    cached_image_input_per_1m: 2.50
+    image_output_pricing:
+      low: 0.01
+      medium: 0.04
+      high: 0.17
+    supports_caching: true
+
+# Fine-tuning models
+fine_tuning:
+  gpt-4.1:
+    input_per_1m: 3.00
+    output_per_1m: 12.00
+    cached_input_per_1m: 0.75
+    training_per_1m: 25.00
+    
+  gpt-4.1-mini:
+    input_per_1m: 0.80
+    output_per_1m: 3.20
+    cached_input_per_1m: 0.20
+    training_per_1m: 5.00
+    
+  gpt-4.1-nano:
+    input_per_1m: 0.20
+    output_per_1m: 0.80
+    cached_input_per_1m: 0.05
+    training_per_1m: 1.50
+    
+  o4-mini:
+    input_per_1m: 4.00
+    output_per_1m: 16.00
+    cached_input_per_1m: 1.00
+    training_per_hour: 100.00
+
+# Built-in tools pricing
+tools:
+  code_interpreter: 0.03  # per session
+  file_search_storage: 0.10  # per GB per day
+  file_search_tool_call: 2.50  # per 1k calls
+  web_search_tool_call: 25.00  # per 1k calls (varies by model)
+
+# Batch API discount
+batch_discount: 0.50  # 50% off inputs and outputs
+
+# Usage notes
+notes:
+  - "Batch API provides 50% discount on inputs and outputs"
+  - "Cached input pricing available via Responses API"
+  - "Image outputs for GPT-image-1 are priced per image, not per token"
+  - "Fine-tuning models have separate training costs"
+  - "Built-in tools have additional per-use charges"

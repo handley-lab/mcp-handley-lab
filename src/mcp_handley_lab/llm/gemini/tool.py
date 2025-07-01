@@ -22,6 +22,7 @@ from ..common import (
     resolve_image_data, handle_output, handle_agent_memory
 )
 from ..shared import create_client_decorator, process_llm_request
+from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("Gemini Tool")
 
@@ -61,22 +62,12 @@ def _convert_history_to_gemini_format(history: List[Dict[str, str]]) -> List[Dic
         })
     return gemini_history
 
-# Model configurations with token limits from https://ai.google.dev/gemini-api/docs/models
-MODEL_CONFIGS = {
-    # Gemini 2.5 Models
-    "gemini-2.5-pro": {"output_tokens": 65536},
-    "gemini-2.5-flash": {"output_tokens": 65536},
-    "gemini-2.5-flash-lite": {"output_tokens": 64000},
-    
-    # Gemini 2.0 Models  
-    "gemini-2.0-flash": {"output_tokens": 8192},
-    "gemini-2.0-flash-lite": {"output_tokens": 8192},
-    
-    # Gemini 1.5 Models
-    "gemini-1.5-flash": {"output_tokens": 8192},
-    "gemini-1.5-flash-8b": {"output_tokens": 8192},
-    "gemini-1.5-pro": {"output_tokens": 8192},
-}
+# Load model configurations from YAML
+MODEL_CONFIGS = build_model_configs_dict("gemini")
+
+# Load default model from YAML
+_config = load_model_config("gemini")
+DEFAULT_MODEL = _config["default_model"]
 
 
 def _get_session_id() -> str:
@@ -86,7 +77,7 @@ def _get_session_id() -> str:
 
 def _get_model_config(model: str) -> Dict[str, int]:
     """Get token limits for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS["gemini-2.5-flash"])  # default to 2.5-flash
+    return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
 async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
@@ -384,7 +375,7 @@ async def ask(
     prompt: str,
     output_file: str,
     agent_name: Optional[Union[str, bool]] = None,
-    model: str = "gemini-2.5-flash",
+    model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     grounding: bool = False,
     files: Optional[List[Union[str, Dict[str, str]]]] = None,
@@ -501,7 +492,7 @@ async def analyze_image(
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",
-    model: str = "gemini-2.5-pro",
+    model: str = DEFAULT_MODEL,
     agent_name: Optional[Union[str, bool]] = None,
     max_output_tokens: Optional[int] = None
 ) -> str:
@@ -642,7 +633,7 @@ async def generate_image(
         
         # Format response
         file_size = len(generated_image.image.image_bytes)
-        usage_info = format_usage(actual_model, input_tokens, output_tokens, cost, "gemini")
+        usage_info = format_usage(input_tokens, output_tokens, cost)
         
         return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
         
@@ -682,112 +673,8 @@ async def list_models() -> str:
         models_response = await loop.run_in_executor(None, _sync_list_models)
         api_model_names = {model.name.split('/')[-1] for model in models_response}
         
-        # Build comprehensive model information
-        model_info = []
-        
-        # Group models by category
-        categories = {
-            "🚀 Gemini 2.5 Series": [
-                ("gemini-2.5-pro", "Latest pro model with advanced reasoning and multimodal capabilities"),
-                ("gemini-2.5-flash", "Fast, efficient model balancing speed and intelligence"),
-                ("gemini-2.5-flash-lite", "Fastest, most cost-effective model for simple tasks")
-            ],
-            "⚡ Gemini 1.5 Series": [
-                ("gemini-1.5-pro", "Advanced pro model with large context window"),
-                ("gemini-1.5-flash", "Fast, cost-effective model for most tasks"),
-                ("gemini-1.5-flash-8b", "Lightweight model for high-volume tasks")
-            ],
-            "🎨 Image Generation": [
-                ("imagen-4", "Latest high-quality image generation model"),
-                ("imagen-4-ultra", "Ultra-high quality image generation"),
-                ("imagen-3", "Previous generation image model")
-            ]
-        }
-        
-        # Get pricing information
-        from ...common.pricing import calculate_cost
-        
-        for category, models in categories.items():
-            model_info.append(f"\n{category}")
-            model_info.append("=" * len(category))
-            
-            for model_id, description in models:
-                # Check if model is available via API
-                availability = "✅ Available" if model_id in api_model_names else "❓ Not listed in API"
-                
-                # Get pricing
-                try:
-                    if model_id.startswith("imagen"):
-                        # Image models charge per image
-                        cost_per_image = calculate_cost(model_id, 1, 0, "gemini")
-                        pricing = f"${cost_per_image:.3f} per image"
-                    else:
-                        # Text models charge per token
-                        input_cost = calculate_cost(model_id, 1000000, 0, "gemini")
-                        output_cost = calculate_cost(model_id, 0, 1000000, "gemini")
-                        pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
-                except:
-                    pricing = "Pricing not available"
-                
-                # Context window and capabilities based on model
-                if "2.5-pro" in model_id:
-                    context_window = "2,000,000 tokens"
-                    capabilities = "🎯 Best for: Complex reasoning, analysis, multimodal tasks, long documents"
-                elif "2.5-flash" in model_id:
-                    context_window = "1,000,000 tokens"
-                    if "lite" in model_id:
-                        capabilities = "⚡ Best for: Simple queries, high-volume tasks, cost-sensitive applications"
-                    else:
-                        capabilities = "⚖️ Best for: Most general tasks, balanced performance and speed"
-                elif "1.5-pro" in model_id:
-                    context_window = "2,000,000 tokens"
-                    capabilities = "📚 Best for: Complex analysis, long documents, research tasks"
-                elif "1.5-flash" in model_id:
-                    context_window = "1,000,000 tokens"
-                    if "8b" in model_id:
-                        capabilities = "🚀 Best for: High-volume, lightweight tasks"
-                    else:
-                        capabilities = "⚡ Best for: Fast responses, everyday tasks"
-                elif "imagen" in model_id:
-                    context_window = "N/A (Image generation)"
-                    if "ultra" in model_id:
-                        capabilities = "🎨 Best for: Ultra-high quality artistic images"
-                    else:
-                        capabilities = "🎨 Best for: High-quality image generation"
-                else:
-                    context_window = "Unknown"
-                    capabilities = "🔧 General purpose model"
-                
-                model_info.append(f"""
-📋 {model_id}
-   Description: {description}
-   Status: {availability}
-   Context Window: {context_window}
-   Pricing: {pricing}
-   {capabilities}""")
-        
-        # Add summary and usage notes
-        total_configured = len([m for category in categories.values() for m in category])
-        total_api = len(api_model_names)
-        
-        summary = f"""
-📊 Gemini Model Summary
-=======================
-• Configured Models: {total_configured}
-• API Available Models: {total_api}
-• Model Generations: Gemini 1.5, Gemini 2.5
-• All text models support: Text, images, video, audio, code
-
-💡 Usage Notes:
-• Gemini 2.5 models have enhanced reasoning and capabilities
-• Pro models have 2M token context windows
-• Flash models balance speed and capability
-• All models support multimodal input (text, images, video)
-• Image generation models charge per image, not per token
-• Google Search grounding available for real-time information
-"""
-        
-        return summary + "\n".join(model_info)
+        # Use YAML-based model listing
+        return format_model_listing("gemini", api_model_names)
         
     except Exception as e:
         raise RuntimeError(f"Failed to list Gemini models: {e}")

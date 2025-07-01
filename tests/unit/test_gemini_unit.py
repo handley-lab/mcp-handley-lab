@@ -28,8 +28,6 @@ class TestModelConfiguration:
         ("gemini-2.5-pro", 65536),
         ("gemini-2.5-flash", 65536),
         ("gemini-2.5-flash-lite", 64000),
-        ("gemini-2.0-flash", 8192),
-        ("gemini-2.0-flash-lite", 8192),
         ("gemini-1.5-flash", 8192),
         ("gemini-1.5-flash-8b", 8192),
         ("gemini-1.5-pro", 8192),
@@ -42,8 +40,8 @@ class TestModelConfiguration:
         """Test that all expected models are in MODEL_CONFIGS."""
         expected_models = {
             "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite",
-            "gemini-2.0-flash", "gemini-2.0-flash-lite", 
-            "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"
+            "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro",
+            "imagen-4", "imagen-4-ultra", "imagen-3"
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
     
@@ -52,7 +50,6 @@ class TestModelConfiguration:
     @pytest.mark.parametrize("model_name,expected_output_tokens", [
         ("gemini-2.5-flash", 65536),
         ("gemini-1.5-pro", 8192),
-        ("gemini-2.0-flash", 8192),
     ])
     def test_get_model_config_parameterized(self, model_name, expected_output_tokens):
         """Test _get_model_config with various known models."""

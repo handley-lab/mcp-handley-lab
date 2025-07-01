@@ -1,0 +1,205 @@
+models:
+  o3:
+    description: "Most powerful reasoning model with leading performance on coding, math, science, and vision"
+    capabilities: "🎯 Best for: Complex reasoning, advanced problem solving, scientific analysis"
+    tags: ["reasoning", "latest", "premium"]
+    context_window: "128,000 tokens"
+    output_limit: 100000
+    param_type: "max_completion_tokens"
+    supports_temperature: false
+
+  o4-mini:
+    description: "Faster, cost-efficient reasoning model delivering strong performance on math, coding and vision"
+    capabilities: "⚖️ Best for: Most reasoning tasks, cost-effective complex problems"
+    tags: ["reasoning", "latest", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_limit: 100000
+    param_type: "max_completion_tokens"
+    supports_temperature: false
+
+  o1:
+    description: "Advanced reasoning model for complex problems"
+    capabilities: "📚 Best for: Legacy reasoning tasks, complex analysis"
+    tags: ["reasoning", "legacy"]
+    context_window: "128,000 tokens"
+    output_limit: 100000
+    param_type: "max_completion_tokens"
+    supports_temperature: false
+
+  o1-preview:
+    description: "Preview version of o1 reasoning model"
+    capabilities: "🔬 Best for: Testing reasoning capabilities"
+    tags: ["reasoning", "preview", "legacy"]
+    context_window: "128,000 tokens"
+    output_limit: 32768
+    param_type: "max_completion_tokens"
+    supports_temperature: false
+
+  o1-mini:
+    description: "Smaller, faster reasoning model"
+    capabilities: "⚡ Best for: Quick reasoning tasks, cost-sensitive analysis"
+    tags: ["reasoning", "cost-effective", "legacy"]
+    context_window: "128,000 tokens"
+    output_limit: 65536
+    param_type: "max_completion_tokens"
+    supports_temperature: false
+
+  gpt-4.1:
+    description: "Smartest model for complex tasks"
+    capabilities: "🎯 Best for: Complex analysis, advanced reasoning, difficult problems"
+    tags: ["latest", "general", "premium"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4.1-mini:
+    description: "Affordable model balancing speed and intelligence"
+    capabilities: "⚖️ Best for: Most general tasks, balanced performance"
+    tags: ["latest", "general", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4.1-nano:
+    description: "Fastest, most cost-effective model for low-latency tasks"
+    capabilities: "⚡ Best for: Quick tasks, high-volume processing, cost optimization"
+    tags: ["latest", "general", "fast", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4o:
+    description: "Advanced multimodal model with vision and text capabilities"
+    capabilities: "🎯 Best for: Image analysis, document processing, multimodal tasks"
+    tags: ["multimodal", "vision", "general"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4o-mini:
+    description: "Faster, cost-effective multimodal model"
+    capabilities: "⚡ Best for: Quick image analysis, everyday multimodal tasks"
+    tags: ["multimodal", "vision", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4o-2024-11-20:
+    description: "GPT-4o snapshot from November 2024"
+    capabilities: "📚 Best for: Consistent behavior, reproducible results"
+    tags: ["multimodal", "vision", "snapshot"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4o-2024-08-06:
+    description: "GPT-4o snapshot from August 2024"
+    capabilities: "📚 Best for: Consistent behavior, reproducible results"
+    tags: ["multimodal", "vision", "snapshot"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4o-mini-2024-07-18:
+    description: "GPT-4o-mini snapshot from July 2024"
+    capabilities: "📚 Best for: Consistent behavior, cost-effective multimodal"
+    tags: ["multimodal", "vision", "snapshot", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-image-1:
+    description: "Latest multimodal model for precise, high-fidelity image generation"
+    capabilities: "🎨 Best for: High-quality image creation, artistic generation"
+    tags: ["image-generation", "latest", "multimodal"]
+    context_window: "N/A (Image generation)"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+    pricing_type: "image"
+
+  dall-e-3:
+    description: "High-quality image generation with prompt adherence"
+    capabilities: "🎨 Best for: Creative image generation, artistic tasks"
+    tags: ["image-generation", "legacy"]
+    context_window: "N/A (Image generation)"
+    output_limit: null
+    param_type: null
+    supports_temperature: false
+    pricing_type: "image"
+
+  dall-e-2:
+    description: "Previous generation image model"
+    capabilities: "🎨 Best for: Simple image generation, cost-effective creation"
+    tags: ["image-generation", "legacy", "cost-effective"]
+    context_window: "N/A (Image generation)"
+    output_limit: null
+    param_type: null
+    supports_temperature: false
+    pricing_type: "image"
+
+  gpt-4-turbo:
+    description: "Previous generation GPT-4 model"
+    capabilities: "📚 Best for: Legacy applications, established workflows"
+    tags: ["legacy", "general"]
+    context_window: "128,000 tokens"
+    output_limit: 4096
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-4:
+    description: "Original GPT-4 model"
+    capabilities: "📚 Best for: Established applications, proven performance"
+    tags: ["legacy", "general"]
+    context_window: "8,000 tokens"
+    output_limit: 8192
+    param_type: "max_tokens"
+    supports_temperature: true
+
+  gpt-3.5-turbo:
+    description: "Fast, cost-effective model for simple tasks"
+    capabilities: "⚡ Best for: Simple tasks, high-volume processing, cost optimization"
+    tags: ["legacy", "general", "cost-effective", "fast"]
+    context_window: "16,000 tokens"
+    output_limit: 16384
+    param_type: "max_tokens"
+    supports_temperature: true
+
+# Display categories (how to group models by tags for presentation)
+display_categories:
+  - name: "🧠 Reasoning Models"
+    tags: ["reasoning"]
+    description: "Advanced models for complex problem solving and analysis"
+  - name: "💭 Latest Language Models"
+    tags: ["latest", "general"]
+    exclude_tags: ["reasoning", "multimodal"]
+    description: "Newest general-purpose language models"
+  - name: "👁️ Multimodal Models"
+    tags: ["multimodal", "vision"]
+    exclude_tags: ["image-generation"]
+    description: "Models with vision and text capabilities"
+  - name: "🎨 Image Generation"
+    tags: ["image-generation"]
+    description: "Models for creating images from text"
+  - name: "📜 Legacy Models"
+    tags: ["legacy"]
+    exclude_tags: ["reasoning"]
+    description: "Previous generation models for established workflows"
+
+# Default model
+default_model: "o4-mini"  # Note: User requested o3-mini, but using o4-mini (fastest reasoning model available)
+
+# Usage notes
+usage_notes:
+  - "Reasoning models (o1, o3, o4) don't support temperature parameter"
+  - "Vision models (gpt-4o series) support image analysis"
+  - "Image generation models charge per image, not per token"
+  - "Use snapshots for reproducible behavior across deployments"

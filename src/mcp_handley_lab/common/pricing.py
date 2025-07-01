@@ -1,164 +1,153 @@
 """Cost tracking and pricing utilities for LLM usage."""
-from typing import Dict, Tuple
+import yaml
+from pathlib import Path
+from typing import Dict, Tuple, Union, Optional, Any
 
 
 class PricingCalculator:
-    """Calculates costs for various LLM models."""
-    
-    PRICING_TABLES = {
-        "claude": {
-            # Claude 4 models (prices per 1M tokens - Input, Output)
-            "claude-opus-4": (15.00, 75.00),
-            "claude-sonnet-4": (3.00, 15.00),
-            "claude-sonnet-3.7": (3.00, 15.00),
-            
-            # Claude 3.5 models 
-            "claude-3-5-sonnet-20241022": (3.00, 15.00),
-            "claude-3-5-sonnet-20240620": (3.00, 15.00),
-            "claude-3-5-haiku-20241022": (0.80, 4.00),
-            
-            # Claude 3 models (legacy)
-            "claude-3-opus-20240229": (15.00, 75.00),
-            "claude-3-sonnet-20240229": (3.00, 15.00),
-            "claude-3-haiku-20240307": (0.25, 1.25),
-        },
-        "gemini": {
-            # Gemini 2.5 models (updated pricing - ≤200k tokens, paid tier)
-            "gemini-2.5-pro": (1.25, 10.00),        # Input $1.25, Output $10 per 1M tokens
-            "gemini-2.5-flash": (0.30, 2.50),       # Input $0.30, Output $2.50 per 1M tokens
-            "gemini-2.5-flash-lite": (0.10, 0.40),  # Input $0.10, Output $0.40 per 1M tokens
-            
-            # Gemini 1.5 models (≤128k tokens, paid tier)
-            "gemini-1.5-pro": (1.25, 5.00),         # Input $1.25, Output $5.00 per 1M tokens
-            "gemini-1.5-flash": (0.075, 0.30),      # Input $0.075, Output $0.30 per 1M tokens
-            "gemini-1.5-flash-8b": (0.0375, 0.15),  # Legacy pricing
-            
-            # Image generation (Imagen 4)
-            "imagen-4": (0.040, 0.040),             # Standard image per image
-            "imagen-4-ultra": (0.060, 0.060),       # Ultra image per image
-            "imagen-3": (0.040, 0.040),             # Legacy Imagen 3
-        },
-        "openai": {
-            # Official pricing from https://platform.openai.com/docs/pricing (2025)
-            
-            # GPT-4.1 Series (Latest models)
-            "gpt-4.1": (2.00, 8.00),        # Smartest model for complex tasks
-            "gpt-4.1-mini": (0.40, 1.60),   # Affordable model balancing speed and intelligence
-            "gpt-4.1-nano": (0.10, 0.40),   # Fastest, most cost-effective model
-            
-            # Reasoning Models
-            "o3": (2.00, 8.00),             # Most powerful reasoning model
-            "o4-mini": (1.10, 4.40),        # Faster, cost-efficient reasoning model
-            
-            # GPT-4o models (current pricing)
-            "gpt-4o": (5.00, 20.00),        # Updated pricing
-            "gpt-4o-mini": (0.60, 2.40),    # Updated pricing
-            "gpt-4o-2024-11-20": (5.00, 20.00),
-            "gpt-4o-2024-08-06": (5.00, 20.00),
-            "gpt-4o-mini-2024-07-18": (0.60, 2.40),
-            
-            # Legacy GPT-4 models
-            "gpt-4-turbo": (10.00, 30.00),
-            "gpt-4": (30.00, 60.00),
-            "gpt-3.5-turbo": (0.50, 1.50),
-            
-            # Legacy reasoning models
-            "o1": (15.00, 60.00),
-            "o1-mini": (3.00, 12.00),
-            "o1-preview": (15.00, 60.00),
-            
-            # Image generation models
-            "gpt-image-1": (5.00, 40.00),   # New image generation model (text input, image output)
-            "dall-e-3": (0.040, 0.040),     # per image (legacy)
-            "dall-e-3-hd": (0.080, 0.080),  # per image (legacy)
-            "dall-e-2": (0.020, 0.020),     # per image (legacy)
-        }
-    }
-    
-    MODEL_ALIASES = {
-        "claude": {
-            "opus": "claude-3-opus-20240229",
-            "sonnet": "claude-3-5-sonnet-20240620",
-            "haiku": "claude-3-5-haiku-20241022",
-        },
-        "gemini": {
-            "flash": "gemini-2.5-flash",
-            "gemini-flash": "gemini-2.5-flash",
-            "pro": "gemini-2.5-pro",
-            "gemini-pro": "gemini-2.5-pro",
-            "image": "imagen-3",
-        },
-        "openai": {}
-    }
+    """Calculates costs for various LLM models using YAML-based pricing configurations."""
     
     @classmethod
+    def _load_pricing_config(cls, provider: str) -> Dict[str, Any]:
+        """Load pricing configuration from YAML file."""
+        # Look for pricing files in the project root directory
+        current_dir = Path(__file__).parent
+        pricing_file = None
+        
+        # Search up the directory tree for the pricing file
+        for path in [current_dir] + list(current_dir.parents):
+            potential_file = path / f"pricing-{provider}.yaml"
+            if potential_file.exists():
+                pricing_file = potential_file
+                break
+        
+        if not pricing_file:
+            return {}
+            
+        try:
+            with open(pricing_file, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except Exception as e:
+            print(f"Warning: Failed to load pricing for {provider}: {e}")
+            return {}
+    
+    @classmethod  
     def calculate_cost(
-        self, 
-        model: str, 
-        input_tokens: int = 0, 
+        cls,
+        model: str,
+        input_tokens: int = 0,
         output_tokens: int = 0,
-        provider: str = "gemini"
+        provider: str = "gemini",
+        # Extended parameters for complex pricing
+        input_modality: str = "text",
+        output_quality: str = "medium", 
+        cached_input_tokens: int = 0,
+        images_generated: int = 0,
+        seconds_generated: int = 0
     ) -> float:
-        """Calculate cost for token usage."""
-        # Fail fast if provider is unknown
-        pricing_table = self.PRICING_TABLES[provider]
-        aliases = self.MODEL_ALIASES.get(provider, {})
-        
-        # Resolve alias
-        model = aliases.get(model, model)
-        
-        # Return zero cost for unknown models
-        if model not in pricing_table:
+        """Calculate cost using YAML-based pricing configurations."""
+        # Load pricing config for provider
+        config = cls._load_pricing_config(provider)
+        if not config:
             return 0.0
             
-        input_price_per_1m, output_price_per_1m = pricing_table[model]
+        models = config.get("models", {})
+        if model not in models:
+            return 0.0
+            
+        model_config = models[model]
+        total_cost = 0.0
         
-        # Image models (DALL-E, Imagen) use per-image pricing
-        if model.startswith("dall-e") or model.startswith("imagen"):
-            # For image models, input_tokens represents number of images
-            # Price is per image, not per 1M tokens
-            return input_tokens * input_price_per_1m
+        # Handle different pricing types
+        pricing_type = model_config.get("pricing_type")
         
-        # Text models use per-token pricing
-        input_cost = (input_tokens / 1_000_000) * input_price_per_1m
-        output_cost = (output_tokens / 1_000_000) * output_price_per_1m
-        
-        return input_cost + output_cost
+        if pricing_type == "per_image":
+            # Image generation models
+            price_per_image = model_config.get("price_per_image", 0.0)
+            return images_generated * price_per_image
+            
+        elif pricing_type == "per_second":
+            # Video generation models
+            price_per_second = model_config.get("price_per_second", 0.0)
+            return seconds_generated * price_per_second
+            
+        elif "input_tiers" in model_config:
+            # Tiered pricing (e.g., Gemini 2.5 Pro)
+            for tier in model_config["input_tiers"]:
+                threshold = float("inf") if tier["threshold"] == ".inf" else tier["threshold"]
+                if input_tokens <= threshold:
+                    total_cost += (input_tokens / 1_000_000) * tier["price"]
+                    break
+                    
+            for tier in model_config.get("output_tiers", []):
+                threshold = float("inf") if tier["threshold"] == ".inf" else tier["threshold"]
+                if output_tokens <= threshold:
+                    total_cost += (output_tokens / 1_000_000) * tier["price"]
+                    break
+                    
+        elif "input_by_modality" in model_config:
+            # Modality-specific pricing (e.g., Gemini Flash)
+            modality_price = model_config["input_by_modality"].get(input_modality, 0.30)
+            total_cost += (input_tokens / 1_000_000) * modality_price
+            total_cost += (output_tokens / 1_000_000) * model_config.get("output_per_1m", 0.0)
+            
+        else:
+            # Standard per-token pricing
+            input_price = model_config.get("input_per_1m", 0.0)
+            output_price = model_config.get("output_per_1m", 0.0)
+            
+            total_cost += (input_tokens / 1_000_000) * input_price
+            total_cost += (output_tokens / 1_000_000) * output_price
+            
+            # Add cached input pricing if supported
+            if cached_input_tokens > 0 and "cached_input_per_1m" in model_config:
+                cached_price = model_config["cached_input_per_1m"]
+                total_cost += (cached_input_tokens / 1_000_000) * cached_price
+                
+        # Handle complex models with special pricing (e.g., GPT-image-1)
+        complex_models = config.get("complex_models", {})
+        if model in complex_models:
+            complex_config = complex_models[model]
+            
+            if model == "gpt-image-1":
+                # Handle GPT-image-1 special pricing
+                if input_modality == "text":
+                    total_cost += (input_tokens / 1_000_000) * complex_config["text_input_per_1m"]
+                    total_cost += (cached_input_tokens / 1_000_000) * complex_config["cached_text_input_per_1m"]
+                elif input_modality == "image":
+                    total_cost += (input_tokens / 1_000_000) * complex_config["image_input_per_1m"]
+                    total_cost += (cached_input_tokens / 1_000_000) * complex_config["cached_image_input_per_1m"]
+                
+                # Add per-image output cost
+                if images_generated > 0:
+                    image_pricing = complex_config["image_output_pricing"]
+                    per_image_cost = image_pricing.get(output_quality, 0.04)
+                    total_cost += images_generated * per_image_cost
+                    
+        return total_cost
     
     @classmethod
-    def format_cost(self, cost: float) -> str:
+    def format_cost(cls, cost: float) -> str:
         """Format cost for display."""
-        if cost < 0.001:
-            return f"${cost:.6f}"
+        if cost == 0:
+            return "$0.00"
         elif cost < 0.01:
             return f"${cost:.4f}"
         else:
             return f"${cost:.2f}"
     
     @classmethod
-    def format_usage_summary(
-        self,
-        model: str,
-        input_tokens: int,
-        output_tokens: int,
-        cost: float,
-        provider: str = "gemini"
-    ) -> str:
-        """Format a usage and cost summary."""
-        total_tokens = input_tokens + output_tokens
-        cost_str = self.format_cost(cost)
-        
-        arrow_up = "↑"
-        arrow_down = "↓"
-        
-        return f"💰 Usage: {total_tokens:,} tokens ({arrow_up}{input_tokens:,}/{arrow_down}{output_tokens:,}) ≈{cost_str}"
+    def format_usage(cls, input_tokens: int, output_tokens: int, cost: float) -> str:
+        """Format usage summary for display."""
+        return f"{input_tokens:,} tokens (↑{input_tokens:,}/↓{output_tokens:,}) ≈{cls.format_cost(cost)}"
 
 
-def calculate_cost(model: str, input_tokens: int = 0, output_tokens: int = 0, provider: str = "gemini") -> float:
-    """Convenience function for calculating costs."""
-    return PricingCalculator.calculate_cost(model, input_tokens, output_tokens, provider)
+# Global function for backward compatibility
+def calculate_cost(model: str, input_tokens: int = 0, output_tokens: int = 0, provider: str = "gemini", **kwargs) -> float:
+    """Global function that delegates to PricingCalculator.calculate_cost."""
+    return PricingCalculator.calculate_cost(model, input_tokens, output_tokens, provider, **kwargs)
 
 
-def format_usage(model: str, input_tokens: int, output_tokens: int, cost: float, provider: str = "gemini") -> str:
-    """Convenience function for formatting usage summaries."""
-    return PricingCalculator.format_usage_summary(model, input_tokens, output_tokens, cost, provider)
+def format_usage(input_tokens: int, output_tokens: int, cost: float) -> str:
+    """Global function that delegates to PricingCalculator.format_usage."""
+    return PricingCalculator.format_usage(input_tokens, output_tokens, cost)

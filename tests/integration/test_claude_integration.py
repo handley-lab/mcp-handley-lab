@@ -2,7 +2,19 @@
 import pytest
 import tempfile
 from pathlib import Path
+from PIL import Image
 from mcp_handley_lab.llm.claude.tool import ask, analyze_image, server_info
+
+
+@pytest.fixture
+def create_test_image(tmp_path):
+    """Create test images for image analysis tests."""
+    def _create_image(filename, color="red", size=(100, 100)):
+        img = Image.new('RGB', size, color=color)
+        image_path = tmp_path / filename
+        img.save(image_path, format='PNG')
+        return image_path
+    return _create_image
 
 
 @pytest.mark.asyncio
@@ -134,7 +146,7 @@ async def test_claude_server_info(skip_if_no_api_key):
     assert "Connected and ready" in result
     assert "API Key: Configured" in result
     assert "Available Models:" in result
-    assert "claude-3" in result.lower()
+    assert "claude" in result.lower()
     assert "ask:" in result
     assert "analyze_image:" in result
     assert "Image Generation: ✗" in result  # Claude doesn't support image generation

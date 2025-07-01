@@ -118,10 +118,6 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
 def _format_datetime(dt_str: str) -> str:
     """Format datetime string for display with proper timezone handling."""
     if 'T' in dt_str:
-<<<<<<< HEAD
-        dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
-        return dt.strftime('%Y-%m-%d %H:%M:%S %Z').strip()
-=======
         # DateTime format
         try:
             dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
@@ -135,35 +131,10 @@ def _format_datetime(dt_str: str) -> str:
         except ValueError:
             # Re-raise ValueError for invalid datetime formats to maintain test compatibility
             raise ValueError(f"Invalid datetime format: {dt_str}")
->>>>>>> origin/master
     else:
         return dt_str + " (all-day)"
 
 
-<<<<<<< HEAD
-def _format_iso_datetime(date_str: Optional[str], default_offset_days: int = 0) -> str:
-    """Format date string into full ISO 8601 datetime with UTC timezone."""
-    if not date_str:
-        dt = datetime.now() + timedelta(days=default_offset_days)
-        return dt.isoformat() + 'Z'
-    
-    if date_str.endswith('Z'):
-        return date_str
-    elif 'T' not in date_str:
-        # Date only - add appropriate time
-        suffix = 'T00:00:00Z' if default_offset_days == 0 else 'T23:59:59Z'
-        return date_str + suffix
-    elif '+' in date_str:
-        # Has timezone - parse and convert to UTC
-        dt = datetime.fromisoformat(date_str)
-        return dt.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
-    else:
-        # Datetime without timezone - assume UTC
-        return date_str + 'Z' if not date_str.endswith('Z') else date_str
-
-
-@mcp.tool(description="""Lists calendar events within a specified date range. The end date is exclusive (events on the `end_date` itself are *not* included). 
-=======
 def _client_side_filter(events: List[Dict[str, Any]], 
                        search_text: Optional[str] = None,
                        search_fields: Optional[List[str]] = None,
@@ -239,7 +210,6 @@ def _client_side_filter(events: List[Dict[str, Any]],
             filtered_events.append(event)
     
     return filtered_events
->>>>>>> origin/master
 
 
 @mcp.tool(description="""Lists calendar events within a specified date range with optional text search. The end date is exclusive (events on the `end_date` itself are *not* included). 
@@ -298,11 +268,6 @@ async def list_events(
     try:
         service = await _get_calendar_service()
         
-<<<<<<< HEAD
-        # Format date range
-        start_time = _format_iso_datetime(start_date)
-        end_time = _format_iso_datetime(end_date, default_offset_days=7)
-=======
         # Set default date range if not provided with proper timezone handling
         if not start_date:
             start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
@@ -319,7 +284,6 @@ async def list_events(
                 end_date = end_date + 'T23:59:59Z'
             else:
                 end_date = _parse_datetime_to_utc(end_date)
->>>>>>> origin/master
         
         events_list = []
         
@@ -333,25 +297,6 @@ async def list_events(
             
             for calendar in calendar_list.get('items', []):
                 cal_id = calendar['id']
-<<<<<<< HEAD
-                
-                def _sync_list_events():
-                    return service.events().list(
-                        calendarId=cal_id,
-                        timeMin=start_time,
-                        timeMax=end_time,
-                        maxResults=max_results,
-                        singleEvents=True,
-                        orderBy='startTime'
-                    ).execute()
-                
-                events_result = await loop.run_in_executor(None, _sync_list_events)
-                
-                cal_events = events_result.get('items', [])
-                for event in cal_events:
-                    event['calendar_name'] = calendar.get('summary', cal_id)
-                events_list.extend(cal_events)
-=======
                 try:
                     def _sync_list_events():
                         params = {
@@ -374,22 +319,11 @@ async def list_events(
                     events_list.extend(cal_events)
                 except HttpError:
                     continue  # Skip inaccessible calendars
->>>>>>> origin/master
         else:
             # Search specific calendar
             resolved_id = await _resolve_calendar_id(calendar_id, service)
             
             def _sync_list_events():
-<<<<<<< HEAD
-                return service.events().list(
-                    calendarId=resolved_id,
-                    timeMin=start_time,
-                    timeMax=end_time,
-                    maxResults=max_results,
-                    singleEvents=True,
-                    orderBy='startTime'
-                ).execute()
-=======
                 params = {
                     'calendarId': resolved_id,
                     'timeMin': start_date,
@@ -401,7 +335,6 @@ async def list_events(
                 if search_text:
                     params['q'] = search_text
                 return service.events().list(**params).execute()
->>>>>>> origin/master
             
             loop = asyncio.get_running_loop()
             events_result = await loop.run_in_executor(None, _sync_list_events)

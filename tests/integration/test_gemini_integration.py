@@ -516,3 +516,8 @@ async def test_gemini_input_validation_integration(skip_if_no_api_key, test_outp
             output_file=test_output_file,
             agent_name="   "  # Whitespace only
         )
+
+
+# Memory functionality is tested through the async function-based tests above
+# which use VCR cassettes efficiently. JSON-RPC subprocess tests removed
+# because VCR cannot intercept HTTP calls made by subprocess processes.

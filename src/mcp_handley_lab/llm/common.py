@@ -15,9 +15,10 @@ def get_session_id(mcp_instance) -> str:
     try:
         context = mcp_instance.get_context()
         client_id = getattr(context, 'client_id', None)
-        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}_{int(time.time())}"
+        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
     except:
-        return f"_session_{os.getpid()}_{int(time.time())}"
+        # When no MCP context (direct Python usage), use just process ID for persistence
+        return f"_session_{os.getpid()}"
 
 
 def determine_mime_type(file_path: Path) -> str:

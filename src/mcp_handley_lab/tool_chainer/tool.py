@@ -18,7 +18,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 from mcp.server.fastmcp import FastMCP
 
@@ -228,7 +228,7 @@ def _substitute_variables(text: str, variables: Dict[str, Any], step_outputs: Di
 
 
 def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs: Dict[str, Any] = None) -> bool:
-    """Evaluate a condition string."""
+    """Evaluate a condition string safely."""
     if not condition:
         return True
     
@@ -236,27 +236,46 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
         step_outputs = {}
     
     # Substitute variables first
-    condition = _substitute_variables(condition, variables, step_outputs)
+    evaluated_condition_str = _substitute_variables(condition, variables, step_outputs)
     
-    # Simple condition evaluation (could be expanded)
+    def _parse_operand(op_str: str) -> str:
+        """Parse operand, stripping quotes and returning as string for consistent comparison."""
+        op_str = op_str.strip()
+        # Handle quoted strings - strip quotes
+        if (op_str.startswith('"') and op_str.endswith('"')) or \
+           (op_str.startswith("'") and op_str.endswith("'")):
+            return op_str[1:-1] 
+        # Return unquoted strings as-is for string comparison
+        return op_str
+    
     try:
-        # Basic comparison operators
-        if " not contains " in condition:
-            left, right = condition.split(" not contains ", 1)
-            return right.strip().strip("'\"") not in left.strip().strip("'\"")
-        elif " contains " in condition:
-            left, right = condition.split(" contains ", 1)
-            return right.strip().strip("'\"") in left.strip().strip("'\"")
-        elif " == " in condition:
-            left, right = condition.split(" == ", 1)
-            return left.strip().strip("'\"") == right.strip().strip("'\"")
-        elif " != " in condition:
-            left, right = condition.split(" != ", 1)
-            return left.strip().strip("'\"") != right.strip().strip("'\"")
-        else:
-            # Try to evaluate as boolean expression
-            return bool(eval(condition))
-    except:
+        # Check for comparison operators (in order of precedence to avoid conflicts)
+        operators = {
+            " not contains ": lambda l, r: r not in l,
+            " contains ": lambda l, r: r in l,
+            " == ": lambda l, r: l == r,
+            " != ": lambda l, r: l != r,
+            " >= ": lambda l, r: l >= r,
+            " <= ": lambda l, r: l <= r,
+            " > ": lambda l, r: l > r,
+            " < ": lambda l, r: l < r,
+        }
+
+        for op_str, op_func in operators.items():
+            if op_str in evaluated_condition_str:
+                left, right = evaluated_condition_str.split(op_str, 1)
+                return op_func(_parse_operand(left), _parse_operand(right))
+        
+        # Handle boolean literals
+        normalized_expr = evaluated_condition_str.lower().strip()
+        if normalized_expr == "true":
+            return True
+        if normalized_expr == "false":
+            return False
+        
+        # If no known operator or boolean literal, return False
+        return False
+    except Exception:
         return False
 
 

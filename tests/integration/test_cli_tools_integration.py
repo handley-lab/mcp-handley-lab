@@ -9,44 +9,44 @@ from mcp_handley_lab.code2prompt.tool import generate_prompt, server_info as cod
 class TestJQIntegration:
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_query_basic(self, test_json_file):
         result = await query(data=test_json_file, filter=".test")
         assert "test" in result or "data" in result
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_query_array(self, test_json_file):
         result = await query(data=test_json_file, filter=".numbers | length")
         assert "3" in result
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_read_file(self, test_json_file):
         result = await read(file_path=test_json_file)
         assert "test" in result
         assert "numbers" in result
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_validate_valid(self, test_json_file):
         result = await validate(data=test_json_file)
         assert "valid" in result.lower()
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_validate_invalid(self):
         with pytest.raises(ValueError):
             await validate(data='{"invalid": json}')
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_format(self, test_json_file):
         result = await jq_format(data=test_json_file, compact=True)
         assert '"test":"data"' in result or '"test": "data"' in result
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_edit_file(self):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump({"counter": 0}, f)
@@ -63,7 +63,7 @@ class TestJQIntegration:
             Path(f.name).unlink()
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_jq_server_info(self):
         result = await jq_server_info()
         assert "jq" in result.lower()
@@ -72,7 +72,7 @@ class TestJQIntegration:
 class TestVimIntegration:
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_vim_prompt_user_edit(self):
         # Mock vim execution for automated testing
         from unittest.mock import patch, mock_open, AsyncMock
@@ -101,7 +101,7 @@ class TestVimIntegration:
                 assert len(result) > 0
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_vim_server_info(self):
         result = await vim_server_info()
         assert "vim" in result.lower()
@@ -110,7 +110,7 @@ class TestVimIntegration:
 class TestCode2PromptIntegration:
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_code2prompt_generate_basic(self, temp_storage_dir):
         # Create a simple test directory structure
         test_dir = Path(temp_storage_dir) / "test_code"
@@ -135,7 +135,7 @@ class TestCode2PromptIntegration:
         assert "def" in content
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_code2prompt_with_exclusions(self, temp_storage_dir):
         test_dir = Path(temp_storage_dir) / "test_exclude"
         test_dir.mkdir()
@@ -159,7 +159,7 @@ class TestCode2PromptIntegration:
         assert Path(output_file).exists()
     
     @pytest.mark.asyncio
-    @pytest.mark.vcr
+    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     async def test_code2prompt_server_info(self):
         result = await code2prompt_server_info()
         assert "code2prompt" in result.lower()

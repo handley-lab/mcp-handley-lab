@@ -43,36 +43,12 @@ class AgentMemory(BaseModel):
         self.total_tokens = 0
         self.total_cost = 0.0
     
-    def get_conversation_history(self) -> List[Dict[str, Any]]:
-        """Get conversation history in format suitable for Gemini API."""
-        history = []
-        
-        # For Gemini, personality/system messages should be added differently
-        # We'll handle this in the tool itself rather than here
-        
-        for message in self.messages:
-            # Convert to Gemini's expected format with 'parts'
-            # Map "assistant" role to "model" for Gemini
-            role = "model" if message.role == "assistant" else message.role
-            history.append({
-                "role": role,
-                "parts": [{"text": message.content}]
-            })
-        
-        return history
-    
-    def get_openai_conversation_history(self) -> List[Dict[str, str]]:
-        """Get conversation history in format suitable for OpenAI API."""
-        history = []
-        
-        for message in self.messages:
-            # OpenAI format: simple role/content structure
-            history.append({
-                "role": message.role,  # Keep original role (user/assistant)
-                "content": message.content
-            })
-        
-        return history
+    def get_history(self) -> List[Dict[str, str]]:
+        """Get conversation history in provider-agnostic format."""
+        return [
+            {"role": message.role, "content": message.content}
+            for message in self.messages
+        ]
     
     def get_stats(self) -> Dict[str, Any]:
         """Get summary statistics for the agent."""
@@ -117,30 +93,31 @@ class MemoryManager:
             
         for agent_file in self.agents_dir.glob("*.json"):
             try:
-                with open(agent_file) as f:
-                    data = json.load(f)
-                
-                # Convert datetime strings back to datetime objects
-                data["created_at"] = datetime.fromisoformat(data["created_at"])
-                for msg in data.get("messages", []):
-                    msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-                
-                agent = AgentMemory(**data)
+                agent = AgentMemory.model_validate_json(agent_file.read_text())
                 self._agents[agent.name] = agent
-            except (json.JSONDecodeError, KeyError, ValueError):
+            except (json.JSONDecodeError, ValueError):
                 # Skip corrupted files
                 continue
     
-    def _save_agent(self, agent: AgentMemory):
-        """Save a single agent to disk."""
+    def _serialize_agent_data(self, agent: AgentMemory) -> dict:
+        """Convert agent to JSON-serializable dictionary."""
         data = agent.model_dump()
         data["created_at"] = data["created_at"].isoformat()
-        for msg in data["messages"]:
+        for msg in data.get("messages", []):
             msg["timestamp"] = msg["timestamp"].isoformat()
-        
+        return data
+
+    def _deserialize_agent_data(self, data: dict) -> AgentMemory:
+        """Convert dictionary to AgentMemory object, parsing datetimes."""
+        data["created_at"] = datetime.fromisoformat(data["created_at"])
+        for msg in data.get("messages", []):
+            msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
+        return AgentMemory(**data)
+
+    def _save_agent(self, agent: AgentMemory):
+        """Save a single agent to disk."""
         agent_file = self._get_agent_file(agent.name)
-        with open(agent_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        agent_file.write_text(agent.model_dump_json(indent=2))
     
     def create_agent(self, name: str, personality: Optional[str] = None) -> AgentMemory:
         """Create a new agent."""
@@ -197,11 +174,7 @@ class MemoryManager:
             return False
         
         try:
-            data = agent.model_dump()
-            data["created_at"] = data["created_at"].isoformat()
-            for msg in data["messages"]:
-                msg["timestamp"] = msg["timestamp"].isoformat()
-            
+            data = self._serialize_agent_data(agent)
             with open(export_path, 'w') as f:
                 json.dump(data, f, indent=2)
             return True
@@ -214,12 +187,7 @@ class MemoryManager:
             with open(import_path) as f:
                 data = json.load(f)
             
-            # Convert datetime strings back to datetime objects
-            data["created_at"] = datetime.fromisoformat(data["created_at"])
-            for msg in data.get("messages", []):
-                msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-            
-            agent = AgentMemory(**data)
+            agent = self._deserialize_agent_data(data)
             
             # Check if agent already exists
             if agent.name in self._agents and not overwrite:

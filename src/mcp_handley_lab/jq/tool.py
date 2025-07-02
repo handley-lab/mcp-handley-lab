@@ -1,11 +1,10 @@
 """JQ tool for JSON manipulation via MCP."""
-import asyncio
 import json
-import subprocess
 from pathlib import Path
 from typing import Union
 from pydantic import constr
 from mcp.server.fastmcp import FastMCP
+from ..common.process import run_command
 
 mcp = FastMCP("JQ Tool")
 
@@ -32,25 +31,19 @@ def _resolve_data(data: Union[str, dict, list]) -> str:
 
 
 async def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    """Runs a jq command and handles errors."""
+    """Runs a jq command and raises errors on failure."""
+    cmd = ["jq"] + args
+    input_bytes = input_text.encode('utf-8') if input_text else None
+    
     try:
-        process = await asyncio.create_subprocess_exec(
-            "jq", *args,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        
-        # Convert input to bytes if provided
-        input_bytes = input_text.encode('utf-8') if input_text else None
-        stdout, stderr = await process.communicate(input=input_bytes)
-        
-        if process.returncode != 0:
-            raise ValueError(f"jq error: {stderr.decode('utf-8').strip()}")
-            
+        stdout, stderr = await run_command(cmd, input_data=input_bytes)
         return stdout.decode('utf-8').strip()
-    except FileNotFoundError:
-        raise RuntimeError("jq command not found. Please install jq.")
+    except RuntimeError as e:
+        if "Command failed" in str(e):
+            # Extract stderr for better jq error messages
+            error_msg = str(e).split(": ", 1)[-1]
+            raise ValueError(f"jq error: {error_msg}")
+        raise
 
 
 @mcp.tool(description="""Queries JSON data using a jq filter expression.
@@ -140,12 +133,8 @@ edit('/path/data.json', 'del(.temp_field)')
 # Transform all array items
 edit('/path/products.json', '.products[].price *= 1.1')
 ```""")
-async def edit(file_path: str, filter: str, backup: bool = True) -> str:
+async def edit(file_path: constr(min_length=1), filter: constr(min_length=1), backup: bool = True) -> str:
     """Edit a JSON file in-place."""
-    if not file_path or not file_path.strip():
-        raise ValueError("File path is required and cannot be empty")
-    if not filter or not filter.strip():
-        raise ValueError("Filter is required and cannot be empty")
     
     path = Path(file_path)
     

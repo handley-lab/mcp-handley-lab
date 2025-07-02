@@ -69,6 +69,10 @@ Variables Parameter: Comma-separated list of variables to focus operations on.
 - Example: "x,y" for multi-variable expressions
 - Default: Auto-detect variables in expression
 
+Output File Parameter:
+- `output_file="-"` (default): Return result directly as text
+- `output_file="/path/to/file.txt"`: Save result to specified file and return status message
+
 Error Handling:
 - Raises ValueError for invalid expression syntax
 - Raises ValueError for unsupported operations
@@ -99,7 +103,8 @@ transform_expression("(2*x + 3)/(x^2 - 1)", "apart", variables="x")
 async def transform_expression(
     expression: constr(min_length=1), 
     operation: constr(min_length=1),
-    variables: Optional[str] = None
+    variables: Optional[str] = None,
+    output_file: str = "-"
 ) -> str:
     """Transform a mathematical expression using SymPy operations."""
     
@@ -133,7 +138,18 @@ async def transform_expression(
     # Perform the operation
     try:
         result = operations[operation](expr, var_list)
-        return str(result)
+        result_str = str(result)
+        
+        # Handle output
+        if output_file != '-':
+            from pathlib import Path
+            output_path = Path(output_file)
+            output_path.write_text(result_str)
+            char_count = len(result_str)
+            line_count = result_str.count('\n') + 1
+            return f"Transformation result saved to: {output_file}\nExpression: {result_str}\nContent: {char_count} characters, {line_count} lines"
+        else:
+            return result_str
     except Exception as e:
         if "cancelled" in str(e).lower():
             raise UserCancelledError("Expression transformation was cancelled by user")
@@ -152,6 +168,10 @@ Variable Substitution: Dictionary mapping variable names to values:
 Numerical Evaluation: 
 - `numerical=False` (default): Returns exact symbolic result
 - `numerical=True`: Converts result to floating-point approximation
+
+Output File Parameter:
+- `output_file="-"` (default): Return result directly as text
+- `output_file="/path/to/file.txt"`: Save result to specified file and return status message
 
 Use Cases:
 - **Symbolic substitution**: Replace variables with other expressions
@@ -193,7 +213,8 @@ evaluate_expression("E^(I*pi)", {}, numerical=True)
 async def evaluate_expression(
     expression: constr(min_length=1),
     variables: Optional[Dict[str, Union[str, int, float]]] = None,
-    numerical: bool = False
+    numerical: bool = False,
+    output_file: str = "-"
 ) -> str:
     """Evaluate a mathematical expression with variable substitution."""
     
@@ -230,17 +251,28 @@ async def evaluate_expression(
     if numerical:
         try:
             result = _safe_sympy_operation(float, expr.evalf())
-            return str(result)
+            result_str = str(result)
         except Exception as e:
             # If direct float conversion fails, try evalf() which returns more precise result
             try:
                 result = _safe_sympy_operation(expr.evalf)
-                return str(result)
+                result_str = str(result)
             except Exception as e2:
                 raise ValueError(f"Failed to evaluate expression numerically: {str(e2)}")
+    else:
+        # Return symbolic result
+        result_str = str(expr)
     
-    # Return symbolic result
-    return str(expr)
+    # Handle output
+    if output_file != '-':
+        from pathlib import Path
+        output_path = Path(output_file)
+        output_path.write_text(result_str)
+        char_count = len(result_str)
+        line_count = result_str.count('\n') + 1
+        return f"Evaluation result saved to: {output_file}\nResult: {result_str}\nContent: {char_count} characters, {line_count} lines"
+    else:
+        return result_str
 
 
 @mcp.tool(description="""Converts mathematical expressions to LaTeX format for typesetting and documentation.
@@ -256,6 +288,10 @@ Formatting Options:
 - `fold_frac_powers=True`: Convert negative exponents to fractions (e.g., `x^{-1/2}` → `\\frac{1}{\\sqrt{x}}`)
 - `mul_symbol`: Multiplication symbol - "dot" for `\\cdot`, "times" for `\\times`, or None for space
 - `ln_notation=True`: Use `\\ln` instead of `\\log` for natural logarithms
+
+Output File Parameter:
+- `output_file="-"` (default): Return LaTeX code directly as text
+- `output_file="/path/to/file.tex"`: Save LaTeX code to specified file and return status message
 
 Use Cases:
 - **Document generation**: Create LaTeX code for papers, reports, and documentation
@@ -299,7 +335,8 @@ async def to_latex(
     mode: str = "plain",
     fold_frac_powers: bool = False,
     mul_symbol: Optional[str] = None,
-    ln_notation: bool = False
+    ln_notation: bool = False,
+    output_file: str = "-"
 ) -> str:
     """Convert a mathematical expression to LaTeX format."""
     
@@ -332,7 +369,17 @@ async def to_latex(
             mul_symbol=mul_symbol,
             ln_notation=ln_notation
         )
-        return latex_str
+        
+        # Handle output
+        if output_file != '-':
+            from pathlib import Path
+            output_path = Path(output_file)
+            output_path.write_text(latex_str)
+            char_count = len(latex_str)
+            line_count = latex_str.count('\n') + 1
+            return f"LaTeX output saved to: {output_file}\nLaTeX: {latex_str}\nContent: {char_count} characters, {line_count} lines"
+        else:
+            return latex_str
     except Exception as e:
         if "cancelled" in str(e).lower():
             raise UserCancelledError("LaTeX conversion was cancelled by user")

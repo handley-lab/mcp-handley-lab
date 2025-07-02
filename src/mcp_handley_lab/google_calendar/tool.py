@@ -213,8 +213,6 @@ def _client_side_filter(events: List[Dict[str, Any]],
     return filtered_events
 
 
-
-
 @mcp.tool(description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.")
 async def get_event(
     event_id: str,
@@ -727,16 +725,18 @@ async def find_time(
 - Searches all accessible calendars by default
 
 **Advanced Search Features:**
-- Server-side search using Google Calendar API's 'q' parameter
-- Optional client-side filtering for granular control
-- Field-specific search, AND/OR logic, case sensitivity options
+- Server-side pre-filtering using Google Calendar API's 'q' parameter reduces data transfer and improves performance
+- Client-side filtering enables advanced search options not available in the API
+- Search across multiple fields: title, description, location, attendees
+- Flexible search logic: AND (all terms) or OR (any term) matching
+- Case-sensitive or case-insensitive search options
 
 **Date Format:** ISO 8601 format required:
 - DateTime: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
 - Date only: "2024-06-24" (for all-day events)
 
 **Parameters:**
-- `search_text`: Optional search terms. If not provided, lists all events in date range
+- `search_text`: Optional search terms. If not provided, lists all events in date range. Uses Google API 'q' parameter for server-side filtering when provided
 - `search_fields`: Specific fields for client-side filtering. Default: ['summary', 'description', 'location']
 - `case_sensitive`: Whether search should be case sensitive (default: False)
 - `match_all_terms`: If True (default), all search terms must match (AND logic). If False, any term can match (OR logic)
@@ -763,25 +763,34 @@ search_events(
 # Basic text search
 search_events(search_text="meeting")
 
-# Advanced search with field-specific filtering
+# Find events about "Chris Lovell" anywhere in the event
+search_events(search_text="Chris Lovell")
+
+# Search only in event titles, case-sensitive
 search_events(
     search_text="Team Meeting", 
     search_fields=["summary"], 
     case_sensitive=True
 )
 
-# Search with OR logic
+# Find events with any of these terms (OR logic)
 search_events(
     search_text="standup retrospective planning", 
     match_all_terms=False
 )
 
-# Search specific calendar and date range
+# Search in specific calendar and date range
 search_events(
     search_text="interview", 
     calendar_id="work@company.com",
     start_date="2024-06-01",
     end_date="2024-06-30"
+)
+
+# Advanced search in attendees
+search_events(
+    search_text="alice@company.com", 
+    search_fields=["attendees"]
 )
 ```""")
 async def search_events(

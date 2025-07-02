@@ -16,8 +16,8 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p337uto6moecos0o\\\"\",\n
-        \"nextSyncToken\": \"CM_u4NbDmY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33fp11eguaeos0o\\\"\",\n
+        \"nextSyncToken\": \"CN-QhdDynY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
@@ -61,9 +61,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:33 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:33 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -102,9 +102,9 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/williamjameshandley.arxiv%40gmail.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p337uto6moecos0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33fp11eguaeos0o\\\"\",\n
         \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-06-30T16:07:51.996Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"updated\": \"2025-07-02T09:48:33.330Z\",\n \"timeZone\": \"Europe/London\",\n
         \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
         \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
     headers:
@@ -115,9 +115,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -156,7 +156,7 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/en.uk%23holiday%40group.v.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32lohp7fuqd8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33cuh6ehuaeos0o\\\"\",\n
         \"summary\": \"Holidays in United Kingdom\",\n \"description\": \"Holidays
         and Observances in United Kingdom\",\n \"updated\": \"2025-05-02T13:55:42.356Z\",\n
         \"timeZone\": \"Europe/London\",\n \"accessRole\": \"reader\",\n \"defaultReminders\":
@@ -169,9 +169,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -223,9 +223,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:35 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -277,9 +277,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:36 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:34 GMT
+      - Wed, 02 Jul 2025 09:48:36 GMT
       Server:
       - ESF
       Transfer-Encoding:

@@ -39,29 +39,29 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo36FSJnwAKgeXfbHyTozAzi39gpm\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751268015,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYRagX2zjoOGkhKSsXa6sXisBfgB\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388502,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"Photosynthesis is the process by which
         green plants, algae, and some bacteria convert light energy, usually from
-        the sun, into chemical energy stored in glucose, using carbon dioxide and
-        water, while releasing oxygen as a byproduct.\",\n        \"refusal\": null,\n
-        \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 14,\n    \"completion_tokens\":
-        45,\n    \"total_tokens\": 59,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        the sun, into chemical energy in the form of glucose, using carbon dioxide
+        and water while releasing oxygen as a byproduct.\",\n        \"refusal\":
+        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
+        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        14,\n    \"completion_tokens\": 46,\n    \"total_tokens\": 60,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be66add20bf07-LHR
+      - 958763f8dfe21f7f-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:20:17 GMT
+      - Tue, 01 Jul 2025 16:48:22 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -75,17 +75,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1039'
+      - '1043'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1182'
+      - '776'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1185'
+      - '781'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -99,7 +99,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_c6debfbfbc113e2a17fcb7f0c3231cb9
+      - req_dfa12b251905322783902b70b01679c6
     status:
       code: 200
       message: OK

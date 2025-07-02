@@ -1,8 +1,20 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is the current date today?"}],
-      "role": "user"}], "tools": [{"googleSearch": {}}], "generationConfig": {"temperature":
-      0.7, "maxOutputTokens": 65536}}'
+    body: '{"contents": [{"parts": [{"text": "What is 2+2? Answer with just the number."}],
+      "role": "user"}, {"parts": [{"text": "4"}], "role": "model"}, {"parts": [{"text":
+      "What is in this JSON file?"}], "role": "user"}, {"parts": [{"text": "The JSON
+      file contains an object with two keys: \n\n1. **test**: a string with the value
+      \"data\"\n2. **numbers**: an array containing the values [1, 2, 3]"}], "role":
+      "model"}, {"parts": [{"text": "What color is this image? [Image analysis: 1
+      image(s)]"}], "role": "user"}, {"parts": [{"text": "The color of the image is
+      yellow."}], "role": "model"}, {"parts": [{"text": "What is 3+3? Answer with
+      just the number."}], "role": "user"}, {"parts": [{"text": "6"}], "role": "model"},
+      {"parts": [{"text": "What is the current date today?"}], "role": "user"}, {"parts":
+      [{"text": "Today is Tuesday, July 1, 2025.  Please note that this is the current
+      date as of today, and tomorrow it will be different.\n"}], "role": "model"},
+      {"parts": [{"text": "What is the current date today?"}], "role": "user"}], "tools":
+      [{"googleSearch": {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      65536}}'
     headers:
       accept:
       - '*/*'
@@ -11,7 +23,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '189'
+      - '1131'
       content-type:
       - application/json
       host:
@@ -25,25 +37,25 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The current date today is Monday,
-        June 30, 2025.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
-        \     \"finishReason\": \"STOP\",\n      \"index\": 0,\n      \"groundingMetadata\":
-        {}\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 8,\n    \"candidatesTokenCount\":
-        18,\n    \"totalTokenCount\": 67,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 8\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 41\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"RTpiaKrfCJ3NkdUP3PuLQQ\"\n}\n"
+        [\n          {\n            \"text\": \"Today is Tuesday, July 1, 2025.\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0,\n      \"groundingMetadata\": {}\n    }\n  ],\n
+        \ \"usageMetadata\": {\n    \"promptTokenCount\": 164,\n    \"candidatesTokenCount\":
+        14,\n    \"totalTokenCount\": 216,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 164\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 38\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"cxFkaJynNtuNvdIPuMjGsQw\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:18:29 GMT
+      - Tue, 01 Jul 2025 16:48:51 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1851
+      - gfet4t7; dur=1069
       Transfer-Encoding:
       - chunked
       Vary:
@@ -57,7 +69,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '618'
+      - '607'
     status:
       code: 200
       message: OK

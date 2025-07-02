@@ -1,87 +1,109 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
-      {"role": "assistant", "content": "I\u2019m sorry, but I can\u2019t remember
-      personal information or previous interactions. However, I\u2019m here to help
-      you with any questions or topics you''d like to discuss, Alice!"}, {"role":
-      "user", "content": "What is my name?"}, {"role": "assistant", "content": "You
-      mentioned that your name is Alice. How can I assist you today, Alice?"}, {"role":
-      "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. However, I can''t retain information
-      beyond this conversation. If there''s anything else you''d like to discuss or
-      ask about, feel free to let me know!"}, {"role": "user", "content": "What is
-      my name?"}, {"role": "assistant", "content": "Your name is Alice. How can I
-      assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
-      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
-      However, I can''t remember information beyond our current conversation. If there''s
-      anything else you''d like to talk about or any questions you have, just let
-      me know!"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
-      "content": "Your name is Alice. How can I help you today?"}, {"role": "user",
-      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
-      "I understand that your name is Alice. While I can acknowledge it during our
-      conversation, I can''t remember it in future interactions. How can I assist
-      you today, Alice?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I help you today?"}, {"role":
-      "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can refer to you as
-      Alice during our current conversation, I won''t be able to remember it in future
-      chats. If there''s anything specific you''d like to discuss or ask about, feel
-      free to let me know!"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that you want me to remember your name is Alice. While
-      I can acknowledge that during this conversation, I won''t be able to retain
-      that information in future interactions. How can I assist you today, Alice?"},
+      {"role": "assistant", "content": "I understand that your name is Alice. While
+      I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
       {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
-      "Your name is Alice. How can I help you today?"}, {"role": "user", "content":
-      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I acknowledge
-      that your name is Alice. While I can''t remember it for future conversations,
-      I''m here to help you with anything you need right now. What would you like
-      to talk about?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can refer to you as
-      Alice during this conversation, I won\u2019t be able to remember it in future
-      interactions. What would you like to discuss, Alice?"}, {"role": "user", "content":
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
       "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
       can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
       this."}, {"role": "assistant", "content": "I understand that your name is Alice.
-      While I can refer to you as Alice during this conversation, I won''t be able
-      to retain that information in future interactions. What would you like to talk
-      about today?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
-      "content": "Your name is Alice. How can I assist you today?"}, {"role": "user",
-      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
-      "I understand that your name is Alice. While I can call you Alice during this
-      conversation, I won''t be able to remember it in future chats. How can I help
-      you today, Alice?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}], "model": "gpt-4o-mini",
-      "max_tokens": 16384, "temperature": 0.7}'
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}], "model": "gpt-4o-mini", "max_tokens":
+      16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -90,7 +112,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '6264'
+      - '8019'
       content-type:
       - application/json
       host:
@@ -119,28 +141,28 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35sYWu0KmJNPFooWqCxjnByzji0\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267992,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYR7obWFYI3q1fQp1qx3XLxESdL0\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388473,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"I understand that your name is Alice.
         While I can acknowledge that during our conversation, I won't be able to remember
         it in future interactions. What would you like to talk about today, Alice?\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
         null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        1221,\n    \"completion_tokens\": 39,\n    \"total_tokens\": 1260,\n    \"prompt_tokens_details\":
-        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        1535,\n    \"completion_tokens\": 39,\n    \"total_tokens\": 1574,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 1408,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5d908e2f8b3-LHR
+      - 958763417ef8edf6-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:53 GMT
+      - Tue, 01 Jul 2025 16:47:53 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -154,17 +176,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1005'
+      - '1008'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1370'
+      - '765'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1373'
+      - '769'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -172,103 +194,124 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149998870'
+      - '149998541'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_d8ce6e34eb7d92dfa75c06ad37274435
+      - req_c3a0e01466582f0c912a624c65de053c
     status:
       code: 200
       message: OK
 - request:
     body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
-      {"role": "assistant", "content": "I\u2019m sorry, but I can\u2019t remember
-      personal information or previous interactions. However, I\u2019m here to help
-      you with any questions or topics you''d like to discuss, Alice!"}, {"role":
-      "user", "content": "What is my name?"}, {"role": "assistant", "content": "You
-      mentioned that your name is Alice. How can I assist you today, Alice?"}, {"role":
-      "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. However, I can''t retain information
-      beyond this conversation. If there''s anything else you''d like to discuss or
-      ask about, feel free to let me know!"}, {"role": "user", "content": "What is
-      my name?"}, {"role": "assistant", "content": "Your name is Alice. How can I
-      assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
-      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
-      However, I can''t remember information beyond our current conversation. If there''s
-      anything else you''d like to talk about or any questions you have, just let
-      me know!"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
-      "content": "Your name is Alice. How can I help you today?"}, {"role": "user",
-      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
-      "I understand that your name is Alice. While I can acknowledge it during our
-      conversation, I can''t remember it in future interactions. How can I assist
-      you today, Alice?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I help you today?"}, {"role":
-      "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can refer to you as
-      Alice during our current conversation, I won''t be able to remember it in future
-      chats. If there''s anything specific you''d like to discuss or ask about, feel
-      free to let me know!"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that you want me to remember your name is Alice. While
-      I can acknowledge that during this conversation, I won''t be able to retain
-      that information in future interactions. How can I assist you today, Alice?"},
+      {"role": "assistant", "content": "I understand that your name is Alice. While
+      I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
       {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
-      "Your name is Alice. How can I help you today?"}, {"role": "user", "content":
-      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I acknowledge
-      that your name is Alice. While I can''t remember it for future conversations,
-      I''m here to help you with anything you need right now. What would you like
-      to talk about?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can refer to you as
-      Alice during this conversation, I won\u2019t be able to remember it in future
-      interactions. What would you like to discuss, Alice?"}, {"role": "user", "content":
-      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
-      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
-      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
-      While I can refer to you as Alice during this conversation, I won''t be able
-      to retain that information in future interactions. What would you like to talk
-      about today?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
-      "content": "Your name is Alice. How can I assist you today?"}, {"role": "user",
-      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
-      "I understand that your name is Alice. While I can call you Alice during this
-      conversation, I won''t be able to remember it in future chats. How can I help
-      you today, Alice?"}, {"role": "user", "content": "What is my name?"}, {"role":
-      "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
-      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
-      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
-      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
-      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
-      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
-      "content": "I understand that your name is Alice. While I can call you Alice
-      during this conversation, I won''t be able to remember it in future chats. How
-      can I help you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
       {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
       {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
       "content": "I understand that your name is Alice. While I can acknowledge that
       during our conversation, I won''t be able to remember it in future interactions.
       What would you like to talk about today, Alice?"}, {"role": "user", "content":
-      "What is my name?"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
-      0.7}'
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice. How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I understand that your name is Alice. While I can acknowledge that
+      during our conversation, I won''t be able to remember it in future interactions.
+      What would you like to talk about today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice. How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I understand that your name is Alice.
+      While I can acknowledge that during our conversation, I won''t be able to remember
+      it in future interactions. What would you like to talk about today, Alice?"},
+      {"role": "user", "content": "What is my name?"}, {"role": "assistant", "content":
+      "Your name is Alice. How can I assist you today?"}, {"role": "user", "content":
+      "My name is Alice. Remember this."}, {"role": "assistant", "content": "I understand
+      that your name is Alice. While I can acknowledge that during our conversation,
+      I won''t be able to remember it in future interactions. What would you like
+      to talk about today, Alice?"}, {"role": "user", "content": "What is my name?"}],
+      "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -277,7 +320,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '6537'
+      - '8292'
       content-type:
       - application/json
       host:
@@ -306,27 +349,27 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35ucoK6ALLKrX0WWMPP2CYU9Tnq\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267994,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYR8zbjeqLYbC65jtYkAvl14zIIa\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388474,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"Your name is Alice. How can I assist
         you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
         \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
-        \ \"usage\": {\n    \"prompt_tokens\": 1273,\n    \"completion_tokens\": 12,\n
-        \   \"total_tokens\": 1285,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        \ \"usage\": {\n    \"prompt_tokens\": 1587,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 1599,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        1536,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5e2a8aff8b3-LHR
+      - 95876349fbacedf6-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:54 GMT
+      - Tue, 01 Jul 2025 16:47:54 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -340,17 +383,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '858'
+      - '861'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '352'
+      - '318'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '354'
+      - '322'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -358,13 +401,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149998814'
+      - '149998486'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_7e25f2a2291184ebc5d004a0a147cf93
+      - req_cca3187c20b3125dcf9ad5a5a7e7d023
     status:
       code: 200
       message: OK

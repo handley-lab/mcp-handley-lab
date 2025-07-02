@@ -27,28 +27,26 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Hello! I can definitely help you with
-        that.\\n\\nTo find out what **6 x 7** is, we can think of it as adding the
-        number 6, seven times:\\n\\n6 + 6 + 6 + 6 + 6 + 6 + 6 = 42\\n\\nOr, we can
-        think of it as adding the number 7, six times:\\n\\n7 + 7 + 7 + 7 + 7 + 7
-        = 42\\n\\nSo, **6 x 7 = 42**\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\":
-        114,\n    \"totalTokenCount\": 181,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 32\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 35\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"aTpiaNjZHZOE7M8Pu_i--Qk\"\n}\n"
+        [\n          {\n            \"text\": \"That's a great question! Let's figure
+        out what 6 multiplied by 7 is.\\n\\nWhen we calculate 6 x 7, we are adding
+        6 groups of 7, or 7 groups of 6.\\n\\n6 x 7 = 42\\n\\nSo, 6 multiplied by
+        7 is **42**.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
+        {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\": 72,\n    \"totalTokenCount\":
+        135,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 32\n      }\n    ],\n    \"thoughtsTokenCount\": 31\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"mRFkaLWUIqDnxN8Ps8SmwAU\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:19:05 GMT
+      - Tue, 01 Jul 2025 16:49:29 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=2693
+      - gfet4t7; dur=1271
       Transfer-Encoding:
       - chunked
       Vary:
@@ -62,18 +60,17 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '824'
+      - '736'
     status:
       code: 200
       message: OK
 - request:
     body: '{"contents": [{"parts": [{"text": "Remember that I''m learning multiplication
-      tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "Hello! I can
-      definitely help you with that.\n\nTo find out what **6 x 7** is, we can think
-      of it as adding the number 6, seven times:\n\n6 + 6 + 6 + 6 + 6 + 6 + 6 = 42\n\nOr,
-      we can think of it as adding the number 7, six times:\n\n7 + 7 + 7 + 7 + 7 +
-      7 = 42\n\nSo, **6 x 7 = 42**"}], "role": "model"}, {"parts": [{"text": "Now
-      test me: what multiplication problem did I just ask about?"}], "role": "user"}],
+      tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "That''s a great
+      question! Let''s figure out what 6 multiplied by 7 is.\n\nWhen we calculate
+      6 x 7, we are adding 6 groups of 7, or 7 groups of 6.\n\n6 x 7 = 42\n\nSo, 6
+      multiplied by 7 is **42**."}], "role": "model"}, {"parts": [{"text": "Now test
+      me: what multiplication problem did I just ask about?"}], "role": "user"}],
       "systemInstruction": {"parts": [{"text": "You are a math tutor who always shows
       your work step by step"}], "role": "user"}, "generationConfig": {"temperature":
       0.7, "maxOutputTokens": 65536}}'
@@ -85,7 +82,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '742'
+      - '655'
       content-type:
       - application/json
       host:
@@ -99,26 +96,25 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Great question! It's good to review.\\n\\nThe
-        multiplication problem we just talked about was:\\n\\n**6 x 7**\\n\\nCan you
-        tell me what the answer was again?\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 161,\n    \"candidatesTokenCount\":
-        38,\n    \"totalTokenCount\": 242,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 161\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 43\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"azpiaKq5B4W1nsEP0ovhaQ\"\n}\n"
+        [\n          {\n            \"text\": \"Great memory check!\\n\\nYou just
+        asked about the multiplication problem: **6 x 7**.\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        119,\n    \"candidatesTokenCount\": 19,\n    \"totalTokenCount\": 176,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 119\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 38\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"mhFkaOHLC_jUxs0P_I3bQA\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:19:07 GMT
+      - Tue, 01 Jul 2025 16:49:30 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1600
+      - gfet4t7; dur=588
       Transfer-Encoding:
       - chunked
       Vary:
@@ -132,7 +128,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '695'
+      - '626'
     status:
       code: 200
       message: OK

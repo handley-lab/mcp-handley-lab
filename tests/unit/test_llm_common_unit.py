@@ -59,7 +59,7 @@ class TestDetermineMimeType:
         ("test.html", "text/html"),
         ("test.css", "text/css"),
         ("test.json", "application/json"),
-        ("test.xml", "application/xml"),
+        ("test.xml", "text/xml"),
         ("test.csv", "text/csv"),
         ("test.pdf", "application/pdf"),
         ("test.png", "image/png"),

@@ -2,7 +2,7 @@ interactions:
 - request:
     body: '{"max_tokens": 8192, "messages": [{"role": "user", "content": [{"type":
       "text", "text": "What color is this image?"}, {"type": "image", "source": {"type":
-      "base64", "media_type": "image/jpeg", "data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
+      "base64", "media_type": "image/png", "data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
       "model": "claude-3-5-sonnet-20240620", "temperature": 0.7}'
     headers:
       accept:
@@ -14,7 +14,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '630'
+      - '629'
       content-type:
       - application/json
       host:
@@ -45,19 +45,19 @@ interactions:
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01MyVErrbsZQrJssCU12wHew","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"This
+      string: '{"id":"msg_01M9rJhdqVPAVP3jQA7S1uR1","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"This
         image is a solid, bright red color. It appears to be a simple square or rectangular
-        shape filled entirely with a vibrant, pure red hue without any other colors,
-        patterns, or elements present."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":32,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":45,"service_tier":"standard"}}'
+        shape filled entirely with a vibrant shade of red, without any other colors,
+        patterns, or elements visible."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":32,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":44,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 95854e98ea943622-MAN
+      - 958d4f9cade2222a-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 10:44:17 GMT
+      - Wed, 02 Jul 2025 10:03:04 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -71,31 +71,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-01T10:44:15Z'
+      - '2025-07-02T10:03:03Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-01T10:44:16Z'
+      - '2025-07-02T10:03:04Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-01T10:44:14Z'
+      - '2025-07-02T10:03:02Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-01T10:44:15Z'
+      - '2025-07-02T10:03:03Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
       - '523'
       request-id:
-      - req_011CQgAM5qXphyPHxoeD1GGR
+      - req_011CQi11khXV1icr2YKumNec
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

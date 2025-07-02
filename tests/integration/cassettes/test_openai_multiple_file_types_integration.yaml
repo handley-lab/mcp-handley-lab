@@ -43,31 +43,32 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo36DoDAjHLawJRrCmfegvz1Zp2Lp\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751268013,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYRV747msG0VBuIwZCkoqnL2csBm\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388497,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"Based on the provided files, you should
-        use **FRAMEWORK_X** for building your calculator app. According to `instructions.txt`,
-        it explicitly states to use FRAMEWORK_X, and `config.json` also confirms that
-        FRAMEWORK_X is the recommended framework, specifying its version as 2.1 and
-        listing features like \\\"math\\\" and \\\"gui\\\" that you might find useful
-        for your project.\",\n        \"refusal\": null,\n        \"annotations\":
-        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
-        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 79,\n    \"completion_tokens\":
-        79,\n    \"total_tokens\": 158,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"assistant\",\n        \"content\": \"Based on the information provided in
+        the files, you should use **FRAMEWORK_X** to build your calculator app. The
+        `config.json` file specifies that the version to use is **2.1**, and it supports
+        features like \\\"math\\\" and \\\"gui,\\\" which are essential for a calculator
+        application. Since FRAMEWORK_X is also indicated as the recommended choice
+        in the `instructions.txt`, it is the best framework to proceed with for your
+        project.\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 79,\n    \"completion_tokens\": 90,\n
+        \   \"total_tokens\": 169,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be6518a7893e5-LHR
+      - 958763d9fadf6547-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:20:15 GMT
+      - Tue, 01 Jul 2025 16:48:21 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -81,17 +82,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1176'
+      - '1235'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1579'
+      - '4196'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1583'
+      - '4199'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -99,13 +100,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999923'
+      - '149999924'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_ab3d41f90c42d549eaa673067c5952e9
+      - req_4f7485a305bf0f7a8752b0d8a635cec4
     status:
       code: 200
       message: OK

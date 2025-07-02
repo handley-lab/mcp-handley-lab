@@ -1,0 +1,111 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What does this shell script do? What
+      are the main steps?"}, {"text": "[File: tmprth9c8s9.sh]\n#!/bin/bash\n# Build
+      and deploy script\nset -e\n\necho \"Starting build process...\"\nnpm install\nnpm
+      run build\nnpm test\n\necho \"Deploying to production...\"\nrsync -av dist/
+      user@server:/var/www/\necho \"Deployment complete!\"\n"}], "role": "user"}],
+      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '452'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"This shell script is a **Continuous
+        Integration/Continuous Deployment (CI/CD)**-like script designed to **build
+        a Node.js project and then deploy its production-ready output to a remote
+        server**.\\n\\nHere's a breakdown of what it does and its main steps:\\n\\n###
+        What the script does:\\n\\nThe script automates the process of taking a Node.js
+        application (or any project that uses `npm` for its build and test steps),
+        preparing it for production, and then transferring the prepared files to a
+        designated directory on a remote server. The `set -e` command is crucial as
+        it ensures that the script will exit immediately if any command fails (e.g.,
+        `npm install` fails, `npm run build` fails, or `npm test` fails), preventing
+        a broken build from being deployed.\\n\\n### Main Steps:\\n\\n1.  **Preparation
+        & Error Handling (`set -e`):**\\n    *   `#!/bin/bash`: Specifies that the
+        script should be executed with Bash.\\n    *   `set -e`: This is a critical
+        safety measure. It tells the shell to exit immediately if any command fails
+        (returns a non-zero exit status). This ensures that if the build or tests
+        fail, the deployment step will not be executed.\\n\\n2.  **Build Process:**\\n
+        \   *   `echo \\\"Starting build process...\\\"`: Prints a message to the
+        console indicating the start of the build phase.\\n    *   `npm install`:
+        Installs all project dependencies defined in `package.json` into the `node_modules`
+        directory. This ensures all required libraries and tools for building and
+        testing are available.\\n    *   `npm run build`: Executes the \\\"build\\\"
+        script defined in the `scripts` section of `package.json`. For most Node.js
+        projects, this command compiles source code (e.g., TypeScript, Babel), bundles
+        assets (e.g., Webpack, Rollup), minifies code, and prepares the application
+        for production. The output of this step is typically placed in a directory
+        like `dist/` or `build/`.\\n    *   `npm test`: Executes the \\\"test\\\"
+        script defined in `package.json`. This runs the automated tests (unit tests,
+        integration tests, etc.) for the project. This acts as a quality gate; if
+        tests fail, `set -e` will stop the script, preventing deployment of potentially
+        broken code.\\n\\n3.  **Deployment Process:**\\n    *   `echo \\\"Deploying
+        to production...\\\"`: Prints a message to the console indicating the start
+        of the deployment phase. This step is only reached if all previous build and
+        test steps were successful.\\n    *   `rsync -av dist/ user@server:/var/www/`:
+        This is the core deployment command.\\n        *   `rsync`: A powerful utility
+        for synchronizing files and directories.\\n        *   `-a`: Archive mode.
+        This is a shorthand for several options (`-rlptgoD`), ensuring files are copied
+        recursively, symlinks are preserved, permissions, modification times, group,
+        and owner are maintained.\\n        *   `-v`: Verbose mode. Shows which files
+        are being transferred.\\n        *   `dist/`: This is the source directory
+        \u2013 the output of the `npm run build` command, containing the production-ready
+        application files.\\n        *   `user@server:/var/www/`: This is the destination.
+        `user` is the SSH username on the remote server, `server` is the hostname
+        or IP address of the production server, and `/var/www/` is the target directory
+        on that server where the application files will be placed (a common location
+        for web server roots).\\n    *   `echo \\\"Deployment complete!\\\"`: Prints
+        a final confirmation message once the deployment (file synchronization) is
+        finished.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
+        {\n    \"promptTokenCount\": 90,\n    \"candidatesTokenCount\": 795,\n    \"totalTokenCount\":
+        1945,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 90\n      }\n    ],\n    \"thoughtsTokenCount\": 1060\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"uPZkaJTxF9mZkdUPvquE2Qc\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 02 Jul 2025 09:07:04 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=10724
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '4003'
+    status:
+      code: 200
+      message: OK
+version: 1

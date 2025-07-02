@@ -1,8 +1,8 @@
 interactions:
 - request:
     body: '{"summary": "VCR Test Event", "description": "Test event for VCR testing",
-      "start": {"dateTime": "2025-07-01T14:00:00Z", "timeZone": "UTC"}, "end": {"dateTime":
-      "2025-07-01T15:00:00Z", "timeZone": "UTC"}}'
+      "start": {"dateTime": "2025-07-03T14:00:00Z", "timeZone": "UTC"}, "end": {"dateTime":
+      "2025-07-03T15:00:00Z", "timeZone": "UTC"}}'
     headers:
       accept:
       - application/json
@@ -20,16 +20,16 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502576983427934\\\"\",\n
-        \"id\": \"175s4h86mcliqi83qvuof50pnc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=MTc1czRoODZtY2xpcWk4M3F2dW9mNTBwbmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-06-30T13:01:31.000Z\",\n \"updated\": \"2025-06-30T13:01:31.713Z\",\n
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502899423377502\\\"\",\n
+        \"id\": \"lfb2mnh4eu847osq6or1hum9vc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=bGZiMm1uaDRldTg0N29zcTZvcjFodW05dmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-02T09:48:31.000Z\",\n \"updated\": \"2025-07-02T09:48:31.688Z\",\n
         \"summary\": \"VCR Test Event\",\n \"description\": \"Test event for VCR testing\",\n
         \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
         true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-01T15:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-01T16:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"175s4h86mcliqi83qvuof50pnc@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-03T15:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-03T16:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"lfb2mnh4eu847osq6or1hum9vc@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -40,9 +40,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 13:01:31 GMT
+      - Wed, 02 Jul 2025 09:48:31 GMT
       ETag:
-      - '"3502576983427934"'
+      - '"3502899423377502"'
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -82,19 +82,19 @@ interactions:
       x-goog-api-client:
       - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
     method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/175s4h86mcliqi83qvuof50pnc?alt=json
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/lfb2mnh4eu847osq6or1hum9vc?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502576983427934\\\"\",\n
-        \"id\": \"175s4h86mcliqi83qvuof50pnc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=MTc1czRoODZtY2xpcWk4M3F2dW9mNTBwbmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-06-30T13:01:31.000Z\",\n \"updated\": \"2025-06-30T13:01:31.713Z\",\n
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502899423377502\\\"\",\n
+        \"id\": \"lfb2mnh4eu847osq6or1hum9vc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=bGZiMm1uaDRldTg0N29zcTZvcjFodW05dmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-02T09:48:31.000Z\",\n \"updated\": \"2025-07-02T09:48:31.688Z\",\n
         \"summary\": \"VCR Test Event\",\n \"description\": \"Test event for VCR testing\",\n
         \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
         true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-01T15:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-01T16:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"175s4h86mcliqi83qvuof50pnc@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-03T15:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-03T16:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"lfb2mnh4eu847osq6or1hum9vc@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -105,11 +105,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 13:01:32 GMT
+      - Wed, 02 Jul 2025 09:48:32 GMT
       ETag:
-      - '"3502576983427934"'
+      - '"3502899423377502"'
       Expires:
-      - Mon, 30 Jun 2025 13:01:32 GMT
+      - Wed, 02 Jul 2025 09:48:32 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -148,19 +148,19 @@ interactions:
       x-goog-api-client:
       - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
     method: PATCH
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/175s4h86mcliqi83qvuof50pnc?alt=json
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/lfb2mnh4eu847osq6or1hum9vc?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502576985357790\\\"\",\n
-        \"id\": \"175s4h86mcliqi83qvuof50pnc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=MTc1czRoODZtY2xpcWk4M3F2dW9mNTBwbmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-06-30T13:01:31.000Z\",\n \"updated\": \"2025-06-30T13:01:32.678Z\",\n
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3502899425451294\\\"\",\n
+        \"id\": \"lfb2mnh4eu847osq6or1hum9vc\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=bGZiMm1uaDRldTg0N29zcTZvcjFodW05dmMgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-02T09:48:31.000Z\",\n \"updated\": \"2025-07-02T09:48:32.725Z\",\n
         \"summary\": \"VCR Test Event\",\n \"description\": \"Updated description
         for VCR test\",\n \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
         \ \"self\": true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-01T15:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-01T16:00:00+01:00\",\n
-        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"175s4h86mcliqi83qvuof50pnc@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-03T15:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-03T16:00:00+01:00\",\n
+        \ \"timeZone\": \"UTC\"\n },\n \"iCalUID\": \"lfb2mnh4eu847osq6or1hum9vc@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -171,9 +171,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 13:01:32 GMT
+      - Wed, 02 Jul 2025 09:48:32 GMT
       ETag:
-      - '"3502576985357790"'
+      - '"3502899425451294"'
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -211,7 +211,7 @@ interactions:
       x-goog-api-client:
       - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
     method: DELETE
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/175s4h86mcliqi83qvuof50pnc
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/lfb2mnh4eu847osq6or1hum9vc
   response:
     body:
       string: ''
@@ -225,7 +225,7 @@ interactions:
       Content-Type:
       - text/html
       Date:
-      - Mon, 30 Jun 2025 13:01:33 GMT
+      - Wed, 02 Jul 2025 09:48:33 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

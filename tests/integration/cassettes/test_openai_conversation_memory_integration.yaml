@@ -1,71 +1,160 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": "My favorite programming language
-      is Python. Remember this fact."}, {"role": "assistant", "content": "I can''t
-      remember facts between our conversations, but I''m glad to hear that Python
-      is your favorite programming language! If you have any questions or topics you''d
-      like to discuss related to Python, feel free to ask!"}, {"role": "user", "content":
-      "What programming language did I say was my favorite?"}, {"role": "assistant",
-      "content": "You mentioned that your favorite programming language is Python!
-      If you''d like to talk more about Python or anything related to it, just let
-      me know!"}, {"role": "user", "content": "My favorite programming language is
-      Python. Remember this fact."}, {"role": "assistant", "content": "I can''t remember
-      facts between our conversations, but I''m glad to hear that Python is your favorite
-      programming language! If you have any questions or topics you''d like to discuss
-      related to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}], "model": "gpt-4o-mini", "max_tokens": 16384,
+      "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -74,7 +163,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '5013'
+      - '11660'
       content-type:
       - application/json
       host:
@@ -103,29 +192,29 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo3698FCTTDAefPKmvdB9JiV1ljKZ\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751268009,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYRREhJ709hwwLzyLO4qyJWGxDWF\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388493,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"I understand that your favorite programming
         language is Python! However, I can't retain information between conversations.
-        If you have any questions or topics related to Python that you'd like to discuss,
-        feel free to ask!\",\n        \"refusal\": null,\n        \"annotations\":
-        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
-        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 874,\n    \"completion_tokens\":
-        40,\n    \"total_tokens\": 914,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        If you'd like to discuss Python or have any questions about it, feel free
+        to ask!\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 1994,\n    \"completion_tokens\": 37,\n
+        \   \"total_tokens\": 2031,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be643ba35d46c-LHR
+      - 958763c36a9c1dcb-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:20:10 GMT
+      - Tue, 01 Jul 2025 16:48:14 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -139,17 +228,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1031'
+      - '1015'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '692'
+      - '674'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '695'
+      - '679'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -157,88 +246,176 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149998989'
+      - '149997631'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_6065bb44fc421b3dcc73944595dec525
+      - req_e92aa79dae793d65063b6210a5d71d2f
     status:
       code: 200
       message: OK
 - request:
     body: '{"messages": [{"role": "user", "content": "My favorite programming language
-      is Python. Remember this fact."}, {"role": "assistant", "content": "I can''t
-      remember facts between our conversations, but I''m glad to hear that Python
-      is your favorite programming language! If you have any questions or topics you''d
-      like to discuss related to Python, feel free to ask!"}, {"role": "user", "content":
-      "What programming language did I say was my favorite?"}, {"role": "assistant",
-      "content": "You mentioned that your favorite programming language is Python!
-      If you''d like to talk more about Python or anything related to it, just let
-      me know!"}, {"role": "user", "content": "My favorite programming language is
-      Python. Remember this fact."}, {"role": "assistant", "content": "I can''t remember
-      facts between our conversations, but I''m glad to hear that Python is your favorite
-      programming language! If you have any questions or topics you''d like to discuss
-      related to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I can''t remember facts between our
-      conversations, but I''m glad to hear that Python is your favorite programming
-      language! If you have any questions or topics you''d like to discuss related
-      to Python, feel free to ask!"}, {"role": "user", "content": "What programming
-      language did I say was my favorite?"}, {"role": "assistant", "content": "You
-      mentioned that your favorite programming language is Python! If you''d like
-      to talk more about Python or anything related to it, just let me know!"}, {"role":
-      "user", "content": "My favorite programming language is Python. Remember this
-      fact."}, {"role": "assistant", "content": "I understand that your favorite programming
-      language is Python! However, I can''t retain information between conversations.
-      If you have any questions or topics related to Python that you''d like to discuss,
-      feel free to ask!"}, {"role": "user", "content": "What programming language
-      did I say was my favorite?"}], "model": "gpt-4o-mini", "max_tokens": 16384,
-      "temperature": 0.7}'
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you have any questions or topics related
+      to Python that you''d like to discuss, feel free to ask!"}, {"role": "user",
+      "content": "What programming language did I say was my favorite?"}, {"role":
+      "assistant", "content": "You said that your favorite programming language is
+      Python! If you have any further questions about Python or anything else, feel
+      free to ask!"}, {"role": "user", "content": "My favorite programming language
+      is Python. Remember this fact."}, {"role": "assistant", "content": "I understand
+      that your favorite programming language is Python! However, I can''t retain
+      information between conversations. If you''d like to discuss Python or have
+      any questions about it, feel free to ask!"}, {"role": "user", "content": "What
+      programming language did I say was my favorite?"}], "model": "gpt-4o-mini",
+      "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -247,7 +424,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '5350'
+      - '11979'
       content-type:
       - application/json
       host:
@@ -276,28 +453,28 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo36A14n918txvj16puWQCqk83j2I\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751268010,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYRTe6dxXjLT7g0m8csfXwtcRoet\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388495,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"You said that your favorite programming
-        language is Python! If you have any further questions about Python or anything
-        else, feel free to ask!\",\n        \"refusal\": null,\n        \"annotations\":
+        language is Python! If you have any other questions or topics you'd like to
+        explore, feel free to ask!\",\n        \"refusal\": null,\n        \"annotations\":
         []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
-        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 932,\n    \"completion_tokens\":
-        27,\n    \"total_tokens\": 959,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 2049,\n    \"completion_tokens\":
+        28,\n    \"total_tokens\": 2077,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        1920,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be6492b28d46c-LHR
+      - 958763c938011dcb-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:20:11 GMT
+      - Tue, 01 Jul 2025 16:48:16 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -311,17 +488,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '951'
+      - '956'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '542'
+      - '568'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '545'
+      - '576'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -329,13 +506,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149998919'
+      - '149997564'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_3fd5d657bda4f515417265de570edd8f
+      - req_1355768b24be124fdb32acbb798bf9cd
     status:
       code: 200
       message: OK

@@ -46,6 +46,17 @@ source venv/bin/activate
 
 # Install in development mode
 pip install -e .
+
+# Register Claude MCP servers
+claude mcp add gemini --scope user mcp-gemini
+claude mcp add openai --scope user mcp-openai
+claude mcp add code2prompt --scope user mcp-code2prompt
+claude mcp add jq --scope user mcp-jq
+claude mcp add google-calendar --scope user mcp-google-calendar
+claude mcp add tool-chainer --scope user mcp-tool-chainer
+claude mcp add vim --scope user mcp-vim
+claude mcp add email --scope user mcp-email
+claude mcp add arxiv --scope user mcp-arxiv
 ```
 
 ## Configuration

@@ -34,6 +34,26 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Workflow Automation**: Tool chaining for multi-step automated tasks
 - **Persistent Memory**: Agent management with conversational memory for LLMs
 
+## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
+
+**BEFORE ANY COMMIT OR PR: ALWAYS BUMP VERSION IN BOTH FILES**
+
+```bash
+# 1. Check current version
+grep version pyproject.toml
+grep pkgver PKGBUILD
+
+# 2. Bump version in BOTH files (example: 0.0.0a19 → 0.0.0a20)
+# Edit pyproject.toml: version = "0.0.0a20"  
+# Edit PKGBUILD: pkgver=0.0.0a20
+
+# 3. Commit with version bump
+git add pyproject.toml PKGBUILD
+git commit -m "Bump version to 0.0.0a20"
+```
+
+**GitHub CI WILL FAIL** if versions don't match or aren't bumped from master. This is enforced automatically.
+
 ## Critical Development Guidelines
 
 ### Environment Assumptions

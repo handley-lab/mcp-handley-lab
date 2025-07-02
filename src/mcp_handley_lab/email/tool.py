@@ -1,5 +1,5 @@
 """Email client MCP tool integrating msmtp, offlineimap, and notmuch."""
-import subprocess
+import asyncio
 import tempfile
 from pathlib import Path
 from typing import Optional, List
@@ -8,20 +8,26 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Email")
 
 
-def _run_command(cmd: List[str], input_text: Optional[str] = None, cwd: Optional[str] = None) -> str:
+async def _run_command(cmd: List[str], input_text: Optional[str] = None, cwd: Optional[str] = None) -> str:
     """Run a shell command and return output."""
     try:
-        result = subprocess.run(
-            cmd,
-            input=input_text,
-            capture_output=True,
-            text=True,
-            check=True,
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE if input_text else None,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
             cwd=cwd
         )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {e.stderr.strip()}")
+        
+        stdout, stderr = await process.communicate(
+            input=input_text.encode() if input_text else None
+        )
+        
+        if process.returncode != 0:
+            error_msg = stderr.decode().strip() if stderr else "Unknown error"
+            raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
+            
+        return stdout.decode().strip()
     except FileNotFoundError:
         raise RuntimeError(f"Command '{cmd[0]}' not found. Please install {cmd[0]}.")
 
@@ -50,7 +56,7 @@ def _parse_msmtprc(config_file: str = None) -> List[str]:
 
 
 @mcp.tool(description="Send an email using msmtp.")
-def send(
+async def send(
     to: str,
     subject: str,
     body: str,
@@ -86,13 +92,13 @@ def send(
     cmd.extend(recipients)
     
     # Send email
-    _run_command(cmd, input_text=email_content)
+    await _run_command(cmd, input_text=email_content)
     
     return f"Email sent successfully to {to}" + (f" (account: {account})" if account else "")
 
 
 @mcp.tool(description="List available msmtp accounts from ~/.msmtprc.")
-def list_accounts(config_file: str = None) -> str:
+async def list_accounts(config_file: str = None) -> str:
     """List available msmtp accounts by parsing msmtp config."""
     accounts = _parse_msmtprc(config_file)
     
@@ -103,7 +109,7 @@ def list_accounts(config_file: str = None) -> str:
 
 
 @mcp.tool(description="Synchronize emails using offlineimap with one-time sync.")
-def sync(account: Optional[str] = None) -> str:
+async def sync(account: Optional[str] = None) -> str:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]  # -o1 for one-time sync
     
@@ -111,7 +117,7 @@ def sync(account: Optional[str] = None) -> str:
         cmd.extend(["-a", account])
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         return f"Email sync completed successfully\n{output}"
     except RuntimeError as e:
         # offlineimap often returns non-zero exit codes even on success
@@ -122,7 +128,7 @@ def sync(account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Get offlineimap sync status and information.")
-def sync_status(config_file: str = None) -> str:
+async def sync_status(config_file: str = None) -> str:
     """Check offlineimap sync status."""
     # Try to get basic account info
     try:
@@ -132,24 +138,24 @@ def sync_status(config_file: str = None) -> str:
             return "No offlineimap configuration found at ~/.offlineimaprc"
         
         # Run dry-run to check configuration
-        output = _run_command(["offlineimap", "--dry-run", "-o1"])
+        output = await _run_command(["offlineimap", "--dry-run", "-o1"])
         return f"Offlineimap configuration valid:\n{output}"
     except RuntimeError as e:
         return f"Offlineimap status check failed: {e}"
 
 
 @mcp.tool(description="Get information about configured email repositories.")
-def repo_info(config_file: str = None) -> str:
+async def repo_info(config_file: str = None) -> str:
     """Get information about configured offlineimap repositories."""
     try:
-        output = _run_command(["offlineimap", "--info"])
+        output = await _run_command(["offlineimap", "--info"])
         return f"Repository information:\n{output}"
     except RuntimeError as e:
         return f"Failed to get repository info: {e}"
 
 
 @mcp.tool(description="Preview what would be synced without actually syncing.")
-def sync_preview(account: Optional[str] = None) -> str:
+async def sync_preview(account: Optional[str] = None) -> str:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
     
@@ -157,14 +163,14 @@ def sync_preview(account: Optional[str] = None) -> str:
         cmd.extend(["-a", account])
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         return f"Sync preview{'for account ' + account if account else ''}:\n{output}"
     except RuntimeError as e:
         return f"Sync preview failed: {e}"
 
 
 @mcp.tool(description="Perform quick sync without updating message flags.")
-def quick_sync(account: Optional[str] = None) -> str:
+async def quick_sync(account: Optional[str] = None) -> str:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]
     
@@ -172,7 +178,7 @@ def quick_sync(account: Optional[str] = None) -> str:
         cmd.extend(["-a", account])
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         return f"Quick sync completed successfully\n{output}"
     except RuntimeError as e:
         # offlineimap often returns non-zero exit codes even on success
@@ -182,7 +188,7 @@ def quick_sync(account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Sync specific folders only.")
-def sync_folders(folders: str, account: Optional[str] = None) -> str:
+async def sync_folders(folders: str, account: Optional[str] = None) -> str:
     """Sync only specified folders."""
     cmd = ["offlineimap", "-o1", "-f", folders]
     
@@ -190,7 +196,7 @@ def sync_folders(folders: str, account: Optional[str] = None) -> str:
         cmd.extend(["-a", account])
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         return f"Folder sync completed successfully\n{output}"
     except RuntimeError as e:
         if "ERROR" in str(e).upper():
@@ -199,12 +205,12 @@ def sync_folders(folders: str, account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Search emails using notmuch.")
-def search(query: str, limit: int = 20) -> str:
+async def search(query: str, limit: int = 20) -> str:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         if not output:
             return f"No emails found matching query: {query}"
         return f"Search results for '{query}':\n{output}"
@@ -213,7 +219,7 @@ def search(query: str, limit: int = 20) -> str:
 
 
 @mcp.tool(description="Show email content for a specific message ID or query.")
-def show(query: str, part: Optional[str] = None) -> str:
+async def show(query: str, part: Optional[str] = None) -> str:
     """Show email content using notmuch show."""
     cmd = ["notmuch", "show"]
     
@@ -226,27 +232,27 @@ def show(query: str, part: Optional[str] = None) -> str:
     cmd.append(query)
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         return output
     except RuntimeError as e:
         return f"Failed to show email: {e}"
 
 
 @mcp.tool(description="Create a new notmuch database or update existing one.")
-def new() -> str:
+async def new() -> str:
     """Index newly received emails with notmuch new."""
     try:
-        output = _run_command(["notmuch", "new"])
+        output = await _run_command(["notmuch", "new"])
         return f"Notmuch database updated:\n{output}"
     except RuntimeError as e:
         return f"Failed to update notmuch database: {e}"
 
 
 @mcp.tool(description="List all tags in the notmuch database.")
-def list_tags() -> str:
+async def list_tags() -> str:
     """List all tags in the notmuch database."""
     try:
-        output = _run_command(["notmuch", "search", "--output=tags", "*"])
+        output = await _run_command(["notmuch", "search", "--output=tags", "*"])
         if not output:
             return "No tags found in the database"
         tags = sorted(output.split('\n'))
@@ -256,7 +262,7 @@ def list_tags() -> str:
 
 
 @mcp.tool(description="Get configuration information from notmuch.")
-def config(key: Optional[str] = None) -> str:
+async def config(key: Optional[str] = None) -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
     
@@ -264,7 +270,7 @@ def config(key: Optional[str] = None) -> str:
         cmd = ["notmuch", "config", "get", key]
     
     try:
-        output = _run_command(cmd)
+        output = await _run_command(cmd)
         if key:
             return f"{key} = {output}"
         return f"Notmuch configuration:\n{output}"
@@ -273,19 +279,19 @@ def config(key: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Count emails matching a notmuch query.")
-def count(query: str) -> str:
+async def count(query: str) -> str:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
     
     try:
-        count_result = _run_command(cmd)
+        count_result = await _run_command(cmd)
         return f"Found {count_result} emails matching '{query}'"
     except RuntimeError as e:
         return f"Count failed: {e}"
 
 
 @mcp.tool(description="Add or remove tags from emails using notmuch.")
-def tag(message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[str] = None) -> str:
+async def tag(message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[str] = None) -> str:
     """Add or remove tags from a specific email using notmuch."""
     if not add_tags and not remove_tags:
         raise ValueError("Must specify either add_tags or remove_tags")
@@ -310,7 +316,7 @@ def tag(message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[s
     cmd.append(f"id:{message_id}")
     
     try:
-        _run_command(cmd)
+        await _run_command(cmd)
         changes = []
         if add_tags:
             changes.append(f"added: {add_tags}")
@@ -323,13 +329,13 @@ def tag(message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[s
 
 
 @mcp.tool(description="Check email tool server status and verify tool availability.")
-def server_info(config_file: str = None) -> str:
+async def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
     status = ["Email Tool Server Status:"]
     
     # Check msmtp
     try:
-        msmtp_version = _run_command(["msmtp", "--version"]).split('\n')[0]
+        msmtp_version = (await _run_command(["msmtp", "--version"])).split('\n')[0]
         accounts = _parse_msmtprc()
         status.append(f"✓ msmtp: {msmtp_version}")
         status.append(f"  Accounts: {len(accounts)} configured")
@@ -338,7 +344,7 @@ def server_info(config_file: str = None) -> str:
     
     # Check offlineimap
     try:
-        offlineimap_version = _run_command(["offlineimap", "--version"]).split('\n')[0]
+        offlineimap_version = (await _run_command(["offlineimap", "--version"])).split('\n')[0]
         config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
         config_exists = config_path.exists()
         status.append(f"✓ offlineimap: {offlineimap_version}")
@@ -348,12 +354,12 @@ def server_info(config_file: str = None) -> str:
     
     # Check notmuch
     try:
-        notmuch_version = _run_command(["notmuch", "--version"])
+        notmuch_version = await _run_command(["notmuch", "--version"])
         status.append(f"✓ notmuch: {notmuch_version}")
         
         # Check if notmuch database exists
         try:
-            db_info = _run_command(["notmuch", "count", "*"])
+            db_info = await _run_command(["notmuch", "count", "*"])
             status.append(f"  Database: {db_info} messages indexed")
         except RuntimeError:
             status.append("  Database: not initialized or accessible")

@@ -29,6 +29,7 @@ mimetypes.add_type('text/x-shellscript', '.sh')
 mimetypes.add_type('application/x-tex', '.tex')
 mimetypes.add_type('text/x-diff', '.diff')
 mimetypes.add_type('text/x-patch', '.patch')
+mimetypes.add_type('text/xml', '.xml')  # Ensure consistent XML MIME type across environments
 
 # Configuration and structured data
 mimetypes.add_type('text/x-yaml', '.yaml')

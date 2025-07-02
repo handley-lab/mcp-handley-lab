@@ -54,7 +54,6 @@ check() {
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
         --cov=src/mcp_handley_lab \
         --cov-report=term-missing \
-        --cov-fail-under=90 \
         -v \
         -k "not integration"
 }

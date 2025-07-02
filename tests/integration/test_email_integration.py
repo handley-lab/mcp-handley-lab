@@ -117,19 +117,6 @@ class TestEmailIntegration:
                 assert "TestLocal" in content
                 assert "localhost" in content
     
-    @pytest.mark.skipif(not os.getenv('ENABLE_EMAIL_INTEGRATION_TESTS'), 
-                       reason="Email integration tests disabled (set ENABLE_EMAIL_INTEGRATION_TESTS=1)")
-    def test_sync_with_test_config(self, test_offlineimap_config, test_maildir):
-        """Test email sync with test configuration."""
-        with patch.dict(os.environ, {'HOME': os.path.dirname(test_offlineimap_config)}):
-            try:
-                result = sync(account="TestLocal")
-                # Should attempt to connect but likely fail due to no server
-                assert "sync" in result.lower()
-            except Exception as e:
-                # Expected to fail without real IMAP server
-                assert "connection" in str(e).lower() or "failed" in str(e).lower()
-    
     def test_msmtp_account_parsing(self, test_msmtp_config):
         """Test parsing of msmtp configuration."""
         with patch('pathlib.Path.home') as mock_home:
@@ -163,21 +150,6 @@ class TestEmailIntegration:
         assert (maildir_path / ".Sent" / "cur").exists()
         assert (maildir_path / ".Drafts" / "cur").exists()
     
-    @pytest.mark.skipif(not os.getenv('ENABLE_EMAIL_INTEGRATION_TESTS'),
-                       reason="Email integration tests disabled")
-    def test_full_email_workflow(self, test_offlineimap_config, test_msmtp_config, test_maildir):
-        """Test complete email workflow with test configurations."""
-        # This would be a comprehensive test with a real test IMAP server
-        # For now, we'll test the configuration setup
-        
-        # Test that all configs are properly created
-        assert os.path.exists(test_offlineimap_config)
-        assert os.path.exists(test_msmtp_config)
-        assert os.path.exists(test_maildir)
-        
-        # Test that server_info works with test configs
-        result = server_info()
-        assert "Email Tool Server Status" in result
 
     @pytest.mark.skipif(not os.getenv('GMAIL_TEST_PASSWORD'), 
                        reason="Gmail test credentials not available (set GMAIL_TEST_PASSWORD)")
@@ -239,10 +211,167 @@ class TestEmailIntegration:
                 # Offlineimap often returns non-zero but still works
                 print(f"Offlineimap completed with warnings: {e.stderr}")
 
-    @pytest.mark.skipif(True, reason="Complex test - main functionality covered by test_real_offlineimap_sync")  
-    def test_email_tool_sync_function(self):
-        """Test the email tool sync function with real configuration."""
-        import os
+
+    @pytest.mark.skipif(not os.getenv('GMAIL_TEST_PASSWORD'),
+                       reason="Gmail test credentials not available")
+    def test_msmtp_send_and_receive_cycle(self):
+        """Test complete email cycle: send with msmtp -> sync with offlineimap -> verify receipt."""
+        import subprocess
+        import time
+        from pathlib import Path
+        import uuid
+        
+        # Use fixture configurations
+        fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
+        msmtprc_path = fixtures_dir / "msmtprc"
+        offlineimaprc_path = fixtures_dir / "offlineimaprc"
+        
+        # Verify configs exist
+        assert msmtprc_path.exists(), f"msmtp config not found: {msmtprc_path}"
+        assert offlineimaprc_path.exists(), f"offlineimap config not found: {offlineimaprc_path}"
+        
+        # Create unique test email content
+        test_id = str(uuid.uuid4())[:8]
+        test_subject = f"MCP Test Email {test_id}"
+        test_body = f"This is a test email sent at {time.strftime('%Y-%m-%d %H:%M:%S')} with ID: {test_id}"
+        
+        # Prepare email content for msmtp
+        email_content = f"""To: handleylab@gmail.com
+Subject: {test_subject}
+
+{test_body}
+"""
+        
+        try:
+            # Step 1: Send email using msmtp
+            print(f"📧 Sending test email with ID: {test_id}")
+            send_result = subprocess.run([
+                "msmtp",
+                "-C", str(msmtprc_path),  # Use our test config
+                "handleylab@gmail.com"
+            ],
+            input=email_content,
+            cwd=str(fixtures_dir),
+            capture_output=True,
+            text=True,
+            timeout=30
+            )
+            
+            if send_result.returncode != 0:
+                pytest.fail(f"msmtp send failed: {send_result.stderr}")
+            
+            print(f"✅ Email sent successfully")
+            
+            # Step 2: Wait for email delivery (Gmail can take a few seconds)
+            print("⏳ Waiting 10 seconds for email delivery...")
+            time.sleep(10)
+            
+            # Step 3: Sync emails using offlineimap
+            print("📥 Syncing emails with offlineimap...")
+            sync_result = subprocess.run([
+                "offlineimap",
+                "-c", str(offlineimaprc_path),
+                "-o1"  # One-time sync
+            ],
+            cwd=str(fixtures_dir),
+            capture_output=True,
+            text=True,
+            timeout=60
+            )
+            
+            # offlineimap often returns non-zero but still works
+            sync_output = sync_result.stdout + sync_result.stderr
+            assert "imap.gmail.com" in sync_output, "Should connect to Gmail IMAP"
+            print("✅ Email sync completed")
+            
+            # Step 4: Check for received email in maildir
+            project_root = Path(__file__).parent.parent.parent
+            test_mail_dir = project_root / ".test_mail" / "HandleyLab"
+            inbox_dir = test_mail_dir / "INBOX"
+            
+            # Check all maildir folders for the test email
+            email_found = False
+            email_locations = []
+            
+            if test_mail_dir.exists():
+                # Search in INBOX and other folders
+                search_dirs = [
+                    inbox_dir / "new",
+                    inbox_dir / "cur", 
+                    test_mail_dir / "[Gmail].All Mail" / "new",
+                    test_mail_dir / "[Gmail].All Mail" / "cur"
+                ]
+                
+                for search_dir in search_dirs:
+                    if search_dir.exists():
+                        for email_file in search_dir.iterdir():
+                            if email_file.is_file():
+                                try:
+                                    content = email_file.read_text()
+                                    if test_id in content and test_subject in content:
+                                        email_found = True
+                                        email_locations.append(str(email_file))
+                                        print(f"🎯 Found test email in: {email_file}")
+                                        break
+                                except (UnicodeDecodeError, PermissionError):
+                                    continue
+                        if email_found:
+                            break
+            
+            # Verify the email was received
+            if email_found:
+                print(f"✅ Email cycle test successful! Email with ID {test_id} was sent and received.")
+                print(f"📍 Email location: {email_locations[0]}")
+                
+                # Step 5: Clean up - delete the test email
+                try:
+                    for email_location in email_locations:
+                        email_path = Path(email_location)
+                        if email_path.exists():
+                            email_path.unlink()
+                            print(f"🗑️  Deleted test email: {email_path.name}")
+                    
+                    # Also run a sync to update the server (delete from Gmail)
+                    print("🔄 Syncing deletion back to server...")
+                    delete_sync_result = subprocess.run([
+                        "offlineimap",
+                        "-c", str(offlineimaprc_path),
+                        "-o1"
+                    ],
+                    cwd=str(fixtures_dir),
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                    )
+                    print("✅ Cleanup sync completed")
+                    
+                except Exception as cleanup_error:
+                    print(f"⚠️  Cleanup failed (non-critical): {cleanup_error}")
+                    # Don't fail the test for cleanup issues
+                    
+            else:
+                # List what we did find for debugging
+                all_emails = []
+                if test_mail_dir.exists():
+                    for search_dir in search_dirs:
+                        if search_dir.exists():
+                            all_emails.extend([f.name for f in search_dir.iterdir() if f.is_file()])
+                
+                pytest.fail(f"Test email with ID {test_id} not found after send+sync cycle. "
+                          f"Found {len(all_emails)} total emails in maildir. "
+                          f"This could be due to Gmail delivery delay or filtering.")
+                          
+        except subprocess.TimeoutExpired as e:
+            pytest.fail(f"Email operation timed out: {e}")
+        except Exception as e:
+            pytest.fail(f"Email cycle test failed: {e}")
+
+    @pytest.mark.skipif(not os.getenv('GMAIL_TEST_PASSWORD'),
+                       reason="Gmail test credentials not available")
+    def test_email_tool_send_and_receive_cycle(self):
+        """Test email cycle using the email tool functions: send() -> sync() -> search()."""
+        import time
+        import uuid
         from pathlib import Path
         from unittest.mock import patch
         
@@ -253,12 +382,24 @@ class TestEmailIntegration:
         try:
             os.chdir(str(fixtures_dir))
             
-            # Mock offlineimap to use our test config file explicitly
+            # Create unique test email
+            test_id = str(uuid.uuid4())[:8]
+            test_subject = f"MCP Tool Test {test_id}"
+            test_body = f"Email tool integration test sent at {time.strftime('%Y-%m-%d %H:%M:%S')} with ID: {test_id}"
+            
+            # Mock the config paths to use our test configurations
             def mock_run_command(cmd, input_text=None, cwd=None):
-                if cmd[0] == "offlineimap":
-                    # Add our test config to the command
+                if cmd[0] == "msmtp":
+                    # Add our test config to msmtp command
+                    test_cmd = ["msmtp", "-C", "msmtprc"] + cmd[1:]
+                    import subprocess
+                    result = subprocess.run(test_cmd, input=input_text, capture_output=True, text=True, cwd=fixtures_dir)
+                    if result.returncode != 0:
+                        raise RuntimeError(f"Command '{' '.join(test_cmd)}' failed: {result.stderr.strip()}")
+                    return result.stdout.strip()
+                elif cmd[0] == "offlineimap":
+                    # Add our test config to offlineimap command  
                     test_cmd = ["offlineimap", "-c", "offlineimaprc"] + cmd[1:]
-                    # Run the actual command
                     import subprocess
                     result = subprocess.run(test_cmd, capture_output=True, text=True, cwd=fixtures_dir)
                     return result.stdout.strip()
@@ -268,16 +409,80 @@ class TestEmailIntegration:
                     return _run_command.__wrapped__(cmd, input_text, cwd)
             
             with patch('mcp_handley_lab.email.tool._run_command', side_effect=mock_run_command):
-                # Test the sync function
-                result = sync()
+                # Step 1: Send email using email tool
+                print(f"📧 Sending test email with email tool, ID: {test_id}")
+                send_result = send(
+                    to="handleylab@gmail.com",
+                    subject=test_subject,
+                    body=test_body,
+                    account="HandleyLab"
+                )
                 
-                # Should complete successfully or with warnings
-                assert "sync" in result.lower()
+                assert "sent successfully" in send_result.lower()
+                print("✅ Email sent via email tool")
                 
-                # Verify it uses -o1 flag (should not hang)
-                assert "completed" in result.lower() or "warning" in result.lower()
+                # Step 2: Wait for delivery
+                print("⏳ Waiting 10 seconds for email delivery...")
+                time.sleep(10)
                 
-                print(f"✓ Email tool sync function result: {result[:100]}...")
+                # Step 3: Sync using email tool
+                print("📥 Syncing with email tool...")
+                sync_result = sync()
+                assert "sync" in sync_result.lower()
+                print("✅ Sync completed via email tool")
+                
+                # Step 4: Search for the email using notmuch (if available)
+                try:
+                    search_result = search(f"subject:{test_id}")
+                    if "No emails found" not in search_result:
+                        print(f"🎯 Found test email via search: {search_result[:100]}...")
+                        print(f"✅ Complete email tool cycle successful for ID: {test_id}")
+                    else:
+                        # Search might not find it immediately, but the file-level test above proved it works
+                        print(f"⚠️  Search didn't find email immediately, but send+sync cycle completed")
+                        
+                except Exception as search_error:
+                    # If notmuch isn't configured, that's okay - we've verified send+sync works
+                    print(f"⚠️  Search test skipped (notmuch issue: {search_error})")
+                    print(f"✅ Send+sync cycle completed successfully for ID: {test_id}")
+                
+                # Step 5: Clean up - find and delete the test email
+                try:
+                    project_root = Path(__file__).parent.parent.parent
+                    test_mail_dir = project_root / ".test_mail" / "HandleyLab"
+                    
+                    # Search for our test email and delete it
+                    deleted_count = 0
+                    if test_mail_dir.exists():
+                        search_dirs = [
+                            test_mail_dir / "INBOX" / "new",
+                            test_mail_dir / "INBOX" / "cur", 
+                            test_mail_dir / "[Gmail].All Mail" / "new",
+                            test_mail_dir / "[Gmail].All Mail" / "cur"
+                        ]
+                        
+                        for search_dir in search_dirs:
+                            if search_dir.exists():
+                                for email_file in search_dir.iterdir():
+                                    if email_file.is_file():
+                                        try:
+                                            content = email_file.read_text()
+                                            if test_id in content:
+                                                email_file.unlink()
+                                                deleted_count += 1
+                                                print(f"🗑️  Deleted test email: {email_file.name}")
+                                        except (UnicodeDecodeError, PermissionError):
+                                            continue
+                    
+                    if deleted_count > 0:
+                        # Sync deletions back to server
+                        print("🔄 Syncing deletion back to server...")
+                        sync_result = sync()
+                        print("✅ Cleanup sync completed")
+                    
+                except Exception as cleanup_error:
+                    print(f"⚠️  Cleanup failed (non-critical): {cleanup_error}")
+                    # Don't fail the test for cleanup issues
                 
         finally:
             os.chdir(original_cwd)

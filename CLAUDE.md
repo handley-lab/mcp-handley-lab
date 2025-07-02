@@ -166,8 +166,8 @@ The project provides a unified entry point for all tools:
 python -m venv venv
 source venv/bin/activate
 
-# Install the package in development mode
-pip install -e .
+# Install the package in development mode (with dev dependencies)
+pip install -e .[dev]
 
 # Use unified entry point
 python -m mcp_handley_lab --help                # Show available tools
@@ -544,7 +544,15 @@ Integration tests are **essential** for tools that interact with external CLIs o
 - **Integration tests only**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py -v`
 - **Unit tests only**: `python -m pytest tests/ -k "not integration" --cov=mcp_handley_lab --cov-report=term-missing`
 - **Fast integration check**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py`
+- **Slow tests excluded**: `python -m pytest tests/ -m "not slow" --cov=mcp_handley_lab --cov-report=term-missing`
+- **Email integration tests**: `RUN_SLOW_TESTS=1 python -m pytest tests/integration/test_email_integration.py -v`
 - **Target**: 100% test coverage to identify refactoring opportunities
+
+### VCR (HTTP Recording) for Fast Integration Tests
+- **VCR now properly configured**: `pytest-vcr>=3.0.0` added to dev dependencies
+- **API-based integration tests use VCR**: Record real HTTP requests once, replay for fast subsequent runs
+- **VCR cassettes stored in**: `tests/fixtures/vcr_cassettes/` (auto-created)
+- **Re-record cassettes**: Delete cassette files and re-run tests to capture new API interactions
 
 ## Key Files
 

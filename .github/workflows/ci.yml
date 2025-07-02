@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -51,10 +53,11 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
     
     - name: Cache cargo binaries
+      id: cache-cargo
       uses: actions/cache@v4
       with:
         path: |
-          ~/.cargo/bin
+          ~/.cargo/bin/code2prompt
           ~/.cargo/registry/cache
           ~/.cargo/git/db
         key: ${{ runner.os }}-cargo-bin-code2prompt-v2
@@ -69,18 +72,23 @@ jobs:
         cache-on-failure: true
         shared-key: "code2prompt-build"
     
-    - name: Install code2prompt
+    - name: Debug cache status
       run: |
-        # Check if code2prompt is already cached
-        if command -v code2prompt &> /dev/null; then
-          echo "✅ code2prompt found in cache"
-          code2prompt --version
-        else
-          echo "⏳ Installing code2prompt from source..."
-          cargo install code2prompt
-          echo "✅ code2prompt installed successfully"
-          code2prompt --version
-        fi
+        echo "Cache hit: ${{ steps.cache-cargo.outputs.cache-hit }}"
+        echo "Checking cache directories:"
+        ls -la ~/.cargo/bin/ || echo "No ~/.cargo/bin directory"
+        command -v code2prompt && echo "code2prompt found in PATH" || echo "code2prompt not in PATH"
+        
+    - name: Install code2prompt
+      if: steps.cache-cargo.outputs.cache-hit != 'true'
+      run: |
+        echo "⏳ Installing code2prompt from source..."
+        cargo install code2prompt
+        echo "✅ code2prompt installed successfully"
+        
+    - name: Verify code2prompt installation
+      run: |
+        code2prompt --version
         
     - name: Test with pytest
       run: |

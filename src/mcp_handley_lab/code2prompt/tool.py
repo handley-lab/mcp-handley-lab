@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 from mcp.server.fastmcp import FastMCP
 from ..common.process import run_command
+from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("Code2Prompt Tool")
 
@@ -138,7 +139,7 @@ async def generate_prompt(
     try:
         await _run_code2prompt(args)
     except asyncio.CancelledError:
-        raise RuntimeError("Code2prompt analysis was cancelled by user")
+        raise UserCancelledError("Code2prompt analysis was cancelled by user")
     
     # Get file size for reporting
     output_path = Path(output_file)

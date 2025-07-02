@@ -15,6 +15,7 @@ from googleapiclient.errors import HttpError
 from mcp.server.fastmcp import FastMCP
 
 from ..common.config import settings
+from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("Google Calendar Tool")
 
@@ -367,6 +368,8 @@ async def list_events(
         
         return result.strip()
         
+    except asyncio.CancelledError:
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -416,6 +419,8 @@ async def get_event(
         
         return result
         
+    except asyncio.CancelledError:
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -524,6 +529,8 @@ async def create_event(
         
         return result
         
+    except asyncio.CancelledError:
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -668,6 +675,8 @@ async def list_calendars() -> str:
         
         return result.strip()
         
+    except asyncio.CancelledError:
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -801,6 +810,8 @@ async def find_time(
         
         return result
         
+    except asyncio.CancelledError:
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:

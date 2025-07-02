@@ -13,60 +13,6 @@ interactions:
       x-goog-api-client:
       - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
     method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
-  response:
-    body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p337rfoeipmc8s0o\\\"\",\n
-        \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-06-30T07:19:48.233Z\",\n \"timeZone\": \"Europe/London\",\n
-        \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
-        \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
-    headers:
-      Alt-Svc:
-      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
-      Cache-Control:
-      - private, max-age=0, must-revalidate, no-transform
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 30 Jun 2025 13:01:31 GMT
-      Expires:
-      - Mon, 30 Jun 2025 13:01:31 GMT
-      Server:
-      - ESF
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Origin
-      - X-Origin
-      - Referer
-      X-Content-Type-Options:
-      - nosniff
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-XSS-Protection:
-      - '0'
-      content-length:
-      - '317'
-      x-l2-request-path:
-      - l2-managed-14
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      accept:
-      - application/json
-      accept-encoding:
-      - gzip, deflate
-      content-length:
-      - '0'
-      user-agent:
-      - (gzip)
-      x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
-    method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
@@ -115,9 +61,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:52 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:52 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -169,9 +115,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:52 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:52 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -210,7 +156,7 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/en.uk%23holiday%40group.v.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32vc3lvouqd8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p331fhmueuaeos0o\\\"\",\n
         \"summary\": \"Holidays in United Kingdom\",\n \"description\": \"Holidays
         and Observances in United Kingdom\",\n \"updated\": \"2025-05-02T13:55:42.356Z\",\n
         \"timeZone\": \"Europe/London\",\n \"accessRole\": \"reader\",\n \"defaultReminders\":
@@ -223,9 +169,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -277,9 +223,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:30 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -331,9 +277,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:31 GMT
       Expires:
-      - Tue, 01 Jul 2025 05:29:53 GMT
+      - Wed, 02 Jul 2025 09:48:31 GMT
       Server:
       - ESF
       Transfer-Encoding:

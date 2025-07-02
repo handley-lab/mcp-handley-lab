@@ -1,8 +1,17 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is the current date today?"}],
-      "role": "user"}], "tools": [{"googleSearchRetrieval": {}}], "generationConfig":
-      {"temperature": 0.7, "maxOutputTokens": 8192}}'
+    body: '{"contents": [{"parts": [{"text": "What is 2+2? Answer with just the number."}],
+      "role": "user"}, {"parts": [{"text": "4"}], "role": "model"}, {"parts": [{"text":
+      "What is in this JSON file?"}], "role": "user"}, {"parts": [{"text": "The JSON
+      file contains an object with two keys: \n\n1. **test**: a string with the value
+      \"data\"\n2. **numbers**: an array containing the values [1, 2, 3]"}], "role":
+      "model"}, {"parts": [{"text": "What color is this image? [Image analysis: 1
+      image(s)]"}], "role": "user"}, {"parts": [{"text": "The color of the image is
+      yellow."}], "role": "model"}, {"parts": [{"text": "What is 3+3? Answer with
+      just the number."}], "role": "user"}, {"parts": [{"text": "6"}], "role": "model"},
+      {"parts": [{"text": "What is the current date today?"}], "role": "user"}], "tools":
+      [{"googleSearchRetrieval": {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      8192}}'
     headers:
       accept:
       - '*/*'
@@ -11,7 +20,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '197'
+      - '897'
       content-type:
       - application/json
       host:
@@ -25,58 +34,53 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Today is Monday, June 30, 2025.  This
-        is the 181st day of the year, leaving 184 days remaining in 2025. This is
-        the 27th week of the year.\\n\\nIt's interesting to note that different parts
-        of the world represent dates in different numerical formats. The US uses MM-DD-YYYY
-        (06-30-2025), while much of the rest of the world uses DD-MM-YYYY (30-06-2025).
-        To avoid confusion, the international standard ISO-8601 recommends YYYY-MM-DD
-        (2025-06-30).\\n\"\n          }\n        ],\n        \"role\": \"model\"\n
-        \     },\n      \"finishReason\": \"STOP\",\n      \"groundingMetadata\":
-        {\n        \"searchEntryPoint\": {\n          \"renderedContent\": \"\\u003cstyle\\u003e\\n.container
-        {\\n  align-items: center;\\n  border-radius: 8px;\\n  display: flex;\\n  font-family:
-        Google Sans, Roboto, sans-serif;\\n  font-size: 14px;\\n  line-height: 20px;\\n
-        \ padding: 8px 12px;\\n}\\n.chip {\\n  display: inline-block;\\n  border:
-        solid 1px;\\n  border-radius: 16px;\\n  min-width: 14px;\\n  padding: 5px
-        16px;\\n  text-align: center;\\n  user-select: none;\\n  margin: 0 8px;\\n
-        \ -webkit-tap-highlight-color: transparent;\\n}\\n.carousel {\\n  overflow:
-        auto;\\n  scrollbar-width: none;\\n  white-space: nowrap;\\n  margin-right:
-        -12px;\\n}\\n.headline {\\n  display: flex;\\n  margin-right: 4px;\\n}\\n.gradient-container
-        {\\n  position: relative;\\n}\\n.gradient {\\n  position: absolute;\\n  transform:
-        translate(3px, -9px);\\n  height: 36px;\\n  width: 9px;\\n}\\n@media (prefers-color-scheme:
-        light) {\\n  .container {\\n    background-color: #fafafa;\\n    box-shadow:
-        0 0 0 1px #0000000f;\\n  }\\n  .headline-label {\\n    color: #1f1f1f;\\n
-        \ }\\n  .chip {\\n    background-color: #ffffff;\\n    border-color: #d2d2d2;\\n
-        \   color: #5e5e5e;\\n    text-decoration: none;\\n  }\\n  .chip:hover {\\n
-        \   background-color: #f2f2f2;\\n  }\\n  .chip:focus {\\n    background-color:
-        #f2f2f2;\\n  }\\n  .chip:active {\\n    background-color: #d8d8d8;\\n    border-color:
-        #b6b6b6;\\n  }\\n  .logo-dark {\\n    display: none;\\n  }\\n  .gradient {\\n
-        \   background: linear-gradient(90deg, #fafafa 15%, #fafafa00 100%);\\n  }\\n}\\n@media
-        (prefers-color-scheme: dark) {\\n  .container {\\n    background-color: #1f1f1f;\\n
-        \   box-shadow: 0 0 0 1px #ffffff26;\\n  }\\n  .headline-label {\\n    color:
-        #fff;\\n  }\\n  .chip {\\n    background-color: #2c2c2c;\\n    border-color:
-        #3c4043;\\n    color: #fff;\\n    text-decoration: none;\\n  }\\n  .chip:hover
-        {\\n    background-color: #353536;\\n  }\\n  .chip:focus {\\n    background-color:
-        #353536;\\n  }\\n  .chip:active {\\n    background-color: #464849;\\n    border-color:
-        #53575b;\\n  }\\n  .logo-light {\\n    display: none;\\n  }\\n  .gradient
-        {\\n    background: linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\\n
-        \ }\\n}\\n\\u003c/style\\u003e\\n\\u003cdiv class=\\\"container\\\"\\u003e\\n
-        \ \\u003cdiv class=\\\"headline\\\"\\u003e\\n    \\u003csvg class=\\\"logo-light\\\"
-        width=\\\"18\\\" height=\\\"18\\\" viewBox=\\\"9 9 35 35\\\" fill=\\\"none\\\"
-        xmlns=\\\"http://www.w3.org/2000/svg\\\"\\u003e\\n      \\u003cpath fill-rule=\\\"evenodd\\\"
-        clip-rule=\\\"evenodd\\\" d=\\\"M42.8622 27.0064C42.8622 25.7839 42.7525 24.6084
-        42.5487 23.4799H26.3109V30.1568H35.5897C35.1821 32.3041 33.9596 34.1222 32.1258
-        35.3448V39.6864H37.7213C40.9814 36.677 42.8622 32.2571 42.8622 27.0064V27.0064Z\\\"
-        fill=\\\"#4285F4\\\"/\\u003e\\n      \\u003cpath fill-rule=\\\"evenodd\\\"
-        clip-rule=\\\"evenodd\\\" d=\\\"M26.3109 43.8555C30.9659 43.8555 34.8687 42.3195
-        37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306 37.0061 26.3109 37.0061C21.8282
-        37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563 39.9841 19.5712
-        43.8555 26.3109 43.8555V43.8555Z\\\" fill=\\\"#34A853\\\"/\\u003e\\n      \\u003cpath
-        fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M16.6559 29.8904C16.3111
-        28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111 24.3733 16.6559
-        23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992 26.6146C9.06992
-        29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559 29.8904V29.8904Z\\\"
-        fill=\\\"#FBBC05\\\"/\\u003e\\n      \\u003cpath fill-rule=\\\"evenodd\\\"
+        [\n          {\n            \"text\": \"Today is Tuesday, July 1, 2025.  Please
+        note that this is the current date as of today, and tomorrow it will be different.\\n\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n
+        \         \"renderedContent\": \"\\u003cstyle\\u003e\\n.container {\\n  align-items:
+        center;\\n  border-radius: 8px;\\n  display: flex;\\n  font-family: Google
+        Sans, Roboto, sans-serif;\\n  font-size: 14px;\\n  line-height: 20px;\\n  padding:
+        8px 12px;\\n}\\n.chip {\\n  display: inline-block;\\n  border: solid 1px;\\n
+        \ border-radius: 16px;\\n  min-width: 14px;\\n  padding: 5px 16px;\\n  text-align:
+        center;\\n  user-select: none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color:
+        transparent;\\n}\\n.carousel {\\n  overflow: auto;\\n  scrollbar-width: none;\\n
+        \ white-space: nowrap;\\n  margin-right: -12px;\\n}\\n.headline {\\n  display:
+        flex;\\n  margin-right: 4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient
+        {\\n  position: absolute;\\n  transform: translate(3px, -9px);\\n  height:
+        36px;\\n  width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
+        {\\n    background-color: #fafafa;\\n    box-shadow: 0 0 0 1px #0000000f;\\n
+        \ }\\n  .headline-label {\\n    color: #1f1f1f;\\n  }\\n  .chip {\\n    background-color:
+        #ffffff;\\n    border-color: #d2d2d2;\\n    color: #5e5e5e;\\n    text-decoration:
+        none;\\n  }\\n  .chip:hover {\\n    background-color: #f2f2f2;\\n  }\\n  .chip:focus
+        {\\n    background-color: #f2f2f2;\\n  }\\n  .chip:active {\\n    background-color:
+        #d8d8d8;\\n    border-color: #b6b6b6;\\n  }\\n  .logo-dark {\\n    display:
+        none;\\n  }\\n  .gradient {\\n    background: linear-gradient(90deg, #fafafa
+        15%, #fafafa00 100%);\\n  }\\n}\\n@media (prefers-color-scheme: dark) {\\n
+        \ .container {\\n    background-color: #1f1f1f;\\n    box-shadow: 0 0 0 1px
+        #ffffff26;\\n  }\\n  .headline-label {\\n    color: #fff;\\n  }\\n  .chip
+        {\\n    background-color: #2c2c2c;\\n    border-color: #3c4043;\\n    color:
+        #fff;\\n    text-decoration: none;\\n  }\\n  .chip:hover {\\n    background-color:
+        #353536;\\n  }\\n  .chip:focus {\\n    background-color: #353536;\\n  }\\n
+        \ .chip:active {\\n    background-color: #464849;\\n    border-color: #53575b;\\n
+        \ }\\n  .logo-light {\\n    display: none;\\n  }\\n  .gradient {\\n    background:
+        linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\\n  }\\n}\\n\\u003c/style\\u003e\\n\\u003cdiv
+        class=\\\"container\\\"\\u003e\\n  \\u003cdiv class=\\\"headline\\\"\\u003e\\n
+        \   \\u003csvg class=\\\"logo-light\\\" width=\\\"18\\\" height=\\\"18\\\"
+        viewBox=\\\"9 9 35 35\\\" fill=\\\"none\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"\\u003e\\n
+        \     \\u003cpath fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M42.8622
+        27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821
+        32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622
+        32.2571 42.8622 27.0064V27.0064Z\\\" fill=\\\"#4285F4\\\"/\\u003e\\n      \\u003cpath
+        fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M26.3109 43.8555C30.9659
+        43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306
+        37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563
+        39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\\\" fill=\\\"#34A853\\\"/\\u003e\\n
+        \     \\u003cpath fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M16.6559
+        29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111
+        24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992
+        26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559
+        29.8904V29.8904Z\\\" fill=\\\"#FBBC05\\\"/\\u003e\\n      \\u003cpath fill-rule=\\\"evenodd\\\"
         clip-rule=\\\"evenodd\\\" d=\\\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164
         32.9095 18.8091L37.8466 13.8719C34.853 11.082 30.9659 9.3736 26.3109 9.3736C19.5712
         9.3736 13.7563 13.245 10.9194 18.8875L16.6559 23.3388C18.0195 19.2636 21.8282
@@ -96,53 +100,37 @@ interactions:
         \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
         class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
         \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
-        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH_kJOCfUd1at0MSpGoPwGWLRMOKKTg48lzzpRKcclmObB_e95z20U-pNFPmKhFXRUba-8xsk80QrHGtuScjJFhtx41L5uLjSzKCYSgN5VeBHLMnbAQkZPky9bcEsc2IwjWoPOStc9luL4mpMPt20Tm368V-_KrppYit1ai0kZAoqgYTeqc1yarRXfOplDD0GDSwHo-RRNCRa8=\\\"\\u003ewhat
-        is today&#39;s date\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH-eVF6dyh-xbNneY2iS-VoCntH_udv2VyuzIaddB-iuaUYBdRgGgk5kDgreRXi3lYn9lfuQOkbsUS46stUTcLXjx8mm0Ki8hmj6oT-VrWoRNsPgnBmh0nWGDvAyXZk4JKdZJPZGX8rzMqHoNE6HPkSSyBtuLLkG29vMJu7p5V3-RZdQYqp6xAN32szYrmSZ-Qrmt6AEN_dWAq3zLrTXXkhMg==\\\"\\u003ewhat
+        is the current date today\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
         \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
-        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFvtTQq1po7gp0Q5N6OaKtD-RqfOTsXG92UJMQ01DsSJYe92syaPknzMliRIVsrC5-zc-jY7xmG86fg9bAAnJtf_ptslwHYJoK18W8DijqmXzAmmg3LST-FGi60nNz2v5hRTye7\",\n
-        \             \"title\": \"saturdaygift.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHMCZWeCJwRRD0UxxvGejaPjsixxB3E2gea_444mkN78MkyZDZlppfNQ9ztjL5STpceh_yjSYyqsG0cU5HZXHmXMj7bmV0v7-cFGM8wN0rYlbsFDwkR56c6xjrWD28sZXOFBQ==\",\n
-        \             \"title\": \"ourhappycorner.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGWFRdVQ0C5YUqKBmpFP9ggmi_rr1Qc7IBATd8baUPlopqjs4lVGiizvM387oX5up5LKszquimsZsTsjBBibIl5haR23DdeTr9J8P62P6lOR8Yckc8OlWW4e_upbMZdQ3hxRJ67pijKLeQUTCfeEw==\",\n
-        \             \"title\": \"inchcalculator.com\"\n            }\n          }\n
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFE19lkjqoY6pkqYm5D2Q9FE6_cqofv6j3rXTK6yRSQ0aBU3aPTkApGg02lSvg9e3CBCDvS2TSiOW57J3XJFBatvp5BdvbG2tJuFaNAyRoz4TYdOSIY9g==\",\n
+        \             \"title\": \"isotropic.org\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHnsZkiVPZI_WIujUZnVfRNsJAOmHfmPCqbkcgzrQDcjNqRPFJxeu3-f0RLXVP8dYBk8QsotEFPfHhEie5Rsa51wlyB-uSvKR748_eYFkZeSO_FPgy37SJhxYnVcqngKzPs7dJw\",\n
+        \             \"title\": \"epochconverter.com\"\n            }\n          }\n
         \       ],\n        \"groundingSupports\": [\n          {\n            \"segment\":
-        {\n              \"endIndex\": 31,\n              \"text\": \"Today is Monday,
-        June 30, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
-        \             0\n            ],\n            \"confidenceScores\": [\n              0.9861624\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        33,\n              \"endIndex\": 103,\n              \"text\": \"This is the
-        181st day of the year, leaving 184 days remaining in 2025.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              0\n            ],\n
-        \           \"confidenceScores\": [\n              0.88957417\n            ]\n
-        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
-        104,\n              \"endIndex\": 138,\n              \"text\": \"This is
-        the 27th week of the year.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              1\n            ],\n            \"confidenceScores\": [\n
-        \             0.699338\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 140,\n              \"endIndex\": 246,\n
-        \             \"text\": \"It's interesting to note that different parts of
-        the world represent dates in different numerical formats.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              2\n            ],\n
-        \           \"confidenceScores\": [\n              0.67036146\n            ]\n
-        \         }\n        ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
-        [\n          \"what is today's date\"\n        ]\n      },\n      \"avgLogprobs\":
-        -0.0479989643969567\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        7,\n    \"candidatesTokenCount\": 153,\n    \"totalTokenCount\": 160,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 7\n      }\n
-        \   ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
-        \"TEXT\",\n        \"tokenCount\": 153\n      }\n    ]\n  },\n  \"modelVersion\":
-        \"gemini-1.5-pro-002\",\n  \"responseId\": \"PzpiaIDxOv3v7dcP0cPuiAI\"\n}\n"
+        {\n              \"endIndex\": 31,\n              \"text\": \"Today is Tuesday,
+        July 1, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
+        \             0,\n              1\n            ],\n            \"confidenceScores\":
+        [\n              0.9941553,\n              0.98920596\n            ]\n          }\n
+        \       ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
+        [\n          \"what is the current date today\"\n        ]\n      },\n      \"avgLogprobs\":
+        -0.073489318575177875\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        111,\n    \"candidatesTokenCount\": 35,\n    \"totalTokenCount\": 146,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 111\n
+        \     }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
+        \"TEXT\",\n        \"tokenCount\": 35\n      }\n    ]\n  },\n  \"modelVersion\":
+        \"gemini-1.5-pro-002\",\n  \"responseId\": \"cRFkaKXhBemm7dcPpc-_sAU\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:18:27 GMT
+      - Tue, 01 Jul 2025 16:48:50 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=3352
+      - gfet4t7; dur=1726
       Transfer-Encoding:
       - chunked
       Vary:
@@ -156,7 +144,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '8923'
+      - '7212'
     status:
       code: 200
       message: OK

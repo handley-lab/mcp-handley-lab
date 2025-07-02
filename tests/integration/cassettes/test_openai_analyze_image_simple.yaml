@@ -1,9 +1,13 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "Focus
-      on colors aspects. What color is this image?"}, {"type": "image_url", "image_url":
-      {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="}}]}],
-      "model": "gpt-4o", "max_tokens": 16384}'
+    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
+      the number."}, {"role": "assistant", "content": "4"}, {"role": "user", "content":
+      "What is in this JSON file?"}, {"role": "assistant", "content": "The JSON file
+      contains an object with two keys: \n\n1. **test**: a string with the value \"data\"\n2.
+      **numbers**: an array containing the values [1, 2, 3]"}, {"role": "user", "content":
+      [{"type": "text", "text": "Focus on colors aspects. Focus on colors aspects.
+      What color is this image?"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="}}]}],
+      "model": "gpt-4o", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -12,7 +16,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '316'
+      - '708'
       content-type:
       - application/json
       host:
@@ -41,26 +45,26 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35vV4YFL6JZ7Qy14ZzPveRFFH1l\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267995,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYR9FgnVPdKQoMccqUGckNY6X7fo\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388475,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The image is yellow.\",\n        \"refusal\":
-        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
-        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        273,\n    \"completion_tokens\": 5,\n    \"total_tokens\": 278,\n    \"prompt_tokens_details\":
+        \"assistant\",\n        \"content\": \"The color of the image is yellow.\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        360,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 368,\n    \"prompt_tokens_details\":
         {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5e8cb874915-LHR
+      - 958763534da8cd6b-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:55 GMT
+      - Tue, 01 Jul 2025 16:47:55 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -74,17 +78,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '823'
+      - '836'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '448'
+      - '378'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '432'
+      - '355'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -96,7 +100,7 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '29999219'
+      - '29999155'
       x-ratelimit-reset-input-images:
       - 0s
       x-ratelimit-reset-requests:
@@ -104,7 +108,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_9f0861212262e9735ca003aab28ad237
+      - req_7178c85280473616d528f80be2ff53af
     status:
       code: 200
       message: OK

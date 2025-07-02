@@ -18,7 +18,7 @@ from ...common.config import settings
 from ...common.pricing import calculate_cost, format_usage
 from ...common.memory import memory_manager
 from ..common import (
-    get_session_id, determine_mime_type, is_text_file, 
+    get_session_id, determine_mime_type, is_text_file, get_gemini_safe_mime_type,
     resolve_image_data, handle_output, handle_agent_memory
 )
 from ..shared import create_client_decorator, process_llm_request
@@ -108,7 +108,7 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                     def _sync_upload_file():
                         return client.files.upload(
                             file=str(file_path),
-                            mime_type=determine_mime_type(file_path)
+                            mime_type=get_gemini_safe_mime_type(file_path)
                         )
                     
                     loop = asyncio.get_running_loop()
@@ -126,7 +126,7 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                         encoded_content = base64.b64encode(file_content).decode()
                         parts.append(Part(
                             inlineData=Blob(
-                                mimeType=determine_mime_type(file_path),
+                                mimeType=get_gemini_safe_mime_type(file_path),
                                 data=encoded_content
                             )
                         ))
@@ -212,29 +212,25 @@ async def _gemini_generation_adapter(
     # Convert history to Gemini format
     gemini_history = _convert_history_to_gemini_format(history)
     
-    # Generate content with cancellation support
-    try:
-        if gemini_history:
-            # Continue existing conversation
-            user_parts = [Part(text=prompt)] + file_parts
-            contents = gemini_history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
+    # Generate content (cancellation handled by process_llm_request wrapper)
+    if gemini_history:
+        # Continue existing conversation
+        user_parts = [Part(text=prompt)] + file_parts
+        contents = gemini_history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
+        response = await loop.run_in_executor(None, lambda: client.models.generate_content(
+            model=model, contents=contents, config=config
+        ))
+    else:
+        # New conversation
+        if file_parts:
+            content_parts = [Part(text=prompt)] + file_parts
             response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                model=model, contents=contents, config=config
+                model=model, contents=content_parts, config=config
             ))
         else:
-            # New conversation
-            if file_parts:
-                content_parts = [Part(text=prompt)] + file_parts
-                response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                    model=model, contents=content_parts, config=config
-                ))
-            else:
-                response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                    model=model, contents=prompt, config=config
-                ))
-    except asyncio.CancelledError:
-        # Handle cancellation at the executor level
-        raise
+            response = await loop.run_in_executor(None, lambda: client.models.generate_content(
+                model=model, contents=prompt, config=config
+            ))
     
     if not response.text:
         raise RuntimeError("No response text generated")
@@ -283,16 +279,12 @@ async def _gemini_image_analysis_adapter(
     # Convert history to Gemini format  
     gemini_history = _convert_history_to_gemini_format(history)
     
-    # Generate response - image analysis starts fresh conversation (like original)
+    # Generate response - image analysis starts fresh conversation (cancellation handled by process_llm_request wrapper)
     def _sync_generate_content_image():
         return client.models.generate_content(model=model, contents=content, config=config)
     
     loop = asyncio.get_running_loop()
-    try:
-        response = await loop.run_in_executor(None, _sync_generate_content_image)
-    except asyncio.CancelledError:
-        # Handle cancellation at the executor level
-        raise
+    response = await loop.run_in_executor(None, _sync_generate_content_image)
     
     if not response.text:
         raise RuntimeError("No response text generated")
@@ -363,7 +355,7 @@ ask(
 @require_client
 async def ask(
     prompt: str,
-    output_file: str = "-",
+    output_file: Optional[str] = "-",
     agent_name: Optional[Union[str, bool]] = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
@@ -476,7 +468,7 @@ analyze_image(
 @require_client
 async def analyze_image(
     prompt: str,
-    output_file: str = "-",
+    output_file: Optional[str] = "-",
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",

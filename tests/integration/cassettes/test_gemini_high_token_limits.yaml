@@ -25,35 +25,34 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Photosynthesis is the process plants
-        use to **create their own food** (sugars) for energy and growth.\\n\\nHere's
-        how it works:\\n\\n1.  **Ingredients:** Plants take in **carbon dioxide**
-        from the air (through tiny pores in their leaves), **water** from the soil
-        (through their roots), and absorb **sunlight** (using a green pigment called
-        chlorophyll, primarily in their leaves).\\n2.  **The \\\"Cookbook\\\":** Using
-        the energy from sunlight, the plant converts the carbon dioxide and water
-        into **glucose** (a type of sugar), which is its food.\\n3.  **Byproduct:**
-        As a \\\"waste product\\\" of this process, **oxygen** is released into the
-        atmosphere.\\n\\nIn essence, plants convert light energy into chemical energy,
-        forming the basis of most life on Earth by producing both food for themselves
-        and oxygen for us to breathe.\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
-        187,\n    \"totalTokenCount\": 954,\n    \"promptTokensDetails\": [\n      {\n
+        [\n          {\n            \"text\": \"Photosynthesis is the process by which
+        plants, algae, and some bacteria convert light energy into chemical energy,
+        creating their own food.\\n\\nHere's a brief breakdown:\\n\\n1.  **Ingredients:**
+        Plants take in **carbon dioxide** from the air (through tiny pores called
+        stomata) and **water** from the soil (through their roots).\\n2.  **Energy
+        Source:** They use **sunlight** as their energy.\\n3.  **The \\\"Cookbook\\\":**
+        This process primarily occurs in the leaves, within specialized structures
+        called **chloroplasts**, which contain a green pigment called **chlorophyll**.
+        Chlorophyll absorbs the sunlight.\\n4.  **The Transformation:** Using the
+        absorbed light energy, the plant converts the carbon dioxide and water into
+        **glucose** (a type of sugar),\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"MAX_TOKENS\",\n      \"index\":
+        0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
+        165,\n    \"totalTokenCount\": 1008,\n    \"promptTokensDetails\": [\n      {\n
         \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 757\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"ZTpiaK6iB7y9kdUPu_W48Qk\"\n}\n"
+        \   \"thoughtsTokenCount\": 833\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"lRFkaMPrJtfivdIP8N_C-A4\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:19:01 GMT
+      - Tue, 01 Jul 2025 16:49:25 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=5099
+      - gfet4t7; dur=5340
       Transfer-Encoding:
       - chunked
       Vary:
@@ -67,7 +66,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1360'
+      - '1302'
     status:
       code: 200
       message: OK

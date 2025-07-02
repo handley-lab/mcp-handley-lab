@@ -40,8 +40,8 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35p6Akh8eQa751texPpkqk0Mded\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267989,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYR2egCVm2cnVxuJnQHBKrvbPsqM\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388468,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"4\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
@@ -53,20 +53,20 @@ interactions:
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5c46b3e7778-LHR
+      - 958763297e38fd99-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:49 GMT
+      - Tue, 01 Jul 2025 16:47:49 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=4773VOj4AJo431OXzXS3p8P9ziChB4ukr0aCFpzlLQM-1751267989-1.0.1.1-ixepDqmG6OCyBNRNMXYTsCkKvo12a85mi6g2OIi4dgXpiqcqiGXGyR.sHcK7WW7wtol2hf5YgJprlgT5der6Wg2WlU6Qe_Spdd0NmbtRDqo;
-        path=/; expires=Mon, 30-Jun-25 07:49:49 GMT; domain=.api.openai.com; HttpOnly;
+      - __cf_bm=skJsFKlVlX8CVJEuFcmVNMQ4FlbOmMYv.P6arZVCNgI-1751388469-1.0.1.1-L74buWl8b3RDXBuRNEBNO3F2wUAwniLHFr9a_u4sUVyq.gz.izo3pnpFBSe5gr6PnwmyO78MzryGXu1VFSCf15B..v.HhlYrLXUdVohKt0k;
+        path=/; expires=Tue, 01-Jul-25 17:17:49 GMT; domain=.api.openai.com; HttpOnly;
         Secure; SameSite=None
-      - _cfuvid=ePkz.zsdvv2P0ZTbYkaE5aJ4lwz7Sqs8p2hY3HaF2Nc-1751267989450-0.0.1.1-604800000;
+      - _cfuvid=WyQeSjRCB0uTPJARDBzXf9qtPcr1rlIqjyDoPPgW0qg-1751388469083-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Transfer-Encoding:
       - chunked
@@ -83,13 +83,13 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '140'
+      - '241'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '142'
+      - '244'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -103,7 +103,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_911fc9261961b246912123747644a7f2
+      - req_97971cb3ccca9443a568571579adf588
     status:
       code: 200
       message: OK

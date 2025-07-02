@@ -7,6 +7,7 @@ import difflib
 import shutil
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
+from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("Vim Tool")
 
@@ -48,7 +49,7 @@ async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
-        raise RuntimeError("Vim editing was cancelled by user")
+        raise UserCancelledError("Vim editing was cancelled by user")
 
 
 def _handle_instructions_and_content(temp_path: str, suffix: str, instructions: str, initial_content: str) -> None:

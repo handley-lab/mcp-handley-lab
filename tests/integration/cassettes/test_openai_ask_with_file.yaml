@@ -1,8 +1,10 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is in this JSON file?\n\n[File:
-      tmpf4eql1x_.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}], "model":
-      "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
+      the number."}, {"role": "assistant", "content": "4"}, {"role": "user", "content":
+      "What is in this JSON file?\n\n[File: tmparfv0jxw.json]\n{\"test\": \"data\",
+      \"numbers\": [1, 2, 3]}"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      0.7}'
     headers:
       accept:
       - application/json
@@ -11,7 +13,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '202'
+      - '307'
       content-type:
       - application/json
       host:
@@ -40,31 +42,28 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo35qsxjgIXRbVNAFV2dtN6kCPmhN\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751267990,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYR4HCVhHzDWu0kfm0TLnz0ZGJOb\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388470,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The JSON file you provided contains
-        a simple JSON structure with two key-value pairs. Here's a breakdown of its
-        contents:\\n\\n1. **Key**: `\\\"test\\\"`\\n   - **Value**: `\\\"data\\\"`
-        (a string)\\n\\n2. **Key**: `\\\"numbers\\\"`\\n   - **Value**: `[1, 2, 3]`
-        (an array of numbers)\\n\\nIn summary, the JSON file represents an object
-        with a string property and an array of numbers.\",\n        \"refusal\": null,\n
+        \"assistant\",\n        \"content\": \"The JSON file contains an object with
+        two keys: \\n\\n1. **test**: a string with the value \\\"data\\\"\\n2. **numbers**:
+        an array containing the values [1, 2, 3]\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 45,\n    \"completion_tokens\":
-        95,\n    \"total_tokens\": 140,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 65,\n    \"completion_tokens\":
+        45,\n    \"total_tokens\": 110,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 957be5c9bb8694ae-LHR
+      - 9587632eeb1e223b-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:19:51 GMT
+      - Tue, 01 Jul 2025 16:47:52 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -78,17 +77,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1172'
+      - '963'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1781'
+      - '1029'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1784'
+      - '1033'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -96,13 +95,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999974'
+      - '149999962'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_30cde6e2ce8792968391033ceaeaa495
+      - req_ec380dc6b31022576078473d858cbea0
     status:
       code: 200
       message: OK

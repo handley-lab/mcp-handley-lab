@@ -257,7 +257,7 @@ async def get_event(
         return result
         
     except asyncio.CancelledError:
-        raise RuntimeError("Get event was cancelled by user")
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -367,7 +367,7 @@ async def create_event(
         return result
         
     except asyncio.CancelledError:
-        raise RuntimeError("Create event was cancelled by user")
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -517,7 +517,7 @@ async def list_calendars() -> str:
         return result.strip()
         
     except asyncio.CancelledError:
-        raise RuntimeError("List calendars was cancelled by user")
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -652,7 +652,7 @@ async def find_time(
         return result
         
     except asyncio.CancelledError:
-        raise RuntimeError("Find time was cancelled by user")
+        raise UserCancelledError("Google Calendar request was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:

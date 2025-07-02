@@ -1,9 +1,9 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "Focus
-      on text aspects. What text do you see in this image?"}, {"type": "image_url",
-      "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAyCAIAAAAlV+npAAADF0lEQVR4nO3YTUjbYBjA8aetqV/Ur7kNTUXwCz/QadG26EFB1B0H08N2aVVwu3myDnbZTVpBBWEDD0MGnryJeLB+VGujTFpR26IM59Q5Z+cg4ipaq9khTGSC6eOq2+D5nULyvmneP0laKoNXQEIk/9sX8D+hWAgUC4FiIVAsBIqFQLEQKBYCxUKgWAgUC0EiVv+j/ob8BnF78flid123uN3zsKc+vx4AGosbnS3O2eZZZ4vT8MAgHj18eWgz2qaMU65nrsr0SgDgX/C/nVkcM2mYdDQ5jMXGsC3oJkVcfZjb4srYskHvoEqpCp4FdWqduF/H6jrsHXWZdc2a5up31fwRnxCVMPx0ePtge+zjWOA0UNVfBQCF9woHHg8UvSm6fObzMbFM7NCTIX/AP+gdDO/awk7izuK2uNLUUgDQq/UjH0ZimJhIRSQjZ2KYmF3/bltFW9toG3/EAwB/xJuspvaK9ovT3T43q2Kv/gj/id9kNbXqW/9oHbdC4s7y+DwZiRkykJWnlds37amq1JKUktOz0/kv8wCQl5y38HXhfLBrx5V/N//i9NrM2on1CcmLWNpdykrKutb13yqJWAIIK3srOXdytKy2a7YrLS5Nr9YHz4LTG9OXB8tAJoAAAEqF0ma0MXImNzm34HWB9EXII05OT663gNsk/W3IbXFaVhvNRB8EDrgtTq/W61idfcMOAN5vXk2K5nykJkXj8Xng1/uo4m2F2WEO5eWtZbXLvuXrL+K2hBTLUGxw+9wAsLK3kp2Uzcax6/w6AHRynZYaS3xkPAAkRCWYa8wWh+XiXOuaVctqrz5/YlTi5Yn/JonHEADmPs9Vplf2OfsAQABh58fO/tG+eGh0bVQdp540Th4Hj5UKZe/73vH18YtzV7+vFt0vksvkSoVypmlG3OnYdLSPtYuPqiAIjIIxz5htn2xhXtkNkNF/8KGjX/AIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhfATkqD5/8lhmVoAAAAASUVORK5CYII="}}]}],
-      "model": "gpt-4o", "max_tokens": 16384}'
+      on text aspects. Focus on text aspects. What text do you see in this image?"},
+      {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAyCAIAAAAlV+npAAADF0lEQVR4nO3YTUjbYBjA8aetqV/Ur7kNTUXwCz/QadG26EFB1B0H08N2aVVwu3myDnbZTVpBBWEDD0MGnryJeLB+VGujTFpR26IM59Q5Z+cg4ipaq9khTGSC6eOq2+D5nULyvmneP0laKoNXQEIk/9sX8D+hWAgUC4FiIVAsBIqFQLEQKBYCxUKgWAgUC0EiVv+j/ob8BnF78flid123uN3zsKc+vx4AGosbnS3O2eZZZ4vT8MAgHj18eWgz2qaMU65nrsr0SgDgX/C/nVkcM2mYdDQ5jMXGsC3oJkVcfZjb4srYskHvoEqpCp4FdWqduF/H6jrsHXWZdc2a5up31fwRnxCVMPx0ePtge+zjWOA0UNVfBQCF9woHHg8UvSm6fObzMbFM7NCTIX/AP+gdDO/awk7izuK2uNLUUgDQq/UjH0ZimJhIRSQjZ2KYmF3/bltFW9toG3/EAwB/xJuspvaK9ovT3T43q2Kv/gj/id9kNbXqW/9oHbdC4s7y+DwZiRkykJWnlds37amq1JKUktOz0/kv8wCQl5y38HXhfLBrx5V/N//i9NrM2on1CcmLWNpdykrKutb13yqJWAIIK3srOXdytKy2a7YrLS5Nr9YHz4LTG9OXB8tAJoAAAEqF0ma0MXImNzm34HWB9EXII05OT663gNsk/W3IbXFaVhvNRB8EDrgtTq/W61idfcMOAN5vXk2K5nykJkXj8Xng1/uo4m2F2WEO5eWtZbXLvuXrL+K2hBTLUGxw+9wAsLK3kp2Uzcax6/w6AHRynZYaS3xkPAAkRCWYa8wWh+XiXOuaVctqrz5/YlTi5Yn/JonHEADmPs9Vplf2OfsAQABh58fO/tG+eGh0bVQdp540Th4Hj5UKZe/73vH18YtzV7+vFt0vksvkSoVypmlG3OnYdLSPtYuPqiAIjIIxz5htn2xhXtkNkNF/8KGjX/AIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhUCxECgWAsVCoFgIFAuBYiFQLASKhfATkqD5/8lhmVoAAAAASUVORK5CYII="}}]}],
+      "model": "gpt-4o", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -12,7 +12,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1360'
+      - '1401'
       content-type:
       - application/json
       host:
@@ -41,26 +41,26 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bo36Ij4Mj21e1zNjEdE2n1OFKqdpk\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751268018,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-BoYRcFt6Oy6bDpSeiWxXIA08tIsGQ\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751388504,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The text in the image is \\\"WORLD\\\".\",\n
+        \"assistant\",\n        \"content\": \"The text in the image says \\\"WORLD\\\".\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
         null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        276,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 285,\n    \"prompt_tokens_details\":
+        281,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 290,\n    \"prompt_tokens_details\":
         {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 957be67d9e3b956c-LHR
+      - 9587640a5d762a45-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Mon, 30 Jun 2025 07:20:19 GMT
+      - Tue, 01 Jul 2025 16:48:25 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -74,17 +74,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '838'
+      - '840'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '532'
+      - '541'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '517'
+      - '510'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -96,7 +96,7 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '29999218'
+      - '29999212'
       x-ratelimit-reset-input-images:
       - 0s
       x-ratelimit-reset-requests:
@@ -104,7 +104,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_9a2b37506d8ae91a359d145b94a42827
+      - req_72e831e59e010a1d2856ce29b005e373
     status:
       code: 200
       message: OK

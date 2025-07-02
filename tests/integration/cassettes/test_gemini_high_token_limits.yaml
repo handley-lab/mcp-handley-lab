@@ -1,0 +1,74 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Write a brief explanation of photosynthesis
+      in plants."}], "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      1000}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '178'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Photosynthesis is the process plants
+        use to **create their own food** (sugars) for energy and growth.\\n\\nHere's
+        how it works:\\n\\n1.  **Ingredients:** Plants take in **carbon dioxide**
+        from the air (through tiny pores in their leaves), **water** from the soil
+        (through their roots), and absorb **sunlight** (using a green pigment called
+        chlorophyll, primarily in their leaves).\\n2.  **The \\\"Cookbook\\\":** Using
+        the energy from sunlight, the plant converts the carbon dioxide and water
+        into **glucose** (a type of sugar), which is its food.\\n3.  **Byproduct:**
+        As a \\\"waste product\\\" of this process, **oxygen** is released into the
+        atmosphere.\\n\\nIn essence, plants convert light energy into chemical energy,
+        forming the basis of most life on Earth by producing both food for themselves
+        and oxygen for us to breathe.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
+        187,\n    \"totalTokenCount\": 954,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 757\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"ZTpiaK6iB7y9kdUPu_W48Qk\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 30 Jun 2025 07:19:01 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=5099
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1360'
+    status:
+      code: 200
+      message: OK
+version: 1

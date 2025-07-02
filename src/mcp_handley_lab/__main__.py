@@ -8,21 +8,22 @@ from pathlib import Path
 def get_available_tools():
     """Discover available tools by finding directories with tool.py files."""
     tools_dir = Path(__file__).parent
+    
+    # Use rglob to find all 'tool.py' files recursively
+    tool_files = sorted(tools_dir.rglob('tool.py'))
+    
     tools = []
+    for tool_file in tool_files:
+        # Calculate the relative path from tools_dir to the parent directory of tool.py
+        # e.g., 'src/mcp_handley_lab/agent/tool.py' -> 'agent'
+        # 'src/mcp_handley_lab/llm/gemini/tool.py' -> 'llm.gemini'
+        relative_path = tool_file.parent.relative_to(tools_dir)
+        
+        # Convert path segments to dot-separated module name
+        tools.append(".".join(relative_path.parts))
     
-    # Check direct tool directories
-    for item in tools_dir.iterdir():
-        if item.is_dir() and (item / "tool.py").exists():
-            tools.append(item.name)
-    
-    # Check LLM subdirectories
-    llm_dir = tools_dir / "llm"
-    if llm_dir.exists():
-        for item in llm_dir.iterdir():
-            if item.is_dir() and (item / "tool.py").exists():
-                tools.append(f"llm.{item.name}")
-    
-    return sorted(tools)
+    # Filter out any empty strings that might result from edge cases
+    return sorted(t for t in tools if t)
 
 
 def show_help():

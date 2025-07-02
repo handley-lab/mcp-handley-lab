@@ -371,11 +371,11 @@ class TestToolChainerEdgeCases:
         mock_process.kill = AsyncMock()
         mock_create_subprocess.return_value = mock_process
         
-        result = await discover_tools(
-            server_command="python slow_server.py",
-            timeout=1
-        )
-        assert "timed out" in result or "Discovery timed out" in result
+        with pytest.raises(TimeoutError, match="Discovery timed out"):
+            await discover_tools(
+                server_command="python slow_server.py",
+                timeout=1
+            )
         mock_process.kill.assert_called_once()
     
     @patch('asyncio.create_subprocess_exec')
@@ -387,10 +387,10 @@ class TestToolChainerEdgeCases:
         mock_process.returncode = 0
         mock_create_subprocess.return_value = mock_process
         
-        result = await discover_tools(
-            server_command="python malformed_server.py"
-        )
-        assert "Discovery error:" in result
+        with pytest.raises(json.JSONDecodeError):
+            await discover_tools(
+                server_command="python malformed_server.py"
+            )
     
     @pytest.mark.asyncio
     async def test_show_history_empty(self, temp_storage_dir):

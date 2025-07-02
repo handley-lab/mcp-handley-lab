@@ -1,0 +1,112 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What framework should I use
+      for the calculator based on these files?\n\n[File: instructions.txt]\nBuild
+      a calculator app using FRAMEWORK_X\n\n[File: config.json]\n{\"framework\": \"FRAMEWORK_X\",
+      \"version\": \"2.1\", \"features\": [\"math\", \"gui\"]}\n\nNote: FRAMEWORK_X
+      is the recommended choice for this project"}], "model": "gpt-4o-mini", "max_tokens":
+      16384, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '418'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - AsyncOpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '1'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-Bo36DoDAjHLawJRrCmfegvz1Zp2Lp\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751268013,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Based on the provided files, you should
+        use **FRAMEWORK_X** for building your calculator app. According to `instructions.txt`,
+        it explicitly states to use FRAMEWORK_X, and `config.json` also confirms that
+        FRAMEWORK_X is the recommended framework, specifying its version as 2.1 and
+        listing features like \\\"math\\\" and \\\"gui\\\" that you might find useful
+        for your project.\",\n        \"refusal\": null,\n        \"annotations\":
+        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
+        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 79,\n    \"completion_tokens\":
+        79,\n    \"total_tokens\": 158,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 957be6518a7893e5-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 30 Jun 2025 07:20:15 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '1176'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '1579'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '1583'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999923'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_ab3d41f90c42d549eaa673067c5952e9
+    status:
+      code: 200
+      message: OK
+version: 1

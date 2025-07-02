@@ -1,0 +1,36 @@
+Claude Model Pricing (as of document date):
+
+Input Token Pricing:
+- Claude Opus 4: $15 per million tokens
+- Claude Sonnet 4: $3 per million tokens
+- Claude Sonnet 3.7: $3 per million tokens
+- Claude Sonnet 3.5: $3 per million tokens
+- Claude Haiku 3.5: $0.80 per million tokens
+- Claude Opus 3: $15 per million tokens
+- Claude Haiku 3: $0.25 per million tokens
+
+Output Token Pricing:
+- Claude Opus 4: $75 per million tokens
+- Claude Sonnet 4: $15 per million tokens
+- Claude Sonnet 3.7: $15 per million tokens
+- Claude Sonnet 3.5: $15 per million tokens
+- Claude Haiku 3.5: $4 per million tokens
+- Claude Opus 3: $75 per million tokens
+- Claude Haiku 3: $1.25 per million tokens
+
+Cache Pricing:
+- 5m Cache Writes:
+  * Opus 4/3: $18.75 per million tokens
+  * Sonnet models: $3.75 per million tokens
+  * Haiku 3.5: $1 per million tokens
+  * Haiku 3: $0.30 per million tokens
+
+- 1h Cache Writes:
+  * Opus 4/3: $30 per million tokens
+  * Sonnet models: $6 per million tokens
+  * Haiku 3.5: $1.60 per million tokens
+  * Haiku 3: $0.50 per million tokens
+
+Context Window: 200K tokens for all models mentioned
+
+Note: Pricing and details are subject to change. Always verify current rates with Anthropic's official documentation.

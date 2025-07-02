@@ -53,6 +53,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
 - **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirection
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
+- **Use standard library where possible**: Prefer `mimetypes`, `pathlib.Path.rglob()`, `subprocess` over manual implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
 
@@ -489,7 +490,7 @@ Leverage Gemini agents as intelligent helpers for code review and brainstorming:
 
 1. **Generate code summary**: Use `mcp__code2prompt__generate_prompt` to create a structured representation of the code
 2. **Initialize or select agent**: Create a new agent with `mcp__gemini__create_agent` or use an existing one for the session
-3. **Review and ideate**: Use `mcp__gemini__ask` with the pro model, passing the code2prompt output as a file
+3. **Review and ideate**: Use `mcp__gemini__ask` with the gemini-2.5-pro model, passing the code2prompt output as a file
 
 Example workflow:
 ```bash
@@ -500,9 +501,50 @@ mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_re
 mcp__gemini__create_agent agent_name="code_reviewer" personality="Expert Python developer focused on clean code and best practices"
 
 # Get review and suggestions
-mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="pro" files=[{"path": "/tmp/code_review.md"}]
+mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini-2.5-pro" files=[{"path": "/tmp/code_review.md"}]
 ```
 
+
+## Reference Documentation
+
+### Official Pricing and Model Information
+- **OpenAI Pricing**: https://platform.openai.com/docs/pricing (Note: Requires authentication)
+- **Google Gemini Pricing**: https://ai.google.dev/gemini-api/docs/pricing
+- **Anthropic Claude Pricing**: https://docs.anthropic.com/en/docs/about-claude/models/overview#model-pricing
+
+Always verify pricing and model specifications from official sources before updating configurations.
+
+## MCP Tool Interruption and ESC Key Behavior
+
+### ESC Key Behavior in Claude Desktop
+
+**Expected Behavior**: Pressing ESC during MCP tool execution is intended to interrupt incorrect tool calls - this is normal UX behavior.
+
+**Previous Issue**: ESC interruption could break MCP connections, requiring reconnection.
+
+**Solution Implemented**: Added graceful `asyncio.CancelledError` handling to all long-running tools:
+- **LLM tools** (Gemini, OpenAI): Convert cancellation to `RuntimeError` with agent memory recording
+- **Code2prompt**: Graceful cancellation during codebase analysis
+- **Vim tools**: Process cleanup with graceful termination
+- **Tool chainer**: Subprocess cleanup during tool execution
+
+### Usage Recommendations
+
+1. **Use stdout for quick queries**: LLM tools default to `output_file="-"` for immediate responses
+2. **ESC interruption is safe**: Connection remains stable after cancellation
+3. **Long operations can be cancelled**: Users can safely interrupt incorrect tool calls
+
+### Technical Implementation
+
+```python
+try:
+    await long_running_operation()
+except asyncio.CancelledError:
+    # Clean up resources (processes, memory, etc.)
+    raise RuntimeError("Operation was cancelled by user")
+```
+
+This pattern ensures MCP connection stability while allowing user control over tool execution.
 
 ## Task Management
 

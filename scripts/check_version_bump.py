@@ -7,44 +7,28 @@ import sys
 from pathlib import Path
 from packaging import version
 
-def get_version_from_file(file_path: Path) -> str:
-    """Extract version from pyproject.toml or PKGBUILD."""
-    if not file_path.exists():
-        raise FileNotFoundError(f"{file_path} not found")
-    
-    content = file_path.read_text()
-    
-    if file_path.name == "PKGBUILD":
+def _parse_version_from_content(content: str, filename: str) -> str:
+    """Extracts version from file content based on filename."""
+    if filename == "PKGBUILD":
         match = re.search(r'pkgver=([^\s]+)', content)
     else:
         match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
-        
-    if not match:
-        raise ValueError(f"Version not found in {file_path}")
     
+    if not match:
+        raise ValueError(f"Version not found in {filename}")
     return match.group(1)
+
+def get_version_from_file(file_path: Path) -> str:
+    """Extract version from pyproject.toml or PKGBUILD."""
+    return _parse_version_from_content(file_path.read_text(), file_path.name)
 
 def get_master_version_from_file(file_name: str) -> str:
     """Get the version from master branch for a specific file."""
-    try:
-        result = subprocess.run(
-            ["git", "show", f"origin/master:{file_name}"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        
-        if file_name == "PKGBUILD":
-            match = re.search(r'pkgver=([^\s]+)', result.stdout)
-        else:
-            match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', result.stdout)
-            
-        if not match:
-            raise ValueError(f"Version not found in origin/master:{file_name}")
-        
-        return match.group(1)
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to get master version from {file_name}: {e}")
+    content = subprocess.run(
+        ["git", "show", f"origin/master:{file_name}"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    return _parse_version_from_content(content, file_name)
 
 def check_version_increased() -> bool:
     """Check if current version is greater than master version."""

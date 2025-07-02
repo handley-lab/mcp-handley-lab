@@ -4,27 +4,24 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 from mcp.server.fastmcp import FastMCP
+from ..common.process import run_command
 
 mcp = FastMCP("Code2Prompt Tool")
 
 
 async def _run_code2prompt(args: List[str]) -> str:
-    """Runs a code2prompt command and handles errors."""
+    """Runs a code2prompt command and raises errors on failure."""
+    cmd = ["code2prompt"] + args
+    
     try:
-        process = await asyncio.create_subprocess_exec(
-            "code2prompt", *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        
-        stdout, stderr = await process.communicate()
-        
-        if process.returncode != 0:
-            raise ValueError(f"code2prompt error: {stderr.decode('utf-8').strip()}")
-            
+        stdout, stderr = await run_command(cmd)
         return stdout.decode('utf-8').strip()
-    except FileNotFoundError:
-        raise RuntimeError("code2prompt command not found. Please install code2prompt.")
+    except RuntimeError as e:
+        if "Command failed" in str(e):
+            # Extract stderr for better code2prompt error messages
+            error_msg = str(e).split(": ", 1)[-1]
+            raise ValueError(f"code2prompt error: {error_msg}")
+        raise
 
 
 @mcp.tool(description="""Generates a structured, token-counted summary of a codebase and saves it to a file.
@@ -90,51 +87,58 @@ async def generate_prompt(
     no_ignore: bool = False
 ) -> str:
     """Generate a structured prompt from codebase."""
-    args = [path]
-    
     # Create output file if not provided
     if not output_file:
         temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False)
         output_file = temp_file.name
         temp_file.close()
     
-    args.extend(["--output-file", output_file])
-    args.extend(["--output-format", output_format])
-    args.extend(["--encoding", encoding])
-    args.extend(["--tokens", tokens])
-    args.extend(["--sort", sort])
-    
-    for pattern in include or []:
-        args.extend(["--include", pattern])
-    for pattern in exclude or []:
-        args.extend(["--exclude", pattern])
-    
-    # Boolean flags
-    flags = [
-        (include_priority, "--include-priority"),
-        (no_ignore, "--no-ignore"),
-        (line_numbers, "--line-numbers"),
-        (full_directory_tree, "--full-directory-tree"),
-        (follow_symlinks, "--follow-symlinks"),
-        (hidden, "--hidden"),
-        (no_codeblock, "--no-codeblock"),
-        (absolute_paths, "--absolute-paths"),
-        (include_git_diff, "--diff")
+    # Define all arguments in one data structure
+    arg_definitions = [
+        {"name": "--output-file", "value": output_file, "type": "value"},
+        {"name": "--output-format", "value": output_format, "type": "value"},
+        {"name": "--encoding", "value": encoding, "type": "value"},
+        {"name": "--tokens", "value": tokens, "type": "value"},
+        {"name": "--sort", "value": sort, "type": "value"},
+        {"name": "--template", "value": template, "type": "optional_value"},
+        {"name": "--include-priority", "condition": include_priority, "type": "flag"},
+        {"name": "--no-ignore", "condition": no_ignore, "type": "flag"},
+        {"name": "--line-numbers", "condition": line_numbers, "type": "flag"},
+        {"name": "--full-directory-tree", "condition": full_directory_tree, "type": "flag"},
+        {"name": "--follow-symlinks", "condition": follow_symlinks, "type": "flag"},
+        {"name": "--hidden", "condition": hidden, "type": "flag"},
+        {"name": "--no-codeblock", "condition": no_codeblock, "type": "flag"},
+        {"name": "--absolute-paths", "condition": absolute_paths, "type": "flag"},
+        {"name": "--diff", "condition": include_git_diff, "type": "flag"},
+        {"name": "--include", "values": include or [], "type": "multi_value"},
+        {"name": "--exclude", "values": exclude or [], "type": "multi_value"},
     ]
-    args.extend(flag for condition, flag in flags if condition)
+
+    # Build command args
+    args = [path]
+    for arg_def in arg_definitions:
+        if arg_def["type"] == "value" and arg_def.get("value"):
+            args.extend([arg_def["name"], str(arg_def["value"])])
+        elif arg_def["type"] == "optional_value" and arg_def.get("value"):
+            args.extend([arg_def["name"], str(arg_def["value"])])
+        elif arg_def["type"] == "flag" and arg_def.get("condition"):
+            args.append(arg_def["name"])
+        elif arg_def["type"] == "multi_value":
+            for val in arg_def.get("values", []):
+                args.extend([arg_def["name"], val])
     
-    if template:
-        args.extend(["--template", template])
-    
-    # Git options
+    # Special handling for git branch options
     if git_diff_branch1 and git_diff_branch2:
         args.extend(["--git-diff-branch", git_diff_branch1, git_diff_branch2])
     
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
     
-    # Run code2prompt
-    await _run_code2prompt(args)
+    # Run code2prompt with cancellation support
+    try:
+        await _run_code2prompt(args)
+    except asyncio.CancelledError:
+        raise RuntimeError("Code2prompt analysis was cancelled by user")
     
     # Get file size for reporting
     output_path = Path(output_file)

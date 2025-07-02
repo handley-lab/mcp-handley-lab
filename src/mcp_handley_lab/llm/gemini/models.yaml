@@ -1,0 +1,208 @@
+models:
+  gemini-2.5-pro:
+    # Model metadata
+    description: "Latest pro model with advanced reasoning and multimodal capabilities"
+    capabilities: "🎯 Best for: Complex reasoning, analysis, multimodal tasks, long documents"
+    tags: ["gemini-2.5", "pro", "latest", "multimodal"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 65536
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (tiered based on token count)
+    input_tiers:
+      - threshold: 200000
+        price: 1.25
+      - threshold: .inf
+        price: 2.50
+    output_tiers:
+      - threshold: 200000
+        price: 10.00
+      - threshold: .inf
+        price: 15.00
+
+  gemini-2.5-flash:
+    # Model metadata
+    description: "Fast, efficient model balancing speed and intelligence"
+    capabilities: "⚖️ Best for: Most general tasks, balanced performance and speed"
+    tags: ["gemini-2.5", "flash", "general", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 65536
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (by modality)
+    input_by_modality:
+      text: 0.30
+      image: 0.30
+      video: 0.30
+      audio: 1.00
+    output_per_1m: 2.50
+    free_tier: true
+
+  gemini-2.5-flash-lite:
+    # Model metadata
+    description: "Fastest, most cost-effective model for simple tasks"
+    capabilities: "⚡ Best for: Simple queries, high-volume tasks, cost-sensitive applications"
+    tags: ["gemini-2.5", "flash", "cost-effective", "fast"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 64000
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (by modality)
+    input_by_modality:
+      text: 0.10
+      image: 0.10
+      video: 0.10
+      audio: 0.50
+    output_per_1m: 0.40
+    free_tier: true
+
+  gemini-1.5-pro:
+    # Model metadata
+    description: "Advanced pro model with large context window"
+    capabilities: "📚 Best for: Complex analysis, long documents, research tasks"
+    tags: ["gemini-1.5", "pro", "legacy", "multimodal"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 8192
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (standard per-token)
+    input_per_1m: 1.25
+    output_per_1m: 5.00
+
+  gemini-1.5-flash:
+    # Model metadata
+    description: "Fast, cost-effective model for most tasks"
+    capabilities: "⚡ Best for: Fast responses, everyday tasks"
+    tags: ["gemini-1.5", "flash", "legacy", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 8192
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (standard per-token)
+    input_per_1m: 0.075
+    output_per_1m: 0.30
+
+  gemini-1.5-flash-8b:
+    # Model metadata
+    description: "Lightweight model for high-volume tasks"
+    capabilities: "🚀 Best for: High-volume, lightweight tasks"
+    tags: ["gemini-1.5", "flash", "legacy", "cost-effective"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 8192
+    
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    
+    # Pricing (standard per-token)
+    input_per_1m: 0.0375
+    output_per_1m: 0.15
+
+  imagen-4:
+    # Model metadata
+    description: "Latest high-quality image generation model"
+    capabilities: "🎨 Best for: High-quality image generation"
+    tags: ["image-generation", "latest"]
+    context_window: "N/A (Image generation)"
+    
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+    
+    # Pricing (per image)
+    price_per_image: 0.040
+    pricing_type: "per_image"
+    quality: "standard"
+
+  imagen-4-ultra:
+    # Model metadata
+    description: "Ultra-high quality image generation"
+    capabilities: "🎨 Best for: Ultra-high quality artistic images"
+    tags: ["image-generation", "latest", "premium"]
+    context_window: "N/A (Image generation)"
+    
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+    
+    # Pricing (per image)
+    price_per_image: 0.060
+    pricing_type: "per_image"
+    quality: "ultra"
+
+  imagen-3:
+    # Model metadata
+    description: "Previous generation image model"
+    capabilities: "🎨 Best for: High-quality image generation"
+    tags: ["image-generation", "legacy"]
+    context_window: "N/A (Image generation)"
+    
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+    
+    # Pricing (per image)
+    price_per_image: 0.030
+    pricing_type: "per_image"
+    quality: "standard"
+
+  # Video generation models
+  veo-2:
+    # Model metadata
+    description: "High-quality video generation model"
+    capabilities: "🎬 Best for: Video content creation"
+    tags: ["video-generation", "latest"]
+    context_window: "N/A (Video generation)"
+    
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+    
+    # Pricing (per second)
+    price_per_second: 0.35
+    pricing_type: "per_second"
+
+# Display categories (how to group models by tags for presentation)
+display_categories:
+  - name: "🚀 Gemini 2.5 Series"
+    tags: ["gemini-2.5"]
+    description: "Latest generation with enhanced reasoning and capabilities"
+  - name: "⚡ Gemini 1.5 Series"
+    tags: ["gemini-1.5"]
+    description: "Previous generation with proven performance"
+  - name: "🎨 Image Generation"
+    tags: ["image-generation"]
+    description: "High-quality image generation models"
+  - name: "🎬 Video Generation"
+    tags: ["video-generation"]
+    description: "Video content creation models"
+
+# Default model
+default_model: "gemini-2.5-pro"
+
+# Usage notes
+usage_notes:
+  - "Gemini 2.5 Flash and Flash-Lite have free tiers available"
+  - "Pro models have 2M token context windows"
+  - "Flash models balance speed and capability"
+  - "All text models support multimodal input (text, images, video)"
+  - "Audio input costs more than text/image/video for Flash models"
+  - "Tiered pricing applies to 2.5 Pro based on token count thresholds"
+  - "Google Search grounding available with additional costs"
+  - "Image generation models charge per image, not per token"
+  - "Video generation models charge per second"

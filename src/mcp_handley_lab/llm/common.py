@@ -1,6 +1,7 @@
 """Shared utilities for LLM tools."""
 import base64
 import io
+import mimetypes
 import os
 import time
 from pathlib import Path
@@ -9,35 +10,124 @@ from PIL import Image
 
 from ..common.memory import memory_manager
 
+# Enhance mimetypes with common text file types that might not be in the default database
+# This runs once when the module is imported
+
+# Programming languages and source code
+mimetypes.add_type('text/x-c', '.c')
+mimetypes.add_type('text/x-c++src', '.cpp')
+mimetypes.add_type('text/x-java-source', '.java')
+mimetypes.add_type('application/x-php', '.php')
+mimetypes.add_type('application/sql', '.sql')
+mimetypes.add_type('text/x-rustsrc', '.rs')
+mimetypes.add_type('text/x-go', '.go')
+mimetypes.add_type('text/x-ruby', '.rb')
+mimetypes.add_type('text/x-perl', '.pl')
+mimetypes.add_type('text/x-shellscript', '.sh')
+
+# Documentation and markup
+mimetypes.add_type('application/x-tex', '.tex')
+mimetypes.add_type('text/x-diff', '.diff')
+mimetypes.add_type('text/x-patch', '.patch')
+
+# Configuration and structured data
+mimetypes.add_type('text/x-yaml', '.yaml')
+mimetypes.add_type('text/x-yaml', '.yml')
+mimetypes.add_type('application/toml', '.toml')
+mimetypes.add_type('text/plain', '.ini')
+mimetypes.add_type('text/plain', '.conf')
+mimetypes.add_type('text/plain', '.log')
+
+# Define text-based application types that match our add_type calls above
+# This set should only contain application/* types that are known to be text-based.
+# Note: text/* types are handled by the startswith('text/') check in is_text_file()
+TEXT_BASED_APPLICATION_TYPES = {
+    # Standard text-based application types
+    'application/json',
+    'application/xml',
+    'application/javascript',
+    'application/xhtml+xml',
+    'application/rss+xml',
+    'application/atom+xml',
+    
+    # Custom registered text-based application types (matching our add_type calls)
+    'application/sql',
+    'application/x-php',
+    'application/x-tex',
+    'application/toml',
+}
+
 
 def get_session_id(mcp_instance) -> str:
     """Get persistent session ID for this MCP server process."""
     try:
         context = mcp_instance.get_context()
         client_id = getattr(context, 'client_id', None)
-        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}_{int(time.time())}"
-    except:
-        return f"_session_{os.getpid()}_{int(time.time())}"
+        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
+    except Exception:
+        # When no MCP context (direct Python usage), use just process ID for persistence
+        return f"_session_{os.getpid()}"
 
 
 def determine_mime_type(file_path: Path) -> str:
-    """Determine MIME type based on file extension."""
-    suffix = file_path.suffix.lower()
-    mime_types = {
-        '.txt': 'text/plain', '.md': 'text/markdown', '.py': 'text/x-python',
-        '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css',
-        '.json': 'application/json', '.xml': 'application/xml', '.csv': 'text/csv',
-        '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
+    """Determine MIME type based on file extension using enhanced mimetypes module."""
+    mime_type, _ = mimetypes.guess_type(str(file_path))
+    return mime_type if mime_type else 'application/octet-stream'
+
+
+def is_gemini_supported_mime_type(mime_type: str) -> bool:
+    """Check if MIME type is supported by Gemini API."""
+    supported_mime_types = {
+        # Documents
+        'application/pdf', 'text/plain',
+        # Images  
+        'image/png', 'image/jpeg', 'image/webp',
+        # Audio
+        'audio/x-aac', 'audio/flac', 'audio/mp3', 'audio/mpeg', 'audio/m4a',
+        'audio/opus', 'audio/pcm', 'audio/wav', 'audio/webm',
+        # Video
+        'video/mp4', 'video/mpeg', 'video/quicktime', 'video/mov', 'video/avi',
+        'video/x-flv', 'video/mpg', 'video/webm', 'video/wmv', 'video/3gpp',
     }
-    return mime_types.get(suffix, 'application/octet-stream')
+    return mime_type in supported_mime_types
+
+
+def get_gemini_safe_mime_type(file_path: Path) -> str:
+    """Get a Gemini-safe MIME type, falling back to text/plain for text files.
+    
+    This proactive approach prevents unnecessary API calls by converting known
+    unsupported text MIME types to text/plain before upload. For unknown MIME
+    types, the original is preserved to let Gemini handle the validation.
+    """
+    original_mime = determine_mime_type(file_path)
+    
+    # If it's already supported, use it
+    if is_gemini_supported_mime_type(original_mime):
+        return original_mime
+    
+    # If it's a text file, fall back to text/plain (which is supported)
+    if is_text_file(file_path):
+        return 'text/plain'
+    
+    # For binary files, keep the original (let Gemini reject if unsupported)
+    return original_mime
+
+
+def is_gemini_mime_error(error_message: str) -> bool:
+    """Check if an error message indicates an unsupported MIME type."""
+    return "Unsupported MIME type" in str(error_message)
 
 
 def is_text_file(file_path: Path) -> bool:
-    """Check if file is likely a text file."""
-    text_extensions = {'.txt', '.md', '.py', '.js', '.html', '.css', '.json', 
-                      '.xml', '.csv', '.yaml', '.yml', '.toml', '.ini', '.conf', '.log'}
-    return file_path.suffix.lower() in text_extensions
+    """Check if file is likely a text file based on its MIME type."""
+    mime_type = determine_mime_type(file_path)
+    
+    # Common text MIME types
+    if mime_type.startswith('text/'):
+        return True
+    
+    # Other common text-based formats categorized as 'application/*'
+    return mime_type in TEXT_BASED_APPLICATION_TYPES
 
 
 def resolve_file_content(file_item: Union[str, Dict[str, str]]) -> tuple[Optional[str], Optional[Path]]:
@@ -105,7 +195,7 @@ def handle_output(
     """Handle file output and return formatted response."""
     from ..common.pricing import format_usage
     
-    usage_info = format_usage(model, input_tokens, output_tokens, cost, provider)
+    usage_info = format_usage(input_tokens, output_tokens, cost)
     
     if output_file != '-':
         output_path = Path(output_file)

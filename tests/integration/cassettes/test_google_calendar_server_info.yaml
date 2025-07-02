@@ -1,0 +1,67 @@
+interactions:
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json&maxResults=1
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33fv7844jacos0o\\\"\",\n
+        \"nextPageToken\": \"EiEKCwjE_4vDBRCA8rpdEhJnOjAwMDAwMGEyMjM1YWI4MTEaHhIJBwY4yaCRjRYAqsmIjAQNEgsIrZWKwwYQmJqOPQ==\",\n
+        \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
+        \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
+        \"Europe/London\",\n   \"colorId\": \"14\",\n   \"backgroundColor\": \"#9fe1e7\",\n
+        \  \"foregroundColor\": \"#000000\",\n   \"selected\": true,\n   \"accessRole\":
+        \"owner\",\n   \"defaultReminders\": [\n    {\n     \"method\": \"popup\",\n
+        \    \"minutes\": 30\n    }\n   ],\n   \"notificationSettings\": {\n    \"notifications\":
+        [\n     {\n      \"type\": \"eventCreation\",\n      \"method\": \"email\"\n
+        \    },\n     {\n      \"type\": \"eventChange\",\n      \"method\": \"email\"\n
+        \    },\n     {\n      \"type\": \"eventCancellation\",\n      \"method\":
+        \"email\"\n     },\n     {\n      \"type\": \"eventResponse\",\n      \"method\":
+        \"email\"\n     }\n    ]\n   },\n   \"primary\": true,\n   \"conferenceProperties\":
+        {\n    \"allowedConferenceSolutionTypes\": [\n     \"hangoutsMeet\"\n    ]\n
+        \  }\n  }\n ]\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - private, max-age=0, must-revalidate, no-transform
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 30 Jun 2025 13:01:33 GMT
+      Expires:
+      - Mon, 30 Jun 2025 13:01:33 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1101'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+version: 1

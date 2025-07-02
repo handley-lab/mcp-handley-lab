@@ -53,6 +53,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
 - **Direct over indirect**: Prefer direct function calls over factory patterns, dependency injection, or other indirection
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
+- **Use standard library where possible**: Prefer `mimetypes`, `pathlib.Path.rglob()`, `subprocess` over manual implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
 

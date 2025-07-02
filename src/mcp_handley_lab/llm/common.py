@@ -35,6 +35,7 @@ mimetypes.add_type('text/x-yaml', '.yaml')
 mimetypes.add_type('text/x-yaml', '.yml')
 mimetypes.add_type('application/toml', '.toml')
 mimetypes.add_type('text/plain', '.ini')
+mimetypes.add_type('text/plain', '.conf')
 mimetypes.add_type('text/plain', '.log')
 
 # Define text-based application types that match our add_type calls above

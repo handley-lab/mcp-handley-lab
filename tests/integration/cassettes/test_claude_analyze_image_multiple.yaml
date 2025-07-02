@@ -48,22 +48,23 @@ interactions:
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01LL5HCHKJE5HEoqLTQyg7ig","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"These
-        two images are very simple, each consisting of a single solid color filling
-        the entire frame:\n\n1. The image on the left is a bright, vibrant red color.\n\n2.
-        The image on the right is a deep, rich blue color.\n\nThese are both primary
-        colors and create a strong visual contrast when placed side by side. The red
-        appears warm and energetic, while the blue feels cool and calming. Both colors
-        are intense and saturated, with no variation or shading within each image."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":33,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":108,"service_tier":"standard"}}'
+      string: '{"id":"msg_01DjA5cd2851MiCM8q5ToajG","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"The
+        two images you''ve shared are simple, solid color squares. \n\nThe image on
+        the left is a bright, vibrant red color. It''s a pure, primary red without
+        any shading or variation.\n\nThe image on the right is a deep, rich blue color.
+        This is also a pure, primary blue with no gradients or patterns.\n\nThese
+        colors are on opposite sides of the color wheel and create a strong visual
+        contrast when placed side by side like this. Both are bold, saturated hues
+        that would stand out prominently in most design contexts."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":33,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":119,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 95854eaa2ab9eb1c-MAN
+      - 958d39fc8c14b3ed-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 10:44:20 GMT
+      - Wed, 02 Jul 2025 09:48:20 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -77,31 +78,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-01T10:44:18Z'
+      - '2025-07-02T09:48:18Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-01T10:44:20Z'
+      - '2025-07-02T09:48:20Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-01T10:44:17Z'
+      - '2025-07-02T09:48:16Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-01T10:44:18Z'
+      - '2025-07-02T09:48:18Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '801'
+      - '842'
       request-id:
-      - req_011CQgAMHcwzGL2hSz6TuSLx
+      - req_011CQhytTWcD87rRpBeLFWzb
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

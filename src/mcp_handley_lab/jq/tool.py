@@ -1,10 +1,12 @@
 """JQ tool for JSON manipulation via MCP."""
+import asyncio
 import json
 from pathlib import Path
 from typing import Union
 from pydantic import constr
 from mcp.server.fastmcp import FastMCP
 from ..common.process import run_command
+from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("JQ Tool")
 
@@ -38,6 +40,8 @@ async def _run_jq(args: list[str], input_text: str | None = None) -> str:
     try:
         stdout, stderr = await run_command(cmd, input_data=input_bytes)
         return stdout.decode('utf-8').strip()
+    except asyncio.CancelledError:
+        raise UserCancelledError("JQ command was cancelled by user")
     except RuntimeError as e:
         if "Command failed" in str(e):
             # Extract stderr for better jq error messages

@@ -176,8 +176,11 @@ def _resolve_images_to_content_blocks(
             if isinstance(image_data, str) and image_data.startswith("data:image"):
                 media_type = image_data.split(";")[0].split(":")[1]
             else:
-                # Assume JPEG for file paths without extension info
-                media_type = "image/jpeg"
+                # File path - use determine_mime_type for consistent MIME detection
+                media_type = determine_mime_type(Path(str(image_data)))
+                # Default to JPEG for non-image types
+                if not media_type.startswith("image/"):
+                    media_type = "image/jpeg"
             
             encoded_data = base64.b64encode(image_bytes).decode('utf-8')
             image_blocks.append({
@@ -206,12 +209,14 @@ def _resolve_images_to_content_blocks(
                     if image_item.startswith("data:image"):
                         media_type = image_item.split(";")[0].split(":")[1]
                     else:
-                        # File path - try to infer from extension
-                        ext = Path(image_item).suffix.lower()
-                        media_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}" if ext else "image/jpeg"
+                        # File path - use determine_mime_type for consistency
+                        media_type = determine_mime_type(Path(image_item))
+                        if not media_type.startswith("image/"):
+                            media_type = "image/jpeg"
                 elif isinstance(image_item, dict) and "path" in image_item:
-                    ext = Path(image_item["path"]).suffix.lower()
-                    media_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}" if ext else "image/jpeg"
+                    media_type = determine_mime_type(Path(image_item["path"]))
+                    if not media_type.startswith("image/"):
+                        media_type = "image/jpeg"
                 else:
                     media_type = "image/jpeg"
                 

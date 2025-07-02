@@ -378,7 +378,7 @@ ask(
 ```""")
 async def ask(
     prompt: str,
-    output_file: str = "-",
+    output_file: Optional[str] = "-",
     agent_name: Optional[Union[str, bool]] = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
@@ -475,7 +475,7 @@ analyze_image(
 ```""")
 async def analyze_image(
     prompt: str,
-    output_file: str = "-",
+    output_file: Optional[str] = "-",
     image_data: Optional[str] = None,
     images: Optional[List[Union[str, Dict[str, str]]]] = None,
     focus: str = "general",

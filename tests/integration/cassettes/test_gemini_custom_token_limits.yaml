@@ -27,21 +27,21 @@ interactions:
         [\n          {\n            \"text\": \"SUCCESS\"\n          }\n        ],\n
         \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
         \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        5,\n    \"candidatesTokenCount\": 1,\n    \"totalTokenCount\": 28,\n    \"promptTokensDetails\":
+        5,\n    \"candidatesTokenCount\": 1,\n    \"totalTokenCount\": 25,\n    \"promptTokensDetails\":
         [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 5\n      }\n
-        \   ],\n    \"thoughtsTokenCount\": 22\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"XzpiaNPzPJGznsEPsdGyqA4\"\n}\n"
+        \   ],\n    \"thoughtsTokenCount\": 19\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"kBFkaLfADoG-vdIPx9SemQE\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 30 Jun 2025 07:18:56 GMT
+      - Tue, 01 Jul 2025 16:49:20 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=505
+      - gfet4t7; dur=463
       Transfer-Encoding:
       - chunked
       Vary:

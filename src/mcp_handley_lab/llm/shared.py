@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..common.memory import memory_manager
 from ..common.pricing import calculate_cost
+from ..common.exceptions import UserCancelledError
 from .common import get_session_id, handle_output, handle_agent_memory
 
 
@@ -75,7 +76,7 @@ async def process_llm_request(
                 0, 0, 0.0,
                 lambda: actual_agent_name
             )
-        raise RuntimeError("Request was cancelled by user")
+        raise UserCancelledError("Request was cancelled by user")
 
     # Extract common response data
     response_text = response_data['text']

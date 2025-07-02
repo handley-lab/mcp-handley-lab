@@ -1,8 +1,8 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a21
-pkgrel=3
+pkgver=0.0.0a22
+pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"

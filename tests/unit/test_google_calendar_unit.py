@@ -6,7 +6,7 @@ from unittest.mock import patch, Mock, MagicMock
 from pathlib import Path
 
 from mcp_handley_lab.google_calendar.tool import (
-    list_events, get_event, create_event, update_event, delete_event,
+    search_events, get_event, create_event, update_event, delete_event,
     list_calendars, find_time, server_info, _get_calendar_service, _format_datetime
 )
 
@@ -117,8 +117,8 @@ class TestEventListing:
     ])
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     @pytest.mark.asyncio
-    async def test_list_events_parameterized(self, mock_get_service, calendar_id, start_date, end_date, max_results):
-        """Test event listing with various configurations."""
+    async def test_search_events_basic_listing(self, mock_get_service, calendar_id, start_date, end_date, max_results):
+        """Test basic event listing (without search text) with various configurations."""
         # Mock the service
         mock_service = Mock()
         mock_events = Mock()
@@ -135,7 +135,7 @@ class TestEventListing:
         }
         mock_get_service.return_value = mock_service
         
-        result = await list_events(
+        result = await search_events(
             calendar_id=calendar_id,
             start_date=start_date,
             end_date=end_date,
@@ -148,7 +148,7 @@ class TestEventListing:
 
     @patch('mcp_handley_lab.google_calendar.tool._get_calendar_service')
     @pytest.mark.asyncio
-    async def test_list_events_all_calendars(self, mock_get_service):
+    async def test_search_events_all_calendars(self, mock_get_service):
         """Test listing events from all calendars."""
         # Mock the service
         mock_service = Mock()
@@ -167,7 +167,7 @@ class TestEventListing:
         mock_events.list.return_value.execute.return_value = {'items': []}
         mock_get_service.return_value = mock_service
         
-        result = await list_events(calendar_id="all")
+        result = await search_events(calendar_id="all")
         
         assert isinstance(result, str)
         assert len(result) > 0
@@ -239,7 +239,7 @@ class TestCalendarErrorHandling:
         mock_get_service.side_effect = exception_type(error_message)
         
         with pytest.raises((expected_exception, RuntimeError)):
-            await list_events()
+            await search_events()
 
 
 class TestTimezoneParsing:

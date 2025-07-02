@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a23
+pkgver=0.0.0a24
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -18,6 +18,7 @@ depends=(
     'python-google-genai>=1.0.0'
     'python-openai>=1.0.0'
     'python-pillow>=10.0.0'
+    'python-sympy>=1.12.0'
 )
 makedepends=(
     'python-build'

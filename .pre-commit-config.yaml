@@ -1,0 +1,12 @@
+# Pre-commit configuration for MCP Handley Lab
+# Automatically manages version bumping
+
+repos:
+  - repo: local
+    hooks:
+      - id: version-bump
+        name: Automatic Version Bump
+        entry: scripts/version-bump-hook.sh
+        language: script
+        stages: [pre-commit]
+        pass_filenames: false

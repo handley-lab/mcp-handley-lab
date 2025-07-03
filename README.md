@@ -42,10 +42,10 @@ Search and download academic papers from ArXiv
   - Download source code, PDFs, or LaTeX files
   - _Claude example_: `> find all papers by Harry Bevins on arxiv`
 
-### 🔍 **Code Analysis** (`code2prompt`)
-Convert codebases into AI-readable summaries
-  - Analyze project structure and code patterns
-  - Include git diffs for code review
+### 🔍 **Code Flattening** (`code2prompt`)
+Convert codebases into structured, AI-readable text
+  - Flatten project structure and code into markdown format
+  - Include git diffs for review workflows
   - _Claude example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
 
 ### 📅 **Google Calendar** (`google-calendar`)

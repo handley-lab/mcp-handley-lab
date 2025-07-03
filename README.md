@@ -12,7 +12,7 @@ Get up and running in 5 minutes:
 
 ```bash
 # 1. Clone and enter the project
-git clone https://github.com/yourusername/mcp-handley-lab
+git clone git@github.com:handley-lab/mcp-handley-lab.git
 cd mcp-handley-lab
 
 # 2. Set up Python environment
@@ -99,7 +99,7 @@ This pattern works because:
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone git@github.com:handley-lab/mcp-handley-lab.git
     cd mcp-handley-lab
     ```
 

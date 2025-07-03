@@ -49,6 +49,7 @@ Convert codebases into structured, AI-readable text
   - Flatten project structure and code into markdown format
   - Include git diffs for review workflows
   - _Claude example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
+  - **Requires**: [code2prompt CLI tool](https://github.com/mufeedvh/code2prompt#installation) (`cargo install code2prompt`)
 
 ### 📅 **Google Calendar** (`google-calendar`)
 Manage your calendar programmatically

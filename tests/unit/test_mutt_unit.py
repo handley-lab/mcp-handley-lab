@@ -17,13 +17,15 @@ from mcp_handley_lab.mutt.tool import (
 class TestMuttContactManagement:
     """Test mutt contact management functions."""
     
+    @pytest.mark.asyncio
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    def test_add_contact_individual(self, mock_home, mock_file):
+    @pytest.mark.asyncio
+    async def test_add_contact_individual(self, mock_home, mock_file):
         """Test adding an individual contact."""
         mock_home.return_value = Path("/home/test")
         
-        result = add_contact("john_doe", "john@example.com", "John Doe")
+        result = await add_contact("john_doe", "john@example.com", "John Doe")
         
         assert "Added contact: john_doe (John Doe)" in result
         mock_file.assert_called_once()
@@ -31,43 +33,47 @@ class TestMuttContactManagement:
     
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    def test_add_contact_group(self, mock_home, mock_file):
+    @pytest.mark.asyncio
+    async def test_add_contact_group(self, mock_home, mock_file):
         """Test adding a group contact."""
         mock_home.return_value = Path("/home/test")
         
-        result = add_contact("gw_team", "alice@cam.ac.uk,bob@cam.ac.uk", "GW Project Team")
+        result = await add_contact("gw_team", "alice@cam.ac.uk,bob@cam.ac.uk", "GW Project Team")
         
         assert "Added contact: gw_team (GW Project Team)" in result
         mock_file().write.assert_called_once_with('alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk>\n')
     
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    def test_add_contact_no_name(self, mock_home, mock_file):
+    @pytest.mark.asyncio
+    async def test_add_contact_no_name(self, mock_home, mock_file):
         """Test adding contact without name."""
         mock_home.return_value = Path("/home/test")
         
-        result = add_contact("simple", "test@example.com")
+        result = await add_contact("simple", "test@example.com")
         
         assert "Added contact: simple (test@example.com)" in result
         mock_file().write.assert_called_once_with('alias simple test@example.com\n')
     
-    def test_add_contact_validation(self):
+    @pytest.mark.asyncio
+    async def test_add_contact_validation(self):
         """Test input validation for add_contact."""
         with pytest.raises(ValueError, match="Both alias and email are required"):
-            add_contact("", "test@example.com")
+            await add_contact("", "test@example.com")
         
         with pytest.raises(ValueError, match="Both alias and email are required"):
-            add_contact("test", "")
+            await add_contact("test", "")
     
     @patch("builtins.open", new_callable=mock_open, read_data='alias john_doe "John Doe" <john@example.com>\nalias gw_team "GW Team" <alice@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_list_contacts_all(self, mock_home, mock_exists, mock_file):
+    @pytest.mark.asyncio
+    async def test_list_contacts_all(self, mock_home, mock_exists, mock_file):
         """Test listing all contacts."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
         
-        result = list_contacts()
+        result = await list_contacts()
         
         assert "Mutt contacts:" in result
         assert "alias john_doe" in result
@@ -76,12 +82,13 @@ class TestMuttContactManagement:
     @patch("builtins.open", new_callable=mock_open, read_data='alias john_doe "John Doe" <john@example.com>\nalias gw_team "GW Team" <alice@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_list_contacts_filtered(self, mock_home, mock_exists, mock_file):
+    @pytest.mark.asyncio
+    async def test_list_contacts_filtered(self, mock_home, mock_exists, mock_file):
         """Test listing contacts with pattern filter."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
         
-        result = list_contacts(pattern="gw")
+        result = await list_contacts(pattern="gw")
         
         assert "Mutt contacts:" in result
         assert "alias gw_team" in result
@@ -89,19 +96,21 @@ class TestMuttContactManagement:
     
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_list_contacts_no_file(self, mock_home, mock_exists):
+    @pytest.mark.asyncio
+    async def test_list_contacts_no_file(self, mock_home, mock_exists):
         """Test listing contacts when no file exists."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = False
         
-        result = list_contacts()
+        result = await list_contacts()
         
         assert "No mutt alias file found" in result
     
     @patch("builtins.open", new_callable=mock_open, read_data='alias john_doe "John Doe" <john@example.com>\nalias gw_team "GW Team" <alice@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_remove_contact_success(self, mock_home, mock_exists, mock_file):
+    @pytest.mark.asyncio
+    async def test_remove_contact_success(self, mock_home, mock_exists, mock_file):
         """Test successfully removing a contact."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
@@ -112,7 +121,7 @@ class TestMuttContactManagement:
             'alias gw_team "GW Team" <alice@cam.ac.uk>\n'
         ]
         
-        result = remove_contact("john_doe")
+        result = await remove_contact("john_doe")
         
         assert "Removed contact: john_doe" in result
         # Should write back only the gw_team line
@@ -122,7 +131,8 @@ class TestMuttContactManagement:
     @patch("builtins.open", new_callable=mock_open, read_data='alias gw_team "GW Team" <alice@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_remove_contact_not_found(self, mock_home, mock_exists, mock_file, mock_fuzzy):
+    @pytest.mark.asyncio
+    async def test_remove_contact_not_found(self, mock_home, mock_exists, mock_file, mock_fuzzy):
         """Test removing a contact that doesn't exist."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
@@ -130,47 +140,61 @@ class TestMuttContactManagement:
         mock_file.return_value.readlines.return_value = ['alias gw_team "GW Team" <alice@cam.ac.uk>\n']
         mock_fuzzy.return_value = []  # No fuzzy matches found
         
-        result = remove_contact("nonexistent")
+        result = await remove_contact("nonexistent")
         
         assert "Contact 'nonexistent' not found" in result
     
-    def test_remove_contact_validation(self):
+    @pytest.mark.asyncio
+    async def test_remove_contact_validation(self):
         """Test input validation for remove_contact."""
         with pytest.raises(ValueError, match="Alias is required"):
-            remove_contact("")
+            await remove_contact("")
 
 
 class TestMuttFolderManagement:
     """Test mutt folder management functions."""
     
-    @patch("subprocess.run")
-    def test_list_folders_success(self, mock_run):
+    @patch("asyncio.create_subprocess_exec")
+    @pytest.mark.asyncio
+    async def test_list_folders_success(self, mock_subprocess):
         """Test successfully listing folders."""
-        mock_run.return_value.returncode = 0
-        mock_run.return_value.stdout = 'mailboxes="INBOX Sent Archive Trash Projects/GW"'
+        from unittest.mock import AsyncMock
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'mailboxes="INBOX Sent Archive Trash Projects/GW"', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = list_folders()
+        result = await list_folders()
         
         assert "Available mailboxes:" in result
         assert "- INBOX" in result
         assert "- Projects/GW" in result
     
-    @patch("subprocess.run")
-    def test_list_folders_no_config(self, mock_run):
+    @patch("asyncio.create_subprocess_exec")
+    @pytest.mark.asyncio
+    async def test_list_folders_no_config(self, mock_subprocess):
         """Test listing folders when no config found."""
-        mock_run.return_value.returncode = 1
+        from unittest.mock import AsyncMock
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"", b"mailboxes: unknown variable")
+        mock_process.returncode = 1
+        mock_subprocess.return_value = mock_process
         
-        result = list_folders()
+        result = await list_folders()
         
-        assert "Could not retrieve mailbox list" in result
+        assert "Error retrieving folder list" in result
     
-    @patch("subprocess.run")
-    def test_list_folders_empty(self, mock_run):
+    @patch("asyncio.create_subprocess_exec")
+    @pytest.mark.asyncio
+    async def test_list_folders_empty(self, mock_subprocess):
         """Test listing folders when no mailboxes configured."""
-        mock_run.return_value.returncode = 0
-        mock_run.return_value.stdout = 'mailboxes=""'
+        from unittest.mock import AsyncMock
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b'mailboxes=""', b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = list_folders()
+        result = await list_folders()
         
         assert "No mailboxes found" in result
 
@@ -178,25 +202,31 @@ class TestMuttFolderManagement:
 class TestMuttServerInfo:
     """Test mutt server info function."""
     
-    @patch("subprocess.run")
-    def test_server_info_success(self, mock_run):
+    @patch("asyncio.create_subprocess_exec")
+    @pytest.mark.asyncio
+    async def test_server_info_success(self, mock_subprocess):
         """Test successful server info retrieval."""
-        mock_run.return_value.stdout = "Mutt 2.2.14 (516568dc) (2025-02-20)\nOther info..."
+        from unittest.mock import AsyncMock
+        mock_process = AsyncMock()
+        mock_process.communicate.return_value = (b"Mutt 2.2.14 (516568dc) (2025-02-20)\nOther info...", b"")
+        mock_process.returncode = 0
+        mock_subprocess.return_value = mock_process
         
-        result = server_info()
+        result = await server_info()
         
         assert "Mutt Tool Server Status" in result
         assert "Mutt 2.2.14" in result
         assert "compose_email" in result
         assert "add_contact" in result
     
-    @patch("subprocess.run")
-    def test_server_info_mutt_not_found(self, mock_run):
+    @patch("asyncio.create_subprocess_exec")
+    @pytest.mark.asyncio
+    async def test_server_info_mutt_not_found(self, mock_subprocess):
         """Test server info when mutt not installed."""
-        mock_run.side_effect = FileNotFoundError()
+        mock_subprocess.side_effect = FileNotFoundError()
         
-        with pytest.raises(RuntimeError, match="mutt command not found"):
-            server_info()
+        with pytest.raises(RuntimeError, match="Command 'mutt' not found"):
+            await server_info()
 
 
 class TestMuttContactWorkflows:
@@ -204,12 +234,13 @@ class TestMuttContactWorkflows:
     
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    def test_gw_project_workflow(self, mock_home, mock_file):
+    @pytest.mark.asyncio
+    async def test_gw_project_workflow(self, mock_home, mock_file):
         """Test adding GW project team contact."""
         mock_home.return_value = Path("/home/test")
         
         # Add GW team
-        result = add_contact(
+        result = await add_contact(
             "gw_team", 
             "alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk",
             "GW Project Team"
@@ -224,19 +255,20 @@ class TestMuttContactWorkflows:
     @patch("builtins.open", new_callable=mock_open, read_data='alias gw_team "GW Team" <alice@cam.ac.uk,bob@cam.ac.uk>\nalias research_group "Research" <prof@cam.ac.uk>\n')
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    def test_project_contact_discovery(self, mock_home, mock_exists, mock_file):
+    @pytest.mark.asyncio
+    async def test_project_contact_discovery(self, mock_home, mock_exists, mock_file):
         """Test finding project-related contacts."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
         
         # Search for GW-related contacts
-        result = list_contacts(pattern="gw")
+        result = await list_contacts(pattern="gw")
         
         assert "alias gw_team" in result
         assert "alias research_group" not in result
         
         # Search for research contacts
-        result = list_contacts(pattern="research")
+        result = await list_contacts(pattern="research")
         
         assert "alias research_group" in result
         assert "alias gw_team" not in result

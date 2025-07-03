@@ -368,7 +368,8 @@ Subject: {test_subject}
 
     @pytest.mark.skipif(not os.getenv('GMAIL_TEST_PASSWORD'),
                        reason="Gmail test credentials not available")
-    def test_email_tool_send_and_receive_cycle(self):
+    @pytest.mark.asyncio
+    async def test_email_tool_send_and_receive_cycle(self):
         """Test email cycle using the email tool functions: send() -> sync() -> search()."""
         import time
         import uuid
@@ -388,7 +389,7 @@ Subject: {test_subject}
             test_body = f"Email tool integration test sent at {time.strftime('%Y-%m-%d %H:%M:%S')} with ID: {test_id}"
             
             # Mock the config paths to use our test configurations
-            def mock_run_command(cmd, input_text=None, cwd=None):
+            async def mock_run_command(cmd, input_text=None, cwd=None):
                 if cmd[0] == "msmtp":
                     # Add our test config to msmtp command
                     test_cmd = ["msmtp", "-C", "msmtprc"] + cmd[1:]
@@ -406,12 +407,12 @@ Subject: {test_subject}
                 else:
                     # For other commands, use the original function
                     from mcp_handley_lab.email.tool import _run_command
-                    return _run_command.__wrapped__(cmd, input_text, cwd)
+                    return await _run_command.__wrapped__(cmd, input_text, cwd)
             
             with patch('mcp_handley_lab.email.tool._run_command', side_effect=mock_run_command):
                 # Step 1: Send email using email tool
                 print(f"📧 Sending test email with email tool, ID: {test_id}")
-                send_result = send(
+                send_result = await send(
                     to="handleylab@gmail.com",
                     subject=test_subject,
                     body=test_body,
@@ -427,13 +428,13 @@ Subject: {test_subject}
                 
                 # Step 3: Sync using email tool
                 print("📥 Syncing with email tool...")
-                sync_result = sync()
+                sync_result = await sync()
                 assert "sync" in sync_result.lower()
                 print("✅ Sync completed via email tool")
                 
                 # Step 4: Search for the email using notmuch (if available)
                 try:
-                    search_result = search(f"subject:{test_id}")
+                    search_result = await search(f"subject:{test_id}")
                     if "No emails found" not in search_result:
                         print(f"🎯 Found test email via search: {search_result[:100]}...")
                         print(f"✅ Complete email tool cycle successful for ID: {test_id}")
@@ -477,7 +478,7 @@ Subject: {test_subject}
                     if deleted_count > 0:
                         # Sync deletions back to server
                         print("🔄 Syncing deletion back to server...")
-                        sync_result = sync()
+                        sync_result = await sync()
                         print("✅ Cleanup sync completed")
                     
                 except Exception as cleanup_error:

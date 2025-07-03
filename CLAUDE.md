@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is an MCP (Model Context Protocol) framework project designed to bridge various external services and command-line utilities into a unified API. The framework provides a comprehensive toolkit for:
 
-- **Code & Git Interaction**: Analyzing, summarizing, and diffing codebases via `code2prompt`
+- **Code & Git Interaction**: Converting, flattening, and diffing codebases via `code2prompt`
 - **AI Model Integration**: Managing interactions with Google Gemini and OpenAI models
 - **Productivity & Scheduling**: Google Calendar management
 - **Academic Research**: ArXiv paper source code retrieval and analysis

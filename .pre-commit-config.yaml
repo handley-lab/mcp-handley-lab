@@ -1,0 +1,13 @@
+# Pre-commit configuration for MCP Handley Lab
+# Automatically manages version bumping
+
+repos:
+  - repo: local
+    hooks:
+      - id: version-check
+        name: Check for Version Bump
+        entry: python scripts/check_version.py
+        language: python
+        additional_dependencies: ['tomli>=2.0.0']
+        stages: [pre-commit]
+        pass_filenames: false

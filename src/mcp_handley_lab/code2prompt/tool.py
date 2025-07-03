@@ -1,4 +1,4 @@
-"""Code2Prompt tool for codebase analysis via MCP."""
+"""Code2Prompt tool for codebase flattening and conversion via MCP."""
 import asyncio
 import tempfile
 from pathlib import Path
@@ -30,7 +30,7 @@ async def _run_code2prompt(args: List[str]) -> str:
 Use this tool to create a summary file of a large codebase for analysis by an LLM. The primary output is a file, and the tool returns the path to this file.
 
 **Key Parameters:**
-- `path`: The path to the codebase to analyze.
+- `path`: The path to the codebase to convert.
 - `output_file`: The path to save the summary file to. If not provided, a temporary file is created.
 - `include`/`exclude`: Glob patterns to filter files (e.g., `["*.py"]`, `["node_modules"]`).
 - `output_format`: The format of the summary file ("markdown", "json", "xml", or "plain").

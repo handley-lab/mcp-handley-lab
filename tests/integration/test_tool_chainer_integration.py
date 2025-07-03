@@ -7,7 +7,7 @@ from mcp_handley_lab.tool_chainer.tool import (
     show_history, clear_cache, server_info
 )
 
-@pytest.mark.vcr
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools
 @pytest.mark.asyncio
 async def test_tool_chainer_jq_discovery(temp_storage_dir):
     result = await discover_tools(
@@ -19,7 +19,7 @@ async def test_tool_chainer_jq_discovery(temp_storage_dir):
     assert "edit" in result
     assert "jq" in result.lower()
 
-@pytest.mark.vcr 
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools 
 @pytest.mark.asyncio
 async def test_tool_chainer_basic_workflow(temp_storage_dir):
     # Test simple tool registration and chain creation without external dependencies
@@ -55,7 +55,7 @@ async def test_tool_chainer_basic_workflow(temp_storage_dir):
     assert "echo_chain" in chains
     assert len(chains["echo_chain"]["steps"]) == 1
 
-@pytest.mark.vcr
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools
 @pytest.mark.asyncio
 async def test_tool_chainer_conditional_chain(temp_storage_dir):
     # Test conditional logic without external tool execution
@@ -107,7 +107,7 @@ async def test_tool_chainer_conditional_chain(temp_storage_dir):
     assert len(chains["conditional_test"]["steps"]) == 2
     assert chains["conditional_test"]["steps"][1]["condition"] == "{result1} contains 'test'"
 
-@pytest.mark.vcr
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools
 @pytest.mark.asyncio
 async def test_tool_chainer_history_and_cache(temp_storage_dir):
     # Show history
@@ -118,7 +118,7 @@ async def test_tool_chainer_history_and_cache(temp_storage_dir):
     clear_result = await clear_cache(storage_dir=temp_storage_dir)
     assert "cleared" in clear_result.lower()
 
-@pytest.mark.vcr
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools
 @pytest.mark.asyncio
 async def test_tool_chainer_server_info():
     result = await server_info()
@@ -126,7 +126,7 @@ async def test_tool_chainer_server_info():
     assert "tool chainer" in result.lower()
     assert "status" in result.lower()
 
-@pytest.mark.vcr
+# @pytest.mark.vcr  # Removed: VCR not needed for local tools
 @pytest.mark.asyncio
 async def test_tool_chainer_file_processing_chain(temp_storage_dir):
     # Test multi-tool registration and chain persistence

@@ -1,0 +1,75 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What changes does this patch file make
+      to the code?"}, {"text": "[File: tmplzk441dk.patch]\ndiff --git a/test.py b/test.py\nindex
+      1234567..abcdefg 100644\n--- a/test.py\n+++ b/test.py\n@@ -1,3 +1,4 @@\n def
+      hello():\n-    print(\"Hello\")\n+    print(\"Hello World\")\n+    return \"success\"\n
+      \n"}], "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '422'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"This patch file makes the following
+        changes to the `test.py` file:\\n\\n1.  **Modifies an existing line:**\\n
+        \   *   The line `print(\\\"Hello\\\")` is changed to `print(\\\"Hello World\\\")`.\\n\\n2.
+        \ **Adds a new line:**\\n    *   A new line `return \\\"success\\\"` is added
+        immediately after the `print` statement within the `hello()` function.\\n\\nIn
+        summary, the `hello()` function will now print \\\"Hello World\\\" instead
+        of \\\"Hello\\\", and then it will return the string \\\"success\\\".\\n\\n**Before
+        (original `test.py`):**\\n\\n```python\\ndef hello():\\n    print(\\\"Hello\\\")\\n```\\n\\n**After
+        (modified `test.py`):**\\n\\n```python\\ndef hello():\\n    print(\\\"Hello
+        World\\\")\\n    return \\\"success\\\"\\n```\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        113,\n    \"candidatesTokenCount\": 179,\n    \"totalTokenCount\": 1141,\n
+        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 113\n      }\n    ],\n    \"thoughtsTokenCount\":
+        849\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"rfZkaOmXJpnpnsEP_8KyqAg\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 02 Jul 2025 09:06:53 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=5890
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1226'
+    status:
+      code: 200
+      message: OK
+version: 1

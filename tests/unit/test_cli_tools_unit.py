@@ -197,12 +197,12 @@ class TestJQUnit:
         assert '123' in result
     
     @pytest.mark.asyncio
-    @patch('asyncio.create_subprocess_exec')
+    @patch('mcp_handley_lab.common.process.asyncio.create_subprocess_exec')
     async def test_jq_command_not_found(self, mock_subprocess):
         """Test jq command not found error (lines 46-47)."""
         mock_subprocess.side_effect = FileNotFoundError("jq: command not found")
         
-        with pytest.raises(RuntimeError, match="jq command not found"):
+        with pytest.raises(RuntimeError, match="Command not found: jq"):
             await query('{"test": "value"}', '.test')
     
     @pytest.mark.asyncio
@@ -640,12 +640,12 @@ class TestCode2PromptUnit:
         assert "status" in result.lower() and "code2prompt" in result.lower()
     
     @pytest.mark.asyncio
-    @patch('asyncio.create_subprocess_exec')
+    @patch('mcp_handley_lab.common.process.asyncio.create_subprocess_exec')
     async def test_server_info_error_handling(self, mock_subprocess):
         """Test server_info error handling (lines 168-169)."""
         from mcp_handley_lab.code2prompt.tool import server_info
         
         mock_subprocess.side_effect = FileNotFoundError("code2prompt: command not found")
         
-        with pytest.raises(RuntimeError, match="code2prompt command not found"):
+        with pytest.raises(RuntimeError, match="Command not found: code2prompt"):
             await server_info()

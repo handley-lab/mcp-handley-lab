@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.0.0a19
+pkgver=0.0.0a20
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -54,6 +54,7 @@ check() {
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
         --cov=src/mcp_handley_lab \
         --cov-report=term-missing \
+        --cov-fail-under=50 \
         -v \
         -k "not integration"
 }

@@ -6,7 +6,7 @@ from pathlib import Path
 @pytest.fixture(scope="session")
 def vcr_config():
     return {
-        "record_mode": "once",
+        "record_mode": "new_episodes",
         "match_on": ["uri", "method"],
         "filter_headers": [
             "authorization",
@@ -19,6 +19,7 @@ def vcr_config():
             "key",
             "access_token",
             "api_key",
+            "pageToken",  # Ignore pagination tokens for model listing
         ],
         "filter_post_data_parameters": [
             "client_secret",

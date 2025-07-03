@@ -34,20 +34,18 @@ class TestGetSessionId:
         mock_context.client_id = None
         mock_mcp.get_context.return_value = mock_context
         
-        with patch('os.getpid', return_value=12345), \
-             patch('time.time', return_value=1640995200):
+        with patch('os.getpid', return_value=12345):
             result = get_session_id(mock_mcp)
-            assert result == "_session_12345_1640995200"
+            assert result == "_session_12345"
     
     def test_get_session_id_exception_fallback(self):
         """Test session ID fallback when context access fails."""
         mock_mcp = Mock()
         mock_mcp.get_context.side_effect = Exception("Context error")
         
-        with patch('os.getpid', return_value=12345), \
-             patch('time.time', return_value=1640995200):
+        with patch('os.getpid', return_value=12345):
             result = get_session_id(mock_mcp)
-            assert result == "_session_12345_1640995200"
+            assert result == "_session_12345"
 
 
 class TestDetermineMimeType:
@@ -61,7 +59,7 @@ class TestDetermineMimeType:
         ("test.html", "text/html"),
         ("test.css", "text/css"),
         ("test.json", "application/json"),
-        ("test.xml", "application/xml"),
+        ("test.xml", "text/xml"),
         ("test.csv", "text/csv"),
         ("test.pdf", "application/pdf"),
         ("test.png", "image/png"),

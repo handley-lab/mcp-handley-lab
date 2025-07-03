@@ -18,7 +18,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 from mcp.server.fastmcp import FastMCP
 
@@ -191,6 +191,16 @@ async def _execute_mcp_tool(server_command: str, tool_name: str, arguments: Dict
                 "error": f"Tool execution timed out after {timeout} seconds",
                 "output": ""
             }
+        except asyncio.CancelledError:
+            # Handle cancellation gracefully
+            if process.returncode is None:
+                process.kill()
+                await process.wait()
+            return {
+                "success": False,
+                "error": "Tool execution was cancelled by user",
+                "output": ""
+            }
     
     except Exception as e:
         return {
@@ -218,7 +228,7 @@ def _substitute_variables(text: str, variables: Dict[str, Any], step_outputs: Di
 
 
 def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs: Dict[str, Any] = None) -> bool:
-    """Evaluate a condition string."""
+    """Evaluate a condition string safely."""
     if not condition:
         return True
     
@@ -226,27 +236,46 @@ def _evaluate_condition(condition: str, variables: Dict[str, Any], step_outputs:
         step_outputs = {}
     
     # Substitute variables first
-    condition = _substitute_variables(condition, variables, step_outputs)
+    evaluated_condition_str = _substitute_variables(condition, variables, step_outputs)
     
-    # Simple condition evaluation (could be expanded)
+    def _parse_operand(op_str: str) -> str:
+        """Parse operand, stripping quotes and returning as string for consistent comparison."""
+        op_str = op_str.strip()
+        # Handle quoted strings - strip quotes
+        if (op_str.startswith('"') and op_str.endswith('"')) or \
+           (op_str.startswith("'") and op_str.endswith("'")):
+            return op_str[1:-1] 
+        # Return unquoted strings as-is for string comparison
+        return op_str
+    
     try:
-        # Basic comparison operators
-        if " not contains " in condition:
-            left, right = condition.split(" not contains ", 1)
-            return right.strip().strip("'\"") not in left.strip().strip("'\"")
-        elif " contains " in condition:
-            left, right = condition.split(" contains ", 1)
-            return right.strip().strip("'\"") in left.strip().strip("'\"")
-        elif " == " in condition:
-            left, right = condition.split(" == ", 1)
-            return left.strip().strip("'\"") == right.strip().strip("'\"")
-        elif " != " in condition:
-            left, right = condition.split(" != ", 1)
-            return left.strip().strip("'\"") != right.strip().strip("'\"")
-        else:
-            # Try to evaluate as boolean expression
-            return bool(eval(condition))
-    except:
+        # Check for comparison operators (in order of precedence to avoid conflicts)
+        operators = {
+            " not contains ": lambda l, r: r not in l,
+            " contains ": lambda l, r: r in l,
+            " == ": lambda l, r: l == r,
+            " != ": lambda l, r: l != r,
+            " >= ": lambda l, r: l >= r,
+            " <= ": lambda l, r: l <= r,
+            " > ": lambda l, r: l > r,
+            " < ": lambda l, r: l < r,
+        }
+
+        for op_str, op_func in operators.items():
+            if op_str in evaluated_condition_str:
+                left, right = evaluated_condition_str.split(op_str, 1)
+                return op_func(_parse_operand(left), _parse_operand(right))
+        
+        # Handle boolean literals
+        normalized_expr = evaluated_condition_str.lower().strip()
+        if normalized_expr == "true":
+            return True
+        if normalized_expr == "false":
+            return False
+        
+        # If no known operator or boolean literal, return False
+        return False
+    except Exception:
         return False
 
 
@@ -269,104 +298,97 @@ discover_tools("python -m my_server", timeout=10)
 ```""")
 async def discover_tools(server_command: str, timeout: int = 5) -> str:
     """Discover tools available on an MCP server."""
-    try:
-        # Create MCP request messages
-        initialize_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {
-                    "tools": {}
-                },
-                "clientInfo": {
-                    "name": "tool-chainer",
-                    "version": "1.0.0"
-                }
+    # Create MCP request messages
+    initialize_request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+                "tools": {}
+            },
+            "clientInfo": {
+                "name": "tool-chainer",
+                "version": "1.0.0"
             }
         }
-        
-        tools_list_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/list",
-            "params": {}
-        }
-        
-        initialized_notification = {
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized",
-            "params": {}
-        }
-        
-        # Prepare input for MCP server
-        input_data = (
-            json.dumps(initialize_request) + "\n" +
-            json.dumps(initialized_notification) + "\n" +
-            json.dumps(tools_list_request) + "\n"
-        ).encode('utf-8')
-        
-        # Execute the MCP server with stdio communication
-        cmd = server_command.split()
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=Path.cwd()
+    }
+    
+    tools_list_request = {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {}
+    }
+    
+    initialized_notification = {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized",
+        "params": {}
+    }
+    
+    # Prepare input for MCP server
+    input_data = (
+        json.dumps(initialize_request) + "\n" +
+        json.dumps(initialized_notification) + "\n" +
+        json.dumps(tools_list_request) + "\n"
+    ).encode('utf-8')
+    
+    # Execute the MCP server with stdio communication
+    cmd = server_command.split()
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=Path.cwd()
+    )
+    
+    try:
+        stdout_bytes, stderr_bytes = await asyncio.wait_for(
+            process.communicate(input=input_data), 
+            timeout=timeout
         )
+        stdout = stdout_bytes.decode('utf-8', errors='replace')
+        stderr = stderr_bytes.decode('utf-8', errors='replace')
         
-        try:
-            stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                process.communicate(input=input_data), 
-                timeout=timeout
-            )
-            stdout = stdout_bytes.decode('utf-8', errors='replace')
-            stderr = stderr_bytes.decode('utf-8', errors='replace')
-            
-            if process.returncode != 0:
-                return f"Failed to start server: {stderr}"
-            
-            # Parse responses - expect one JSON line (tools/list response)
-            lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
-            if len(lines) < 1:
-                return f"Failed to parse response: expected at least 1 line, got {len(lines)}"
-            
-            # Parse the tools/list response (last line)
-            try:
-                response = json.loads(lines[-1])
-                if "error" in response:
-                    return f"Server error: {response['error'].get('message', 'Unknown error')}"
-            except json.JSONDecodeError:
-                return f"Discovery error: Failed to parse response"
-            
-            # Handle both MCP format variations
-            result = response.get("result", {})
-            if isinstance(result, list):
-                # Direct list format from test
-                tools = result
-            else:
-                # Standard MCP format
-                tools = result.get("tools", [])
-            
-            if not tools:
-                return "No tools found on this server."
-            
-            result_text = f"Discovered {len(tools)} tools:\n\n"
-            for tool in tools:
-                result_text += f"**{tool['name']}**\n"
-                result_text += f"- {tool.get('description', 'No description')}\n\n"
-            
-            return result_text
+        if process.returncode != 0:
+            raise RuntimeError(f"Failed to start server: {stderr}")
         
-        except asyncio.TimeoutError:
-            process.kill()
-            await process.wait()
-            return f"Discovery timed out after {timeout} seconds"
-            
-    except Exception as e:
-        return f"Discovery error: {e}"
+        # Parse responses - expect one JSON line (tools/list response)
+        lines = [line.strip() for line in stdout.strip().split('\n') if line.strip()]
+        if len(lines) < 1:
+            raise ValueError(f"Failed to parse response: expected at least 1 line, got {len(lines)}")
+        
+        # Parse the tools/list response (last line)
+        response = json.loads(lines[-1])
+        if "error" in response:
+            raise RuntimeError(f"Server error: {response['error'].get('message', 'Unknown error')}")
+        
+        # Handle both MCP format variations
+        result = response.get("result", {})
+        if isinstance(result, list):
+            # Direct list format from test
+            tools = result
+        else:
+            # Standard MCP format
+            tools = result.get("tools", [])
+        
+        if not tools:
+            return "No tools found on this server."
+        
+        result_text = f"Discovered {len(tools)} tools:\n\n"
+        for tool in tools:
+            result_text += f"**{tool['name']}**\n"
+            result_text += f"- {tool.get('description', 'No description')}\n\n"
+        
+        return result_text
+    
+    except asyncio.TimeoutError:
+        process.kill()
+        await process.wait()
+        raise TimeoutError(f"Discovery timed out after {timeout} seconds")
 
 
 @mcp.tool(description="""Registers a tool from an MCP server for use in chains.
@@ -444,10 +466,7 @@ async def register_tool(
         "registered_at": datetime.now().isoformat()
     }
     
-    try:
-        _save_state(storage_path, registered_tools, defined_chains, execution_history)
-    except Exception:
-        pass  # Continue even if save fails
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     return f"✅ Tool '{tool_id}' registered successfully!\n\n**Configuration:**\n- Server: {server_command}\n- Tool: {tool_name}\n- Format: {output_format}\n- Timeout: {timeout or 30}s"
 
@@ -575,10 +594,7 @@ async def chain_tools(
         "created_at": datetime.now().isoformat()
     }
     
-    try:
-        _save_state(storage_path, registered_tools, defined_chains, execution_history)
-    except Exception:
-        pass  # Continue even if save fails
+    _save_state(storage_path, registered_tools, defined_chains, execution_history)
     
     result = f"✅ Chain '{chain_id}' defined successfully!\n\n**Steps:**\n"
     for i, step in enumerate(steps, 1):
@@ -787,10 +803,7 @@ async def execute_chain(
     
     # Save final result to file if requested
     if chain_config.get("save_to_file") and execution_log.get("final_result"):
-        try:
-            Path(chain_config["save_to_file"]).write_text(execution_log["final_result"])
-        except Exception as e:
-            execution_log["save_error"] = f"Failed to save to file: {e}"
+        Path(chain_config["save_to_file"]).write_text(execution_log["final_result"])
     
     # Format execution summary
     if execution_log["error"]:

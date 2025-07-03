@@ -95,27 +95,13 @@ class TestAgentMemory:
         assert agent.total_tokens == 0
         assert agent.total_cost == 0.0
     
-    def test_get_conversation_history_gemini(self):
-        """Test getting conversation history in Gemini format."""
+    def test_get_history(self):
+        """Test getting conversation history in generic format."""
         agent = AgentMemory(name="test", created_at=datetime.now())
         agent.add_message("user", "Hello")
         agent.add_message("assistant", "Hi there")
         
-        history = agent.get_conversation_history()
-        
-        assert len(history) == 2
-        assert history[0]["role"] == "user"
-        assert history[0]["parts"] == [{"text": "Hello"}]
-        assert history[1]["role"] == "model"  # assistant -> model for Gemini
-        assert history[1]["parts"] == [{"text": "Hi there"}]
-    
-    def test_get_openai_conversation_history(self):
-        """Test getting conversation history in OpenAI format."""
-        agent = AgentMemory(name="test", created_at=datetime.now())
-        agent.add_message("user", "Hello")
-        agent.add_message("assistant", "Hi there")
-        
-        history = agent.get_openai_conversation_history()
+        history = agent.get_history()
         
         assert len(history) == 2
         assert history[0]["role"] == "user"

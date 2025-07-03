@@ -1,0 +1,66 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Focus on text aspects. What text do
+      you see in this image?"}, {"inlineData": {"data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAAAyCAIAAAAlV-npAAABZ0lEQVR4nO3WT2rCQBzF8Zci2ZoDeAG9gXGp6DHEK7iRnMPTSBSzGJlV9CpZCa5-XdSS_kkbXwuZFt6H2cwQmeRLJhgBBnnMU-gb-E8Ui6BYBMUiKBZBsQiKRVAsgmIRFIugWIT2WFXVPL1eURT3sV43XNm4slqhLOE9yhLLJX27wdn3o6qapx_WH1lZLMw5SxIDLEnMOZvNWnb_Y6PDWPu9jcf1NE0tz4M_PzE6_WYNh7hc6un5jNGoy_1_q9d6RRyjKN5NP69nGbyn944imNG_Cqu7Y5jnlqb1dDKx3S784WJGh7Hmc3PO-n3D6wd-Og3-_MRoP4ZfeXsMvUeWIY7h3H3ldMJm07AyGOB4xO2GOMZ2i8Ph5yeie9HL2yWP0D94gmIRFIugWATFIigWQbEIikVQLIJiERSLoFgExSIoFkGxCIpFUCyCYhEUi6BYBMUiKBZBsQiKRVAsgmIRFIugWATFIjwDMX_51p_mc1UAAAAASUVORK5CYII=",
+      "mimeType": "image/png"}}], "role": "user"}], "generationConfig": {"temperature":
+      0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '794'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.23.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Based on the image provided, the text
+        visible is:\\n\\n**HELLO**\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
+        \ \"usageMetadata\": {\n    \"promptTokenCount\": 273,\n    \"candidatesTokenCount\":
+        15,\n    \"totalTokenCount\": 490,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 15\n      },\n      {\n
+        \       \"modality\": \"IMAGE\",\n        \"tokenCount\": 258\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 202\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"oRFkaJrbNsq-vdIP0p7XeA\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 01 Jul 2025 16:49:38 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=5100
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '676'
+    status:
+      code: 200
+      message: OK
+version: 1

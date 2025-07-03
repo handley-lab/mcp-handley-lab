@@ -1,10 +1,6 @@
 # MCP Handley Lab Toolkit
 
-A comprehensive toolkit that bridges AI assistants with powerful command-line tools and services. MCP Handley Lab enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate complex workflows.
-
-## What is the Model Context Protocol (MCP)?
-
-The Model Context Protocol (MCP) is a specification that enables AI models, such as Claude, Gemini, or GPT, to interact with external tools and services through a standardized interface. It acts as a bridge, allowing an AI to use specialized programs, scripts, and APIs in the same way a developer uses command-line tools.
+A comprehensive toolkit that bridges AI assistants with powerful command-line tools and services. Built on the Model Context Protocol (MCP), it enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate complex workflows through a standardized interface.
 
 ## Quick Start
 

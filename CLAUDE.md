@@ -146,10 +146,10 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 
 ### Google Calendar Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/google_calendar/`
-- **Functions**: `list_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
-- **Features**: OAuth2 authentication, calendar management, event CRUD operations, free time finding
+- **Functions**: `search_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
+- **Features**: OAuth2 authentication, unified search/listing interface, event CRUD operations, free time finding, advanced filtering
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
-- **Status**: Production ready with comprehensive API integration
+- **Status**: Production ready with comprehensive API integration and consolidated search interface
 
 ### Agent Memory Management ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/agent/`

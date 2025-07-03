@@ -45,7 +45,6 @@ mimetypes.add_type('text/plain', '.log')
 TEXT_BASED_APPLICATION_TYPES = {
     # Standard text-based application types
     'application/json',
-    'application/xml',
     'application/javascript',
     'application/xhtml+xml',
     'application/rss+xml',

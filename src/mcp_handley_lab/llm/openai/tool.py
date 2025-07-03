@@ -109,10 +109,10 @@ def _resolve_images(
                 image_list.append(image_data)
             else:
                 # File path - convert to base64
-                image_bytes = Path(image_data).read_bytes()
-                # Detect format from file extension
-                ext = Path(image_data).suffix.lower()
-                mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}"
+                image_path = Path(image_data)
+                image_bytes = image_path.read_bytes()
+                # Use standard mime type detection
+                mime_type = determine_mime_type(image_path)
                 encoded = base64.b64encode(image_bytes).decode()
                 image_list.append(f"data:{mime_type};base64,{encoded}")
         except Exception as e:
@@ -126,9 +126,9 @@ def _resolve_images(
                         image_list.append(image_item)
                     else:
                         # File path
-                        image_bytes = Path(image_item).read_bytes()
-                        ext = Path(image_item).suffix.lower()
-                        mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}"
+                        image_path = Path(image_item)
+                        image_bytes = image_path.read_bytes()
+                        mime_type = determine_mime_type(image_path)
                         encoded = base64.b64encode(image_bytes).decode()
                         image_list.append(f"data:{mime_type};base64,{encoded}")
                 elif isinstance(image_item, dict):
@@ -139,9 +139,9 @@ def _resolve_images(
                             encoded_data = f"data:image/jpeg;base64,{encoded_data}"
                         image_list.append(encoded_data)
                     elif "path" in image_item:
-                        image_bytes = Path(image_item["path"]).read_bytes()
-                        ext = Path(image_item["path"]).suffix.lower()
-                        mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else f"image/{ext[1:]}"
+                        image_path = Path(image_item["path"])
+                        image_bytes = image_path.read_bytes()
+                        mime_type = determine_mime_type(image_path)
                         encoded = base64.b64encode(image_bytes).decode()
                         image_list.append(f"data:{mime_type};base64,{encoded}")
             except Exception as e:

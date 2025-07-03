@@ -31,6 +31,8 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-mock>=3.0.0",
+    "pytest-vcr>=1.0.0",
+    "vcrpy>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
     "pre-commit>=3.0.0",
@@ -54,7 +56,7 @@ mcp-handley-lab = "mcp_handley_lab.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_handley_lab = ["py.typed"]
+mcp_handley_lab = ["py.typed", "llm/*/models.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -65,6 +67,7 @@ asyncio_mode = "auto"
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
     "unit: marks tests as unit tests (select with '-m unit')",
+    "vcr: marks tests that use VCR.py for HTTP recording/playback",
 ]
 
 [tool.black]

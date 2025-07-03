@@ -1,17 +1,9 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is 2+2? Answer with just the number."}],
-      "role": "user"}, {"parts": [{"text": "4"}], "role": "model"}, {"parts": [{"text":
-      "What is in this JSON file?"}], "role": "user"}, {"parts": [{"text": "The JSON
-      file contains an object with two keys: \n\n1. **test**: a string with the value
-      \"data\"\n2. **numbers**: an array containing the values [1, 2, 3]"}], "role":
-      "model"}, {"parts": [{"text": "What color is this image? [Image analysis: 1
-      image(s)]"}], "role": "user"}, {"parts": [{"text": "The color of the image is
-      yellow."}], "role": "model"}, {"parts": [{"text": "What is 3+3? Answer with
-      just the number."}], "role": "user"}, {"parts": [{"text": "6"}], "role": "model"},
-      {"parts": [{"text": "What is the current date today?"}], "role": "user"}], "tools":
-      [{"googleSearchRetrieval": {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
-      8192}}'
+    body: '{"contents": [{"parts": [{"text": "What is 3+3? Answer with just the number."}],
+      "role": "user"}, {"parts": [{"text": "6"}], "role": "model"}, {"parts": [{"text":
+      "What is the current date today?"}], "role": "user"}], "tools": [{"googleSearchRetrieval":
+      {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192}}'
     headers:
       accept:
       - '*/*'
@@ -20,22 +12,22 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '897'
+      - '326'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Today is Tuesday, July 1, 2025.  Please
-        note that this is the current date as of today, and tomorrow it will be different.\\n\"\n
+        [\n          {\n            \"text\": \"Today is Thursday, July 3, 2025. Please
+        note that this is the current date as of today, and it will change tomorrow.\\n\"\n
         \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n
         \         \"renderedContent\": \"\\u003cstyle\\u003e\\n.container {\\n  align-items:
@@ -100,37 +92,44 @@ interactions:
         \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
         class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
         \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
-        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH-eVF6dyh-xbNneY2iS-VoCntH_udv2VyuzIaddB-iuaUYBdRgGgk5kDgreRXi3lYn9lfuQOkbsUS46stUTcLXjx8mm0Ki8hmj6oT-VrWoRNsPgnBmh0nWGDvAyXZk4JKdZJPZGX8rzMqHoNE6HPkSSyBtuLLkG29vMJu7p5V3-RZdQYqp6xAN32szYrmSZ-Qrmt6AEN_dWAq3zLrTXXkhMg==\\\"\\u003ewhat
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEGCnqioTnwO1W0e81th65LVeA7P_66rGcSBPfwKsXQ72CzmW0JDHnbi3iYEaqKy6XfId4B-GfylpXBn9OSvUPu-sMHEqnCDDPrbAFEdkQVeOr2QN-59YFw2ofsFiuQ8xDBrwS3YMjU4xUfVZMrp7LyhO66YtlLY16TSmhISy9y3DZOR3HSQPghxbQjdKTVgbahvS0ZkGxywqFlxX_IHhJcsQ==\\\"\\u003ewhat
         is the current date today\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
         \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
-        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFE19lkjqoY6pkqYm5D2Q9FE6_cqofv6j3rXTK6yRSQ0aBU3aPTkApGg02lSvg9e3CBCDvS2TSiOW57J3XJFBatvp5BdvbG2tJuFaNAyRoz4TYdOSIY9g==\",\n
-        \             \"title\": \"isotropic.org\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHnsZkiVPZI_WIujUZnVfRNsJAOmHfmPCqbkcgzrQDcjNqRPFJxeu3-f0RLXVP8dYBk8QsotEFPfHhEie5Rsa51wlyB-uSvKR748_eYFkZeSO_FPgy37SJhxYnVcqngKzPs7dJw\",\n
-        \             \"title\": \"epochconverter.com\"\n            }\n          }\n
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGZ4hICUPJSKqctQGqmmWdJrJVAV7zVAM0fmnEooOoz9NgCCDaNhhGQ7ZMx0gSc23nOG4k0A_cq2BgxRZfP7otWgLFLrySP_ZuisZA6J2atjHvp3ETEDw2Oi9fdefL37MnXSTgg\",\n
+        \             \"title\": \"saturdaygift.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2rs54it-Ql3zuLnqQ5N56Ls_ShQIJud5pm-SLS7AHdMWuKg8eKSuhBaLRGcUB9zNtb2Py303cVPwecgErmcfREDdUjmTxvxNXFwjMfd8G6I8PLSc=\",\n
+        \             \"title\": \"todaysdate365.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFFx697xiNe6qXJcNDYB4AQY6L7uM6MvRsrAjAgYBJTvWyR2QF0eeDgDN2Eo99Ao1qq0kQ4I5YSLGlVW7bGeS95IlwHqg_F1dWTa4aZ0BE4txJR4yqh\",\n
+        \             \"title\": \"todaysdatenow.com\"\n            }\n          }\n
         \       ],\n        \"groundingSupports\": [\n          {\n            \"segment\":
-        {\n              \"endIndex\": 31,\n              \"text\": \"Today is Tuesday,
-        July 1, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
+        {\n              \"endIndex\": 32,\n              \"text\": \"Today is Thursday,
+        July 3, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
         \             0,\n              1\n            ],\n            \"confidenceScores\":
-        [\n              0.9941553,\n              0.98920596\n            ]\n          }\n
-        \       ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
+        [\n              0.9447099,\n              0.98987246\n            ]\n          },\n
+        \         {\n            \"segment\": {\n              \"startIndex\": 33,\n
+        \             \"endIndex\": 116,\n              \"text\": \"Please note that
+        this is the current date as of today, and it will change tomorrow.\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              2\n            ],\n
+        \           \"confidenceScores\": [\n              0.628437\n            ]\n
+        \         }\n        ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
         [\n          \"what is the current date today\"\n        ]\n      },\n      \"avgLogprobs\":
-        -0.073489318575177875\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        111,\n    \"candidatesTokenCount\": 35,\n    \"totalTokenCount\": 146,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 111\n
+        -0.068235975323301376\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        21,\n    \"candidatesTokenCount\": 33,\n    \"totalTokenCount\": 54,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 21\n
         \     }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
-        \"TEXT\",\n        \"tokenCount\": 35\n      }\n    ]\n  },\n  \"modelVersion\":
-        \"gemini-1.5-pro-002\",\n  \"responseId\": \"cRFkaKXhBemm7dcPpc-_sAU\"\n}\n"
+        \"TEXT\",\n        \"tokenCount\": 33\n      }\n    ]\n  },\n  \"modelVersion\":
+        \"gemini-1.5-pro-002\",\n  \"responseId\": \"2TFmaOXDOaGV7dcP5Ivg2AY\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:48:50 GMT
+      - Thu, 03 Jul 2025 07:31:39 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1726
+      - gfet4t7; dur=1774
       Transfer-Encoding:
       - chunked
       Vary:
@@ -144,7 +143,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '7212'
+      - '7890'
     status:
       code: 200
       message: OK

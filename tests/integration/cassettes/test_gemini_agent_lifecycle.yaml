@@ -18,32 +18,32 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Got it. I'll remember that your favorite
+        [\n          {\n            \"text\": \"Got it! I'll remember that your favorite
         color is blue.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
         \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
         {\n    \"promptTokenCount\": 13,\n    \"candidatesTokenCount\": 14,\n    \"totalTokenCount\":
-        971,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 13\n      }\n    ],\n    \"thoughtsTokenCount\": 944\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-pro\",\n  \"responseId\": \"ghFkaPXYEenYvdIP-q3ugQs\"\n}\n"
+        558,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 13\n      }\n    ],\n    \"thoughtsTokenCount\": 531\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-pro\",\n  \"responseId\": \"5TFmaOn_C_eqxN8Pjt6OgAQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:06 GMT
+      - Thu, 03 Jul 2025 07:31:49 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=13332
+      - gfet4t7; dur=7581
       Transfer-Encoding:
       - chunked
       Vary:

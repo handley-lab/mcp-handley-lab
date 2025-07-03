@@ -1,23 +1,25 @@
 """Claude LLM tool for AI interactions via MCP."""
-import asyncio
 import base64
-import os
-import time
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Union
+from typing import Any
 
 from anthropic import AsyncAnthropic
 from mcp.server.fastmcp import FastMCP
 
 from ...common.config import settings
-from ...common.pricing import calculate_cost, format_usage
 from ...common.memory import memory_manager
 from ..common import (
-    get_session_id, determine_mime_type, is_text_file, 
-    resolve_image_data, handle_output, handle_agent_memory
+    determine_mime_type,
+    get_session_id,
+    is_text_file,
+    resolve_image_data,
+)
+from ..model_loader import (
+    build_model_configs_dict,
+    format_model_listing,
+    load_model_config,
 )
 from ..shared import create_client_decorator, process_llm_request
-from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("Claude Tool")
 
@@ -38,14 +40,14 @@ MODEL_CONFIGS = build_model_configs_dict("claude")
 _config = load_model_config("claude")
 DEFAULT_MODEL = _config["default_model"]
 
+
 def _get_error_message():
     return f"Claude client not initialized: {initialization_error or 'API key not configured'}"
 
-require_client = create_client_decorator(
-    lambda: client is not None,
-    _get_error_message()
-)
 
+require_client = create_client_decorator(
+    lambda: client is not None, _get_error_message()
+)
 
 
 def _get_session_id() -> str:
@@ -57,72 +59,70 @@ def _resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
         "sonnet": "claude-3-5-sonnet-20241022",
-        "opus": "claude-3-opus-20240229", 
-        "haiku": "claude-3-5-haiku-20241022"
+        "opus": "claude-3-opus-20240229",
+        "haiku": "claude-3-5-haiku-20241022",
     }
     return aliases.get(model, model)
 
 
-def _get_model_config(model: str) -> Dict[str, int]:
+def _get_model_config(model: str) -> dict[str, int]:
     """Get token limits for a specific model."""
     resolved_model = _resolve_model_alias(model)
     return MODEL_CONFIGS.get(resolved_model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-def _convert_history_to_claude_format(history: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+def _convert_history_to_claude_format(
+    history: list[dict[str, str]],
+) -> list[dict[str, Any]]:
     """Convert generic history to Claude's expected format.
-    
+
     Claude requires alternating user/assistant messages. This function validates
     and fixes the sequence if needed.
     """
     if not history:
         return []
-    
+
     claude_history = []
     last_role = None
-    
+
     for message in history:
         role = message["role"]
         content = message["content"]
-        
+
         # Skip system messages (handled separately in Claude)
         if role == "system":
             continue
-            
+
         # If we have consecutive messages from the same role, merge them
         if role == last_role and claude_history:
             # Merge with previous message
             claude_history[-1]["content"] += "\n\n" + content
         else:
             # Add as new message
-            claude_history.append({
-                "role": role,
-                "content": content
-            })
+            claude_history.append({"role": role, "content": content})
             last_role = role
-    
+
     # Ensure history starts with user message (Claude requirement)
     if claude_history and claude_history[0]["role"] != "user":
         # Prepend a placeholder user message if needed
-        claude_history.insert(0, {
-            "role": "user", 
-            "content": "[Previous conversation context]"
-        })
-    
+        claude_history.insert(
+            0, {"role": "user", "content": "[Previous conversation context]"}
+        )
+
     return claude_history
 
 
-async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> str:
+async def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
     """Resolve file inputs to text content for Claude.
-    
+
     Claude has a large context window (200K tokens), so we can include most files directly.
     Returns a string with all file contents concatenated.
     """
     if not files:
         return ""
-    
+
     file_contents = []
-    
+
     for file_item in files:
         if isinstance(file_item, str):
             # Direct content string
@@ -138,36 +138,40 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> s
                     if not file_path.exists():
                         file_contents.append(f"Error: File not found: {file_path}")
                         continue
-                    
+
                     file_size = file_path.stat().st_size
-                    
+
                     # Claude can handle large files, but let's be reasonable (20MB limit)
                     if file_size > 20 * 1024 * 1024:
-                        file_contents.append(f"Error: File too large: {file_path} ({file_size} bytes)")
+                        file_contents.append(
+                            f"Error: File too large: {file_path} ({file_size} bytes)"
+                        )
                         continue
-                    
+
                     if is_text_file(file_path):
                         # Text file - read directly
-                        content = file_path.read_text(encoding='utf-8')
+                        content = file_path.read_text(encoding="utf-8")
                         file_contents.append(f"[File: {file_path.name}]\n{content}")
                     else:
                         # Binary file - describe only (Claude doesn't need base64 for non-image files)
                         mime_type = determine_mime_type(file_path)
-                        file_contents.append(f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]")
-                        
+                        file_contents.append(
+                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
+                        )
+
                 except Exception as e:
                     file_contents.append(f"Error reading file {file_path}: {e}")
-    
+
     return "\n\n".join(file_contents)
 
 
 def _resolve_images_to_content_blocks(
-    image_data: Optional[str] = None, 
-    images: Optional[List[Union[str, Dict[str, str]]]] = None
-) -> List[Dict[str, Any]]:
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
+) -> list[dict[str, Any]]:
     """Resolve image inputs to Claude content blocks."""
     image_blocks = []
-    
+
     # Handle single image_data parameter
     if image_data:
         try:
@@ -181,29 +185,28 @@ def _resolve_images_to_content_blocks(
                 # Default to JPEG for non-image types
                 if not media_type.startswith("image/"):
                     media_type = "image/jpeg"
-            
-            encoded_data = base64.b64encode(image_bytes).decode('utf-8')
-            image_blocks.append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": media_type,
-                    "data": encoded_data,
-                },
-            })
+
+            encoded_data = base64.b64encode(image_bytes).decode("utf-8")
+            image_blocks.append(
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": encoded_data,
+                    },
+                }
+            )
         except Exception as e:
             # Add text block with error
-            image_blocks.append({
-                "type": "text",
-                "text": f"Error loading image: {e}"
-            })
-    
+            image_blocks.append({"type": "text", "text": f"Error loading image: {e}"})
+
     # Handle images array
     if images:
         for image_item in images:
             try:
                 image_bytes = resolve_image_data(image_item)
-                
+
                 # Determine media type
                 if isinstance(image_item, str):
                     if image_item.startswith("data:image"):
@@ -219,60 +222,62 @@ def _resolve_images_to_content_blocks(
                         media_type = "image/jpeg"
                 else:
                     media_type = "image/jpeg"
-                
-                encoded_data = base64.b64encode(image_bytes).decode('utf-8')
-                image_blocks.append({
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": media_type,
-                        "data": encoded_data,
-                    },
-                })
+
+                encoded_data = base64.b64encode(image_bytes).decode("utf-8")
+                image_blocks.append(
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": encoded_data,
+                        },
+                    }
+                )
             except Exception as e:
-                image_blocks.append({
-                    "type": "text",
-                    "text": f"Error loading image: {e}"
-                })
-    
+                image_blocks.append(
+                    {"type": "text", "text": f"Error loading image: {e}"}
+                )
+
     return image_blocks
 
 
 async def _claude_generation_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """Claude-specific text generation function for the shared processor."""
     # Extract Claude-specific parameters
     temperature = kwargs.get("temperature", 0.7)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Get model configuration
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
-    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
-    
+    output_tokens = (
+        min(max_output_tokens, max_output)
+        if max_output_tokens is not None
+        else max_output
+    )
+
     # Resolve file contents
     file_content = await _resolve_files(files)
-    
+
     # Build user content
     user_content = prompt
     if file_content:
         user_content += "\n\n" + file_content
-    
+
     # Convert history to Claude format
     claude_history = _convert_history_to_claude_format(history)
-    
+
     # Add current user message
-    claude_history.append({
-        "role": "user",
-        "content": user_content
-    })
-    
+    claude_history.append({"role": "user", "content": user_content})
+
     # Resolve model alias and prepare request parameters
     resolved_model = _resolve_model_alias(model)
     request_params = {
@@ -281,17 +286,17 @@ async def _claude_generation_adapter(
         "max_tokens": output_tokens,
         "temperature": temperature,
     }
-    
+
     # Add system instruction if provided
     if system_instruction:
         request_params["system"] = system_instruction
-    
+
     # Make API call
     response = await client.messages.create(**request_params)
-    
+
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
-    
+
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
@@ -302,42 +307,43 @@ async def _claude_generation_adapter(
 async def _claude_image_analysis_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """Claude-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     image_data = kwargs.get("image_data")
     images = kwargs.get("images")
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Enhance prompt based on focus
     if focus != "general":
         prompt = f"Focus on {focus} aspects. {prompt}"
-    
+
     # Get model configuration
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
-    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
-    
+    output_tokens = (
+        min(max_output_tokens, max_output)
+        if max_output_tokens is not None
+        else max_output
+    )
+
     # Resolve images to content blocks
     image_blocks = _resolve_images_to_content_blocks(image_data, images)
-    
+
     # Build content with text and images
     content_blocks = [{"type": "text", "text": prompt}] + image_blocks
-    
+
     # Convert history to Claude format
     claude_history = _convert_history_to_claude_format(history)
-    
+
     # Add current user message with images
-    claude_history.append({
-        "role": "user",
-        "content": content_blocks
-    })
-    
-    # Resolve model alias and prepare request parameters  
+    claude_history.append({"role": "user", "content": content_blocks})
+
+    # Resolve model alias and prepare request parameters
     resolved_model = _resolve_model_alias(model)
     request_params = {
         "model": resolved_model,
@@ -345,17 +351,17 @@ async def _claude_image_analysis_adapter(
         "max_tokens": output_tokens,
         "temperature": 0.7,
     }
-    
+
     # Add system instruction if provided
     if system_instruction:
         request_params["system"] = system_instruction
-    
+
     # Make API call
     response = await client.messages.create(**request_params)
-    
+
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
-    
+
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
@@ -363,7 +369,8 @@ async def _claude_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Asks a question to a Claude model with optional file context and persistent memory.
+@mcp.tool(
+    description="""Asks a question to a Claude model with optional file context and persistent memory.
 
 **Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
@@ -428,16 +435,17 @@ ask(
     agent_name=False,
     model="haiku"
 )
-```""")
+```"""
+)
 @require_client
 async def ask(
     prompt: str,
     output_file: str,
-    agent_name: Optional[Union[str, bool]] = None,
+    agent_name: str | bool | None = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
-    files: Optional[List[Union[str, Dict[str, str]]]] = None,
-    max_output_tokens: Optional[int] = None
+    files: list[str | dict[str, str]] | None = None,
+    max_output_tokens: int | None = None,
 ) -> str:
     """Ask Claude a question with optional persistent memory."""
     return await process_llm_request(
@@ -450,11 +458,12 @@ async def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Analyzes images using Claude's advanced vision capabilities.
+@mcp.tool(
+    description="""Analyzes images using Claude's advanced vision capabilities.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
@@ -524,17 +533,18 @@ analyze_image(
     image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
     agent_name=False
 )
-```""")
+```"""
+)
 @require_client
 async def analyze_image(
     prompt: str,
     output_file: str,
-    image_data: Optional[str] = None,
-    images: Optional[List[Union[str, Dict[str, str]]]] = None,
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
     focus: str = "general",
     model: str = "claude-3-5-sonnet-20240620",
-    agent_name: Optional[Union[str, bool]] = None,
-    max_output_tokens: Optional[int] = None
+    agent_name: str | bool | None = None,
+    max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with Claude vision model."""
     return await process_llm_request(
@@ -548,11 +558,12 @@ async def analyze_image(
         image_data=image_data,
         images=images,
         focus=focus,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Retrieves a comprehensive catalog of all available Claude models to aid in model discovery and selection.
+@mcp.tool(
+    description="""Retrieves a comprehensive catalog of all available Claude models to aid in model discovery and selection.
 
 **Purpose & Benefits:**
 This tool helps users:
@@ -582,18 +593,20 @@ list_models()
 # - "Show me balanced cost/performance" → claude-sonnet-4, claude-sonnet-3.7
 # - "What's the latest Claude generation?" → Claude 4 series
 # - "Which models have cache pricing?" → All models (5-min and 1-hour tiers)
-```""")
+```"""
+)
 async def list_models() -> str:
     """List available Claude models with detailed information."""
     try:
         # Use YAML-based model listing
         return format_model_listing("claude")
-        
+
     except Exception as e:
-        raise RuntimeError(f"Failed to list Claude models: {e}")
+        raise RuntimeError(f"Failed to list Claude models: {e}") from e
 
 
-@mcp.tool(description="""Checks the status of the Claude Tool server and API connectivity.
+@mcp.tool(
+    description="""Checks the status of the Claude Tool server and API connectivity.
 
 Use this to verify that the tool is operational before making other requests.
 
@@ -608,23 +621,24 @@ Use this to verify that the tool is operational before making other requests.
 ```python
 # Check the server status.
 server_info()
-```""")
+```"""
+)
 @require_client
 async def server_info() -> str:
     """Get server status and Claude configuration."""
     try:
         # Test API by making a simple request
-        test_response = await client.messages.create(
+        await client.messages.create(
             model="claude-3-5-haiku-20241022",
             messages=[{"role": "user", "content": "Hello"}],
-            max_tokens=10
+            max_tokens=10,
         )
-        
+
         # Get agent count
         agent_count = len(memory_manager.list_agents())
-        
+
         available_models = list(MODEL_CONFIGS.keys())
-        
+
         return f"""Claude Tool Server Status
 ==========================
 Status: Connected and ready
@@ -647,6 +661,6 @@ Available tools:
 - server_info: Get server status
 
 Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
-        
+
     except Exception as e:
-        raise RuntimeError(f"Claude API configuration error: {e}")
+        raise RuntimeError(f"Claude API configuration error: {e}") from e

@@ -1,12 +1,29 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
-      the number."}, {"role": "assistant", "content": "4"}, {"role": "user", "content":
-      "What is in this JSON file?"}, {"role": "assistant", "content": "The JSON file
-      contains an object with two keys: \n\n1. **test**: a string with the value \"data\"\n2.
-      **numbers**: an array containing the values [1, 2, 3]"}, {"role": "user", "content":
-      [{"type": "text", "text": "Focus on colors aspects. Focus on colors aspects.
-      What color is this image?"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="}}]}],
+    body: '{"messages": [{"role": "user", "content": "What is 3+3? Answer with just
+      the number."}, {"role": "assistant", "content": "6"}, {"role": "user", "content":
+      "What is the current date today?"}, {"role": "assistant", "content": "Today
+      is Thursday, July 3, 2025. Please note that this is the current date as of today,
+      and it will change tomorrow.\n"}, {"role": "user", "content": "What is the current
+      date today?"}, {"role": "assistant", "content": "Today is Thursday, July 3,
+      2025. Please note that this is the current date as of today, and it will change
+      tomorrow."}, {"role": "user", "content": "What data is in this JSON file?"},
+      {"role": "assistant", "content": "The JSON file contains the following data:\n\n*   A
+      key named \"test\" with the string value \"data\".\n*   A key named \"numbers\"
+      with an array of integers: 1, 2, and 3."}, {"role": "user", "content": "What
+      color is dominant in this image? [Image analysis: 1 image(s)]"}, {"role": "assistant",
+      "content": "Based on the image provided, the dominant color is a bright, vibrant
+      **yellow**.\n\nIt is the only color present, completely filling the entire image.
+      The specific shade is a pure, electric yellow, with no other hues or shades
+      visible."}, {"role": "user", "content": "Generate image: A simple blue square"},
+      {"role": "assistant", "content": "Generated image saved to /tmp/gemini_generated_ef79e6e2.png"},
+      {"role": "user", "content": "What is 2+2? Answer with just the number."}, {"role":
+      "assistant", "content": "4"}, {"role": "user", "content": "What is in this JSON
+      file?"}, {"role": "assistant", "content": "The JSON file contains the following
+      data:\n\n- A key named \"test\" with the value \"data\".\n- A key named \"numbers\"
+      with an array of integers: 1, 2, and 3."}, {"role": "user", "content": [{"type":
+      "text", "text": "Focus on colors aspects. Focus on colors aspects. What color
+      is this image?"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="}}]}],
       "model": "gpt-4o", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
@@ -16,7 +33,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '708'
+      - '2027'
       content-type:
       - application/json
       host:
@@ -45,26 +62,26 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BoYR9FgnVPdKQoMccqUGckNY6X7fo\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751388475,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bp8k5PKB3KSjK5nL8MAthgvGDtumx\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751528033,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"The color of the image is yellow.\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
         null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        360,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 368,\n    \"prompt_tokens_details\":
+        641,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 649,\n    \"prompt_tokens_details\":
         {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 958763534da8cd6b-LHR
+      - 9594b27dcf41b384-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 16:47:55 GMT
+      - Thu, 03 Jul 2025 07:33:53 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -82,13 +99,13 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '378'
+      - '615'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '355'
+      - '519'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -100,15 +117,15 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '29999155'
+      - '29998911'
       x-ratelimit-reset-input-images:
       - 0s
       x-ratelimit-reset-requests:
       - 6ms
       x-ratelimit-reset-tokens:
-      - 1ms
+      - 2ms
       x-request-id:
-      - req_7178c85280473616d528f80be2ff53af
+      - req_53bd1dd8977217aa379c3bb2db492e01
     status:
       code: 200
       message: OK

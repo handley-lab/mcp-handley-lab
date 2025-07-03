@@ -41,10 +41,10 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BoYRcFt6Oy6bDpSeiWxXIA08tIsGQ\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751388504,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bp8kUZ2OrsObXQCIyI1VezREwUgEx\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751528058,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The text in the image says \\\"WORLD\\\".\",\n
+        \"assistant\",\n        \"content\": \"The text in the image reads \\\"WORLD\\\".\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
         null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
         281,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 290,\n    \"prompt_tokens_details\":
@@ -54,13 +54,13 @@ interactions:
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 9587640a5d762a45-MAN
+      - 9594b31aae2c26aa-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 16:48:25 GMT
+      - Thu, 03 Jul 2025 07:34:18 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -74,17 +74,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '840'
+      - '841'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '541'
+      - '552'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '510'
+      - '470'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -104,7 +104,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_72e831e59e010a1d2856ce29b005e373
+      - req_76de94d9a2722cad35f9a7bf1c50ecdd
     status:
       code: 200
       message: OK

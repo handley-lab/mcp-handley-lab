@@ -2,30 +2,32 @@
 import asyncio
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+
 from mcp.server.fastmcp import FastMCP
-from ..common.process import run_command
+
 from ..common.exceptions import UserCancelledError
+from ..common.process import run_command
 
 mcp = FastMCP("Code2Prompt Tool")
 
 
-async def _run_code2prompt(args: List[str]) -> str:
+async def _run_code2prompt(args: list[str]) -> str:
     """Runs a code2prompt command and raises errors on failure."""
     cmd = ["code2prompt"] + args
-    
+
     try:
         stdout, stderr = await run_command(cmd)
-        return stdout.decode('utf-8').strip()
+        return stdout.decode("utf-8").strip()
     except RuntimeError as e:
         if "Command failed" in str(e):
             # Extract stderr for better code2prompt error messages
             error_msg = str(e).split(": ", 1)[-1]
-            raise ValueError(f"code2prompt error: {error_msg}")
+            raise ValueError(f"code2prompt error: {error_msg}") from e
         raise
 
 
-@mcp.tool(description="""Generates a structured, token-counted summary of a codebase and saves it to a file.
+@mcp.tool(
+    description="""Generates a structured, token-counted summary of a codebase and saves it to a file.
 
 Use this tool to create a summary file of a large codebase for analysis by an LLM. The primary output is a file, and the tool returns the path to this file.
 
@@ -62,12 +64,13 @@ generate_prompt(
     git_diff_branch2="feature-branch",
     output_file="/tmp/diff_summary.md"
 )
-```""")
+```"""
+)
 async def generate_prompt(
     path: str,
-    output_file: Optional[str] = None,
-    include: Optional[List[str]] = None,
-    exclude: Optional[List[str]] = None,
+    output_file: str | None = None,
+    include: list[str] | None = None,
+    exclude: list[str] | None = None,
     output_format: str = "markdown",
     line_numbers: bool = False,
     full_directory_tree: bool = False,
@@ -79,21 +82,21 @@ async def generate_prompt(
     tokens: str = "format",
     sort: str = "name_asc",
     include_priority: bool = False,
-    template: Optional[str] = None,
+    template: str | None = None,
     include_git_diff: bool = False,
-    git_diff_branch1: Optional[str] = None,
-    git_diff_branch2: Optional[str] = None,
-    git_log_branch1: Optional[str] = None,
-    git_log_branch2: Optional[str] = None,
-    no_ignore: bool = False
+    git_diff_branch1: str | None = None,
+    git_diff_branch2: str | None = None,
+    git_log_branch1: str | None = None,
+    git_log_branch2: str | None = None,
+    no_ignore: bool = False,
 ) -> str:
     """Generate a structured prompt from codebase."""
     # Create output file if not provided
     if not output_file:
-        temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False)
         output_file = temp_file.name
         temp_file.close()
-    
+
     # Define all arguments in one data structure
     arg_definitions = [
         {"name": "--output-file", "value": output_file, "type": "value"},
@@ -105,7 +108,11 @@ async def generate_prompt(
         {"name": "--include-priority", "condition": include_priority, "type": "flag"},
         {"name": "--no-ignore", "condition": no_ignore, "type": "flag"},
         {"name": "--line-numbers", "condition": line_numbers, "type": "flag"},
-        {"name": "--full-directory-tree", "condition": full_directory_tree, "type": "flag"},
+        {
+            "name": "--full-directory-tree",
+            "condition": full_directory_tree,
+            "type": "flag",
+        },
         {"name": "--follow-symlinks", "condition": follow_symlinks, "type": "flag"},
         {"name": "--hidden", "condition": hidden, "type": "flag"},
         {"name": "--no-codeblock", "condition": no_codeblock, "type": "flag"},
@@ -118,44 +125,47 @@ async def generate_prompt(
     # Build command args
     args = [path]
     for arg_def in arg_definitions:
-        if arg_def["type"] == "value" and arg_def.get("value"):
-            args.extend([arg_def["name"], str(arg_def["value"])])
-        elif arg_def["type"] == "optional_value" and arg_def.get("value"):
+        if (
+            arg_def["type"] == "value"
+            and arg_def.get("value")
+            or arg_def["type"] == "optional_value"
+            and arg_def.get("value")
+        ):
             args.extend([arg_def["name"], str(arg_def["value"])])
         elif arg_def["type"] == "flag" and arg_def.get("condition"):
             args.append(arg_def["name"])
         elif arg_def["type"] == "multi_value":
             for val in arg_def.get("values", []):
                 args.extend([arg_def["name"], val])
-    
+
     # Special handling for git branch options
     if git_diff_branch1 and git_diff_branch2:
         args.extend(["--git-diff-branch", git_diff_branch1, git_diff_branch2])
-    
+
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
-    
+
     # Run code2prompt with cancellation support
     try:
         await _run_code2prompt(args)
     except asyncio.CancelledError:
-        raise UserCancelledError("Code2prompt analysis was cancelled by user")
-    
+        raise UserCancelledError("Code2prompt analysis was cancelled by user") from None
+
     # Get file size for reporting
     output_path = Path(output_file)
     file_size = output_path.stat().st_size
-    
+
     return f"✅ Code2prompt Generation Successful:\n\n- **Output File Path:** `{output_file}`\n- **File Size:** {file_size:,} bytes\n\n💡 **Next Steps:** You can now use this file path (e.g., in a 'files' parameter) with other AI tools like Gemini or OpenAI for comprehensive analysis, without incurring direct context window usage from this response."
 
 
-
-
-@mcp.tool(description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands.")
+@mcp.tool(
+    description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands."
+)
 async def server_info() -> str:
     """Get server status and code2prompt version."""
     try:
         version = await _run_code2prompt(["--version"])
-        
+
         return f"""Code2Prompt Tool Server Status
 ==============================
 Status: Connected and ready

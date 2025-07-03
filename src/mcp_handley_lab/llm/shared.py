@@ -1,23 +1,22 @@
 """Shared utilities for LLM providers."""
 import asyncio
-from typing import Optional, Union, Dict, Any, List, Callable
-from pathlib import Path
+from collections.abc import Callable
 
+from ..common.exceptions import UserCancelledError
 from ..common.memory import memory_manager
 from ..common.pricing import calculate_cost
-from ..common.exceptions import UserCancelledError
-from .common import get_session_id, handle_output, handle_agent_memory
+from .common import get_session_id, handle_agent_memory, handle_output
 
 
 async def process_llm_request(
     prompt: str,
     output_file: str,
-    agent_name: Optional[Union[str, bool]],
+    agent_name: str | bool | None,
     model: str,
     provider: str,
     generation_func: Callable,
     mcp_instance,
-    **kwargs
+    **kwargs,
 ) -> str:
     """Generic handler for LLM requests that abstracts common patterns."""
     # Input validation
@@ -39,23 +38,23 @@ async def process_llm_request(
     if use_memory:
         if not actual_agent_name:
             actual_agent_name = get_session_id(mcp_instance)
-        
+
         agent = memory_manager.get_agent(actual_agent_name)
         if agent:
             history = agent.get_history()
             system_instruction = agent.personality
 
     # Handle image analysis specific prompt modification
-    if 'image_data' in kwargs or 'images' in kwargs:
-        focus = kwargs.get('focus', 'general')
-        if focus != 'general':
+    if "image_data" in kwargs or "images" in kwargs:
+        focus = kwargs.get("focus", "general")
+        if focus != "general":
             prompt = f"Focus on {focus} aspects. {prompt}"
         # Add image description for memory
         image_count = 0
-        if kwargs.get('image_data'):
+        if kwargs.get("image_data"):
             image_count += 1
-        if kwargs.get('images'):
-            image_count += len(kwargs.get('images', []))
+        if kwargs.get("images"):
+            image_count += len(kwargs.get("images", []))
         if image_count > 0:
             user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
 
@@ -66,48 +65,57 @@ async def process_llm_request(
             model=model,
             history=history,
             system_instruction=system_instruction,
-            **kwargs
+            **kwargs,
         )
     except asyncio.CancelledError:
         # Handle graceful cancellation
         if use_memory:
             handle_agent_memory(
-                actual_agent_name, user_prompt, "[Request cancelled by user]",
-                0, 0, 0.0,
-                lambda: actual_agent_name
+                actual_agent_name,
+                user_prompt,
+                "[Request cancelled by user]",
+                0,
+                0,
+                0.0,
+                lambda: actual_agent_name,
             )
-        raise UserCancelledError("Request was cancelled by user")
+        raise UserCancelledError("Request was cancelled by user") from None
 
     # Extract common response data
-    response_text = response_data['text']
-    input_tokens = response_data['input_tokens']
-    output_tokens = response_data['output_tokens']
+    response_text = response_data["text"]
+    input_tokens = response_data["input_tokens"]
+    output_tokens = response_data["output_tokens"]
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
 
     # Handle memory
     if use_memory:
         handle_agent_memory(
-            actual_agent_name, user_prompt, response_text,
-            input_tokens, output_tokens, cost,
-            lambda: actual_agent_name
+            actual_agent_name,
+            user_prompt,
+            response_text,
+            input_tokens,
+            output_tokens,
+            cost,
+            lambda: actual_agent_name,
         )
 
     # Handle output
     return handle_output(
-        response_text, output_file, model,
-        input_tokens, output_tokens, cost, provider
+        response_text, output_file, model, input_tokens, output_tokens, cost, provider
     )
 
 
 def create_client_decorator(client_check_func: Callable, error_message: str):
     """Create a decorator that ensures client is initialized."""
     from functools import wraps
-    
+
     def require_client(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             if not client_check_func():
                 raise RuntimeError(error_message)
             return await func(*args, **kwargs)
+
         return wrapper
+
     return require_client

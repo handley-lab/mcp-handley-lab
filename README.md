@@ -34,6 +34,12 @@ claude mcp add arxiv --scope user mcp-arxiv
 
 ## Available Tools
 
+### 🤖 **AI Integration** (`gemini`, `openai`)
+Connect with major AI providers
+  - Persistent conversations with memory
+  - Image analysis and generation
+  - _Claude example_: `> ask gemini to review the changes you just made`
+
 ### 📚 **ArXiv** (`arxiv`)
 Search and download academic papers from ArXiv
   - Search by author, title, or topic
@@ -59,12 +65,6 @@ Process JSON data with the power of jq
   - Query, transform, and validate JSON
   - Edit files in-place with transformations
   - _Claude example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
-
-### 🤖 **AI Integration** (`gemini`, `openai`)
-Connect with major AI providers
-  - Persistent conversations with memory
-  - Image analysis and generation
-  - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 🔗 **Workflow Automation** (`tool-chainer`)
 Chain tools together for multi-step tasks

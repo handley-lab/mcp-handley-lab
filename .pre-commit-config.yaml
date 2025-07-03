@@ -1,7 +1,25 @@
 # Pre-commit configuration for MCP Handley Lab
-# Automatically manages version bumping
+# Minimal set of high-value hooks complementing black/ruff
 
 repos:
+  # Essential file integrity checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+
+  # Python formatting and linting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Custom version checking (must run last)
   - repo: local
     hooks:
       - id: version-check

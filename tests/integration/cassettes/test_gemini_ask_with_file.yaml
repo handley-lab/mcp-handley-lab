@@ -1,20 +1,14 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is 2+2? Answer with just the number."}],
-      "role": "user"}, {"parts": [{"text": "4"}], "role": "model"}, {"parts": [{"text":
-      "What is in this JSON file?"}], "role": "user"}, {"parts": [{"text": "The JSON
-      file contains an object with two keys: \n\n1. **test**: a string with the value
-      \"data\"\n2. **numbers**: an array containing the values [1, 2, 3]"}], "role":
-      "model"}, {"parts": [{"text": "What color is this image? [Image analysis: 1
-      image(s)]"}], "role": "user"}, {"parts": [{"text": "The color of the image is
-      yellow."}], "role": "model"}, {"parts": [{"text": "What is 3+3? Answer with
-      just the number."}], "role": "user"}, {"parts": [{"text": "6"}], "role": "model"},
-      {"parts": [{"text": "What is the current date today?"}], "role": "user"}, {"parts":
-      [{"text": "Today is Tuesday, July 1, 2025.  Please note that this is the current
-      date as of today, and tomorrow it will be different.\n"}], "role": "model"},
-      {"parts": [{"text": "What is the current date today?"}], "role": "user"}, {"parts":
-      [{"text": "Today is Tuesday, July 1, 2025."}], "role": "model"}, {"parts": [{"text":
-      "What data is in this JSON file?"}, {"text": "[File: tmpernv97zz.json]\n{\"test\":
+    body: '{"contents": [{"parts": [{"text": "What is 3+3? Answer with just the number."}],
+      "role": "user"}, {"parts": [{"text": "6"}], "role": "model"}, {"parts": [{"text":
+      "What is the current date today?"}], "role": "user"}, {"parts": [{"text": "Today
+      is Thursday, July 3, 2025. Please note that this is the current date as of today,
+      and it will change tomorrow.\n"}], "role": "model"}, {"parts": [{"text": "What
+      is the current date today?"}], "role": "user"}, {"parts": [{"text": "Today is
+      Thursday, July 3, 2025. Please note that this is the current date as of today,
+      and it will change tomorrow."}], "role": "model"}, {"parts": [{"text": "What
+      data is in this JSON file?"}, {"text": "[File: tmpg667xg15.json]\n{\"test\":
       \"data\", \"numbers\": [1, 2, 3]}"}], "role": "user"}], "generationConfig":
       {"temperature": 0.7, "maxOutputTokens": 65536}}'
     headers:
@@ -25,40 +19,40 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1331'
+      - '839'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The JSON file contains an object with
-        two keys:\\n\\n*   **\\\"test\\\"**: a string with the value \\\"data\\\"\\n*
-        \  **\\\"numbers\\\"**: an array containing the integers 1, 2, and 3\"\n          }\n
-        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        [\n          {\n            \"text\": \"The JSON file contains the following
+        data:\\n\\n*   A key named \\\"test\\\" with the string value \\\"data\\\".\\n*
+        \  A key named \\\"numbers\\\" with an array of integers: 1, 2, and 3.\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        219,\n    \"candidatesTokenCount\": 48,\n    \"totalTokenCount\": 342,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 219\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 75\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"dBFkaPGIOLfbxs0PjfOr4Ao\"\n}\n"
+        141,\n    \"candidatesTokenCount\": 49,\n    \"totalTokenCount\": 256,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 141\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 66\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"3TFmaKinH7KOxN8Pic7ZoQk\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:48:52 GMT
+      - Thu, 03 Jul 2025 07:31:41 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=989
+      - gfet4t7; dur=831
       Transfer-Encoding:
       - chunked
       Vary:
@@ -72,7 +66,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '713'
+      - '716'
     status:
       code: 200
       message: OK

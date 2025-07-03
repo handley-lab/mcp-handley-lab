@@ -19,34 +19,41 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"That's a great question! Let's figure
-        out what 6 multiplied by 7 is.\\n\\nWhen we calculate 6 x 7, we are adding
-        6 groups of 7, or 7 groups of 6.\\n\\n6 x 7 = 42\\n\\nSo, 6 multiplied by
-        7 is **42**.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        out what 6 x 7 is step by step.\\n\\n**Step 1: Understand what multiplication
+        means.**\\nWhen we say \\\"6 x 7,\\\" it means we want to find the total if
+        we have 6 groups of 7, or 7 groups of 6.\\n\\n**Step 2: Use repeated addition
+        (one way to think about it).**\\nIf we think of 6 groups of 7, we can add
+        the number 7 six times:\\n7 + 7 + 7 + 7 + 7 + 7\\n\\nLet's add them up:\\n*
+        \  7 + 7 = 14\\n*   14 + 7 = 21\\n*   21 + 7 = 28\\n*   28 + 7 = 35\\n*   35
+        + 7 = 42\\n\\n**Step 3: Another way to break it down (using facts you might
+        know).**\\nYou can also think of it as:\\n*   (6 x 5) + (6 x 2)\\n*   We know
+        6 x 5 = 30\\n*   And we know 6 x 2 = 12\\n*   So, 30 + 12 = 42\\n\\n**Answer:**\\nTherefore,
+        6 x 7 = **42**\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
         \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
-        {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\": 72,\n    \"totalTokenCount\":
-        135,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 32\n      }\n    ],\n    \"thoughtsTokenCount\": 31\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"mRFkaLWUIqDnxN8Ps8SmwAU\"\n}\n"
+        {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\": 301,\n    \"totalTokenCount\":
+        815,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 32\n      }\n    ],\n    \"thoughtsTokenCount\": 482\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"ADJmaPTtCdCGxs0PpoPC8As\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:29 GMT
+      - Thu, 03 Jul 2025 07:32:16 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1271
+      - gfet4t7; dur=4242
       Transfer-Encoding:
       - chunked
       Vary:
@@ -60,20 +67,26 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '736'
+      - '1274'
     status:
       code: 200
       message: OK
 - request:
     body: '{"contents": [{"parts": [{"text": "Remember that I''m learning multiplication
       tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "That''s a great
-      question! Let''s figure out what 6 multiplied by 7 is.\n\nWhen we calculate
-      6 x 7, we are adding 6 groups of 7, or 7 groups of 6.\n\n6 x 7 = 42\n\nSo, 6
-      multiplied by 7 is **42**."}], "role": "model"}, {"parts": [{"text": "Now test
-      me: what multiplication problem did I just ask about?"}], "role": "user"}],
-      "systemInstruction": {"parts": [{"text": "You are a math tutor who always shows
-      your work step by step"}], "role": "user"}, "generationConfig": {"temperature":
-      0.7, "maxOutputTokens": 65536}}'
+      question! Let''s figure out what 6 x 7 is step by step.\n\n**Step 1: Understand
+      what multiplication means.**\nWhen we say \"6 x 7,\" it means we want to find
+      the total if we have 6 groups of 7, or 7 groups of 6.\n\n**Step 2: Use repeated
+      addition (one way to think about it).**\nIf we think of 6 groups of 7, we can
+      add the number 7 six times:\n7 + 7 + 7 + 7 + 7 + 7\n\nLet''s add them up:\n*   7
+      + 7 = 14\n*   14 + 7 = 21\n*   21 + 7 = 28\n*   28 + 7 = 35\n*   35 + 7 = 42\n\n**Step
+      3: Another way to break it down (using facts you might know).**\nYou can also
+      think of it as:\n*   (6 x 5) + (6 x 2)\n*   We know 6 x 5 = 30\n*   And we know
+      6 x 2 = 12\n*   So, 30 + 12 = 42\n\n**Answer:**\nTherefore, 6 x 7 = **42**"}],
+      "role": "model"}, {"parts": [{"text": "Now test me: what multiplication problem
+      did I just ask about?"}], "role": "user"}], "systemInstruction": {"parts": [{"text":
+      "You are a math tutor who always shows your work step by step"}], "role": "user"},
+      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
     headers:
       accept:
       - '*/*'
@@ -82,39 +95,39 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '655'
+      - '1191'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Great memory check!\\n\\nYou just
-        asked about the multiplication problem: **6 x 7**.\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        119,\n    \"candidatesTokenCount\": 19,\n    \"totalTokenCount\": 176,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 119\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 38\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"mhFkaOHLC_jUxs0P_I3bQA\"\n}\n"
+        [\n          {\n            \"text\": \"You just asked about **6 x 7**!\\n\\nIt's
+        great to see you reviewing what we just covered. Keep up the excellent work!\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        348,\n    \"candidatesTokenCount\": 31,\n    \"totalTokenCount\": 419,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 348\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 40\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"ATJmaLLoBOuHxs0P0vj1mQI\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:30 GMT
+      - Thu, 03 Jul 2025 07:32:17 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=588
+      - gfet4t7; dur=770
       Transfer-Encoding:
       - chunked
       Vary:
@@ -128,7 +141,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '626'
+      - '661'
     status:
       code: 200
       message: OK

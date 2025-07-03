@@ -40,30 +40,30 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BoYReyAxk26z3wnS34fG3BNNLxVOp\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751388506,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bp8kVkEmG7cSaCY8TQ3NvVVqcJ9ub\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751528059,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"Recursion in programming is a technique
-        where a function calls itself in order to solve a problem. This approach allows
-        a problem to be broken down into smaller, more manageable sub-problems, often
-        leading to a more elegant and simpler solution. A recursive function\",\n
-        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
-        null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n  \"usage\": {\n
-        \   \"prompt_tokens\": 16,\n    \"completion_tokens\": 50,\n    \"total_tokens\":
-        66,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\":
-        0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\":
-        0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n
-        \     \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        where a function calls itself in order to solve a problem. This method involves
+        breaking down a complex problem into simpler subproblems, which can be solved
+        independently. A recursive function typically has a base case that defines
+        when\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 16,\n    \"completion_tokens\": 50,\n
+        \   \"total_tokens\": 66,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 95876411eec4bd7b-LHR
+      - 9594b3230aacb3b4-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 16:48:26 GMT
+      - Thu, 03 Jul 2025 07:34:20 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -77,17 +77,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1075'
+      - '1086'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '861'
+      - '1211'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '864'
+      - '1215'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -101,7 +101,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_eda5f984f690948b091f54ba66437031
+      - req_0a40b4557d4e9fd0fea8d7b97ed9f231
     status:
       code: 200
       message: OK

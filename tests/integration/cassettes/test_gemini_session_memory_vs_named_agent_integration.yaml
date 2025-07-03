@@ -17,32 +17,36 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Okay, I've noted that your favorite
-        number is 42!\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        [\n          {\n            \"text\": \"Got it! I've noted that your favorite
+        number is 42.\\n\\nIt's a great number, by the way!\\n\\nHowever, please remember
+        that as an AI, I don't have a personal memory that carries over between different
+        conversations or sessions. If you'd like me to know it in a future chat, you'd
+        need to remind me.\\n\\nBut I'll certainly keep it in mind for our *current*
+        discussion!\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
         \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
-        {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\": 15,\n    \"totalTokenCount\":
-        53,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 10\n      }\n    ],\n    \"thoughtsTokenCount\": 28\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"sBFkaIroNuHWvdIP1dKHoQE\"\n}\n"
+        {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\": 94,\n    \"totalTokenCount\":
+        838,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 10\n      }\n    ],\n    \"thoughtsTokenCount\": 734\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"HjJmaKn_AdCGxN8P0LWUgAw\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:52 GMT
+      - Thu, 03 Jul 2025 07:32:46 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1251
+      - gfet4t7; dur=4832
       Transfer-Encoding:
       - chunked
       Vary:
@@ -56,15 +60,19 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '591'
+      - '907'
     status:
       code: 200
       message: OK
 - request:
     body: '{"contents": [{"parts": [{"text": "Remember that my favorite number is
-      42"}], "role": "user"}, {"parts": [{"text": "Okay, I''ve noted that your favorite
-      number is 42!"}], "role": "model"}, {"parts": [{"text": "What is my favorite
-      number?"}], "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      42"}], "role": "user"}, {"parts": [{"text": "Got it! I''ve noted that your favorite
+      number is 42.\n\nIt''s a great number, by the way!\n\nHowever, please remember
+      that as an AI, I don''t have a personal memory that carries over between different
+      conversations or sessions. If you''d like me to know it in a future chat, you''d
+      need to remind me.\n\nBut I''ll certainly keep it in mind for our *current*
+      discussion!"}], "role": "model"}, {"parts": [{"text": "What is my favorite number?"}],
+      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
       65536}}'
     headers:
       accept:
@@ -74,15 +82,15 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '326'
+      - '640'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
@@ -91,21 +99,21 @@ interactions:
         [\n          {\n            \"text\": \"Your favorite number is 42!\"\n          }\n
         \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        33,\n    \"candidatesTokenCount\": 8,\n    \"totalTokenCount\": 66,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 33\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 25\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"sRFkaI3vLPHXvdIP79mWgAs\"\n}\n"
+        112,\n    \"candidatesTokenCount\": 8,\n    \"totalTokenCount\": 166,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 112\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 46\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"HjJmaPfFKamDxs0Pve7SiAw\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:53 GMT
+      - Thu, 03 Jul 2025 07:32:46 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=810
+      - gfet4t7; dur=572
       Transfer-Encoding:
       - chunked
       Vary:
@@ -119,7 +127,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '568'
+      - '571'
     status:
       code: 200
       message: OK
@@ -140,34 +148,34 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Triple sevens! That's a classic lucky
-        number, often associated with jackpots and good fortune.\\n\\nMay it bring
-        you lots of good luck!\"\n          }\n        ],\n        \"role\": \"model\"\n
-        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
-        \ \"usageMetadata\": {\n    \"promptTokenCount\": 9,\n    \"candidatesTokenCount\":
-        31,\n    \"totalTokenCount\": 710,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 9\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 670\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"thFkaN6wDvqKvdIPk-3Q8A4\"\n}\n"
+        [\n          {\n            \"text\": \"That's a fantastic lucky number! 777
+        is widely recognized as a symbol of good fortune, especially as the ultimate
+        jackpot in many slot machines.\\n\\nHope it brings you lots of good luck!\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        9,\n    \"candidatesTokenCount\": 42,\n    \"totalTokenCount\": 763,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 9\n      }\n
+        \   ],\n    \"thoughtsTokenCount\": 712\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"IzJmaKeaKKqxxN8PxZWOqAs\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:58 GMT
+      - Thu, 03 Jul 2025 07:32:51 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=4456
+      - gfet4t7; dur=4823
       Transfer-Encoding:
       - chunked
       Vary:
@@ -181,16 +189,17 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '675'
+      - '727'
     status:
       code: 200
       message: OK
 - request:
     body: '{"contents": [{"parts": [{"text": "My lucky number is 777"}], "role": "user"},
-      {"parts": [{"text": "Triple sevens! That''s a classic lucky number, often associated
-      with jackpots and good fortune.\n\nMay it bring you lots of good luck!"}], "role":
-      "model"}, {"parts": [{"text": "What is my lucky number?"}], "role": "user"}],
-      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
+      {"parts": [{"text": "That''s a fantastic lucky number! 777 is widely recognized
+      as a symbol of good fortune, especially as the ultimate jackpot in many slot
+      machines.\n\nHope it brings you lots of good luck!"}], "role": "model"}, {"parts":
+      [{"text": "What is my lucky number?"}], "role": "user"}], "generationConfig":
+      {"temperature": 0.7, "maxOutputTokens": 65536}}'
     headers:
       accept:
       - '*/*'
@@ -199,39 +208,39 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '391'
+      - '443'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Based on what you just told me, your
-        lucky number is **777**!\"\n          }\n        ],\n        \"role\": \"model\"\n
-        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
-        \ \"usageMetadata\": {\n    \"promptTokenCount\": 48,\n    \"candidatesTokenCount\":
-        18,\n    \"totalTokenCount\": 438,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 48\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 372\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"uBFkaLe4L8G7vdIPzau4gAE\"\n}\n"
+        [\n          {\n            \"text\": \"Based on what you told me earlier,
+        your lucky number is **777**!\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 59,\n    \"candidatesTokenCount\":
+        18,\n    \"totalTokenCount\": 381,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 59\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 304\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"JTJmaMqGM4G7xN8PoeHK0Qs\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:50:00 GMT
+      - Thu, 03 Jul 2025 07:32:53 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=2494
+      - gfet4t7; dur=2087
       Transfer-Encoding:
       - chunked
       Vary:
@@ -245,7 +254,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '605'
+      - '608'
     status:
       code: 200
       message: OK

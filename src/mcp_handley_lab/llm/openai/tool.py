@@ -1,23 +1,26 @@
 """OpenAI LLM tool for AI interactions via MCP."""
 import base64
-import io
 import tempfile
-import httpx
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Union
-from openai import AsyncOpenAI
-from PIL import Image
+from typing import Any
+
+import httpx
 from mcp.server.fastmcp import FastMCP
+from openai import AsyncOpenAI
 
 from ...common.config import settings
-from ...common.pricing import calculate_cost
 from ...common.memory import memory_manager
+from ...common.pricing import calculate_cost
 from ..common import (
-    determine_mime_type, is_text_file, resolve_image_data, 
-    handle_output, handle_agent_memory
+    determine_mime_type,
+    is_text_file,
+)
+from ..model_loader import (
+    build_model_configs_dict,
+    format_model_listing,
+    load_model_config,
 )
 from ..shared import process_llm_request
-from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -32,25 +35,27 @@ _config = load_model_config("openai")
 DEFAULT_MODEL = _config["default_model"]
 
 
-def _get_model_config(model: str) -> Dict[str, Any]:
+def _get_model_config(model: str) -> dict[str, Any]:
     """Get token limits and parameter name for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[str]:
+async def _resolve_files(
+    files: list[str | dict[str, str]] | None,
+) -> list[str]:
     """Resolve file inputs to text content for OpenAI Chat Completions.
-    
-    NOTE: Chat Completions API requires all content to be inline. 
+
+    NOTE: Chat Completions API requires all content to be inline.
     Files API is only for Assistants API, not Chat Completions.
-    
+
     Returns list of strings with file contents for inclusion in messages.
     Large files are truncated to prevent token overflow.
     """
     if not files:
         return []
-    
+
     inline_content = []
-    
+
     for file_item in files:
         if isinstance(file_item, str):
             # Direct content string
@@ -63,22 +68,20 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                 # File path - read content directly
                 file_path = Path(file_item["path"])
                 file_size = file_path.stat().st_size
-                
-                if file_size > 1024 * 1024:  # 1MB threshold for Files API
-                    # Large file - use Files API for assistant-compatible upload
-                    uploaded_file = await client.files.create(
-                        file=open(file_path, "rb"),
-                        purpose="assistants"
+
+                if file_size > 1024 * 1024:  # 1MB threshold - truncate large files
+                    # Large file - read first part only to prevent token overflow
+                    content = file_path.read_text(encoding="utf-8")[
+                        :100000
+                    ]  # ~100KB limit
+                    inline_content.append(
+                        f"[File: {file_path.name} (truncated)]\n{content}..."
                     )
-                    file_attachments.append({
-                        "file_id": uploaded_file.id,
-                        "tools": [{"type": "file_search"}]
-                    })
                 else:
                     # Small file - include directly
                     if is_text_file(file_path):
                         # Text file - read as string with header
-                        content = file_path.read_text(encoding='utf-8')
+                        content = file_path.read_text(encoding="utf-8")
                         inline_content.append(f"[File: {file_path.name}]\n{content}")
                     else:
                         # Small binary file - base64 encode with metadata
@@ -88,21 +91,17 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                         inline_content.append(
                             f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
                         )
-    
+
     return inline_content
 
 
-
-
-
-
 def _resolve_images(
-    image_data: Optional[str] = None, 
-    images: Optional[List[Union[str, Dict[str, str]]]] = None
-) -> List[str]:
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
+) -> list[str]:
     """Resolve image inputs to base64 encoded strings for OpenAI."""
     image_list = []
-    
+
     if image_data:
         try:
             if image_data.startswith("data:image"):
@@ -116,8 +115,8 @@ def _resolve_images(
                 encoded = base64.b64encode(image_bytes).decode()
                 image_list.append(f"data:{mime_type};base64,{encoded}")
         except Exception as e:
-            raise ValueError(f"Failed to load image: {e}")
-    
+            raise ValueError(f"Failed to load image: {e}") from e
+
     if images:
         for image_item in images:
             try:
@@ -145,74 +144,73 @@ def _resolve_images(
                         encoded = base64.b64encode(image_bytes).decode()
                         image_list.append(f"data:{mime_type};base64,{encoded}")
             except Exception as e:
-                raise ValueError(f"Failed to load image: {e}")
-    
-    return image_list
+                raise ValueError(f"Failed to load image: {e}") from e
 
+    return image_list
 
 
 async def _openai_generation_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """OpenAI-specific text generation function for the shared processor."""
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 0.7)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Build messages
     messages = []
-    
+
     # Add system instruction if provided
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
-    
+
     # Add history (already in OpenAI format)
     messages.extend(history)
-    
+
     # Resolve files
     inline_content = await _resolve_files(files)
-    
+
     # Add user message with any inline content
     user_content = prompt
     if inline_content:
         user_content += "\n\n" + "\n\n".join(inline_content)
     messages.append({"role": "user", "content": user_content})
-    
+
     # Get model configuration
     model_config = _get_model_config(model)
     param_name = model_config["param"]
     default_tokens = model_config["output_tokens"]
-    
+
     # Build request parameters
     request_params = {
         "model": model,
         "messages": messages,
     }
-    
+
     # Only add temperature for models that support it (reasoning models don't)
     if not model.startswith(("o1", "o3", "o4")):
         request_params["temperature"] = temperature
-    
+
     # Add max tokens with correct parameter name
     if max_output_tokens is not None:
         request_params[param_name] = max_output_tokens
     else:
         request_params[param_name] = default_tokens
-        
+
     # Make API call
     try:
         response = await client.chat.completions.create(**request_params)
     except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {e}")
-    
+        raise RuntimeError(f"OpenAI API error: {e}") from e
+
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
-    
+
     return {
         "text": response.choices[0].message.content,
         "input_tokens": response.usage.prompt_tokens,
@@ -223,75 +221,72 @@ async def _openai_generation_adapter(
 async def _openai_image_analysis_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """OpenAI-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     image_data = kwargs.get("image_data")
     images = kwargs.get("images")
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Load images
     image_list = _resolve_images(image_data, images)
-    
+
     # Enhance prompt based on focus
     if focus != "general":
         prompt = f"Focus on {focus} aspects. {prompt}"
-    
+
     # Build message content with images
     content = [{"type": "text", "text": prompt}]
     for image_url in image_list:
-        content.append({
-            "type": "image_url",
-            "image_url": {"url": image_url}
-        })
-    
+        content.append({"type": "image_url", "image_url": {"url": image_url}})
+
     # Build messages
     messages = []
-    
+
     # Add system instruction if provided
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
-    
+
     # Add history (already in OpenAI format)
     messages.extend(history)
-    
+
     # Add current message with images
     messages.append({"role": "user", "content": content})
-    
+
     # Get model configuration
     model_config = _get_model_config(model)
     param_name = model_config["param"]
     default_tokens = model_config["output_tokens"]
-    
+
     # Build request parameters
     request_params = {
         "model": model,
         "messages": messages,
     }
-    
+
     # Only add temperature for models that support it (reasoning models don't)
     if not model.startswith(("o1", "o3", "o4")):
         request_params["temperature"] = 0.7
-    
+
     # Add max tokens with correct parameter name
     if max_output_tokens is not None:
         request_params[param_name] = max_output_tokens
     else:
         request_params[param_name] = default_tokens
-    
+
     # Make API call
     try:
         response = await client.chat.completions.create(**request_params)
     except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {e}")
-    
+        raise RuntimeError(f"OpenAI API error: {e}") from e
+
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
-    
+
     return {
         "text": response.choices[0].message.content,
         "input_tokens": response.usage.prompt_tokens,
@@ -299,7 +294,8 @@ async def _openai_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
+@mcp.tool(
+    description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
 
 **Agent Recommendation**: For best results, consider creating a specialized agent with memory_manager.create_agent() before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
@@ -375,15 +371,16 @@ ask(
     ],
     max_output_tokens=2000
 )
-```""")
+```"""
+)
 async def ask(
     prompt: str,
-    output_file: Optional[str] = "-",
-    agent_name: Optional[Union[str, bool]] = None,
+    output_file: str | None = "-",
+    agent_name: str | bool | None = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
-    max_output_tokens: Optional[int] = None,
-    files: Optional[List[Union[str, Dict[str, str]]]] = None
+    max_output_tokens: int | None = None,
+    files: list[str | dict[str, str]] | None = None,
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
     return await process_llm_request(
@@ -396,11 +393,12 @@ async def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
+@mcp.tool(
+    description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
 
 **Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
@@ -472,16 +470,17 @@ analyze_image(
     focus="code",
     agent_name="code_reviewer"
 )
-```""")
+```"""
+)
 async def analyze_image(
     prompt: str,
-    output_file: Optional[str] = "-",
-    image_data: Optional[str] = None,
-    images: Optional[List[Union[str, Dict[str, str]]]] = None,
+    output_file: str | None = "-",
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
     focus: str = "general",
     model: str = "gpt-4o",
-    agent_name: Optional[Union[str, bool]] = None,
-    max_output_tokens: Optional[int] = None
+    agent_name: str | bool | None = None,
+    max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with OpenAI vision model."""
     return await process_llm_request(
@@ -495,11 +494,12 @@ async def analyze_image(
         image_data=image_data,
         images=images,
         focus=focus,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
+@mcp.tool(
+    description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
 
 **Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
@@ -560,13 +560,14 @@ Error Handling:
 - Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)
 - Raises ValueError for prompts violating OpenAI's usage policies
 - Image download may fail due to network issues; temporary URLs expire quickly
-- DALL-E 3 may revise prompts for safety compliance""")
+- DALL-E 3 may revise prompts for safety compliance"""
+)
 async def generate_image(
     prompt: str,
     model: str = "dall-e-3",
     quality: str = "standard",
     size: str = "1024x1024",
-    agent_name: Optional[str] = None
+    agent_name: str | None = None,
 ) -> str:
     """Generate images with DALL-E."""
     # Input validation
@@ -574,55 +575,58 @@ async def generate_image(
         raise ValueError("Prompt is required and cannot be empty")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-    
+
     try:
         # Make API call (quality only supported for DALL-E 3)
-        params = {
-            "model": model,
-            "prompt": prompt,
-            "size": size,
-            "n": 1
-        }
+        params = {"model": model, "prompt": prompt, "size": size, "n": 1}
         if model == "dall-e-3":
             params["quality"] = quality
-            
+
         response = await client.images.generate(**params)
-        
+
         # Get the image URL
         image_url = response.data[0].url
-        
+
         # Download and save the image using httpx
         async with httpx.AsyncClient() as http_client:
             image_response = await http_client.get(image_url)
             image_response.raise_for_status()
-            
+
             # Save to temp file
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
                 f.write(image_response.content)
                 saved_path = f.name
-        
+
         # Calculate cost (DALL-E pricing is per image)
         cost = calculate_cost(model, 1, 0, "openai")  # 1 image
-        
+
         # Handle agent memory
         if agent_name:
             agent = memory_manager.get_agent(agent_name)
             if not agent:
                 agent = memory_manager.create_agent(agent_name)
-            
-            memory_manager.add_message(agent_name, "user", f"Generate image: {prompt}", 0, cost / 2)
-            memory_manager.add_message(agent_name, "assistant", f"Image generated and saved to {saved_path}", 0, cost / 2)
-        
+
+            memory_manager.add_message(
+                agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
+            )
+            memory_manager.add_message(
+                agent_name,
+                "assistant",
+                f"Image generated and saved to {saved_path}",
+                0,
+                cost / 2,
+            )
+
         cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
-        
+
         return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n💰 Cost: {cost_str}"
-        
+
     except Exception as e:
-        raise RuntimeError(f"DALL-E API error: {e}")
+        raise RuntimeError(f"DALL-E API error: {e}") from e
 
 
-
-@mcp.tool(description="""Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.
+@mcp.tool(
+    description="""Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.
 
 **Purpose & Benefits:**
 This tool helps users:
@@ -652,22 +656,24 @@ list_models()
 # - "Show me image generation models" → dall-e-3, dall-e-2, gpt-image-1
 # - "What models support vision?" → gpt-4o series, gpt-image-1
 # - "Which models support caching?" → gpt-4.1 series, gpt-4o series
-```""")
+```"""
+)
 async def list_models() -> str:
     """List available OpenAI models with detailed information."""
     try:
         # Get models from API for availability checking
         api_models = await client.models.list()
         api_model_ids = {m.id for m in api_models.data}
-        
+
         # Use YAML-based model listing
         return format_model_listing("openai", api_model_ids)
-        
+
     except Exception as e:
-        raise RuntimeError(f"Failed to list OpenAI models: {e}")
+        raise RuntimeError(f"Failed to list OpenAI models: {e}") from e
 
 
-@mcp.tool(description="""Checks the status of the OpenAI Tool server and API connectivity.
+@mcp.tool(
+    description="""Checks the status of the OpenAI Tool server and API connectivity.
 
 Use this to verify that the tool is operational before making other requests.
 
@@ -682,17 +688,22 @@ Use this to verify that the tool is operational before making other requests.
 ```python
 # Check the server status.
 server_info()
-```""")
+```"""
+)
 async def server_info() -> str:
     """Get server status and OpenAI configuration."""
     try:
         # Test API key by listing models
         models = await client.models.list()
-        available_models = [m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))]
-        
+        available_models = [
+            m.id
+            for m in models.data
+            if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
+        ]
+
         # Get agent count
         agent_count = len(memory_manager.list_agents())
-        
+
         return f"""OpenAI Tool Server Status
 ==========================
 Status: Connected and ready
@@ -710,6 +721,6 @@ Available tools:
 - generate_image: Generate images with DALL-E
 - get_response: Retrieve messages from agent conversation history
 - server_info: Get server status"""
-        
+
     except Exception as e:
-        raise RuntimeError(f"OpenAI API configuration error: {e}")
+        raise RuntimeError(f"OpenAI API configuration error: {e}") from e

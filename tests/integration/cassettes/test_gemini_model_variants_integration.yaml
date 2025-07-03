@@ -17,35 +17,36 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"A prime number is a whole number greater
-        than 1 that can only be divided evenly by two numbers: 1 and itself.\\n\\nFor
-        example, 7 is a prime number because it can only be divided by 1 and 7. The
-        number 6 is not prime because it can be divided by 1, 2, 3, and 6.\"\n          }\n
-        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
-        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        12,\n    \"candidatesTokenCount\": 75,\n    \"totalTokenCount\": 1133,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 12\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 1046\n  },\n  \"modelVersion\":
-        \"gemini-2.5-pro\",\n  \"responseId\": \"rxFkaJ3DJIzXvdIP_KGPiQ8\"\n}\n"
+        than 1 that can only be divided evenly by 1 and itself.\\n\\nFor example,
+        7 is prime because its only divisors are 1 and 7. In contrast, 6 is not prime
+        because it can also be divided by 2 and 3.\\n\\nThe first few prime numbers
+        are 2, 3, 5, 7, 11, and 13.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 12,\n    \"candidatesTokenCount\":
+        91,\n    \"totalTokenCount\": 1489,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 12\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 1386\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"GTJmaNqEBcmGxs0P99bH8Qs\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:51 GMT
+      - Thu, 03 Jul 2025 07:32:41 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=13076
+      - gfet4t7; dur=16186
       Transfer-Encoding:
       - chunked
       Vary:
@@ -59,7 +60,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '803'
+      - '836'
     status:
       code: 200
       message: OK

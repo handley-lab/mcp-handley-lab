@@ -40,8 +40,8 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BoYRQbUZ0fJ4oXz19YVwSGMV7Eqr1\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751388492,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bp8kKETUIIe6eCgq9d9iIuQCOkmdy\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751528048,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"15\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
@@ -53,13 +53,13 @@ interactions:
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 958763bd6be1fd99-MAN
+      - 9594b2da78ffa0a1-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 01 Jul 2025 16:48:12 GMT
+      - Thu, 03 Jul 2025 07:34:08 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -77,13 +77,13 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '218'
+      - '227'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '229'
+      - '245'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -97,7 +97,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_adc2d36f54dd470b8496d79a421e9daf
+      - req_36fe0259d22eeefad9729a2c8d417499
     status:
       code: 200
       message: OK

@@ -2,27 +2,41 @@
 import asyncio
 import base64
 import io
-import tempfile
 import os
+import tempfile
 import time
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Union
-from PIL import Image
-from mcp.server.fastmcp import FastMCP
+from typing import Any
 
 from google import genai as google_genai
-from google.genai.types import GenerateContentConfig, GenerateImagesConfig, Tool, GoogleSearch, GoogleSearchRetrieval, Part, Blob, FileData, Content
-from google.genai.errors import ClientError
+from google.genai.types import (
+    Blob,
+    FileData,
+    GenerateContentConfig,
+    GenerateImagesConfig,
+    GoogleSearch,
+    GoogleSearchRetrieval,
+    Part,
+    Tool,
+)
+from mcp.server.fastmcp import FastMCP
+from PIL import Image
 
 from ...common.config import settings
-from ...common.pricing import calculate_cost, format_usage
 from ...common.memory import memory_manager
+from ...common.pricing import calculate_cost, format_usage
 from ..common import (
-    get_session_id, determine_mime_type, is_text_file, get_gemini_safe_mime_type,
-    resolve_image_data, handle_output, handle_agent_memory
+    get_gemini_safe_mime_type,
+    get_session_id,
+    is_text_file,
+    resolve_image_data,
+)
+from ..model_loader import (
+    build_model_configs_dict,
+    format_model_listing,
+    load_model_config,
 )
 from ..shared import create_client_decorator, process_llm_request
-from ..model_loader import load_model_config, build_model_configs_dict, format_model_listing
 
 mcp = FastMCP("Gemini Tool")
 
@@ -40,27 +54,28 @@ except Exception as e:
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
+
 # Create client decorator with dynamic error message
 def _get_error_message():
     return f"Gemini client not initialized: {initialization_error or 'API key not configured'}"
 
+
 require_client = create_client_decorator(
-    lambda: client is not None,
-    _get_error_message()
+    lambda: client is not None, _get_error_message()
 )
 
 
-def _convert_history_to_gemini_format(history: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+def _convert_history_to_gemini_format(
+    history: list[dict[str, str]],
+) -> list[dict[str, Any]]:
     """Convert generic history to Gemini's expected format."""
     gemini_history = []
     for message in history:
         # Map "assistant" role to "model" for Gemini
         role = "model" if message["role"] == "assistant" else message["role"]
-        gemini_history.append({
-            "role": role,
-            "parts": [{"text": message["content"]}]
-        })
+        gemini_history.append({"role": role, "parts": [{"text": message["content"]}]})
     return gemini_history
+
 
 # Load model configurations from YAML
 MODEL_CONFIGS = build_model_configs_dict("gemini")
@@ -75,20 +90,22 @@ def _get_session_id() -> str:
     return get_session_id(mcp)
 
 
-def _get_model_config(model: str) -> Dict[str, int]:
+def _get_model_config(model: str) -> dict[str, int]:
     """Get token limits for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> List[Part]:
+async def _resolve_files(
+    files: list[str | dict[str, str]] | None,
+) -> list[Part]:
     """Resolve file inputs to structured content parts for google-genai API.
-    
+
     Uses inlineData for files <20MB and Files API for larger files.
     Returns list of Part objects that can be included in contents.
     """
     if not files:
         return []
-    
+
     parts = []
     for file_item in files:
         if isinstance(file_item, str):
@@ -102,15 +119,15 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                 # File path - determine optimal handling based on size
                 file_path = Path(file_item["path"])
                 file_size = file_path.stat().st_size
-                
+
                 if file_size > 20 * 1024 * 1024:  # 20MB threshold
                     # Large file - use Files API
-                    def _sync_upload_file():
+                    def _sync_upload_file(path=file_path):
                         return client.files.upload(
-                            file=str(file_path),
-                            mime_type=get_gemini_safe_mime_type(file_path)
+                            file=str(path),
+                            mime_type=get_gemini_safe_mime_type(path),
                         )
-                    
+
                     loop = asyncio.get_running_loop()
                     uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
                     parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
@@ -118,41 +135,39 @@ async def _resolve_files(files: Optional[List[Union[str, Dict[str, str]]]]) -> L
                     # Small file - use inlineData with base64 encoding
                     if is_text_file(file_path):
                         # For text files, read directly as text
-                        content = file_path.read_text(encoding='utf-8')
+                        content = file_path.read_text(encoding="utf-8")
                         parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
                     else:
                         # For binary files, use inlineData
                         file_content = file_path.read_bytes()
                         encoded_content = base64.b64encode(file_content).decode()
-                        parts.append(Part(
-                            inlineData=Blob(
-                                mimeType=get_gemini_safe_mime_type(file_path),
-                                data=encoded_content
+                        parts.append(
+                            Part(
+                                inlineData=Blob(
+                                    mimeType=get_gemini_safe_mime_type(file_path),
+                                    data=encoded_content,
+                                )
                             )
-                        ))
-    
+                        )
+
     return parts
 
 
-
-
-
-
 def _resolve_images(
-    image_data: Optional[str] = None, 
-    images: Optional[List[Union[str, Dict[str, str]]]] = None
-) -> List[Image.Image]:
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
+) -> list[Image.Image]:
     """Resolve image inputs to PIL Image objects."""
     image_list = []
-    
+
     # Handle single image_data parameter
     if image_data:
         try:
             image_bytes = resolve_image_data(image_data)
             image_list.append(Image.open(io.BytesIO(image_bytes)))
         except Exception as e:
-            raise ValueError(f"Failed to load image: {e}")
-    
+            raise ValueError(f"Failed to load image: {e}") from e
+
     # Handle images array
     if images:
         for image_item in images:
@@ -160,26 +175,25 @@ def _resolve_images(
                 image_bytes = resolve_image_data(image_item)
                 image_list.append(Image.open(io.BytesIO(image_bytes)))
             except Exception as e:
-                raise ValueError(f"Failed to load image: {e}")
-    
-    return image_list
+                raise ValueError(f"Failed to load image: {e}") from e
 
+    return image_list
 
 
 async def _gemini_generation_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """Gemini-specific text generation function for the shared processor."""
     # Extract Gemini-specific parameters
     temperature = kwargs.get("temperature", 0.7)
     grounding = kwargs.get("grounding", False)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Configure tools for grounding if requested
     tools = []
     if grounding:
@@ -187,15 +201,19 @@ async def _gemini_generation_adapter(
             tools.append(Tool(google_search_retrieval=GoogleSearchRetrieval()))
         else:
             tools.append(Tool(google_search=GoogleSearch()))
-    
+
     # Resolve file contents
     file_parts = await _resolve_files(files)
-    
+
     # Get model configuration and token limits
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
-    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
-    
+    output_tokens = (
+        min(max_output_tokens, max_output)
+        if max_output_tokens is not None
+        else max_output
+    )
+
     # Prepare config
     config_params = {
         "temperature": temperature,
@@ -205,36 +223,47 @@ async def _gemini_generation_adapter(
         config_params["system_instruction"] = system_instruction
     if tools:
         config_params["tools"] = tools
-    
+
     config = GenerateContentConfig(**config_params)
     loop = asyncio.get_running_loop()
-    
+
     # Convert history to Gemini format
     gemini_history = _convert_history_to_gemini_format(history)
-    
+
     # Generate content (cancellation handled by process_llm_request wrapper)
     if gemini_history:
         # Continue existing conversation
         user_parts = [Part(text=prompt)] + file_parts
-        contents = gemini_history + [{"role": "user", "parts": [part.to_json_dict() for part in user_parts]}]
-        response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-            model=model, contents=contents, config=config
-        ))
+        contents = gemini_history + [
+            {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
+        ]
+        response = await loop.run_in_executor(
+            None,
+            lambda: client.models.generate_content(
+                model=model, contents=contents, config=config
+            ),
+        )
     else:
         # New conversation
         if file_parts:
             content_parts = [Part(text=prompt)] + file_parts
-            response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                model=model, contents=content_parts, config=config
-            ))
+            response = await loop.run_in_executor(
+                None,
+                lambda: client.models.generate_content(
+                    model=model, contents=content_parts, config=config
+                ),
+            )
         else:
-            response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-                model=model, contents=prompt, config=config
-            ))
-    
+            response = await loop.run_in_executor(
+                None,
+                lambda: client.models.generate_content(
+                    model=model, contents=prompt, config=config
+                ),
+            )
+
     if not response.text:
         raise RuntimeError("No response text generated")
-    
+
     return {
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
@@ -245,50 +274,53 @@ async def _gemini_generation_adapter(
 async def _gemini_image_analysis_adapter(
     prompt: str,
     model: str,
-    history: List[Dict[str, str]],
-    system_instruction: Optional[str],
-    **kwargs
-) -> Dict[str, Any]:
+    history: list[dict[str, str]],
+    system_instruction: str | None,
+    **kwargs,
+) -> dict[str, Any]:
     """Gemini-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     image_data = kwargs.get("image_data")
     images = kwargs.get("images")
     max_output_tokens = kwargs.get("max_output_tokens")
-    
+
     # Load images
     image_list = _resolve_images(image_data, images)
-    
+
     # Get model configuration
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
-    output_tokens = min(max_output_tokens, max_output) if max_output_tokens is not None else max_output
-    
+    output_tokens = (
+        min(max_output_tokens, max_output)
+        if max_output_tokens is not None
+        else max_output
+    )
+
     # Prepare content with images
     content = [prompt] + image_list
-    
+
     # Prepare the config
-    config_params = {
-        "max_output_tokens": output_tokens,
-        "temperature": 0.7
-    }
+    config_params = {"max_output_tokens": output_tokens, "temperature": 0.7}
     if system_instruction:
         config_params["system_instruction"] = system_instruction
-    
+
     config = GenerateContentConfig(**config_params)
-    
-    # Convert history to Gemini format  
-    gemini_history = _convert_history_to_gemini_format(history)
-    
+
+    # Convert history to Gemini format
+    _convert_history_to_gemini_format(history)
+
     # Generate response - image analysis starts fresh conversation (cancellation handled by process_llm_request wrapper)
     def _sync_generate_content_image():
-        return client.models.generate_content(model=model, contents=content, config=config)
-    
+        return client.models.generate_content(
+            model=model, contents=content, config=config
+        )
+
     loop = asyncio.get_running_loop()
     response = await loop.run_in_executor(None, _sync_generate_content_image)
-    
+
     if not response.text:
         raise RuntimeError("No response text generated")
-    
+
     return {
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
@@ -296,7 +328,8 @@ async def _gemini_image_analysis_adapter(
     }
 
 
-@mcp.tool(description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
+@mcp.tool(
+    description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
 
 **Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
@@ -308,7 +341,7 @@ CRITICAL: The `output_file` parameter is REQUIRED. Use:
 
 File Input Formats:
 - {"path": "/path/to/file"} - Reads file from filesystem
-- {"content": "text content"} - Uses provided text directly  
+- {"content": "text content"} - Uses provided text directly
 - "direct string" - Treats string as literal content
 
 Key Parameters:
@@ -351,20 +384,21 @@ ask(
     agent_name=False,
     grounding=True
 )
-```""")
+```"""
+)
 @require_client
 async def ask(
     prompt: str,
-    output_file: Optional[str] = "-",
-    agent_name: Optional[Union[str, bool]] = None,
+    output_file: str | None = "-",
+    agent_name: str | bool | None = None,
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     grounding: bool = False,
-    files: Optional[List[Union[str, Dict[str, str]]]] = None,
-    max_output_tokens: Optional[int] = None
+    files: list[str | dict[str, str]] | None = None,
+    max_output_tokens: int | None = None,
 ) -> str:
     """Ask Gemini a question with optional persistent memory.
-    
+
     Args:
         prompt: The question or instruction to send to Gemini
         output_file: Output destination - use '-' for immediate stdout (default, faster for short queries) or file path for longer responses
@@ -374,12 +408,12 @@ async def ask(
         grounding: Enable Google Search integration for current information
         files: List of files to include as context
         max_output_tokens: Override model's default output token limit
-    
+
     Token Limits by Model:
         - gemini-2.5-flash/pro: 65,536 tokens (default)
         - gemini-1.5-flash/pro: 8,192 tokens (default)
         - Use max_output_tokens parameter to override defaults
-    
+
     Example with custom token limit:
         ask(prompt="Write a long essay", model="gemini-2.5-flash", max_output_tokens=32000)
     """
@@ -394,11 +428,12 @@ async def ask(
         temperature=temperature,
         grounding=grounding,
         files=files,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
+@mcp.tool(
+    description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
 
 **Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
@@ -464,17 +499,18 @@ analyze_image(
     image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
     agent_name=False
 )
-```""")
+```"""
+)
 @require_client
 async def analyze_image(
     prompt: str,
-    output_file: Optional[str] = "-",
-    image_data: Optional[str] = None,
-    images: Optional[List[Union[str, Dict[str, str]]]] = None,
+    output_file: str | None = "-",
+    image_data: str | None = None,
+    images: list[str | dict[str, str]] | None = None,
     focus: str = "general",
     model: str = DEFAULT_MODEL,
-    agent_name: Optional[Union[str, bool]] = None,
-    max_output_tokens: Optional[int] = None
+    agent_name: str | bool | None = None,
+    max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with Gemini vision model."""
     return await process_llm_request(
@@ -488,11 +524,12 @@ async def analyze_image(
         image_data=image_data,
         images=images,
         focus=focus,
-        max_output_tokens=max_output_tokens
+        max_output_tokens=max_output_tokens,
     )
 
 
-@mcp.tool(description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
+@mcp.tool(
+    description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
 
 **Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
@@ -539,12 +576,11 @@ Note: Generated images are automatically saved to temporary files. Use the retur
 Error Handling:
 - Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
 - Raises ValueError for prompts that violate content policies
-- Generated images are PNG format, saved to system temp directory""")
+- Generated images are PNG format, saved to system temp directory"""
+)
 @require_client
 async def generate_image(
-    prompt: str,
-    model: str = "imagen-3",
-    agent_name: Optional[Union[str, bool]] = None
+    prompt: str, model: str = "imagen-3", agent_name: str | bool | None = None
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
     # Input validation
@@ -552,79 +588,85 @@ async def generate_image(
         raise ValueError("Prompt is required and cannot be empty")
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
-    
+
     # Map model names to actual model IDs
     model_mapping = {
         "imagen-3": "imagen-3.0-generate-002",
         "image": "imagen-3.0-generate-002",
-        "image-flash": "imagen-3.0-generate-002"
+        "image-flash": "imagen-3.0-generate-002",
     }
-    
+
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
-    
+
     try:
         # Generate image
         def _sync_generate_images():
             return client.models.generate_images(
                 model=actual_model,
                 prompt=prompt,
-                config=GenerateImagesConfig(
-                    number_of_images=1,
-                    aspect_ratio="1:1"
-                )
+                config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
             )
-        
+
         loop = asyncio.get_running_loop()
         response = await loop.run_in_executor(None, _sync_generate_images)
-        
+
         if not response.generated_images:
             raise RuntimeError("No images were generated")
-        
+
         # Save the generated image
         generated_image = response.generated_images[0]
         if not generated_image.image or not generated_image.image.image_bytes:
             raise RuntimeError("Generated image has no data")
-        
+
         # Save to temporary file
         import uuid
+
         file_id = str(uuid.uuid4())[:8]
         filename = f"gemini_generated_{file_id}.png"
         filepath = Path(tempfile.gettempdir()) / filename
-        
+
         filepath.write_bytes(generated_image.image.image_bytes)
-        
+
         # Calculate usage and cost (estimate)
         input_tokens = len(prompt.split()) * 2  # Rough estimate
         output_tokens = 1  # Image generation
         cost = calculate_cost(actual_model, input_tokens, output_tokens, "gemini")
-        
+
         # Handle agent memory (only if enabled)
         use_memory = agent_name is not False
-        
+
         if use_memory:
             # Use session-specific agent if no agent_name provided
             if not agent_name:
                 agent_name = _get_session_id()
-            
+
             agent = memory_manager.get_agent(agent_name)
             if not agent:
                 agent = memory_manager.create_agent(agent_name)
-            
-            memory_manager.add_message(agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2)
-            memory_manager.add_message(agent_name, "assistant", f"Generated image saved to {filepath}", output_tokens, cost / 2)
-        
+
+            memory_manager.add_message(
+                agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2
+            )
+            memory_manager.add_message(
+                agent_name,
+                "assistant",
+                f"Generated image saved to {filepath}",
+                output_tokens,
+                cost / 2,
+            )
+
         # Format response
         file_size = len(generated_image.image.image_bytes)
         usage_info = format_usage(input_tokens, output_tokens, cost)
-        
+
         return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
-        
+
     except Exception as e:
-        raise RuntimeError(f"Error generating image with Imagen: {e}")
+        raise RuntimeError(f"Error generating image with Imagen: {e}") from e
 
 
-
-@mcp.tool(description="""Retrieves a comprehensive catalog of all available Gemini models to aid in model discovery and selection.
+@mcp.tool(
+    description="""Retrieves a comprehensive catalog of all available Gemini models to aid in model discovery and selection.
 
 **Purpose & Benefits:**
 This tool helps users:
@@ -636,7 +678,7 @@ This tool helps users:
 **Returns:**
 Formatted listing with detailed information including:
 - Model IDs and descriptions
-- Context windows and token limits  
+- Context windows and token limits
 - Pricing per 1M tokens (tiered, modality-based, or per-image/second)
 - Capabilities (text generation, image understanding, multimodal, etc.)
 - Recommended use cases and performance characteristics
@@ -653,7 +695,8 @@ list_models()
 # - "Which model has the largest context?" → gemini-2.5-pro (2M tokens)
 # - "Show me image generation models" → imagen-4, imagen-4-ultra, imagen-3
 # - "What models support video generation?" → veo-2 ($0.35/second)
-```""")
+```"""
+)
 @require_client
 async def list_models() -> str:
     """List available Gemini models with detailed information."""
@@ -661,19 +704,20 @@ async def list_models() -> str:
         # Get models from API
         def _sync_list_models():
             return client.models.list()
-        
+
         loop = asyncio.get_running_loop()
         models_response = await loop.run_in_executor(None, _sync_list_models)
-        api_model_names = {model.name.split('/')[-1] for model in models_response}
-        
+        api_model_names = {model.name.split("/")[-1] for model in models_response}
+
         # Use YAML-based model listing
         return format_model_listing("gemini", api_model_names)
-        
+
     except Exception as e:
-        raise RuntimeError(f"Failed to list Gemini models: {e}")
+        raise RuntimeError(f"Failed to list Gemini models: {e}") from e
 
 
-@mcp.tool(description="""Checks the status of the Gemini Tool server and API connectivity.
+@mcp.tool(
+    description="""Checks the status of the Gemini Tool server and API connectivity.
 
 Use this to verify that the tool is operational before making other requests.
 
@@ -688,7 +732,8 @@ Use this to verify that the tool is operational before making other requests.
 ```python
 # Check the server status.
 server_info()
-```""")
+```"""
+)
 @require_client
 async def server_info() -> str:
     """Get server status and Gemini configuration."""
@@ -696,17 +741,17 @@ async def server_info() -> str:
         # Test API by listing models
         def _sync_list_models():
             return client.models.list()
-        
+
         loop = asyncio.get_running_loop()
         models_response = await loop.run_in_executor(None, _sync_list_models)
         available_models = []
         for model in models_response:
-            if 'gemini' in model.name:
-                available_models.append(model.name.split('/')[-1])
-        
+            if "gemini" in model.name:
+                available_models.append(model.name.split("/")[-1])
+
         # Get agent count
         agent_count = len(memory_manager.list_agents())
-        
+
         return f"""Gemini Tool Server Status
 ==========================
 Status: Connected and ready
@@ -729,6 +774,6 @@ Available tools:
 - clear_agent: Clear agent conversation history
 - delete_agent: Permanently delete agents
 - server_info: Get server status"""
-        
+
     except Exception as e:
-        raise RuntimeError(f"Gemini API configuration error: {e}")
+        raise RuntimeError(f"Gemini API configuration error: {e}") from e

@@ -1,12 +1,13 @@
 """Vim tool for interactive text editing via MCP."""
 import asyncio
+import difflib
 import os
 import subprocess
 import tempfile
-import difflib
-import shutil
 from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
+
 from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("Vim Tool")
@@ -14,8 +15,8 @@ mcp = FastMCP("Vim Tool")
 
 async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
     """Run vim directly using async subprocess with cancellation support."""
-    vim_cmd = ['vim'] + (vim_args or []) + [file_path]
-    
+    vim_cmd = ["vim"] + (vim_args or []) + [file_path]
+
     try:
         # Check if we have a TTY - if yes, run vim directly
         if os.isatty(0):  # stdin is a tty
@@ -23,7 +24,7 @@ async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
                 *vim_cmd,
                 stdin=None,  # Use inherited stdin for TTY
                 stdout=None,  # Use inherited stdout
-                stderr=None   # Use inherited stderr
+                stderr=None,  # Use inherited stderr
             )
             await process.wait()
             if process.returncode != 0:
@@ -35,30 +36,32 @@ async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
                 *vim_cmd,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             await process.wait()
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(process.returncode, vim_cmd)
     except asyncio.CancelledError:
         # If vim process exists, terminate it gracefully
-        if 'process' in locals() and process.returncode is None:
+        if "process" in locals() and process.returncode is None:
             try:
                 process.terminate()
                 await asyncio.wait_for(process.wait(), timeout=2.0)
             except asyncio.TimeoutError:
                 process.kill()
                 await process.wait()
-        raise UserCancelledError("Vim editing was cancelled by user")
+        raise UserCancelledError("Vim editing was cancelled by user") from None
 
 
-def _handle_instructions_and_content(temp_path: str, suffix: str, instructions: str, initial_content: str) -> None:
+def _handle_instructions_and_content(
+    temp_path: str, suffix: str, instructions: str, initial_content: str
+) -> None:
     """Write content with optional instructions to temp file."""
-    comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
-    
-    with open(temp_path, 'w') as f:
+    comment_char = "#" if suffix in [".py", ".sh", ".yaml", ".yml"] else "//"
+
+    with open(temp_path, "w") as f:
         if instructions:
-            for line in instructions.strip().split('\n'):
+            for line in instructions.strip().split("\n"):
                 f.write(f"{comment_char} {line}\n")
             f.write(f"{comment_char} {'='*60}\n\n")
         f.write(initial_content)
@@ -68,17 +71,18 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
     """Remove instruction comments from content."""
     if not instructions:
         return content
-        
-    comment_char = '#' if suffix in ['.py', '.sh', '.yaml', '.yml'] else '//'
-    lines = content.split('\n')
-    
+
+    comment_char = "#" if suffix in [".py", ".sh", ".yaml", ".yml"] else "//"
+    lines = content.split("\n")
+
     for i, line in enumerate(lines):
-        if line.strip() == comment_char + ' ' + '='*60:
-            return '\n'.join(lines[i+2:])  # Skip separator and blank line
+        if line.strip() == comment_char + " " + "=" * 60:
+            return "\n".join(lines[i + 2 :])  # Skip separator and blank line
     return content
 
 
-@mcp.tool(description="""Opens Vim to edit content in a temporary file.
+@mcp.tool(
+    description="""Opens Vim to edit content in a temporary file.
 
 **Key Parameters:**
 - `content`: The initial content to edit.
@@ -102,65 +106,76 @@ prompt_user_edit(
     file_extension=".py",
     instructions="Add a docstring and a print statement."
 )
-```""")
+```"""
+)
 async def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
     instructions: str = None,
     show_diff: bool = True,
-    keep_file: bool = False
+    keep_file: bool = False,
 ) -> str:
     """Open vim for editing provided content."""
     # Create temp file with proper extension
-    suffix = file_extension if file_extension.startswith('.') else f".{file_extension}"
+    suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
-    
+
     try:
         # Write initial content with optional instructions
         os.close(fd)  # Close file descriptor so we can use regular file operations
         _handle_instructions_and_content(temp_path, suffix, instructions, content)
-        
+
         # Open vim
         await _run_vim(temp_path)
-        
+
         # Read edited content
         with open(temp_path) as f:
             edited_content = f.read()
-        
+
         # Remove instruction comments if present
         edited_content = _strip_instructions(edited_content, instructions, suffix)
-        
+
         if show_diff:
             # Calculate diff
             original_lines = content.splitlines(keepends=True)
             edited_lines = edited_content.splitlines(keepends=True)
-            
-            diff = list(difflib.unified_diff(
-                original_lines,
-                edited_lines,
-                fromfile="original",
-                tofile="edited"
-            ))
-            
+
+            diff = list(
+                difflib.unified_diff(
+                    original_lines, edited_lines, fromfile="original", tofile="edited"
+                )
+            )
+
             if diff:
-                added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
-                removed = sum(1 for line in diff if line.startswith('-') and not line.startswith('---'))
-                
-                result = f"Changes made: {added} lines added, {removed} lines removed\n\n"
-                result += ''.join(diff)
+                added = sum(
+                    1
+                    for line in diff
+                    if line.startswith("+") and not line.startswith("+++")
+                )
+                removed = sum(
+                    1
+                    for line in diff
+                    if line.startswith("-") and not line.startswith("---")
+                )
+
+                result = (
+                    f"Changes made: {added} lines added, {removed} lines removed\n\n"
+                )
+                result += "".join(diff)
             else:
                 result = "No changes made"
         else:
             result = edited_content
-        
+
         return result
-        
+
     finally:
         if not keep_file:
             os.unlink(temp_path)
 
 
-@mcp.tool(description="""Opens Vim to create new content from scratch with optional starting content and instructions.
+@mcp.tool(
+    description="""Opens Vim to create new content from scratch with optional starting content and instructions.
 
 Creates a temporary file with optional initial content and instructions, opens Vim for editing, then returns the final content.
 
@@ -206,39 +221,41 @@ quick_edit(
     instructions="Create a deployment script",
     initial_content="#!/bin/bash\nset -e\n\n"
 )
-```""")
+```"""
+)
 async def quick_edit(
-    file_extension: str = ".txt",
-    instructions: str = None,
-    initial_content: str = ""
+    file_extension: str = ".txt", instructions: str = None, initial_content: str = ""
 ) -> str:
     """Open vim for creating new content."""
     # Create temp file
-    suffix = file_extension if file_extension.startswith('.') else f".{file_extension}"
+    suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
-    
+
     try:
         # Write initial content with optional instructions
         os.close(fd)  # Close file descriptor so we can use regular file operations
-        _handle_instructions_and_content(temp_path, suffix, instructions, initial_content)
-        
+        _handle_instructions_and_content(
+            temp_path, suffix, instructions, initial_content
+        )
+
         # Open vim
         await _run_vim(temp_path)
-        
+
         # Read content
         with open(temp_path) as f:
             content = f.read()
-        
+
         # Remove instruction comments if present
         content = _strip_instructions(content, instructions, suffix)
-        
+
         return content
-        
+
     finally:
         os.unlink(temp_path)
 
 
-@mcp.tool(description="""Opens an existing file in Vim for editing with optional instructions and automatic backup.
+@mcp.tool(
+    description="""Opens an existing file in Vim for editing with optional instructions and automatic backup.
 
 Opens the specified file directly in Vim. If instructions are provided, they are shown in a read-only buffer first, then the actual file opens for editing.
 
@@ -297,98 +314,112 @@ Error Handling:
 - Raises FileNotFoundError if file path is invalid or inaccessible
 - Raises PermissionError if file cannot be read or written
 - Backup creation failures are logged but don't prevent editing
-- Instructions display errors don't prevent file editing""")
+- Instructions display errors don't prevent file editing"""
+)
 async def open_file(
     file_path: str,
     instructions: str = None,
     show_diff: bool = True,
-    backup: bool = True
+    backup: bool = True,
 ) -> str:
     """Open existing file in vim."""
     path = Path(file_path)
-    
+
     # Read original content
     original_content = path.read_text()
-    
+
     # Create backup if requested
     if backup:
         backup_path = path.with_suffix(path.suffix + ".bak")
         backup_path.write_text(original_content)
-    
+
     # If instructions provided, show them in a temp file first
     if instructions:
         fd, inst_path = tempfile.mkstemp(suffix=".txt", text=True)
         try:
-            with os.fdopen(fd, 'w') as f:
+            with os.fdopen(fd, "w") as f:
                 f.write(f"INSTRUCTIONS FOR EDITING: {file_path}\n")
-                f.write("="*60 + "\n")
+                f.write("=" * 60 + "\n")
                 f.write(instructions + "\n")
-                f.write("="*60 + "\n")
+                f.write("=" * 60 + "\n")
                 f.write("\nPress any key to continue to the file...")
-            
+
             # Show instructions
-            await _run_vim(inst_path, ['-R'])
+            await _run_vim(inst_path, ["-R"])
         finally:
             os.unlink(inst_path)
-    
+
     # Open the actual file
     await _run_vim(str(path))
-    
+
     # Read edited content
     edited_content = path.read_text()
-    
+
     if show_diff:
         # Calculate diff
         original_lines = original_content.splitlines(keepends=True)
         edited_lines = edited_content.splitlines(keepends=True)
-        
-        diff = list(difflib.unified_diff(
-            original_lines,
-            edited_lines,
-            fromfile=f"{file_path}.original",
-            tofile=file_path
-        ))
-        
+
+        diff = list(
+            difflib.unified_diff(
+                original_lines,
+                edited_lines,
+                fromfile=f"{file_path}.original",
+                tofile=file_path,
+            )
+        )
+
         if diff:
-            added = sum(1 for line in diff if line.startswith('+') and not line.startswith('+++'))
-            removed = sum(1 for line in diff if line.startswith('-') and not line.startswith('---'))
-            
+            added = sum(
+                1
+                for line in diff
+                if line.startswith("+") and not line.startswith("+++")
+            )
+            removed = sum(
+                1
+                for line in diff
+                if line.startswith("-") and not line.startswith("---")
+            )
+
             result = f"File edited: {file_path}\n"
             result += f"Changes: {added} lines added, {removed} lines removed\n"
             if backup:
                 result += f"Backup saved to: {backup_path}\n"
-            result += "\n" + ''.join(diff)
+            result += "\n" + "".join(diff)
         else:
             result = f"No changes made to {file_path}"
     else:
         result = f"File edited: {file_path}"
         if backup:
             result += f"\nBackup saved to: {backup_path}"
-    
+
     return result
 
 
-@mcp.tool(description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools.")
+@mcp.tool(
+    description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools."
+)
 async def server_info() -> str:
     """Get server status and vim version."""
     try:
         process = await asyncio.create_subprocess_exec(
-            'vim', '--version',
+            "vim",
+            "--version",
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
         )
     except FileNotFoundError:
-        raise RuntimeError("vim command not found")
+        raise RuntimeError("vim command not found") from None
     stdout, stderr = await process.communicate()
-    
+
     if process.returncode != 0:
         raise subprocess.CalledProcessError(
-            process.returncode, "vim --version", stderr.decode('utf-8')
+            process.returncode, "vim --version", stderr.decode("utf-8")
         )
-        
+
     # Extract first line of version info
-    version_line = stdout.decode('utf-8').split('\n')[0]
-    
+    version_line = stdout.decode("utf-8").split("\n")[0]
+
     return f"""Vim Tool Server Status
 =====================
 Status: Connected and ready

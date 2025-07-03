@@ -18,35 +18,36 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.23.0 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"Based on the image provided, the dominant
-        color is **yellow**.\\n\\nThe entire image is a solid, uniform field of a
-        bright, vibrant shade of yellow.\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 272,\n    \"candidatesTokenCount\":
-        32,\n    \"totalTokenCount\": 653,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n      },\n      {\n
-        \       \"modality\": \"IMAGE\",\n        \"tokenCount\": 258\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 349\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
-        \ \"responseId\": \"hxFkaJnsOe_ZvdIPp7faoAs\"\n}\n"
+        color is a bright, vibrant **yellow**.\\n\\nIt is the only color present,
+        completely filling the entire image. The specific shade is a pure, electric
+        yellow, with no other hues or shades visible.\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        272,\n    \"candidatesTokenCount\": 49,\n    \"totalTokenCount\": 739,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n
+        \     },\n      {\n        \"modality\": \"IMAGE\",\n        \"tokenCount\":
+        258\n      }\n    ],\n    \"thoughtsTokenCount\": 418\n  },\n  \"modelVersion\":
+        \"gemini-2.5-pro\",\n  \"responseId\": \"7DFmaK-aAd-yxN8PsfuGmAI\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 01 Jul 2025 16:49:12 GMT
+      - Thu, 03 Jul 2025 07:31:56 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=5802
+      - gfet4t7; dur=6915
       Transfer-Encoding:
       - chunked
       Vary:
@@ -60,7 +61,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '761'
+      - '850'
     status:
       code: 200
       message: OK

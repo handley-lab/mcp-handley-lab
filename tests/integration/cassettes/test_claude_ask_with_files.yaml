@@ -19,7 +19,7 @@ interactions:
       host:
       - api.anthropic.com
       user-agent:
-      - AsyncAnthropic/Python 0.55.0
+      - AsyncAnthropic/Python 0.56.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -29,7 +29,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 0.55.0
+      - 0.56.0
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -44,18 +44,21 @@ interactions:
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01DXxPzAWmv3LJz1wya7DXq8","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"I
-        can see the contents of the file \"test.txt\" are:\n\nHello World\nThis is
-        a test file.\n\nThe file contains two lines of text."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":33,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":37,"service_tier":"standard"}}'
+      string: '{"id":"msg_01VK8T7QLzVrUzKJ4ZsbBx2j","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"I
+        apologize, but I can''t actually see the contents of a file named \"test.txt\"
+        in this context. I can only read the contents that you directly paste into
+        our conversation. \n\nThe text you''ve shown looks like it would be the contents
+        of a text file with two lines:\n1. \"Hello World\"\n2. \"This is a test file.\"\n\nWould
+        you like me to confirm or do something with these contents?"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":33,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":95,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 958d39e978778ad8-MAN
+      - 9594aeaf3925b325-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jul 2025 09:48:15 GMT
+      - Thu, 03 Jul 2025 07:31:20 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -69,31 +72,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-02T09:48:14Z'
+      - '2025-07-03T07:31:18Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-02T09:48:14Z'
+      - '2025-07-03T07:31:20Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-02T09:48:13Z'
+      - '2025-07-03T07:31:17Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-02T09:48:14Z'
+      - '2025-07-03T07:31:18Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '455'
+      - '709'
       request-id:
-      - req_011CQhytEQKN7o3HiX5WEDeX
+      - req_011CQjhFVtLtCQ2aq4n3LQHp
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

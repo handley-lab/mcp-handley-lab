@@ -1,6 +1,5 @@
 - then add 
   - mathematica
-  - vim editor?
   - mail
     - synchronise
       - offlineimap 
@@ -12,30 +11,17 @@
       - notmuch 
     - send
       - msmtp 
-  - calendar 
-  - vim
-  - 
   - to do list
     - taskwarrior 
+  - database of info 
   - Read all my papers and try to get a feel for my writers voice. 
-- review all prompts and other strings with google. Improve them
-- add grounding to all gemini models and test
-- Is it possible to get chat going
 - Is it possible to get gemini to produce material which can be passed to claudes texteditor tool?
   - this may need to adjust its outputs to be in MCP style. 
 # Calendar
 - google_calendar -> calendar
   - addressbook
   - batching
-  - check all raise error
   - make more elegant so it fits in the window
-- gemini
-  - elegance 
-  - look for any hard-coded timeouts
-  - improve the schemas
-  - check for the kind of things the tools output and improve them.
-- implement claude
-- soon:
-  - get it to make integration tests for all tools
+- overall
   - get gemini to assess code consistency
   - get gemini to suggest better docstrings

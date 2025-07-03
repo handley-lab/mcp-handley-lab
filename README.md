@@ -130,6 +130,7 @@ This modular structure makes it easy to use **Claude Code itself** to write new 
 
 *   **Project Structure**: Each tool is a self-contained Python module located in `src/mcp_handley_lab/`. New tools should follow the existing structure. Shared logic is placed in `src/mcp_handley_lab/common/`.
 *   **Adding New Tools**: Use Claude Code to generate new tools by analyzing existing implementations and following the established patterns.
+*   **Testing Changes**: After modifying tools, Claude Desktop must be restarted to use the updated versions. For development testing, ask Claude to run tools via JSON-RPC without restarting.
 *   **Coding Standards**: This project uses `black` for code formatting and `ruff` for linting. Please apply them before submitting changes.
     ```bash
     black .
@@ -137,4 +138,3 @@ This modular structure makes it easy to use **Claude Code itself** to write new 
     ```
 *   **Dependencies**: Project dependencies are managed in `pyproject.toml`.
 *   **Entry Points**: Command-line scripts for new tools should be added to the `[project.scripts]` section of `pyproject.toml`.
-# Test change

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.0.0a24"
+version = "0.0.0a25"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,6 +35,8 @@ dev = [
     "vcrpy>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
+    "pre-commit>=3.0.0",
+    "tomli>=2.0.0",
 ]
 
 [project.scripts]

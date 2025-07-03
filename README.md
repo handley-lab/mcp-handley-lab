@@ -1,27 +1,101 @@
 # MCP Handley Lab Toolkit
 
+A comprehensive toolkit that bridges AI assistants with powerful command-line tools and services. MCP Handley Lab enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate complex workflows.
+
 ## What is the Model Context Protocol (MCP)?
 
 The Model Context Protocol (MCP) is a specification that enables AI models, such as Claude, Gemini, or GPT, to interact with external tools and services through a standardized interface. It acts as a bridge, allowing an AI to use specialized programs, scripts, and APIs in the same way a developer uses command-line tools.
 
 Each tool runs as a small server that listens for requests from an MCP client. This allows an AI assistant to perform complex tasks like analyzing a codebase, managing calendar events, or searching for academic papers by calling the appropriate tool.
 
+## Quick Start
+
+Get up and running in 5 minutes:
+
+```bash
+# 1. Clone and enter the project
+git clone https://github.com/yourusername/mcp-handley-lab
+cd mcp-handley-lab
+
+# 2. Set up Python environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install the toolkit
+pip install -e .
+
+# 4. Set up your first API key (example with Gemini)
+export GEMINI_API_KEY="your-api-key-here"
+
+# 5. Register tools with Claude
+claude mcp add gemini --scope user mcp-gemini
+claude mcp add openai --scope user mcp-openai
+claude mcp add arxiv --scope user mcp-arxiv
+
+# 6. Verify tools are working
+# Use /mcp command in Claude to check tool status
+```
+
 ## Available Tools
 
-*   **ArXiv (`arxiv`)**: Searches for academic papers on ArXiv and downloads their source code or PDF files.
-  * _claude code example_: `> find all papers by Harry Bevins on arxiv` 
-*   **Code flattening (`code2prompt`)**: converts local codebases to structured, token-aware summaries suitable for consumption by LLMs. Includes support for `git diff`.
-  * _claude code example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
-*   **Google Calendar (`google-calendar`)**: Provides integration with Google Calendar for creating, listing, updating, deleting, and searching events, as well as finding free time slots.
-  * _claude code example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?` 
-*   **JSON Manipulation (`jq`)**: A wrapper around the `jq` command-line tool for querying, editing, validating, and formatting JSON data.
-  *  _claude code example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
-*   **LLM Integration (Claude, Gemini, OpenAI)**: Standardized tools for interacting with major LLM providers. These tools share a common interface for text and image analysis, and image generation. They integrate with the Agent Management tool for persistent conversations.
-  * _claude code example_: `> ask gemini to review the changes you just made`
-*   **Tool Chainer (`tool-chainer`)**: A meta-tool to create, manage, and execute workflows by chaining other MCP tools together with conditional logic.
-  * _claude code example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it` 
-*   **Interactive Editing (`vim`)**: Programmatically opens an interactive `vim` session for user-driven content creation and editing, and captures the results.
-  * _claude code example_: `> use vim to open a draft of a relevant email`
+### 📚 **ArXiv** (`arxiv`)
+Search and download academic papers from ArXiv
+- Search by author, title, or topic
+- Download source code, PDFs, or LaTeX files
+- _Claude example_: `> find all papers by Harry Bevins on arxiv`
+
+### 🔍 **Code Analysis** (`code2prompt`)
+Convert codebases into AI-readable summaries
+- Analyze project structure and code patterns
+- Include git diffs for code review
+- _Claude example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
+
+### 📅 **Google Calendar** (`google-calendar`)
+Manage your calendar programmatically
+- Create, update, and search events
+- Find free time slots for meetings
+- _Claude example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?`
+
+### 🔧 **JSON Manipulation** (`jq`)
+Process JSON data with the power of jq
+- Query, transform, and validate JSON
+- Edit files in-place with transformations
+- _Claude example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
+
+### 🤖 **AI Integration** (`gemini`, `openai`)
+Connect with major AI providers
+- Persistent conversations with memory
+- Image analysis and generation
+- _Claude example_: `> ask gemini to review the changes you just made`
+
+### 🔗 **Workflow Automation** (`tool-chainer`)
+Chain tools together for complex tasks
+- Create multi-step workflows with conditions
+- Automate repetitive development tasks
+- _Claude example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it`
+
+### ✏️ **Interactive Editing** (`vim`)
+Open vim for user input when needed
+- Create or edit content interactively
+- Useful for drafting emails or documentation
+- _Claude example_: `> use vim to open a draft of a relevant email`
+
+## Using AI Tools Together
+
+One of the most powerful features is using AI tools to analyze outputs from other tools. For example:
+
+```bash
+# 1. Use code2prompt to summarize your codebase
+# Claude will run: mcp__code2prompt__generate_prompt path="/your/project" output_file="/tmp/summary.md"
+
+# 2. Then ask Gemini to review it
+# Claude will run: mcp__gemini__ask prompt="Review this codebase" files=[{"path": "/tmp/summary.md"}]
+```
+
+This pattern works because:
+- `code2prompt` creates a structured markdown file with your code
+- AI tools like Gemini can read files as context
+- The AI gets a complete view of your codebase without hitting token limits
 
 ## Installation
 
@@ -45,9 +119,41 @@ Each tool runs as a small server that listens for requests from an MCP client. T
 
 ## Configuration
 
-The framework requires API keys for services like OpenAI, Gemini, and Google Calendar. These can be configured using a `.env` file or shell environment variables.
+The framework requires API keys for services like OpenAI, Gemini, and Google Calendar. You have several options for configuring these:
 
-### Option 1: Using a `.env` File
+- **Environment variables**: Export them in your current shell session
+- **Shell profile**: Add them to `~/.bashrc`, `~/.zshrc`, or similar
+- **`.env` file**: Create a local file in the project directory
+- **System-wide**: Set them in `/etc/environment` (Linux/Unix)
+
+Choose the method that best fits your workflow and security requirements.
+
+### Option 1: Using Environment Variables (Recommended for Quick Start)
+
+For immediate use, simply export the required variables in your terminal:
+
+```bash
+# Export for current session only
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="AIza..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### Option 2: Using Shell Profile (Recommended for Regular Use)
+
+Add the environment variables to your shell's configuration file for persistence across sessions:
+
+```bash
+# Add to ~/.bashrc, ~/.zshrc, or equivalent
+echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
+echo 'export GEMINI_API_KEY="AIza..."' >> ~/.bashrc
+echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.bashrc
+
+# Reload your shell configuration
+source ~/.bashrc
+```
+
+### Option 3: Using a `.env` File
 
 1.  **Create the `.env` file:**
     Copy the example file to create your local configuration.
@@ -71,28 +177,7 @@ The framework requires API keys for services like OpenAI, Gemini, and Google Cal
     GOOGLE_TOKEN_FILE="~/.config/google/token.json"
     ```
 
-### Option 2: Using Shell Environment Variables
-
-Alternatively, you can set the configuration variables directly in your shell's environment.
-
-1.  **Add export commands to your shell profile:**
-    Edit your `~/.bashrc`, `~/.bash_profile`, or `~/.zshrc` file to include the following lines:
-
-    ```bash
-    # LLM API Keys
-    export OPENAI_API_KEY="sk-..."
-    export GEMINI_API_KEY="AIza..."
-    export ANTHROPIC_API_KEY="sk-ant-..."
-    
-    # Google Calendar Configuration
-    export GOOGLE_CREDENTIALS_FILE="$HOME/.config/google/credentials.json"
-    export GOOGLE_TOKEN_FILE="$HOME/.config/google/token.json"
-    ```
-
-2.  **Reload your shell configuration:**
-    Run `source ~/.bashrc` (or the appropriate file for your shell) to apply the changes.
-
-The tools will automatically use these environment variables if a `.env` file is not found.
+The tools will automatically detect and use environment variables from any of these sources.
 
 ### Google Calendar Setup
 

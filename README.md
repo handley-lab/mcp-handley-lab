@@ -6,8 +6,6 @@ A comprehensive toolkit that bridges AI assistants with powerful command-line to
 
 The Model Context Protocol (MCP) is a specification that enables AI models, such as Claude, Gemini, or GPT, to interact with external tools and services through a standardized interface. It acts as a bridge, allowing an AI to use specialized programs, scripts, and APIs in the same way a developer uses command-line tools.
 
-Each tool runs as a small server that listens for requests from an MCP client. This allows an AI assistant to perform complex tasks like analyzing a codebase, managing calendar events, or searching for academic papers by calling the appropriate tool.
-
 ## Quick Start
 
 Get up and running in 5 minutes:
@@ -40,45 +38,45 @@ claude mcp add arxiv --scope user mcp-arxiv
 
 ### 📚 **ArXiv** (`arxiv`)
 Search and download academic papers from ArXiv
-- Search by author, title, or topic
-- Download source code, PDFs, or LaTeX files
-- _Claude example_: `> find all papers by Harry Bevins on arxiv`
+  - Search by author, title, or topic
+  - Download source code, PDFs, or LaTeX files
+  - _Claude example_: `> find all papers by Harry Bevins on arxiv`
 
 ### 🔍 **Code Analysis** (`code2prompt`)
 Convert codebases into AI-readable summaries
-- Analyze project structure and code patterns
-- Include git diffs for code review
-- _Claude example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
+  - Analyze project structure and code patterns
+  - Include git diffs for code review
+  - _Claude example_: `> use code2prompt and gemini to look for refactoring opportunities in my codebase`
 
 ### 📅 **Google Calendar** (`google-calendar`)
 Manage your calendar programmatically
-- Create, update, and search events
-- Find free time slots for meetings
-- _Claude example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?`
+  - Create, update, and search events
+  - Find free time slots for meetings
+  - _Claude example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?`
 
 ### 🔧 **JSON Manipulation** (`jq`)
 Process JSON data with the power of jq
-- Query, transform, and validate JSON
-- Edit files in-place with transformations
-- _Claude example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
+  - Query, transform, and validate JSON
+  - Edit files in-place with transformations
+  - _Claude example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
 
 ### 🤖 **AI Integration** (`gemini`, `openai`)
 Connect with major AI providers
-- Persistent conversations with memory
-- Image analysis and generation
-- _Claude example_: `> ask gemini to review the changes you just made`
+  - Persistent conversations with memory
+  - Image analysis and generation
+  - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 🔗 **Workflow Automation** (`tool-chainer`)
 Chain tools together for complex tasks
-- Create multi-step workflows with conditions
-- Automate repetitive development tasks
-- _Claude example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it`
+  - Create multi-step workflows with conditions
+  - Automate repetitive development tasks
+  - _Claude example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it`
 
 ### ✏️ **Interactive Editing** (`vim`)
 Open vim for user input when needed
-- Create or edit content interactively
-- Useful for drafting emails or documentation
-- _Claude example_: `> use vim to open a draft of a relevant email`
+  - Create or edit content interactively
+  - Useful for drafting emails or documentation
+  - _Claude example_: `> use vim to open a draft of a relevant email`
 
 ## Using AI Tools Together
 

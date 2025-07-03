@@ -1,0 +1,1 @@
+"""SymPy computer algebra system tool for MCP."""

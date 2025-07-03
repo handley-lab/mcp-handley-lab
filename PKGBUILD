@@ -18,6 +18,7 @@ depends=(
     'python-google-genai>=1.0.0'
     'python-openai>=1.0.0'
     'python-pillow>=10.0.0'
+    'python-sympy>=1.12.0'
 )
 makedepends=(
     'python-build'

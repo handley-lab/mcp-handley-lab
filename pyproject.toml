@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.0.0a23"
+version = "0.0.0a24"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,6 +31,8 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-mock>=3.0.0",
+    "pytest-vcr>=1.0.0",
+    "vcrpy>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
 ]
@@ -64,6 +66,7 @@ asyncio_mode = "auto"
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
     "unit: marks tests as unit tests (select with '-m unit')",
+    "vcr: marks tests that use VCR.py for HTTP recording/playback",
 ]
 
 [tool.black]

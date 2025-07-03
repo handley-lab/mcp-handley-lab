@@ -213,169 +213,6 @@ def _client_side_filter(events: List[Dict[str, Any]],
     return filtered_events
 
 
-@mcp.tool(description="""Lists calendar events within a specified date range with optional text search. The end date is exclusive (events on the `end_date` itself are *not* included). 
-
-Defaults to the next 7 days if no dates provided. Searches across all accessible calendars by default. Use `calendar_id='primary'` to search only the primary calendar, or specify a specific calendar ID.
-
-**Text Search Feature:**
-The `search_text` parameter enables server-side text search using Google Calendar API's 'q' parameter. This searches across event titles, descriptions, locations, and attendee information. For more advanced search capabilities with client-side filtering, use the `search_events` function instead.
-
-**Date Format:** ISO 8601 format required:
-- DateTime: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
-- Date only: "2024-06-24" (for all-day events)
-
-**Error Handling:**
-- Raises ValueError for invalid date formats
-- Raises RuntimeError for Google Calendar API errors (authentication, network, quota exceeded)
-- Inaccessible calendars are silently skipped when using `calendar_id='all'`
-
-**Examples:**
-```python
-# List next week's events from all calendars (default)
-list_events()
-
-# Search for events containing "Chris Lovell" across all calendars
-list_events(search_text="Chris Lovell")
-
-# Search for "team meeting" in specific date range
-list_events(
-    search_text="team meeting",
-    start_date="2024-06-24T09:00:00Z",
-    end_date="2024-06-25T17:00:00Z"
-)
-
-# Search only primary calendar for "standup" events
-list_events(
-    calendar_id="primary",
-    search_text="standup",
-    start_date="2024-06-24",
-    end_date="2024-06-25"
-)
-
-# List events without search (original behavior)
-list_events(
-    start_date="2024-06-24",
-    end_date="2024-06-25"
-)
-```""")
-async def list_events(
-    calendar_id: str = "all",
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    max_results: int = 100,
-    search_text: Optional[str] = None
-) -> str:
-    """List calendar events."""
-    try:
-        service = await _get_calendar_service()
-        
-        # Set default date range if not provided with proper timezone handling
-        if not start_date:
-            start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
-        else:
-            start_date = _parse_datetime_to_utc(start_date)
-        
-        if not end_date:
-            # Default to 7 days from now in UTC
-            end_dt = datetime.now(timezone.utc) + timedelta(days=7)
-            end_date = end_dt.isoformat().replace('+00:00', 'Z')
-        else:
-            # Handle end date - for date-only format, use end of day
-            if 'T' not in end_date:
-                end_date = end_date + 'T23:59:59Z'
-            else:
-                end_date = _parse_datetime_to_utc(end_date)
-        
-        events_list = []
-        
-        if calendar_id == "all":
-            # Search all calendars
-            def _sync_list_calendars():
-                return service.calendarList().list().execute()
-            
-            loop = asyncio.get_running_loop()
-            calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
-            
-            for calendar in calendar_list.get('items', []):
-                cal_id = calendar['id']
-                try:
-                    def _sync_list_events():
-                        params = {
-                            'calendarId': cal_id,
-                            'timeMin': start_date,
-                            'timeMax': end_date,
-                            'maxResults': max_results,
-                            'singleEvents': True,
-                            'orderBy': 'startTime'
-                        }
-                        if search_text:
-                            params['q'] = search_text
-                        return service.events().list(**params).execute()
-                    
-                    events_result = await loop.run_in_executor(None, _sync_list_events)
-                    
-                    cal_events = events_result.get('items', [])
-                    for event in cal_events:
-                        event['calendar_name'] = calendar.get('summary', cal_id)
-                    events_list.extend(cal_events)
-                except HttpError:
-                    continue  # Skip inaccessible calendars
-        else:
-            # Search specific calendar
-            resolved_id = await _resolve_calendar_id(calendar_id, service)
-            
-            def _sync_list_events():
-                params = {
-                    'calendarId': resolved_id,
-                    'timeMin': start_date,
-                    'timeMax': end_date,
-                    'maxResults': max_results,
-                    'singleEvents': True,
-                    'orderBy': 'startTime'
-                }
-                if search_text:
-                    params['q'] = search_text
-                return service.events().list(**params).execute()
-            
-            loop = asyncio.get_running_loop()
-            events_result = await loop.run_in_executor(None, _sync_list_events)
-            events_list = events_result.get('items', [])
-        
-        if not events_list:
-            return f"No events found in the specified date range."
-        
-        # Sort by start time
-        events_list.sort(key=lambda x: x.get('start', {}).get('dateTime', x.get('start', {}).get('date', '')))
-        
-        result = f"Found {len(events_list)} events:\n\n"
-        
-        for event in events_list:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            title = event.get('summary', 'No Title')
-            event_id = event['id']
-            
-            result += f"• {title}\n"
-            result += f"  Time: {_format_datetime(start)}\n"
-            result += f"  ID: {event_id}\n"
-            
-            if 'calendar_name' in event:
-                result += f"  Calendar: {event['calendar_name']}\n"
-            
-            if event.get('location'):
-                result += f"  Location: {event['location']}\n"
-            
-            result += "\n"
-        
-        return result.strip()
-        
-    except asyncio.CancelledError:
-        raise UserCancelledError("Google Calendar request was cancelled by user")
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}")
-    except Exception as e:
-        raise RuntimeError(f"Calendar service error: {e}")
-
-
 @mcp.tool(description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.")
 async def get_event(
     event_id: str,
@@ -600,6 +437,8 @@ async def update_event(
         updated_event = await _sync_patch_event()
         return f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
         
+    except asyncio.CancelledError:
+        raise RuntimeError("Update event was cancelled by user")
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -638,6 +477,8 @@ async def delete_event(
         await _sync_delete_event()
         return f"Event (ID: {event_id}) has been permanently deleted."
         
+    except asyncio.CancelledError:
+        raise RuntimeError("Delete event was cancelled by user")
     except HttpError as e:
         if e.resp.status == 404:
             raise ValueError(f"Event '{event_id}' not found in calendar '{calendar_id}'")
@@ -818,26 +659,30 @@ async def find_time(
         raise RuntimeError(f"Calendar service error: {e}")
 
 
-@mcp.tool(description="""Advanced hybrid search for calendar events combining server-side and client-side filtering.
+@mcp.tool(description="""Search and list calendar events with optional advanced filtering. This unified function handles both basic event listing and advanced search scenarios.
 
-This function implements the recommended hybrid approach for calendar search:
-1. Uses Google Calendar API's 'q' parameter for efficient server-side filtering
-2. Applies additional client-side filtering for granular search control
-3. Supports field-specific search, AND/OR logic, and case sensitivity options
+**Basic Usage (Event Listing):**
+- Call without `search_text` for basic event listing
+- Defaults to next 7 days if no date range specified
+- Searches all accessible calendars by default
 
-**Key Features:**
-- Server-side pre-filtering reduces data transfer and improves performance
+**Advanced Search Features:**
+- Server-side pre-filtering using Google Calendar API's 'q' parameter reduces data transfer and improves performance
 - Client-side filtering enables advanced search options not available in the API
 - Search across multiple fields: title, description, location, attendees
 - Flexible search logic: AND (all terms) or OR (any term) matching
 - Case-sensitive or case-insensitive search options
 
+**Date Format:** ISO 8601 format required:
+- DateTime: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
+- Date only: "2024-06-24" (for all-day events)
+
 **Parameters:**
-- `search_text`: Primary search terms (uses Google API 'q' parameter for server-side filtering)
-- `search_fields`: Specific fields to search in (client-side). Default: ['summary', 'description', 'location']
+- `search_text`: Optional search terms. If not provided, lists all events in date range. Uses Google API 'q' parameter for server-side filtering when provided
+- `search_fields`: Specific fields for client-side filtering. Default: ['summary', 'description', 'location']
 - `case_sensitive`: Whether search should be case sensitive (default: False)
 - `match_all_terms`: If True (default), all search terms must match (AND logic). If False, any term can match (OR logic)
-- `calendar_id`: Calendar to search in. Default: 'all' (searches all accessible calendars)
+- `calendar_id`: Calendar to search. Default: 'all' (searches all accessible calendars)
 - `start_date`/`end_date`: Date range to search within
 - `max_results`: Maximum number of events to return per calendar
 
@@ -848,6 +693,18 @@ This function implements the recommended hybrid approach for calendar search:
 
 **Examples:**
 ```python
+# Basic event listing (next 7 days, all calendars)
+search_events()
+
+# List events in specific date range
+search_events(
+    start_date="2024-06-24",
+    end_date="2024-06-25"
+)
+
+# Basic text search
+search_events(search_text="meeting")
+
 # Find events about "Chris Lovell" anywhere in the event
 search_events(search_text="Chris Lovell")
 
@@ -879,7 +736,7 @@ search_events(
 )
 ```""")
 async def search_events(
-    search_text: str,
+    search_text: Optional[str] = None,
     calendar_id: str = "all",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -901,8 +758,9 @@ async def search_events(
             start_date = _parse_datetime_to_utc(start_date)
         
         if not end_date:
-            # Default to next year for search in UTC
-            end_dt = datetime.now(timezone.utc) + timedelta(days=365)
+            # Default to 7 days for basic listing, 1 year for search
+            days = 7 if not search_text else 365
+            end_dt = datetime.now(timezone.utc) + timedelta(days=days)
             end_date = end_dt.isoformat().replace('+00:00', 'Z')
         else:
             # Handle end date - for date-only format, use end of day
@@ -931,9 +789,10 @@ async def search_events(
                             'timeMax': end_date,
                             'maxResults': max_results,
                             'singleEvents': True,
-                            'orderBy': 'startTime',
-                            'q': search_text  # Server-side search
+                            'orderBy': 'startTime'
                         }
+                        if search_text:
+                            params['q'] = search_text
                         return service.events().list(**params).execute()
                     
                     events_result = await loop.run_in_executor(None, _sync_search_events)
@@ -955,32 +814,42 @@ async def search_events(
                     'timeMax': end_date,
                     'maxResults': max_results,
                     'singleEvents': True,
-                    'orderBy': 'startTime',
-                    'q': search_text  # Server-side search
+                    'orderBy': 'startTime'
                 }
+                if search_text:
+                    params['q'] = search_text
                 return service.events().list(**params).execute()
             
             loop = asyncio.get_running_loop()
             events_result = await loop.run_in_executor(None, _sync_search_events)
             events_list = events_result.get('items', [])
         
-        # Step 2: Client-side filtering for advanced search capabilities
+        # Step 2: Apply client-side filtering if advanced options are specified
         # This provides granular control not available in the Google API
-        filtered_events = _client_side_filter(
-            events_list,
-            search_text=search_text,
-            search_fields=search_fields,
-            case_sensitive=case_sensitive,
-            match_all_terms=match_all_terms
-        )
+        if search_fields or case_sensitive or not match_all_terms:
+            filtered_events = _client_side_filter(
+                events_list,
+                search_text=search_text,
+                search_fields=search_fields,
+                case_sensitive=case_sensitive,
+                match_all_terms=match_all_terms
+            )
+        else:
+            filtered_events = events_list
         
         if not filtered_events:
-            return f"No events found matching '{search_text}' in the specified criteria."
+            if search_text:
+                return f"No events found matching '{search_text}' in the specified criteria."
+            else:
+                return f"No events found in the specified date range."
         
         # Sort by start time
         filtered_events.sort(key=lambda x: x.get('start', {}).get('dateTime', x.get('start', {}).get('date', '')))
         
-        result = f"Found {len(filtered_events)} events matching '{search_text}':\n\n"
+        if search_text:
+            result = f"Found {len(filtered_events)} events matching '{search_text}':\n\n"
+        else:
+            result = f"Found {len(filtered_events)} events:\n\n"
         
         for event in filtered_events:
             start = event['start'].get('dateTime', event['start'].get('date'))
@@ -1006,16 +875,20 @@ async def search_events(
             
             result += "\n"
         
-        # Add search summary
-        search_summary = f"\nSearch Details:\n"
-        search_summary += f"- Search text: '{search_text}'\n"
-        search_summary += f"- Fields searched: {search_fields or ['summary', 'description', 'location']}\n"
-        search_summary += f"- Match logic: {'All terms must match (AND)' if match_all_terms else 'Any term can match (OR)'}\n"
-        search_summary += f"- Case sensitive: {case_sensitive}\n"
-        search_summary += f"- Date range: {start_date} to {end_date}\n"
+        # Add search summary only for advanced searches
+        if search_text and (search_fields or case_sensitive or not match_all_terms):
+            search_summary = f"\nSearch Details:\n"
+            search_summary += f"- Search text: '{search_text}'\n"
+            search_summary += f"- Fields searched: {search_fields or ['summary', 'description', 'location']}\n"
+            search_summary += f"- Match logic: {'All terms must match (AND)' if match_all_terms else 'Any term can match (OR)'}\n"
+            search_summary += f"- Case sensitive: {case_sensitive}\n"
+            search_summary += f"- Date range: {start_date} to {end_date}\n"
+            return result.strip() + search_summary
         
-        return result.strip() + search_summary
+        return result.strip()
         
+    except asyncio.CancelledError:
+        raise RuntimeError("Calendar search was cancelled by user")
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}")
     except Exception as e:
@@ -1057,8 +930,7 @@ API Connection: ✓ Active
 Calendars Access: ✓ Available ({len(calendar_list.get('items', []))} calendars accessible)
 
 Available tools:
-- list_events: List calendar events within date range (with basic search)
-- search_events: Advanced hybrid search across calendars
+- search_events: Search and list calendar events (handles both basic listing and advanced search)
 - get_event: Get detailed event information
 - create_event: Create new calendar events
 - update_event: Update existing events
@@ -1066,6 +938,12 @@ Available tools:
 - list_calendars: List all accessible calendars
 - find_time: Find free time slots
 - server_info: Get server status"""
+        
+    except asyncio.CancelledError:
+        return """Google Calendar Tool Server Status
+========================================
+Status: Cancelled
+Error: Server info check was cancelled by user"""
         
     except FileNotFoundError as e:
         return f"""Google Calendar Tool Server Status

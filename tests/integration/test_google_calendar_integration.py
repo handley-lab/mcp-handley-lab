@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
 from mcp_handley_lab.google_calendar.tool import (
-    list_events, get_event, create_event, update_event, delete_event,
+    search_events, get_event, create_event, update_event, delete_event,
     list_calendars, find_time, server_info
 )
 
@@ -16,12 +16,12 @@ async def test_google_calendar_list_calendars(google_calendar_test_config):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_google_calendar_list_events_default(google_calendar_test_config):
+async def test_google_calendar_search_events_basic_listing(google_calendar_test_config):
     # Use fixed dates to avoid VCR timestamp mismatches
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
     
-    result = await list_events(start_date=start_date, end_date=end_date)
+    result = await search_events(start_date=start_date, end_date=end_date)
     
     assert "events" in result.lower() or "no events" in result.lower()
 
@@ -107,12 +107,12 @@ async def test_google_calendar_search_events(google_calendar_test_config):
 @pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_google_calendar_list_events_with_search(google_calendar_test_config):
-    # Test the search_text parameter in list_events
+    # Test the search_text parameter in search_events
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
     
-    # Test search via list_events
-    result = await list_events(
+    # Test search via search_events
+    result = await search_events(
         search_text="test",
         start_date=start_date,
         end_date=end_date

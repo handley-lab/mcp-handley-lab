@@ -151,18 +151,25 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
 - **Status**: Production ready with comprehensive API integration
 
+### Agent Memory Management ✓ **100% Test Coverage**
+- **Location**: `src/mcp_handley_lab/agent/`
+- **Purpose**: Centralized, provider-agnostic system for managing persistent conversational memory across all LLM tools
+- **Functions**: `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent`, `server_info`
+- **Integration**: Used by all LLM tools (Gemini, OpenAI, Claude) via `agent_name` parameter
+- **Status**: Production ready
+
 ### Gemini LLM Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/llm/gemini/`
-- **Functions**: `ask`, `analyze_image`, `generate_image`, `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent`, `server_info`
-- **Features**: Text generation, image analysis, image generation with Imagen 3, Google Search grounding, persistent agent memory, file input support
+- **Functions**: `ask`, `analyze_image`, `generate_image`, `list_models`, `server_info`
+- **Features**: Text generation, image analysis, image generation with Imagen 3, Google Search grounding, file input support. Uses the separate `agent` tool for persistent conversation memory
 - **SDK**: Migrated to official `google-genai` SDK (replacing deprecated `google-generativeai`)
 - **Tests**: 56 unit tests + 9 integration tests covering all functionality and API compatibility
 - **Status**: Production ready with full google-genai integration
 
 ### OpenAI LLM Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/llm/openai/`
-- **Functions**: `ask`, `analyze_image`, `generate_image`, `get_response`, `server_info`
-- **Features**: Text generation, image analysis, image generation with DALL-E, persistent agent memory, file input support
+- **Functions**: `ask`, `analyze_image`, `generate_image`, `list_models`, `server_info`
+- **Features**: Text generation, image analysis, image generation with DALL-E, file input support. Uses the separate `agent` tool for persistent conversation memory
 - **Tests**: 6 integration tests covering all functionality and API compatibility
 - **Status**: Production ready with full OpenAI integration
 
@@ -504,23 +511,23 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 }
 ```
 
-## Using Gemini Agents for Code Review and Ideation
+## Using Agents for Code Review and Ideation
 
-Leverage Gemini agents as intelligent helpers for code review and brainstorming:
+Leverage persistent agents as intelligent helpers for code review and brainstorming. This workflow uses the `agent` management system, `code2prompt` for codebase conversion, and any LLM tool for analysis:
 
 1. **Generate code summary**: Use `mcp__code2prompt__generate_prompt` to create a structured representation of the code
-2. **Initialize or select agent**: Create a new agent with `mcp__gemini__create_agent` or use an existing one for the session
-3. **Review and ideate**: Use `mcp__gemini__ask` with the gemini-2.5-pro model, passing the code2prompt output as a file
+2. **Initialize or select agent**: Create a new agent with the dedicated `agent` management system
+3. **Review and ideate**: Use any LLM tool (Gemini, OpenAI, etc.) with the agent for persistent memory
 
 Example workflow:
 ```bash
 # Generate code summary
 mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_review.md"
 
-# Create a specialized agent
-mcp__gemini__create_agent agent_name="code_reviewer" personality="Expert Python developer focused on clean code and best practices"
+# Create a specialized agent using the agent management system
+mcp__agent__create_agent agent_name="code_reviewer" personality="Expert Python developer focused on clean code and best practices"
 
-# Get review and suggestions
+# Get review and suggestions from Gemini, using the agent for memory
 mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini-2.5-pro" files=[{"path": "/tmp/code_review.md"}]
 ```
 

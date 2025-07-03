@@ -56,6 +56,7 @@ Manage your calendar programmatically
   - Create, update, and search events
   - Find free time slots for meetings
   - _Claude example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?`
+  - **Requires**: [OAuth2 setup](docs/google-calendar-setup.md)
 
 ### 🔧 **JSON Manipulation** (`jq`)
 Process JSON data with the power of jq
@@ -98,30 +99,11 @@ This pattern works because:
 - AI tools like Gemini can read files as context
 - The AI gets a complete view of your codebase without hitting token limits
 
-## Google Calendar Setup
+## Additional Setup
 
-The Google Calendar tool requires OAuth 2.0 credentials to access your calendar data securely.
+Some tools require additional configuration:
 
-1.  **Enable the Google Calendar API:**
-    *   Go to the [Google Cloud Console](https://console.cloud.google.com/).
-    *   Create a new project or select an existing one.
-    *   In the navigation menu, go to **APIs & Services > Library**.
-    *   Search for "Google Calendar API" and enable it.
-
-2.  **Create OAuth 2.0 Credentials:**
-    *   Go to **APIs & Services > Credentials**.
-    *   Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.
-    *   If prompted, configure the consent screen. Select **External** and provide an app name, user support email, and developer contact information.
-    *   For the **Application type**, select **Desktop app**.
-    *   Click **Create**.
-
-3.  **Download and Save Credentials:**
-    *   A dialog will appear with your credentials. Click **DOWNLOAD JSON**.
-    *   Save this file to the path you specified in `GOOGLE_CREDENTIALS_FILE` in your configuration (e.g., `~/.config/google/credentials.json`).
-
-4.  **First-time Authentication:**
-    *   The first time you run the `mcp-google-calendar` tool, it will open a browser window asking you to authorize access to your Google Calendar.
-    *   Complete the authorization flow. The tool will then create and save a token file at the path specified by `GOOGLE_TOKEN_FILE` (e.g., `~/.config/google/token.json`) for future, non-interactive use.
+- **Google Calendar**: Requires OAuth2 setup. See [Google Calendar Setup Guide](docs/google-calendar-setup.md)
 
 ## Testing
 

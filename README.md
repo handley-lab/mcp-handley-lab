@@ -22,8 +22,10 @@ source venv/bin/activate
 # 3. Install the toolkit (editable mode for development)
 pip install -e .
 
-# 4. Set up your first API key (example with Gemini)
-export GEMINI_API_KEY="your-api-key-here"
+# 4. Set up API keys (export in .bashrc, .env file, or current session)
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="AIza..."
+export ANTHROPIC_API_KEY="sk-ant-..."
 
 # 5. Register tools with Claude
 claude mcp add gemini --scope user mcp-gemini
@@ -95,69 +97,7 @@ This pattern works because:
 - AI tools like Gemini can read files as context
 - The AI gets a complete view of your codebase without hitting token limits
 
-## Configuration
-
-The framework requires API keys for services like OpenAI, Gemini, and Google Calendar. You have several options for configuring these:
-
-- **Environment variables**: Export them in your current shell session
-- **Shell profile**: Add them to `~/.bashrc`, `~/.zshrc`, or similar
-- **`.env` file**: Create a local file in the project directory
-- **System-wide**: Set them in `/etc/environment` (Linux/Unix)
-
-Choose the method that best fits your workflow and security requirements.
-
-### Option 1: Using Environment Variables (Recommended for Quick Start)
-
-For immediate use, simply export the required variables in your terminal:
-
-```bash
-# Export for current session only
-export OPENAI_API_KEY="sk-..."
-export GEMINI_API_KEY="AIza..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-### Option 2: Using Shell Profile (Recommended for Regular Use)
-
-Add the environment variables to your shell's configuration file for persistence across sessions:
-
-```bash
-# Add to ~/.bashrc, ~/.zshrc, or equivalent
-echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
-echo 'export GEMINI_API_KEY="AIza..."' >> ~/.bashrc
-echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.bashrc
-
-# Reload your shell configuration
-source ~/.bashrc
-```
-
-### Option 3: Using a `.env` File
-
-1.  **Create the `.env` file:**
-    Copy the example file to create your local configuration.
-    ```bash
-    cp .env.example .env
-    ```
-
-2.  **Add your API keys to the `.env` file:**
-    Open the `.env` file in a text editor and fill in the required values.
-
-    ```dotenv
-    # .env
-    
-    # LLM API Keys
-    OPENAI_API_KEY="sk-..."
-    GEMINI_API_KEY="AIza..."
-    ANTHROPIC_API_KEY="sk-ant-..."
-
-    # Google Calendar Configuration (see instructions below)
-    GOOGLE_CREDENTIALS_FILE="~/.config/google/credentials.json"
-    GOOGLE_TOKEN_FILE="~/.config/google/token.json"
-    ```
-
-The tools will automatically detect and use environment variables from any of these sources.
-
-### Google Calendar Setup
+## Google Calendar Setup
 
 The Google Calendar tool requires OAuth 2.0 credentials to access your calendar data securely.
 

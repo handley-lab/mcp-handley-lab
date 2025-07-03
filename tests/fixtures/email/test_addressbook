@@ -1,0 +1,10 @@
+# Test address book for handleylab@gmail.com
+# Sample contacts for testing email functionality
+
+alias test-user Test User <test@example.com>
+alias handley-lab Handley Lab <handleylab@gmail.com>
+alias will-handley Will Handley <will.handley@polychord.co.uk>
+alias mike-hobson Mike Hobson <mike.hobson@polychord.co.uk>
+alias test-group test-user will-handley mike-hobson
+alias polychord-team "PolyChord Team" <will.handley@polychord.co.uk,mike.hobson@polychord.co.uk>
+alias sample-contact Sample Contact <sample@test.org>

@@ -33,42 +33,26 @@ fi
 echo "Current version: $current_version"
 echo "Master version: ${master_version:-"(not found)"}"
 
-# If versions are the same, we need to bump
+# If versions are the same, we need to fail and ask for manual bump
 if [[ "$current_version" == "$master_version" && -n "$master_version" ]]; then
-    echo "Version matches master - bumping required"
-    
-    # Parse version format: 0.0.0a23 -> major.minor.patch.alpha_num
-    if [[ $current_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)a([0-9]+)$ ]]; then
-        major=${BASH_REMATCH[1]}
-        minor=${BASH_REMATCH[2]}
-        patch=${BASH_REMATCH[3]}
-        alpha_num=${BASH_REMATCH[4]}
-        
-        # Increment alpha version
-        new_alpha_num=$((alpha_num + 1))
-        new_version="${major}.${minor}.${patch}a${new_alpha_num}"
-        
-        echo "Bumping version to: $new_version"
-        
-        # Update pyproject.toml
-        sed -i "s/^version = \".*\"/version = \"$new_version\"/" pyproject.toml
-        
-        # Update PKGBUILD
-        sed -i "s/^pkgver=.*/pkgver=$new_version/" PKGBUILD
-        
-        # Stage the updated files
-        git add pyproject.toml PKGBUILD
-        
-        echo "✅ Version bumped from $current_version to $new_version"
-        echo "✅ Updated files staged for commit"
-        
-    else
-        echo "Error: Version format not recognized. Expected format: X.Y.ZaN (e.g., 0.0.0a23)"
-        echo "Found: $current_version"
-        exit 1
-    fi
+    echo ""
+    echo "❌ VERSION BUMP REQUIRED"
+    echo ""
+    echo "Current version ($current_version) matches origin/master."
+    echo "Please bump the version in both files based on your changes:"
+    echo ""
+    echo "For breaking changes:  major bump (e.g., 1.0.0a1)"
+    echo "For new features:      minor bump (e.g., 0.1.0a1)" 
+    echo "For bug fixes:         patch bump (e.g., 0.0.1a1)"
+    echo "For small changes:     alpha bump (e.g., 0.0.0a$(( $(echo $current_version | sed 's/.*a//') + 1 )))"
+    echo ""
+    echo "Update both files:"
+    echo "  - pyproject.toml (version = \"X.Y.ZaN\")"
+    echo "  - PKGBUILD (pkgver=X.Y.ZaN)"
+    echo ""
+    exit 1
 else
-    echo "✅ Version already differs from master or master not available - no bump needed"
+    echo "✅ Version already differs from master or master not available - proceeding"
 fi
 
 # Final verification: ensure both files have matching versions

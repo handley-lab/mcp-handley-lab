@@ -1,5 +1,6 @@
 """Shared utilities for asynchronous command execution."""
 import asyncio
+import contextlib
 
 
 async def run_command(
@@ -17,7 +18,9 @@ async def run_command(
 
     Raises:
         RuntimeError: If command fails, is not found, or times out
+        asyncio.CancelledError: If operation is cancelled by user
     """
+    process = None
     try:
         process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -36,6 +39,12 @@ async def run_command(
     except FileNotFoundError:
         raise RuntimeError(f"Command not found: {cmd[0]}") from None
     except asyncio.TimeoutError:
-        process.kill()
-        await process.wait()
         raise RuntimeError(f"Command timed out after {timeout} seconds") from None
+    except asyncio.CancelledError:
+        raise
+    finally:
+        # Robust cleanup that runs regardless of how the try block exits
+        if process and process.returncode is None:
+            process.kill()
+            with contextlib.suppress(asyncio.TimeoutError):
+                await asyncio.wait_for(process.wait(), timeout=2.0)

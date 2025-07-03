@@ -1,0 +1,43 @@
+# Test Mutt configuration for handleylab@gmail.com
+# Based on user's existing mutt setup
+
+# General settings
+set use_from = yes
+set realname = 'Handley Lab'
+set fast_reply=yes
+set include=yes
+set wait_key=no
+set send_charset="utf-8"
+
+# Test mailbox setup
+set folder = /home/will/code/mcp.2/.test_mail
+# source $HOME/test_mail/mailboxes_auto
+
+# Account settings for handleylab@gmail.com
+set from = "handleylab@gmail.com"
+set mbox_type = Maildir
+set spoolfile = "+HandleyLab/INBOX"
+set record = "+HandleyLab/[Gmail]/Sent Mail"
+set postponed = "+HandleyLab/[Gmail]/Drafts"
+set trash = "+HandleyLab/[Gmail]/Trash"
+
+# Address book for testing
+set alias_file = /home/will/code/mcp.2/test_configs/test_addressbook
+source /home/will/code/mcp.2/test_configs/test_addressbook
+
+# Cache settings for test environment
+set header_cache = /home/will/code/mcp.2/.test_cache
+set message_cachedir = /home/will/code/mcp.2/.test_cache
+
+# Temp directory
+set tmpdir="~/.tmp"
+
+# Basic look and feel settings
+set sort = threads
+set sort_aux = reverse-last-date-received
+set charset = "utf-8"
+set send_charset = "utf-8"
+
+# Security settings
+set ssl_force_tls = yes
+set ssl_starttls = yes

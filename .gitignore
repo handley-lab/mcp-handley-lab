@@ -53,3 +53,8 @@ htmlcov/
 pkg/
 *.pkg.tar.zst
 *.pkg.tar.xz
+
+# Test outputs and temporary data
+.test_mail/
+tests/fixtures/email/.mcp_handley_lab/
+tests/fixtures/email/__pycache__/

@@ -1,6 +1,6 @@
 # MCP Handley Lab Toolkit
 
-A comprehensive toolkit that bridges AI assistants with powerful command-line tools and services. Built on the Model Context Protocol (MCP), it enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate complex workflows through a standardized interface.
+A toolkit that bridges AI assistants with command-line tools and services. Built on the Model Context Protocol (MCP), it enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate workflows through a standardized interface.
 
 ## Quick Start
 
@@ -67,7 +67,7 @@ Connect with major AI providers
   - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 🔗 **Workflow Automation** (`tool-chainer`)
-Chain tools together for complex tasks
+Chain tools together for multi-step tasks
   - Create multi-step workflows with conditions
   - Automate repetitive development tasks
   - _Claude example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it`
@@ -80,7 +80,7 @@ Open vim for user input when needed
 
 ## Using AI Tools Together
 
-One of the most powerful features is using AI tools to analyze outputs from other tools. For example:
+You can use AI tools to analyze outputs from other tools. For example:
 
 ```bash
 # 1. Use code2prompt to summarize your codebase
@@ -93,7 +93,7 @@ One of the most powerful features is using AI tools to analyze outputs from othe
 This pattern works because:
 - `code2prompt` creates a structured markdown file with your code
 - AI tools like Gemini can read files as context
-- The AI gets a complete view of your codebase without hitting token limits
+- The AI gets a view of your codebase without hitting token limits
 
 ## Additional Setup
 

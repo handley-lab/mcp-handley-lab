@@ -1,12 +1,8 @@
 """Unit tests for Google Calendar search functionality."""
-import sys
-
 import pytest
 
 # Test the client-side filtering functionality directly since it doesn't require Google dependencies
 from mcp_handley_lab.google_calendar.tool import _client_side_filter
-
-sys.path.insert(0, "src")
 
 
 class TestClientSideFilter:

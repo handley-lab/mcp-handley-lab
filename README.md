@@ -19,7 +19,7 @@ cd mcp-handley-lab
 python3 -m venv venv
 source venv/bin/activate
 
-# 3. Install the toolkit
+# 3. Install the toolkit (editable mode for development)
 pip install -e .
 
 # 4. Set up your first API key (example with Gemini)
@@ -94,26 +94,6 @@ This pattern works because:
 - `code2prompt` creates a structured markdown file with your code
 - AI tools like Gemini can read files as context
 - The AI gets a complete view of your codebase without hitting token limits
-
-## Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone git@github.com:handley-lab/mcp-handley-lab.git
-    cd mcp-handley-lab
-    ```
-
-2.  **Create and activate a virtual environment:**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-3.  **Install the project:**
-    This command installs all required dependencies and makes the command-line scripts for each tool available in your environment. The `-e` flag installs the project in "editable" mode, meaning changes to the source code will be reflected immediately.
-    ```bash
-    pip install -e .
-    ```
 
 ## Configuration
 

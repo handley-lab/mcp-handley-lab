@@ -34,6 +34,26 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **Workflow Automation**: Tool chaining for multi-step automated tasks
 - **Persistent Memory**: Agent management with conversational memory for LLMs
 
+## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
+
+**BEFORE ANY COMMIT OR PR: ALWAYS BUMP VERSION IN BOTH FILES**
+
+```bash
+# 1. Check current version
+grep version pyproject.toml
+grep pkgver PKGBUILD
+
+# 2. Bump version in BOTH files (example: 0.0.0a19 → 0.0.0a20)
+# Edit pyproject.toml: version = "0.0.0a20"  
+# Edit PKGBUILD: pkgver=0.0.0a20
+
+# 3. Commit with version bump
+git add pyproject.toml PKGBUILD
+git commit -m "Bump version to 0.0.0a20"
+```
+
+**GitHub CI WILL FAIL** if versions don't match or aren't bumped from master. This is enforced automatically.
+
 ## Critical Development Guidelines
 
 ### Environment Assumptions
@@ -121,10 +141,10 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 
 ### Google Calendar Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/google_calendar/`
-- **Functions**: `list_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
-- **Features**: OAuth2 authentication, calendar management, event CRUD operations, free time finding
+- **Functions**: `search_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
+- **Features**: OAuth2 authentication, unified search/listing interface, event CRUD operations, free time finding, advanced filtering
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
-- **Status**: Production ready with comprehensive API integration
+- **Status**: Production ready with comprehensive API integration and consolidated search interface
 
 ### Gemini LLM Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/llm/gemini/`

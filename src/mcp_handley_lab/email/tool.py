@@ -10,7 +10,7 @@ async def _run_command(
     cmd: list[str], input_text: str | None = None, cwd: str | None = None
 ) -> str:
     """Run a shell command and return output."""
-    from ..common.process import run_command
+    from mcp_handley_lab.common.process import run_command
 
     input_bytes = input_text.encode() if input_text else None
     stdout, stderr = await run_command(cmd, input_data=input_bytes)

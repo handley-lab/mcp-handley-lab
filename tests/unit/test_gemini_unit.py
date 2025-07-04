@@ -179,7 +179,7 @@ class TestErrorHandling:
         mock_read_bytes.return_value = b"some image data"
         mock_image_open.side_effect = Exception("Invalid image format")
 
-        with pytest.raises(ValueError, match="Failed to load image"):
+        with pytest.raises(Exception, match="Invalid image format"):
             _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
 
     @pytest.mark.asyncio

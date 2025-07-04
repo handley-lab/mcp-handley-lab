@@ -233,9 +233,7 @@ class TestMemoryManager:
             agent_file = manager.agents_dir / "test_agent.json"
             assert agent_file.exists()
 
-            result = manager.delete_agent("test_agent")
-
-            assert result is True
+            manager.delete_agent("test_agent")  # No return value on success
             assert "test_agent" not in manager._agents
             assert not agent_file.exists()
 
@@ -244,9 +242,8 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             manager = MemoryManager(temp_dir)
 
-            result = manager.delete_agent("nonexistent")
-
-            assert result is False
+            with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
+                manager.delete_agent("nonexistent")
 
     def test_add_message_to_agent(self):
         """Test adding message to agent."""
@@ -277,9 +274,7 @@ class TestMemoryManager:
 
             assert len(agent.messages) == 1
 
-            result = manager.clear_agent_history("test_agent")
-
-            assert result is True
+            manager.clear_agent_history("test_agent")  # No return value on success
             assert len(agent.messages) == 0
 
     def test_clear_agent_history_not_exists(self):
@@ -287,9 +282,8 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             manager = MemoryManager(temp_dir)
 
-            result = manager.clear_agent_history("nonexistent")
-
-            assert result is False
+            with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
+                manager.clear_agent_history("nonexistent")
 
     def test_export_agent_success(self):
         """Test exporting agent successfully."""
@@ -300,9 +294,9 @@ class TestMemoryManager:
             manager.add_message("test_agent", "user", "Hello")
 
             export_file = Path(temp_dir) / "export.json"
-            result = manager.export_agent("test_agent", str(export_file))
-
-            assert result is True
+            manager.export_agent(
+                "test_agent", str(export_file)
+            )  # No return value on success
             assert export_file.exists()
 
             # Verify export content
@@ -318,9 +312,8 @@ class TestMemoryManager:
             manager = MemoryManager(temp_dir)
 
             export_file = Path(temp_dir) / "export.json"
-            result = manager.export_agent("nonexistent", str(export_file))
-
-            assert result is False
+            with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
+                manager.export_agent("nonexistent", str(export_file))
             assert not export_file.exists()
 
     def test_import_agent_success(self):
@@ -350,9 +343,7 @@ class TestMemoryManager:
             with open(import_file, "w") as f:
                 json.dump(export_data, f)
 
-            result = manager.import_agent(str(import_file))
-
-            assert result is True
+            manager.import_agent(str(import_file))  # No return value on success
             assert "imported_agent" in manager._agents
 
             agent = manager.get_agent("imported_agent")
@@ -389,9 +380,10 @@ class TestMemoryManager:
             with open(import_file, "w") as f:
                 json.dump(export_data, f)
 
-            result = manager.import_agent(str(import_file), overwrite=False)
-
-            assert result is False
+            with pytest.raises(
+                ValueError, match="Agent 'existing_agent' already exists"
+            ):
+                manager.import_agent(str(import_file), overwrite=False)
 
     def test_import_agent_with_overwrite(self):
         """Test importing agent with overwrite."""
@@ -415,9 +407,9 @@ class TestMemoryManager:
             with open(import_file, "w") as f:
                 json.dump(export_data, f)
 
-            result = manager.import_agent(str(import_file), overwrite=True)
-
-            assert result is True
+            manager.import_agent(
+                str(import_file), overwrite=True
+            )  # No return value on success
 
             agent = manager.get_agent("existing_agent")
             assert agent.personality == "new personality"
@@ -444,8 +436,8 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             manager = MemoryManager(temp_dir)
 
-            response = manager.get_response("nonexistent")
-            assert response is None
+            with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
+                manager.get_response("nonexistent")
 
     def test_load_agents_from_disk(self):
         """Test loading agents from disk on initialization."""

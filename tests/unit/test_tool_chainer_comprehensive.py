@@ -433,14 +433,8 @@ class TestAdvancedChainExecution:
         state_file = temp_storage_dir / "state.json"
         state_file.write_text("Invalid JSON")
 
-        registered_tools, defined_chains, execution_history = _load_state(
-            temp_storage_dir
-        )
-
-        # Should return empty state on corruption
-        assert registered_tools == {}
-        assert defined_chains == {}
-        assert execution_history == []
+        with pytest.raises(RuntimeError, match="Corrupted tool chainer state file"):
+            _load_state(temp_storage_dir)
 
     def test_save_state_success(self, temp_storage_dir):
         """Test successful state saving."""

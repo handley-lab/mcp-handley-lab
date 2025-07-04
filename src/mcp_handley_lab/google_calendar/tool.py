@@ -123,18 +123,14 @@ def _format_datetime(dt_str: str) -> str:
     """Format datetime string for display with proper timezone handling."""
     if "T" in dt_str:
         # DateTime format
-        try:
-            dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
-            if dt.tzinfo:
-                # Format with timezone info
-                return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
-            else:
-                # Naive datetime - assume UTC for display
-                dt = dt.replace(tzinfo=timezone.utc)
-                return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-        except ValueError:
-            # Re-raise ValueError for invalid datetime formats to maintain test compatibility
-            raise ValueError(f"Invalid datetime format: {dt_str}") from None
+        dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+        if dt.tzinfo:
+            # Format with timezone info
+            return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
+        else:
+            # Naive datetime - assume UTC for display
+            dt = dt.replace(tzinfo=timezone.utc)
+            return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
     else:
         return dt_str + " (all-day)"
 
@@ -571,10 +567,7 @@ async def find_time(
     resolved_id = await _resolve_calendar_id(calendar_id, service)
 
     # Set default date range
-    if not start_date:
-        start_dt = datetime.now()
-    else:
-        start_dt = datetime.fromisoformat(start_date)
+    start_dt = datetime.now() if not start_date else datetime.fromisoformat(start_date)
 
     if not end_date:
         end_dt = start_dt + timedelta(days=7)

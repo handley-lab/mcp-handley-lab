@@ -1,16 +1,16 @@
 """Terminal utilities for launching interactive applications."""
 
+import contextlib
 import os
 import re
 import subprocess
 import time
 import uuid
-from typing import Optional
 
 
 def launch_interactive(
     command: str,
-    window_title: Optional[str] = None,
+    window_title: str | None = None,
     prefer_tmux: bool = True,
     wait: bool = False,
 ) -> str:
@@ -70,12 +70,10 @@ def launch_interactive(
 
                 # Return to the window we were in when mutt was launched
                 if current_window:
-                    try:
+                    with contextlib.suppress(subprocess.CalledProcessError):
                         subprocess.run(
                             ["tmux", "select-window", "-t", current_window], check=True
                         )
-                    except subprocess.CalledProcessError:
-                        pass  # Original window might not exist anymore
 
                 return f"Completed in tmux window: {command}"
             except subprocess.CalledProcessError as e:

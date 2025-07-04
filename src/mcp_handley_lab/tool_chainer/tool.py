@@ -11,16 +11,9 @@ Example workflow:
 2. gemini analyzes with file path: {"files": [{"path": "/tmp/code_summary.md"}]}
    NOT: {"files": [{"path": "{summary}"}]}
 """
+
 import asyncio
 import json
-
-
-class ToolExecutionError(RuntimeError):
-    """Custom exception for errors during MCP tool execution."""
-
-    pass
-
-
 import time
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +21,13 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel
+
+
+class ToolExecutionError(RuntimeError):
+    """Custom exception for errors during MCP tool execution."""
+
+    pass
+
 
 mcp = FastMCP("Tool Chainer")
 

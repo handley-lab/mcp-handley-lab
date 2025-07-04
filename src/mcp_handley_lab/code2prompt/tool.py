@@ -91,9 +91,10 @@ async def generate_prompt(
     """Generate a structured prompt from codebase."""
     # Create output file if not provided
     if not output_file:
-        temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False)
-        output_file = temp_file.name
-        temp_file.close()
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as temp_file:
+            output_file = temp_file.name
 
     # Define all arguments in one data structure
     arg_definitions = [

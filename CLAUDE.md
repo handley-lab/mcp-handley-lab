@@ -54,6 +54,31 @@ git commit -m "Bump version to 0.0.0a20"
 
 **GitHub CI WILL FAIL** if versions don't match or aren't bumped from master. This is enforced automatically.
 
+### Commit Quality Standards
+
+**NEVER use `--no-verify` to skip pre-commit hooks.** Pre-commit hooks enforce:
+- Code formatting (ruff-format)
+- Linting standards (ruff)
+- File quality checks (end-of-file-fixer, merge conflicts)
+
+**Always fix linting issues properly:**
+```bash
+# ✅ Correct approach: Fix the issues
+ruff check --fix src/
+ruff format src/
+git add .
+git commit -m "fix: resolve linting issues"
+
+# ❌ NEVER do this:
+git commit --no-verify -m "bypass hooks"
+```
+
+**If pre-commit hooks fail, diagnose and fix the root cause:**
+- Use `ruff check --fix` to auto-fix style issues
+- Use `ruff format` for code formatting
+- Manually fix any remaining linting errors
+- Ensure all files end with newlines
+
 ## Critical Development Guidelines
 
 ### Environment Assumptions

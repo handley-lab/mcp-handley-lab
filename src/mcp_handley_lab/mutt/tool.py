@@ -163,15 +163,10 @@ async def compose_email(
     # If there's initial body content, create a temp file and add -i flag
     temp_file = None
     if initial_body:
-        fd, temp_file = tempfile.mkstemp(suffix=".txt", text=True)
-        try:
-            with os.fdopen(fd, "w") as f:
-                f.write(initial_body)
-            mutt_cmd.extend(["-i", temp_file])
-        except:
-            if temp_file:
-                os.unlink(temp_file)
-            raise
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(initial_body)
+            temp_file = f.name
+        mutt_cmd.extend(["-i", temp_file])
 
     # Add attachments if provided (must come after other options but before recipient)
     if attachments:
@@ -303,15 +298,10 @@ async def reply_to_email(
     # If there's initial body content, create temp file
     temp_file = None
     if initial_body:
-        fd, temp_file = tempfile.mkstemp(suffix=".txt", text=True)
-        try:
-            with os.fdopen(fd, "w") as f:
-                f.write(initial_body)
-            mutt_cmd.extend(["-i", temp_file])
-        except:
-            if temp_file:
-                os.unlink(temp_file)
-            raise
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(initial_body)
+            temp_file = f.name
+        mutt_cmd.extend(["-i", temp_file])
 
     # Add message ID to reply to
     mutt_cmd.extend(["-H", f"id:{message_id}"])
@@ -364,15 +354,10 @@ async def forward_email(message_id: str, to: str = "", initial_body: str = "") -
     # If there's initial body content, create temp file
     temp_file = None
     if initial_body:
-        fd, temp_file = tempfile.mkstemp(suffix=".txt", text=True)
-        try:
-            with os.fdopen(fd, "w") as f:
-                f.write(initial_body)
-            mutt_cmd.extend(["-i", temp_file])
-        except:
-            if temp_file:
-                os.unlink(temp_file)
-            raise
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(initial_body)
+            temp_file = f.name
+        mutt_cmd.extend(["-i", temp_file])
 
     # Add forward flag and message ID
     mutt_cmd.extend(["-f", f"id:{message_id}"])
@@ -448,13 +433,13 @@ async def move_email(
         )
 
     # Create temporary mutt script
-    fd, script_file = tempfile.mkstemp(suffix=".muttrc", text=True)
-    try:
-        with os.fdopen(fd, "w") as f:
-            # Write commands to execute
-            f.write("".join(f'push "{cmd}"\n' for cmd in script_commands))
-            f.write('push "<quit>"\n')
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".muttrc", delete=False) as f:
+        # Write commands to execute
+        f.write("".join(f'push "{cmd}"\n' for cmd in script_commands))
+        f.write('push "<quit>"\n')
+        script_file = f.name
 
+    try:
         # Run mutt with the script
         mutt_cmd = ["mutt", "-F", script_file]
         await _run_command(mutt_cmd)

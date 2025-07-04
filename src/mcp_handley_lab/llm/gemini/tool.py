@@ -49,7 +49,9 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 # Client initialization decorator is no longer needed with fail-fast approach
 # If we reach this point, the client is guaranteed to be initialized
-require_client = lambda func: func
+def require_client(func):
+    """Identity decorator - no longer needed with fail-fast approach."""
+    return func
 
 
 def _convert_history_to_gemini_format(

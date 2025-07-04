@@ -40,14 +40,11 @@ async def _get_source_archive(arxiv_id: str) -> bytes:
 
     # Download and cache
     url = f"https://arxiv.org/src/{arxiv_id}"
-    try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            _cache_source(arxiv_id, response.content)
-            return response.content
-    except Exception as e:
-        raise RuntimeError(f"Error fetching ArXiv data: {e}") from e
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        _cache_source(arxiv_id, response.content)
+        return response.content
 
 
 def _is_tar_archive(content: bytes) -> bool:
@@ -74,23 +71,20 @@ def _handle_single_file(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> str:
     """Handle a single gzipped file (not a tar archive)."""
-    try:
-        # Decompress the gzipped content
-        decompressed = gzip.decompress(content)
+    # Decompress the gzipped content
+    decompressed = gzip.decompress(content)
 
-        if output_path == "-":
-            # Return file info for stdout
-            return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
-        else:
-            # Save to directory
-            os.makedirs(output_path, exist_ok=True)
-            filename = f"{arxiv_id}.tex"  # Assume it's a tex file
-            file_path = os.path.join(output_path, filename)
-            with open(file_path, "wb") as f:
-                f.write(decompressed)
-            return f"ArXiv source saved to directory: {output_path}\\nFile: {filename}"
-    except Exception as e:
-        raise ValueError(f"Error processing single file: {e}") from e
+    if output_path == "-":
+        # Return file info for stdout
+        return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
+    else:
+        # Save to directory
+        os.makedirs(output_path, exist_ok=True)
+        filename = f"{arxiv_id}.tex"  # Assume it's a tex file
+        file_path = os.path.join(output_path, filename)
+        with open(file_path, "wb") as f:
+            f.write(decompressed)
+        return f"ArXiv source saved to directory: {output_path}\\nFile: {filename}"
 
 
 def _handle_tar_archive(
@@ -165,12 +159,9 @@ async def download(arxiv_id: str, format: str = "src", output_path: str = None) 
     if format == "pdf":
         url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
 
-        try:
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-        except Exception as e:
-            raise RuntimeError(f"Error fetching ArXiv PDF: {e}") from e
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            response = await client.get(url)
+            response.raise_for_status()
 
         if output_path == "-":
             # Return file info for stdout
@@ -311,12 +302,9 @@ async def search(
     param_str = "&".join([f"{k}={v}" for k, v in params.items()])
     url = f"{base_url}?{param_str}"
 
-    try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-    except Exception as e:
-        raise RuntimeError(f"Error fetching ArXiv search results: {e}") from e
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        response = await client.get(url)
+        response.raise_for_status()
 
     # Parse XML response
     try:

@@ -103,48 +103,42 @@ def _resolve_images(
     image_list = []
 
     if image_data:
-        try:
-            if image_data.startswith("data:image"):
-                image_list.append(image_data)
-            else:
-                # File path - convert to base64
-                image_path = Path(image_data)
-                image_bytes = image_path.read_bytes()
-                # Use standard mime type detection
-                mime_type = determine_mime_type(image_path)
-                encoded = base64.b64encode(image_bytes).decode()
-                image_list.append(f"data:{mime_type};base64,{encoded}")
-        except Exception as e:
-            raise ValueError(f"Failed to load image: {e}") from e
+        if image_data.startswith("data:image"):
+            image_list.append(image_data)
+        else:
+            # File path - convert to base64
+            image_path = Path(image_data)
+            image_bytes = image_path.read_bytes()
+            # Use standard mime type detection
+            mime_type = determine_mime_type(image_path)
+            encoded = base64.b64encode(image_bytes).decode()
+            image_list.append(f"data:{mime_type};base64,{encoded}")
 
     if images:
         for image_item in images:
-            try:
-                if isinstance(image_item, str):
-                    if image_item.startswith("data:image"):
-                        image_list.append(image_item)
-                    else:
-                        # File path
-                        image_path = Path(image_item)
-                        image_bytes = image_path.read_bytes()
-                        mime_type = determine_mime_type(image_path)
-                        encoded = base64.b64encode(image_bytes).decode()
-                        image_list.append(f"data:{mime_type};base64,{encoded}")
-                elif isinstance(image_item, dict):
-                    if "data" in image_item:
-                        # Already base64 encoded
-                        encoded_data = image_item["data"]
-                        if not encoded_data.startswith("data:image"):
-                            encoded_data = f"data:image/jpeg;base64,{encoded_data}"
-                        image_list.append(encoded_data)
-                    elif "path" in image_item:
-                        image_path = Path(image_item["path"])
-                        image_bytes = image_path.read_bytes()
-                        mime_type = determine_mime_type(image_path)
-                        encoded = base64.b64encode(image_bytes).decode()
-                        image_list.append(f"data:{mime_type};base64,{encoded}")
-            except Exception as e:
-                raise ValueError(f"Failed to load image: {e}") from e
+            if isinstance(image_item, str):
+                if image_item.startswith("data:image"):
+                    image_list.append(image_item)
+                else:
+                    # File path
+                    image_path = Path(image_item)
+                    image_bytes = image_path.read_bytes()
+                    mime_type = determine_mime_type(image_path)
+                    encoded = base64.b64encode(image_bytes).decode()
+                    image_list.append(f"data:{mime_type};base64,{encoded}")
+            elif isinstance(image_item, dict):
+                if "data" in image_item:
+                    # Already base64 encoded
+                    encoded_data = image_item["data"]
+                    if not encoded_data.startswith("data:image"):
+                        encoded_data = f"data:image/jpeg;base64,{encoded_data}"
+                    image_list.append(encoded_data)
+                elif "path" in image_item:
+                    image_path = Path(image_item["path"])
+                    image_bytes = image_path.read_bytes()
+                    mime_type = determine_mime_type(image_path)
+                    encoded = base64.b64encode(image_bytes).decode()
+                    image_list.append(f"data:{mime_type};base64,{encoded}")
 
     return image_list
 
@@ -203,10 +197,7 @@ async def _openai_generation_adapter(
         request_params[param_name] = default_tokens
 
     # Make API call
-    try:
-        response = await client.chat.completions.create(**request_params)
-    except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {e}") from e
+    response = await client.chat.completions.create(**request_params)
 
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -279,10 +270,7 @@ async def _openai_image_analysis_adapter(
         request_params[param_name] = default_tokens
 
     # Make API call
-    try:
-        response = await client.chat.completions.create(**request_params)
-    except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {e}") from e
+    response = await client.chat.completions.create(**request_params)
 
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -576,53 +564,49 @@ async def generate_image(
     if agent_name is not None and agent_name is not False and not agent_name.strip():
         raise ValueError("Agent name cannot be empty when provided")
 
-    try:
-        # Make API call (quality only supported for DALL-E 3)
-        params = {"model": model, "prompt": prompt, "size": size, "n": 1}
-        if model == "dall-e-3":
-            params["quality"] = quality
+    # Make API call (quality only supported for DALL-E 3)
+    params = {"model": model, "prompt": prompt, "size": size, "n": 1}
+    if model == "dall-e-3":
+        params["quality"] = quality
 
-        response = await client.images.generate(**params)
+    response = await client.images.generate(**params)
 
-        # Get the image URL
-        image_url = response.data[0].url
+    # Get the image URL
+    image_url = response.data[0].url
 
-        # Download and save the image using httpx
-        async with httpx.AsyncClient() as http_client:
-            image_response = await http_client.get(image_url)
-            image_response.raise_for_status()
+    # Download and save the image using httpx
+    async with httpx.AsyncClient() as http_client:
+        image_response = await http_client.get(image_url)
+        image_response.raise_for_status()
 
-            # Save to temp file
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-                f.write(image_response.content)
-                saved_path = f.name
+        # Save to temp file
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            f.write(image_response.content)
+            saved_path = f.name
 
-        # Calculate cost (DALL-E pricing is per image)
-        cost = calculate_cost(model, 1, 0, "openai")  # 1 image
+    # Calculate cost (DALL-E pricing is per image)
+    cost = calculate_cost(model, 1, 0, "openai")  # 1 image
 
-        # Handle agent memory
-        if agent_name:
-            agent = memory_manager.get_agent(agent_name)
-            if not agent:
-                agent = memory_manager.create_agent(agent_name)
+    # Handle agent memory
+    if agent_name:
+        agent = memory_manager.get_agent(agent_name)
+        if not agent:
+            agent = memory_manager.create_agent(agent_name)
 
-            memory_manager.add_message(
-                agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
-            )
-            memory_manager.add_message(
-                agent_name,
-                "assistant",
-                f"Image generated and saved to {saved_path}",
-                0,
-                cost / 2,
-            )
+        memory_manager.add_message(
+            agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
+        )
+        memory_manager.add_message(
+            agent_name,
+            "assistant",
+            f"Image generated and saved to {saved_path}",
+            0,
+            cost / 2,
+        )
 
-        cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
+    cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
 
-        return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n💰 Cost: {cost_str}"
-
-    except Exception as e:
-        raise RuntimeError(f"DALL-E API error: {e}") from e
+    return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n💰 Cost: {cost_str}"
 
 
 @mcp.tool(
@@ -660,16 +644,12 @@ list_models()
 )
 async def list_models() -> str:
     """List available OpenAI models with detailed information."""
-    try:
-        # Get models from API for availability checking
-        api_models = await client.models.list()
-        api_model_ids = {m.id for m in api_models.data}
+    # Get models from API for availability checking
+    api_models = await client.models.list()
+    api_model_ids = {m.id for m in api_models.data}
 
-        # Use YAML-based model listing
-        return format_model_listing("openai", api_model_ids)
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to list OpenAI models: {e}") from e
+    # Use YAML-based model listing
+    return format_model_listing("openai", api_model_ids)
 
 
 @mcp.tool(
@@ -692,19 +672,16 @@ server_info()
 )
 async def server_info() -> str:
     """Get server status and OpenAI configuration."""
-    try:
-        # Test API key by listing models
-        models = await client.models.list()
-        available_models = [
-            m.id
-            for m in models.data
-            if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
-        ]
+    # Test API key by listing models
+    models = await client.models.list()
+    available_models = [
+        m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
+    ]
 
-        # Get agent count
-        agent_count = len(memory_manager.list_agents())
+    # Get agent count
+    agent_count = len(memory_manager.list_agents())
 
-        return f"""OpenAI Tool Server Status
+    return f"""OpenAI Tool Server Status
 ==========================
 Status: Connected and ready
 API Key: Configured ✓
@@ -721,6 +698,3 @@ Available tools:
 - generate_image: Generate images with DALL-E
 - get_response: Retrieve messages from agent conversation history
 - server_info: Get server status"""
-
-    except Exception as e:
-        raise RuntimeError(f"OpenAI API configuration error: {e}") from e

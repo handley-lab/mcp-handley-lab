@@ -162,20 +162,14 @@ def _resolve_images(
 
     # Handle single image_data parameter
     if image_data:
-        try:
-            image_bytes = resolve_image_data(image_data)
-            image_list.append(Image.open(io.BytesIO(image_bytes)))
-        except Exception as e:
-            raise ValueError(f"Failed to load image: {e}") from e
+        image_bytes = resolve_image_data(image_data)
+        image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     # Handle images array
     if images:
         for image_item in images:
-            try:
-                image_bytes = resolve_image_data(image_item)
-                image_list.append(Image.open(io.BytesIO(image_bytes)))
-            except Exception as e:
-                raise ValueError(f"Failed to load image: {e}") from e
+            image_bytes = resolve_image_data(image_item)
+            image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     return image_list
 
@@ -696,20 +690,17 @@ list_models()
 @require_client
 async def list_models() -> str:
     """List available Gemini models with detailed information."""
-    try:
-        # Get models from API
-        def _sync_list_models():
-            return client.models.list()
 
-        loop = asyncio.get_running_loop()
-        models_response = await loop.run_in_executor(None, _sync_list_models)
-        api_model_names = {model.name.split("/")[-1] for model in models_response}
+    # Get models from API
+    def _sync_list_models():
+        return client.models.list()
 
-        # Use YAML-based model listing
-        return format_model_listing("gemini", api_model_names)
+    loop = asyncio.get_running_loop()
+    models_response = await loop.run_in_executor(None, _sync_list_models)
+    api_model_names = {model.name.split("/")[-1] for model in models_response}
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to list Gemini models: {e}") from e
+    # Use YAML-based model listing
+    return format_model_listing("gemini", api_model_names)
 
 
 @mcp.tool(
@@ -733,17 +724,17 @@ server_info()
 @require_client
 async def server_info() -> str:
     """Get server status and Gemini configuration."""
-    try:
-        # Test API by listing models
-        def _sync_list_models():
-            return client.models.list()
 
-        loop = asyncio.get_running_loop()
-        models_response = await loop.run_in_executor(None, _sync_list_models)
-        available_models = []
-        for model in models_response:
-            if "gemini" in model.name:
-                available_models.append(model.name.split("/")[-1])
+    # Test API by listing models
+    def _sync_list_models():
+        return client.models.list()
+
+    loop = asyncio.get_running_loop()
+    models_response = await loop.run_in_executor(None, _sync_list_models)
+    available_models = []
+    for model in models_response:
+        if "gemini" in model.name:
+            available_models.append(model.name.split("/")[-1])
 
         # Get agent count
         agent_count = len(memory_manager.list_agents())
@@ -770,6 +761,3 @@ Available tools:
 - clear_agent: Clear agent conversation history
 - delete_agent: Permanently delete agents
 - server_info: Get server status"""
-
-    except Exception as e:
-        raise RuntimeError(f"Gemini API configuration error: {e}") from e

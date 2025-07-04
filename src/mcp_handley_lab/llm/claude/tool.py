@@ -166,17 +166,49 @@ def _resolve_images_to_content_blocks(
 
     # Handle single image_data parameter
     if image_data:
-        try:
-            image_bytes = resolve_image_data(image_data)
+        image_bytes = resolve_image_data(image_data)
+        # Determine media type
+        if isinstance(image_data, str) and image_data.startswith("data:image"):
+            media_type = image_data.split(";")[0].split(":")[1]
+        else:
+            # File path - use determine_mime_type for consistent MIME detection
+            media_type = determine_mime_type(Path(str(image_data)))
+            # Default to JPEG for non-image types
+            if not media_type.startswith("image/"):
+                media_type = "image/jpeg"
+
+        encoded_data = base64.b64encode(image_bytes).decode("utf-8")
+        image_blocks.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": encoded_data,
+                },
+            }
+        )
+
+    # Handle images array
+    if images:
+        for image_item in images:
+            image_bytes = resolve_image_data(image_item)
+
             # Determine media type
-            if isinstance(image_data, str) and image_data.startswith("data:image"):
-                media_type = image_data.split(";")[0].split(":")[1]
-            else:
-                # File path - use determine_mime_type for consistent MIME detection
-                media_type = determine_mime_type(Path(str(image_data)))
-                # Default to JPEG for non-image types
+            if isinstance(image_item, str):
+                if image_item.startswith("data:image"):
+                    media_type = image_item.split(";")[0].split(":")[1]
+                else:
+                    # File path - use determine_mime_type for consistency
+                    media_type = determine_mime_type(Path(image_item))
+                    if not media_type.startswith("image/"):
+                        media_type = "image/jpeg"
+            elif isinstance(image_item, dict) and "path" in image_item:
+                media_type = determine_mime_type(Path(image_item["path"]))
                 if not media_type.startswith("image/"):
                     media_type = "image/jpeg"
+            else:
+                media_type = "image/jpeg"
 
             encoded_data = base64.b64encode(image_bytes).decode("utf-8")
             image_blocks.append(
@@ -189,44 +221,6 @@ def _resolve_images_to_content_blocks(
                     },
                 }
             )
-        except Exception as e:
-            raise RuntimeError(f"Error loading image: {e}") from e
-
-    # Handle images array
-    if images:
-        for image_item in images:
-            try:
-                image_bytes = resolve_image_data(image_item)
-
-                # Determine media type
-                if isinstance(image_item, str):
-                    if image_item.startswith("data:image"):
-                        media_type = image_item.split(";")[0].split(":")[1]
-                    else:
-                        # File path - use determine_mime_type for consistency
-                        media_type = determine_mime_type(Path(image_item))
-                        if not media_type.startswith("image/"):
-                            media_type = "image/jpeg"
-                elif isinstance(image_item, dict) and "path" in image_item:
-                    media_type = determine_mime_type(Path(image_item["path"]))
-                    if not media_type.startswith("image/"):
-                        media_type = "image/jpeg"
-                else:
-                    media_type = "image/jpeg"
-
-                encoded_data = base64.b64encode(image_bytes).decode("utf-8")
-                image_blocks.append(
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": encoded_data,
-                        },
-                    }
-                )
-            except Exception as e:
-                raise RuntimeError(f"Error loading image: {e}") from e
 
     return image_blocks
 
@@ -588,12 +582,8 @@ list_models()
 )
 async def list_models() -> str:
     """List available Claude models with detailed information."""
-    try:
-        # Use YAML-based model listing
-        return format_model_listing("claude")
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to list Claude models: {e}") from e
+    # Use YAML-based model listing
+    return format_model_listing("claude")
 
 
 @mcp.tool(
@@ -617,20 +607,19 @@ server_info()
 @require_client
 async def server_info() -> str:
     """Get server status and Claude configuration."""
-    try:
-        # Test API by making a simple request
-        await client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            messages=[{"role": "user", "content": "Hello"}],
-            max_tokens=10,
-        )
+    # Test API by making a simple request
+    await client.messages.create(
+        model="claude-3-5-haiku-20241022",
+        messages=[{"role": "user", "content": "Hello"}],
+        max_tokens=10,
+    )
 
-        # Get agent count
-        agent_count = len(memory_manager.list_agents())
+    # Get agent count
+    agent_count = len(memory_manager.list_agents())
 
-        available_models = list(MODEL_CONFIGS.keys())
+    available_models = list(MODEL_CONFIGS.keys())
 
-        return f"""Claude Tool Server Status
+    return f"""Claude Tool Server Status
 ==========================
 Status: Connected and ready
 API Key: Configured ✓
@@ -652,6 +641,3 @@ Available tools:
 - server_info: Get server status
 
 Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
-
-    except Exception as e:
-        raise RuntimeError(f"Claude API configuration error: {e}") from e

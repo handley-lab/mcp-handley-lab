@@ -5,14 +5,14 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from ..common.terminal import launch_interactive
+from mcp_handley_lab.common.terminal import launch_interactive
 
 mcp = FastMCP("Mutt Tool")
 
 
 async def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
     """Run a shell command and return output."""
-    from ..common.process import run_command
+    from mcp_handley_lab.common.process import run_command
 
     input_bytes = input_text.encode() if input_text else None
     stdout, stderr = await run_command(cmd, input_data=input_bytes)

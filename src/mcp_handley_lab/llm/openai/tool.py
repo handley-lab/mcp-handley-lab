@@ -8,19 +8,19 @@ import httpx
 from mcp.server.fastmcp import FastMCP
 from openai import AsyncOpenAI
 
-from ...common.config import settings
-from ...common.memory import memory_manager
-from ...common.pricing import calculate_cost
-from ..common import (
+from mcp_handley_lab.common.config import settings
+from mcp_handley_lab.common.memory import memory_manager
+from mcp_handley_lab.common.pricing import calculate_cost
+from mcp_handley_lab.llm.common import (
     determine_mime_type,
     is_text_file,
 )
-from ..model_loader import (
+from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
     load_model_config,
 )
-from ..shared import process_llm_request
+from mcp_handley_lab.llm.shared import process_llm_request
 
 mcp = FastMCP("OpenAI Tool")
 

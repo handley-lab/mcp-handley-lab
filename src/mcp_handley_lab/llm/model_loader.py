@@ -141,7 +141,7 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
     Returns:
         Formatted string with model information grouped by categories
     """
-    from ..common.pricing import calculate_cost
+    from mcp_handley_lab.common.pricing import calculate_cost
 
     config = load_model_config(provider)
     model_info = []

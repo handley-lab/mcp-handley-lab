@@ -5,7 +5,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 from pydantic import constr
 
-from ..common.process import run_command
+from mcp_handley_lab.common.process import run_command
 
 mcp = FastMCP("JQ Tool")
 

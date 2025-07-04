@@ -10,7 +10,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from mcp.server.fastmcp import FastMCP
 
-from ..common.config import settings
+from mcp_handley_lab.common.config import settings
 
 mcp = FastMCP("Google Calendar Tool")
 

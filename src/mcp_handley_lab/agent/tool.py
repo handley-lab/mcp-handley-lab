@@ -3,7 +3,7 @@
 from mcp.server.fastmcp import FastMCP
 from pydantic import constr
 
-from ..common.memory import memory_manager
+from mcp_handley_lab.common.memory import memory_manager
 
 mcp = FastMCP("Agent Management Tool")
 

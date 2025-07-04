@@ -52,8 +52,14 @@ def _load_state(
                 state.get("defined_chains", {}),
                 state.get("execution_history", []),
             )
-        except (json.JSONDecodeError, KeyError):
-            pass
+        except (json.JSONDecodeError, KeyError) as e:
+            # Corrupted state file - rename for inspection and raise error
+            backup_path = state_file.with_suffix(".json.corrupted")
+            state_file.rename(backup_path)
+            raise RuntimeError(
+                f"Corrupted tool chainer state file. Renamed to {backup_path} for inspection. "
+                f"Original error: {e}"
+            ) from e
 
     return {}, {}, []
 

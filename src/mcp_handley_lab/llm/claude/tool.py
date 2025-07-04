@@ -134,33 +134,25 @@ async def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
             elif "path" in file_item:
                 # File path - read content
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        file_contents.append(f"Error: File not found: {file_path}")
-                        continue
+                if not file_path.exists():
+                    raise FileNotFoundError(f"File not found: {file_path}")
 
-                    file_size = file_path.stat().st_size
+                file_size = file_path.stat().st_size
 
-                    # Claude can handle large files, but let's be reasonable (20MB limit)
-                    if file_size > 20 * 1024 * 1024:
-                        file_contents.append(
-                            f"Error: File too large: {file_path} ({file_size} bytes)"
-                        )
-                        continue
+                # Claude can handle large files, but let's be reasonable (20MB limit)
+                if file_size > 20 * 1024 * 1024:
+                    raise ValueError(f"File too large: {file_path} ({file_size} bytes)")
 
-                    if is_text_file(file_path):
-                        # Text file - read directly
-                        content = file_path.read_text(encoding="utf-8")
-                        file_contents.append(f"[File: {file_path.name}]\n{content}")
-                    else:
-                        # Binary file - describe only (Claude doesn't need base64 for non-image files)
-                        mime_type = determine_mime_type(file_path)
-                        file_contents.append(
-                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
-                        )
-
-                except Exception as e:
-                    file_contents.append(f"Error reading file {file_path}: {e}")
+                if is_text_file(file_path):
+                    # Text file - read directly
+                    content = file_path.read_text(encoding="utf-8")
+                    file_contents.append(f"[File: {file_path.name}]\n{content}")
+                else:
+                    # Binary file - describe only (Claude doesn't need base64 for non-image files)
+                    mime_type = determine_mime_type(file_path)
+                    file_contents.append(
+                        f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
+                    )
 
     return "\n\n".join(file_contents)
 
@@ -198,8 +190,7 @@ def _resolve_images_to_content_blocks(
                 }
             )
         except Exception as e:
-            # Add text block with error
-            image_blocks.append({"type": "text", "text": f"Error loading image: {e}"})
+            raise RuntimeError(f"Error loading image: {e}") from e
 
     # Handle images array
     if images:
@@ -235,9 +226,7 @@ def _resolve_images_to_content_blocks(
                     }
                 )
             except Exception as e:
-                image_blocks.append(
-                    {"type": "text", "text": f"Error loading image: {e}"}
-                )
+                raise RuntimeError(f"Error loading image: {e}") from e
 
     return image_blocks
 

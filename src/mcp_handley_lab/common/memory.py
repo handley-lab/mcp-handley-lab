@@ -98,9 +98,8 @@ class MemoryManager:
             try:
                 agent = AgentMemory.model_validate_json(agent_file.read_text())
                 self._agents[agent.name] = agent
-            except (json.JSONDecodeError, ValueError):
-                # Skip corrupted files
-                continue
+            except (json.JSONDecodeError, ValueError) as e:
+                raise RuntimeError(f"Corrupted agent file: {agent_file}. {e}") from e
 
     def _serialize_agent_data(self, agent: AgentMemory) -> dict:
         """Convert agent to JSON-serializable dictionary."""
@@ -181,31 +180,25 @@ class MemoryManager:
         if not agent:
             return False
 
-        try:
-            data = self._serialize_agent_data(agent)
-            with open(export_path, "w") as f:
-                json.dump(data, f, indent=2)
-            return True
-        except Exception:
-            return False
+        data = self._serialize_agent_data(agent)
+        with open(export_path, "w") as f:
+            json.dump(data, f, indent=2)
+        return True
 
     def import_agent(self, import_path: str, overwrite: bool = False) -> bool:
         """Import an agent from a specified file path."""
-        try:
-            with open(import_path) as f:
-                data = json.load(f)
+        with open(import_path) as f:
+            data = json.load(f)
 
-            agent = self._deserialize_agent_data(data)
+        agent = self._deserialize_agent_data(data)
 
-            # Check if agent already exists
-            if agent.name in self._agents and not overwrite:
-                return False
-
-            self._agents[agent.name] = agent
-            self._save_agent(agent)
-            return True
-        except Exception:
+        # Check if agent already exists
+        if agent.name in self._agents and not overwrite:
             return False
+
+        self._agents[agent.name] = agent
+        self._save_agent(agent)
+        return True
 
     def get_response(self, agent_name: str, index: int = -1) -> str | None:
         """Get a message content from an agent by index. Default -1 gets the last message."""

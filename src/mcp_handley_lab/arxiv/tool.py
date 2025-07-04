@@ -250,11 +250,8 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
     # Extract published date
     published_text = find_text("atom:published")
-    try:
-        dt = datetime.fromisoformat(published_text.replace("Z", "+00:00"))
-        published_date = dt.strftime("%Y-%m-%d")
-    except Exception:
-        published_date = published_text
+    dt = datetime.fromisoformat(published_text.replace("Z", "+00:00"))
+    published_date = dt.strftime("%Y-%m-%d")
 
     # Extract categories and links
     categories = [

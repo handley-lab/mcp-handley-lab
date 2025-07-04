@@ -365,9 +365,8 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             manager = MemoryManager(temp_dir)
 
-            result = manager.import_agent("/nonexistent/file.json")
-
-            assert result is False
+            with pytest.raises(FileNotFoundError):
+                manager.import_agent("/nonexistent/file.json")
 
     def test_import_agent_no_overwrite(self):
         """Test importing agent that already exists without overwrite."""
@@ -477,9 +476,9 @@ class TestMemoryManager:
             corrupted_file = agents_dir / "corrupted.json"
             corrupted_file.write_text("invalid json content")
 
-            # Should not crash, just skip corrupted file
-            manager = MemoryManager(temp_dir)
-            assert len(manager.list_agents()) == 0
+            # Should raise an error for corrupted file
+            with pytest.raises(RuntimeError, match="Corrupted agent file"):
+                MemoryManager(temp_dir)
 
     def test_load_agents_no_agents_dir(self):
         """Test loading agents when agents directory doesn't exist."""
@@ -500,6 +499,5 @@ class TestMemoryManager:
             manager.create_agent("test_agent")
 
             # Try to export to invalid path (should trigger exception)
-            result = manager.export_agent("test_agent", "/invalid/path/export.json")
-
-            assert result is False
+            with pytest.raises(FileNotFoundError):
+                manager.export_agent("test_agent", "/invalid/path/export.json")

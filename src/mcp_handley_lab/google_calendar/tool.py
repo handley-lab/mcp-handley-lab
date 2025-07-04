@@ -808,6 +808,7 @@ async def search_events(
                 end_date = _parse_datetime_to_utc(end_date)
 
         events_list = []
+        warnings = []
 
         if calendar_id == "all":
             # Search all calendars
@@ -842,8 +843,9 @@ async def search_events(
                     for event in cal_events:
                         event["calendar_name"] = calendar.get("summary", cal_id)
                     events_list.extend(cal_events)
-                except HttpError:
-                    continue  # Skip inaccessible calendars
+                except HttpError as e:
+                    calendar_name = calendar.get("summary", cal_id)
+                    warnings.append(f"Could not access calendar '{calendar_name}': {e}")
         else:
             # Search specific calendar
             resolved_id = await _resolve_calendar_id(calendar_id, service)
@@ -921,6 +923,14 @@ async def search_events(
                 result += f"  Description: {desc}\n"
 
             result += "\n"
+
+        # Add warnings if any calendars were inaccessible
+        if warnings:
+            result += (
+                "\n⚠️ Warnings:\n"
+                + "\n".join(f"- {warning}" for warning in warnings)
+                + "\n"
+            )
 
         # Add search summary only for advanced searches
         if search_text and (search_fields or case_sensitive or not match_all_terms):

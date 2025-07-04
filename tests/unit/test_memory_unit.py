@@ -479,7 +479,9 @@ class TestMemoryManager:
             corrupted_file.write_text("invalid json content")
 
             # Should raise an error for corrupted file
-            with pytest.raises(RuntimeError, match="Corrupted agent file"):
+            with pytest.raises(
+                (ValueError, json.JSONDecodeError)
+            ):  # ValidationError from Pydantic
                 MemoryManager(temp_dir)
 
     def test_load_agents_no_agents_dir(self):

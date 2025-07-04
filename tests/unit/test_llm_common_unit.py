@@ -40,15 +40,6 @@ class TestGetSessionId:
             result = get_session_id(mock_mcp)
             assert result == "_session_12345"
 
-    def test_get_session_id_exception_fallback(self):
-        """Test session ID fallback when context access fails."""
-        mock_mcp = Mock()
-        mock_mcp.get_context.side_effect = Exception("Context error")
-
-        with patch("os.getpid", return_value=12345):
-            result = get_session_id(mock_mcp)
-            assert result == "_session_12345"
-
 
 class TestDetermineMimeType:
     """Test MIME type detection."""

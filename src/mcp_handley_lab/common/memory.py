@@ -165,16 +165,6 @@ class MemoryManager:
         agent.clear_history()
         self._save_agent(agent)
 
-    def export_agent(self, name: str, export_path: str) -> None:
-        """Export an agent to a specified file path."""
-        agent = self.get_agent(name)
-        if not agent:
-            raise ValueError(f"Agent '{name}' not found")
-
-        data = self._serialize_agent_data(agent)
-        with open(export_path, "w") as f:
-            json.dump(data, f, indent=2)
-
     def import_agent(self, import_path: str, overwrite: bool = False) -> None:
         """Import an agent from a specified file path."""
         with open(import_path) as f:

@@ -274,8 +274,6 @@ async def get_event(event_id: str, calendar_id: str = "primary") -> str:
                 f"Event '{event_id}' not found in calendar '{calendar_id}'"
             ) from e
         raise RuntimeError(f"Google Calendar API error: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Calendar service error: {e}") from e
 
 
 @mcp.tool(
@@ -389,8 +387,6 @@ async def create_event(
         ) from None
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Calendar service error: {e}") from e
 
 
 @mcp.tool(
@@ -556,8 +552,6 @@ async def list_calendars() -> str:
         ) from None
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Calendar service error: {e}") from e
 
 
 @mcp.tool(
@@ -699,8 +693,6 @@ async def find_time(
         ) from None
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Calendar service error: {e}") from e
 
 
 @mcp.tool(
@@ -946,8 +938,6 @@ async def search_events(
         raise RuntimeError("Calendar search was cancelled by user") from None
     except HttpError as e:
         raise RuntimeError(f"Google Calendar API error: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Calendar search error: {e}") from e
 
 
 @mcp.tool(

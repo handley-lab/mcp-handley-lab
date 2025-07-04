@@ -36,12 +36,6 @@ async def run_command(
                 f"Command failed with exit code {process.returncode}: {stderr.decode()}"
             )
         return stdout, stderr
-    except FileNotFoundError:
-        raise RuntimeError(f"Command not found: {cmd[0]}") from None
-    except asyncio.TimeoutError:
-        raise RuntimeError(f"Command timed out after {timeout} seconds") from None
-    except asyncio.CancelledError:
-        raise
     finally:
         # Robust cleanup that runs regardless of how the try block exits
         if process and process.returncode is None:

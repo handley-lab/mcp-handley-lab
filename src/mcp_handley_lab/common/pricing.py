@@ -14,12 +14,8 @@ class PricingCalculator:
         current_dir = Path(__file__).parent
         models_file = current_dir.parent / "llm" / provider / "models.yaml"
 
-        try:
-            with open(models_file, encoding="utf-8") as f:
-                return yaml.safe_load(f)
-        except Exception as e:
-            print(f"Warning: Failed to load pricing for {provider}: {e}")
-            return {}
+        with open(models_file, encoding="utf-8") as f:
+            return yaml.safe_load(f)
 
     @classmethod
     def calculate_cost(
@@ -38,12 +34,12 @@ class PricingCalculator:
         """Calculate cost using YAML-based pricing configurations."""
         # Load pricing config for provider
         config = cls._load_pricing_config(provider)
-        if not config:
-            return 0.0
 
         models = config.get("models", {})
         if model not in models:
-            return 0.0
+            raise ValueError(
+                f"Model '{model}' not found in pricing config for provider '{provider}'"
+            )
 
         model_config = models[model]
         total_cost = 0.0

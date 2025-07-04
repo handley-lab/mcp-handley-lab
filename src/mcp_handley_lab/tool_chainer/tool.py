@@ -79,131 +79,125 @@ async def _execute_mcp_tool(
     server_command: str, tool_name: str, arguments: dict[str, Any], timeout: int = 30
 ) -> dict[str, Any]:
     """Execute a tool on an MCP server using MCP protocol."""
+    # Create MCP request messages
+    initialize_request = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {"tools": {}},
+            "clientInfo": {"name": "tool-chainer", "version": "1.0.0"},
+        },
+    }
+
+    tools_call_request = {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/call",
+        "params": {"name": tool_name, "arguments": arguments},
+    }
+
+    initialized_notification = {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized",
+        "params": {},
+    }
+
+    # Prepare input for MCP server
+    input_data = (
+        json.dumps(initialize_request)
+        + "\n"
+        + json.dumps(initialized_notification)
+        + "\n"
+        + json.dumps(tools_call_request)
+        + "\n"
+    ).encode("utf-8")
+
+    # Execute the MCP server with stdio communication
+    cmd = server_command.split()
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=Path.cwd(),
+    )
+
     try:
-        # Create MCP request messages
-        initialize_request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {"tools": {}},
-                "clientInfo": {"name": "tool-chainer", "version": "1.0.0"},
-            },
-        }
-
-        tools_call_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/call",
-            "params": {"name": tool_name, "arguments": arguments},
-        }
-
-        initialized_notification = {
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized",
-            "params": {},
-        }
-
-        # Prepare input for MCP server
-        input_data = (
-            json.dumps(initialize_request)
-            + "\n"
-            + json.dumps(initialized_notification)
-            + "\n"
-            + json.dumps(tools_call_request)
-            + "\n"
-        ).encode("utf-8")
-
-        # Execute the MCP server with stdio communication
-        cmd = server_command.split()
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=Path.cwd(),
+        stdout_bytes, stderr_bytes = await asyncio.wait_for(
+            process.communicate(input=input_data), timeout=timeout
         )
+        stdout = stdout_bytes.decode("utf-8", errors="replace")
+        stderr = stderr_bytes.decode("utf-8", errors="replace")
+
+        if process.returncode != 0:
+            return {
+                "success": False,
+                "error": f"Server command failed: {stderr}",
+                "output": stdout,
+            }
+
+        # Parse responses - expect one JSON line (tools/call response)
+        lines = [line.strip() for line in stdout.strip().split("\n") if line.strip()]
+        if len(lines) < 1:
+            return {
+                "success": False,
+                "error": f"Invalid response format: expected at least 1 line, got {len(lines)}",
+                "output": stdout,
+            }
 
         try:
-            stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                process.communicate(input=input_data), timeout=timeout
-            )
-            stdout = stdout_bytes.decode("utf-8", errors="replace")
-            stderr = stderr_bytes.decode("utf-8", errors="replace")
+            # Parse the tools/call response (last line)
+            response = json.loads(lines[-1])
 
-            if process.returncode != 0:
+            if "error" in response:
                 return {
                     "success": False,
-                    "error": f"Server command failed: {stderr}",
+                    "error": response["error"].get("message", "Unknown error"),
                     "output": stdout,
                 }
 
-            # Parse responses - expect one JSON line (tools/call response)
-            lines = [
-                line.strip() for line in stdout.strip().split("\n") if line.strip()
-            ]
-            if len(lines) < 1:
-                return {
-                    "success": False,
-                    "error": f"Invalid response format: expected at least 1 line, got {len(lines)}",
-                    "output": stdout,
-                }
-
-            try:
-                # Parse the tools/call response (last line)
-                response = json.loads(lines[-1])
-
-                if "error" in response:
-                    return {
-                        "success": False,
-                        "error": response["error"].get("message", "Unknown error"),
-                        "output": stdout,
-                    }
-
-                # Extract result from MCP response
-                result_content = response.get("result", {})
-                if isinstance(result_content, dict) and "content" in result_content:
-                    # MCP tool response format
-                    content = result_content["content"]
-                    if isinstance(content, list) and content:
-                        text_result = content[0].get("text", "")
-                    else:
-                        text_result = str(result_content)
+            # Extract result from MCP response
+            result_content = response.get("result", {})
+            if isinstance(result_content, dict) and "content" in result_content:
+                # MCP tool response format
+                content = result_content["content"]
+                if isinstance(content, list) and content:
+                    text_result = content[0].get("text", "")
                 else:
-                    # Simple result
                     text_result = str(result_content)
+            else:
+                # Simple result
+                text_result = str(result_content)
 
-                return {"success": True, "result": text_result, "output": stdout}
+            return {"success": True, "result": text_result, "output": stdout}
 
-            except json.JSONDecodeError as e:
-                return {
-                    "success": False,
-                    "error": f"Failed to parse server response: {e}",
-                    "output": stdout,
-                }
+        except json.JSONDecodeError as e:
+            return {
+                "success": False,
+                "error": f"Failed to parse server response: {e}",
+                "output": stdout,
+            }
 
-        except asyncio.TimeoutError:
+    except asyncio.TimeoutError:
+        process.kill()
+        await process.wait()
+        return {
+            "success": False,
+            "error": f"Tool execution timed out after {timeout} seconds",
+            "output": "",
+        }
+    except asyncio.CancelledError:
+        # Handle cancellation gracefully
+        if process.returncode is None:
             process.kill()
             await process.wait()
-            return {
-                "success": False,
-                "error": f"Tool execution timed out after {timeout} seconds",
-                "output": "",
-            }
-        except asyncio.CancelledError:
-            # Handle cancellation gracefully
-            if process.returncode is None:
-                process.kill()
-                await process.wait()
-            return {
-                "success": False,
-                "error": "Tool execution was cancelled by user",
-                "output": "",
-            }
-
-    except Exception as e:
-        return {"success": False, "error": f"Execution error: {e}", "output": ""}
+        return {
+            "success": False,
+            "error": "Tool execution was cancelled by user",
+            "output": "",
+        }
 
 
 def _substitute_variables(

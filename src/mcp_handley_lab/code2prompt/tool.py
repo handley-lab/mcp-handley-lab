@@ -1,5 +1,4 @@
 """Code2Prompt tool for codebase flattening and conversion via MCP."""
-import asyncio
 import tempfile
 from pathlib import Path
 
@@ -17,10 +16,6 @@ async def _run_code2prompt(args: list[str]) -> str:
     try:
         stdout, stderr = await run_command(cmd)
         return stdout.decode("utf-8").strip()
-    except asyncio.CancelledError:
-        # Convert CancelledError to RuntimeError so FastMCP can handle it
-        # as a normal tool failure instead of killing the entire session
-        raise RuntimeError("Code2prompt analysis was cancelled by user") from None
     except RuntimeError as e:
         if "Command failed" in str(e):
             # Extract stderr for better code2prompt error messages
@@ -148,7 +143,7 @@ async def generate_prompt(
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
 
-    # Run code2prompt with cancellation support
+    # Run code2prompt
     await _run_code2prompt(args)
 
     # Get file size for reporting

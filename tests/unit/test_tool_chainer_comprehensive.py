@@ -202,17 +202,15 @@ class TestExecuteMcpTool:
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
     async def test_execute_mcp_tool_exception(self, mock_create_subprocess):
-        """Test MCP tool execution with unexpected exception."""
+        """Test MCP tool execution with unexpected exception now propagates."""
         mock_create_subprocess.side_effect = Exception("Unexpected error")
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert "Execution error: Unexpected error" in result["error"]
+        with pytest.raises(Exception, match="Unexpected error"):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
 
 class TestVariableSubstitution:

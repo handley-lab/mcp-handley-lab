@@ -218,7 +218,7 @@ class TestJQUnit:
         """Test jq command not found error (lines 46-47)."""
         mock_subprocess.side_effect = FileNotFoundError("jq: command not found")
 
-        with pytest.raises(RuntimeError, match="Command not found: jq"):
+        with pytest.raises(FileNotFoundError, match="jq: command not found"):
             await query('{"test": "value"}', ".test")
 
     @pytest.mark.asyncio
@@ -609,7 +609,7 @@ class TestCode2PromptUnit:
             (
                 FileNotFoundError("code2prompt not found"),
                 "code2prompt command not found",
-                RuntimeError,
+                FileNotFoundError,
             ),
             (
                 PermissionError("Permission denied"),
@@ -727,5 +727,5 @@ class TestCode2PromptUnit:
             "code2prompt: command not found"
         )
 
-        with pytest.raises(RuntimeError, match="Command not found: code2prompt"):
+        with pytest.raises(FileNotFoundError, match="code2prompt: command not found"):
             await server_info()

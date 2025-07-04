@@ -448,11 +448,13 @@ async def ask(
     max_output_tokens: int | None = None,
 ) -> str:
     """Ask Claude a question with optional persistent memory."""
+    # Resolve model alias to full model name for consistent pricing
+    resolved_model = _resolve_model_alias(model)
     return await process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
-        model=model,
+        model=resolved_model,
         provider="claude",
         generation_func=_claude_generation_adapter,
         mcp_instance=mcp,

@@ -1003,17 +1003,13 @@ Status: Cancelled
 Error: Server info check was cancelled by user"""
 
     except FileNotFoundError as e:
-        return f"""Google Calendar Tool Server Status
-========================================
-Status: Configuration Error
-Error: {str(e)}
-
-Please ensure Google Calendar credentials are properly configured."""
+        raise RuntimeError(
+            f"Google Calendar configuration error: {e}. "
+            "Please ensure Google Calendar credentials are properly configured."
+        ) from e
 
     except Exception as e:
-        return f"""Google Calendar Tool Server Status
-========================================
-Status: Connection Error
-Error: {str(e)}
-
-Please check your internet connection and Google Calendar API credentials."""
+        raise RuntimeError(
+            f"Google Calendar connection error: {e}. "
+            "Please check your internet connection and Google Calendar API credentials."
+        ) from e

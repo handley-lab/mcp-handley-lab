@@ -131,30 +131,21 @@ async def sync(account: str | None = None) -> str:
 @mcp.tool(description="Get offlineimap sync status and information.")
 async def sync_status(config_file: str = None) -> str:
     """Check offlineimap sync status."""
-    # Try to get basic account info
-    try:
-        # Check if offlineimap config exists
-        config_path = (
-            Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-        )
-        if not config_path.exists():
-            return "No offlineimap configuration found at ~/.offlineimaprc"
+    # Check if offlineimap config exists
+    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
+    if not config_path.exists():
+        return "No offlineimap configuration found at ~/.offlineimaprc"
 
-        # Run dry-run to check configuration
-        output = await _run_command(["offlineimap", "--dry-run", "-o1"])
-        return f"Offlineimap configuration valid:\n{output}"
-    except RuntimeError as e:
-        return f"Offlineimap status check failed: {e}"
+    # Run dry-run to check configuration
+    output = await _run_command(["offlineimap", "--dry-run", "-o1"])
+    return f"Offlineimap configuration valid:\n{output}"
 
 
 @mcp.tool(description="Get information about configured email repositories.")
 async def repo_info(config_file: str = None) -> str:
     """Get information about configured offlineimap repositories."""
-    try:
-        output = await _run_command(["offlineimap", "--info"])
-        return f"Repository information:\n{output}"
-    except RuntimeError as e:
-        return f"Failed to get repository info: {e}"
+    output = await _run_command(["offlineimap", "--info"])
+    return f"Repository information:\n{output}"
 
 
 @mcp.tool(description="Preview what would be synced without actually syncing.")
@@ -165,11 +156,8 @@ async def sync_preview(account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    try:
-        output = await _run_command(cmd)
-        return f"Sync preview{'for account ' + account if account else ''}:\n{output}"
-    except RuntimeError as e:
-        return f"Sync preview failed: {e}"
+    output = await _run_command(cmd)
+    return f"Sync preview{' for account ' + account if account else ''}:\n{output}"
 
 
 @mcp.tool(description="Perform quick sync without updating message flags.")
@@ -212,13 +200,10 @@ async def search(query: str, limit: int = 20) -> str:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
 
-    try:
-        output = await _run_command(cmd)
-        if not output:
-            return f"No emails found matching query: {query}"
-        return f"Search results for '{query}':\n{output}"
-    except RuntimeError as e:
-        return f"Search failed: {e}"
+    output = await _run_command(cmd)
+    if not output:
+        return f"No emails found matching query: {query}"
+    return f"Search results for '{query}':\n{output}"
 
 
 @mcp.tool(description="Show email content for a specific message ID or query.")
@@ -234,34 +219,25 @@ async def show(query: str, part: str | None = None) -> str:
 
     cmd.append(query)
 
-    try:
-        output = await _run_command(cmd)
-        return output
-    except RuntimeError as e:
-        return f"Failed to show email: {e}"
+    output = await _run_command(cmd)
+    return output
 
 
 @mcp.tool(description="Create a new notmuch database or update existing one.")
 async def new() -> str:
     """Index newly received emails with notmuch new."""
-    try:
-        output = await _run_command(["notmuch", "new"])
-        return f"Notmuch database updated:\n{output}"
-    except RuntimeError as e:
-        return f"Failed to update notmuch database: {e}"
+    output = await _run_command(["notmuch", "new"])
+    return f"Notmuch database updated:\n{output}"
 
 
 @mcp.tool(description="List all tags in the notmuch database.")
 async def list_tags() -> str:
     """List all tags in the notmuch database."""
-    try:
-        output = await _run_command(["notmuch", "search", "--output=tags", "*"])
-        if not output:
-            return "No tags found in the database"
-        tags = sorted(output.split("\n"))
-        return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
-    except RuntimeError as e:
-        return f"Failed to list tags: {e}"
+    output = await _run_command(["notmuch", "search", "--output=tags", "*"])
+    if not output:
+        return "No tags found in the database"
+    tags = sorted(output.split("\n"))
+    return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
 
 
 @mcp.tool(description="Get configuration information from notmuch.")
@@ -272,13 +248,10 @@ async def config(key: str | None = None) -> str:
     if key:
         cmd = ["notmuch", "config", "get", key]
 
-    try:
-        output = await _run_command(cmd)
-        if key:
-            return f"{key} = {output}"
-        return f"Notmuch configuration:\n{output}"
-    except RuntimeError as e:
-        return f"Failed to get configuration: {e}"
+    output = await _run_command(cmd)
+    if key:
+        return f"{key} = {output}"
+    return f"Notmuch configuration:\n{output}"
 
 
 @mcp.tool(description="Count emails matching a notmuch query.")
@@ -286,11 +259,8 @@ async def count(query: str) -> str:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
 
-    try:
-        count_result = await _run_command(cmd)
-        return f"Found {count_result} emails matching '{query}'"
-    except RuntimeError as e:
-        return f"Count failed: {e}"
+    count_result = await _run_command(cmd)
+    return f"Found {count_result} emails matching '{query}'"
 
 
 @mcp.tool(description="Add or remove tags from emails using notmuch.")
@@ -320,17 +290,14 @@ async def tag(
     # Add message ID
     cmd.append(f"id:{message_id}")
 
-    try:
-        await _run_command(cmd)
-        changes = []
-        if add_tags:
-            changes.append(f"added: {add_tags}")
-        if remove_tags:
-            changes.append(f"removed: {remove_tags}")
+    await _run_command(cmd)
+    changes = []
+    if add_tags:
+        changes.append(f"added: {add_tags}")
+    if remove_tags:
+        changes.append(f"removed: {remove_tags}")
 
-        return f"Tags updated for message {message_id} ({', '.join(changes)})"
-    except RuntimeError as e:
-        return f"Tag operation failed: {e}"
+    return f"Tags updated for message {message_id} ({', '.join(changes)})"
 
 
 @mcp.tool(description="Check email tool server status and verify tool availability.")

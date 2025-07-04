@@ -1,6 +1,7 @@
 """Unified entry point for all MCP tools."""
 import importlib
 import sys
+import traceback
 from pathlib import Path
 
 
@@ -66,8 +67,9 @@ def main():
         print(f"Available tools: {', '.join(available_tools)}")
         print("Use 'python -m mcp_handley_lab --help' for more information.")
         sys.exit(1)
-    except Exception as e:
-        print(f"Error running tool '{tool_name}': {e}")
+    except Exception:
+        print(f"Error running tool '{tool_name}':", file=sys.stderr)
+        traceback.print_exc()
         sys.exit(1)
 
 

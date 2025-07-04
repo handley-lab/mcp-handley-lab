@@ -232,6 +232,10 @@ def handle_agent_memory(
     session_id_func,
 ) -> str | None:
     """Handle agent memory storage. Returns actual agent name used."""
+    # Normalize string "false" to boolean False for usability
+    if isinstance(agent_name, str) and agent_name.lower() == "false":
+        agent_name = False
+
     # Use session-specific agent if no agent_name provided (and memory not disabled)
     if not agent_name and agent_name is not False:
         agent_name = session_id_func()

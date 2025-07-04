@@ -164,19 +164,3 @@ def check_interactive_support() -> dict:
         result["xterm_error"] = str(e)
 
     return result
-
-
-def get_recommended_launcher() -> str:
-    """Get the recommended interactive launcher for current environment.
-
-    Returns:
-        'tmux' or 'xterm' based on current environment
-    """
-    support = check_interactive_support()
-
-    if support["tmux_session"] and support["tmux_available"]:
-        return "tmux"
-    elif support["xterm_available"]:
-        return "xterm"
-    else:
-        raise RuntimeError("No interactive terminal launcher available")

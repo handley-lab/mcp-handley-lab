@@ -1,5 +1,4 @@
 """Agent memory management for persistent LLM conversations."""
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -163,22 +162,6 @@ class MemoryManager:
         if not agent:
             raise ValueError(f"Agent '{agent_name}' not found")
         agent.clear_history()
-        self._save_agent(agent)
-
-    def import_agent(self, import_path: str, overwrite: bool = False) -> None:
-        """Import an agent from a specified file path."""
-        with open(import_path) as f:
-            data = json.load(f)
-
-        agent = self._deserialize_agent_data(data)
-
-        # Check if agent already exists
-        if agent.name in self._agents and not overwrite:
-            raise ValueError(
-                f"Agent '{agent.name}' already exists. Use overwrite=True to replace."
-            )
-
-        self._agents[agent.name] = agent
         self._save_agent(agent)
 
     def get_response(self, agent_name: str, index: int = -1) -> str:

@@ -87,19 +87,3 @@ async def process_llm_request(
     return handle_output(
         response_text, output_file, model, input_tokens, output_tokens, cost, provider
     )
-
-
-def create_client_decorator(client_check_func: Callable, error_message: str):
-    """Create a decorator that ensures client is initialized."""
-    from functools import wraps
-
-    def require_client(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            if not client_check_func():
-                raise RuntimeError(error_message)
-            return await func(*args, **kwargs)
-
-        return wrapper
-
-    return require_client

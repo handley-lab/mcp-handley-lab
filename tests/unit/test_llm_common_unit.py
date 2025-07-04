@@ -398,3 +398,30 @@ class TestHandleAgentMemory:
         )
 
         assert result is None
+
+    def test_handle_agent_memory_string_false_normalization(self):
+        """Test that string 'false' is normalized to boolean False."""
+        result = handle_agent_memory(
+            agent_name="false",  # String "false" should be treated as False
+            user_prompt="Test prompt",
+            response_text="Test response",
+            input_tokens=100,
+            output_tokens=50,
+            cost=0.001,
+            session_id_func=lambda: "session_123",
+        )
+
+        assert result is None
+
+        # Test case insensitive
+        result = handle_agent_memory(
+            agent_name="FALSE",  # Case insensitive
+            user_prompt="Test prompt",
+            response_text="Test response",
+            input_tokens=100,
+            output_tokens=50,
+            cost=0.001,
+            session_id_func=lambda: "session_123",
+        )
+
+        assert result is None

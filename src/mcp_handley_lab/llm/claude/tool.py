@@ -10,7 +10,6 @@ from ...common.config import settings
 from ...common.memory import memory_manager
 from ..common import (
     determine_mime_type,
-    get_session_id,
     is_text_file,
     resolve_image_data,
 )
@@ -39,11 +38,6 @@ DEFAULT_MODEL = _config["default_model"]
 def require_client(func):
     """Identity decorator - no longer needed with fail-fast approach."""
     return func
-
-
-def _get_session_id() -> str:
-    """Get the persistent session ID for this MCP server process."""
-    return get_session_id(mcp)
 
 
 def _resolve_model_alias(model: str) -> str:

@@ -19,6 +19,7 @@ async def test_openai_ask_basic(skip_if_no_api_key, test_output_file):
         output_file=test_output_file,
         model="gpt-4o-mini",
         temperature=0.0,
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -39,6 +40,7 @@ async def test_openai_ask_with_file(
         output_file=test_output_file,
         files=[{"path": test_json_file}],
         model="gpt-4o-mini",
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -86,6 +88,7 @@ async def test_openai_analyze_image_simple(skip_if_no_api_key, test_output_file)
         image_data=red_pixel,
         focus="colors",
         model="gpt-4o",  # Use gpt-4o for vision tasks since o3-mini doesn't support vision
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()

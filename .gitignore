@@ -59,3 +59,4 @@ pkg/
 tests/fixtures/email/.mcp_handley_lab/
 tests/fixtures/email/__pycache__/
 tmp-*
+uv.lock

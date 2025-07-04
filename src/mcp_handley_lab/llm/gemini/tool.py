@@ -1,5 +1,4 @@
 """Gemini LLM tool for AI interactions via MCP."""
-import asyncio
 import base64
 import io
 import os
@@ -111,14 +110,10 @@ async def _resolve_files(
 
                 if file_size > 20 * 1024 * 1024:  # 20MB threshold
                     # Large file - use Files API
-                    def _sync_upload_file(path=file_path):
-                        return client.files.upload(
-                            file=str(path),
-                            mime_type=get_gemini_safe_mime_type(path),
-                        )
-
-                    loop = asyncio.get_running_loop()
-                    uploaded_file = await loop.run_in_executor(None, _sync_upload_file)
+                    uploaded_file = await client.aio.files.upload(
+                        file=str(file_path),
+                        mime_type=get_gemini_safe_mime_type(file_path),
+                    )
                     parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
                 else:
                     # Small file - use inlineData with base64 encoding
@@ -208,7 +203,6 @@ async def _gemini_generation_adapter(
         config_params["tools"] = tools
 
     config = GenerateContentConfig(**config_params)
-    loop = asyncio.get_running_loop()
 
     # Convert history to Gemini format
     gemini_history = _convert_history_to_gemini_format(history)
@@ -220,28 +214,19 @@ async def _gemini_generation_adapter(
         contents = gemini_history + [
             {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
         ]
-        response = await loop.run_in_executor(
-            None,
-            lambda: client.models.generate_content(
-                model=model, contents=contents, config=config
-            ),
+        response = await client.aio.models.generate_content(
+            model=model, contents=contents, config=config
         )
     else:
         # New conversation
         if file_parts:
             content_parts = [Part(text=prompt)] + file_parts
-            response = await loop.run_in_executor(
-                None,
-                lambda: client.models.generate_content(
-                    model=model, contents=content_parts, config=config
-                ),
+            response = await client.aio.models.generate_content(
+                model=model, contents=content_parts, config=config
             )
         else:
-            response = await loop.run_in_executor(
-                None,
-                lambda: client.models.generate_content(
-                    model=model, contents=prompt, config=config
-                ),
+            response = await client.aio.models.generate_content(
+                model=model, contents=prompt, config=config
             )
 
     if not response.text:
@@ -293,13 +278,9 @@ async def _gemini_image_analysis_adapter(
     _convert_history_to_gemini_format(history)
 
     # Generate response - image analysis starts fresh conversation (cancellation handled by process_llm_request wrapper)
-    def _sync_generate_content_image():
-        return client.models.generate_content(
-            model=model, contents=content, config=config
-        )
-
-    loop = asyncio.get_running_loop()
-    response = await loop.run_in_executor(None, _sync_generate_content_image)
+    response = await client.aio.models.generate_content(
+        model=model, contents=content, config=config
+    )
 
     if not response.text:
         raise RuntimeError("No response text generated")
@@ -582,15 +563,11 @@ async def generate_image(
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
 
     # Generate image
-    def _sync_generate_images():
-        return client.models.generate_images(
-            model=actual_model,
-            prompt=prompt,
-            config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
-        )
-
-    loop = asyncio.get_running_loop()
-    response = await loop.run_in_executor(None, _sync_generate_images)
+    response = await client.aio.models.generate_images(
+        model=actual_model,
+        prompt=prompt,
+        config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+    )
 
     if not response.generated_images:
         raise RuntimeError("No images were generated")
@@ -681,11 +658,7 @@ async def list_models() -> str:
     """List available Gemini models with detailed information."""
 
     # Get models from API
-    def _sync_list_models():
-        return client.models.list()
-
-    loop = asyncio.get_running_loop()
-    models_response = await loop.run_in_executor(None, _sync_list_models)
+    models_response = await client.aio.models.list()
     api_model_names = {model.name.split("/")[-1] for model in models_response}
 
     # Use YAML-based model listing
@@ -715,11 +688,7 @@ async def server_info() -> str:
     """Get server status and Gemini configuration."""
 
     # Test API by listing models
-    def _sync_list_models():
-        return client.models.list()
-
-    loop = asyncio.get_running_loop()
-    models_response = await loop.run_in_executor(None, _sync_list_models)
+    models_response = await client.aio.models.list()
     available_models = []
     for model in models_response:
         if "gemini" in model.name:

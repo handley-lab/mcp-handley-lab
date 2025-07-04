@@ -1,5 +1,4 @@
 """Mutt tool for interactive email composition via MCP."""
-import asyncio
 import os
 import tempfile
 from pathlib import Path
@@ -13,22 +12,10 @@ mcp = FastMCP("Mutt Tool")
 
 async def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
     """Run a shell command and return output."""
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdin=asyncio.subprocess.PIPE if input_text else None,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        cwd=cwd,
-    )
+    from ..common.process import run_command
 
-    stdout, stderr = await process.communicate(
-        input=input_text.encode() if input_text else None
-    )
-
-    if process.returncode != 0:
-        error_msg = stderr.decode().strip() if stderr else "Unknown error"
-        raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
-
+    input_bytes = input_text.encode() if input_text else None
+    stdout, stderr = await run_command(cmd, input_data=input_bytes)
     return stdout.decode().strip()
 
 
@@ -160,14 +147,6 @@ async def compose_email(
     if bcc:
         mutt_cmd.extend(["-b", bcc])
 
-    # If there's initial body content, create a temp file and add -i flag
-    temp_file = None
-    if initial_body:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(initial_body)
-            temp_file = f.name
-        mutt_cmd.extend(["-i", temp_file])
-
     # Add attachments if provided (must come after other options but before recipient)
     if attachments:
         # Validate attachment files exist
@@ -183,13 +162,67 @@ async def compose_email(
     # Add recipient (must be last)
     mutt_cmd.append(to)
 
-    try:
+    # Handle temp file creation and execution within its scope
+    if initial_body:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=True
+        ) as temp_f:
+            temp_f.write(initial_body)
+            temp_f.flush()  # Ensure content is written to disk
+
+            # Add temp file to command
+            mutt_cmd.extend(["-i", temp_f.name])
+
+            if auto_send:
+                # For auto-send, use mutt non-interactively with stdin
+                mutt_cmd_str = " ".join(
+                    f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+                )
+                body_content = initial_body if initial_body else "Automated email"
+
+                # Try to add signature for auto-send
+                # Check if there's a signature file configured in mutt
+                sig_result = await _run_command(["mutt", "-Q", "signature"])
+                if "signature=" in sig_result:
+                    sig_path = sig_result.split("=", 1)[1].strip().strip('"')
+                    # Expand ~ to home directory if needed
+                    if sig_path.startswith("~"):
+                        sig_path = os.path.expanduser(sig_path)
+
+                    if os.path.exists(sig_path):
+                        with open(sig_path) as f:
+                            signature = f.read().strip()
+                        if signature:
+                            body_content += f"\n\n{signature}"
+
+                # Send via stdin (non-interactive)
+                mutt_cmd = mutt_cmd_str.split()
+                await _run_command(mutt_cmd, input_text=body_content)
+
+                attachment_info = (
+                    f" with {len(attachments)} attachment(s)" if attachments else ""
+                )
+                return f"Email sent automatically: {to}{attachment_info}"
+            else:
+                # Interactive mode - launch mutt interactively
+                mutt_cmd_str = " ".join(
+                    f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+                )
+                window_title = f"Mutt: {subject or 'New Email'}"
+                launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+                attachment_info = (
+                    f" with {len(attachments)} attachment(s)" if attachments else ""
+                )
+                return f"Email composition completed: {to}{attachment_info}"
+    else:
+        # No initial body - execute without temp file
         if auto_send:
             # For auto-send, use mutt non-interactively with stdin
             mutt_cmd_str = " ".join(
                 f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
             )
-            body_content = initial_body if initial_body else "Automated email"
+            body_content = "Automated email"
 
             # Try to add signature for auto-send
             # Check if there's a signature file configured in mutt
@@ -207,7 +240,6 @@ async def compose_email(
                         body_content += f"\n\n{signature}"
 
             # Send via stdin (non-interactive)
-            # Note: _run_command doesn't support shell=True, so we need to pass the full command as a list
             mutt_cmd = mutt_cmd_str.split()
             await _run_command(mutt_cmd, input_text=body_content)
 
@@ -227,11 +259,6 @@ async def compose_email(
                 f" with {len(attachments)} attachment(s)" if attachments else ""
             )
             return f"Email composition completed: {to}{attachment_info}"
-
-    finally:
-        # Clean up temp file if created
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(
@@ -295,30 +322,37 @@ async def reply_to_email(
     else:
         mutt_cmd.extend(["-e", "set reply_to_all=no"])
 
-    # If there's initial body content, create temp file
-    temp_file = None
-    if initial_body:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(initial_body)
-            temp_file = f.name
-        mutt_cmd.extend(["-i", temp_file])
-
     # Add message ID to reply to
     mutt_cmd.extend(["-H", f"id:{message_id}"])
 
-    try:
-        # Launch mutt interactively
+    # Handle temp file creation and execution within its scope
+    if initial_body:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=True
+        ) as temp_f:
+            temp_f.write(initial_body)
+            temp_f.flush()  # Ensure content is written to disk
+
+            # Add temp file to command
+            mutt_cmd.extend(["-i", temp_f.name])
+
+            # Launch mutt interactively
+            mutt_cmd_str = " ".join(
+                f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+            )
+            window_title = f"Mutt Reply: {message_id[:20]}..."
+            launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+            reply_type = "Reply to all" if reply_all else "Reply"
+            return f"{reply_type} completed for message: {message_id}"
+    else:
+        # No initial body - execute without temp file
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Reply: {message_id[:20]}..."
         launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
         reply_type = "Reply to all" if reply_all else "Reply"
         return f"{reply_type} completed for message: {message_id}"
-
-    finally:
-        # Clean up temp file
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(
@@ -351,14 +385,6 @@ async def forward_email(message_id: str, to: str = "", initial_body: str = "") -
     # Enable autoedit to skip prompts
     mutt_cmd.extend(["-e", "set autoedit"])
 
-    # If there's initial body content, create temp file
-    temp_file = None
-    if initial_body:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(initial_body)
-            temp_file = f.name
-        mutt_cmd.extend(["-i", temp_file])
-
     # Add forward flag and message ID
     mutt_cmd.extend(["-f", f"id:{message_id}"])
 
@@ -366,18 +392,32 @@ async def forward_email(message_id: str, to: str = "", initial_body: str = "") -
     if to:
         mutt_cmd.append(to)
 
-    try:
-        # Launch mutt interactively
+    # Handle temp file creation and execution within its scope
+    if initial_body:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=True
+        ) as temp_f:
+            temp_f.write(initial_body)
+            temp_f.flush()  # Ensure content is written to disk
+
+            # Add temp file to command
+            mutt_cmd.extend(["-i", temp_f.name])
+
+            # Launch mutt interactively
+            mutt_cmd_str = " ".join(
+                f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+            )
+            window_title = f"Mutt Forward: {message_id[:20]}..."
+            launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+            return f"Forward completed for message: {message_id}"
+    else:
+        # No initial body - execute without temp file
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Forward: {message_id[:20]}..."
         launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
         return f"Forward completed for message: {message_id}"
-
-    finally:
-        # Clean up temp file
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(
@@ -432,16 +472,15 @@ async def move_email(
             ]
         )
 
-    # Create temporary mutt script
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".muttrc", delete=False) as f:
+    # Create temporary mutt script and execute within its scope
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".muttrc", delete=True) as temp_f:
         # Write commands to execute
-        f.write("".join(f'push "{cmd}"\n' for cmd in script_commands))
-        f.write('push "<quit>"\n')
-        script_file = f.name
+        temp_f.write("".join(f'push "{cmd}"\n' for cmd in script_commands))
+        temp_f.write('push "<quit>"\n')
+        temp_f.flush()  # Ensure content is written to disk
 
-    try:
-        # Run mutt with the script
-        mutt_cmd = ["mutt", "-F", script_file]
+        # Run mutt with the script while the file exists
+        mutt_cmd = ["mutt", "-F", temp_f.name]
         await _run_command(mutt_cmd)
 
         action = (
@@ -449,10 +488,6 @@ async def move_email(
         )
         count = len(messages)
         return f"{action} {count} message(s) successfully"
-
-    finally:
-        if os.path.exists(script_file):
-            os.unlink(script_file)
 
 
 @mcp.tool(

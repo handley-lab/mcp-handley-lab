@@ -17,35 +17,22 @@ def load_model_config(provider: str) -> dict[str, Any]:
     Raises:
         FileNotFoundError: If YAML file doesn't exist
         yaml.YAMLError: If YAML file is invalid
+        ValueError: If required sections are missing
     """
     yaml_path = Path(__file__).parent / provider / "models.yaml"
 
-    if not yaml_path.exists():
-        raise FileNotFoundError(f"Model config file not found: {yaml_path}")
+    with open(yaml_path, encoding="utf-8") as f:
+        config = yaml.safe_load(f)
 
-    try:
-        with open(yaml_path, encoding="utf-8") as f:
-            config = yaml.safe_load(f)
+    # Validate required sections (business logic, not defensive programming)
+    required_sections = ["models", "display_categories", "default_model", "usage_notes"]
+    missing_sections = [
+        section for section in required_sections if section not in config
+    ]
+    if missing_sections:
+        raise ValueError(f"Missing required sections: {missing_sections}")
 
-        # Validate required sections
-        required_sections = [
-            "models",
-            "display_categories",
-            "default_model",
-            "usage_notes",
-        ]
-        missing_sections = [
-            section for section in required_sections if section not in config
-        ]
-        if missing_sections:
-            raise ValueError(
-                f"Missing required sections in {yaml_path}: {missing_sections}"
-            )
-
-        return config
-
-    except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Invalid YAML in {yaml_path}: {e}") from e
+    return config
 
 
 def get_models_by_tags(

@@ -1,5 +1,4 @@
 """Email client MCP tool integrating msmtp, offlineimap, and notmuch."""
-import asyncio
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -11,22 +10,10 @@ async def _run_command(
     cmd: list[str], input_text: str | None = None, cwd: str | None = None
 ) -> str:
     """Run a shell command and return output."""
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdin=asyncio.subprocess.PIPE if input_text else None,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        cwd=cwd,
-    )
+    from ..common.process import run_command
 
-    stdout, stderr = await process.communicate(
-        input=input_text.encode() if input_text else None
-    )
-
-    if process.returncode != 0:
-        error_msg = stderr.decode().strip() if stderr else "Unknown error"
-        raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
-
+    input_bytes = input_text.encode() if input_text else None
+    stdout, stderr = await run_command(cmd, input_data=input_bytes)
     return stdout.decode().strip()
 
 

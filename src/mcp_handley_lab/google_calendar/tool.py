@@ -8,7 +8,6 @@ from typing import Any
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from mcp.server.fastmcp import FastMCP
 
 from ..common.config import settings
@@ -103,20 +102,17 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
         # Date only format - treat as start of day in UTC
         return dt_str + "T00:00:00Z"
 
-    try:
-        if dt_str.endswith("Z"):
-            # Already UTC
-            return dt_str
-        elif "+" in dt_str or dt_str.count("-") > 2:
-            # Has timezone info - convert to UTC properly
-            dt = datetime.fromisoformat(dt_str)
-            utc_dt = dt.astimezone(timezone.utc)
-            return utc_dt.isoformat().replace("+00:00", "Z")
-        else:
-            # Naive datetime - assume UTC
-            return dt_str + "Z"
-    except ValueError as e:
-        raise ValueError(f"Invalid datetime format: {dt_str}") from e
+    if dt_str.endswith("Z"):
+        # Already UTC
+        return dt_str
+    elif "+" in dt_str or dt_str.count("-") > 2:
+        # Has timezone info - convert to UTC properly
+        dt = datetime.fromisoformat(dt_str)
+        utc_dt = dt.astimezone(timezone.utc)
+        return utc_dt.isoformat().replace("+00:00", "Z")
+    else:
+        # Naive datetime - assume UTC
+        return dt_str + "Z"
 
 
 def _format_datetime(dt_str: str) -> str:
@@ -219,51 +215,41 @@ def _client_side_filter(
 )
 async def get_event(event_id: str, calendar_id: str = "primary") -> str:
     """Get detailed information about a specific event."""
-    try:
-        service = await _get_calendar_service()
-        resolved_id = await _resolve_calendar_id(calendar_id, service)
+    service = await _get_calendar_service()
+    resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-        def _sync_get_event():
-            return (
-                service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-            )
+    def _sync_get_event():
+        return service.events().get(calendarId=resolved_id, eventId=event_id).execute()
 
-        loop = asyncio.get_running_loop()
-        event = await loop.run_in_executor(None, _sync_get_event)
+    loop = asyncio.get_running_loop()
+    event = await loop.run_in_executor(None, _sync_get_event)
 
-        result = "Event Details:\n"
-        result += f"Title: {event.get('summary', 'No Title')}\n"
+    result = "Event Details:\n"
+    result += f"Title: {event.get('summary', 'No Title')}\n"
 
-        start = event["start"].get("dateTime", event["start"].get("date"))
-        end = event["end"].get("dateTime", event["end"].get("date"))
-        result += f"Start: {_format_datetime(start)}\n"
-        result += f"End: {_format_datetime(end)}\n"
+    start = event["start"].get("dateTime", event["start"].get("date"))
+    end = event["end"].get("dateTime", event["end"].get("date"))
+    result += f"Start: {_format_datetime(start)}\n"
+    result += f"End: {_format_datetime(end)}\n"
 
-        if event.get("description"):
-            result += f"Description: {event['description']}\n"
+    if event.get("description"):
+        result += f"Description: {event['description']}\n"
 
-        if event.get("location"):
-            result += f"Location: {event['location']}\n"
+    if event.get("location"):
+        result += f"Location: {event['location']}\n"
 
-        if event.get("attendees"):
-            result += "Attendees:\n"
-            for attendee in event["attendees"]:
-                email = attendee.get("email", "Unknown")
-                status = attendee.get("responseStatus", "needsAction")
-                result += f"  - {email} ({status})\n"
+    if event.get("attendees"):
+        result += "Attendees:\n"
+        for attendee in event["attendees"]:
+            email = attendee.get("email", "Unknown")
+            status = attendee.get("responseStatus", "needsAction")
+            result += f"  - {email} ({status})\n"
 
-        result += f"Event ID: {event['id']}\n"
-        result += f"Created: {event.get('created', 'Unknown')}\n"
-        result += f"Updated: {event.get('updated', 'Unknown')}\n"
+    result += f"Event ID: {event['id']}\n"
+    result += f"Created: {event.get('created', 'Unknown')}\n"
+    result += f"Updated: {event.get('updated', 'Unknown')}\n"
 
-        return result
-
-    except HttpError as e:
-        if e.resp.status == 404:
-            raise ValueError(
-                f"Event '{event_id}' not found in calendar '{calendar_id}'"
-            ) from e
-        raise RuntimeError(f"Google Calendar API error: {e}") from e
+    return result
 
 
 @mcp.tool(
@@ -401,51 +387,43 @@ async def update_event(
     description: str | None = None,
 ) -> str:
     """Update an existing calendar event. Trusts the provided event_id."""
-    try:
-        service = await _get_calendar_service()
-        resolved_id = await _resolve_calendar_id(calendar_id, service)
+    service = await _get_calendar_service()
+    resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-        update_body = {}
-        if summary is not None:
-            update_body["summary"] = summary
-        if description is not None:
-            update_body["description"] = description
+    update_body = {}
+    if summary is not None:
+        update_body["summary"] = summary
+    if description is not None:
+        update_body["description"] = description
 
-        if start_datetime:
-            update_body["start"] = (
-                {"dateTime": start_datetime, "timeZone": "UTC"}
-                if "T" in start_datetime
-                else {"date": start_datetime}
-            )
+    if start_datetime:
+        update_body["start"] = (
+            {"dateTime": start_datetime, "timeZone": "UTC"}
+            if "T" in start_datetime
+            else {"date": start_datetime}
+        )
 
-        if end_datetime:
-            update_body["end"] = (
-                {"dateTime": end_datetime, "timeZone": "UTC"}
-                if "T" in end_datetime
-                else {"date": end_datetime}
-            )
+    if end_datetime:
+        update_body["end"] = (
+            {"dateTime": end_datetime, "timeZone": "UTC"}
+            if "T" in end_datetime
+            else {"date": end_datetime}
+        )
 
-        if not update_body:
-            return "No updates specified. Nothing to do."
+    if not update_body:
+        return "No updates specified. Nothing to do."
 
-        @async_wrap
-        def _sync_patch_event():
-            # Use 'patch' which is more efficient for partial updates
-            return (
-                service.events()
-                .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
-                .execute()
-            )
+    @async_wrap
+    def _sync_patch_event():
+        # Use 'patch' which is more efficient for partial updates
+        return (
+            service.events()
+            .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
+            .execute()
+        )
 
-        updated_event = await _sync_patch_event()
-        return f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
-
-    except HttpError as e:
-        if e.resp.status == 404:
-            raise ValueError(
-                f"Event '{event_id}' not found in calendar '{calendar_id}'"
-            ) from e
-        raise  # Re-raise the original, informative HttpError
+    updated_event = await _sync_patch_event()
+    return f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
 
 
 @mcp.tool(
@@ -467,24 +445,16 @@ delete_event(
 )
 async def delete_event(event_id: str, calendar_id: str = "primary") -> str:
     """Delete a calendar event. Trusts the provided event_id."""
-    try:
-        service = await _get_calendar_service()
-        resolved_id = await _resolve_calendar_id(calendar_id, service)
+    service = await _get_calendar_service()
+    resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-        @async_wrap
-        def _sync_delete_event():
-            # The API will return a 404 if it doesn't exist, which is handled below.
-            service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
+    @async_wrap
+    def _sync_delete_event():
+        # The API will return a 404 if it doesn't exist, which is handled below.
+        service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
 
-        await _sync_delete_event()
-        return f"Event (ID: {event_id}) has been permanently deleted."
-
-    except HttpError as e:
-        if e.resp.status == 404:
-            raise ValueError(
-                f"Event '{event_id}' not found in calendar '{calendar_id}'"
-            ) from e
-        raise  # Re-raise the original HttpError for other API issues
+    await _sync_delete_event()
+    return f"Event (ID: {event_id}) has been permanently deleted."
 
 
 @mcp.tool(
@@ -770,30 +740,26 @@ async def search_events(
 
         for calendar in calendar_list.get("items", []):
             cal_id = calendar["id"]
-            try:
 
-                def _sync_search_events(calendar_id=cal_id):
-                    params = {
-                        "calendarId": calendar_id,
-                        "timeMin": start_date,
-                        "timeMax": end_date,
-                        "maxResults": max_results,
-                        "singleEvents": True,
-                        "orderBy": "startTime",
-                    }
-                    if search_text:
-                        params["q"] = search_text
-                    return service.events().list(**params).execute()
+            def _sync_search_events(calendar_id=cal_id):
+                params = {
+                    "calendarId": calendar_id,
+                    "timeMin": start_date,
+                    "timeMax": end_date,
+                    "maxResults": max_results,
+                    "singleEvents": True,
+                    "orderBy": "startTime",
+                }
+                if search_text:
+                    params["q"] = search_text
+                return service.events().list(**params).execute()
 
-                events_result = await loop.run_in_executor(None, _sync_search_events)
+            events_result = await loop.run_in_executor(None, _sync_search_events)
 
-                cal_events = events_result.get("items", [])
-                for event in cal_events:
-                    event["calendar_name"] = calendar.get("summary", cal_id)
-                events_list.extend(cal_events)
-            except HttpError as e:
-                calendar_name = calendar.get("summary", cal_id)
-                warnings.append(f"Could not access calendar '{calendar_name}': {e}")
+            cal_events = events_result.get("items", [])
+            for event in cal_events:
+                event["calendar_name"] = calendar.get("summary", cal_id)
+            events_list.extend(cal_events)
     else:
         # Search specific calendar
         resolved_id = await _resolve_calendar_id(calendar_id, service)
@@ -911,17 +877,16 @@ server_info()
 )
 async def server_info() -> str:
     """Get server status and Google Calendar API connection info."""
-    try:
-        service = await _get_calendar_service()
+    service = await _get_calendar_service()
 
-        # Test API connection by getting calendar list
-        def _sync_test_connection():
-            return service.calendarList().list(maxResults=1).execute()
+    # Test API connection by getting calendar list
+    def _sync_test_connection():
+        return service.calendarList().list(maxResults=1).execute()
 
-        loop = asyncio.get_running_loop()
-        calendar_list = await loop.run_in_executor(None, _sync_test_connection)
+    loop = asyncio.get_running_loop()
+    calendar_list = await loop.run_in_executor(None, _sync_test_connection)
 
-        return f"""Google Calendar Tool Server Status
+    return f"""Google Calendar Tool Server Status
 ========================================
 Status: Connected and ready
 API Connection: ✓ Active
@@ -936,11 +901,3 @@ Available tools:
 - list_calendars: List all accessible calendars
 - find_time: Find free time slots
 - server_info: Get server status"""
-
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            f"Google Calendar configuration error: {e}. "
-            "Please ensure Google Calendar credentials are properly configured."
-        ) from e
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}") from e

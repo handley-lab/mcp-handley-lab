@@ -295,25 +295,21 @@ async def search(
         response.raise_for_status()
 
     # Parse XML response
-    try:
-        root = ElementTree.fromstring(response.content)
+    root = ElementTree.fromstring(response.content)
 
-        # Define namespaces
-        ns = {
-            "atom": "http://www.w3.org/2005/Atom",
-            "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
-        }
+    # Define namespaces
+    ns = {
+        "atom": "http://www.w3.org/2005/Atom",
+        "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
+    }
 
-        # Extract search results
-        results = []
-        for entry in root.findall("atom:entry", ns):
-            paper = _parse_arxiv_entry(entry)
-            results.append(paper)
+    # Extract search results
+    results = []
+    for entry in root.findall("atom:entry", ns):
+        paper = _parse_arxiv_entry(entry)
+        results.append(paper)
 
-        return results
-
-    except ElementTree.ParseError as e:
-        raise ValueError(f"Error parsing ArXiv API response: {e}") from e
+    return results
 
 
 @mcp.tool()

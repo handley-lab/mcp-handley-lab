@@ -213,7 +213,7 @@ class TestMuttFolderManagement:
 
         with pytest.raises(
             RuntimeError,
-            match="Command 'mutt -Q mailboxes' failed: mailboxes: unknown variable",
+            match="Command failed with exit code 1: mailboxes: unknown variable",
         ):
             await list_folders()
 

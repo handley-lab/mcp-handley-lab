@@ -41,7 +41,9 @@ class TestEmailTool:
             mock_process.returncode = 1
             mock_exec.return_value = mock_process
 
-            with pytest.raises(RuntimeError, match="Command .* failed: error"):
+            with pytest.raises(
+                RuntimeError, match="Command failed with exit code 1: error"
+            ):
                 await _run_command(["false"])
 
     @pytest.mark.asyncio

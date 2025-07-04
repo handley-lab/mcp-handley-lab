@@ -1,8 +1,6 @@
 """Shared utilities for LLM providers."""
-import asyncio
 from collections.abc import Callable
 
-from ..common.exceptions import UserCancelledError
 from ..common.memory import memory_manager
 from ..common.pricing import calculate_cost
 from .common import get_session_id, handle_agent_memory, handle_output
@@ -58,28 +56,14 @@ async def process_llm_request(
         if image_count > 0:
             user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
 
-    # Call provider-specific generation function with cancellation support
-    try:
-        response_data = await generation_func(
-            prompt=prompt,
-            model=model,
-            history=history,
-            system_instruction=system_instruction,
-            **kwargs,
-        )
-    except asyncio.CancelledError:
-        # Handle graceful cancellation
-        if use_memory:
-            handle_agent_memory(
-                actual_agent_name,
-                user_prompt,
-                "[Request cancelled by user]",
-                0,
-                0,
-                0.0,
-                lambda: actual_agent_name,
-            )
-        raise UserCancelledError("Request was cancelled by user") from None
+    # Call provider-specific generation function
+    response_data = await generation_func(
+        prompt=prompt,
+        model=model,
+        history=history,
+        system_instruction=system_instruction,
+        **kwargs,
+    )
 
     # Extract common response data
     response_text = response_data["text"]

@@ -141,15 +141,14 @@ class MemoryManager:
         """List all agents."""
         return list(self._agents.values())
 
-    def delete_agent(self, name: str) -> bool:
+    def delete_agent(self, name: str) -> None:
         """Delete an agent."""
-        if name in self._agents:
-            del self._agents[name]
-            agent_file = self._get_agent_file(name)
-            if agent_file.exists():
-                agent_file.unlink()
-            return True
-        return False
+        if name not in self._agents:
+            raise ValueError(f"Agent '{name}' not found")
+        del self._agents[name]
+        agent_file = self._get_agent_file(name)
+        if agent_file.exists():
+            agent_file.unlink()
 
     def add_message(
         self,
@@ -165,27 +164,25 @@ class MemoryManager:
             agent.add_message(role, content, tokens, cost)
             self._save_agent(agent)
 
-    def clear_agent_history(self, agent_name: str) -> bool:
+    def clear_agent_history(self, agent_name: str) -> None:
         """Clear an agent's conversation history."""
         agent = self.get_agent(agent_name)
-        if agent:
-            agent.clear_history()
-            self._save_agent(agent)
-            return True
-        return False
+        if not agent:
+            raise ValueError(f"Agent '{agent_name}' not found")
+        agent.clear_history()
+        self._save_agent(agent)
 
-    def export_agent(self, name: str, export_path: str) -> bool:
+    def export_agent(self, name: str, export_path: str) -> None:
         """Export an agent to a specified file path."""
         agent = self.get_agent(name)
         if not agent:
-            return False
+            raise ValueError(f"Agent '{name}' not found")
 
         data = self._serialize_agent_data(agent)
         with open(export_path, "w") as f:
             json.dump(data, f, indent=2)
-        return True
 
-    def import_agent(self, import_path: str, overwrite: bool = False) -> bool:
+    def import_agent(self, import_path: str, overwrite: bool = False) -> None:
         """Import an agent from a specified file path."""
         with open(import_path) as f:
             data = json.load(f)
@@ -194,17 +191,18 @@ class MemoryManager:
 
         # Check if agent already exists
         if agent.name in self._agents and not overwrite:
-            return False
+            raise ValueError(
+                f"Agent '{agent.name}' already exists. Use overwrite=True to replace."
+            )
 
         self._agents[agent.name] = agent
         self._save_agent(agent)
-        return True
 
     def get_response(self, agent_name: str, index: int = -1) -> str | None:
         """Get a message content from an agent by index. Default -1 gets the last message."""
         agent = self.get_agent(agent_name)
         if not agent:
-            return None
+            raise ValueError(f"Agent '{agent_name}' not found")
 
         return agent.get_response(index)
 

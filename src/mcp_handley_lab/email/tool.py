@@ -117,15 +117,8 @@ async def sync(account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    try:
-        output = await _run_command(cmd)
-        return f"Email sync completed successfully\n{output}"
-    except RuntimeError as e:
-        # offlineimap often returns non-zero exit codes even on success
-        # Check if it's a real error or just a warning
-        if "ERROR" in str(e).upper():
-            raise e
-        return f"Email sync completed with warnings\n{str(e)}"
+    output = await _run_command(cmd)
+    return f"Email sync completed successfully\n{output}"
 
 
 @mcp.tool(description="Get offlineimap sync status and information.")
@@ -168,14 +161,8 @@ async def quick_sync(account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    try:
-        output = await _run_command(cmd)
-        return f"Quick sync completed successfully\n{output}"
-    except RuntimeError as e:
-        # offlineimap often returns non-zero exit codes even on success
-        if "ERROR" in str(e).upper():
-            raise e
-        return f"Quick sync completed with warnings\n{str(e)}"
+    output = await _run_command(cmd)
+    return f"Quick sync completed successfully\n{output}"
 
 
 @mcp.tool(description="Sync specific folders only.")
@@ -186,13 +173,8 @@ async def sync_folders(folders: str, account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    try:
-        output = await _run_command(cmd)
-        return f"Folder sync completed successfully\n{output}"
-    except RuntimeError as e:
-        if "ERROR" in str(e).upper():
-            raise e
-        return f"Folder sync completed with warnings\n{str(e)}"
+    output = await _run_command(cmd)
+    return f"Folder sync completed successfully\n{output}"
 
 
 @mcp.tool(description="Search emails using notmuch.")

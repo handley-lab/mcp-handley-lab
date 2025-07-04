@@ -1,6 +1,5 @@
 """ArXiv source code retrieval MCP server."""
 
-import asyncio
 import gzip
 import os
 import tarfile
@@ -14,8 +13,6 @@ from xml.etree import ElementTree
 
 import httpx
 from mcp.server.fastmcp import FastMCP
-
-from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("ArXiv Tool")
 
@@ -49,8 +46,6 @@ async def _get_source_archive(arxiv_id: str) -> bytes:
             response.raise_for_status()
             _cache_source(arxiv_id, response.content)
             return response.content
-    except asyncio.CancelledError:
-        raise UserCancelledError("ArXiv download was cancelled by user") from None
     except Exception as e:
         raise RuntimeError(f"Error fetching ArXiv data: {e}") from e
 
@@ -174,10 +169,6 @@ async def download(arxiv_id: str, format: str = "src", output_path: str = None) 
             async with httpx.AsyncClient(follow_redirects=True) as client:
                 response = await client.get(url)
                 response.raise_for_status()
-        except asyncio.CancelledError:
-            raise UserCancelledError(
-                "ArXiv PDF download was cancelled by user"
-            ) from None
         except Exception as e:
             raise RuntimeError(f"Error fetching ArXiv PDF: {e}") from e
 
@@ -324,8 +315,6 @@ async def search(
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(url)
             response.raise_for_status()
-    except asyncio.CancelledError:
-        raise UserCancelledError("ArXiv search was cancelled by user") from None
     except Exception as e:
         raise RuntimeError(f"Error fetching ArXiv search results: {e}") from e
 

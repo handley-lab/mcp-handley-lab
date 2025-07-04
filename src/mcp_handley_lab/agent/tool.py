@@ -88,11 +88,8 @@ async def agent_stats(agent_name: str) -> str:
 )
 async def clear_agent(agent_name: str) -> str:
     """Clear an agent's conversation history."""
-    success = memory_manager.clear_agent_history(agent_name)
-    if success:
-        return f"✅ Agent '{agent_name}' history cleared successfully!"
-    else:
-        raise ValueError(f"Agent '{agent_name}' not found")
+    memory_manager.clear_agent_history(agent_name)
+    return f"✅ Agent '{agent_name}' history cleared successfully!"
 
 
 @mcp.tool(
@@ -100,11 +97,8 @@ async def clear_agent(agent_name: str) -> str:
 )
 async def delete_agent(agent_name: constr(min_length=1)) -> str:
     """Delete an agent permanently."""
-    success = memory_manager.delete_agent(agent_name)
-    if success:
-        return f"✅ Agent '{agent_name}' deleted permanently!"
-    else:
-        raise ValueError(f"Agent '{agent_name}' not found")
+    memory_manager.delete_agent(agent_name)
+    return f"✅ Agent '{agent_name}' deleted permanently!"
 
 
 @mcp.tool(
@@ -131,11 +125,7 @@ async def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
     response = memory_manager.get_response(agent_name, index)
     if response is None:
-        if memory_manager.get_agent(agent_name) is None:
-            raise ValueError(f"Agent '{agent_name}' not found")
-        else:
-            raise ValueError(f"No message found at index {index}")
-
+        raise ValueError(f"No message found at index {index}")
     return response
 
 

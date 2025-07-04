@@ -57,13 +57,9 @@ TEXT_BASED_APPLICATION_TYPES = {
 
 def get_session_id(mcp_instance) -> str:
     """Get persistent session ID for this MCP server process."""
-    try:
-        context = mcp_instance.get_context()
-        client_id = getattr(context, "client_id", None)
-        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
-    except Exception:
-        # When no MCP context (direct Python usage), use just process ID for persistence
-        return f"_session_{os.getpid()}"
+    context = mcp_instance.get_context()
+    client_id = getattr(context, "client_id", None)
+    return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
 
 
 def determine_mime_type(file_path: Path) -> str:
@@ -157,7 +153,7 @@ def resolve_file_content(
         elif "path" in file_item:
             file_path = Path(file_item["path"])
             if not file_path.exists():
-                return f"Error: File not found: {file_path}", None
+                raise FileNotFoundError(f"File not found: {file_path}")
             return None, file_path
     return None, None
 
@@ -172,11 +168,8 @@ def read_file_smart(
         raise ValueError(f"File too large: {file_size} bytes > {max_size}")
 
     if is_text_file(file_path):
-        try:
-            content = file_path.read_text(encoding="utf-8")
-            return f"[File: {file_path.name}]\n{content}", True
-        except UnicodeDecodeError:
-            pass
+        content = file_path.read_text(encoding="utf-8")
+        return f"[File: {file_path.name}]\n{content}", True
 
     # Binary file - base64 encode
     file_content = file_path.read_bytes()
@@ -239,6 +232,10 @@ def handle_agent_memory(
     session_id_func,
 ) -> str | None:
     """Handle agent memory storage. Returns actual agent name used."""
+    # Normalize string "false" to boolean False for usability
+    if isinstance(agent_name, str) and agent_name.lower() == "false":
+        agent_name = False
+
     # Use session-specific agent if no agent_name provided (and memory not disabled)
     if not agent_name and agent_name is not False:
         agent_name = session_id_func()

@@ -36,33 +36,22 @@ from ..model_loader import (
     format_model_listing,
     load_model_config,
 )
-from ..shared import create_client_decorator, process_llm_request
+from ..shared import process_llm_request
 
 mcp = FastMCP("Gemini Tool")
 
-# Configure Gemini client
-client = None
-initialization_error = None
-
-try:
-    # Client initialization - let SDK use default API version
-    client = google_genai.Client(api_key=settings.gemini_api_key)
-except Exception as e:
-    client = None
-    initialization_error = str(e)
+# Configure Gemini client - fail fast if API key is invalid/missing
+client = google_genai.Client(api_key=settings.gemini_api_key)
 
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 
-# Create client decorator with dynamic error message
-def _get_error_message():
-    return f"Gemini client not initialized: {initialization_error or 'API key not configured'}"
-
-
-require_client = create_client_decorator(
-    lambda: client is not None, _get_error_message()
-)
+# Client initialization decorator is no longer needed with fail-fast approach
+# If we reach this point, the client is guaranteed to be initialized
+def require_client(func):
+    """Identity decorator - no longer needed with fail-fast approach."""
+    return func
 
 
 def _convert_history_to_gemini_format(
@@ -162,20 +151,14 @@ def _resolve_images(
 
     # Handle single image_data parameter
     if image_data:
-        try:
-            image_bytes = resolve_image_data(image_data)
-            image_list.append(Image.open(io.BytesIO(image_bytes)))
-        except Exception as e:
-            raise ValueError(f"Failed to load image: {e}") from e
+        image_bytes = resolve_image_data(image_data)
+        image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     # Handle images array
     if images:
         for image_item in images:
-            try:
-                image_bytes = resolve_image_data(image_item)
-                image_list.append(Image.open(io.BytesIO(image_bytes)))
-            except Exception as e:
-                raise ValueError(f"Failed to load image: {e}") from e
+            image_bytes = resolve_image_data(image_item)
+            image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     return image_list
 
@@ -598,71 +581,67 @@ async def generate_image(
 
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
 
-    try:
-        # Generate image
-        def _sync_generate_images():
-            return client.models.generate_images(
-                model=actual_model,
-                prompt=prompt,
-                config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
-            )
+    # Generate image
+    def _sync_generate_images():
+        return client.models.generate_images(
+            model=actual_model,
+            prompt=prompt,
+            config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+        )
 
-        loop = asyncio.get_running_loop()
-        response = await loop.run_in_executor(None, _sync_generate_images)
+    loop = asyncio.get_running_loop()
+    response = await loop.run_in_executor(None, _sync_generate_images)
 
-        if not response.generated_images:
-            raise RuntimeError("No images were generated")
+    if not response.generated_images:
+        raise RuntimeError("No images were generated")
 
-        # Save the generated image
-        generated_image = response.generated_images[0]
-        if not generated_image.image or not generated_image.image.image_bytes:
-            raise RuntimeError("Generated image has no data")
+    # Save the generated image
+    generated_image = response.generated_images[0]
+    if not generated_image.image or not generated_image.image.image_bytes:
+        raise RuntimeError("Generated image has no data")
 
-        # Save to temporary file
-        import uuid
+    # Save to temporary file
+    import uuid
 
-        file_id = str(uuid.uuid4())[:8]
-        filename = f"gemini_generated_{file_id}.png"
-        filepath = Path(tempfile.gettempdir()) / filename
+    file_id = str(uuid.uuid4())[:8]
+    filename = f"gemini_generated_{file_id}.png"
+    filepath = Path(tempfile.gettempdir()) / filename
 
-        filepath.write_bytes(generated_image.image.image_bytes)
+    filepath.write_bytes(generated_image.image.image_bytes)
 
-        # Calculate usage and cost (estimate)
-        input_tokens = len(prompt.split()) * 2  # Rough estimate
-        output_tokens = 1  # Image generation
-        cost = calculate_cost(actual_model, input_tokens, output_tokens, "gemini")
+    # Calculate usage and cost (estimate)
+    input_tokens = len(prompt.split()) * 2  # Rough estimate
+    output_tokens = 1  # Image generation
+    cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
 
-        # Handle agent memory (only if enabled)
-        use_memory = agent_name is not False
+    # Handle agent memory (only if enabled)
+    use_memory = agent_name is not False
 
-        if use_memory:
-            # Use session-specific agent if no agent_name provided
-            if not agent_name:
-                agent_name = _get_session_id()
+    if use_memory:
+        # Use session-specific agent if no agent_name provided
+        if not agent_name:
+            agent_name = _get_session_id()
 
-            agent = memory_manager.get_agent(agent_name)
-            if not agent:
-                agent = memory_manager.create_agent(agent_name)
+        agent = memory_manager.get_agent(agent_name)
+        if not agent:
+            agent = memory_manager.create_agent(agent_name)
 
-            memory_manager.add_message(
-                agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2
-            )
-            memory_manager.add_message(
-                agent_name,
-                "assistant",
-                f"Generated image saved to {filepath}",
-                output_tokens,
-                cost / 2,
-            )
+        memory_manager.add_message(
+            agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2
+        )
+        memory_manager.add_message(
+            agent_name,
+            "assistant",
+            f"Generated image saved to {filepath}",
+            output_tokens,
+            cost / 2,
+        )
 
-        # Format response
-        file_size = len(generated_image.image.image_bytes)
-        usage_info = format_usage(input_tokens, output_tokens, cost)
+    # Format response
+    file_size = len(generated_image.image.image_bytes)
+    usage_info = format_usage(input_tokens, output_tokens, cost)
 
-        return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
-
-    except Exception as e:
-        raise RuntimeError(f"Error generating image with Imagen: {e}") from e
+    return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
 
 
 @mcp.tool(
@@ -700,20 +679,17 @@ list_models()
 @require_client
 async def list_models() -> str:
     """List available Gemini models with detailed information."""
-    try:
-        # Get models from API
-        def _sync_list_models():
-            return client.models.list()
 
-        loop = asyncio.get_running_loop()
-        models_response = await loop.run_in_executor(None, _sync_list_models)
-        api_model_names = {model.name.split("/")[-1] for model in models_response}
+    # Get models from API
+    def _sync_list_models():
+        return client.models.list()
 
-        # Use YAML-based model listing
-        return format_model_listing("gemini", api_model_names)
+    loop = asyncio.get_running_loop()
+    models_response = await loop.run_in_executor(None, _sync_list_models)
+    api_model_names = {model.name.split("/")[-1] for model in models_response}
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to list Gemini models: {e}") from e
+    # Use YAML-based model listing
+    return format_model_listing("gemini", api_model_names)
 
 
 @mcp.tool(
@@ -737,17 +713,17 @@ server_info()
 @require_client
 async def server_info() -> str:
     """Get server status and Gemini configuration."""
-    try:
-        # Test API by listing models
-        def _sync_list_models():
-            return client.models.list()
 
-        loop = asyncio.get_running_loop()
-        models_response = await loop.run_in_executor(None, _sync_list_models)
-        available_models = []
-        for model in models_response:
-            if "gemini" in model.name:
-                available_models.append(model.name.split("/")[-1])
+    # Test API by listing models
+    def _sync_list_models():
+        return client.models.list()
+
+    loop = asyncio.get_running_loop()
+    models_response = await loop.run_in_executor(None, _sync_list_models)
+    available_models = []
+    for model in models_response:
+        if "gemini" in model.name:
+            available_models.append(model.name.split("/")[-1])
 
         # Get agent count
         agent_count = len(memory_manager.list_agents())
@@ -774,6 +750,3 @@ Available tools:
 - clear_agent: Clear agent conversation history
 - delete_agent: Permanently delete agents
 - server_info: Get server status"""
-
-    except Exception as e:
-        raise RuntimeError(f"Gemini API configuration error: {e}") from e

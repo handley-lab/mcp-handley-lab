@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from mcp_handley_lab.tool_chainer.tool import (
+    ToolExecutionError,
     ToolStep,
     _evaluate_condition,
     _execute_mcp_tool,
@@ -53,8 +54,7 @@ class TestExecuteMcpTool:
             timeout=30,
         )
 
-        assert result["success"] is True
-        assert result["result"] == "Success response"
+        assert result == "Success response"
         mock_create_subprocess.assert_called_once()
 
     @patch("asyncio.create_subprocess_exec")
@@ -66,15 +66,14 @@ class TestExecuteMcpTool:
         mock_process.returncode = 1
         mock_create_subprocess.return_value = mock_process
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert "Server command failed" in result["error"]
-        assert "Error message" in result["error"]
+        with pytest.raises(
+            ToolExecutionError, match="Server command failed with exit code 1"
+        ):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
@@ -87,14 +86,12 @@ class TestExecuteMcpTool:
         mock_process.returncode = 0
         mock_create_subprocess.return_value = mock_process
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert "Failed to parse server response" in result["error"]
+        with pytest.raises(ToolExecutionError, match="Failed to parse server response"):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
@@ -105,14 +102,12 @@ class TestExecuteMcpTool:
         mock_process.returncode = 0
         mock_create_subprocess.return_value = mock_process
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert "Failed to parse server response" in result["error"]
+        with pytest.raises(ToolExecutionError, match="Failed to parse server response"):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
@@ -124,15 +119,16 @@ class TestExecuteMcpTool:
         mock_process.wait = AsyncMock()
         mock_create_subprocess.return_value = mock_process
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-            timeout=1,
-        )
+        with pytest.raises(
+            ToolExecutionError, match="Tool execution timed out after 1 seconds"
+        ):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+                timeout=1,
+            )
 
-        assert result["success"] is False
-        assert "Tool execution timed out" in result["error"]
         mock_process.kill.assert_called_once()
         mock_process.wait.assert_called_once()
 
@@ -148,14 +144,12 @@ class TestExecuteMcpTool:
         mock_process.returncode = 0
         mock_create_subprocess.return_value = mock_process
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert result["error"] == "Tool not found"
+        with pytest.raises(ToolExecutionError, match="Tool not found"):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
@@ -175,8 +169,7 @@ class TestExecuteMcpTool:
             arguments={"input": "test"},
         )
 
-        assert result["success"] is True
-        assert result["result"] == "Simple string result"
+        assert result == "Simple string result"
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
@@ -196,23 +189,20 @@ class TestExecuteMcpTool:
             arguments={"input": "test"},
         )
 
-        assert result["success"] is True
-        assert "{'data': 'complex', 'status': 'ok'}" in result["result"]
+        assert "{'data': 'complex', 'status': 'ok'}" in result
 
     @patch("asyncio.create_subprocess_exec")
     @pytest.mark.asyncio
     async def test_execute_mcp_tool_exception(self, mock_create_subprocess):
-        """Test MCP tool execution with unexpected exception."""
+        """Test MCP tool execution with unexpected exception now propagates."""
         mock_create_subprocess.side_effect = Exception("Unexpected error")
 
-        result = await _execute_mcp_tool(
-            server_command="python -m test",
-            tool_name="test_tool",
-            arguments={"input": "test"},
-        )
-
-        assert result["success"] is False
-        assert "Execution error: Unexpected error" in result["error"]
+        with pytest.raises(Exception, match="Unexpected error"):
+            await _execute_mcp_tool(
+                server_command="python -m test",
+                tool_name="test_tool",
+                arguments={"input": "test"},
+            )
 
 
 class TestVariableSubstitution:
@@ -313,11 +303,12 @@ class TestConditionEvaluation:
         """Test condition evaluation with invalid syntax."""
         variables = {"result": "test"}
 
-        # Invalid condition should return False
-        assert _evaluate_condition("invalid condition syntax", variables) is False
-        assert (
-            _evaluate_condition("{result} invalid operator 'test'", variables) is False
-        )
+        # Invalid condition should raise ValueError for fail-fast behavior
+        with pytest.raises(ValueError, match="Invalid condition expression"):
+            _evaluate_condition("invalid condition syntax", variables)
+
+        with pytest.raises(ValueError, match="Invalid condition expression"):
+            _evaluate_condition("{result} invalid operator 'test'", variables)
 
     def test_evaluate_condition_missing_variable(self):
         """Test condition evaluation with missing variable."""
@@ -435,14 +426,8 @@ class TestAdvancedChainExecution:
         state_file = temp_storage_dir / "state.json"
         state_file.write_text("Invalid JSON")
 
-        registered_tools, defined_chains, execution_history = _load_state(
-            temp_storage_dir
-        )
-
-        # Should return empty state on corruption
-        assert registered_tools == {}
-        assert defined_chains == {}
-        assert execution_history == []
+        with pytest.raises(RuntimeError, match="Corrupted tool chainer state file"):
+            _load_state(temp_storage_dir)
 
     def test_save_state_success(self, temp_storage_dir):
         """Test successful state saving."""
@@ -470,8 +455,8 @@ class TestAdvancedChainExecution:
         """Test chain execution with conditional steps."""
         # Mock tool execution
         mock_execute.side_effect = [
-            {"success": True, "result": "Operation completed successfully"},
-            {"success": True, "result": "Backup created"},
+            "Operation completed successfully",
+            "Backup created",
         ]
 
         # Register tools first
@@ -517,7 +502,7 @@ class TestAdvancedChainExecution:
     async def test_execute_chain_condition_false(self, mock_execute, temp_storage_dir):
         """Test chain execution with false condition."""
         # Mock tool execution
-        mock_execute.return_value = {"success": True, "result": "Operation failed"}
+        mock_execute.return_value = "Operation failed"
 
         # Register tools
         await register_tool(
@@ -562,7 +547,7 @@ class TestAdvancedChainExecution:
     async def test_execute_chain_tool_failure(self, mock_execute, temp_storage_dir):
         """Test chain execution with tool failure."""
         # Mock tool failure
-        mock_execute.return_value = {"success": False, "error": "Tool execution failed"}
+        mock_execute.side_effect = ToolExecutionError("Tool execution failed")
 
         # Register tool
         await register_tool(

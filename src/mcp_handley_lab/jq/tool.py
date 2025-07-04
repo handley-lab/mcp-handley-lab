@@ -1,12 +1,10 @@
 """JQ tool for JSON manipulation via MCP."""
-import asyncio
 import json
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import constr
 
-from ..common.exceptions import UserCancelledError
 from ..common.process import run_command
 
 mcp = FastMCP("JQ Tool")
@@ -34,21 +32,12 @@ def _resolve_data(data: str | dict | list) -> str:
 
 
 async def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    """Runs a jq command and raises errors on failure."""
+    """Runs a jq command."""
     cmd = ["jq"] + args
     input_bytes = input_text.encode("utf-8") if input_text else None
 
-    try:
-        stdout, stderr = await run_command(cmd, input_data=input_bytes)
-        return stdout.decode("utf-8").strip()
-    except asyncio.CancelledError:
-        raise UserCancelledError("JQ command was cancelled by user") from None
-    except RuntimeError as e:
-        if "Command failed" in str(e):
-            # Extract stderr for better jq error messages
-            error_msg = str(e).split(": ", 1)[-1]
-            raise ValueError(f"jq error: {error_msg}") from e
-        raise
+    stdout, stderr = await run_command(cmd, input_data=input_bytes)
+    return stdout.decode("utf-8").strip()
 
 
 @mcp.tool(
@@ -66,11 +55,6 @@ Filter Parameter: Defaults to "." (identity filter). Use standard jq syntax:
 Output Options:
 - `compact`: Single-line compressed JSON output (removes whitespace)
 - `raw_output`: Raw string values without JSON quotes (useful for extracting plain text)
-
-Error Handling:
-- Raises ValueError for invalid jq filter syntax
-- Raises RuntimeError if jq command not found or file read errors
-- File paths are validated automatically
 
 Examples:
 ```python
@@ -119,12 +103,6 @@ async def query(
     description="""Edits a JSON file in-place using a jq transformation filter.
 
 WARNING: Modifies the original file. Backup is created by default (.bak extension).
-
-Error Handling:
-- Raises ValueError for invalid jq transformation syntax
-- Raises FileNotFoundError if input file doesn't exist
-- Raises PermissionError if file cannot be written
-- Backup creation may fail silently if disk space insufficient
 
 Filter must be a transformation expression that modifies the data:
 - `.field = "new_value"` - Set field value
@@ -196,7 +174,7 @@ async def read(file_path: str, filter: str = ".") -> str:
 @mcp.tool(
     description="""Validates JSON syntax for strings or files.
 
-Returns "JSON is valid" for well-formed JSON, raises ValueError with specific error for invalid JSON.
+Returns "JSON is valid" for well-formed JSON.
 
 Error Details:
 - Provides line and character position for syntax errors
@@ -214,18 +192,14 @@ validate('/path/data.json')
 
 # Invalid JSON raises error
 validate('{invalid: json}')
-# Raises: ValueError("Invalid JSON: ...")
 ```"""
 )
 async def validate(data: constr(min_length=1) | dict | list) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
 
-    try:
-        json.loads(data_content)
-        return "JSON is valid"
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON: {e}") from e
+    json.loads(data_content)
+    return "JSON is valid"
 
 
 @mcp.tool(
@@ -236,11 +210,6 @@ Data Input: JSON string or file path (auto-detected).
 Formatting Options:
 - `compact`: Single-line format (removes indentation and whitespace)
 - `sort_keys`: Alphabetically sort object keys at all levels
-
-Error Handling:
-- Raises ValueError for malformed JSON input
-- Raises FileNotFoundError if file path provided but doesn't exist
-- Returns formatted JSON or raises specific parsing errors
 
 Examples:
 ```python
@@ -284,9 +253,6 @@ Use this to verify that the tool is operational before making other requests.
 - **Input**: None.
 - **Output**: A string containing the server status, `jq` version, and a list of available tools.
 
-**Error Handling:**
-- Raises `RuntimeError` if the `jq` command is not found.
-
 **Examples:**
 ```python
 # Check the server status.
@@ -295,10 +261,9 @@ server_info()
 )
 async def server_info() -> str:
     """Get server status and jq version."""
-    try:
-        version = await _run_jq(["--version"])
+    version = await _run_jq(["--version"])
 
-        return f"""JQ Tool Server Status
+    return f"""JQ Tool Server Status
 ====================
 Status: Connected and ready
 JQ Version: {version}
@@ -310,5 +275,3 @@ Available tools:
 - validate: Validate JSON syntax
 - format: Format JSON data
 - server_info: Get server status"""
-    except RuntimeError as e:
-        raise e

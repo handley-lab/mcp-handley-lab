@@ -27,6 +27,7 @@ async def test_gemini_ask_basic(skip_if_no_api_key, test_output_file):
         output_file=test_output_file,
         model="gemini-2.5-flash",
         temperature=0.0,
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -46,6 +47,7 @@ async def test_gemini_ask_with_grounding_1_5(skip_if_no_api_key, test_output_fil
         output_file=test_output_file,
         grounding=True,
         model="gemini-1.5-pro",  # Use 1.5 model with GoogleSearchRetrieval
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -64,6 +66,7 @@ async def test_gemini_ask_with_grounding_2_5(skip_if_no_api_key, test_output_fil
         output_file=test_output_file,
         grounding=True,
         model="gemini-2.5-flash",  # Use 2.5 model with GoogleSearch
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -83,6 +86,7 @@ async def test_gemini_ask_with_file(
         output_file=test_output_file,
         files=[{"path": test_json_file}],
         model="gemini-2.5-flash",
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -149,6 +153,7 @@ async def test_gemini_analyze_image(skip_if_no_api_key, test_output_file):
         image_data=red_pixel,
         focus="colors",
         model="gemini-2.5-pro",  # Use pro model for better analysis
+        agent_name=False,
     )
 
     assert "saved" in result.lower() or "success" in result.lower()
@@ -163,7 +168,7 @@ async def test_gemini_analyze_image(skip_if_no_api_key, test_output_file):
 async def test_gemini_generate_image(skip_if_no_api_key):
     skip_if_no_api_key("GEMINI_API_KEY")
 
-    result = await generate_image(prompt="A simple blue square")
+    result = await generate_image(prompt="A simple blue square", agent_name=False)
 
     assert "saved" in result.lower() or "success" in result.lower() or ".png" in result
 

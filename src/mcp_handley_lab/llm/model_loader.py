@@ -17,35 +17,22 @@ def load_model_config(provider: str) -> dict[str, Any]:
     Raises:
         FileNotFoundError: If YAML file doesn't exist
         yaml.YAMLError: If YAML file is invalid
+        ValueError: If required sections are missing
     """
     yaml_path = Path(__file__).parent / provider / "models.yaml"
 
-    if not yaml_path.exists():
-        raise FileNotFoundError(f"Model config file not found: {yaml_path}")
+    with open(yaml_path, encoding="utf-8") as f:
+        config = yaml.safe_load(f)
 
-    try:
-        with open(yaml_path, encoding="utf-8") as f:
-            config = yaml.safe_load(f)
+    # Validate required sections (business logic, not defensive programming)
+    required_sections = ["models", "display_categories", "default_model", "usage_notes"]
+    missing_sections = [
+        section for section in required_sections if section not in config
+    ]
+    if missing_sections:
+        raise ValueError(f"Missing required sections: {missing_sections}")
 
-        # Validate required sections
-        required_sections = [
-            "models",
-            "display_categories",
-            "default_model",
-            "usage_notes",
-        ]
-        missing_sections = [
-            section for section in required_sections if section not in config
-        ]
-        if missing_sections:
-            raise ValueError(
-                f"Missing required sections in {yaml_path}: {missing_sections}"
-            )
-
-        return config
-
-    except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Invalid YAML in {yaml_path}: {e}") from e
+    return config
 
 
 def get_models_by_tags(
@@ -199,24 +186,21 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
                 availability = "✅ Configured"
 
             # Get pricing
-            try:
-                pricing_type = model_config.get("pricing_type", "token")
-                if pricing_type == "per_image":
-                    cost_per_image = calculate_cost(
-                        model_id, 1, 0, provider, images_generated=1
-                    )
-                    pricing = f"${cost_per_image:.3f} per image"
-                elif pricing_type == "per_second":
-                    cost_per_second = calculate_cost(
-                        model_id, 1, 0, provider, seconds_generated=1
-                    )
-                    pricing = f"${cost_per_second:.3f} per second"
-                else:
-                    input_cost = calculate_cost(model_id, 1000000, 0, provider)
-                    output_cost = calculate_cost(model_id, 0, 1000000, provider)
-                    pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
-            except Exception:
-                pricing = "Pricing not available"
+            pricing_type = model_config.get("pricing_type", "token")
+            if pricing_type == "per_image":
+                cost_per_image = calculate_cost(
+                    model_id, 1, 0, provider, images_generated=1
+                )
+                pricing = f"${cost_per_image:.3f} per image"
+            elif pricing_type == "per_second":
+                cost_per_second = calculate_cost(
+                    model_id, 1, 0, provider, seconds_generated=1
+                )
+                pricing = f"${cost_per_second:.3f} per second"
+            else:
+                input_cost = calculate_cost(model_id, 1000000, 0, provider)
+                output_cost = calculate_cost(model_id, 0, 1000000, provider)
+                pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
 
             # Format model entry
             context_window = model_config.get("context_window", "Unknown")

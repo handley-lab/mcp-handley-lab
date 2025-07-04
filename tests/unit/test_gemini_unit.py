@@ -120,7 +120,7 @@ class TestErrorHandling:
     @patch("mcp_handley_lab.llm.gemini.tool.settings")
     @patch("mcp_handley_lab.llm.gemini.tool.google_genai.Client")
     def test_client_initialization_error(self, mock_client_class, mock_settings):
-        """Test client initialization error handling (lines 32-34)."""
+        """Test client initialization error handling - should raise exception."""
         # Force the initialization to fail
         mock_settings.gemini_api_key = "test_key"
         mock_client_class.side_effect = Exception("API key invalid")
@@ -130,11 +130,8 @@ class TestErrorHandling:
 
         import mcp_handley_lab.llm.gemini.tool
 
-        importlib.reload(mcp_handley_lab.llm.gemini.tool)
-
-        # The module should load but client should be None
-        assert mcp_handley_lab.llm.gemini.tool.client is None
-        assert mcp_handley_lab.llm.gemini.tool.initialization_error == "API key invalid"
+        with pytest.raises(Exception, match="API key invalid"):
+            importlib.reload(mcp_handley_lab.llm.gemini.tool)
 
     @pytest.mark.asyncio
     @patch("mcp_handley_lab.llm.gemini.tool.is_text_file")
@@ -179,7 +176,7 @@ class TestErrorHandling:
         mock_read_bytes.return_value = b"some image data"
         mock_image_open.side_effect = Exception("Invalid image format")
 
-        with pytest.raises(ValueError, match="Failed to load image"):
+        with pytest.raises(Exception, match="Invalid image format"):
             _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
 
     @pytest.mark.asyncio

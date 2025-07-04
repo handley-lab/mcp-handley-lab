@@ -1,5 +1,4 @@
 """Agent memory management for persistent LLM conversations."""
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -64,15 +63,11 @@ class AgentMemory(BaseModel):
             "personality": self.personality,
         }
 
-    def get_response(self, index: int = -1) -> str | None:
-        """Get a message content by index. Default -1 gets the last message."""
+    def get_response(self, index: int = -1) -> str:
+        """Get a message content by index. Raises IndexError if not found."""
         if not self.messages:
-            return None
-
-        try:
-            return self.messages[index].content
-        except IndexError:
-            return None
+            raise IndexError("Cannot get response: agent has no message history")
+        return self.messages[index].content
 
 
 class MemoryManager:
@@ -95,12 +90,8 @@ class MemoryManager:
             return
 
         for agent_file in self.agents_dir.glob("*.json"):
-            try:
-                agent = AgentMemory.model_validate_json(agent_file.read_text())
-                self._agents[agent.name] = agent
-            except (json.JSONDecodeError, ValueError):
-                # Skip corrupted files
-                continue
+            agent = AgentMemory.model_validate_json(agent_file.read_text())
+            self._agents[agent.name] = agent
 
     def _serialize_agent_data(self, agent: AgentMemory) -> dict:
         """Convert agent to JSON-serializable dictionary."""
@@ -142,15 +133,14 @@ class MemoryManager:
         """List all agents."""
         return list(self._agents.values())
 
-    def delete_agent(self, name: str) -> bool:
+    def delete_agent(self, name: str) -> None:
         """Delete an agent."""
-        if name in self._agents:
-            del self._agents[name]
-            agent_file = self._get_agent_file(name)
-            if agent_file.exists():
-                agent_file.unlink()
-            return True
-        return False
+        if name not in self._agents:
+            raise ValueError(f"Agent '{name}' not found")
+        del self._agents[name]
+        agent_file = self._get_agent_file(name)
+        if agent_file.exists():
+            agent_file.unlink()
 
     def add_message(
         self,
@@ -166,52 +156,19 @@ class MemoryManager:
             agent.add_message(role, content, tokens, cost)
             self._save_agent(agent)
 
-    def clear_agent_history(self, agent_name: str) -> bool:
+    def clear_agent_history(self, agent_name: str) -> None:
         """Clear an agent's conversation history."""
         agent = self.get_agent(agent_name)
-        if agent:
-            agent.clear_history()
-            self._save_agent(agent)
-            return True
-        return False
-
-    def export_agent(self, name: str, export_path: str) -> bool:
-        """Export an agent to a specified file path."""
-        agent = self.get_agent(name)
         if not agent:
-            return False
+            raise ValueError(f"Agent '{agent_name}' not found")
+        agent.clear_history()
+        self._save_agent(agent)
 
-        try:
-            data = self._serialize_agent_data(agent)
-            with open(export_path, "w") as f:
-                json.dump(data, f, indent=2)
-            return True
-        except Exception:
-            return False
-
-    def import_agent(self, import_path: str, overwrite: bool = False) -> bool:
-        """Import an agent from a specified file path."""
-        try:
-            with open(import_path) as f:
-                data = json.load(f)
-
-            agent = self._deserialize_agent_data(data)
-
-            # Check if agent already exists
-            if agent.name in self._agents and not overwrite:
-                return False
-
-            self._agents[agent.name] = agent
-            self._save_agent(agent)
-            return True
-        except Exception:
-            return False
-
-    def get_response(self, agent_name: str, index: int = -1) -> str | None:
+    def get_response(self, agent_name: str, index: int = -1) -> str:
         """Get a message content from an agent by index. Default -1 gets the last message."""
         agent = self.get_agent(agent_name)
         if not agent:
-            return None
+            raise ValueError(f"Agent '{agent_name}' not found")
 
         return agent.get_response(index)
 

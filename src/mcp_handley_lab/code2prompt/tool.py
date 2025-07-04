@@ -1,29 +1,19 @@
 """Code2Prompt tool for codebase flattening and conversion via MCP."""
-import asyncio
 import tempfile
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from ..common.exceptions import UserCancelledError
 from ..common.process import run_command
 
 mcp = FastMCP("Code2Prompt Tool")
 
 
 async def _run_code2prompt(args: list[str]) -> str:
-    """Runs a code2prompt command and raises errors on failure."""
+    """Runs a code2prompt command."""
     cmd = ["code2prompt"] + args
-
-    try:
-        stdout, stderr = await run_command(cmd)
-        return stdout.decode("utf-8").strip()
-    except RuntimeError as e:
-        if "Command failed" in str(e):
-            # Extract stderr for better code2prompt error messages
-            error_msg = str(e).split(": ", 1)[-1]
-            raise ValueError(f"code2prompt error: {error_msg}") from e
-        raise
+    stdout, stderr = await run_command(cmd)
+    return stdout.decode("utf-8").strip()
 
 
 @mcp.tool(
@@ -41,10 +31,6 @@ Use this tool to create a summary file of a large codebase for analysis by an LL
 **Input/Output:**
 - **Input**: A path to a directory.
 - **Output**: A string containing the path to the generated summary file.
-
-**Error Handling:**
-- Raises `ValueError` if `code2prompt` returns an error.
-- Raises `RuntimeError` if the `code2prompt` command is not found.
 
 **Examples:**
 ```python
@@ -93,9 +79,10 @@ async def generate_prompt(
     """Generate a structured prompt from codebase."""
     # Create output file if not provided
     if not output_file:
-        temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False)
-        output_file = temp_file.name
-        temp_file.close()
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as temp_file:
+            output_file = temp_file.name
 
     # Define all arguments in one data structure
     arg_definitions = [
@@ -145,11 +132,8 @@ async def generate_prompt(
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
 
-    # Run code2prompt with cancellation support
-    try:
-        await _run_code2prompt(args)
-    except asyncio.CancelledError:
-        raise UserCancelledError("Code2prompt analysis was cancelled by user") from None
+    # Run code2prompt
+    await _run_code2prompt(args)
 
     # Get file size for reporting
     output_path = Path(output_file)
@@ -163,10 +147,9 @@ async def generate_prompt(
 )
 async def server_info() -> str:
     """Get server status and code2prompt version."""
-    try:
-        version = await _run_code2prompt(["--version"])
+    version = await _run_code2prompt(["--version"])
 
-        return f"""Code2Prompt Tool Server Status
+    return f"""Code2Prompt Tool Server Status
 ==============================
 Status: Connected and ready
 Code2Prompt Version: {version}
@@ -174,5 +157,3 @@ Code2Prompt Version: {version}
 Available tools:
 - generate_prompt: Create structured prompts from codebases (includes git diff options)
 - server_info: Get server status"""
-    except RuntimeError as e:
-        raise e

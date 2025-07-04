@@ -40,15 +40,6 @@ class TestGetSessionId:
             result = get_session_id(mock_mcp)
             assert result == "_session_12345"
 
-    def test_get_session_id_exception_fallback(self):
-        """Test session ID fallback when context access fails."""
-        mock_mcp = Mock()
-        mock_mcp.get_context.side_effect = Exception("Context error")
-
-        with patch("os.getpid", return_value=12345):
-            result = get_session_id(mock_mcp)
-            assert result == "_session_12345"
-
 
 class TestDetermineMimeType:
     """Test MIME type detection."""
@@ -157,9 +148,10 @@ class TestResolveFileContent:
         """Test resolving dict with non-existent file path."""
         mock_exists.return_value = False
 
-        content, path = resolve_file_content({"path": "/tmp/nonexistent.txt"})
-        assert "Error: File not found" in content
-        assert path is None
+        with pytest.raises(
+            FileNotFoundError, match="File not found: /tmp/nonexistent.txt"
+        ):
+            resolve_file_content({"path": "/tmp/nonexistent.txt"})
 
     def test_resolve_file_content_invalid_input(self):
         """Test resolving invalid input types."""
@@ -192,16 +184,13 @@ class TestReadFileSmart:
     def test_read_file_smart_text_file_unicode_error(
         self, mock_read_bytes, mock_read_text, mock_stat
     ):
-        """Test reading text file that has Unicode decode error."""
+        """Test reading text file that has Unicode decode error - should raise exception."""
         mock_stat.return_value.st_size = 100
         mock_read_text.side_effect = UnicodeDecodeError("utf-8", b"", 0, 1, "invalid")
         mock_read_bytes.return_value = b"\x00\x01\x02"
 
-        content, is_text = read_file_smart(Path("test.txt"))
-        assert "[Binary file:" in content
-        assert "test.txt" in content
-        assert "100 bytes" in content
-        assert is_text is False
+        with pytest.raises(UnicodeDecodeError):
+            read_file_smart(Path("test.txt"))
 
     @patch("pathlib.Path.stat")
     @patch("pathlib.Path.read_bytes")
@@ -400,6 +389,33 @@ class TestHandleAgentMemory:
         """Test memory handling when disabled."""
         result = handle_agent_memory(
             agent_name=False,
+            user_prompt="Test prompt",
+            response_text="Test response",
+            input_tokens=100,
+            output_tokens=50,
+            cost=0.001,
+            session_id_func=lambda: "session_123",
+        )
+
+        assert result is None
+
+    def test_handle_agent_memory_string_false_normalization(self):
+        """Test that string 'false' is normalized to boolean False."""
+        result = handle_agent_memory(
+            agent_name="false",  # String "false" should be treated as False
+            user_prompt="Test prompt",
+            response_text="Test response",
+            input_tokens=100,
+            output_tokens=50,
+            cost=0.001,
+            session_id_func=lambda: "session_123",
+        )
+
+        assert result is None
+
+        # Test case insensitive
+        result = handle_agent_memory(
+            agent_name="FALSE",  # Case insensitive
             user_prompt="Test prompt",
             response_text="Test response",
             input_tokens=100,

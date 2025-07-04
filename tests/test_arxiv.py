@@ -63,7 +63,9 @@ class TestArxivIntegration:
     @pytest.mark.integration
     async def test_invalid_arxiv_id(self):
         """Test with invalid ArXiv ID."""
-        with pytest.raises(RuntimeError):
+        import httpx
+
+        with pytest.raises(httpx.HTTPStatusError):
             await list_files("invalid-id-99999999")
 
     @pytest.mark.asyncio

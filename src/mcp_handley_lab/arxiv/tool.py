@@ -1,6 +1,5 @@
 """ArXiv source code retrieval MCP server."""
 
-import asyncio
 import gzip
 import os
 import tarfile
@@ -14,8 +13,6 @@ from xml.etree import ElementTree
 
 import httpx
 from mcp.server.fastmcp import FastMCP
-
-from ..common.exceptions import UserCancelledError
 
 mcp = FastMCP("ArXiv Tool")
 
@@ -43,35 +40,22 @@ async def _get_source_archive(arxiv_id: str) -> bytes:
 
     # Download and cache
     url = f"https://arxiv.org/src/{arxiv_id}"
-    try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            _cache_source(arxiv_id, response.content)
-            return response.content
-    except asyncio.CancelledError:
-        raise UserCancelledError("ArXiv download was cancelled by user") from None
-    except Exception as e:
-        raise RuntimeError(f"Error fetching ArXiv data: {e}") from e
-
-
-def _is_tar_archive(content: bytes) -> bool:
-    """Check if content is a tar archive or a single gzipped file."""
-    try:
-        # Try to open as tar archive
-        with tarfile.open(fileobj=BytesIO(content), mode="r:*"):
-            return True
-    except tarfile.TarError:
-        return False
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        _cache_source(arxiv_id, response.content)
+        return response.content
 
 
 def _handle_source_content(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> str:
-    """Handle source content, whether it's a tar archive or single file."""
-    if _is_tar_archive(content):
+    """Handle source content, trying tar first, then single file."""
+    try:
+        # Try to handle as tar archive first (most common case)
         return _handle_tar_archive(arxiv_id, content, format, output_path)
-    else:
+    except tarfile.TarError:
+        # Not a tar archive, try as single gzipped file
         return _handle_single_file(arxiv_id, content, format, output_path)
 
 
@@ -79,23 +63,20 @@ def _handle_single_file(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> str:
     """Handle a single gzipped file (not a tar archive)."""
-    try:
-        # Decompress the gzipped content
-        decompressed = gzip.decompress(content)
+    # Decompress the gzipped content
+    decompressed = gzip.decompress(content)
 
-        if output_path == "-":
-            # Return file info for stdout
-            return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
-        else:
-            # Save to directory
-            os.makedirs(output_path, exist_ok=True)
-            filename = f"{arxiv_id}.tex"  # Assume it's a tex file
-            file_path = os.path.join(output_path, filename)
-            with open(file_path, "wb") as f:
-                f.write(decompressed)
-            return f"ArXiv source saved to directory: {output_path}\\nFile: {filename}"
-    except Exception as e:
-        raise ValueError(f"Error processing single file: {e}") from e
+    if output_path == "-":
+        # Return file info for stdout
+        return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
+    else:
+        # Save to directory
+        os.makedirs(output_path, exist_ok=True)
+        filename = f"{arxiv_id}.tex"  # Assume it's a tex file
+        file_path = os.path.join(output_path, filename)
+        with open(file_path, "wb") as f:
+            f.write(decompressed)
+        return f"ArXiv source saved to directory: {output_path}\\nFile: {filename}"
 
 
 def _handle_tar_archive(
@@ -104,47 +85,42 @@ def _handle_tar_archive(
     """Handle a tar archive."""
     tar_stream = BytesIO(content)
 
-    try:
-        with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-            if output_path == "-":
-                # List files for stdout
-                files = []
-                for member in tar.getmembers():
-                    if member.isfile() and (
-                        format != "tex"
-                        or any(
-                            member.name.endswith(ext)
-                            for ext in [".tex", ".bib", ".bbl"]
-                        )
-                    ):
-                        files.append(f"{member.name} ({member.size} bytes)")
+    with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
+        if output_path == "-":
+            # List files for stdout
+            files = []
+            for member in tar.getmembers():
+                if member.isfile() and (
+                    format != "tex"
+                    or any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    )
+                ):
+                    files.append(f"{member.name} ({member.size} bytes)")
 
-                if format == "tex":
-                    return f"ArXiv LaTeX files for {arxiv_id}:\\n" + "\\n".join(files)
-                else:
-                    return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
+            if format == "tex":
+                return f"ArXiv LaTeX files for {arxiv_id}:\\n" + "\\n".join(files)
             else:
-                # Save to directory
-                os.makedirs(output_path, exist_ok=True)
+                return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
+        else:
+            # Save to directory
+            os.makedirs(output_path, exist_ok=True)
 
-                if format == "tex":
-                    # Extract .tex, .bib, .bbl files
-                    extracted_files = []
-                    for member in tar.getmembers():
-                        if member.isfile() and any(
-                            member.name.endswith(ext)
-                            for ext in [".tex", ".bib", ".bbl"]
-                        ):
-                            tar.extract(member, path=output_path, filter="data")
-                            extracted_files.append(member.name)
-                    return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
-                else:
-                    # Extract all files (src format)
-                    tar.extractall(path=output_path, filter="data")
-                    file_count = len([m for m in tar.getmembers() if m.isfile()])
-                    return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
-    except tarfile.TarError as e:
-        raise ValueError(f"Error extracting tar archive: {e}") from e
+            if format == "tex":
+                # Extract .tex, .bib, .bbl files
+                extracted_files = []
+                for member in tar.getmembers():
+                    if member.isfile() and any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    ):
+                        tar.extract(member, path=output_path, filter="data")
+                        extracted_files.append(member.name)
+                return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
+            else:
+                # Extract all files (src format)
+                tar.extractall(path=output_path, filter="data")
+                file_count = len([m for m in tar.getmembers() if m.isfile()])
+                return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
 
 
 @mcp.tool()
@@ -170,16 +146,9 @@ async def download(arxiv_id: str, format: str = "src", output_path: str = None) 
     if format == "pdf":
         url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
 
-        try:
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-        except asyncio.CancelledError:
-            raise UserCancelledError(
-                "ArXiv PDF download was cancelled by user"
-            ) from None
-        except Exception as e:
-            raise RuntimeError(f"Error fetching ArXiv PDF: {e}") from e
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            response = await client.get(url)
+            response.raise_for_status()
 
         if output_path == "-":
             # Return file info for stdout
@@ -209,21 +178,22 @@ async def list_files(arxiv_id: str) -> list[str]:
     """
     content = await _get_source_archive(arxiv_id)
 
-    if _is_tar_archive(content):
-        # Handle tar archive
+    try:
+        # Try to handle as tar archive first (most common case)
         tar_stream = BytesIO(content)
         filenames = []
-        try:
-            with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-                for member in tar.getmembers():
-                    if member.isfile():
-                        filenames.append(member.name)
-        except tarfile.TarError as e:
-            raise ValueError(f"Error reading tar archive: {e}") from e
+        with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
+            for member in tar.getmembers():
+                if member.isfile():
+                    filenames.append(member.name)
         return filenames
-    else:
-        # Handle single gzipped file
-        return [f"{arxiv_id}.tex"]  # Single tex file
+    except tarfile.TarError:
+        # Not a valid tar, so try to handle as a single gzipped file
+        # This will raise gzip.BadGzipFile if the content is corrupted
+        gzip.decompress(content)
+        return [
+            f"{arxiv_id}.tex"
+        ]  # It's a valid gzipped file, likely a single tex file
 
 
 def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
@@ -250,11 +220,8 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
     # Extract published date
     published_text = find_text("atom:published")
-    try:
-        dt = datetime.fromisoformat(published_text.replace("Z", "+00:00"))
-        published_date = dt.strftime("%Y-%m-%d")
-    except Exception:
-        published_date = published_text
+    dt = datetime.fromisoformat(published_text.replace("Z", "+00:00"))
+    published_date = dt.strftime("%Y-%m-%d")
 
     # Extract categories and links
     categories = [
@@ -323,35 +290,26 @@ async def search(
     param_str = "&".join([f"{k}={v}" for k, v in params.items()])
     url = f"{base_url}?{param_str}"
 
-    try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-    except asyncio.CancelledError:
-        raise UserCancelledError("ArXiv search was cancelled by user") from None
-    except Exception as e:
-        raise RuntimeError(f"Error fetching ArXiv search results: {e}") from e
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        response = await client.get(url)
+        response.raise_for_status()
 
     # Parse XML response
-    try:
-        root = ElementTree.fromstring(response.content)
+    root = ElementTree.fromstring(response.content)
 
-        # Define namespaces
-        ns = {
-            "atom": "http://www.w3.org/2005/Atom",
-            "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
-        }
+    # Define namespaces
+    ns = {
+        "atom": "http://www.w3.org/2005/Atom",
+        "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
+    }
 
-        # Extract search results
-        results = []
-        for entry in root.findall("atom:entry", ns):
-            paper = _parse_arxiv_entry(entry)
-            results.append(paper)
+    # Extract search results
+    results = []
+    for entry in root.findall("atom:entry", ns):
+        paper = _parse_arxiv_entry(entry)
+        results.append(paper)
 
-        return results
-
-    except ElementTree.ParseError as e:
-        raise ValueError(f"Error parsing ArXiv API response: {e}") from e
+    return results
 
 
 @mcp.tool()

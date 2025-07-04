@@ -2,6 +2,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from mcp_handley_lab.common.config import Settings
 from mcp_handley_lab.common.pricing import (
     PricingCalculator,
@@ -97,30 +98,37 @@ class TestPricingCalculator:
         assert cost == 3 * 0.030
 
     def test_model_name_normalization(self):
-        """Test that invalid model names return 0 cost."""
+        """Test that invalid model names now raise errors instead of returning 0."""
         calc = PricingCalculator()
 
-        # Test invalid model names return 0
-        cost = calc.calculate_cost("flash", 1000, 500, "gemini")
-        assert cost == 0.0
+        # Test invalid model names now raise ValueError
+        with pytest.raises(
+            ValueError, match="Model 'flash' not found in pricing config"
+        ):
+            calc.calculate_cost("flash", 1000, 500, "gemini")
 
-        # Test invalid model names return 0
-        cost = calc.calculate_cost("pro", 1000, 500, "gemini")
-        assert cost == 0.0
+        with pytest.raises(ValueError, match="Model 'pro' not found in pricing config"):
+            calc.calculate_cost("pro", 1000, 500, "gemini")
 
         # Test valid model name works
         cost = calc.calculate_cost("gemini-2.5-flash", 1000, 500, "gemini")
         assert cost > 0
 
-    def test_unknown_model_returns_zero(self):
-        """Test unknown model returns zero cost."""
+    def test_unknown_model_raises_error(self):
+        """Test unknown model raises ValueError instead of returning zero."""
         calc = PricingCalculator()
 
-        cost = calc.calculate_cost("unknown-model", 1000, 500, "gemini")
-        assert cost == 0.0
+        with pytest.raises(
+            ValueError,
+            match="Model 'unknown-model' not found in pricing config for provider 'gemini'",
+        ):
+            calc.calculate_cost("unknown-model", 1000, 500, "gemini")
 
-        cost = calc.calculate_cost("unknown-model", 1000, 500, "openai")
-        assert cost == 0.0
+        with pytest.raises(
+            ValueError,
+            match="Model 'unknown-model' not found in pricing config for provider 'openai'",
+        ):
+            calc.calculate_cost("unknown-model", 1000, 500, "openai")
 
     def test_format_cost_precision(self):
         """Test cost formatting with different precision levels."""
@@ -248,16 +256,18 @@ class TestPricingCalculator:
         assert cost == expected
 
     def test_pricing_error_scenarios(self):
-        """Test pricing calculation error scenarios."""
+        """Test pricing calculation error scenarios now raise exceptions."""
         calc = PricingCalculator()
 
-        # Test invalid provider
-        cost = calc.calculate_cost("gemini-2.5-flash", 1000, 500, "invalid_provider")
-        assert cost == 0.0
+        # Test invalid provider (should raise FileNotFoundError)
+        with pytest.raises(FileNotFoundError):
+            calc.calculate_cost("gemini-2.5-flash", 1000, 500, "invalid_provider")
 
-        # Test model not in config
-        cost = calc.calculate_cost("nonexistent-model", 1000, 500, "gemini")
-        assert cost == 0.0
+        # Test model not in config (should raise ValueError)
+        with pytest.raises(
+            ValueError, match="Model 'nonexistent-model' not found in pricing config"
+        ):
+            calc.calculate_cost("nonexistent-model", 1000, 500, "gemini")
 
     def test_global_functions(self):
         """Test global pricing functions for backward compatibility."""

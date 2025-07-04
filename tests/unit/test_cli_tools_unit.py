@@ -49,7 +49,7 @@ class TestJQUnit:
             f.flush()
 
             try:
-                with pytest.raises(ValueError):
+                with pytest.raises(RuntimeError):
                     await edit(file_path=f.name, filter="")
             finally:
                 Path(f.name).unlink(missing_ok=True)
@@ -149,11 +149,11 @@ class TestJQUnit:
                 '{"test": "value"}',
                 "invalid..filter",
                 "jq error: invalid filter",
-                ValueError,
+                RuntimeError,
             ),
-            ("invalid json", ".test", "Invalid JSON", ValueError),
-            ('{"test": "value"}', ".nonexistent | error", "Cannot index", ValueError),
-            ("[]", ".[10]", "Cannot index array with string", ValueError),
+            ("invalid json", ".test", "Invalid JSON", RuntimeError),
+            ('{"test": "value"}', ".nonexistent | error", "Cannot index", RuntimeError),
+            ("[]", ".[10]", "Cannot index array with string", RuntimeError),
         ],
     )
     @pytest.mark.asyncio
@@ -167,7 +167,9 @@ class TestJQUnit:
         mock_process.returncode = 1
         mock_subprocess.return_value = mock_process
 
-        with pytest.raises(expected_exception, match="jq error"):
+        with pytest.raises(
+            expected_exception, match="Command failed with exit code 1:"
+        ):
             await query(data, filter)
 
     @pytest.mark.asyncio
@@ -218,7 +220,7 @@ class TestJQUnit:
         """Test jq command not found error (lines 46-47)."""
         mock_subprocess.side_effect = FileNotFoundError("jq: command not found")
 
-        with pytest.raises(RuntimeError, match="Command not found: jq"):
+        with pytest.raises(FileNotFoundError, match="jq: command not found"):
             await query('{"test": "value"}', ".test")
 
     @pytest.mark.asyncio
@@ -543,7 +545,7 @@ more content"""
 class TestCode2PromptUnit:
     @pytest.mark.asyncio
     async def test_generate_prompt_validation(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(RuntimeError):
             await generate_prompt(path="")
 
     @pytest.mark.asyncio
@@ -599,17 +601,17 @@ class TestCode2PromptUnit:
                     1, "code2prompt", stderr="Command failed"
                 ),
                 "code2prompt error",
-                ValueError,
+                RuntimeError,
             ),
             (
                 subprocess.CalledProcessError(2, "code2prompt", stderr="Invalid path"),
                 "code2prompt error",
-                ValueError,
+                RuntimeError,
             ),
             (
                 FileNotFoundError("code2prompt not found"),
                 "code2prompt command not found",
-                RuntimeError,
+                FileNotFoundError,
             ),
             (
                 PermissionError("Permission denied"),
@@ -727,5 +729,5 @@ class TestCode2PromptUnit:
             "code2prompt: command not found"
         )
 
-        with pytest.raises(RuntimeError, match="Command not found: code2prompt"):
+        with pytest.raises(FileNotFoundError, match="code2prompt: command not found"):
             await server_info()

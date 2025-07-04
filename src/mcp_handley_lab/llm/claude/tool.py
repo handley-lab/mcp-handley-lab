@@ -10,7 +10,6 @@ from ...common.config import settings
 from ...common.memory import memory_manager
 from ..common import (
     determine_mime_type,
-    get_session_id,
     is_text_file,
     resolve_image_data,
 )
@@ -19,19 +18,12 @@ from ..model_loader import (
     format_model_listing,
     load_model_config,
 )
-from ..shared import create_client_decorator, process_llm_request
+from ..shared import process_llm_request
 
 mcp = FastMCP("Claude Tool")
 
-# Configure Claude client
-client = None
-initialization_error = None
-
-try:
-    client = AsyncAnthropic(api_key=settings.anthropic_api_key)
-except Exception as e:
-    client = None
-    initialization_error = str(e)
+# Configure Claude client - fail fast if API key is invalid/missing
+client = AsyncAnthropic(api_key=settings.anthropic_api_key)
 
 # Load model configurations from YAML
 MODEL_CONFIGS = build_model_configs_dict("claude")
@@ -41,18 +33,11 @@ _config = load_model_config("claude")
 DEFAULT_MODEL = _config["default_model"]
 
 
-def _get_error_message():
-    return f"Claude client not initialized: {initialization_error or 'API key not configured'}"
-
-
-require_client = create_client_decorator(
-    lambda: client is not None, _get_error_message()
-)
-
-
-def _get_session_id() -> str:
-    """Get the persistent session ID for this MCP server process."""
-    return get_session_id(mcp)
+# Client initialization decorator is no longer needed with fail-fast approach
+# If we reach this point, the client is guaranteed to be initialized
+def require_client(func):
+    """Identity decorator - no longer needed with fail-fast approach."""
+    return func
 
 
 def _resolve_model_alias(model: str) -> str:
@@ -134,33 +119,25 @@ async def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
             elif "path" in file_item:
                 # File path - read content
                 file_path = Path(file_item["path"])
-                try:
-                    if not file_path.exists():
-                        file_contents.append(f"Error: File not found: {file_path}")
-                        continue
+                if not file_path.exists():
+                    raise FileNotFoundError(f"File not found: {file_path}")
 
-                    file_size = file_path.stat().st_size
+                file_size = file_path.stat().st_size
 
-                    # Claude can handle large files, but let's be reasonable (20MB limit)
-                    if file_size > 20 * 1024 * 1024:
-                        file_contents.append(
-                            f"Error: File too large: {file_path} ({file_size} bytes)"
-                        )
-                        continue
+                # Claude can handle large files, but let's be reasonable (20MB limit)
+                if file_size > 20 * 1024 * 1024:
+                    raise ValueError(f"File too large: {file_path} ({file_size} bytes)")
 
-                    if is_text_file(file_path):
-                        # Text file - read directly
-                        content = file_path.read_text(encoding="utf-8")
-                        file_contents.append(f"[File: {file_path.name}]\n{content}")
-                    else:
-                        # Binary file - describe only (Claude doesn't need base64 for non-image files)
-                        mime_type = determine_mime_type(file_path)
-                        file_contents.append(
-                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
-                        )
-
-                except Exception as e:
-                    file_contents.append(f"Error reading file {file_path}: {e}")
+                if is_text_file(file_path):
+                    # Text file - read directly
+                    content = file_path.read_text(encoding="utf-8")
+                    file_contents.append(f"[File: {file_path.name}]\n{content}")
+                else:
+                    # Binary file - describe only (Claude doesn't need base64 for non-image files)
+                    mime_type = determine_mime_type(file_path)
+                    file_contents.append(
+                        f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
+                    )
 
     return "\n\n".join(file_contents)
 
@@ -174,17 +151,49 @@ def _resolve_images_to_content_blocks(
 
     # Handle single image_data parameter
     if image_data:
-        try:
-            image_bytes = resolve_image_data(image_data)
+        image_bytes = resolve_image_data(image_data)
+        # Determine media type
+        if isinstance(image_data, str) and image_data.startswith("data:image"):
+            media_type = image_data.split(";")[0].split(":")[1]
+        else:
+            # File path - use determine_mime_type for consistent MIME detection
+            media_type = determine_mime_type(Path(str(image_data)))
+            # Default to JPEG for non-image types
+            if not media_type.startswith("image/"):
+                media_type = "image/jpeg"
+
+        encoded_data = base64.b64encode(image_bytes).decode("utf-8")
+        image_blocks.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": encoded_data,
+                },
+            }
+        )
+
+    # Handle images array
+    if images:
+        for image_item in images:
+            image_bytes = resolve_image_data(image_item)
+
             # Determine media type
-            if isinstance(image_data, str) and image_data.startswith("data:image"):
-                media_type = image_data.split(";")[0].split(":")[1]
-            else:
-                # File path - use determine_mime_type for consistent MIME detection
-                media_type = determine_mime_type(Path(str(image_data)))
-                # Default to JPEG for non-image types
+            if isinstance(image_item, str):
+                if image_item.startswith("data:image"):
+                    media_type = image_item.split(";")[0].split(":")[1]
+                else:
+                    # File path - use determine_mime_type for consistency
+                    media_type = determine_mime_type(Path(image_item))
+                    if not media_type.startswith("image/"):
+                        media_type = "image/jpeg"
+            elif isinstance(image_item, dict) and "path" in image_item:
+                media_type = determine_mime_type(Path(image_item["path"]))
                 if not media_type.startswith("image/"):
                     media_type = "image/jpeg"
+            else:
+                media_type = "image/jpeg"
 
             encoded_data = base64.b64encode(image_bytes).decode("utf-8")
             image_blocks.append(
@@ -197,47 +206,6 @@ def _resolve_images_to_content_blocks(
                     },
                 }
             )
-        except Exception as e:
-            # Add text block with error
-            image_blocks.append({"type": "text", "text": f"Error loading image: {e}"})
-
-    # Handle images array
-    if images:
-        for image_item in images:
-            try:
-                image_bytes = resolve_image_data(image_item)
-
-                # Determine media type
-                if isinstance(image_item, str):
-                    if image_item.startswith("data:image"):
-                        media_type = image_item.split(";")[0].split(":")[1]
-                    else:
-                        # File path - use determine_mime_type for consistency
-                        media_type = determine_mime_type(Path(image_item))
-                        if not media_type.startswith("image/"):
-                            media_type = "image/jpeg"
-                elif isinstance(image_item, dict) and "path" in image_item:
-                    media_type = determine_mime_type(Path(image_item["path"]))
-                    if not media_type.startswith("image/"):
-                        media_type = "image/jpeg"
-                else:
-                    media_type = "image/jpeg"
-
-                encoded_data = base64.b64encode(image_bytes).decode("utf-8")
-                image_blocks.append(
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": encoded_data,
-                        },
-                    }
-                )
-            except Exception as e:
-                image_blocks.append(
-                    {"type": "text", "text": f"Error loading image: {e}"}
-                )
 
     return image_blocks
 
@@ -448,11 +416,13 @@ async def ask(
     max_output_tokens: int | None = None,
 ) -> str:
     """Ask Claude a question with optional persistent memory."""
+    # Resolve model alias to full model name for consistent pricing
+    resolved_model = _resolve_model_alias(model)
     return await process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
-        model=model,
+        model=resolved_model,
         provider="claude",
         generation_func=_claude_generation_adapter,
         mcp_instance=mcp,
@@ -597,12 +567,8 @@ list_models()
 )
 async def list_models() -> str:
     """List available Claude models with detailed information."""
-    try:
-        # Use YAML-based model listing
-        return format_model_listing("claude")
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to list Claude models: {e}") from e
+    # Use YAML-based model listing
+    return format_model_listing("claude")
 
 
 @mcp.tool(
@@ -626,20 +592,19 @@ server_info()
 @require_client
 async def server_info() -> str:
     """Get server status and Claude configuration."""
-    try:
-        # Test API by making a simple request
-        await client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            messages=[{"role": "user", "content": "Hello"}],
-            max_tokens=10,
-        )
+    # Test API by making a simple request
+    await client.messages.create(
+        model="claude-3-5-haiku-20241022",
+        messages=[{"role": "user", "content": "Hello"}],
+        max_tokens=10,
+    )
 
-        # Get agent count
-        agent_count = len(memory_manager.list_agents())
+    # Get agent count
+    agent_count = len(memory_manager.list_agents())
 
-        available_models = list(MODEL_CONFIGS.keys())
+    available_models = list(MODEL_CONFIGS.keys())
 
-        return f"""Claude Tool Server Status
+    return f"""Claude Tool Server Status
 ==========================
 Status: Connected and ready
 API Key: Configured ✓
@@ -661,6 +626,3 @@ Available tools:
 - server_info: Get server status
 
 Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
-
-    except Exception as e:
-        raise RuntimeError(f"Claude API configuration error: {e}") from e

@@ -48,26 +48,14 @@ def main():
 
     tool_name = sys.argv[1]
 
-    # Try to import and run the tool
-    try:
-        module_path = f"mcp_handley_lab.{tool_name}.tool"
-        tool_module = importlib.import_module(module_path)
+    module_path = f"mcp_handley_lab.{tool_name}.tool"
+    tool_module = importlib.import_module(module_path)
 
-        # Run the tool's main function
-        if hasattr(tool_module, "mcp"):
-            tool_module.mcp.run()
-        else:
-            print(f"Error: Tool '{tool_name}' does not have an MCP server instance.")
-            sys.exit(1)
-
-    except ModuleNotFoundError:
-        available_tools = get_available_tools()
-        print(f"Error: Tool '{tool_name}' not found.")
-        print(f"Available tools: {', '.join(available_tools)}")
-        print("Use 'python -m mcp_handley_lab --help' for more information.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error running tool '{tool_name}': {e}")
+    # Run the tool's main function
+    if hasattr(tool_module, "mcp"):
+        tool_module.mcp.run()
+    else:
+        print(f"Error: Tool '{tool_name}' does not have an MCP server instance.")
         sys.exit(1)
 
 

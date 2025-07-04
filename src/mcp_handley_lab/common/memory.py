@@ -64,15 +64,15 @@ class AgentMemory(BaseModel):
             "personality": self.personality,
         }
 
-    def get_response(self, index: int = -1) -> str | None:
-        """Get a message content by index. Default -1 gets the last message."""
+    def get_response(self, index: int = -1) -> str:
+        """Get a message content by index. Raises IndexError if not found."""
         if not self.messages:
-            return None
+            raise IndexError("Cannot get response: agent has no message history")
 
         try:
             return self.messages[index].content
-        except IndexError:
-            return None
+        except IndexError as e:
+            raise IndexError(f"Message at index {index} not found") from e
 
 
 class MemoryManager:
@@ -198,7 +198,7 @@ class MemoryManager:
         self._agents[agent.name] = agent
         self._save_agent(agent)
 
-    def get_response(self, agent_name: str, index: int = -1) -> str | None:
+    def get_response(self, agent_name: str, index: int = -1) -> str:
         """Get a message content from an agent by index. Default -1 gets the last message."""
         agent = self.get_agent(agent_name)
         if not agent:

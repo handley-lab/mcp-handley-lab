@@ -67,8 +67,14 @@ def main():
         print(f"Available tools: {', '.join(available_tools)}")
         print("Use 'python -m mcp_handley_lab --help' for more information.")
         sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nTool execution cancelled by user.")
+        sys.exit(130)  # Standard exit code for Ctrl+C
     except Exception:
-        print(f"Error running tool '{tool_name}':", file=sys.stderr)
+        print(
+            f"An unexpected error occurred while running tool '{tool_name}':",
+            file=sys.stderr,
+        )
         traceback.print_exc()
         sys.exit(1)
 

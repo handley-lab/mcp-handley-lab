@@ -115,9 +115,8 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
         else:
             # Naive datetime - assume UTC
             return dt_str + "Z"
-    except ValueError:
-        # Fallback for malformed dates
-        return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    except ValueError as e:
+        raise ValueError(f"Invalid datetime format: {dt_str}") from e
 
 
 def _format_datetime(dt_str: str) -> str:
@@ -322,62 +321,54 @@ async def create_event(
     attendees: list[str] | None = None,
 ) -> str:
     """Create a new calendar event."""
-    try:
-        service = await _get_calendar_service()
-        resolved_id = await _resolve_calendar_id(calendar_id, service)
+    service = await _get_calendar_service()
+    resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-        # Build event object
-        event_body = {
-            "summary": summary,
-            "description": description or "",
-            "start": {},
-            "end": {},
-        }
+    # Build event object
+    event_body = {
+        "summary": summary,
+        "description": description or "",
+        "start": {},
+        "end": {},
+    }
 
-        # Handle all-day vs timed events
-        if "T" in start_datetime:
-            # Timed event
-            event_body["start"]["dateTime"] = start_datetime
-            event_body["start"]["timeZone"] = timezone
-            event_body["end"]["dateTime"] = end_datetime
-            event_body["end"]["timeZone"] = timezone
-        else:
-            # All-day event
-            event_body["start"]["date"] = start_datetime
-            event_body["end"]["date"] = end_datetime
+    # Handle all-day vs timed events
+    if "T" in start_datetime:
+        # Timed event
+        event_body["start"]["dateTime"] = start_datetime
+        event_body["start"]["timeZone"] = timezone
+        event_body["end"]["dateTime"] = end_datetime
+        event_body["end"]["timeZone"] = timezone
+    else:
+        # All-day event
+        event_body["start"]["date"] = start_datetime
+        event_body["end"]["date"] = end_datetime
 
-        # Add attendees if provided
-        if attendees:
-            event_body["attendees"] = [{"email": email} for email in attendees]
+    # Add attendees if provided
+    if attendees:
+        event_body["attendees"] = [{"email": email} for email in attendees]
 
-        # Create the event
-        def _sync_create_event():
-            return (
-                service.events()
-                .insert(calendarId=resolved_id, body=event_body)
-                .execute()
-            )
-
-        loop = asyncio.get_running_loop()
-        created_event = await loop.run_in_executor(None, _sync_create_event)
-
-        start = created_event["start"].get(
-            "dateTime", created_event["start"].get("date")
+    # Create the event
+    def _sync_create_event():
+        return (
+            service.events().insert(calendarId=resolved_id, body=event_body).execute()
         )
 
-        result = "Event created successfully!\n"
-        result += f"Title: {created_event['summary']}\n"
-        result += f"Time: {_format_datetime(start)}\n"
-        result += f"Event ID: {created_event['id']}\n"
-        result += f"Calendar: {calendar_id}\n"
+    loop = asyncio.get_running_loop()
+    created_event = await loop.run_in_executor(None, _sync_create_event)
 
-        if attendees:
-            result += f"Attendees: {', '.join(attendees)}\n"
+    start = created_event["start"].get("dateTime", created_event["start"].get("date"))
 
-        return result
+    result = "Event created successfully!\n"
+    result += f"Title: {created_event['summary']}\n"
+    result += f"Time: {_format_datetime(start)}\n"
+    result += f"Event ID: {created_event['id']}\n"
+    result += f"Calendar: {calendar_id}\n"
 
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}") from e
+    if attendees:
+        result += f"Attendees: {', '.join(attendees)}\n"
+
+    return result
 
 
 @mcp.tool(
@@ -505,36 +496,32 @@ async def delete_event(event_id: str, calendar_id: str = "primary") -> str:
 )
 async def list_calendars() -> str:
     """List all accessible calendars."""
-    try:
-        service = await _get_calendar_service()
+    service = await _get_calendar_service()
 
-        def _sync_list_calendars():
-            return service.calendarList().list().execute()
+    def _sync_list_calendars():
+        return service.calendarList().list().execute()
 
-        loop = asyncio.get_running_loop()
-        calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
-        calendars = calendar_list.get("items", [])
+    loop = asyncio.get_running_loop()
+    calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
+    calendars = calendar_list.get("items", [])
 
-        if not calendars:
-            return "No calendars found."
+    if not calendars:
+        return "No calendars found."
 
-        result = f"Found {len(calendars)} accessible calendars:\n\n"
+    result = f"Found {len(calendars)} accessible calendars:\n\n"
 
-        for calendar in calendars:
-            name = calendar.get("summary", "Unknown")
-            cal_id = calendar["id"]
-            access_role = calendar.get("accessRole", "unknown")
-            color_id = calendar.get("colorId", "default")
+    for calendar in calendars:
+        name = calendar.get("summary", "Unknown")
+        cal_id = calendar["id"]
+        access_role = calendar.get("accessRole", "unknown")
+        color_id = calendar.get("colorId", "default")
 
-            result += f"• {name}\n"
-            result += f"  ID: {cal_id}\n"
-            result += f"  Access: {access_role}\n"
-            result += f"  Color: {color_id}\n\n"
+        result += f"• {name}\n"
+        result += f"  ID: {cal_id}\n"
+        result += f"  Access: {access_role}\n"
+        result += f"  Color: {color_id}\n\n"
 
-        return result.strip()
-
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}") from e
+    return result.strip()
 
 
 @mcp.tool(
@@ -580,98 +567,90 @@ async def find_time(
     work_hours_only: bool = True,
 ) -> str:
     """Find free time slots in a calendar."""
-    try:
-        service = await _get_calendar_service()
-        resolved_id = await _resolve_calendar_id(calendar_id, service)
+    service = await _get_calendar_service()
+    resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-        # Set default date range
-        if not start_date:
-            start_dt = datetime.now()
-        else:
-            start_dt = datetime.fromisoformat(start_date)
+    # Set default date range
+    if not start_date:
+        start_dt = datetime.now()
+    else:
+        start_dt = datetime.fromisoformat(start_date)
 
-        if not end_date:
-            end_dt = start_dt + timedelta(days=7)
-        else:
-            end_dt = datetime.fromisoformat(end_date)
+    if not end_date:
+        end_dt = start_dt + timedelta(days=7)
+    else:
+        end_dt = datetime.fromisoformat(end_date)
 
-        # Get busy times with proper timezone handling
-        freebusy_request = {
-            "timeMin": _parse_datetime_to_utc(start_dt.isoformat()),
-            "timeMax": _parse_datetime_to_utc(end_dt.isoformat()),
-            "items": [{"id": resolved_id}],
-        }
+    # Get busy times with proper timezone handling
+    freebusy_request = {
+        "timeMin": _parse_datetime_to_utc(start_dt.isoformat()),
+        "timeMax": _parse_datetime_to_utc(end_dt.isoformat()),
+        "items": [{"id": resolved_id}],
+    }
 
-        def _sync_freebusy_query():
-            return service.freebusy().query(body=freebusy_request).execute()
+    def _sync_freebusy_query():
+        return service.freebusy().query(body=freebusy_request).execute()
 
-        loop = asyncio.get_running_loop()
-        freebusy_result = await loop.run_in_executor(None, _sync_freebusy_query)
-        busy_times = freebusy_result["calendars"][resolved_id].get("busy", [])
+    loop = asyncio.get_running_loop()
+    freebusy_result = await loop.run_in_executor(None, _sync_freebusy_query)
+    busy_times = freebusy_result["calendars"][resolved_id].get("busy", [])
 
-        # Generate time slots with proper timezone handling
-        slots = []
-        # Convert to UTC for consistent comparison
-        if start_dt.tzinfo:
-            current = start_dt.astimezone(timezone.utc).replace(tzinfo=None)
-        else:
-            current = start_dt
+    # Generate time slots with proper timezone handling
+    slots = []
+    # Convert to UTC for consistent comparison
+    if start_dt.tzinfo:
+        current = start_dt.astimezone(timezone.utc).replace(tzinfo=None)
+    else:
+        current = start_dt
 
-        if end_dt.tzinfo:
-            end_dt_utc = end_dt.astimezone(timezone.utc).replace(tzinfo=None)
-        else:
-            end_dt_utc = end_dt
+    if end_dt.tzinfo:
+        end_dt_utc = end_dt.astimezone(timezone.utc).replace(tzinfo=None)
+    else:
+        end_dt_utc = end_dt
 
-        slot_duration = timedelta(minutes=duration_minutes)
+    slot_duration = timedelta(minutes=duration_minutes)
 
-        while current + slot_duration <= end_dt_utc:
-            if work_hours_only and (current.hour < 9 or current.hour >= 17):
-                current += timedelta(hours=1)
-                continue
+    while current + slot_duration <= end_dt_utc:
+        if work_hours_only and (current.hour < 9 or current.hour >= 17):
+            current += timedelta(hours=1)
+            continue
 
-            slot_end = current + slot_duration
+        slot_end = current + slot_duration
 
-            # Check if slot conflicts with busy times
-            is_free = True
-            for busy in busy_times:
-                # Parse busy times properly
-                busy_start = datetime.fromisoformat(
-                    busy["start"].replace("Z", "+00:00")
-                )
-                busy_end = datetime.fromisoformat(busy["end"].replace("Z", "+00:00"))
+        # Check if slot conflicts with busy times
+        is_free = True
+        for busy in busy_times:
+            # Parse busy times properly
+            busy_start = datetime.fromisoformat(busy["start"].replace("Z", "+00:00"))
+            busy_end = datetime.fromisoformat(busy["end"].replace("Z", "+00:00"))
 
-                # Convert to UTC naive for comparison
-                if busy_start.tzinfo:
-                    busy_start = busy_start.astimezone(timezone.utc).replace(
-                        tzinfo=None
-                    )
-                if busy_end.tzinfo:
-                    busy_end = busy_end.astimezone(timezone.utc).replace(tzinfo=None)
+            # Convert to UTC naive for comparison
+            if busy_start.tzinfo:
+                busy_start = busy_start.astimezone(timezone.utc).replace(tzinfo=None)
+            if busy_end.tzinfo:
+                busy_end = busy_end.astimezone(timezone.utc).replace(tzinfo=None)
 
-                if current < busy_end and slot_end > busy_start:
-                    is_free = False
-                    break
+            if current < busy_end and slot_end > busy_start:
+                is_free = False
+                break
 
-            if is_free:
-                slots.append((current, slot_end))
+        if is_free:
+            slots.append((current, slot_end))
 
-            current += timedelta(minutes=30)  # Check every 30 minutes
+        current += timedelta(minutes=30)  # Check every 30 minutes
 
-        if not slots:
-            return f"No free {duration_minutes}-minute slots found in the specified time range."
+    if not slots:
+        return f"No free {duration_minutes}-minute slots found in the specified time range."
 
-        result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
+    result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
 
-        for start_time, end_time in slots[:20]:  # Limit to first 20 slots
-            result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
+    for start_time, end_time in slots[:20]:  # Limit to first 20 slots
+        result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
 
-        if len(slots) > 20:
-            result += f"\n... and {len(slots) - 20} more slots"
+    if len(slots) > 20:
+        result += f"\n... and {len(slots) - 20} more slots"
 
-        return result
-
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}") from e
+    return result
 
 
 @mcp.tool(
@@ -763,168 +742,160 @@ async def search_events(
     match_all_terms: bool = True,
 ) -> str:
     """Advanced hybrid search for calendar events."""
-    try:
-        # Step 1: Server-side filtering using Google API 'q' parameter
-        # This reduces data transfer and improves initial search performance
-        service = await _get_calendar_service()
+    # Step 1: Server-side filtering using Google API 'q' parameter
+    # This reduces data transfer and improves initial search performance
+    service = await _get_calendar_service()
 
-        # Set default date range if not provided with proper timezone handling
-        if not start_date:
-            start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
+    # Set default date range if not provided with proper timezone handling
+    if not start_date:
+        start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
+    else:
+        start_date = _parse_datetime_to_utc(start_date)
+
+    if not end_date:
+        # Default to 7 days for basic listing, 1 year for search
+        days = 7 if not search_text else 365
+        end_dt = datetime.now(timezone.utc) + timedelta(days=days)
+        end_date = end_dt.isoformat().replace("+00:00", "Z")
+    else:
+        # Handle end date - for date-only format, use end of day
+        if "T" not in end_date:
+            end_date = end_date + "T23:59:59Z"
         else:
-            start_date = _parse_datetime_to_utc(start_date)
+            end_date = _parse_datetime_to_utc(end_date)
 
-        if not end_date:
-            # Default to 7 days for basic listing, 1 year for search
-            days = 7 if not search_text else 365
-            end_dt = datetime.now(timezone.utc) + timedelta(days=days)
-            end_date = end_dt.isoformat().replace("+00:00", "Z")
-        else:
-            # Handle end date - for date-only format, use end of day
-            if "T" not in end_date:
-                end_date = end_date + "T23:59:59Z"
-            else:
-                end_date = _parse_datetime_to_utc(end_date)
+    events_list = []
+    warnings = []
 
-        events_list = []
-        warnings = []
+    if calendar_id == "all":
+        # Search all calendars
+        def _sync_list_calendars():
+            return service.calendarList().list().execute()
 
-        if calendar_id == "all":
-            # Search all calendars
-            def _sync_list_calendars():
-                return service.calendarList().list().execute()
+        loop = asyncio.get_running_loop()
+        calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
 
-            loop = asyncio.get_running_loop()
-            calendar_list = await loop.run_in_executor(None, _sync_list_calendars)
+        for calendar in calendar_list.get("items", []):
+            cal_id = calendar["id"]
+            try:
 
-            for calendar in calendar_list.get("items", []):
-                cal_id = calendar["id"]
-                try:
+                def _sync_search_events(calendar_id=cal_id):
+                    params = {
+                        "calendarId": calendar_id,
+                        "timeMin": start_date,
+                        "timeMax": end_date,
+                        "maxResults": max_results,
+                        "singleEvents": True,
+                        "orderBy": "startTime",
+                    }
+                    if search_text:
+                        params["q"] = search_text
+                    return service.events().list(**params).execute()
 
-                    def _sync_search_events(calendar_id=cal_id):
-                        params = {
-                            "calendarId": calendar_id,
-                            "timeMin": start_date,
-                            "timeMax": end_date,
-                            "maxResults": max_results,
-                            "singleEvents": True,
-                            "orderBy": "startTime",
-                        }
-                        if search_text:
-                            params["q"] = search_text
-                        return service.events().list(**params).execute()
+                events_result = await loop.run_in_executor(None, _sync_search_events)
 
-                    events_result = await loop.run_in_executor(
-                        None, _sync_search_events
-                    )
+                cal_events = events_result.get("items", [])
+                for event in cal_events:
+                    event["calendar_name"] = calendar.get("summary", cal_id)
+                events_list.extend(cal_events)
+            except HttpError as e:
+                calendar_name = calendar.get("summary", cal_id)
+                warnings.append(f"Could not access calendar '{calendar_name}': {e}")
+    else:
+        # Search specific calendar
+        resolved_id = await _resolve_calendar_id(calendar_id, service)
 
-                    cal_events = events_result.get("items", [])
-                    for event in cal_events:
-                        event["calendar_name"] = calendar.get("summary", cal_id)
-                    events_list.extend(cal_events)
-                except HttpError as e:
-                    calendar_name = calendar.get("summary", cal_id)
-                    warnings.append(f"Could not access calendar '{calendar_name}': {e}")
-        else:
-            # Search specific calendar
-            resolved_id = await _resolve_calendar_id(calendar_id, service)
-
-            def _sync_search_events():
-                params = {
-                    "calendarId": resolved_id,
-                    "timeMin": start_date,
-                    "timeMax": end_date,
-                    "maxResults": max_results,
-                    "singleEvents": True,
-                    "orderBy": "startTime",
-                }
-                if search_text:
-                    params["q"] = search_text
-                return service.events().list(**params).execute()
-
-            loop = asyncio.get_running_loop()
-            events_result = await loop.run_in_executor(None, _sync_search_events)
-            events_list = events_result.get("items", [])
-
-        # Step 2: Apply client-side filtering if advanced options are specified
-        # This provides granular control not available in the Google API
-        if search_fields or case_sensitive or not match_all_terms:
-            filtered_events = _client_side_filter(
-                events_list,
-                search_text=search_text,
-                search_fields=search_fields,
-                case_sensitive=case_sensitive,
-                match_all_terms=match_all_terms,
-            )
-        else:
-            filtered_events = events_list
-
-        if not filtered_events:
+        def _sync_search_events():
+            params = {
+                "calendarId": resolved_id,
+                "timeMin": start_date,
+                "timeMax": end_date,
+                "maxResults": max_results,
+                "singleEvents": True,
+                "orderBy": "startTime",
+            }
             if search_text:
-                return f"No events found matching '{search_text}' in the specified criteria."
-            else:
-                return "No events found in the specified date range."
+                params["q"] = search_text
+            return service.events().list(**params).execute()
 
-        # Sort by start time
-        filtered_events.sort(
-            key=lambda x: x.get("start", {}).get(
-                "dateTime", x.get("start", {}).get("date", "")
+        loop = asyncio.get_running_loop()
+        events_result = await loop.run_in_executor(None, _sync_search_events)
+        events_list = events_result.get("items", [])
+
+    # Step 2: Apply client-side filtering if advanced options are specified
+    # This provides granular control not available in the Google API
+    if search_fields or case_sensitive or not match_all_terms:
+        filtered_events = _client_side_filter(
+            events_list,
+            search_text=search_text,
+            search_fields=search_fields,
+            case_sensitive=case_sensitive,
+            match_all_terms=match_all_terms,
+        )
+    else:
+        filtered_events = events_list
+
+    if not filtered_events:
+        if search_text:
+            return (
+                f"No events found matching '{search_text}' in the specified criteria."
             )
+        else:
+            return "No events found in the specified date range."
+
+    # Sort by start time
+    filtered_events.sort(
+        key=lambda x: x.get("start", {}).get(
+            "dateTime", x.get("start", {}).get("date", "")
+        )
+    )
+
+    if search_text:
+        result = f"Found {len(filtered_events)} events matching '{search_text}':\n\n"
+    else:
+        result = f"Found {len(filtered_events)} events:\n\n"
+
+    for event in filtered_events:
+        start = event["start"].get("dateTime", event["start"].get("date"))
+        title = event.get("summary", "No Title")
+        event_id = event["id"]
+
+        result += f"• {title}\n"
+        result += f"  Time: {_format_datetime(start)}\n"
+        result += f"  ID: {event_id}\n"
+
+        if "calendar_name" in event:
+            result += f"  Calendar: {event['calendar_name']}\n"
+
+        if event.get("location"):
+            result += f"  Location: {event['location']}\n"
+
+        if event.get("description"):
+            # Show first 100 characters of description
+            desc = event["description"]
+            if len(desc) > 100:
+                desc = desc[:97] + "..."
+            result += f"  Description: {desc}\n"
+
+        result += "\n"
+
+    # Add warnings if any calendars were inaccessible
+    if warnings:
+        result += (
+            "\n⚠️ Warnings:\n" + "\n".join(f"- {warning}" for warning in warnings) + "\n"
         )
 
-        if search_text:
-            result = (
-                f"Found {len(filtered_events)} events matching '{search_text}':\n\n"
-            )
-        else:
-            result = f"Found {len(filtered_events)} events:\n\n"
+    # Add search summary only for advanced searches
+    if search_text and (search_fields or case_sensitive or not match_all_terms):
+        search_summary = "\nSearch Details:\n"
+        search_summary += f"- Search text: '{search_text}'\n"
+        search_summary += f"- Fields searched: {search_fields or ['summary', 'description', 'location']}\n"
+        search_summary += f"- Match logic: {'All terms must match (AND)' if match_all_terms else 'Any term can match (OR)'}\n"
+        search_summary += f"- Case sensitive: {case_sensitive}\n"
+        search_summary += f"- Date range: {start_date} to {end_date}\n"
+        return result.strip() + search_summary
 
-        for event in filtered_events:
-            start = event["start"].get("dateTime", event["start"].get("date"))
-            title = event.get("summary", "No Title")
-            event_id = event["id"]
-
-            result += f"• {title}\n"
-            result += f"  Time: {_format_datetime(start)}\n"
-            result += f"  ID: {event_id}\n"
-
-            if "calendar_name" in event:
-                result += f"  Calendar: {event['calendar_name']}\n"
-
-            if event.get("location"):
-                result += f"  Location: {event['location']}\n"
-
-            if event.get("description"):
-                # Show first 100 characters of description
-                desc = event["description"]
-                if len(desc) > 100:
-                    desc = desc[:97] + "..."
-                result += f"  Description: {desc}\n"
-
-            result += "\n"
-
-        # Add warnings if any calendars were inaccessible
-        if warnings:
-            result += (
-                "\n⚠️ Warnings:\n"
-                + "\n".join(f"- {warning}" for warning in warnings)
-                + "\n"
-            )
-
-        # Add search summary only for advanced searches
-        if search_text and (search_fields or case_sensitive or not match_all_terms):
-            search_summary = "\nSearch Details:\n"
-            search_summary += f"- Search text: '{search_text}'\n"
-            search_summary += f"- Fields searched: {search_fields or ['summary', 'description', 'location']}\n"
-            search_summary += f"- Match logic: {'All terms must match (AND)' if match_all_terms else 'Any term can match (OR)'}\n"
-            search_summary += f"- Case sensitive: {case_sensitive}\n"
-            search_summary += f"- Date range: {start_date} to {end_date}\n"
-            return result.strip() + search_summary
-
-        return result.strip()
-
-    except HttpError as e:
-        raise RuntimeError(f"Google Calendar API error: {e}") from e
+    return result.strip()
 
 
 @mcp.tool(
@@ -978,9 +949,5 @@ Available tools:
             f"Google Calendar configuration error: {e}. "
             "Please ensure Google Calendar credentials are properly configured."
         ) from e
-
-    except Exception as e:
-        raise RuntimeError(
-            f"Google Calendar connection error: {e}. "
-            "Please check your internet connection and Google Calendar API credentials."
-        ) from e
+    except HttpError as e:
+        raise RuntimeError(f"Google Calendar API error: {e}") from e

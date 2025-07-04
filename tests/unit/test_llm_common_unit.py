@@ -157,9 +157,10 @@ class TestResolveFileContent:
         """Test resolving dict with non-existent file path."""
         mock_exists.return_value = False
 
-        content, path = resolve_file_content({"path": "/tmp/nonexistent.txt"})
-        assert "Error: File not found" in content
-        assert path is None
+        with pytest.raises(
+            FileNotFoundError, match="File not found: /tmp/nonexistent.txt"
+        ):
+            resolve_file_content({"path": "/tmp/nonexistent.txt"})
 
     def test_resolve_file_content_invalid_input(self):
         """Test resolving invalid input types."""
@@ -192,16 +193,13 @@ class TestReadFileSmart:
     def test_read_file_smart_text_file_unicode_error(
         self, mock_read_bytes, mock_read_text, mock_stat
     ):
-        """Test reading text file that has Unicode decode error."""
+        """Test reading text file that has Unicode decode error - should raise exception."""
         mock_stat.return_value.st_size = 100
         mock_read_text.side_effect = UnicodeDecodeError("utf-8", b"", 0, 1, "invalid")
         mock_read_bytes.return_value = b"\x00\x01\x02"
 
-        content, is_text = read_file_smart(Path("test.txt"))
-        assert "[Binary file:" in content
-        assert "test.txt" in content
-        assert "100 bytes" in content
-        assert is_text is False
+        with pytest.raises(UnicodeDecodeError):
+            read_file_smart(Path("test.txt"))
 
     @patch("pathlib.Path.stat")
     @patch("pathlib.Path.read_bytes")

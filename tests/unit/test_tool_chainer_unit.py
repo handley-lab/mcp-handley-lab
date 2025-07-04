@@ -283,7 +283,6 @@ class TestConditionEvaluation:
             ("invalid condition syntax", {}, {}),
             ("result ==", {}, {}),
             ("== value", {}, {}),
-            ("{missing_var} == 'test'", {}, {}),
             ("eval('malicious_code')", {}, {}),
         ],
     )
@@ -292,8 +291,15 @@ class TestConditionEvaluation:
         self, condition, variables, step_outputs
     ):
         """Test condition evaluation with error cases."""
-        # Should return False for invalid conditions
-        result = _evaluate_condition(condition, variables, step_outputs)
+        # Should raise ValueError for invalid conditions (fail-fast behavior)
+        with pytest.raises(ValueError, match="Invalid condition expression"):
+            _evaluate_condition(condition, variables, step_outputs)
+
+    @pytest.mark.asyncio
+    async def test_evaluate_condition_missing_variable(self):
+        """Test condition evaluation with missing variable."""
+        # Missing variables should result in False (the variable substitution leaves {missing_var} unchanged)
+        result = _evaluate_condition("{missing_var} == 'test'", {}, {})
         assert not result
 
 

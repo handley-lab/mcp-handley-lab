@@ -58,3 +58,4 @@ pkg/
 .test_mail/
 tests/fixtures/email/.mcp_handley_lab/
 tests/fixtures/email/__pycache__/
+tmp-*

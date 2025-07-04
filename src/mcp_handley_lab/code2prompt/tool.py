@@ -158,10 +158,9 @@ async def generate_prompt(
 )
 async def server_info() -> str:
     """Get server status and code2prompt version."""
-    try:
-        version = await _run_code2prompt(["--version"])
+    version = await _run_code2prompt(["--version"])
 
-        return f"""Code2Prompt Tool Server Status
+    return f"""Code2Prompt Tool Server Status
 ==============================
 Status: Connected and ready
 Code2Prompt Version: {version}
@@ -169,5 +168,3 @@ Code2Prompt Version: {version}
 Available tools:
 - generate_prompt: Create structured prompts from codebases (includes git diff options)
 - server_info: Get server status"""
-    except RuntimeError as e:
-        raise e

@@ -123,10 +123,7 @@ get_response("code_mentor", index=2)
 )
 async def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
-    response = memory_manager.get_response(agent_name, index)
-    if response is None:
-        raise ValueError(f"No message found at index {index}")
-    return response
+    return memory_manager.get_response(agent_name, index)
 
 
 @mcp.tool(description="Checks the status of the Agent Tool server.")

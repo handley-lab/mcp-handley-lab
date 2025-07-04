@@ -140,16 +140,26 @@ class TestAgentMemory:
         agent = AgentMemory(name="test", created_at=datetime.now())
         agent.add_message("user", "Hello")
 
-        # Out of range index
-        assert agent.get_response(10) is None
-        assert agent.get_response(-10) is None
+        # Out of range index should raise IndexError for fail-fast behavior
+        with pytest.raises(IndexError):
+            agent.get_response(10)
+
+        with pytest.raises(IndexError):
+            agent.get_response(-10)
 
     def test_get_response_empty_messages(self):
-        """Test getting response from empty message list."""
+        """Test getting response from empty message list - should raise IndexError."""
         agent = AgentMemory(name="test", created_at=datetime.now())
 
-        assert agent.get_response() is None
-        assert agent.get_response(0) is None
+        with pytest.raises(
+            IndexError, match="Cannot get response: agent has no message history"
+        ):
+            agent.get_response()
+
+        with pytest.raises(
+            IndexError, match="Cannot get response: agent has no message history"
+        ):
+            agent.get_response(0)
 
 
 class TestMemoryManager:

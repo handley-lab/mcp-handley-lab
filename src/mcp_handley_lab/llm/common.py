@@ -61,8 +61,14 @@ def get_session_id(mcp_instance) -> str:
         context = mcp_instance.get_context()
         client_id = getattr(context, "client_id", None)
         return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
-    except Exception:
+    except Exception as e:
         # When no MCP context (direct Python usage), use just process ID for persistence
+        import sys
+
+        print(
+            f"Warning: Could not get MCP context ({e}), using process ID for session",
+            file=sys.stderr,
+        )
         return f"_session_{os.getpid()}"
 
 
@@ -157,7 +163,7 @@ def resolve_file_content(
         elif "path" in file_item:
             file_path = Path(file_item["path"])
             if not file_path.exists():
-                return f"Error: File not found: {file_path}", None
+                raise FileNotFoundError(f"File not found: {file_path}")
             return None, file_path
     return None, None
 
@@ -172,11 +178,8 @@ def read_file_smart(
         raise ValueError(f"File too large: {file_size} bytes > {max_size}")
 
     if is_text_file(file_path):
-        try:
-            content = file_path.read_text(encoding="utf-8")
-            return f"[File: {file_path.name}]\n{content}", True
-        except UnicodeDecodeError:
-            pass
+        content = file_path.read_text(encoding="utf-8")
+        return f"[File: {file_path.name}]\n{content}", True
 
     # Binary file - base64 encode
     file_content = file_path.read_bytes()

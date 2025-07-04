@@ -11,28 +11,23 @@ async def _run_command(
     cmd: list[str], input_text: str | None = None, cwd: str | None = None
 ) -> str:
     """Run a shell command and return output."""
-    try:
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE if input_text else None,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=cwd,
-        )
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE if input_text else None,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=cwd,
+    )
 
-        stdout, stderr = await process.communicate(
-            input=input_text.encode() if input_text else None
-        )
+    stdout, stderr = await process.communicate(
+        input=input_text.encode() if input_text else None
+    )
 
-        if process.returncode != 0:
-            error_msg = stderr.decode().strip() if stderr else "Unknown error"
-            raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
+    if process.returncode != 0:
+        error_msg = stderr.decode().strip() if stderr else "Unknown error"
+        raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
 
-        return stdout.decode().strip()
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            f"Command '{cmd[0]}' not found. Please install {cmd[0]}."
-        ) from e
+    return stdout.decode().strip()
 
 
 def _parse_msmtprc(config_file: str = None) -> list[str]:
@@ -102,7 +97,7 @@ async def list_accounts(config_file: str = None) -> str:
     accounts = _parse_msmtprc(config_file)
 
     if not accounts:
-        return "No msmtp accounts found in ~/.msmtprc"
+        return "Available msmtp accounts:\n(none configured)"
 
     return "Available msmtp accounts:\n" + "\n".join(
         f"- {account}" for account in accounts
@@ -127,7 +122,7 @@ async def sync_status(config_file: str = None) -> str:
     # Check if offlineimap config exists
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
-        return "No offlineimap configuration found at ~/.offlineimaprc"
+        raise FileNotFoundError(f"offlineimap configuration not found at {config_path}")
 
     # Run dry-run to check configuration
     output = await _run_command(["offlineimap", "--dry-run", "-o1"])
@@ -184,7 +179,7 @@ async def search(query: str, limit: int = 20) -> str:
 
     output = await _run_command(cmd)
     if not output:
-        return f"No emails found matching query: {query}"
+        return f"Search results for '{query}':\n(no matches)"
     return f"Search results for '{query}':\n{output}"
 
 
@@ -217,7 +212,7 @@ async def list_tags() -> str:
     """List all tags in the notmuch database."""
     output = await _run_command(["notmuch", "search", "--output=tags", "*"])
     if not output:
-        return "No tags found in the database"
+        return "Available tags:\n(none found)"
     tags = sorted(output.split("\n"))
     return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
 
@@ -285,46 +280,32 @@ async def tag(
 @mcp.tool(description="Check email tool server status and verify tool availability.")
 async def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
-    status = ["Email Tool Server Status:"]
-
-    # Check msmtp
-    try:
-        msmtp_version = (await _run_command(["msmtp", "--version"])).split("\n")[0]
-        accounts = _parse_msmtprc()
-        status.append(f"✓ msmtp: {msmtp_version}")
-        status.append(f"  Accounts: {len(accounts)} configured")
-    except RuntimeError as e:
-        status.append(f"✗ msmtp: {e}")
+    # Check msmtp first - if it fails, entire email system is broken
+    msmtp_version = (await _run_command(["msmtp", "--version"])).split("\n")[0]
+    accounts = _parse_msmtprc()
 
     # Check offlineimap
-    try:
-        offlineimap_version = (await _run_command(["offlineimap", "--version"])).split(
-            "\n"
-        )[0]
-        config_path = (
-            Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-        )
-        config_exists = config_path.exists()
-        status.append(f"✓ offlineimap: {offlineimap_version}")
-        status.append(f"  Config: {'found' if config_exists else 'not found'}")
-    except RuntimeError as e:
-        status.append(f"✗ offlineimap: {e}")
+    offlineimap_version = (await _run_command(["offlineimap", "--version"])).split(
+        "\n"
+    )[0]
+    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
+    if not config_path.exists():
+        raise RuntimeError(f"offlineimap configuration not found at {config_path}")
 
     # Check notmuch
-    try:
-        notmuch_version = await _run_command(["notmuch", "--version"])
-        status.append(f"✓ notmuch: {notmuch_version}")
+    notmuch_version = await _run_command(["notmuch", "--version"])
 
-        # Check if notmuch database exists
-        try:
-            db_info = await _run_command(["notmuch", "count", "*"])
-            status.append(f"  Database: {db_info} messages indexed")
-        except RuntimeError:
-            status.append("  Database: not initialized or accessible")
-    except RuntimeError as e:
-        status.append(f"✗ notmuch: {e}")
+    # Check notmuch database - let failures propagate as they indicate real problems
+    db_info = await _run_command(["notmuch", "count", "*"])
+    db_status = f"{db_info} messages indexed"
 
-    return "\n".join(status)
+    return f"""Email Tool Server Status:
+✓ msmtp: {msmtp_version}
+  Accounts: {len(accounts)} configured
+✓ offlineimap: {offlineimap_version}
+  Config: found
+✓ notmuch: {notmuch_version}
+  Database: {db_status}"""
 
 
 if __name__ == "__main__":

@@ -291,10 +291,9 @@ server_info()
 )
 async def server_info() -> str:
     """Get server status and jq version."""
-    try:
-        version = await _run_jq(["--version"])
+    version = await _run_jq(["--version"])
 
-        return f"""JQ Tool Server Status
+    return f"""JQ Tool Server Status
 ====================
 Status: Connected and ready
 JQ Version: {version}
@@ -306,5 +305,3 @@ Available tools:
 - validate: Validate JSON syntax
 - format: Format JSON data
 - server_info: Get server status"""
-    except RuntimeError as e:
-        raise e

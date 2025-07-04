@@ -47,23 +47,15 @@ async def _get_source_archive(arxiv_id: str) -> bytes:
         return response.content
 
 
-def _is_tar_archive(content: bytes) -> bool:
-    """Check if content is a tar archive or a single gzipped file."""
-    try:
-        # Try to open as tar archive
-        with tarfile.open(fileobj=BytesIO(content), mode="r:*"):
-            return True
-    except tarfile.TarError:
-        return False
-
-
 def _handle_source_content(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> str:
-    """Handle source content, whether it's a tar archive or single file."""
-    if _is_tar_archive(content):
+    """Handle source content, trying tar first, then single file."""
+    try:
+        # Try to handle as tar archive first (most common case)
         return _handle_tar_archive(arxiv_id, content, format, output_path)
-    else:
+    except tarfile.TarError:
+        # Not a tar archive, try as single gzipped file
         return _handle_single_file(arxiv_id, content, format, output_path)
 
 
@@ -93,47 +85,42 @@ def _handle_tar_archive(
     """Handle a tar archive."""
     tar_stream = BytesIO(content)
 
-    try:
-        with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-            if output_path == "-":
-                # List files for stdout
-                files = []
-                for member in tar.getmembers():
-                    if member.isfile() and (
-                        format != "tex"
-                        or any(
-                            member.name.endswith(ext)
-                            for ext in [".tex", ".bib", ".bbl"]
-                        )
-                    ):
-                        files.append(f"{member.name} ({member.size} bytes)")
+    with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
+        if output_path == "-":
+            # List files for stdout
+            files = []
+            for member in tar.getmembers():
+                if member.isfile() and (
+                    format != "tex"
+                    or any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    )
+                ):
+                    files.append(f"{member.name} ({member.size} bytes)")
 
-                if format == "tex":
-                    return f"ArXiv LaTeX files for {arxiv_id}:\\n" + "\\n".join(files)
-                else:
-                    return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
+            if format == "tex":
+                return f"ArXiv LaTeX files for {arxiv_id}:\\n" + "\\n".join(files)
             else:
-                # Save to directory
-                os.makedirs(output_path, exist_ok=True)
+                return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
+        else:
+            # Save to directory
+            os.makedirs(output_path, exist_ok=True)
 
-                if format == "tex":
-                    # Extract .tex, .bib, .bbl files
-                    extracted_files = []
-                    for member in tar.getmembers():
-                        if member.isfile() and any(
-                            member.name.endswith(ext)
-                            for ext in [".tex", ".bib", ".bbl"]
-                        ):
-                            tar.extract(member, path=output_path, filter="data")
-                            extracted_files.append(member.name)
-                    return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
-                else:
-                    # Extract all files (src format)
-                    tar.extractall(path=output_path, filter="data")
-                    file_count = len([m for m in tar.getmembers() if m.isfile()])
-                    return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
-    except tarfile.TarError as e:
-        raise ValueError(f"Error extracting tar archive: {e}") from e
+            if format == "tex":
+                # Extract .tex, .bib, .bbl files
+                extracted_files = []
+                for member in tar.getmembers():
+                    if member.isfile() and any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    ):
+                        tar.extract(member, path=output_path, filter="data")
+                        extracted_files.append(member.name)
+                return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
+            else:
+                # Extract all files (src format)
+                tar.extractall(path=output_path, filter="data")
+                file_count = len([m for m in tar.getmembers() if m.isfile()])
+                return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
 
 
 @mcp.tool()
@@ -191,21 +178,22 @@ async def list_files(arxiv_id: str) -> list[str]:
     """
     content = await _get_source_archive(arxiv_id)
 
-    if _is_tar_archive(content):
-        # Handle tar archive
+    try:
+        # Try to handle as tar archive first (most common case)
         tar_stream = BytesIO(content)
         filenames = []
-        try:
-            with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-                for member in tar.getmembers():
-                    if member.isfile():
-                        filenames.append(member.name)
-        except tarfile.TarError as e:
-            raise ValueError(f"Error reading tar archive: {e}") from e
+        with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
+            for member in tar.getmembers():
+                if member.isfile():
+                    filenames.append(member.name)
         return filenames
-    else:
-        # Handle single gzipped file
-        return [f"{arxiv_id}.tex"]  # Single tex file
+    except tarfile.TarError:
+        # Not a valid tar, so try to handle as a single gzipped file
+        # This will raise gzip.BadGzipFile if the content is corrupted
+        gzip.decompress(content)
+        return [
+            f"{arxiv_id}.tex"
+        ]  # It's a valid gzipped file, likely a single tex file
 
 
 def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:

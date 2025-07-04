@@ -36,33 +36,20 @@ from ..model_loader import (
     format_model_listing,
     load_model_config,
 )
-from ..shared import create_client_decorator, process_llm_request
+from ..shared import process_llm_request
 
 mcp = FastMCP("Gemini Tool")
 
-# Configure Gemini client
-client = None
-initialization_error = None
-
-try:
-    # Client initialization - let SDK use default API version
-    client = google_genai.Client(api_key=settings.gemini_api_key)
-except Exception as e:
-    client = None
-    initialization_error = str(e)
+# Configure Gemini client - fail fast if API key is invalid/missing
+client = google_genai.Client(api_key=settings.gemini_api_key)
 
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 
-# Create client decorator with dynamic error message
-def _get_error_message():
-    return f"Gemini client not initialized: {initialization_error or 'API key not configured'}"
-
-
-require_client = create_client_decorator(
-    lambda: client is not None, _get_error_message()
-)
+# Client initialization decorator is no longer needed with fail-fast approach
+# If we reach this point, the client is guaranteed to be initialized
+require_client = lambda func: func
 
 
 def _convert_history_to_gemini_format(

@@ -13,28 +13,23 @@ mcp = FastMCP("Mutt Tool")
 
 async def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
     """Run a shell command and return output."""
-    try:
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE if input_text else None,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=cwd,
-        )
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE if input_text else None,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=cwd,
+    )
 
-        stdout, stderr = await process.communicate(
-            input=input_text.encode() if input_text else None
-        )
+    stdout, stderr = await process.communicate(
+        input=input_text.encode() if input_text else None
+    )
 
-        if process.returncode != 0:
-            error_msg = stderr.decode().strip() if stderr else "Unknown error"
-            raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
+    if process.returncode != 0:
+        error_msg = stderr.decode().strip() if stderr else "Unknown error"
+        raise RuntimeError(f"Command '{' '.join(cmd)}' failed: {error_msg}")
 
-        return stdout.decode().strip()
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            f"Command '{cmd[0]}' not found. Please install {cmd[0]}."
-        ) from e
+    return stdout.decode().strip()
 
 
 async def _get_all_contacts(config_file: str = None) -> list[str]:
@@ -75,19 +70,16 @@ async def _find_contact_fuzzy(
 
 async def get_mutt_alias_file(config_file: str = None) -> Path:
     """Get mutt alias file path from mutt configuration."""
-    try:
-        cmd = ["mutt", "-Q", "alias_file"]
-        if config_file:
-            cmd.extend(["-F", config_file])
-        result = await _run_command(cmd)
-        # Parse: alias_file="~/.mutt/addressbook"
-        path = result.split("=")[1].strip("\"'")
-        # Expand ~ to home directory
-        if path.startswith("~"):
-            path = str(Path.home()) + path[1:]
-        return Path(path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to parse mutt alias_file setting: {e}") from e
+    cmd = ["mutt", "-Q", "alias_file"]
+    if config_file:
+        cmd.extend(["-F", config_file])
+    result = await _run_command(cmd)
+    # Parse: alias_file="~/.mutt/addressbook"
+    path = result.split("=")[1].strip("\"'")
+    # Expand ~ to home directory
+    if path.startswith("~"):
+        path = str(Path.home()) + path[1:]
+    return Path(path)
 
 
 @mcp.tool(
@@ -205,23 +197,19 @@ async def compose_email(
             body_content = initial_body if initial_body else "Automated email"
 
             # Try to add signature for auto-send
-            try:
-                # Check if there's a signature file configured in mutt
-                sig_result = await _run_command(["mutt", "-Q", "signature"])
-                if "signature=" in sig_result:
-                    sig_path = sig_result.split("=", 1)[1].strip().strip('"')
-                    # Expand ~ to home directory if needed
-                    if sig_path.startswith("~"):
-                        sig_path = os.path.expanduser(sig_path)
+            # Check if there's a signature file configured in mutt
+            sig_result = await _run_command(["mutt", "-Q", "signature"])
+            if "signature=" in sig_result:
+                sig_path = sig_result.split("=", 1)[1].strip().strip('"')
+                # Expand ~ to home directory if needed
+                if sig_path.startswith("~"):
+                    sig_path = os.path.expanduser(sig_path)
 
-                    if os.path.exists(sig_path):
-                        with open(sig_path) as f:
-                            signature = f.read().strip()
-                        if signature:
-                            body_content += f"\n\n{signature}"
-            except Exception:
-                # If signature detection fails, continue without it
-                pass
+                if os.path.exists(sig_path):
+                    with open(sig_path) as f:
+                        signature = f.read().strip()
+                    if signature:
+                        body_content += f"\n\n{signature}"
 
             # Send via stdin (non-interactive)
             # Note: _run_command doesn't support shell=True, so we need to pass the full command as a list
@@ -477,8 +465,6 @@ async def move_email(
         count = len(messages)
         return f"{action} {count} message(s) successfully"
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to move messages: {e}") from e
     finally:
         if os.path.exists(script_file):
             os.unlink(script_file)
@@ -504,29 +490,24 @@ list_folders()
 )
 async def list_folders() -> str:
     """List available mailboxes from mutt configuration."""
+    # Use mutt to query mailboxes configuration
+    result = await _run_command(["mutt", "-Q", "mailboxes"])
 
-    try:
-        # Use mutt to query mailboxes configuration
-        result = await _run_command(["mutt", "-Q", "mailboxes"])
+    # Note: _run_command already handles errors and returns just the output
 
-        # Note: _run_command already handles errors and returns just the output
+    # Parse mailboxes output
+    mailboxes_line = result.strip()
+    if not mailboxes_line or "mailboxes=" not in mailboxes_line:
+        return "No mailboxes configured in mutt"
 
-        # Parse mailboxes output
-        mailboxes_line = result.strip()
-        if not mailboxes_line or "mailboxes=" not in mailboxes_line:
-            return "No mailboxes configured in mutt"
+    # Extract mailbox names (basic parsing)
+    folders_part = mailboxes_line.split("mailboxes=", 1)[1].strip('"')
+    folders = [f.strip() for f in folders_part.split() if f.strip()]
 
-        # Extract mailbox names (basic parsing)
-        folders_part = mailboxes_line.split("mailboxes=", 1)[1].strip('"')
-        folders = [f.strip() for f in folders_part.split() if f.strip()]
+    if not folders:
+        return "No mailboxes found in configuration"
 
-        if not folders:
-            return "No mailboxes found in configuration"
-
-        return "Available mailboxes:\n" + "\n".join(f"- {folder}" for folder in folders)
-
-    except Exception as e:
-        raise RuntimeError(f"Error retrieving folder list: {e}") from e
+    return "Available mailboxes:\n" + "\n".join(f"- {folder}" for folder in folders)
 
 
 @mcp.tool(
@@ -618,15 +599,11 @@ async def add_contact(
         else:
             alias_line = f"alias {clean_alias} {email}\n"
 
-    try:
-        # Append to alias file
-        with open(alias_file, "a") as f:
-            f.write(alias_line)
+    # Append to alias file
+    with open(alias_file, "a") as f:
+        f.write(alias_line)
 
-        return f"Added contact: {clean_alias} ({name or email})"
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to add contact: {e}") from e
+    return f"Added contact: {clean_alias} ({name or email})"
 
 
 @mcp.tool(
@@ -651,24 +628,20 @@ async def list_contacts(pattern: str = "", config_file: str = None) -> str:
     if not alias_file.exists():
         return "No mutt alias file found. Use add_contact() to create contacts."
 
-    try:
-        contacts = []
-        with open(alias_file) as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("alias ") and (
-                    not pattern or pattern.lower() in line.lower()
-                ):
-                    contacts.append(line)
+    contacts = []
+    with open(alias_file) as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("alias ") and (
+                not pattern or pattern.lower() in line.lower()
+            ):
+                contacts.append(line)
 
-        if not contacts:
-            filter_msg = f" matching '{pattern}'" if pattern else ""
-            return f"No contacts found{filter_msg}"
+    if not contacts:
+        filter_msg = f" matching '{pattern}'" if pattern else ""
+        return f"No contacts found{filter_msg}"
 
-        return "Mutt contacts:\n" + "\n".join(f"- {contact}" for contact in contacts)
-
-    except Exception as e:
-        raise RuntimeError(f"Error reading contacts: {e}") from e
+    return "Mutt contacts:\n" + "\n".join(f"- {contact}" for contact in contacts)
 
 
 @mcp.tool(
@@ -765,45 +738,41 @@ async def remove_contact(alias: str, config_file: str = None) -> str:
     if not alias_file.exists():
         return "No mutt alias file found"
 
-    try:
-        # Read current contents
-        with open(alias_file) as f:
-            lines = f.readlines()
+    # Read current contents
+    with open(alias_file) as f:
+        lines = f.readlines()
 
-        # Try exact match first
-        target_line = f"alias {clean_alias} "
-        filtered_lines = [line for line in lines if not line.startswith(target_line)]
+    # Try exact match first
+    target_line = f"alias {clean_alias} "
+    filtered_lines = [line for line in lines if not line.startswith(target_line)]
 
-        if len(filtered_lines) == len(lines):
-            # No exact match, try fuzzy matching
-            fuzzy_matches = await _find_contact_fuzzy(
-                alias, max_results=5, config_file=config_file
-            )
-            if not fuzzy_matches:
-                return f"Contact '{clean_alias}' not found"
-            elif len(fuzzy_matches) == 1:
-                # Single fuzzy match, remove it
-                fuzzy_alias = fuzzy_matches[0].split()[
-                    1
-                ]  # Extract alias from "alias name ..."
-                target_line = f"alias {fuzzy_alias} "
-                filtered_lines = [
-                    line for line in lines if not line.startswith(target_line)
-                ]
-                clean_alias = fuzzy_alias  # Update for return message
-            else:
-                # Multiple matches, ask user to be more specific
-                matches_str = "\n".join(f"- {match}" for match in fuzzy_matches)
-                return f"Multiple matches found for '{alias}':\n{matches_str}\n\nPlease be more specific."
+    if len(filtered_lines) == len(lines):
+        # No exact match, try fuzzy matching
+        fuzzy_matches = await _find_contact_fuzzy(
+            alias, max_results=5, config_file=config_file
+        )
+        if not fuzzy_matches:
+            return f"Contact '{clean_alias}' not found"
+        elif len(fuzzy_matches) == 1:
+            # Single fuzzy match, remove it
+            fuzzy_alias = fuzzy_matches[0].split()[
+                1
+            ]  # Extract alias from "alias name ..."
+            target_line = f"alias {fuzzy_alias} "
+            filtered_lines = [
+                line for line in lines if not line.startswith(target_line)
+            ]
+            clean_alias = fuzzy_alias  # Update for return message
+        else:
+            # Multiple matches, ask user to be more specific
+            matches_str = "\n".join(f"- {match}" for match in fuzzy_matches)
+            return f"Multiple matches found for '{alias}':\n{matches_str}\n\nPlease be more specific."
 
-        # Write back filtered contents
-        with open(alias_file, "w") as f:
-            f.writelines(filtered_lines)
+    # Write back filtered contents
+    with open(alias_file, "w") as f:
+        f.writelines(filtered_lines)
 
-        return f"Removed contact: {clean_alias}"
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to remove contact: {e}") from e
+    return f"Removed contact: {clean_alias}"
 
 
 @mcp.tool(
@@ -811,13 +780,12 @@ async def remove_contact(alias: str, config_file: str = None) -> str:
 )
 async def server_info() -> str:
     """Get server status and mutt version."""
-    try:
-        result = await _run_command(["mutt", "-v"])
-        # Extract first line of version info
-        version_lines = result.split("\n")
-        version_line = version_lines[0] if version_lines else "Unknown version"
+    result = await _run_command(["mutt", "-v"])
+    # Extract first line of version info
+    version_lines = result.split("\n")
+    version_line = version_lines[0] if version_lines else "Unknown version"
 
-        return f"""Mutt Tool Server Status
+    return f"""Mutt Tool Server Status
 ======================
 Status: Connected and ready
 Mutt Version: {version_line}
@@ -836,5 +804,3 @@ Available tools:
 - server_info: Get server status
 
 Configuration: Uses your existing ~/.muttrc and account settings"""
-    except FileNotFoundError as e:
-        raise RuntimeError("mutt command not found. Please install mutt.") from e

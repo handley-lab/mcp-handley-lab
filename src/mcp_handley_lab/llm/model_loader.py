@@ -199,24 +199,21 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
                 availability = "✅ Configured"
 
             # Get pricing
-            try:
-                pricing_type = model_config.get("pricing_type", "token")
-                if pricing_type == "per_image":
-                    cost_per_image = calculate_cost(
-                        model_id, 1, 0, provider, images_generated=1
-                    )
-                    pricing = f"${cost_per_image:.3f} per image"
-                elif pricing_type == "per_second":
-                    cost_per_second = calculate_cost(
-                        model_id, 1, 0, provider, seconds_generated=1
-                    )
-                    pricing = f"${cost_per_second:.3f} per second"
-                else:
-                    input_cost = calculate_cost(model_id, 1000000, 0, provider)
-                    output_cost = calculate_cost(model_id, 0, 1000000, provider)
-                    pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
-            except Exception:
-                pricing = "Pricing not available"
+            pricing_type = model_config.get("pricing_type", "token")
+            if pricing_type == "per_image":
+                cost_per_image = calculate_cost(
+                    model_id, 1, 0, provider, images_generated=1
+                )
+                pricing = f"${cost_per_image:.3f} per image"
+            elif pricing_type == "per_second":
+                cost_per_second = calculate_cost(
+                    model_id, 1, 0, provider, seconds_generated=1
+                )
+                pricing = f"${cost_per_second:.3f} per second"
+            else:
+                input_cost = calculate_cost(model_id, 1000000, 0, provider)
+                output_cost = calculate_cost(model_id, 0, 1000000, provider)
+                pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
 
             # Format model entry
             context_window = model_config.get("context_window", "Unknown")

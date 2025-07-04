@@ -13,6 +13,14 @@ Example workflow:
 """
 import asyncio
 import json
+
+
+class ToolExecutionError(RuntimeError):
+    """Custom exception for errors during MCP tool execution."""
+
+    pass
+
+
 import time
 from datetime import datetime
 from pathlib import Path
@@ -83,7 +91,7 @@ def _save_state(
 
 async def _execute_mcp_tool(
     server_command: str, tool_name: str, arguments: dict[str, Any], timeout: int = 30
-) -> dict[str, Any]:
+) -> str:
     """Execute a tool on an MCP server using MCP protocol."""
     # Create MCP request messages
     initialize_request = {
@@ -138,31 +146,25 @@ async def _execute_mcp_tool(
         stderr = stderr_bytes.decode("utf-8", errors="replace")
 
         if process.returncode != 0:
-            return {
-                "success": False,
-                "error": f"Server command failed: {stderr}",
-                "output": stdout,
-            }
+            raise ToolExecutionError(
+                f"Server command failed with exit code {process.returncode}: {stderr}"
+            )
 
         # Parse responses - expect one JSON line (tools/call response)
         lines = [line.strip() for line in stdout.strip().split("\n") if line.strip()]
         if len(lines) < 1:
-            return {
-                "success": False,
-                "error": f"Invalid response format: expected at least 1 line, got {len(lines)}",
-                "output": stdout,
-            }
+            raise ToolExecutionError(
+                f"Invalid response format: expected at least 1 line, got {len(lines)}"
+            )
 
         try:
             # Parse the tools/call response (last line)
             response = json.loads(lines[-1])
 
             if "error" in response:
-                return {
-                    "success": False,
-                    "error": response["error"].get("message", "Unknown error"),
-                    "output": stdout,
-                }
+                raise ToolExecutionError(
+                    response["error"].get("message", "Unknown tool error")
+                )
 
             # Extract result from MCP response
             result_content = response.get("result", {})
@@ -177,33 +179,24 @@ async def _execute_mcp_tool(
                 # Simple result
                 text_result = str(result_content)
 
-            return {"success": True, "result": text_result, "output": stdout}
+            return text_result
 
         except json.JSONDecodeError as e:
-            return {
-                "success": False,
-                "error": f"Failed to parse server response: {e}",
-                "output": stdout,
-            }
+            raise ToolExecutionError(f"Failed to parse server response: {e}") from e
 
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as e:
         process.kill()
         await process.wait()
-        return {
-            "success": False,
-            "error": f"Tool execution timed out after {timeout} seconds",
-            "output": "",
-        }
+        raise ToolExecutionError(
+            f"Tool execution timed out after {timeout} seconds"
+        ) from e
     except asyncio.CancelledError:
         # Handle cancellation gracefully
         if process.returncode is None:
             process.kill()
             await process.wait()
-        return {
-            "success": False,
-            "error": "Tool execution was cancelled by user",
-            "output": "",
-        }
+        # Re-raise the cancellation to be handled by the framework
+        raise
 
 
 def _substitute_variables(
@@ -248,35 +241,32 @@ def _evaluate_condition(
         # Return unquoted strings as-is for string comparison
         return op_str
 
-    try:
-        # Check for comparison operators (in order of precedence to avoid conflicts)
-        operators = {
-            " not contains ": lambda left, right: right not in left,
-            " contains ": lambda left, right: right in left,
-            " == ": lambda left, right: left == right,
-            " != ": lambda left, right: left != right,
-            " >= ": lambda left, right: left >= right,
-            " <= ": lambda left, right: left <= right,
-            " > ": lambda left, right: left > right,
-            " < ": lambda left, right: left < right,
-        }
+    # Check for comparison operators (in order of precedence to avoid conflicts)
+    operators = {
+        " not contains ": lambda left, right: right not in left,
+        " contains ": lambda left, right: right in left,
+        " == ": lambda left, right: left == right,
+        " != ": lambda left, right: left != right,
+        " >= ": lambda left, right: left >= right,
+        " <= ": lambda left, right: left <= right,
+        " > ": lambda left, right: left > right,
+        " < ": lambda left, right: left < right,
+    }
 
-        for op_str, op_func in operators.items():
-            if op_str in evaluated_condition_str:
-                left, right = evaluated_condition_str.split(op_str, 1)
-                return op_func(_parse_operand(left), _parse_operand(right))
+    for op_str, op_func in operators.items():
+        if op_str in evaluated_condition_str:
+            left, right = evaluated_condition_str.split(op_str, 1)
+            return op_func(_parse_operand(left), _parse_operand(right))
 
-        # Handle boolean literals
-        normalized_expr = evaluated_condition_str.lower().strip()
-        if normalized_expr == "true":
-            return True
-        if normalized_expr == "false":
-            return False
-
-        # If no known operator or boolean literal, return False
+    # Handle boolean literals
+    normalized_expr = evaluated_condition_str.lower().strip()
+    if normalized_expr == "true":
+        return True
+    if normalized_expr == "false":
         return False
-    except Exception:
-        return False
+
+    # If no known operator or boolean literal, raise error for invalid condition
+    raise ValueError(f"Invalid condition expression: {evaluated_condition_str}")
 
 
 @mcp.tool(
@@ -767,39 +757,44 @@ async def execute_chain(
                 else:
                     substituted_args[key] = value
 
-            # Execute the tool
-            result = await _execute_mcp_tool(
-                tool_config["server_command"],
-                tool_config["tool_name"],
-                substituted_args,
-                timeout or tool_config["timeout"],
-            )
-
-            step_duration = time.time() - step_start_time
-
-            # Log step execution
+            # Log step execution (initialize with defaults)
             step_log = {
                 "step": i + 1,
                 "tool_id": step.tool_id,
                 "arguments": substituted_args,
-                "success": result["success"],
-                "duration": step_duration,
+                "success": False,  # Default to False
+                "duration": 0,
                 "skipped": False,
             }
 
-            if result["success"]:
-                step_log["result"] = result["result"]
+            try:
+                # Execute the tool
+                tool_result = await _execute_mcp_tool(
+                    tool_config["server_command"],
+                    tool_config["tool_name"],
+                    substituted_args,
+                    timeout or tool_config["timeout"],
+                )
+
+                step_log["success"] = True
+                step_log["result"] = tool_result
+
                 # Store output for variable substitution
                 if step.output_to:
-                    step_outputs[step.output_to] = result["result"]
+                    step_outputs[step.output_to] = tool_result
                 else:
-                    step_outputs[f"step_{i+1}"] = result["result"]
-            else:
-                step_log["error"] = result["error"]
-                execution_log["error"] = f"Step {i+1} failed: {result['error']}"
+                    step_outputs[f"step_{i+1}"] = tool_result
+
+            except ToolExecutionError as e:
+                step_log["error"] = str(e)
+                execution_log["error"] = f"Step {i+1} failed: {e}"
+                # The break is now here, inside the except block
+                step_log["duration"] = time.time() - step_start_time
                 execution_log["steps"].append(step_log)
                 break
 
+            # This is now outside the try/except
+            step_log["duration"] = time.time() - step_start_time
             execution_log["steps"].append(step_log)
 
         # Mark as successful if we got through all steps

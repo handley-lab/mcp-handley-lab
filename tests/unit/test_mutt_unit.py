@@ -211,7 +211,10 @@ class TestMuttFolderManagement:
         mock_process.returncode = 1
         mock_subprocess.return_value = mock_process
 
-        with pytest.raises(RuntimeError, match="Error retrieving folder list"):
+        with pytest.raises(
+            RuntimeError,
+            match="Command 'mutt -Q mailboxes' failed: mailboxes: unknown variable",
+        ):
             await list_folders()
 
     @patch("asyncio.create_subprocess_exec")
@@ -260,7 +263,7 @@ class TestMuttServerInfo:
         """Test server info when mutt not installed."""
         mock_subprocess.side_effect = FileNotFoundError()
 
-        with pytest.raises(RuntimeError, match="Command 'mutt' not found"):
+        with pytest.raises(FileNotFoundError):
             await server_info()
 
 

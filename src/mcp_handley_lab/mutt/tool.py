@@ -183,7 +183,56 @@ async def compose_email(
     # Add recipient (must be last)
     mutt_cmd.append(to)
 
-    try:
+    # Execute mutt with proper temp file cleanup
+    if temp_file:
+        try:
+            if auto_send:
+                # For auto-send, use mutt non-interactively with stdin
+                mutt_cmd_str = " ".join(
+                    f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+                )
+                body_content = initial_body if initial_body else "Automated email"
+
+                # Try to add signature for auto-send
+                # Check if there's a signature file configured in mutt
+                sig_result = await _run_command(["mutt", "-Q", "signature"])
+                if "signature=" in sig_result:
+                    sig_path = sig_result.split("=", 1)[1].strip().strip('"')
+                    # Expand ~ to home directory if needed
+                    if sig_path.startswith("~"):
+                        sig_path = os.path.expanduser(sig_path)
+
+                    if os.path.exists(sig_path):
+                        with open(sig_path) as f:
+                            signature = f.read().strip()
+                        if signature:
+                            body_content += f"\n\n{signature}"
+
+                # Send via stdin (non-interactive)
+                # Note: _run_command doesn't support shell=True, so we need to pass the full command as a list
+                mutt_cmd = mutt_cmd_str.split()
+                await _run_command(mutt_cmd, input_text=body_content)
+
+                attachment_info = (
+                    f" with {len(attachments)} attachment(s)" if attachments else ""
+                )
+                return f"Email sent automatically: {to}{attachment_info}"
+            else:
+                # Interactive mode - launch mutt interactively
+                mutt_cmd_str = " ".join(
+                    f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+                )
+                window_title = f"Mutt: {subject or 'New Email'}"
+                launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+                attachment_info = (
+                    f" with {len(attachments)} attachment(s)" if attachments else ""
+                )
+                return f"Email composition completed: {to}{attachment_info}"
+
+        finally:
+            os.unlink(temp_file)
+    else:
         if auto_send:
             # For auto-send, use mutt non-interactively with stdin
             mutt_cmd_str = " ".join(
@@ -227,11 +276,6 @@ async def compose_email(
                 f" with {len(attachments)} attachment(s)" if attachments else ""
             )
             return f"Email composition completed: {to}{attachment_info}"
-
-    finally:
-        # Clean up temp file if created
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(
@@ -295,18 +339,33 @@ async def reply_to_email(
     else:
         mutt_cmd.extend(["-e", "set reply_to_all=no"])
 
-    # If there's initial body content, create temp file
-    temp_file = None
+    # If there's initial body content, create temp file with proper cleanup
     if initial_body:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write(initial_body)
             temp_file = f.name
         mutt_cmd.extend(["-i", temp_file])
 
-    # Add message ID to reply to
-    mutt_cmd.extend(["-H", f"id:{message_id}"])
+        # Add message ID to reply to
+        mutt_cmd.extend(["-H", f"id:{message_id}"])
 
-    try:
+        try:
+            # Launch mutt interactively
+            mutt_cmd_str = " ".join(
+                f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+            )
+            window_title = f"Mutt Reply: {message_id[:20]}..."
+            launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+            reply_type = "Reply to all" if reply_all else "Reply"
+            return f"{reply_type} completed for message: {message_id}"
+
+        finally:
+            os.unlink(temp_file)
+    else:
+        # Add message ID to reply to
+        mutt_cmd.extend(["-H", f"id:{message_id}"])
+
         # Launch mutt interactively
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Reply: {message_id[:20]}..."
@@ -314,11 +373,6 @@ async def reply_to_email(
 
         reply_type = "Reply to all" if reply_all else "Reply"
         return f"{reply_type} completed for message: {message_id}"
-
-    finally:
-        # Clean up temp file
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(
@@ -351,33 +405,46 @@ async def forward_email(message_id: str, to: str = "", initial_body: str = "") -
     # Enable autoedit to skip prompts
     mutt_cmd.extend(["-e", "set autoedit"])
 
-    # If there's initial body content, create temp file
-    temp_file = None
+    # If there's initial body content, create temp file with proper cleanup
     if initial_body:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write(initial_body)
             temp_file = f.name
         mutt_cmd.extend(["-i", temp_file])
 
-    # Add forward flag and message ID
-    mutt_cmd.extend(["-f", f"id:{message_id}"])
+        # Add forward flag and message ID
+        mutt_cmd.extend(["-f", f"id:{message_id}"])
 
-    # Add recipient if specified
-    if to:
-        mutt_cmd.append(to)
+        # Add recipient if specified
+        if to:
+            mutt_cmd.append(to)
 
-    try:
+        try:
+            # Launch mutt interactively
+            mutt_cmd_str = " ".join(
+                f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
+            )
+            window_title = f"Mutt Forward: {message_id[:20]}..."
+            launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
+
+            return f"Forward completed for message: {message_id}"
+
+        finally:
+            os.unlink(temp_file)
+    else:
+        # Add forward flag and message ID
+        mutt_cmd.extend(["-f", f"id:{message_id}"])
+
+        # Add recipient if specified
+        if to:
+            mutt_cmd.append(to)
+
         # Launch mutt interactively
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Forward: {message_id[:20]}..."
         launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
         return f"Forward completed for message: {message_id}"
-
-    finally:
-        # Clean up temp file
-        if temp_file and os.path.exists(temp_file):
-            os.unlink(temp_file)
 
 
 @mcp.tool(

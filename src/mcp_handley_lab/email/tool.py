@@ -1,7 +1,6 @@
 """Email client MCP tool integrating msmtp, offlineimap, and notmuch."""
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -9,7 +8,7 @@ mcp = FastMCP("Email")
 
 
 async def _run_command(
-    cmd: list[str], input_text: Optional[str] = None, cwd: Optional[str] = None
+    cmd: list[str], input_text: str | None = None, cwd: str | None = None
 ) -> str:
     """Run a shell command and return output."""
     try:
@@ -58,9 +57,9 @@ async def send(
     to: str,
     subject: str,
     body: str,
-    account: Optional[str] = None,
-    cc: Optional[str] = None,
-    bcc: Optional[str] = None,
+    account: str | None = None,
+    cc: str | None = None,
+    bcc: str | None = None,
 ) -> str:
     """Send an email using msmtp with existing ~/.msmtprc configuration."""
     # Create email message
@@ -111,7 +110,7 @@ async def list_accounts(config_file: str = None) -> str:
 
 
 @mcp.tool(description="Synchronize emails using offlineimap with one-time sync.")
-async def sync(account: Optional[str] = None) -> str:
+async def sync(account: str | None = None) -> str:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]  # -o1 for one-time sync
 
@@ -159,7 +158,7 @@ async def repo_info(config_file: str = None) -> str:
 
 
 @mcp.tool(description="Preview what would be synced without actually syncing.")
-async def sync_preview(account: Optional[str] = None) -> str:
+async def sync_preview(account: str | None = None) -> str:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
 
@@ -174,7 +173,7 @@ async def sync_preview(account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Perform quick sync without updating message flags.")
-async def quick_sync(account: Optional[str] = None) -> str:
+async def quick_sync(account: str | None = None) -> str:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]
 
@@ -192,7 +191,7 @@ async def quick_sync(account: Optional[str] = None) -> str:
 
 
 @mcp.tool(description="Sync specific folders only.")
-async def sync_folders(folders: str, account: Optional[str] = None) -> str:
+async def sync_folders(folders: str, account: str | None = None) -> str:
     """Sync only specified folders."""
     cmd = ["offlineimap", "-o1", "-f", folders]
 
@@ -223,7 +222,7 @@ async def search(query: str, limit: int = 20) -> str:
 
 
 @mcp.tool(description="Show email content for a specific message ID or query.")
-async def show(query: str, part: Optional[str] = None) -> str:
+async def show(query: str, part: str | None = None) -> str:
     """Show email content using notmuch show."""
     cmd = ["notmuch", "show"]
 
@@ -266,7 +265,7 @@ async def list_tags() -> str:
 
 
 @mcp.tool(description="Get configuration information from notmuch.")
-async def config(key: Optional[str] = None) -> str:
+async def config(key: str | None = None) -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
 
@@ -296,7 +295,7 @@ async def count(query: str) -> str:
 
 @mcp.tool(description="Add or remove tags from emails using notmuch.")
 async def tag(
-    message_id: str, add_tags: Optional[str] = None, remove_tags: Optional[str] = None
+    message_id: str, add_tags: str | None = None, remove_tags: str | None = None
 ) -> str:
     """Add or remove tags from a specific email using notmuch."""
     if not add_tags and not remove_tags:

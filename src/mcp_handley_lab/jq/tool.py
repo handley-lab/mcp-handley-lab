@@ -32,7 +32,7 @@ def _resolve_data(data: str | dict | list) -> str:
 
 
 async def _run_jq(args: list[str], input_text: str | None = None) -> str:
-    """Runs a jq command and raises errors on failure."""
+    """Runs a jq command."""
     cmd = ["jq"] + args
     input_bytes = input_text.encode("utf-8") if input_text else None
 
@@ -252,9 +252,6 @@ Use this to verify that the tool is operational before making other requests.
 **Input/Output:**
 - **Input**: None.
 - **Output**: A string containing the server status, `jq` version, and a list of available tools.
-
-**Error Handling:**
-- Raises `RuntimeError` if the `jq` command is not found.
 
 **Examples:**
 ```python

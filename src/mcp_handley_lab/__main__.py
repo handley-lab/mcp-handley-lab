@@ -1,7 +1,6 @@
 """Unified entry point for all MCP tools."""
 import importlib
 import sys
-import traceback
 from pathlib import Path
 
 
@@ -49,33 +48,14 @@ def main():
 
     tool_name = sys.argv[1]
 
-    # Try to import and run the tool
-    try:
-        module_path = f"mcp_handley_lab.{tool_name}.tool"
-        tool_module = importlib.import_module(module_path)
+    module_path = f"mcp_handley_lab.{tool_name}.tool"
+    tool_module = importlib.import_module(module_path)
 
-        # Run the tool's main function
-        if hasattr(tool_module, "mcp"):
-            tool_module.mcp.run()
-        else:
-            print(f"Error: Tool '{tool_name}' does not have an MCP server instance.")
-            sys.exit(1)
-
-    except ModuleNotFoundError:
-        available_tools = get_available_tools()
-        print(f"Error: Tool '{tool_name}' not found.")
-        print(f"Available tools: {', '.join(available_tools)}")
-        print("Use 'python -m mcp_handley_lab --help' for more information.")
-        sys.exit(1)
-    except KeyboardInterrupt:
-        print("\nTool execution cancelled by user.")
-        sys.exit(130)  # Standard exit code for Ctrl+C
-    except Exception:
-        print(
-            f"An unexpected error occurred while running tool '{tool_name}':",
-            file=sys.stderr,
-        )
-        traceback.print_exc()
+    # Run the tool's main function
+    if hasattr(tool_module, "mcp"):
+        tool_module.mcp.run()
+    else:
+        print(f"Error: Tool '{tool_name}' does not have an MCP server instance.")
         sys.exit(1)
 
 

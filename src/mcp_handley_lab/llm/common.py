@@ -57,19 +57,9 @@ TEXT_BASED_APPLICATION_TYPES = {
 
 def get_session_id(mcp_instance) -> str:
     """Get persistent session ID for this MCP server process."""
-    try:
-        context = mcp_instance.get_context()
-        client_id = getattr(context, "client_id", None)
-        return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
-    except Exception as e:
-        # When no MCP context (direct Python usage), use just process ID for persistence
-        import sys
-
-        print(
-            f"Warning: Could not get MCP context ({e}), using process ID for session",
-            file=sys.stderr,
-        )
-        return f"_session_{os.getpid()}"
+    context = mcp_instance.get_context()
+    client_id = getattr(context, "client_id", None)
+    return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
 
 
 def determine_mime_type(file_path: Path) -> str:

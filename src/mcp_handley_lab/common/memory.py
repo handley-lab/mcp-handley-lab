@@ -68,11 +68,7 @@ class AgentMemory(BaseModel):
         """Get a message content by index. Raises IndexError if not found."""
         if not self.messages:
             raise IndexError("Cannot get response: agent has no message history")
-
-        try:
-            return self.messages[index].content
-        except IndexError as e:
-            raise IndexError(f"Message at index {index} not found") from e
+        return self.messages[index].content
 
 
 class MemoryManager:
@@ -95,11 +91,8 @@ class MemoryManager:
             return
 
         for agent_file in self.agents_dir.glob("*.json"):
-            try:
-                agent = AgentMemory.model_validate_json(agent_file.read_text())
-                self._agents[agent.name] = agent
-            except (json.JSONDecodeError, ValueError) as e:
-                raise RuntimeError(f"Corrupted agent file: {agent_file}. {e}") from e
+            agent = AgentMemory.model_validate_json(agent_file.read_text())
+            self._agents[agent.name] = agent
 
     def _serialize_agent_data(self, agent: AgentMemory) -> dict:
         """Convert agent to JSON-serializable dictionary."""

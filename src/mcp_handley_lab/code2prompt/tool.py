@@ -10,18 +10,10 @@ mcp = FastMCP("Code2Prompt Tool")
 
 
 async def _run_code2prompt(args: list[str]) -> str:
-    """Runs a code2prompt command and raises errors on failure."""
+    """Runs a code2prompt command."""
     cmd = ["code2prompt"] + args
-
-    try:
-        stdout, stderr = await run_command(cmd)
-        return stdout.decode("utf-8").strip()
-    except RuntimeError as e:
-        if "Command failed" in str(e):
-            # Extract stderr for better code2prompt error messages
-            error_msg = str(e).split(": ", 1)[-1]
-            raise ValueError(f"code2prompt error: {error_msg}") from e
-        raise
+    stdout, stderr = await run_command(cmd)
+    return stdout.decode("utf-8").strip()
 
 
 @mcp.tool(
@@ -39,10 +31,6 @@ Use this tool to create a summary file of a large codebase for analysis by an LL
 **Input/Output:**
 - **Input**: A path to a directory.
 - **Output**: A string containing the path to the generated summary file.
-
-**Error Handling:**
-- Raises `ValueError` if `code2prompt` returns an error.
-- Raises `RuntimeError` if the `code2prompt` command is not found.
 
 **Examples:**
 ```python

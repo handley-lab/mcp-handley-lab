@@ -3,11 +3,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
-
 from mcp_handley_lab.common.terminal import launch_interactive
-
-mcp = FastMCP("Mutt Tool")
+from mcp_handley_lab.email.common import mcp
 
 
 def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:

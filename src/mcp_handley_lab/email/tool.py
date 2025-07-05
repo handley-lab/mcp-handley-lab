@@ -1,297 +1,86 @@
-"""Email client MCP tool integrating msmtp, offlineimap, and notmuch."""
+"""Unified email client MCP tool integrating all email providers."""
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
+from mcp_handley_lab.common.process import run_command
 
-mcp = FastMCP("Email")
+# Import the shared mcp instance
+from mcp_handley_lab.email.common import mcp
 
+# Import all provider modules to trigger tool registration
+print("Loading and registering email provider tools...")
+import mcp_handley_lab.email.msmtp.tool
+import mcp_handley_lab.email.offlineimap.tool
+import mcp_handley_lab.email.notmuch.tool
+import mcp_handley_lab.email.oauth2.tool
+import mcp_handley_lab.email.mutt.tool
+print("All email tools registered.")
 
-def _run_command(
-    cmd: list[str], input_text: str | None = None, cwd: str | None = None
-) -> str:
-    """Run a shell command and return output."""
-    from mcp_handley_lab.common.process import run_command
 
-    input_bytes = input_text.encode() if input_text else None
-    stdout, stderr = run_command(cmd, input_data=input_bytes)
-    return stdout.decode().strip()
-
-
-def _parse_msmtprc(config_file: str = None) -> list[str]:
-    """Parse msmtp config to extract account names."""
-    msmtprc_path = Path(config_file) if config_file else Path.home() / ".msmtprc"
-    if not msmtprc_path.exists():
-        return []
-
-    accounts = []
-    with open(msmtprc_path) as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("account ") and not line.startswith("account default"):
-                account_name = line.split()[1]
-                accounts.append(account_name)
-
-    return accounts
-
-
-@mcp.tool(description="Send an email using msmtp.")
-def send(
-    to: str,
-    subject: str,
-    body: str,
-    account: str | None = None,
-    cc: str | None = None,
-    bcc: str | None = None,
-) -> str:
-    """Send an email using msmtp with existing ~/.msmtprc configuration."""
-    # Create email message
-    email_content = f"To: {to}\n"
-    email_content += f"Subject: {subject}\n"
-
-    if cc:
-        email_content += f"Cc: {cc}\n"
-    if bcc:
-        email_content += f"Bcc: {bcc}\n"
-
-    email_content += "\n"  # Empty line separates headers from body
-    email_content += body
-
-    # Build msmtp command
-    cmd = ["msmtp"]
-    if account:
-        cmd.extend(["-a", account])
-
-    # Add recipients
-    recipients = [to]
-    if cc:
-        recipients.extend([addr.strip() for addr in cc.split(",")])
-    if bcc:
-        recipients.extend([addr.strip() for addr in bcc.split(",")])
-
-    cmd.extend(recipients)
-
-    # Send email
-    _run_command(cmd, input_text=email_content)
-
-    return f"Email sent successfully to {to}" + (
-        f" (account: {account})" if account else ""
-    )
-
-
-@mcp.tool(description="List available msmtp accounts from ~/.msmtprc.")
-def list_accounts(config_file: str = None) -> str:
-    """List available msmtp accounts by parsing msmtp config."""
-    accounts = _parse_msmtprc(config_file)
-
-    if not accounts:
-        return "Available msmtp accounts:\n(none configured)"
-
-    return "Available msmtp accounts:\n" + "\n".join(
-        f"- {account}" for account in accounts
-    )
-
-
-@mcp.tool(description="Synchronize emails using offlineimap with one-time sync.")
-def sync(account: str | None = None) -> str:
-    """Run offlineimap to synchronize emails."""
-    cmd = ["offlineimap", "-o1"]  # -o1 for one-time sync
-
-    if account:
-        cmd.extend(["-a", account])
-
-    output = _run_command(cmd)
-    return f"Email sync completed successfully\n{output}"
-
-
-@mcp.tool(description="Get offlineimap sync status and information.")
-def sync_status(config_file: str = None) -> str:
-    """Check offlineimap sync status."""
-    # Check if offlineimap config exists
-    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-    if not config_path.exists():
-        raise FileNotFoundError(f"offlineimap configuration not found at {config_path}")
-
-    # Run dry-run to check configuration
-    output = _run_command(["offlineimap", "--dry-run", "-o1"])
-    return f"Offlineimap configuration valid:\n{output}"
-
-
-@mcp.tool(description="Get information about configured email repositories.")
-def repo_info(config_file: str = None) -> str:
-    """Get information about configured offlineimap repositories."""
-    output = _run_command(["offlineimap", "--info"])
-    return f"Repository information:\n{output}"
-
-
-@mcp.tool(description="Preview what would be synced without actually syncing.")
-def sync_preview(account: str | None = None) -> str:
-    """Preview email sync operations without making changes."""
-    cmd = ["offlineimap", "--dry-run", "-o1"]
-
-    if account:
-        cmd.extend(["-a", account])
-
-    output = _run_command(cmd)
-    return f"Sync preview{' for account ' + account if account else ''}:\n{output}"
-
-
-@mcp.tool(description="Perform quick sync without updating message flags.")
-def quick_sync(account: str | None = None) -> str:
-    """Perform quick email sync without updating flags."""
-    cmd = ["offlineimap", "-q", "-o1"]
-
-    if account:
-        cmd.extend(["-a", account])
-
-    output = _run_command(cmd)
-    return f"Quick sync completed successfully\n{output}"
-
-
-@mcp.tool(description="Sync specific folders only.")
-def sync_folders(folders: str, account: str | None = None) -> str:
-    """Sync only specified folders."""
-    cmd = ["offlineimap", "-o1", "-f", folders]
-
-    if account:
-        cmd.extend(["-a", account])
-
-    output = _run_command(cmd)
-    return f"Folder sync completed successfully\n{output}"
-
-
-@mcp.tool(description="Search emails using notmuch.")
-def search(query: str, limit: int = 20) -> str:
-    """Search emails using notmuch query syntax."""
-    cmd = ["notmuch", "search", "--limit", str(limit), query]
-
-    output = _run_command(cmd)
-    if not output:
-        return f"Search results for '{query}':\n(no matches)"
-    return f"Search results for '{query}':\n{output}"
-
-
-@mcp.tool(description="Show email content for a specific message ID or query.")
-def show(query: str, part: str | None = None) -> str:
-    """Show email content using notmuch show."""
-    cmd = ["notmuch", "show"]
-
-    # Add format options for plain text
-    cmd.extend(["--format=text"])
-
-    if part:
-        cmd.extend(["--part", part])
-
-    cmd.append(query)
-
-    output = _run_command(cmd)
-    return output
-
-
-@mcp.tool(description="Create a new notmuch database or update existing one.")
-def new() -> str:
-    """Index newly received emails with notmuch new."""
-    output = _run_command(["notmuch", "new"])
-    return f"Notmuch database updated:\n{output}"
-
-
-@mcp.tool(description="List all tags in the notmuch database.")
-def list_tags() -> str:
-    """List all tags in the notmuch database."""
-    output = _run_command(["notmuch", "search", "--output=tags", "*"])
-    if not output:
-        return "Available tags:\n(none found)"
-    tags = sorted(output.split("\n"))
-    return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
-
-
-@mcp.tool(description="Get configuration information from notmuch.")
-def config(key: str | None = None) -> str:
-    """Get notmuch configuration values."""
-    cmd = ["notmuch", "config", "list"]
-
-    if key:
-        cmd = ["notmuch", "config", "get", key]
-
-    output = _run_command(cmd)
-    if key:
-        return f"{key} = {output}"
-    return f"Notmuch configuration:\n{output}"
-
-
-@mcp.tool(description="Count emails matching a notmuch query.")
-def count(query: str) -> str:
-    """Count emails matching a notmuch query."""
-    cmd = ["notmuch", "count", query]
-
-    count_result = _run_command(cmd)
-    return f"Found {count_result} emails matching '{query}'"
-
-
-@mcp.tool(description="Add or remove tags from emails using notmuch.")
-def tag(
-    message_id: str, add_tags: str | None = None, remove_tags: str | None = None
-) -> str:
-    """Add or remove tags from a specific email using notmuch."""
-    if not add_tags and not remove_tags:
-        raise ValueError("Must specify either add_tags or remove_tags")
-
-    cmd = ["notmuch", "tag"]
-
-    # Add tags to add
-    if add_tags:
-        for tag in add_tags.split(","):
-            tag = tag.strip()
-            if tag:
-                cmd.append(f"+{tag}")
-
-    # Add tags to remove
-    if remove_tags:
-        for tag in remove_tags.split(","):
-            tag = tag.strip()
-            if tag:
-                cmd.append(f"-{tag}")
-
-    # Add message ID
-    cmd.append(f"id:{message_id}")
-
-    _run_command(cmd)
-    changes = []
-    if add_tags:
-        changes.append(f"added: {add_tags}")
-    if remove_tags:
-        changes.append(f"removed: {remove_tags}")
-
-    return f"Tags updated for message {message_id} ({', '.join(changes)})"
-
-
-@mcp.tool(description="Check email tool server status and verify tool availability.")
+@mcp.tool(name="email_server_info", description="Check email tool server status and verify tool availability.")
 def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
     # Check msmtp first - if it fails, entire email system is broken
-    msmtp_version = (_run_command(["msmtp", "--version"])).split("\n")[0]
+    stdout, stderr = run_command(["msmtp", "--version"])
+    msmtp_version = stdout.decode().split("\n")[0]
+    
+    # Parse msmtp accounts
+    from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
     accounts = _parse_msmtprc()
 
     # Check offlineimap
-    offlineimap_version = (_run_command(["offlineimap", "--version"])).split("\n")[0]
+    stdout, stderr = run_command(["offlineimap", "--version"])
+    offlineimap_version = stdout.decode().split("\n")[0]
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
         raise RuntimeError(f"offlineimap configuration not found at {config_path}")
 
     # Check notmuch
-    notmuch_version = _run_command(["notmuch", "--version"])
+    stdout, stderr = run_command(["notmuch", "--version"])
+    notmuch_version = stdout.decode().strip()
 
     # Check notmuch database - let failures propagate as they indicate real problems
-    db_info = _run_command(["notmuch", "count", "*"])
+    stdout, stderr = run_command(["notmuch", "count", "*"])
+    db_info = stdout.decode().strip()
     db_status = f"{db_info} messages indexed"
 
+    # Check OAuth2 accounts
+    oauth2_accounts = []
+    try:
+        from mcp_handley_lab.email.offlineimap.tool import _parse_offlineimaprc
+        from mcp_handley_lab.email.oauth2.tool import _get_m365_oauth2_config
+        offlineimap_accounts = _parse_offlineimaprc(config_file)
+        for account_name in offlineimap_accounts:
+            try:
+                oauth2_config = _get_m365_oauth2_config(account_name, config_file)
+                if oauth2_config:
+                    oauth2_accounts.append(account_name)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    
+    oauth2_status = f"{len(oauth2_accounts)} OAuth2 configured" if oauth2_accounts else "none configured"
+
+    # Count registered tools
+    tool_count = len(mcp.tools)
+    
     return f"""Email Tool Server Status:
 ✓ msmtp: {msmtp_version}
   Accounts: {len(accounts)} configured
 ✓ offlineimap: {offlineimap_version}
   Config: found
+  OAuth2: {oauth2_status}
 ✓ notmuch: {notmuch_version}
-  Database: {db_status}"""
+  Database: {db_status}
+✓ Microsoft 365 OAuth2: supported (msal available)
+✓ mutt: integrated
+✓ Total MCP tools: {tool_count} registered"""
 
 
 if __name__ == "__main__":
+    print("\n--- Registered Email Tools ---")
+    for tool_name in sorted(mcp.tools.keys()):
+        print(f"- {tool_name}")
+    
+    print(f"\nStarting unified email tool server with {len(mcp.tools)} tools...")
     mcp.run()

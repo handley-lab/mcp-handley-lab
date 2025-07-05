@@ -36,21 +36,24 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 
 ## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
 
-**BEFORE ANY COMMIT OR PR: ALWAYS BUMP VERSION IN BOTH FILES**
+**BEFORE ANY COMMIT OR PR: ALWAYS BUMP VERSION USING THE AUTOMATED SCRIPT**
 
 ```bash
-# 1. Check current version
-grep version pyproject.toml
-grep pkgver PKGBUILD
+# Use the automated version bump script with semantic versioning
+python scripts/bump_version.py beta    # For development iterations (0.0.0b5 → 0.0.0b6)
+python scripts/bump_version.py patch   # For bug fixes (0.0.0b5 → 0.0.1)
+python scripts/bump_version.py minor   # For new features (0.0.0b5 → 0.1.0)  
+python scripts/bump_version.py major   # For breaking changes (0.0.0b5 → 1.0.0)
 
-# 2. Bump version in BOTH files (example: 0.0.0a19 → 0.0.0a20)
-# Edit pyproject.toml: version = "0.0.0a20"  
-# Edit PKGBUILD: pkgver=0.0.0a20
+# For release process:
+python scripts/bump_version.py rc      # Release candidate (0.0.0b5 → 0.0.0rc1)
+python scripts/bump_version.py release # Final release (0.0.0rc1 → 0.0.0)
 
-# 3. Commit with version bump
-git add pyproject.toml PKGBUILD
-git commit -m "Bump version to 0.0.0a20"
+# Test first with dry-run:
+python scripts/bump_version.py patch --dry-run
 ```
+
+**The script automatically updates both pyproject.toml and PKGBUILD** - never edit version numbers manually.
 
 **GitHub CI WILL FAIL** if versions don't match or aren't bumped from master. This is enforced automatically.
 
@@ -101,6 +104,7 @@ git commit --no-verify -m "bypass hooks"
 - **Use standard library where possible**: Prefer `mimetypes`, `pathlib.Path.rglob()`, `subprocess` over manual implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
 - **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
+- **Always use absolute imports**: NEVER use relative imports (`from .module import`) - always use absolute imports (`from mcp_handley_lab.module import`)
 
 ### ⚠️ CRITICAL ERROR HANDLING RULE
 

@@ -27,33 +27,29 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"That's a great question! Let's figure
-        out what 6 x 7 is step by step.\\n\\n**Step 1: Understand what multiplication
-        means.**\\nWhen we say \\\"6 x 7,\\\" it means we want to find the total if
-        we have 6 groups of 7, or 7 groups of 6.\\n\\n**Step 2: Use repeated addition
-        (one way to think about it).**\\nIf we think of 6 groups of 7, we can add
-        the number 7 six times:\\n7 + 7 + 7 + 7 + 7 + 7\\n\\nLet's add them up:\\n*
-        \  7 + 7 = 14\\n*   14 + 7 = 21\\n*   21 + 7 = 28\\n*   28 + 7 = 35\\n*   35
-        + 7 = 42\\n\\n**Step 3: Another way to break it down (using facts you might
-        know).**\\nYou can also think of it as:\\n*   (6 x 5) + (6 x 2)\\n*   We know
-        6 x 5 = 30\\n*   And we know 6 x 2 = 12\\n*   So, 30 + 12 = 42\\n\\n**Answer:**\\nTherefore,
-        6 x 7 = **42**\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
-        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
-        {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\": 301,\n    \"totalTokenCount\":
-        815,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 32\n      }\n    ],\n    \"thoughtsTokenCount\": 482\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"ADJmaPTtCdCGxs0PpoPC8As\"\n}\n"
+        [\n          {\n            \"text\": \"Let's figure out what 6 multiplied
+        by 7 is!\\n\\nWe are looking for the answer to:\\n$6 \\\\times 7$\\n\\nThis
+        means we want to add the number 6, seven times:\\n$6 + 6 + 6 + 6 + 6 + 6 +
+        6$\\n\\nOr, we can think of it as adding the number 7, six times:\\n$7 + 7
+        + 7 + 7 + 7 + 7$\\n\\nEither way, when we do the addition, we find that:\\n$6
+        \\\\times 7 = 42$\\n\\nSo, 6 times 7 is 42!\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 32,\n    \"candidatesTokenCount\":
+        144,\n    \"totalTokenCount\": 279,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 32\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 103\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"YCBpaMiOOsyD7M8P7vS1uQ8\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:32:16 GMT
+      - Sat, 05 Jul 2025 12:53:52 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=4242
+      - gfet4t7; dur=1481
       Transfer-Encoding:
       - chunked
       Vary:
@@ -67,26 +63,22 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1274'
+      - '909'
     status:
       code: 200
       message: OK
 - request:
     body: '{"contents": [{"parts": [{"text": "Remember that I''m learning multiplication
-      tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "That''s a great
-      question! Let''s figure out what 6 x 7 is step by step.\n\n**Step 1: Understand
-      what multiplication means.**\nWhen we say \"6 x 7,\" it means we want to find
-      the total if we have 6 groups of 7, or 7 groups of 6.\n\n**Step 2: Use repeated
-      addition (one way to think about it).**\nIf we think of 6 groups of 7, we can
-      add the number 7 six times:\n7 + 7 + 7 + 7 + 7 + 7\n\nLet''s add them up:\n*   7
-      + 7 = 14\n*   14 + 7 = 21\n*   21 + 7 = 28\n*   28 + 7 = 35\n*   35 + 7 = 42\n\n**Step
-      3: Another way to break it down (using facts you might know).**\nYou can also
-      think of it as:\n*   (6 x 5) + (6 x 2)\n*   We know 6 x 5 = 30\n*   And we know
-      6 x 2 = 12\n*   So, 30 + 12 = 42\n\n**Answer:**\nTherefore, 6 x 7 = **42**"}],
-      "role": "model"}, {"parts": [{"text": "Now test me: what multiplication problem
-      did I just ask about?"}], "role": "user"}], "systemInstruction": {"parts": [{"text":
-      "You are a math tutor who always shows your work step by step"}], "role": "user"},
-      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
+      tables. What is 6 x 7?"}], "role": "user"}, {"parts": [{"text": "Let''s figure
+      out what 6 multiplied by 7 is!\n\nWe are looking for the answer to:\n$6 \\times
+      7$\n\nThis means we want to add the number 6, seven times:\n$6 + 6 + 6 + 6 +
+      6 + 6 + 6$\n\nOr, we can think of it as adding the number 7, six times:\n$7
+      + 7 + 7 + 7 + 7 + 7$\n\nEither way, when we do the addition, we find that:\n$6
+      \\times 7 = 42$\n\nSo, 6 times 7 is 42!"}], "role": "model"}, {"parts": [{"text":
+      "Now test me: what multiplication problem did I just ask about?"}], "role":
+      "user"}], "systemInstruction": {"parts": [{"text": "You are a math tutor who
+      always shows your work step by step"}], "role": "user"}, "generationConfig":
+      {"temperature": 0.7, "maxOutputTokens": 65536}}'
     headers:
       accept:
       - '*/*'
@@ -95,7 +87,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1191'
+      - '826'
       content-type:
       - application/json
       host:
@@ -109,25 +101,25 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"You just asked about **6 x 7**!\\n\\nIt's
-        great to see you reviewing what we just covered. Keep up the excellent work!\"\n
-        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
-        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        348,\n    \"candidatesTokenCount\": 31,\n    \"totalTokenCount\": 419,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 348\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 40\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"ATJmaLLoBOuHxs0P0vj1mQI\"\n}\n"
+        [\n          {\n            \"text\": \"You just asked about the multiplication
+        problem:\\n\\n$6 \\\\times 7$\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 191,\n    \"candidatesTokenCount\":
+        16,\n    \"totalTokenCount\": 253,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 191\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 46\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"YSBpaNeGKurdnsEPn4bBgAM\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:32:17 GMT
+      - Sat, 05 Jul 2025 12:53:53 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=770
+      - gfet4t7; dur=692
       Transfer-Encoding:
       - chunked
       Vary:
@@ -141,7 +133,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '661'
+      - '610'
     status:
       code: 200
       message: OK

@@ -27,27 +27,28 @@ interactions:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"Based on the image provided, the dominant
-        color is a bright, vibrant **yellow**.\\n\\nIt is the only color present,
-        completely filling the entire image. The specific shade is a pure, electric
-        yellow, with no other hues or shades visible.\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        272,\n    \"candidatesTokenCount\": 49,\n    \"totalTokenCount\": 739,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n
-        \     },\n      {\n        \"modality\": \"IMAGE\",\n        \"tokenCount\":
-        258\n      }\n    ],\n    \"thoughtsTokenCount\": 418\n  },\n  \"modelVersion\":
-        \"gemini-2.5-pro\",\n  \"responseId\": \"7DFmaK-aAd-yxN8PsfuGmAI\"\n}\n"
+        color is a very bright, vibrant, and pure **yellow**.\\n\\nThe entire image
+        is a solid block of this single color, making it unequivocally the dominant\u2014and
+        only\u2014color present. It's a highly saturated shade, often referred to
+        as lemon yellow or electric yellow.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 272,\n    \"candidatesTokenCount\":
+        64,\n    \"totalTokenCount\": 750,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n      },\n      {\n
+        \       \"modality\": \"IMAGE\",\n        \"tokenCount\": 258\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 414\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"TiBpaMqfJ66znsEPyIvviQQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:31:56 GMT
+      - Sat, 05 Jul 2025 12:53:34 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=6915
+      - gfet4t7; dur=6669
       Transfer-Encoding:
       - chunked
       Vary:
@@ -61,7 +62,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '850'
+      - '919'
     status:
       code: 200
       message: OK

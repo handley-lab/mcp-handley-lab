@@ -9,10 +9,10 @@ from mcp_handley_lab.common.process import run_command
 mcp = FastMCP("Code2Prompt Tool")
 
 
-async def _run_code2prompt(args: list[str]) -> str:
+def _run_code2prompt(args: list[str]) -> str:
     """Runs a code2prompt command."""
     cmd = ["code2prompt"] + args
-    stdout, stderr = await run_command(cmd)
+    stdout, stderr = run_command(cmd)
     return stdout.decode("utf-8").strip()
 
 
@@ -52,7 +52,7 @@ generate_prompt(
 )
 ```"""
 )
-async def generate_prompt(
+def generate_prompt(
     path: str,
     output_file: str | None = None,
     include: list[str] | None = None,
@@ -133,7 +133,7 @@ async def generate_prompt(
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
 
     # Run code2prompt
-    await _run_code2prompt(args)
+    _run_code2prompt(args)
 
     # Get file size for reporting
     output_path = Path(output_file)
@@ -145,9 +145,9 @@ async def generate_prompt(
 @mcp.tool(
     description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands."
 )
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and code2prompt version."""
-    version = await _run_code2prompt(["--version"])
+    version = _run_code2prompt(["--version"])
 
     return f"""Code2Prompt Tool Server Status
 ==============================

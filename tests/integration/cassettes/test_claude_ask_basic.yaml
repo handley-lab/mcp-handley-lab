@@ -19,11 +19,11 @@ interactions:
       host:
       - api.anthropic.com
       user-agent:
-      - AsyncAnthropic/Python 0.56.0
+      - Anthropic/Python 0.56.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -44,16 +44,16 @@ interactions:
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01CR1NmXK4xe8a5RDTtJbujE","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"10"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5,"service_tier":"standard"}}'
+      string: '{"id":"msg_01WPRNVfNuhj8DvbsoBWpN38","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"10"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 9594aea369fecc85-MAN
+      - 95a70e80486c3336-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:31:16 GMT
+      - Sat, 05 Jul 2025 13:02:26 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -67,31 +67,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-03T07:31:16Z'
+      - '2025-07-05T13:02:26Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-03T07:31:16Z'
+      - '2025-07-05T13:02:26Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-03T07:31:15Z'
+      - '2025-07-05T13:02:25Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-03T07:31:16Z'
+      - '2025-07-05T13:02:26Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
       - '327'
       request-id:
-      - req_011CQjhFKaUUovM8UM8sC4qg
+      - req_011CQov7sasa46WkCgByUMpt
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

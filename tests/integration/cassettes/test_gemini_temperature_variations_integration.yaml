@@ -31,18 +31,18 @@ interactions:
         8,\n    \"candidatesTokenCount\": 6,\n    \"totalTokenCount\": 38,\n    \"promptTokensDetails\":
         [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 8\n      }\n
         \   ],\n    \"thoughtsTokenCount\": 24\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"AzJmaNyIIqu6xN8P886WgAc\"\n}\n"
+        \ \"responseId\": \"ZCBpaNyACsH9nsEPj9GkwAM\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:32:19 GMT
+      - Sat, 05 Jul 2025 12:53:56 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=364
+      - gfet4t7; dur=374
       Transfer-Encoding:
       - chunked
       Vary:

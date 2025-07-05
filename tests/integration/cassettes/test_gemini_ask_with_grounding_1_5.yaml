@@ -1,9 +1,8 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is 3+3? Answer with just the number."}],
-      "role": "user"}, {"parts": [{"text": "6"}], "role": "model"}, {"parts": [{"text":
-      "What is the current date today?"}], "role": "user"}], "tools": [{"googleSearchRetrieval":
-      {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192}}'
+    body: '{"contents": [{"parts": [{"text": "What is the current date today?"}],
+      "role": "user"}], "tools": [{"googleSearchRetrieval": {}}], "generationConfig":
+      {"temperature": 0.7, "maxOutputTokens": 8192}}'
     headers:
       accept:
       - '*/*'
@@ -12,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '326'
+      - '197'
       content-type:
       - application/json
       host:
@@ -26,21 +25,21 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Today is Thursday, July 3, 2025. Please
-        note that this is the current date as of today, and it will change tomorrow.\\n\"\n
-        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
-        \"STOP\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n
-        \         \"renderedContent\": \"\\u003cstyle\\u003e\\n.container {\\n  align-items:
-        center;\\n  border-radius: 8px;\\n  display: flex;\\n  font-family: Google
-        Sans, Roboto, sans-serif;\\n  font-size: 14px;\\n  line-height: 20px;\\n  padding:
-        8px 12px;\\n}\\n.chip {\\n  display: inline-block;\\n  border: solid 1px;\\n
-        \ border-radius: 16px;\\n  min-width: 14px;\\n  padding: 5px 16px;\\n  text-align:
-        center;\\n  user-select: none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color:
-        transparent;\\n}\\n.carousel {\\n  overflow: auto;\\n  scrollbar-width: none;\\n
-        \ white-space: nowrap;\\n  margin-right: -12px;\\n}\\n.headline {\\n  display:
-        flex;\\n  margin-right: 4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient
-        {\\n  position: absolute;\\n  transform: translate(3px, -9px);\\n  height:
-        36px;\\n  width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
+        [\n          {\n            \"text\": \"Today is Saturday, July 5, 2025.  This
+        information is current as of today's date.\\n\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n          \"renderedContent\":
+        \"\\u003cstyle\\u003e\\n.container {\\n  align-items: center;\\n  border-radius:
+        8px;\\n  display: flex;\\n  font-family: Google Sans, Roboto, sans-serif;\\n
+        \ font-size: 14px;\\n  line-height: 20px;\\n  padding: 8px 12px;\\n}\\n.chip
+        {\\n  display: inline-block;\\n  border: solid 1px;\\n  border-radius: 16px;\\n
+        \ min-width: 14px;\\n  padding: 5px 16px;\\n  text-align: center;\\n  user-select:
+        none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color: transparent;\\n}\\n.carousel
+        {\\n  overflow: auto;\\n  scrollbar-width: none;\\n  white-space: nowrap;\\n
+        \ margin-right: -12px;\\n}\\n.headline {\\n  display: flex;\\n  margin-right:
+        4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient {\\n
+        \ position: absolute;\\n  transform: translate(3px, -9px);\\n  height: 36px;\\n
+        \ width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
         {\\n    background-color: #fafafa;\\n    box-shadow: 0 0 0 1px #0000000f;\\n
         \ }\\n  .headline-label {\\n    color: #1f1f1f;\\n  }\\n  .chip {\\n    background-color:
         #ffffff;\\n    border-color: #d2d2d2;\\n    color: #5e5e5e;\\n    text-decoration:
@@ -92,44 +91,44 @@ interactions:
         \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
         class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
         \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
-        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEGCnqioTnwO1W0e81th65LVeA7P_66rGcSBPfwKsXQ72CzmW0JDHnbi3iYEaqKy6XfId4B-GfylpXBn9OSvUPu-sMHEqnCDDPrbAFEdkQVeOr2QN-59YFw2ofsFiuQ8xDBrwS3YMjU4xUfVZMrp7LyhO66YtlLY16TSmhISy9y3DZOR3HSQPghxbQjdKTVgbahvS0ZkGxywqFlxX_IHhJcsQ==\\\"\\u003ewhat
-        is the current date today\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGnm3G8CXW-WtGUIB2aMBbVIF1o-Va_UFLzUErxo_CABFemdtWWmZGMBZRLC7vF57XPcSPuKuGCtWNdXDxDZDr69n-uXvHHXosSrHNz_t9yKTkbWkzGyNeYmKXtFyjdU6w9Y_21fJvTwFvFuhFQJVeulFiXsx02XGh7JOKvTIzNEXmiuHnyIDKdtRQBy7a2-hjQc22UGy0I5Mk=\\\"\\u003ewhat
+        is today&#39;s date\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
         \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
-        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGZ4hICUPJSKqctQGqmmWdJrJVAV7zVAM0fmnEooOoz9NgCCDaNhhGQ7ZMx0gSc23nOG4k0A_cq2BgxRZfP7otWgLFLrySP_ZuisZA6J2atjHvp3ETEDw2Oi9fdefL37MnXSTgg\",\n
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEx54Xapas6IqX20LHya7So8tiX8yYhYBYxnD6QCo3bFjJ6jL7-FZUUTgoom2IcRcfZ8u35kgQqi8Fjf2pZcFBf2RTF8C6AXBMD33t-CteSEyQmZT6B14zLF9LJWTqDWpIP2krW\",\n
         \             \"title\": \"saturdaygift.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2rs54it-Ql3zuLnqQ5N56Ls_ShQIJud5pm-SLS7AHdMWuKg8eKSuhBaLRGcUB9zNtb2Py303cVPwecgErmcfREDdUjmTxvxNXFwjMfd8G6I8PLSc=\",\n
-        \             \"title\": \"todaysdate365.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFFx697xiNe6qXJcNDYB4AQY6L7uM6MvRsrAjAgYBJTvWyR2QF0eeDgDN2Eo99Ao1qq0kQ4I5YSLGlVW7bGeS95IlwHqg_F1dWTa4aZ0BE4txJR4yqh\",\n
-        \             \"title\": \"todaysdatenow.com\"\n            }\n          }\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHIsH4ocEm7GarMmU2EV-6ZYgQYnw_B12NAcUje6x4GvLUL6hkNzLrCh19EuXSKvB9xgGyLruEgWRodWoFrcaFg9koDS5fZi0u-rQnQERb-rM-FevMV75gL-0u6CoQuEM2SURvOrnlNv5b8Wr7LqA==\",\n
+        \             \"title\": \"inchcalculator.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEKTB8HwfqDp3NmQSRdxQQJoqRlMStcQmVh9F_hc9P3r-UhvXUu47TTp__k0akVIhJKGPg0n2IMhSmcwf664B7FwYT9omTMfqHdZJvHV8MGBzlnV_vi8q5FV99D4mvbwyXP9g==\",\n
+        \             \"title\": \"ourhappycorner.com\"\n            }\n          }\n
         \       ],\n        \"groundingSupports\": [\n          {\n            \"segment\":
-        {\n              \"endIndex\": 32,\n              \"text\": \"Today is Thursday,
-        July 3, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
+        {\n              \"endIndex\": 32,\n              \"text\": \"Today is Saturday,
+        July 5, 2025.\"\n            },\n            \"groundingChunkIndices\": [\n
         \             0,\n              1\n            ],\n            \"confidenceScores\":
-        [\n              0.9447099,\n              0.98987246\n            ]\n          },\n
-        \         {\n            \"segment\": {\n              \"startIndex\": 33,\n
-        \             \"endIndex\": 116,\n              \"text\": \"Please note that
-        this is the current date as of today, and it will change tomorrow.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              2\n            ],\n
-        \           \"confidenceScores\": [\n              0.628437\n            ]\n
-        \         }\n        ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
-        [\n          \"what is the current date today\"\n        ]\n      },\n      \"avgLogprobs\":
-        -0.068235975323301376\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        21,\n    \"candidatesTokenCount\": 33,\n    \"totalTokenCount\": 54,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 21\n
-        \     }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
-        \"TEXT\",\n        \"tokenCount\": 33\n      }\n    ]\n  },\n  \"modelVersion\":
-        \"gemini-1.5-pro-002\",\n  \"responseId\": \"2TFmaOXDOaGV7dcP5Ivg2AY\"\n}\n"
+        [\n              0.9793817,\n              0.9575374\n            ]\n          },\n
+        \         {\n            \"segment\": {\n              \"startIndex\": 34,\n
+        \             \"endIndex\": 81,\n              \"text\": \"This information
+        is current as of today's date.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              2,\n              0\n            ],\n            \"confidenceScores\":
+        [\n              0.60957557,\n              0.7075813\n            ]\n          }\n
+        \       ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
+        [\n          \"what is today's date\"\n        ]\n      },\n      \"avgLogprobs\":
+        -0.024191361886483652\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        7,\n    \"candidatesTokenCount\": 27,\n    \"totalTokenCount\": 34,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 7\n      }\n
+        \   ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
+        \"TEXT\",\n        \"tokenCount\": 27\n      }\n    ]\n  },\n  \"modelVersion\":
+        \"gemini-1.5-pro-002\",\n  \"responseId\": \"OyBpaMG-E7CR7dcP5uj0qQc\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:31:39 GMT
+      - Sat, 05 Jul 2025 12:53:16 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1774
+      - gfet4t7; dur=1523
       Transfer-Encoding:
       - chunked
       Vary:
@@ -143,7 +142,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '7890'
+      - '7889'
     status:
       code: 200
       message: OK

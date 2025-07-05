@@ -3,7 +3,7 @@ import base64
 from pathlib import Path
 from typing import Any
 
-from anthropic import AsyncAnthropic
+from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
 
 from mcp_handley_lab.common.config import settings
@@ -23,7 +23,7 @@ from mcp_handley_lab.llm.shared import process_llm_request
 mcp = FastMCP("Claude Tool")
 
 # Configure Claude client - fail fast if API key is invalid/missing
-client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+client = Anthropic(api_key=settings.anthropic_api_key)
 
 # Load model configurations from YAML
 MODEL_CONFIGS = build_model_configs_dict("claude")
@@ -97,7 +97,7 @@ def _convert_history_to_claude_format(
     return claude_history
 
 
-async def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
+def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
     """Resolve file inputs to text content for Claude.
 
     Claude has a large context window (200K tokens), so we can include most files directly.
@@ -210,7 +210,7 @@ def _resolve_images_to_content_blocks(
     return image_blocks
 
 
-async def _claude_generation_adapter(
+def _claude_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -233,7 +233,7 @@ async def _claude_generation_adapter(
     )
 
     # Resolve file contents
-    file_content = await _resolve_files(files)
+    file_content = _resolve_files(files)
 
     # Build user content
     user_content = prompt
@@ -260,7 +260,7 @@ async def _claude_generation_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = await client.messages.create(**request_params)
+    response = client.messages.create(**request_params)
 
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
@@ -272,7 +272,7 @@ async def _claude_generation_adapter(
     }
 
 
-async def _claude_image_analysis_adapter(
+def _claude_image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -325,7 +325,7 @@ async def _claude_image_analysis_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = await client.messages.create(**request_params)
+    response = client.messages.create(**request_params)
 
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
@@ -406,7 +406,7 @@ ask(
 ```"""
 )
 @require_client
-async def ask(
+def ask(
     prompt: str,
     output_file: str,
     agent_name: str | bool | None = None,
@@ -418,7 +418,7 @@ async def ask(
     """Ask Claude a question with optional persistent memory."""
     # Resolve model alias to full model name for consistent pricing
     resolved_model = _resolve_model_alias(model)
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -506,7 +506,7 @@ analyze_image(
 ```"""
 )
 @require_client
-async def analyze_image(
+def analyze_image(
     prompt: str,
     output_file: str,
     image_data: str | None = None,
@@ -517,7 +517,7 @@ async def analyze_image(
     max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with Claude vision model."""
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -565,7 +565,7 @@ list_models()
 # - "Which models have cache pricing?" → All models (5-min and 1-hour tiers)
 ```"""
 )
-async def list_models() -> str:
+def list_models() -> str:
     """List available Claude models with detailed information."""
     # Use YAML-based model listing
     return format_model_listing("claude")
@@ -590,10 +590,10 @@ server_info()
 ```"""
 )
 @require_client
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and Claude configuration."""
     # Test API by making a simple request
-    await client.messages.create(
+    client.messages.create(
         model="claude-3-5-haiku-20241022",
         messages=[{"role": "user", "content": "Hello"}],
         max_tokens=10,

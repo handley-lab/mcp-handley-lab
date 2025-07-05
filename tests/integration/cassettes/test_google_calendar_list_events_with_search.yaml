@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:40 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -68,7 +68,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nzqix03AVvLs6ilcH0J8KNUwW7KFzuW5_re23KMV8YwoynRUMFPDJ5ctyrtOn5lemNNCe1GuyzesMCmaUNAOmoe-uu0txTC6Q_BPXGRxsrvU_Z8s-6AyimGBKwIEEP0MkYSANt7obvNx_gYd5SOIxxxxuD2DDw6bbtiuQaCgYKARASARcSFQHGX2MimVhgHTZmIrOFtdoF999h1A0177\",\n
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6NxTF-sa1B9H1DSxzJJL0aWYy3P5cNtloui4YLHgJN0FCF-SYdwz_eTtW-idxh0l9Pm_l-wTnrFLG5I6htllA63hsZM_K44A_mfm-SHoBDt2Lbk_pc2xNunfEn5TRNqrA0zz4fAL39_G3JtZkgnk4ujRaj3vrKlx_7wywwaCgYKAZcSARcSFQHGX2Mifhzdz_U9NZ2Z0oXzg1WCdg0177\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 03 Jul 2025 07:33:40 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -120,8 +120,8 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33fo7s5aiqg8s0o\\\"\",\n
-        \"nextSyncToken\": \"CN-D8KqWoI4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32ftdvkis6ios0o\\\"\",\n
+        \"nextSyncToken\": \"CJ_W_pLhpY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
@@ -165,9 +165,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Expires:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -206,9 +206,9 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/williamjameshandley.arxiv%40gmail.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33fo7s5aiqg8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32ftdvkis6ios0o\\\"\",\n
         \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-07-03T07:33:38.543Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"updated\": \"2025-07-05T12:51:39.802Z\",\n \"timeZone\": \"Europe/London\",\n
         \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
         \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
     headers:
@@ -219,9 +219,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Expires:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -260,7 +260,7 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/calendars/en.uk%23holiday%40group.v.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p328ev8lciqg8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33ac9e4ks6ios0o\\\"\",\n
         \"summary\": \"Holidays in United Kingdom\",\n \"description\": \"Holidays
         and Observances in United Kingdom\",\n \"updated\": \"2025-05-02T13:55:42.356Z\",\n
         \"timeZone\": \"Europe/London\",\n \"accessRole\": \"reader\",\n \"defaultReminders\":
@@ -273,9 +273,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Expires:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:42 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -327,9 +327,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:43 GMT
       Expires:
-      - Thu, 03 Jul 2025 07:33:41 GMT
+      - Sat, 05 Jul 2025 12:51:43 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -381,9 +381,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:33:42 GMT
+      - Sat, 05 Jul 2025 12:51:43 GMT
       Expires:
-      - Thu, 03 Jul 2025 07:33:42 GMT
+      - Sat, 05 Jul 2025 12:51:43 GMT
       Server:
       - ESF
       Transfer-Encoding:

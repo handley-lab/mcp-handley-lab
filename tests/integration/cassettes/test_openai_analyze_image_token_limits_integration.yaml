@@ -18,11 +18,11 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -32,7 +32,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '1'
+      - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -41,8 +41,8 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8ku56hVulpFhAtdqNDl5gbmGd2Q\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528084,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-BpweMaX3CuZBfShAHabipaK8PepTd\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719878,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"Yellow.\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
@@ -54,13 +54,13 @@ interactions:
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b3bf39ec79bc-LHR
+      - 95a6fe36caa5b3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:34:44 GMT
+      - Sat, 05 Jul 2025 12:51:18 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -78,13 +78,13 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '289'
+      - '254'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '268'
+      - '237'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -104,7 +104,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_af5f572c4c11ac27b55ce68be8034f92
+      - req_e507d9cc8ab10e01d77618995465f15b
     status:
       code: 200
       message: OK

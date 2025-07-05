@@ -18,11 +18,11 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -32,7 +32,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '1'
+      - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -41,10 +41,10 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8kUZ2OrsObXQCIyI1VezREwUgEx\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528058,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-Bpwe1TyLQAKJsmdTKBSXslGpe86DF\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719857,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The text in the image reads \\\"WORLD\\\".\",\n
+        \"assistant\",\n        \"content\": \"The text in the image says \\\"WORLD\\\".\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
         null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
         281,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 290,\n    \"prompt_tokens_details\":
@@ -54,13 +54,13 @@ interactions:
         \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b31aae2c26aa-MAN
+      - 95a6fdaf2ae1b3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:34:18 GMT
+      - Sat, 05 Jul 2025 12:50:58 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -74,17 +74,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '841'
+      - '840'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '552'
+      - '696'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '470'
+      - '442'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -104,7 +104,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_76de94d9a2722cad35f9a7bf1c50ecdd
+      - req_7eb43e9e9a0e7f33298f460420aae039
     status:
       code: 200
       message: OK

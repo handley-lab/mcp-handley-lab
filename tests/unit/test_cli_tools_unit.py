@@ -2,7 +2,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, mock_open, patch
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 from mcp_handley_lab.code2prompt.tool import generate_prompt
@@ -25,23 +25,18 @@ class TestJQUnit:
             ('{"array": [1,2,3]}', ".array[0]", "1"),
         ],
     )
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_parameterized(self, mock_subprocess, data, filter, expected):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (expected.encode(), b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.jq.tool.run_command")
+    def test_query_parameterized(self, mock_run_command, data, filter, expected):
+        # Mock the run_command function
+        mock_run_command.return_value = (expected.encode(), b"")
 
-        result = await query(data=data, filter=filter)
+        result = query(data=data, filter=filter)
         assert expected in result
-        mock_subprocess.assert_called()
+        mock_run_command.assert_called()
 
-    @pytest.mark.asyncio
-    async def test_edit_validation(self):
+    def test_edit_validation(self):
         with pytest.raises(ValueError):
-            await edit(file_path="", filter=".test")
+            edit(file_path="", filter=".test")
 
         # Create a temporary file for filter validation
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -50,96 +45,75 @@ class TestJQUnit:
 
             try:
                 with pytest.raises(RuntimeError):
-                    await edit(file_path=f.name, filter="")
+                    edit(file_path=f.name, filter="")
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    async def test_validate_valid_json(self):
-        result = await validate(data='{"valid": true}')
+    def test_validate_valid_json(self):
+        result = validate(data='{"valid": true}')
         assert "valid" in result.lower()
 
-    @pytest.mark.asyncio
-    async def test_validate_invalid_json(self):
+    def test_validate_invalid_json(self):
         with pytest.raises(ValueError):
-            await validate(data='{"invalid": json}')
+            validate(data='{"invalid": json}')
 
-    @pytest.mark.asyncio
-    async def test_format_compact(self):
-        result = await jq_format(data='{"compact": true}', compact=True)
+    def test_format_compact(self):
+        result = jq_format(data='{"compact": true}', compact=True)
         assert "compact" in result
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_edit_success(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b'{"test": "new_value"}', b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_edit_success(self, mock_run_jq):
+        # Mock the synchronous function
+        mock_run_jq.return_value = '{"test": "new_value"}'
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"test": "value"}, f)
             f.flush()
 
             try:
-                result = await edit(file_path=f.name, filter='.test = "new_value"')
+                result = edit(file_path=f.name, filter='.test = "new_value"')
                 assert "success" in result.lower() or "updated" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_compact_raw(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"value", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_query_compact_raw(self, mock_run_jq):
+        # Mock the synchronous function
+        mock_run_jq.return_value = "value"
 
-        result = await query(
-            '{"test": "value"}', ".test", compact=True, raw_output=True
-        )
+        result = query('{"test": "value"}', ".test", compact=True, raw_output=True)
         assert "value" in result
 
         # Verify compact and raw flags were used
-        call_args = mock_subprocess.call_args[0]
+        call_args = mock_run_jq.call_args[0][0]
         assert "-c" in call_args
         assert "-r" in call_args
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_file_path(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b'"value"', b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_query_file_path(self, mock_run_jq):
+        # Mock the synchronous function
+        mock_run_jq.return_value = '"value"'
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             f.write('{"test": "value"}')
             f.flush()
 
             try:
-                result = await query(f.name, ".test")
+                result = query(f.name, ".test")
                 assert '"value"' in result
 
                 # Verify file path was passed to jq
-                call_args = mock_subprocess.call_args[0]
+                call_args = mock_run_jq.call_args[0][0]
                 assert f.name in call_args
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_read_file(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b'{"formatted": true}', b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_read_file(self, mock_run_jq):
+        # Mock the synchronous function
+        mock_run_jq.return_value = '{"formatted": true}'
 
-        result = await read("/tmp/test.json", ".formatted")
+        result = read("/tmp/test.json", ".formatted")
         assert "formatted" in result
 
     @pytest.mark.parametrize(
@@ -156,94 +130,77 @@ class TestJQUnit:
             ("[]", ".[10]", "Cannot index array with string", RuntimeError),
         ],
     )
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_jq_error_handling_parameterized(
-        self, mock_subprocess, data, filter, error_msg, expected_exception
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_jq_error_handling_parameterized(
+        self, mock_run_jq, data, filter, error_msg, expected_exception
     ):
-        # Mock the async subprocess to return an error
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"", error_msg.encode())
-        mock_process.returncode = 1
-        mock_subprocess.return_value = mock_process
+        # Mock the synchronous function to raise an error
+        mock_run_jq.side_effect = RuntimeError(
+            f"Command failed with exit code 1: {error_msg}"
+        )
 
         with pytest.raises(
             expected_exception, match="Command failed with exit code 1:"
         ):
-            await query(data, filter)
+            query(data, filter)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_with_dict_input(self, mock_subprocess):
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_query_with_dict_input(self, mock_run_jq):
         """Test query with dict input (line 20)."""
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b'"Alice"', b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+        # Mock the synchronous function
+        mock_run_jq.return_value = '"Alice"'
 
         # Pass dict directly (FastMCP auto-parses JSON to dict)
-        result = await query({"name": "Alice"}, ".name")
+        result = query({"name": "Alice"}, ".name")
         assert '"Alice"' in result
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_with_list_input(self, mock_subprocess):
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_query_with_list_input(self, mock_run_jq):
         """Test query with list input (line 20)."""
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"3", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+        # Mock the synchronous function
+        mock_run_jq.return_value = "3"
 
         # Pass list directly (FastMCP auto-parses JSON to list)
-        result = await query([1, 2, 3], "length")
+        result = query([1, 2, 3], "length")
         assert "3" in result
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_query_with_non_string_fallback(self, mock_subprocess):
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_query_with_non_string_fallback(self, mock_run_jq):
         """Test query with non-string data fallback (line 30)."""
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"123", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+        # Mock the synchronous function
+        mock_run_jq.return_value = "123"
 
         # Pass integer (should convert to string)
-        result = await query(123, ".")
+        result = query(123, ".")
         assert "123" in result
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.common.process.asyncio.create_subprocess_exec")
-    async def test_jq_command_not_found(self, mock_subprocess):
+    @patch("mcp_handley_lab.jq.tool._run_jq")
+    def test_jq_command_not_found(self, mock_run_jq):
         """Test jq command not found error (lines 46-47)."""
-        mock_subprocess.side_effect = FileNotFoundError("jq: command not found")
+        mock_run_jq.side_effect = FileNotFoundError("jq: command not found")
 
         with pytest.raises(FileNotFoundError, match="jq: command not found"):
-            await query('{"test": "value"}', ".test")
+            query('{"test": "value"}', ".test")
 
-    @pytest.mark.asyncio
-    async def test_format_pretty_print(self):
+    def test_format_pretty_print(self):
         """Test non-compact formatting (line 249)."""
         data = '{"b": 2, "a": 1}'
-        result = await jq_format(data, compact=False, sort_keys=True)
+        result = jq_format(data, compact=False, sort_keys=True)
 
         # Should have indentation (non-compact)
         assert "{\n" in result
         assert '"a"' in result
         assert '"b"' in result
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=AsyncMock)
-    async def test_server_info_success(self, mock_run_jq):
+    @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=Mock)
+    def test_server_info_success(self, mock_run_jq):
         """Test server_info function (lines 255-271)."""
         from mcp_handley_lab.jq.tool import server_info
 
         # Mock the async function
         mock_run_jq.return_value = "jq-1.6"
 
-        result = await server_info()
+        result = server_info()
         assert "JQ Tool Server Status" in result
         assert "jq-1.6" in result
         assert "Connected and ready" in result
@@ -251,9 +208,8 @@ class TestJQUnit:
         assert "edit:" in result
         assert "validate:" in result
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=AsyncMock)
-    async def test_server_info_error(self, mock_run_jq):
+    @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=Mock)
+    def test_server_info_error(self, mock_run_jq):
         """Test server_info error handling (line 271)."""
         from mcp_handley_lab.jq.tool import server_info
 
@@ -261,7 +217,7 @@ class TestJQUnit:
         mock_run_jq.side_effect = RuntimeError("jq command not found")
 
         with pytest.raises(RuntimeError, match="jq command not found"):
-            await server_info()
+            server_info()
 
 
 class TestVimUnit:
@@ -275,10 +231,9 @@ class TestVimUnit:
             (".js", "console.log('test')", True, "changes"),
         ],
     )
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open)
-    async def test_prompt_user_edit_parameterized(
+    def test_prompt_user_edit_parameterized(
         self,
         mock_file,
         mock_run_vim,
@@ -290,16 +245,15 @@ class TestVimUnit:
         mock_file.return_value.read.return_value = initial_content or "default content"
         mock_run_vim.return_value = None
 
-        result = await prompt_user_edit(
+        result = prompt_user_edit(
             initial_content, file_extension=file_ext, show_diff=show_diff
         )
         assert expected_in_result in result.lower()
         mock_run_vim.assert_called_once()
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open)
-    async def test_prompt_user_edit_with_diff(self, mock_file, mock_run_vim):
+    def test_prompt_user_edit_with_diff(self, mock_file, mock_run_vim):
         # First read returns original, second returns modified
         mock_file.return_value.read.side_effect = [
             "original content",
@@ -307,24 +261,22 @@ class TestVimUnit:
         ]
         mock_run_vim.return_value = None
 
-        result = await prompt_user_edit("original content", show_diff=True)
+        result = prompt_user_edit("original content", show_diff=True)
         assert "Changes made:" in result or "No changes made" in result
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open, read_data="test content")
-    async def test_prompt_user_edit_with_instructions(self, mock_file, mock_run_vim):
+    def test_prompt_user_edit_with_instructions(self, mock_file, mock_run_vim):
         mock_run_vim.return_value = None
-        result = await prompt_user_edit(
+        result = prompt_user_edit(
             "test content", instructions="Edit this file", file_extension=".py"
         )
         assert "test content" in result or "no changes" in result.lower()
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    async def test_open_file_success(self, mock_write, mock_read, mock_run_vim):
+    def test_open_file_success(self, mock_write, mock_read, mock_run_vim):
         mock_run_vim.return_value = None
         mock_read.return_value = "file content"
         mock_write.return_value = None
@@ -333,26 +285,24 @@ class TestVimUnit:
             f.write("file content")
 
             try:
-                result = await open_file(f.name, show_diff=False)
+                result = open_file(f.name, show_diff=False)
                 assert (
                     "file edited" in result.lower() or "backup saved" in result.lower()
                 )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open, read_data="quick content")
-    async def test_quick_edit_success(self, mock_file, mock_run_vim):
+    def test_quick_edit_success(self, mock_file, mock_run_vim):
         mock_run_vim.return_value = None
-        result = await quick_edit(initial_content="test", file_extension=".txt")
+        result = quick_edit(initial_content="test", file_extension=".txt")
         assert "quick content" in result or "created successfully" in result.lower()
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    async def test_open_file_with_backup(self, mock_write, mock_read, mock_run_vim):
+    def test_open_file_with_backup(self, mock_write, mock_read, mock_run_vim):
         mock_read.return_value = "original content"
         mock_write.return_value = None
         mock_run_vim.return_value = None
@@ -361,18 +311,15 @@ class TestVimUnit:
             f.write("original content")
 
             try:
-                result = await open_file(f.name, backup=True, show_diff=False)
+                result = open_file(f.name, backup=True, show_diff=False)
                 assert "backup saved" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    async def test_open_file_with_instructions(
-        self, mock_write, mock_read, mock_run_vim
-    ):
+    def test_open_file_with_instructions(self, mock_write, mock_read, mock_run_vim):
         mock_read.return_value = "original content"
         mock_write.return_value = None
         mock_run_vim.return_value = None
@@ -381,18 +328,15 @@ class TestVimUnit:
             f.write("original content")
 
             try:
-                result = await open_file(
-                    f.name, instructions="Edit this file carefully"
-                )
+                result = open_file(f.name, instructions="Edit this file carefully")
                 assert "file edited" in result.lower() or "no changes" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    async def test_open_file_with_diff(self, mock_write, mock_read, mock_run_vim):
+    def test_open_file_with_diff(self, mock_write, mock_read, mock_run_vim):
         # Return different content to trigger diff
         mock_read.side_effect = ["original content", "different content"]
         mock_write.return_value = None
@@ -402,64 +346,53 @@ class TestVimUnit:
             f.write("original content")
 
             try:
-                result = await open_file(f.name, show_diff=True)
+                result = open_file(f.name, show_diff=True)
                 assert "changes made" in result.lower() or "diff" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_vim_server_info(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"VIM - Vi IMproved 8.2", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.common.process.run_command")
+    def test_vim_server_info(self, mock_run_command):
+        # Mock the synchronous function
+        mock_run_command.return_value = (b"VIM - Vi IMproved 8.2", b"")
 
         from mcp_handley_lab.vim.tool import server_info
 
-        result = await server_info()
+        result = server_info()
         assert "vim" in result.lower() and "status" in result.lower()
 
-    @pytest.mark.asyncio
     @patch("os.isatty")
-    @patch("asyncio.create_subprocess_exec")
-    async def test_run_vim_no_tty(self, mock_subprocess, mock_isatty):
+    @patch("subprocess.run")
+    def test_run_vim_no_tty(self, mock_subprocess, mock_isatty):
         """Test vim without TTY (line 19)."""
         from mcp_handley_lab.vim.tool import _run_vim
 
         mock_isatty.return_value = False  # No TTY
-        mock_process = AsyncMock()
-        mock_process.wait.return_value = None
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
 
-        await _run_vim("/tmp/test.txt")
+        _run_vim("/tmp/test.txt")
         mock_subprocess.assert_called()
 
-        # Should call create_subprocess_exec
-        call_args = mock_subprocess.call_args[0]
+        # Should call subprocess.run with capture_output=True
+        call_args = mock_subprocess.call_args[0][0]
+        call_kwargs = mock_subprocess.call_args[1]
         assert "vim" in call_args
+        assert call_kwargs.get("capture_output") is True
         assert "/tmp/test.txt" in call_args
 
-    @pytest.mark.asyncio
     @patch("os.isatty")
-    @patch("asyncio.create_subprocess_exec")
-    async def test_run_vim_with_tty(self, mock_subprocess, mock_isatty):
+    @patch("subprocess.run")
+    def test_run_vim_with_tty(self, mock_subprocess_run, mock_isatty):
         """Test vim with TTY (line 19)."""
         from mcp_handley_lab.vim.tool import _run_vim
 
         mock_isatty.return_value = True  # TTY available
-        mock_process = AsyncMock()
-        mock_process.wait.return_value = None
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+        mock_subprocess_run.return_value = Mock(returncode=0)
 
-        await _run_vim("/tmp/test.txt")
-        mock_subprocess.assert_called()
+        _run_vim("/tmp/test.txt")
+        mock_subprocess_run.assert_called()
 
-        # Should call create_subprocess_exec
-        call_args = mock_subprocess.call_args[0]
+        # Should call subprocess.run
+        call_args = mock_subprocess_run.call_args[0][0]
         assert "vim" in call_args
         assert "/tmp/test.txt" in call_args
 
@@ -477,22 +410,21 @@ more content"""
         result = _strip_instructions(content, "Instructions here", ".py")
         assert result == "actual content\nmore content"
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open, read_data="original content")
-    async def test_prompt_user_edit_with_changes(self, mock_file, mock_run_vim):
+    def test_prompt_user_edit_with_changes(self, mock_file, mock_run_vim):
         """Test diff calculation when changes are made (lines 143-147)."""
         from mcp_handley_lab.vim.tool import prompt_user_edit
 
         # Mock vim writing different content
-        async def side_effect(*args, **kwargs):
+        def side_effect(*args, **kwargs):
             # Simulate vim changing the file
             mock_file.return_value.read.return_value = "new content\nadded line"
 
         mock_run_vim.side_effect = side_effect
         mock_file.return_value.read.return_value = "new content\nadded line"
 
-        result = await prompt_user_edit("original content", show_diff=True)
+        result = prompt_user_edit("original content", show_diff=True)
 
         # Should show added/removed line counts
         assert ("added" in result and "removed" in result) or "Changes made" in result
@@ -517,9 +449,8 @@ more content"""
             ),
         ],
     )
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=AsyncMock)
-    async def test_vim_error_handling_parameterized(
+    @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
+    def test_vim_error_handling_parameterized(
         self, mock_run_vim, exception, error_msg, expected_exception
     ):
         """Test various vim error conditions."""
@@ -528,35 +459,29 @@ more content"""
         mock_run_vim.side_effect = exception
 
         with pytest.raises(expected_exception):
-            await _run_vim("/tmp/test.txt")
+            _run_vim("/tmp/test.txt")
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_server_info_vim_not_found(self, mock_subprocess):
+    @patch("subprocess.run")
+    def test_server_info_vim_not_found(self, mock_subprocess):
         """Test server_info when vim not found (lines 386-387)."""
         from mcp_handley_lab.vim.tool import server_info
 
         mock_subprocess.side_effect = FileNotFoundError("vim: command not found")
 
         with pytest.raises(RuntimeError, match="vim command not found"):
-            await server_info()
+            server_info()
 
 
 class TestCode2PromptUnit:
-    @pytest.mark.asyncio
-    async def test_generate_prompt_validation(self):
+    def test_generate_prompt_validation(self):
         with pytest.raises(RuntimeError):
-            await generate_prompt(path="")
+            generate_prompt(path="")
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
     @patch("pathlib.Path.stat")
-    async def test_generate_prompt_success(self, mock_stat, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"Generated prompt successfully", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    def test_generate_prompt_success(self, mock_stat, mock_run_code2prompt):
+        # Mock the synchronous function
+        mock_run_code2prompt.return_value = "Generated prompt successfully"
         mock_stat.return_value.st_size = 1024  # Mock file size
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -564,26 +489,22 @@ class TestCode2PromptUnit:
                 f.write("test content")
 
             try:
-                result = await generate_prompt(path=temp_dir, output_file=f.name)
+                result = generate_prompt(path=temp_dir, output_file=f.name)
                 assert "success" in result.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_generate_prompt_with_filters(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"Generated with filters", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
+    def test_generate_prompt_with_filters(self, mock_run_code2prompt):
+        # Mock the synchronous function
+        mock_run_code2prompt.return_value = "Generated with filters"
 
         with tempfile.TemporaryDirectory() as temp_dir:
             with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".md") as f:
                 f.write("test content")
 
             try:
-                result = await generate_prompt(
+                result = generate_prompt(
                     path=temp_dir,
                     include=["*.py"],
                     exclude=["__pycache__"],
@@ -597,21 +518,19 @@ class TestCode2PromptUnit:
         "exception,error_msg,expected_exception",
         [
             (
-                subprocess.CalledProcessError(
-                    1, "code2prompt", stderr="Command failed"
-                ),
+                RuntimeError("Command failed with exit code 1"),
                 "code2prompt error",
                 RuntimeError,
             ),
             (
-                subprocess.CalledProcessError(2, "code2prompt", stderr="Invalid path"),
+                RuntimeError("Command failed with exit code 2"),
                 "code2prompt error",
                 RuntimeError,
             ),
             (
-                FileNotFoundError("code2prompt not found"),
+                RuntimeError("Command not found: code2prompt"),
                 "code2prompt command not found",
-                FileNotFoundError,
+                RuntimeError,
             ),
             (
                 PermissionError("Permission denied"),
@@ -620,37 +539,22 @@ class TestCode2PromptUnit:
             ),
         ],
     )
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_code2prompt_error_handling_parameterized(
-        self, mock_subprocess, exception, error_msg, expected_exception
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
+    def test_code2prompt_error_handling_parameterized(
+        self, mock_run_code2prompt, exception, error_msg, expected_exception
     ):
         """Test various code2prompt error conditions."""
-        if isinstance(exception, subprocess.CalledProcessError):
-            # Mock subprocess that returns with error code
-            mock_process = AsyncMock()
-            mock_process.communicate.return_value = (
-                b"",
-                exception.stderr.encode() if exception.stderr else b"Command failed",
-            )
-            mock_process.returncode = exception.returncode
-            mock_subprocess.return_value = mock_process
-        else:
-            # Mock subprocess creation that raises exception
-            mock_subprocess.side_effect = exception
+        # Mock the synchronous function to raise exception
+        mock_run_code2prompt.side_effect = exception
 
         with pytest.raises(expected_exception):
-            await generate_prompt(path="/tmp/test")
+            generate_prompt(path="/tmp/test")
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
     @patch("pathlib.Path.stat")
-    async def test_generate_prompt_all_options(self, mock_stat, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"Generated with all options", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    def test_generate_prompt_all_options(self, mock_stat, mock_run_code2prompt):
+        # Mock the synchronous function
+        mock_run_code2prompt.return_value = "Generated with all options"
         mock_stat.return_value.st_size = 2048
 
         with tempfile.TemporaryDirectory() as temp_dir, tempfile.NamedTemporaryFile(
@@ -658,7 +562,7 @@ class TestCode2PromptUnit:
         ) as f:
             f.write("test content")
 
-            result = await generate_prompt(
+            result = generate_prompt(
                 path=temp_dir,
                 output_file=f.name,
                 include_priority=True,
@@ -678,15 +582,11 @@ class TestCode2PromptUnit:
 
             Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
     @patch("pathlib.Path.stat")
-    async def test_generate_prompt_git_options(self, mock_stat, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"Generated with git options", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    def test_generate_prompt_git_options(self, mock_stat, mock_run_code2prompt):
+        # Mock the synchronous function
+        mock_run_code2prompt.return_value = "Generated with git options"
         mock_stat.return_value.st_size = 1024
 
         with tempfile.TemporaryDirectory() as temp_dir, tempfile.NamedTemporaryFile(
@@ -694,7 +594,7 @@ class TestCode2PromptUnit:
         ) as f:
             f.write("test content")
 
-            result = await generate_prompt(
+            result = generate_prompt(
                 path=temp_dir,
                 output_file=f.name,
                 git_log_branch1="v1.0.0",
@@ -704,30 +604,25 @@ class TestCode2PromptUnit:
 
             Path(f.name).unlink(missing_ok=True)
 
-    @pytest.mark.asyncio
-    @patch("asyncio.create_subprocess_exec")
-    async def test_server_info(self, mock_subprocess):
-        # Mock the async subprocess
-        mock_process = AsyncMock()
-        mock_process.communicate.return_value = (b"code2prompt version 1.2.3", b"")
-        mock_process.returncode = 0
-        mock_subprocess.return_value = mock_process
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
+    def test_server_info(self, mock_run_code2prompt):
+        # Mock the synchronous function
+        mock_run_code2prompt.return_value = "code2prompt version 1.2.3"
 
         # Import the server_info function
         from mcp_handley_lab.code2prompt.tool import server_info
 
-        result = await server_info()
+        result = server_info()
         assert "status" in result.lower() and "code2prompt" in result.lower()
 
-    @pytest.mark.asyncio
-    @patch("mcp_handley_lab.common.process.asyncio.create_subprocess_exec")
-    async def test_server_info_error_handling(self, mock_subprocess):
+    @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
+    def test_server_info_error_handling(self, mock_run_code2prompt):
         """Test server_info error handling (lines 168-169)."""
         from mcp_handley_lab.code2prompt.tool import server_info
 
-        mock_subprocess.side_effect = FileNotFoundError(
+        mock_run_code2prompt.side_effect = FileNotFoundError(
             "code2prompt: command not found"
         )
 
         with pytest.raises(FileNotFoundError, match="code2prompt: command not found"):
-            await server_info()
+            server_info()

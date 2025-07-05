@@ -10,18 +10,18 @@ from mcp_handley_lab.common.terminal import launch_interactive
 mcp = FastMCP("Mutt Tool")
 
 
-async def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
+def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
     """Run a shell command and return output."""
     from mcp_handley_lab.common.process import run_command
 
     input_bytes = input_text.encode() if input_text else None
-    stdout, stderr = await run_command(cmd, input_data=input_bytes)
+    stdout, stderr = run_command(cmd, input_data=input_bytes)
     return stdout.decode().strip()
 
 
-async def _get_all_contacts(config_file: str = None) -> list[str]:
+def _get_all_contacts(config_file: str = None) -> list[str]:
     """Get all contacts from mutt address book."""
-    alias_file = await get_mutt_alias_file(config_file)
+    alias_file = get_mutt_alias_file(config_file)
     if not alias_file.exists():
         return []
 
@@ -34,13 +34,13 @@ async def _get_all_contacts(config_file: str = None) -> list[str]:
     return contacts
 
 
-async def _find_contact_fuzzy(
+def _find_contact_fuzzy(
     query: str, max_results: int = 5, config_file: str = None
 ) -> list[str]:
     """Find contacts using fzf-style fuzzy matching."""
     from pyfzf.pyfzf import FzfPrompt
 
-    contacts = await _get_all_contacts(config_file)
+    contacts = _get_all_contacts(config_file)
     if not contacts:
         return []
 
@@ -55,12 +55,12 @@ async def _find_contact_fuzzy(
         return []
 
 
-async def get_mutt_alias_file(config_file: str = None) -> Path:
+def get_mutt_alias_file(config_file: str = None) -> Path:
     """Get mutt alias file path from mutt configuration."""
     cmd = ["mutt", "-Q", "alias_file"]
     if config_file:
         cmd.extend(["-F", config_file])
-    result = await _run_command(cmd)
+    result = _run_command(cmd)
     # Parse: alias_file="~/.mutt/addressbook"
     path = result.split("=")[1].strip("\"'")
     # Expand ~ to home directory
@@ -116,7 +116,7 @@ compose_email(
 )
 ```"""
 )
-async def compose_email(
+def compose_email(
     to: str,
     subject: str = "",
     cc: str = None,
@@ -182,7 +182,7 @@ async def compose_email(
 
                 # Try to add signature for auto-send
                 # Check if there's a signature file configured in mutt
-                sig_result = await _run_command(["mutt", "-Q", "signature"])
+                sig_result = _run_command(["mutt", "-Q", "signature"])
                 if "signature=" in sig_result:
                     sig_path = sig_result.split("=", 1)[1].strip().strip('"')
                     # Expand ~ to home directory if needed
@@ -197,7 +197,7 @@ async def compose_email(
 
                 # Send via stdin (non-interactive)
                 mutt_cmd = mutt_cmd_str.split()
-                await _run_command(mutt_cmd, input_text=body_content)
+                _run_command(mutt_cmd, input_text=body_content)
 
                 attachment_info = (
                     f" with {len(attachments)} attachment(s)" if attachments else ""
@@ -226,7 +226,7 @@ async def compose_email(
 
             # Try to add signature for auto-send
             # Check if there's a signature file configured in mutt
-            sig_result = await _run_command(["mutt", "-Q", "signature"])
+            sig_result = _run_command(["mutt", "-Q", "signature"])
             if "signature=" in sig_result:
                 sig_path = sig_result.split("=", 1)[1].strip().strip('"')
                 # Expand ~ to home directory if needed
@@ -241,7 +241,7 @@ async def compose_email(
 
             # Send via stdin (non-interactive)
             mutt_cmd = mutt_cmd_str.split()
-            await _run_command(mutt_cmd, input_text=body_content)
+            _run_command(mutt_cmd, input_text=body_content)
 
             attachment_info = (
                 f" with {len(attachments)} attachment(s)" if attachments else ""
@@ -272,7 +272,7 @@ Launches the full mutt interface where you can:
 
 Uses your existing mutt configuration and folder setup."""
 )
-async def open_mutt() -> str:
+def open_mutt() -> str:
     """Open mutt's main interface."""
 
     # Launch mutt interactively
@@ -305,7 +305,7 @@ reply_to_email(
 )
 ```"""
 )
-async def reply_to_email(
+def reply_to_email(
     message_id: str, reply_all: bool = False, initial_body: str = ""
 ) -> str:
     """Reply to an email using mutt's reply functionality."""
@@ -376,7 +376,7 @@ forward_email(
 )
 ```"""
 )
-async def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
+def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
     """Forward an email using mutt's forward functionality."""
 
     # Build mutt command for forwarding
@@ -446,7 +446,7 @@ move_email(
 )
 ```"""
 )
-async def move_email(
+def move_email(
     message_id: str = None, message_ids: list[str] = None, destination: str = "Trash"
 ) -> str:
     """Move or delete emails by moving them to specified folder."""
@@ -481,7 +481,7 @@ async def move_email(
 
         # Run mutt with the script while the file exists
         mutt_cmd = ["mutt", "-F", temp_f.name]
-        await _run_command(mutt_cmd)
+        _run_command(mutt_cmd)
 
         action = (
             "Deleted" if destination.lower() == "trash" else f"Moved to {destination}"
@@ -508,10 +508,10 @@ list_folders()
 # - Projects/GW
 ```"""
 )
-async def list_folders() -> str:
+def list_folders() -> str:
     """List available mailboxes from mutt configuration."""
     # Use mutt to query mailboxes configuration
-    result = await _run_command(["mutt", "-Q", "mailboxes"])
+    result = _run_command(["mutt", "-Q", "mailboxes"])
 
     # Note: _run_command already handles errors and returns just the output
 
@@ -547,7 +547,7 @@ open_folder("Archive")
 open_folder("Projects/GW")
 ```"""
 )
-async def open_folder(folder: str) -> str:
+def open_folder(folder: str) -> str:
     """Open mutt with a specific folder."""
 
     # Build mutt command to open specific folder
@@ -590,9 +590,7 @@ add_contact(
 )
 ```"""
 )
-async def add_contact(
-    alias: str, email: str, name: str = "", config_file: str = None
-) -> str:
+def add_contact(alias: str, email: str, name: str = "", config_file: str = None) -> str:
     """Add a contact to mutt's address book."""
 
     # Validate inputs
@@ -603,7 +601,7 @@ async def add_contact(
     clean_alias = alias.lower()
 
     # Get mutt alias file path from configuration
-    alias_file = await get_mutt_alias_file(config_file)
+    alias_file = get_mutt_alias_file(config_file)
 
     # Determine alias format based on email content
     if "@" in email:
@@ -640,10 +638,10 @@ list_contacts()
 list_contacts(pattern="gw")
 ```"""
 )
-async def list_contacts(pattern: str = "", config_file: str = None) -> str:
+def list_contacts(pattern: str = "", config_file: str = None) -> str:
     """List contacts from mutt address book."""
 
-    alias_file = await get_mutt_alias_file(config_file)
+    alias_file = get_mutt_alias_file(config_file)
 
     if not alias_file.exists():
         return "No mutt alias file found. Use add_contact() to create contacts."
@@ -677,15 +675,13 @@ find_contact("handley")     # Finds will-handley-*, mike-handley-*, etc.
 find_contact("partiii")     # Finds partiii groups
 ```"""
 )
-async def find_contact(
-    query: str, max_results: int = 10, config_file: str = None
-) -> str:
+def find_contact(query: str, max_results: int = 10, config_file: str = None) -> str:
     """Find contacts using fuzzy matching."""
 
     if not query:
         raise ValueError("Search query is required")
 
-    matches = await _find_contact_fuzzy(query, max_results, config_file)
+    matches = _find_contact_fuzzy(query, max_results, config_file)
 
     if not matches:
         return f"No contacts found matching '{query}'"
@@ -709,11 +705,11 @@ select_contact()
 select_contact("handley")
 ```"""
 )
-async def select_contact(query: str = "", config_file: str = None) -> str:
+def select_contact(query: str = "", config_file: str = None) -> str:
     """Interactive contact selection using fzf."""
     from pyfzf.pyfzf import FzfPrompt
 
-    contacts = await _get_all_contacts(config_file)
+    contacts = _get_all_contacts(config_file)
     if not contacts:
         return "No contacts found in address book"
 
@@ -743,7 +739,7 @@ remove_contact("lukas-hergt")
 remove_contact("lhergt")  # Will find lukas-hergt
 ```"""
 )
-async def remove_contact(alias: str, config_file: str = None) -> str:
+def remove_contact(alias: str, config_file: str = None) -> str:
     """Remove a contact from mutt's address book."""
 
     if not alias:
@@ -753,7 +749,7 @@ async def remove_contact(alias: str, config_file: str = None) -> str:
     clean_alias = alias.lower()
 
     # Determine file path
-    alias_file = await get_mutt_alias_file(config_file)
+    alias_file = get_mutt_alias_file(config_file)
 
     if not alias_file.exists():
         return "No mutt alias file found"
@@ -768,7 +764,7 @@ async def remove_contact(alias: str, config_file: str = None) -> str:
 
     if len(filtered_lines) == len(lines):
         # No exact match, try fuzzy matching
-        fuzzy_matches = await _find_contact_fuzzy(
+        fuzzy_matches = _find_contact_fuzzy(
             alias, max_results=5, config_file=config_file
         )
         if not fuzzy_matches:
@@ -798,9 +794,9 @@ async def remove_contact(alias: str, config_file: str = None) -> str:
 @mcp.tool(
     description="Checks Mutt Tool server status and mutt command availability. Returns mutt version information and available tool functions."
 )
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and mutt version."""
-    result = await _run_command(["mutt", "-v"])
+    result = _run_command(["mutt", "-v"])
     # Extract first line of version info
     version_lines = result.split("\n")
     version_line = version_lines[0] if version_lines else "Unknown version"

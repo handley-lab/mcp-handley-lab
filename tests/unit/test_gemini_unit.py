@@ -68,9 +68,8 @@ class TestModelConfiguration:
 class TestInputValidation:
     """Test input validation for token limits and boolean handling."""
 
-    @pytest.mark.asyncio
     @patch("mcp_handley_lab.llm.gemini.tool.client")
-    async def test_ask_agent_name_false_validation(self, mock_client):
+    def test_ask_agent_name_false_validation(self, mock_client):
         """Test that agent_name=False doesn't cause validation errors."""
         mock_client.models.generate_content.side_effect = Exception(
             "Should not be called"
@@ -78,7 +77,7 @@ class TestInputValidation:
 
         # This should not raise a validation error
         try:
-            await ask(prompt="Test", output_file="/tmp/test.txt", agent_name=False)
+            ask(prompt="Test", output_file="/tmp/test.txt", agent_name=False)
         except ValueError as e:
             if "strip" in str(e):
                 pytest.fail(
@@ -88,9 +87,8 @@ class TestInputValidation:
             # Other exceptions are expected (like the mock exception)
             pass
 
-    @pytest.mark.asyncio
     @patch("mcp_handley_lab.llm.gemini.tool.client")
-    async def test_analyze_image_agent_name_false_validation(self, mock_client):
+    def test_analyze_image_agent_name_false_validation(self, mock_client):
         """Test that agent_name=False doesn't cause validation errors in analyze_image."""
         mock_client.models.generate_content.side_effect = Exception(
             "Should not be called"
@@ -98,7 +96,7 @@ class TestInputValidation:
 
         # This should not raise a validation error
         try:
-            await analyze_image(
+            analyze_image(
                 prompt="Test",
                 output_file="/tmp/test.txt",
                 image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
@@ -133,13 +131,10 @@ class TestErrorHandling:
         with pytest.raises(Exception, match="API key invalid"):
             importlib.reload(mcp_handley_lab.llm.gemini.tool)
 
-    @pytest.mark.asyncio
     @patch("mcp_handley_lab.llm.gemini.tool.is_text_file")
     @patch("pathlib.Path.stat")
     @patch("pathlib.Path.read_text")
-    async def test_resolve_files_read_error(
-        self, mock_read_text, mock_stat, mock_is_text
-    ):
+    def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_is_text):
         """Test file reading error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
 
@@ -152,10 +147,9 @@ class TestErrorHandling:
 
         # Should raise exception instead of adding error text
         with pytest.raises(Exception, match="Permission denied"):
-            await _resolve_files(files)
+            _resolve_files(files)
 
-    @pytest.mark.asyncio
-    async def test_resolve_files_processing_error(self):
+    def test_resolve_files_processing_error(self):
         """Test file processing error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
 
@@ -164,7 +158,7 @@ class TestErrorHandling:
 
         # Should raise FileNotFoundError instead of adding error text
         with pytest.raises(FileNotFoundError):
-            await _resolve_files(files)
+            _resolve_files(files)
 
     @patch("pathlib.Path.read_bytes")
     @patch("PIL.Image.open")
@@ -179,15 +173,14 @@ class TestErrorHandling:
         with pytest.raises(Exception, match="Invalid image format"):
             _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
 
-    @pytest.mark.asyncio
     @patch("mcp_handley_lab.llm.gemini.tool.client")
-    async def test_analyze_image_output_file_validation(self, mock_client):
+    def test_analyze_image_output_file_validation(self, mock_client):
         """Test output file validation in analyze_image (line 485)."""
         from mcp_handley_lab.llm.gemini.tool import analyze_image
 
         # Test with whitespace-only output file
         with pytest.raises(ValueError, match="Output file is required"):
-            await analyze_image(
+            analyze_image(
                 prompt="Test",
                 output_file="   ",  # Whitespace only
                 image_data="data:image/png;base64,test",

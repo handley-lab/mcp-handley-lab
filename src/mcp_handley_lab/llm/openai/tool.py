@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.common.memory import memory_manager
@@ -24,8 +24,8 @@ from mcp_handley_lab.llm.shared import process_llm_request
 
 mcp = FastMCP("OpenAI Tool")
 
-# Configure AsyncOpenAI client
-client = AsyncOpenAI(api_key=settings.openai_api_key)
+# Configure OpenAI client
+client = OpenAI(api_key=settings.openai_api_key)
 
 # Load model configurations from YAML
 MODEL_CONFIGS = build_model_configs_dict("openai")
@@ -40,7 +40,7 @@ def _get_model_config(model: str) -> dict[str, Any]:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-async def _resolve_files(
+def _resolve_files(
     files: list[str | dict[str, str]] | None,
 ) -> list[str]:
     """Resolve file inputs to text content for OpenAI Chat Completions.
@@ -143,7 +143,7 @@ def _resolve_images(
     return image_list
 
 
-async def _openai_generation_adapter(
+def _openai_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -167,7 +167,7 @@ async def _openai_generation_adapter(
     messages.extend(history)
 
     # Resolve files
-    inline_content = await _resolve_files(files)
+    inline_content = _resolve_files(files)
 
     # Add user message with any inline content
     user_content = prompt
@@ -197,7 +197,7 @@ async def _openai_generation_adapter(
         request_params[param_name] = default_tokens
 
     # Make API call
-    response = await client.chat.completions.create(**request_params)
+    response = client.chat.completions.create(**request_params)
 
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -209,7 +209,7 @@ async def _openai_generation_adapter(
     }
 
 
-async def _openai_image_analysis_adapter(
+def _openai_image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -270,7 +270,7 @@ async def _openai_image_analysis_adapter(
         request_params[param_name] = default_tokens
 
     # Make API call
-    response = await client.chat.completions.create(**request_params)
+    response = client.chat.completions.create(**request_params)
 
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
@@ -361,7 +361,7 @@ ask(
 )
 ```"""
 )
-async def ask(
+def ask(
     prompt: str,
     output_file: str | None = "-",
     agent_name: str | bool | None = None,
@@ -371,7 +371,7 @@ async def ask(
     files: list[str | dict[str, str]] | None = None,
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -460,7 +460,7 @@ analyze_image(
 )
 ```"""
 )
-async def analyze_image(
+def analyze_image(
     prompt: str,
     output_file: str | None = "-",
     image_data: str | None = None,
@@ -471,7 +471,7 @@ async def analyze_image(
     max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with OpenAI vision model."""
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -550,7 +550,7 @@ Error Handling:
 - Image download may fail due to network issues; temporary URLs expire quickly
 - DALL-E 3 may revise prompts for safety compliance"""
 )
-async def generate_image(
+def generate_image(
     prompt: str,
     model: str = "dall-e-3",
     quality: str = "standard",
@@ -569,14 +569,14 @@ async def generate_image(
     if model == "dall-e-3":
         params["quality"] = quality
 
-    response = await client.images.generate(**params)
+    response = client.images.generate(**params)
 
     # Get the image URL
     image_url = response.data[0].url
 
     # Download and save the image using httpx
-    async with httpx.AsyncClient() as http_client:
-        image_response = await http_client.get(image_url)
+    with httpx.Client() as http_client:
+        image_response = http_client.get(image_url)
         image_response.raise_for_status()
 
         # Save to temp file
@@ -642,10 +642,10 @@ list_models()
 # - "Which models support caching?" → gpt-4.1 series, gpt-4o series
 ```"""
 )
-async def list_models() -> str:
+def list_models() -> str:
     """List available OpenAI models with detailed information."""
     # Get models from API for availability checking
-    api_models = await client.models.list()
+    api_models = client.models.list()
     api_model_ids = {m.id for m in api_models.data}
 
     # Use YAML-based model listing
@@ -670,10 +670,10 @@ Use this to verify that the tool is operational before making other requests.
 server_info()
 ```"""
 )
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and OpenAI configuration."""
     # Test API key by listing models
-    models = await client.models.list()
+    models = client.models.list()
     available_models = [
         m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
     ]

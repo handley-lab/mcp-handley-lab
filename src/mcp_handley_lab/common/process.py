@@ -1,12 +1,11 @@
-"""Shared utilities for asynchronous command execution."""
-import asyncio
-import contextlib
+"""Shared utilities for command execution."""
+import subprocess
 
 
-async def run_command(
+def run_command(
     cmd: list[str], input_data: bytes | None = None, timeout: int = 30
 ) -> tuple[bytes, bytes]:
-    """Runs a command asynchronously, returning (stdout, stderr).
+    """Runs a command synchronously, returning (stdout, stderr).
 
     Args:
         cmd: Command and arguments as a list
@@ -18,27 +17,21 @@ async def run_command(
 
     Raises:
         RuntimeError: If command fails, is not found, or times out
-        asyncio.CancelledError: If operation is cancelled by user
     """
-    process = None
     try:
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+        result = subprocess.run(
+            cmd,
+            input=input_data,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
         )
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(input=input_data), timeout=timeout
-        )
-        if process.returncode != 0:
+        if result.returncode != 0:
             raise RuntimeError(
-                f"Command failed with exit code {process.returncode}: {stderr.decode()}"
+                f"Command failed with exit code {result.returncode}: {result.stderr.decode()}"
             )
-        return stdout, stderr
-    finally:
-        # Robust cleanup that runs regardless of how the try block exits
-        if process and process.returncode is None:
-            process.kill()
-            with contextlib.suppress(asyncio.TimeoutError):
-                await asyncio.wait_for(process.wait(), timeout=2.0)
+        return result.stdout, result.stderr
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError(f"Command timed out after {timeout} seconds") from e
+    except FileNotFoundError as e:
+        raise RuntimeError(f"Command not found: {cmd[0]}") from e

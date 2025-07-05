@@ -10,11 +10,10 @@ from mcp_handley_lab.llm.openai.tool import (
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_ask_basic(skip_if_no_api_key, test_output_file):
+def test_openai_ask_basic(skip_if_no_api_key, test_output_file):
     skip_if_no_api_key("OPENAI_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="What is 2+2? Answer with just the number.",
         output_file=test_output_file,
         model="gpt-4o-mini",
@@ -29,13 +28,10 @@ async def test_openai_ask_basic(skip_if_no_api_key, test_output_file):
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_ask_with_file(
-    skip_if_no_api_key, test_output_file, test_json_file
-):
+def test_openai_ask_with_file(skip_if_no_api_key, test_output_file, test_json_file):
     skip_if_no_api_key("OPENAI_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="What is in this JSON file?",
         output_file=test_output_file,
         files=[{"path": test_json_file}],
@@ -49,12 +45,11 @@ async def test_openai_ask_with_file(
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_ask_with_agent(skip_if_no_api_key, test_output_file):
+def test_openai_ask_with_agent(skip_if_no_api_key, test_output_file):
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # First message
-    result1 = await ask(
+    result1 = ask(
         prompt="My name is Alice. Remember this.",
         output_file=test_output_file,
         agent_name="memory_test",
@@ -63,7 +58,7 @@ async def test_openai_ask_with_agent(skip_if_no_api_key, test_output_file):
     assert "saved" in result1.lower()
 
     # Second message referencing first
-    result2 = await ask(
+    result2 = ask(
         prompt="What is my name?",
         output_file=test_output_file,
         agent_name="memory_test",
@@ -75,14 +70,13 @@ async def test_openai_ask_with_agent(skip_if_no_api_key, test_output_file):
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_analyze_image_simple(skip_if_no_api_key, test_output_file):
+def test_openai_analyze_image_simple(skip_if_no_api_key, test_output_file):
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Use a simple base64 red pixel image
     red_pixel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
 
-    result = await analyze_image(
+    result = analyze_image(
         prompt="What color is this image?",
         output_file=test_output_file,
         image_data=red_pixel,
@@ -99,11 +93,10 @@ async def test_openai_analyze_image_simple(skip_if_no_api_key, test_output_file)
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_generate_image(skip_if_no_api_key):
+def test_openai_generate_image(skip_if_no_api_key):
     skip_if_no_api_key("OPENAI_API_KEY")
 
-    result = await generate_image(
+    result = generate_image(
         prompt="A simple red circle on white background",
         model="dall-e-2",
         size="256x256",
@@ -114,11 +107,10 @@ async def test_openai_generate_image(skip_if_no_api_key):
 
 
 @pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_server_info(skip_if_no_api_key):
+def test_openai_server_info(skip_if_no_api_key):
     skip_if_no_api_key("OPENAI_API_KEY")
 
-    result = await server_info()
+    result = server_info()
 
     assert "openai" in result.lower()
     assert "status" in result.lower()
@@ -127,13 +119,12 @@ async def test_openai_server_info(skip_if_no_api_key):
 # NEW VCR-BASED TESTS TO REPLACE MOCKED COMPREHENSIVE TESTS
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_memory_disabled_integration(skip_if_no_api_key, test_output_file):
+def test_openai_memory_disabled_integration(skip_if_no_api_key, test_output_file):
     """Test ask function with memory explicitly disabled (agent_name=False)."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="What is 9+6? Just answer with the number.",
         output_file=test_output_file,
         agent_name=False,  # Explicitly disable memory
@@ -148,18 +139,15 @@ async def test_openai_memory_disabled_integration(skip_if_no_api_key, test_outpu
     assert "15" in content
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_conversation_memory_integration(
-    skip_if_no_api_key, test_output_file
-):
+def test_openai_conversation_memory_integration(skip_if_no_api_key, test_output_file):
     """Test conversation memory persistence with OpenAI."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     agent_name = "openai_memory_test"
 
     # First interaction - establish context
-    result1 = await ask(
+    result1 = ask(
         prompt="My favorite programming language is Python. Remember this fact.",
         output_file=test_output_file,
         agent_name=agent_name,
@@ -168,7 +156,7 @@ async def test_openai_conversation_memory_integration(
     assert "saved" in result1.lower()
 
     # Second interaction - test memory recall
-    result2 = await ask(
+    result2 = ask(
         prompt="What programming language did I say was my favorite?",
         output_file=test_output_file + "_2",
         agent_name=agent_name,
@@ -181,9 +169,8 @@ async def test_openai_conversation_memory_integration(
     assert "python" in content2.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_multiple_file_types_integration(
+def test_openai_multiple_file_types_integration(
     skip_if_no_api_key, test_output_file, tmp_path
 ):
     """Test file handling with various formats (VCR replacement for mocked file resolution tests)."""
@@ -199,7 +186,7 @@ async def test_openai_multiple_file_types_integration(
     )
 
     # Test with multiple files and content types
-    result = await ask(
+    result = ask(
         prompt="What framework should I use for the calculator based on these files?",
         output_file=test_output_file,
         files=[
@@ -216,14 +203,13 @@ async def test_openai_multiple_file_types_integration(
     assert "framework_x" in content.lower() or "framework x" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_model_variants_integration(skip_if_no_api_key, test_output_file):
+def test_openai_model_variants_integration(skip_if_no_api_key, test_output_file):
     """Test different OpenAI model variants work correctly."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test gpt-4o-mini model (supports temperature)
-    result = await ask(
+    result = ask(
         prompt="Explain photosynthesis in one sentence.",
         output_file=test_output_file,
         model="gpt-4o-mini",
@@ -237,16 +223,15 @@ async def test_openai_model_variants_integration(skip_if_no_api_key, test_output
     assert "photosynth" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_temperature_variations_integration(
+def test_openai_temperature_variations_integration(
     skip_if_no_api_key, test_output_file
 ):
     """Test different temperature settings (VCR replacement for mocked temperature tests)."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test with very low temperature (deterministic)
-    result = await ask(
+    result = ask(
         prompt="Say exactly: DETERMINISTIC_RESPONSE",
         output_file=test_output_file,
         temperature=0.0,
@@ -259,9 +244,8 @@ async def test_openai_temperature_variations_integration(
     assert "DETERMINISTIC_RESPONSE" in content
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_image_analysis_focus_options_integration(
+def test_openai_image_analysis_focus_options_integration(
     skip_if_no_api_key, test_output_file
 ):
     """Test different image analysis focus options (VCR replacement for mocked image tests)."""
@@ -284,7 +268,7 @@ async def test_openai_image_analysis_focus_options_integration(
     img_data = base64.b64encode(img_buffer.getvalue()).decode()
 
     # Test text focus
-    result = await analyze_image(
+    result = analyze_image(
         prompt="What text do you see in this image?",
         output_file=test_output_file,
         image_data=f"data:image/png;base64,{img_data}",
@@ -298,16 +282,13 @@ async def test_openai_image_analysis_focus_options_integration(
     assert "world" in content.lower() or "text" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_custom_token_limits_integration(
-    skip_if_no_api_key, test_output_file
-):
+def test_openai_custom_token_limits_integration(skip_if_no_api_key, test_output_file):
     """Test that custom max_output_tokens parameter works with real API."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test with low token limit
-    result = await ask(
+    result = ask(
         prompt="Write a brief definition of recursion in programming.",
         output_file=test_output_file,
         model="gpt-4o-mini",
@@ -321,14 +302,13 @@ async def test_openai_custom_token_limits_integration(
     assert "recurs" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_image_generation_variants_integration(skip_if_no_api_key):
+def test_openai_image_generation_variants_integration(skip_if_no_api_key):
     """Test different image generation models and settings."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test DALL-E 3 with high quality
-    result = await generate_image(
+    result = generate_image(
         prompt="A minimalist logo: blue triangle on white background",
         model="dall-e-3",
         quality="hd",
@@ -340,9 +320,8 @@ async def test_openai_image_generation_variants_integration(skip_if_no_api_key):
     assert "success" in result.lower() or "saved" in result.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_analyze_image_token_limits_integration(
+def test_openai_analyze_image_token_limits_integration(
     skip_if_no_api_key, test_output_file
 ):
     """Test that analyze_image respects custom token limits."""
@@ -360,7 +339,7 @@ async def test_openai_analyze_image_token_limits_integration(
     img.save(img_buffer, format="PNG")
     img_data = base64.b64encode(img_buffer.getvalue()).decode()
 
-    result = await analyze_image(
+    result = analyze_image(
         prompt="What color is this image? Just say the color.",
         output_file=test_output_file,
         image_data=f"data:image/png;base64,{img_data}",
@@ -375,25 +354,22 @@ async def test_openai_analyze_image_token_limits_integration(
     assert "yellow" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_openai_input_validation_integration(
-    skip_if_no_api_key, test_output_file
-):
+def test_openai_input_validation_integration(skip_if_no_api_key, test_output_file):
     """Test input validation with real API (ensures validation works before API calls)."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test empty prompt validation
     with pytest.raises(ValueError, match="Prompt is required"):
-        await ask(prompt="", output_file=test_output_file)
+        ask(prompt="", output_file=test_output_file)
 
     # Test empty output file validation
     with pytest.raises(ValueError, match="Output file is required"):
-        await ask(prompt="Test", output_file="")
+        ask(prompt="Test", output_file="")
 
     # Test empty agent name validation
     with pytest.raises(ValueError, match="Agent name cannot be empty"):
-        await ask(
+        ask(
             prompt="Test",
             output_file=test_output_file,
             agent_name="   ",  # Whitespace only

@@ -1,13 +1,16 @@
 """Shared utilities for LLM providers."""
-import asyncio
 from collections.abc import Callable
 
 from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.common.pricing import calculate_cost
-from mcp_handley_lab.llm.common import get_session_id, handle_agent_memory, handle_output
+from mcp_handley_lab.llm.common import (
+    get_session_id,
+    handle_agent_memory,
+    handle_output,
+)
 
 
-async def process_llm_request(
+def process_llm_request(
     prompt: str,
     output_file: str,
     agent_name: str | bool | None,
@@ -58,7 +61,7 @@ async def process_llm_request(
             user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
 
     # Call provider-specific generation function
-    response_data = await generation_func(
+    response_data = generation_func(
         prompt=prompt,
         model=model,
         history=history,

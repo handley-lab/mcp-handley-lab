@@ -83,7 +83,7 @@ def _get_model_config(model: str) -> dict[str, int]:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-async def _resolve_files(
+def _resolve_files(
     files: list[str | dict[str, str]] | None,
 ) -> list[Part]:
     """Resolve file inputs to structured content parts for google-genai API.
@@ -110,7 +110,7 @@ async def _resolve_files(
 
                 if file_size > 20 * 1024 * 1024:  # 20MB threshold
                     # Large file - use Files API
-                    uploaded_file = await client.aio.files.upload(
+                    uploaded_file = client.files.upload(
                         file=str(file_path),
                         mime_type=get_gemini_safe_mime_type(file_path),
                     )
@@ -158,7 +158,7 @@ def _resolve_images(
     return image_list
 
 
-async def _gemini_generation_adapter(
+def _gemini_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -181,7 +181,7 @@ async def _gemini_generation_adapter(
             tools.append(Tool(google_search=GoogleSearch()))
 
     # Resolve file contents
-    file_parts = await _resolve_files(files)
+    file_parts = _resolve_files(files)
 
     # Get model configuration and token limits
     model_config = _get_model_config(model)
@@ -207,25 +207,25 @@ async def _gemini_generation_adapter(
     # Convert history to Gemini format
     gemini_history = _convert_history_to_gemini_format(history)
 
-    # Generate content (cancellation handled by process_llm_request wrapper)
+    # Generate content
     if gemini_history:
         # Continue existing conversation
         user_parts = [Part(text=prompt)] + file_parts
         contents = gemini_history + [
             {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
         ]
-        response = await client.aio.models.generate_content(
+        response = client.models.generate_content(
             model=model, contents=contents, config=config
         )
     else:
         # New conversation
         if file_parts:
             content_parts = [Part(text=prompt)] + file_parts
-            response = await client.aio.models.generate_content(
+            response = client.models.generate_content(
                 model=model, contents=content_parts, config=config
             )
         else:
-            response = await client.aio.models.generate_content(
+            response = client.models.generate_content(
                 model=model, contents=prompt, config=config
             )
 
@@ -239,7 +239,7 @@ async def _gemini_generation_adapter(
     }
 
 
-async def _gemini_image_analysis_adapter(
+def _gemini_image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -277,8 +277,8 @@ async def _gemini_image_analysis_adapter(
     # Convert history to Gemini format
     _convert_history_to_gemini_format(history)
 
-    # Generate response - image analysis starts fresh conversation (cancellation handled by process_llm_request wrapper)
-    response = await client.aio.models.generate_content(
+    # Generate response - image analysis starts fresh conversation
+    response = client.models.generate_content(
         model=model, contents=content, config=config
     )
 
@@ -351,7 +351,7 @@ ask(
 ```"""
 )
 @require_client
-async def ask(
+def ask(
     prompt: str,
     output_file: str | None = "-",
     agent_name: str | bool | None = None,
@@ -381,7 +381,7 @@ async def ask(
     Example with custom token limit:
         ask(prompt="Write a long essay", model="gemini-2.5-flash", max_output_tokens=32000)
     """
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -466,7 +466,7 @@ analyze_image(
 ```"""
 )
 @require_client
-async def analyze_image(
+def analyze_image(
     prompt: str,
     output_file: str | None = "-",
     image_data: str | None = None,
@@ -477,7 +477,7 @@ async def analyze_image(
     max_output_tokens: int | None = None,
 ) -> str:
     """Analyze images with Gemini vision model."""
-    return await process_llm_request(
+    return process_llm_request(
         prompt=prompt,
         output_file=output_file,
         agent_name=agent_name,
@@ -543,7 +543,7 @@ Error Handling:
 - Generated images are PNG format, saved to system temp directory"""
 )
 @require_client
-async def generate_image(
+def generate_image(
     prompt: str, model: str = "imagen-3", agent_name: str | bool | None = None
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
@@ -563,7 +563,7 @@ async def generate_image(
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
 
     # Generate image
-    response = await client.aio.models.generate_images(
+    response = client.models.generate_images(
         model=actual_model,
         prompt=prompt,
         config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
@@ -654,11 +654,11 @@ list_models()
 ```"""
 )
 @require_client
-async def list_models() -> str:
+def list_models() -> str:
     """List available Gemini models with detailed information."""
 
     # Get models from API
-    models_response = await client.aio.models.list()
+    models_response = client.models.list()
     api_model_names = {model.name.split("/")[-1] for model in models_response}
 
     # Use YAML-based model listing
@@ -684,20 +684,20 @@ server_info()
 ```"""
 )
 @require_client
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and Gemini configuration."""
 
     # Test API by listing models
-    models_response = await client.aio.models.list()
+    models_response = client.models.list()
     available_models = []
     for model in models_response:
         if "gemini" in model.name:
             available_models.append(model.name.split("/")[-1])
 
-        # Get agent count
-        agent_count = len(memory_manager.list_agents())
+    # Get agent count
+    agent_count = len(memory_manager.list_agents())
 
-        return f"""Gemini Tool Server Status
+    return f"""Gemini Tool Server Status
 ==========================
 Status: Connected and ready
 API Key: Configured ✓

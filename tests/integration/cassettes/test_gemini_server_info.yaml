@@ -377,4 +377,90 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/models
+  response:
+    body:
+      string: "{\n  \"models\": [\n    {\n      \"name\": \"models/imagen-4.0-ultra-generate-preview-06-06\",\n
+        \     \"version\": \"01\",\n      \"displayName\": \"Imagen 4 Ultra (Preview)\",\n
+        \     \"description\": \"Vertex served Imagen 4.0 ultra model\",\n      \"inputTokenLimit\":
+        480,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
+        [\n        \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/veo-2.0-generate-001\",\n
+        \     \"version\": \"2.0\",\n      \"displayName\": \"Veo 2\",\n      \"description\":
+        \"Vertex served Veo 2 model. Access to this model requires billing to be enabled
+        on the associated Google Cloud Platform account. Please visit https://console.cloud.google.com/billing
+        to enable it.\",\n      \"inputTokenLimit\": 480,\n      \"outputTokenLimit\":
+        8192,\n      \"supportedGenerationMethods\": [\n        \"predictLongRunning\"\n
+        \     ]\n    },\n    {\n      \"name\": \"models/gemini-2.5-flash-preview-native-audio-dialog\",\n
+        \     \"version\": \"gemini-2.5-flash-preview-native-audio-dialog-2025-05-19\",\n
+        \     \"displayName\": \"Gemini 2.5 Flash Preview Native Audio Dialog\",\n
+        \     \"description\": \"Gemini 2.5 Flash Preview Native Audio Dialog\",\n
+        \     \"inputTokenLimit\": 131072,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
+        [\n        \"countTokens\",\n        \"bidiGenerateContent\"\n      ],\n      \"temperature\":
+        1,\n      \"topP\": 0.95,\n      \"topK\": 64,\n      \"maxTemperature\":
+        2\n    },\n    {\n      \"name\": \"models/gemini-2.5-flash-exp-native-audio-thinking-dialog\",\n
+        \     \"version\": \"gemini-2.5-flash-exp-native-audio-thinking-dialog-2025-05-19\",\n
+        \     \"displayName\": \"Gemini 2.5 Flash Exp Native Audio Thinking Dialog\",\n
+        \     \"description\": \"Gemini 2.5 Flash Exp Native Audio Thinking Dialog\",\n
+        \     \"inputTokenLimit\": 131072,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
+        [\n        \"countTokens\",\n        \"bidiGenerateContent\"\n      ],\n      \"temperature\":
+        1,\n      \"topP\": 0.95,\n      \"topK\": 64,\n      \"maxTemperature\":
+        2,\n      \"thinking\": true\n    },\n    {\n      \"name\": \"models/gemini-2.0-flash-live-001\",\n
+        \     \"version\": \"001\",\n      \"displayName\": \"Gemini 2.0 Flash 001\",\n
+        \     \"description\": \"Gemini 2.0 Flash 001\",\n      \"inputTokenLimit\":
+        131072,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
+        [\n        \"bidiGenerateContent\",\n        \"countTokens\"\n      ],\n      \"temperature\":
+        1,\n      \"topP\": 0.95,\n      \"topK\": 64,\n      \"maxTemperature\":
+        2\n    },\n    {\n      \"name\": \"models/gemini-live-2.5-flash-preview\",\n
+        \     \"version\": \"001\",\n      \"displayName\": \"Gemini Live 2.5 Flash
+        Preview\",\n      \"description\": \"Gemini Live 2.5 Flash Preview\",\n      \"inputTokenLimit\":
+        1048576,\n      \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
+        [\n        \"bidiGenerateContent\",\n        \"countTokens\"\n      ],\n      \"temperature\":
+        1,\n      \"topP\": 0.95,\n      \"topK\": 64,\n      \"maxTemperature\":
+        2\n    }\n  ]\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 05 Jul 2025 12:11:30 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=51
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '2852'
+    status:
+      code: 200
+      message: OK
 version: 1

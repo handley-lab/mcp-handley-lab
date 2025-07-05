@@ -1,5 +1,4 @@
 """Vim tool for interactive text editing via MCP."""
-import asyncio
 import difflib
 import os
 import subprocess
@@ -11,43 +10,21 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Vim Tool")
 
 
-async def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
-    """Run vim directly using async subprocess with cancellation support."""
+def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
+    """Run vim directly using subprocess."""
     vim_cmd = ["vim"] + (vim_args or []) + [file_path]
 
-    try:
-        # Check if we have a TTY - if yes, run vim directly
-        if os.isatty(0):  # stdin is a tty
-            process = await asyncio.create_subprocess_exec(
-                *vim_cmd,
-                stdin=None,  # Use inherited stdin for TTY
-                stdout=None,  # Use inherited stdout
-                stderr=None,  # Use inherited stderr
-            )
-            await process.wait()
-            if process.returncode != 0:
-                raise subprocess.CalledProcessError(process.returncode, vim_cmd)
-        else:
-            # No TTY available - this will happen in non-interactive environments
-            # Just run vim anyway and let it handle the situation
-            process = await asyncio.create_subprocess_exec(
-                *vim_cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            await process.wait()
-            if process.returncode != 0:
-                raise subprocess.CalledProcessError(process.returncode, vim_cmd)
-    except asyncio.CancelledError:
-        # If vim process exists, terminate it gracefully
-        if "process" in locals() and process.returncode is None:
-            try:
-                process.terminate()
-                await asyncio.wait_for(process.wait(), timeout=2.0)
-            except asyncio.TimeoutError:
-                process.kill()
-                await process.wait()
+    # Check if we have a TTY - if yes, run vim directly
+    if os.isatty(0):  # stdin is a tty
+        subprocess.run(vim_cmd, check=True)
+    else:
+        # No TTY available - this will happen in non-interactive environments
+        # Just run vim anyway and let it handle the situation
+        subprocess.run(
+            vim_cmd,
+            capture_output=True,
+            check=True,
+        )
 
 
 def _handle_instructions_and_content(
@@ -105,7 +82,7 @@ prompt_user_edit(
 )
 ```"""
 )
-async def prompt_user_edit(
+def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
     instructions: str = None,
@@ -123,7 +100,7 @@ async def prompt_user_edit(
         _handle_instructions_and_content(temp_path, suffix, instructions, content)
 
         # Open vim
-        await _run_vim(temp_path)
+        _run_vim(temp_path)
 
         # Read edited content
         with open(temp_path) as f:
@@ -220,7 +197,7 @@ quick_edit(
 )
 ```"""
 )
-async def quick_edit(
+def quick_edit(
     file_extension: str = ".txt", instructions: str = None, initial_content: str = ""
 ) -> str:
     """Open vim for creating new content."""
@@ -236,7 +213,7 @@ async def quick_edit(
         )
 
         # Open vim
-        await _run_vim(temp_path)
+        _run_vim(temp_path)
 
         # Read content
         with open(temp_path) as f:
@@ -313,7 +290,7 @@ Error Handling:
 - Backup creation failures are logged but don't prevent editing
 - Instructions display errors don't prevent file editing"""
 )
-async def open_file(
+def open_file(
     file_path: str,
     instructions: str = None,
     show_diff: bool = True,
@@ -342,12 +319,12 @@ async def open_file(
                 f.write("\nPress any key to continue to the file...")
 
             # Show instructions
-            await _run_vim(inst_path, ["-R"])
+            _run_vim(inst_path, ["-R"])
         finally:
             os.unlink(inst_path)
 
     # Open the actual file
-    await _run_vim(str(path))
+    _run_vim(str(path))
 
     # Read edited content
     edited_content = path.read_text()
@@ -396,26 +373,20 @@ async def open_file(
 @mcp.tool(
     description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools."
 )
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and vim version."""
     try:
-        process = await asyncio.create_subprocess_exec(
-            "vim",
-            "--version",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+        result = subprocess.run(
+            ["vim", "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
     except FileNotFoundError:
         raise RuntimeError("vim command not found") from None
-    stdout, stderr = await process.communicate()
-
-    if process.returncode != 0:
-        raise subprocess.CalledProcessError(
-            process.returncode, "vim --version", stderr.decode("utf-8")
-        )
 
     # Extract first line of version info
-    version_line = stdout.decode("utf-8").split("\n")[0]
+    version_line = result.stdout.split("\n")[0]
 
     return f"""Vim Tool Server Status
 =====================

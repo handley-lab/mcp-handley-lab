@@ -20,11 +20,11 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -34,7 +34,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '1'
+      - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -43,32 +43,31 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8kN41jlVjj7s3F0xpr69U7i6gRP\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528051,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BpwdxiF6uGIMurvhMkkfJOZ2UwpFJ\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719853,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"Based on the information provided in
-        the files, you should use **FRAMEWORK_X** for building your calculator app.
-        The `instructions.txt` file explicitly states to use FRAMEWORK_X, and the
-        `config.json` file confirms that it is the recommended choice by specifying
-        it along with its version and features. \\n\\nMake sure to use version 2.1
-        of FRAMEWORK_X, and utilize the features related to \\\"math\\\" and \\\"gui\\\"
-        as indicated in the configuration file.\",\n        \"refusal\": null,\n        \"annotations\":
+        \"assistant\",\n        \"content\": \"Based on the provided files, you should
+        use FRAMEWORK_X for building the calculator app. According to the instructions
+        in `instructions.txt`, it specifically states to use FRAMEWORK_X. Additionally,
+        the `config.json` file confirms that FRAMEWORK_X is the specified framework,
+        along with its version (2.1) and features (math and GUI) that are suitable
+        for your calculator application.\",\n        \"refusal\": null,\n        \"annotations\":
         []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
         \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 79,\n    \"completion_tokens\":
-        96,\n    \"total_tokens\": 175,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        78,\n    \"total_tokens\": 157,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b2f0eea089d9-MAN
+      - 95a6fd99fb56b3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:34:12 GMT
+      - Sat, 05 Jul 2025 12:50:54 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -82,17 +81,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1256'
+      - '1191'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '1475'
+      - '1178'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '1479'
+      - '1181'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -100,13 +99,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999923'
+      - '149999924'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_55345ad69433384c0780306a08e63208
+      - req_6d4a05c2b837e08815bbeb38b040d30e
     status:
       code: 200
       message: OK

@@ -1,115 +1,234 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."}],
-      "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
-    headers:
-      accept:
-      - application/json
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      content-length:
-      - '134'
-      content-type:
-      - application/json
-      host:
-      - api.openai.com
-      user-agent:
-      - AsyncOpenAI/Python 1.93.0
-      x-stainless-arch:
-      - x64
-      x-stainless-async:
-      - async:asyncio
-      x-stainless-lang:
-      - python
-      x-stainless-os:
-      - Linux
-      x-stainless-package-version:
-      - 1.93.0
-      x-stainless-read-timeout:
-      - '600'
-      x-stainless-retry-count:
-      - '1'
-      x-stainless-runtime:
-      - CPython
-      x-stainless-runtime-version:
-      - 3.13.3
-    method: POST
-    uri: https://api.openai.com/v1/chat/completions
-  response:
-    body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8k1H5NS7E6GZF3qn8rcxQ8CjS6V\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528029,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
-        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"I can't remember personal information
-        or retain details from our conversation after it's over. However, you can
-        always remind me of your name or any other details whenever you chat with
-        me! How can I assist you today, Alice?\",\n        \"refusal\": null,\n        \"annotations\":
-        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
-        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 15,\n    \"completion_tokens\":
-        44,\n    \"total_tokens\": 59,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
-        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
-        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
-    headers:
-      CF-RAY:
-      - 9594b2624a6235d1-MAN
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 03 Jul 2025 07:33:51 GMT
-      Server:
-      - cloudflare
-      Transfer-Encoding:
-      - chunked
-      X-Content-Type-Options:
-      - nosniff
-      access-control-expose-headers:
-      - X-Request-ID
-      alt-svc:
-      - h3=":443"; ma=86400
-      cf-cache-status:
-      - DYNAMIC
-      content-length:
-      - '1031'
-      openai-organization:
-      - handley-8bq6ws
-      openai-processing-ms:
-      - '1758'
-      openai-version:
-      - '2020-10-01'
-      strict-transport-security:
-      - max-age=31536000; includeSubDomains; preload
-      x-envoy-upstream-service-time:
-      - '1768'
-      x-ratelimit-limit-requests:
-      - '30000'
-      x-ratelimit-limit-tokens:
-      - '150000000'
-      x-ratelimit-remaining-requests:
-      - '29999'
-      x-ratelimit-remaining-tokens:
-      - '149999990'
-      x-ratelimit-reset-requests:
-      - 2ms
-      x-ratelimit-reset-tokens:
-      - 0s
-      x-request-id:
-      - req_b71a15c757db1e2c49ec2eb9672055bc
-    status:
-      code: 200
-      message: OK
-- request:
     body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
       {"role": "assistant", "content": "I can''t remember personal information or
       retain details from our conversation after it''s over. However, you can always
       remind me of your name or any other details whenever you chat with me! How can
-      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"}],
-      "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      0.7}'
     headers:
       accept:
       - application/json
@@ -118,17 +237,17 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '437'
+      - '17489'
       content-type:
       - application/json
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -147,27 +266,29 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8k3DCGX7nTZQOgmKJ7ZsQpJqMQJ\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528031,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BpwdcBVPSIu1uu5kjPO1UTwpMPNQv\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719832,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"Your name is Alice! How can I assist
-        you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
-        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
-        \ \"usage\": {\n    \"prompt_tokens\": 72,\n    \"completion_tokens\": 12,\n
-        \   \"total_tokens\": 84,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"assistant\",\n        \"content\": \"I can't remember personal information
+        or retain details from our conversation after it's over. However, you can
+        always remind me of your name or any other details whenever you chat with
+        me! How can I assist you today, Alice?\",\n        \"refusal\": null,\n        \"annotations\":
+        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
+        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 3330,\n    \"completion_tokens\":
+        44,\n    \"total_tokens\": 3374,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b2742d7e35d1-MAN
+      - 95a6fd16390bb3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:33:52 GMT
+      - Sat, 05 Jul 2025 12:50:33 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -181,17 +302,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '854'
+      - '1035'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '752'
+      - '1049'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '757'
+      - '1052'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -199,13 +320,346 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999927'
+      - '149996723'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
-      - 0s
+      - 1ms
       x-request-id:
-      - req_58961333644b0614647a972210f549d2
+      - req_b2c9e40abfe88193ca1494390c317a6f
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "My name is Alice. Remember this."},
+      {"role": "assistant", "content": "I can''t remember personal information or
+      retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}, {"role": "assistant", "content": "Your name is Alice! How
+      can I assist you today?"}, {"role": "user", "content": "My name is Alice. Remember
+      this."}, {"role": "assistant", "content": "I can''t remember personal information
+      or retain details from our conversation after it''s over. However, you can always
+      remind me of your name or any other details whenever you chat with me! How can
+      I assist you today, Alice?"}, {"role": "user", "content": "What is my name?"},
+      {"role": "assistant", "content": "Your name is Alice! How can I assist you today?"},
+      {"role": "user", "content": "My name is Alice. Remember this."}, {"role": "assistant",
+      "content": "I can''t remember personal information or retain details from our
+      conversation after it''s over. However, you can always remind me of your name
+      or any other details whenever you chat with me! How can I assist you today,
+      Alice?"}, {"role": "user", "content": "What is my name?"}, {"role": "assistant",
+      "content": "Your name is Alice! How can I assist you today?"}, {"role": "user",
+      "content": "My name is Alice. Remember this."}, {"role": "assistant", "content":
+      "I can''t remember personal information or retain details from our conversation
+      after it''s over. However, you can always remind me of your name or any other
+      details whenever you chat with me! How can I assist you today, Alice?"}, {"role":
+      "user", "content": "What is my name?"}, {"role": "assistant", "content": "Your
+      name is Alice! How can I assist you today?"}, {"role": "user", "content": "My
+      name is Alice. Remember this."}, {"role": "assistant", "content": "I can''t
+      remember personal information or retain details from our conversation after
+      it''s over. However, you can always remind me of your name or any other details
+      whenever you chat with me! How can I assist you today, Alice?"}, {"role": "user",
+      "content": "What is my name?"}, {"role": "assistant", "content": "Your name
+      is Alice! How can I assist you today?"}, {"role": "user", "content": "My name
+      is Alice. Remember this."}, {"role": "assistant", "content": "I can''t remember
+      personal information or retain details from our conversation after it''s over.
+      However, you can always remind me of your name or any other details whenever
+      you chat with me! How can I assist you today, Alice?"}, {"role": "user", "content":
+      "What is my name?"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '17792'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-BpwddXyGytp4vzA3ixbZcFrYWahGf\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719833,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Your name is Alice! How can I assist
+        you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 3387,\n    \"completion_tokens\": 12,\n
+        \   \"total_tokens\": 3399,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        3328,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 95a6fd1e8ef1b3a8-MAN
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Sat, 05 Jul 2025 12:50:34 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '861'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '546'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '549'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149996660'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_3a2475a1ea1e7d0bf788fc4edc7b2e57
     status:
       code: 200
       message: OK

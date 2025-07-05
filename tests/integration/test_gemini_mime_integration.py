@@ -6,9 +6,8 @@ import pytest
 from mcp_handley_lab.llm.gemini.tool import ask
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_tex_file_upload(skip_if_no_api_key, test_output_file):
+def test_gemini_tex_file_upload(skip_if_no_api_key, test_output_file):
     """Test that .tex files work with Gemini after MIME type fix."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
@@ -23,7 +22,7 @@ This is a test LaTeX document with mathematical formula: $E = mc^2$
         tex_file_path = f.name
 
     try:
-        result = await ask(
+        result = ask(
             prompt="What type of document is this and what mathematical formula does it contain?",
             files=[{"path": tex_file_path}],
             output_file=test_output_file,
@@ -74,7 +73,7 @@ index 1234567..abcdefg 100644
         patch_file_path = f.name
 
     try:
-        result = await ask(
+        result = ask(
             prompt="What changes does this patch file make to the code?",
             files=[{"path": patch_file_path}],
             output_file=test_output_file,
@@ -123,7 +122,7 @@ database:
         yaml_file_path = f.name
 
     try:
-        result = await ask(
+        result = ask(
             prompt="What is configured in this YAML file? What is the application name?",
             files=[{"path": yaml_file_path}],
             output_file=test_output_file,
@@ -173,7 +172,7 @@ echo "Deployment complete!"
         script_file_path = f.name
 
     try:
-        result = await ask(
+        result = ask(
             prompt="What does this shell script do? What are the main steps?",
             files=[{"path": script_file_path}],
             output_file=test_output_file,
@@ -218,7 +217,7 @@ async def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output
                 file_paths.append(f.name)
 
         # Test with multiple files
-        result = await ask(
+        result = ask(
             prompt="What types of files are these and what do they contain?",
             files=[{"path": path} for path in file_paths],
             output_file=test_output_file,
@@ -255,7 +254,7 @@ async def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_f
         txt_file_path = f.name
 
     try:
-        result = await ask(
+        result = ask(
             prompt="What is in this text file?",
             files=[{"path": txt_file_path}],
             output_file=test_output_file,

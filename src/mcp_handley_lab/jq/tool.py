@@ -31,12 +31,12 @@ def _resolve_data(data: str | dict | list) -> str:
     return str(data)
 
 
-async def _run_jq(args: list[str], input_text: str | None = None) -> str:
+def _run_jq(args: list[str], input_text: str | None = None) -> str:
     """Runs a jq command."""
     cmd = ["jq"] + args
     input_bytes = input_text.encode("utf-8") if input_text else None
 
-    stdout, stderr = await run_command(cmd, input_data=input_bytes)
+    stdout, stderr = run_command(cmd, input_data=input_bytes)
     return stdout.decode("utf-8").strip()
 
 
@@ -75,7 +75,7 @@ query('{"a": 1, "b": 2}', '.', compact=True)
 # Returns: {"a":1,"b":2}
 ```"""
 )
-async def query(
+def query(
     data: constr(min_length=1) | dict | list,
     filter: str = ".",
     compact: bool = False,
@@ -93,10 +93,10 @@ async def query(
         p = Path(data)
         if p.is_file():
             args.append(str(p))
-            return await _run_jq(args)
+            return _run_jq(args)
 
     # Otherwise use the resolved content
-    return await _run_jq(args, input_text=data_content)
+    return _run_jq(args, input_text=data_content)
 
 
 @mcp.tool(
@@ -125,7 +125,7 @@ edit('/path/data.json', 'del(.temp_field)')
 edit('/path/products.json', '.products[].price *= 1.1')
 ```"""
 )
-async def edit(
+def edit(
     file_path: constr(min_length=1), filter: constr(min_length=1), backup: bool = True
 ) -> str:
     """Edit a JSON file in-place."""
@@ -138,7 +138,7 @@ async def edit(
         backup_path.write_text(path.read_text())
 
     # Apply transformation
-    result = await _run_jq([filter, str(path)])
+    result = _run_jq([filter, str(path)])
 
     # Write result back
     path.write_text(result)
@@ -166,9 +166,9 @@ read('/path/data.json', '.users')
 read('/path/products.json', '.items | length')
 ```"""
 )
-async def read(file_path: str, filter: str = ".") -> str:
+def read(file_path: str, filter: str = ".") -> str:
     """Read and pretty-print a JSON file."""
-    return await _run_jq([filter, file_path])
+    return _run_jq([filter, file_path])
 
 
 @mcp.tool(
@@ -194,7 +194,7 @@ validate('/path/data.json')
 validate('{invalid: json}')
 ```"""
 )
-async def validate(data: constr(min_length=1) | dict | list) -> str:
+def validate(data: constr(min_length=1) | dict | list) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
 
@@ -229,7 +229,7 @@ format('{"b":2,"a":1}', compact=True, sort_keys=True)
 format('/path/data.json', sort_keys=True)
 ```"""
 )
-async def format(
+def format(
     data: constr(min_length=1) | dict | list,
     compact: bool = False,
     sort_keys: bool = False,
@@ -259,9 +259,9 @@ Use this to verify that the tool is operational before making other requests.
 server_info()
 ```"""
 )
-async def server_info() -> str:
+def server_info() -> str:
     """Get server status and jq version."""
-    version = await _run_jq(["--version"])
+    version = _run_jq(["--version"])
 
     return f"""JQ Tool Server Status
 ====================

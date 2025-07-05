@@ -19,13 +19,12 @@ def create_test_image(tmp_path):
     return _create_image
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_ask_basic(skip_if_no_api_key, test_output_file):
+def test_claude_ask_basic(skip_if_no_api_key, test_output_file):
     """Test basic Claude text generation."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="What is 5+5? Answer with just the number.",
         output_file=test_output_file,
         model="claude-3-5-haiku-20241022",  # Use fastest model for tests
@@ -39,9 +38,8 @@ async def test_claude_ask_basic(skip_if_no_api_key, test_output_file):
     assert "10" in content
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_ask_with_files(skip_if_no_api_key, test_output_file, tmp_path):
+def test_claude_ask_with_files(skip_if_no_api_key, test_output_file, tmp_path):
     """Test Claude with file input."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
@@ -49,7 +47,7 @@ async def test_claude_ask_with_files(skip_if_no_api_key, test_output_file, tmp_p
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello World\nThis is a test file.")
 
-    result = await ask(
+    result = ask(
         prompt="What is the content of this file?",
         output_file=test_output_file,
         files=[{"path": str(test_file)}],
@@ -62,9 +60,8 @@ async def test_claude_ask_with_files(skip_if_no_api_key, test_output_file, tmp_p
     assert "Hello World" in content or "test file" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_analyze_image_simple(
+def test_claude_analyze_image_simple(
     skip_if_no_api_key, test_output_file, create_test_image
 ):
     """Test Claude image analysis with a simple test image."""
@@ -73,7 +70,7 @@ async def test_claude_analyze_image_simple(
     # Create simple red square image
     image_path = create_test_image("red_square.png", color="red", size=(100, 100))
 
-    result = await analyze_image(
+    result = analyze_image(
         prompt="What color is this image?",
         output_file=test_output_file,
         image_data=str(image_path),
@@ -86,9 +83,8 @@ async def test_claude_analyze_image_simple(
     assert "red" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_analyze_image_multiple(
+def test_claude_analyze_image_multiple(
     skip_if_no_api_key, test_output_file, create_test_image
 ):
     """Test Claude image analysis with multiple images."""
@@ -98,7 +94,7 @@ async def test_claude_analyze_image_multiple(
     red_image = create_test_image("red.png", color="red", size=(50, 50))
     blue_image = create_test_image("blue.png", color="blue", size=(50, 50))
 
-    result = await analyze_image(
+    result = analyze_image(
         prompt="Compare these two images and tell me what colors they are.",
         output_file=test_output_file,
         images=[{"path": str(red_image)}, {"path": str(blue_image)}],
@@ -112,13 +108,12 @@ async def test_claude_analyze_image_multiple(
     assert "red" in content.lower() and "blue" in content.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_memory_disabled(skip_if_no_api_key, test_output_file):
+def test_claude_memory_disabled(skip_if_no_api_key, test_output_file):
     """Test Claude with memory explicitly disabled."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="Remember this: my favorite color is purple.",
         output_file=test_output_file,
         model="claude-3-5-haiku-20241022",
@@ -128,7 +123,7 @@ async def test_claude_memory_disabled(skip_if_no_api_key, test_output_file):
     assert "saved" in result.lower()
 
     # Second request should not remember the first
-    await ask(
+    ask(
         prompt="What is my favorite color?",
         output_file=test_output_file + "2",
         model="claude-3-5-haiku-20241022",
@@ -140,13 +135,12 @@ async def test_claude_memory_disabled(skip_if_no_api_key, test_output_file):
     assert "purple" not in content2.lower()
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_server_info(skip_if_no_api_key):
+def test_claude_server_info(skip_if_no_api_key):
     """Test Claude server info endpoint."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
-    result = await server_info()
+    result = server_info()
 
     assert "Claude Tool Server Status" in result
     assert "Connected and ready" in result
@@ -158,14 +152,13 @@ async def test_claude_server_info(skip_if_no_api_key):
     assert "Image Generation: ✗" in result  # Claude doesn't support image generation
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_model_aliases(skip_if_no_api_key, test_output_file):
+def test_claude_model_aliases(skip_if_no_api_key, test_output_file):
     """Test Claude model aliases work correctly."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
     # Test using alias instead of full model name
-    result = await ask(
+    result = ask(
         prompt="What is 2+2? Answer with just the number.",
         output_file=test_output_file,
         model="haiku",  # Using alias instead of full name
@@ -178,13 +171,12 @@ async def test_claude_model_aliases(skip_if_no_api_key, test_output_file):
     assert "4" in content
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_claude_max_tokens_override(skip_if_no_api_key, test_output_file):
+def test_claude_max_tokens_override(skip_if_no_api_key, test_output_file):
     """Test Claude with custom max tokens."""
     skip_if_no_api_key("ANTHROPIC_API_KEY")
 
-    result = await ask(
+    result = ask(
         prompt="Write a very short sentence about cats.",
         output_file=test_output_file,
         model="claude-3-5-haiku-20241022",

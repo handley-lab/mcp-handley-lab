@@ -27,26 +27,26 @@ interactions:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"A prime number is a whole number greater
         than 1 that can only be divided evenly by 1 and itself.\\n\\nFor example,
-        7 is prime because its only divisors are 1 and 7. In contrast, 6 is not prime
+        7 is prime because its only factors are 1 and 7. The number 6 is not prime
         because it can also be divided by 2 and 3.\\n\\nThe first few prime numbers
         are 2, 3, 5, 7, 11, and 13.\"\n          }\n        ],\n        \"role\":
         \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
         \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 12,\n    \"candidatesTokenCount\":
-        91,\n    \"totalTokenCount\": 1489,\n    \"promptTokensDetails\": [\n      {\n
+        90,\n    \"totalTokenCount\": 1491,\n    \"promptTokensDetails\": [\n      {\n
         \       \"modality\": \"TEXT\",\n        \"tokenCount\": 12\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 1386\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
-        \ \"responseId\": \"GTJmaNqEBcmGxs0P99bH8Qs\"\n}\n"
+        \   \"thoughtsTokenCount\": 1389\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"eCBpaKn9F46insEPtMvb2AM\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:32:41 GMT
+      - Sat, 05 Jul 2025 12:54:16 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=16186
+      - gfet4t7; dur=15617
       Transfer-Encoding:
       - chunked
       Vary:
@@ -60,7 +60,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '836'
+      - '833'
     status:
       code: 200
       message: OK

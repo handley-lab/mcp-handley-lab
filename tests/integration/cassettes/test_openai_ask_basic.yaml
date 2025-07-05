@@ -1,24 +1,8 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 3+3? Answer with just
-      the number."}, {"role": "assistant", "content": "6"}, {"role": "user", "content":
-      "What is the current date today?"}, {"role": "assistant", "content": "Today
-      is Thursday, July 3, 2025. Please note that this is the current date as of today,
-      and it will change tomorrow.\n"}, {"role": "user", "content": "What is the current
-      date today?"}, {"role": "assistant", "content": "Today is Thursday, July 3,
-      2025. Please note that this is the current date as of today, and it will change
-      tomorrow."}, {"role": "user", "content": "What data is in this JSON file?"},
-      {"role": "assistant", "content": "The JSON file contains the following data:\n\n*   A
-      key named \"test\" with the string value \"data\".\n*   A key named \"numbers\"
-      with an array of integers: 1, 2, and 3."}, {"role": "user", "content": "What
-      color is dominant in this image? [Image analysis: 1 image(s)]"}, {"role": "assistant",
-      "content": "Based on the image provided, the dominant color is a bright, vibrant
-      **yellow**.\n\nIt is the only color present, completely filling the entire image.
-      The specific shade is a pure, electric yellow, with no other hues or shades
-      visible."}, {"role": "user", "content": "Generate image: A simple blue square"},
-      {"role": "assistant", "content": "Generated image saved to /tmp/gemini_generated_ef79e6e2.png"},
-      {"role": "user", "content": "What is 2+2? Answer with just the number."}], "model":
-      "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.0}'
+    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
+      the number."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      0.0}'
     headers:
       accept:
       - application/json
@@ -27,17 +11,17 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1457'
+      - '143'
       content-type:
       - application/json
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -56,33 +40,33 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8jwv422HGH7asCcqJ5r3VcJBr56\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528024,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BpwdY7FnvLRyHwUfsV7GKx2cqGPI5\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719828,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"4\",\n        \"refusal\": null,\n
         \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 302,\n    \"completion_tokens\":
-        1,\n    \"total_tokens\": 303,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 20,\n    \"completion_tokens\":
+        1,\n    \"total_tokens\": 21,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
         0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b2400a04ba0d-MAN
+      - 95a6fcfb9ba4b3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:33:44 GMT
+      - Sat, 05 Jul 2025 12:50:28 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=vfiqdOoifKLhVipq4a0Cp6XSFBL4nrFl2Ah.mDixm00-1751528024-1.0.1.1-6Ir5fG_HDyiGtL2zXsA4cUp138tiOL6NApKaK43AD0NFg.ivIm16rWl2gScZD62FZR4FA7eZcPtzM4ETpJvK515GIgO.EUMG3gMdmufaVlk;
-        path=/; expires=Thu, 03-Jul-25 08:03:44 GMT; domain=.api.openai.com; HttpOnly;
+      - __cf_bm=No.h9JALcrNQ.698nadHOqHhxrybq8k551dwre478Og-1751719828-1.0.1.1-IqqNNLqEBTYuQtyTt4wvHq8C5QAV1czA8FSRfLZOgQphrszVb6h1l1H.Katuwv98PdY_m5cUkZl.shx00ywkk.jk0xQeg5uZGqzASB7nRzE;
+        path=/; expires=Sat, 05-Jul-25 13:20:28 GMT; domain=.api.openai.com; HttpOnly;
         Secure; SameSite=None
-      - _cfuvid=sos6yw_XHUAYxaxphsT72FM7yUgzH7gEmdJbHgKf3nk-1751528024705-0.0.1.1-604800000;
+      - _cfuvid=BQY1UXkAzVgQM2n1atpmQDB6hTFO9QK1i_1OwFMD.8o-1751719828884-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Transfer-Encoding:
       - chunked
@@ -95,17 +79,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '809'
+      - '807'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '174'
+      - '249'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '178'
+      - '251'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -113,13 +97,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999743'
+      - '149999987'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_947614f1b68ce3905e3a136318b92f85
+      - req_fb86d37c05b694663c61222b5f0e70f8
     status:
       code: 200
       message: OK

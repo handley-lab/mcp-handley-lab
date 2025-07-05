@@ -1,26 +1,8 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 3+3? Answer with just
-      the number."}, {"role": "assistant", "content": "6"}, {"role": "user", "content":
-      "What is the current date today?"}, {"role": "assistant", "content": "Today
-      is Thursday, July 3, 2025. Please note that this is the current date as of today,
-      and it will change tomorrow.\n"}, {"role": "user", "content": "What is the current
-      date today?"}, {"role": "assistant", "content": "Today is Thursday, July 3,
-      2025. Please note that this is the current date as of today, and it will change
-      tomorrow."}, {"role": "user", "content": "What data is in this JSON file?"},
-      {"role": "assistant", "content": "The JSON file contains the following data:\n\n*   A
-      key named \"test\" with the string value \"data\".\n*   A key named \"numbers\"
-      with an array of integers: 1, 2, and 3."}, {"role": "user", "content": "What
-      color is dominant in this image? [Image analysis: 1 image(s)]"}, {"role": "assistant",
-      "content": "Based on the image provided, the dominant color is a bright, vibrant
-      **yellow**.\n\nIt is the only color present, completely filling the entire image.
-      The specific shade is a pure, electric yellow, with no other hues or shades
-      visible."}, {"role": "user", "content": "Generate image: A simple blue square"},
-      {"role": "assistant", "content": "Generated image saved to /tmp/gemini_generated_ef79e6e2.png"},
-      {"role": "user", "content": "What is 2+2? Answer with just the number."}, {"role":
-      "assistant", "content": "4"}, {"role": "user", "content": "What is in this JSON
-      file?\n\n[File: tmp6m8ue7z3.json]\n{\"test\": \"data\", \"numbers\": [1, 2,
-      3]}"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
+    body: '{"messages": [{"role": "user", "content": "What is in this JSON file?\n\n[File:
+      tmp3bwja8oj.json]\n{\"test\": \"data\", \"numbers\": [1, 2, 3]}"}], "model":
+      "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.7}'
     headers:
       accept:
       - application/json
@@ -29,17 +11,17 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1621'
+      - '202'
       content-type:
       - application/json
       host:
       - api.openai.com
       user-agent:
-      - AsyncOpenAI/Python 1.93.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
-      - async:asyncio
+      - 'false'
       x-stainless-lang:
       - python
       x-stainless-os:
@@ -49,7 +31,7 @@ interactions:
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
-      - '1'
+      - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
@@ -58,28 +40,30 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-Bp8jzbG7CVAEzBElzJWeZHHfM7e3y\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751528027,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BpwdZ7yhjX1ZgK7FrkhNXetPCqCZV\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751719829,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The JSON file contains the following
-        data:\\n\\n- A key named \\\"test\\\" with the value \\\"data\\\".\\n- A key
-        named \\\"numbers\\\" with an array of integers: 1, 2, and 3.\",\n        \"refusal\":
-        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
-        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        349,\n    \"completion_tokens\": 44,\n    \"total_tokens\": 393,\n    \"prompt_tokens_details\":
+        \"assistant\",\n        \"content\": \"The JSON file contains an object with
+        two properties:\\n\\n1. **\\\"test\\\"**: This property has a string value
+        of `\\\"data\\\"`.\\n2. **\\\"numbers\\\"**: This property is an array containing
+        three integers: `[1, 2, 3]`.\\n\\nIn summary, the JSON structure is as follows:\\n\\n```json\\n{\\n
+        \ \\\"test\\\": \\\"data\\\",\\n  \\\"numbers\\\": [1, 2, 3]\\n}\\n```\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        43,\n    \"completion_tokens\": 92,\n    \"total_tokens\": 135,\n    \"prompt_tokens_details\":
         {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
         \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
     headers:
       CF-RAY:
-      - 9594b24edc32d200-MAN
+      - 95a6fd02d95ab3a8-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Thu, 03 Jul 2025 07:33:47 GMT
+      - Sat, 05 Jul 2025 12:50:31 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -93,17 +77,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '969'
+      - '1136'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '400'
+      - '2282'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '402'
+      - '2284'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -111,13 +95,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999719'
+      - '149999974'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_e1788a1d40d0b3f2fc3c3445392ae73c
+      - req_14f87e236b149201e8dfaed7f6a42e57
     status:
       code: 200
       message: OK

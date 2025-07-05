@@ -26,32 +26,36 @@ interactions:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"Photosynthesis is the process by which
-        plants (and some other organisms) convert light energy into chemical energy,
-        creating their own food.\\n\\nHere's a breakdown:\\n\\n1.  **Ingredients:**
+        **plants** (and some other organisms) **convert light energy into chemical
+        energy**, creating their own food.\\n\\nHere's a breakdown:\\n\\n1.  **Ingredients:**
         Plants take in **carbon dioxide** from the air (through tiny pores called
         stomata), **water** from the soil (through their roots), and absorb **sunlight**
-        (energy).\\n2.  **Location:** This magical process primarily happens in the
-        leaves, specifically within structures called **chloroplasts**, which contain
-        a green pigment called **chlorophyll**. Chlorophyll is what captures the sunlight.\\n3.
-        \ **The Reaction:** Using the captured sunlight energy, the plant transforms
-        the carbon dioxide and water into **glucose** (a type\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"MAX_TOKENS\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        10,\n    \"candidatesTokenCount\": 150,\n    \"totalTokenCount\": 1008,\n
-        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 10\n      }\n    ],\n    \"thoughtsTokenCount\": 848\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"-jFmaJC-DbyrxN8PxOK3sAM\"\n}\n"
+        (using chlorophyll, the green pigment in their leaves).\\n2.  **The \\\"Cook\\\":**
+        Inside specialized structures called **chloroplasts** in their leaves, chlorophyll
+        captures the sun's energy.\\n3.  **The Process:** This captured energy is
+        used to convert the carbon dioxide and water into **glucose** (a type of sugar,
+        which is the plant's food source) and **oxygen**.\\n4.  **Outputs:** The plant
+        uses the glucose for energy and growth, and **releases oxygen** as a byproduct
+        into the atmosphere.\\n\\nEssentially, it's how plants \\\"eat\\\" sunlight,
+        carbon dioxide, and water to grow, while also producing the oxygen vital for
+        most life on Earth.\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
+        \ \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
+        225,\n    \"totalTokenCount\": 955,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 720\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"XCBpaLavM72vnsEP_5-18QM\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 03 Jul 2025 07:32:10 GMT
+      - Sat, 05 Jul 2025 12:53:48 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=5676
+      - gfet4t7; dur=5068
       Transfer-Encoding:
       - chunked
       Vary:
@@ -65,7 +69,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1264'
+      - '1535'
     status:
       code: 200
       message: OK

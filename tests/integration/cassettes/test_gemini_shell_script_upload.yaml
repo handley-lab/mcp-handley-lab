@@ -1,0 +1,113 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What does this shell script do? What
+      are the main steps?"}, {"text": "[File: tmp7izafgy2.sh]\n#!/bin/bash\n# Build
+      and deploy script\nset -e\n\necho \"Starting build process...\"\nnpm install\nnpm
+      run build\nnpm test\n\necho \"Deploying to production...\"\nrsync -av dist/
+      user@server:/var/www/\necho \"Deployment complete!\"\n"}], "role": "user"}],
+      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '452'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"This shell script is a **Continuous
+        Integration/Continuous Deployment (CI/CD) script** designed to automate the
+        process of building a Node.js application, running its tests, and then deploying
+        the resulting production-ready files to a remote server.\\n\\n### What the
+        script does:\\n\\nThe script performs the following sequence of operations:\\n\\n1.
+        \ **Sets up error handling**: It ensures that the script will exit immediately
+        if any command fails.\\n2.  **Initiates the build process**: It outputs a
+        message indicating the start of the build.\\n3.  **Installs Node.js dependencies**:
+        It fetches and installs all required packages for the project.\\n4.  **Builds
+        the application**: It compiles, bundles, and optimizes the application's source
+        code for production.\\n5.  **Runs tests**: It executes the project's automated
+        test suite to ensure functionality and prevent regressions.\\n6.  **Initiates
+        deployment**: It outputs a message indicating the start of the deployment.\\n7.
+        \ **Deploys to production**: It securely copies the built application files
+        to a remote server.\\n8.  **Confirms completion**: It outputs a message indicating
+        that the deployment is finished.\\n\\n### Main Steps:\\n\\nHere are the main
+        steps the script takes:\\n\\n1.  **Preparation & Error Handling (`set -e`)**\\n
+        \   *   `#!/bin/bash`: Specifies the interpreter for the script.\\n    *   `set
+        -e`: This is crucial. It ensures that the script will exit immediately if
+        any command fails (returns a non-zero exit status). This prevents a broken
+        build from being deployed.\\n\\n2.  **Build Process (Node.js Application)**\\n
+        \   *   `echo \\\"Starting build process...\\\"`: Provides a clear indication
+        of the script's progress.\\n    *   `npm install`: Installs all the project
+        dependencies listed in `package.json`. This ensures all necessary libraries
+        and modules are present.\\n    *   `npm run build`: Executes the \\\"build\\\"
+        script defined in the `package.json` file. For most Node.js/frontend projects
+        (like React, Angular, Vue), this step compiles, minifies, and bundles the
+        application's source code into a deployable format, typically outputting to
+        a `dist/` or `build/` directory.\\n    *   `npm test`: Runs the automated
+        test suite for the project, as defined in `package.json`. This step verifies
+        that the application is functioning correctly after the build. If tests fail,
+        `set -e` will cause the script to stop here, preventing deployment of a broken
+        application.\\n\\n3.  **Deployment to Production (using `rsync`)**\\n    *
+        \  `echo \\\"Deploying to production...\\\"`: Indicates the transition to
+        the deployment phase.\\n    *   `rsync -av dist/ user@server:/var/www/`: This
+        is the core deployment command.\\n        *   `rsync`: A powerful utility
+        for synchronizing files and directories, especially across networks.\\n        *
+        \  `-a`: Archive mode, which means it preserves permissions, ownership, timestamps,
+        symbolic links, and copies recursively (equivalent to `-rlptgoD`).\\n        *
+        \  `-v`: Verbose mode, showing the files being transferred.\\n        *   `dist/`:
+        This is the source directory. It assumes that the `npm run build` command
+        has outputted the production-ready application files into a directory named
+        `dist/` (a common convention).\\n        *   `user@server:/var/www/`: This
+        is the destination. `user` is the SSH username on the remote `server`, and
+        `/var/www/` is the target directory on that server where the application will
+        be deployed.\\n    *   `echo \\\"Deployment complete!\\\"`: Confirms successful
+        completion of the entire process.\\n\\nIn essence, this script automates a
+        robust \\\"build, test, and deploy\\\" workflow for a Node.js-based web application.\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        88,\n    \"candidatesTokenCount\": 829,\n    \"totalTokenCount\": 2005,\n
+        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 88\n      }\n    ],\n    \"thoughtsTokenCount\": 1088\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"mTJpaNy2OMyNxN8PxKHj4As\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 05 Jul 2025 14:11:37 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=9956
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '4179'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -8,73 +8,68 @@ from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info
 class TestArxivIntegration:
     """Integration tests for ArXiv tool using VCR cassettes."""
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_real_arxiv_paper_src_single_file(self):
+    def test_real_arxiv_paper_src_single_file(self):
         """Test with a real ArXiv paper that's a single gzipped file."""
         # Use a very small ArXiv paper (8KB source) - single gzipped file
         arxiv_id = "0704.0005"  # Small paper with minimal source
 
         # Test listing files
-        files = await list_files(arxiv_id)
+        files = list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) == 1
         assert f"{arxiv_id}.tex" in files
 
         # Test downloading source with stdout
-        result = await download(arxiv_id, format="src", output_path="-")
+        result = download(arxiv_id, format="src", output_path="-")
         assert f"ArXiv source file for {arxiv_id}:" in result
         assert "single .tex file" in result
         assert "bytes" in result
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_real_arxiv_paper_src_tar_archive(self):
+    def test_real_arxiv_paper_src_tar_archive(self):
         """Test with a real ArXiv paper that's a tar archive."""
         # Use the first ArXiv paper - it's a tar archive with multiple files
         arxiv_id = "0704.0001"  # First paper on ArXiv (tar archive)
 
         # Test listing files
-        files = await list_files(arxiv_id)
+        files = list_files(arxiv_id)
         assert isinstance(files, list)
         assert len(files) > 1  # Multiple files in tar archive
 
         # Test downloading source with stdout
-        result = await download(arxiv_id, format="src", output_path="-")
+        result = download(arxiv_id, format="src", output_path="-")
         assert f"ArXiv source files for {arxiv_id}:" in result
         assert "bytes" in result
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_real_arxiv_paper_pdf(self):
+    def test_real_arxiv_paper_pdf(self):
         """Test with a real ArXiv paper PDF download."""
         arxiv_id = "0704.0001"  # Use first paper for PDF test
 
         # Test PDF info with stdout
-        result = await download(arxiv_id, format="pdf", output_path="-")
+        result = download(arxiv_id, format="pdf", output_path="-")
         assert f"ArXiv PDF for {arxiv_id}:" in result
         assert "MB" in result
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_invalid_arxiv_id(self):
+    def test_invalid_arxiv_id(self):
         """Test with invalid ArXiv ID."""
         import httpx
 
         with pytest.raises(httpx.HTTPStatusError):
-            await list_files("invalid-id-99999999")
+            list_files("invalid-id-99999999")
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_real_arxiv_search(self):
+    def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
         # Search for a specific topic
-        results = await search("machine learning", max_results=5)
+        results = search("machine learning", max_results=5)
 
         assert isinstance(results, list)
         assert len(results) <= 5
@@ -100,34 +95,32 @@ class TestArxivIntegration:
             assert result["pdf_url"].startswith("http")
             assert result["abs_url"].startswith("http")
 
-    @pytest.mark.asyncio
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    async def test_arxiv_download_formats(self):
+    def test_arxiv_download_formats(self):
         """Test different download formats with VCR."""
         arxiv_id = "0704.0001"
 
         # Test src format
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, "test_paper")
-            result = await download(arxiv_id, format="src", output_path=save_path)
+            result = download(arxiv_id, format="src", output_path=save_path)
             assert "ArXiv source saved to directory:" in result
             assert os.path.exists(save_path)
 
         # Test tex format
         with tempfile.TemporaryDirectory() as temp_dir:
             save_path = os.path.join(temp_dir, "test_tex")
-            result = await download(arxiv_id, format="tex", output_path=save_path)
+            result = download(arxiv_id, format="tex", output_path=save_path)
             assert (
                 "ArXiv LaTeX files saved to directory:" in result
                 or "single .tex file" in result
             )
             assert os.path.exists(save_path)
 
-    @pytest.mark.asyncio
-    async def test_server_info(self):
+    def test_server_info(self):
         """Test server info function (no VCR needed for local function)."""
-        info = await server_info()
+        info = server_info()
 
         assert info["name"] == "ArXiv Tool"
         assert "description" in info
@@ -139,8 +132,7 @@ class TestArxivIntegration:
         assert "pdf" in info["supported_formats"]
         assert "tex" in info["supported_formats"]
 
-    @pytest.mark.asyncio
-    async def test_download_invalid_format(self):
+    def test_download_invalid_format(self):
         """Test download with invalid format (no VCR needed for validation)."""
         with pytest.raises(ValueError, match="Invalid format 'invalid'"):
-            await download("2301.07041", format="invalid")
+            download("2301.07041", format="invalid")

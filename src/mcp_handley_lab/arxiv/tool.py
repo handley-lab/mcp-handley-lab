@@ -31,7 +31,7 @@ def _cache_source(arxiv_id: str, content: bytes) -> None:
     cache_file.write_bytes(content)
 
 
-async def _get_source_archive(arxiv_id: str) -> bytes:
+def _get_source_archive(arxiv_id: str) -> bytes:
     """Get source archive, using cache if available."""
     # Check cache first
     cached = _get_cached_source(arxiv_id)
@@ -40,8 +40,8 @@ async def _get_source_archive(arxiv_id: str) -> bytes:
 
     # Download and cache
     url = f"https://arxiv.org/src/{arxiv_id}"
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        response = await client.get(url)
+    with httpx.Client(follow_redirects=True) as client:
+        response = client.get(url)
         response.raise_for_status()
         _cache_source(arxiv_id, response.content)
         return response.content
@@ -124,7 +124,7 @@ def _handle_tar_archive(
 
 
 @mcp.tool()
-async def download(arxiv_id: str, format: str = "src", output_path: str = None) -> str:
+def download(arxiv_id: str, format: str = "src", output_path: str = None) -> str:
     """
     Download ArXiv paper in specified format.
 
@@ -146,8 +146,8 @@ async def download(arxiv_id: str, format: str = "src", output_path: str = None) 
     if format == "pdf":
         url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
 
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            response = await client.get(url)
+        with httpx.Client(follow_redirects=True) as client:
+            response = client.get(url)
             response.raise_for_status()
 
         if output_path == "-":
@@ -161,12 +161,12 @@ async def download(arxiv_id: str, format: str = "src", output_path: str = None) 
             return f"ArXiv PDF saved to: {output_path} ({size_mb:.2f} MB)"
 
     else:  # src or tex format
-        content = await _get_source_archive(arxiv_id)
+        content = _get_source_archive(arxiv_id)
         return _handle_source_content(arxiv_id, content, format, output_path)
 
 
 @mcp.tool()
-async def list_files(arxiv_id: str) -> list[str]:
+def list_files(arxiv_id: str) -> list[str]:
     """
     List all files in an ArXiv source archive.
 
@@ -176,7 +176,7 @@ async def list_files(arxiv_id: str) -> list[str]:
     Returns:
         List of filenames in the archive
     """
-    content = await _get_source_archive(arxiv_id)
+    content = _get_source_archive(arxiv_id)
 
     try:
         # Try to handle as tar archive first (most common case)
@@ -249,7 +249,7 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def search(
+def search(
     query: str,
     max_results: int = 10,
     start: int = 0,
@@ -290,8 +290,8 @@ async def search(
     param_str = "&".join([f"{k}={v}" for k, v in params.items()])
     url = f"{base_url}?{param_str}"
 
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        response = await client.get(url)
+    with httpx.Client(follow_redirects=True) as client:
+        response = client.get(url)
         response.raise_for_status()
 
     # Parse XML response
@@ -313,7 +313,7 @@ async def search(
 
 
 @mcp.tool()
-async def server_info() -> dict[str, Any]:
+def server_info() -> dict[str, Any]:
     """
     Get information about the ArXiv tool server.
 

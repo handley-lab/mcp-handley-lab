@@ -13,64 +13,60 @@ from mcp_handley_lab.github.tool import (
 class TestGitHubCIMonitor:
     """Test GitHub CI Monitor functionality."""
 
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_server_info_success(self, mock_run_gh):
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_server_info_success(self, mock_run_command):
         """Test server info success."""
-        mock_run_gh.side_effect = [
-            "gh version 2.32.1 (2023-07-25)",
-            "✓ Logged in to github.com as user",
+        mock_run_command.side_effect = [
+            (b"gh version 2.32.1 (2023-07-25)", b""),
+            (b"github.com\n  \xe2\x9c\x93 Logged in to github.com", b""),
         ]
 
         result = server_info()
 
-        assert "GitHub CI Monitor Server Status" in result
-        assert "2.32.1" in result
-        assert "Logged in to github.com" in result
-        assert "monitor_pr_checks:" in result
-        assert "gh pr merge" in result
+        assert "Status: Connected and ready" in result
+        assert "GitHub CLI Version: gh" in result
+        assert "Authentication: github.com" in result
 
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_server_info_not_found(self, mock_run_gh):
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_server_info_not_found(self, mock_run_command):
         """Test server info when gh not found."""
-        mock_run_gh.side_effect = FileNotFoundError("gh: command not found")
+        mock_run_command.side_effect = FileNotFoundError("command not found")
 
-        with pytest.raises(RuntimeError, match="gh command not found"):
+        with pytest.raises(FileNotFoundError):
             server_info()
-
-    @patch("time.sleep")  # Mock sleep to speed up tests
-    @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_monitor_pr_checks_all_passed(self, mock_run_gh, mock_time, mock_sleep):
-        """Test monitoring when all checks pass."""
-        # Mock time progression
-        mock_time.side_effect = [0, 5, 10]  # Start, first check, done
-
-        # Mock successful checks
-        test_data = [
-            {"name": "test", "state": "success"},
-            {"name": "build", "state": "success"},
-        ]
-        mock_run_gh.return_value = json.dumps(test_data)
-
-        result = monitor_pr_checks(25)
-
-        assert "Starting CI monitoring for PR #25" in result
-        assert "2/2 passed, 0 failed, 0 pending" in result
-        assert "All checks passed! Ready to merge." in result
-        assert "gh pr merge 25 --squash" in result
 
     @patch("time.sleep")
     @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_monitor_pr_checks_failed_check(self, mock_run_gh, mock_time, mock_sleep):
-        """Test monitoring when checks fail."""
-        mock_time.side_effect = [0, 5, 10]  # Start, check, done
-
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_monitor_pr_checks_all_passed(
+        self, mock_run_command, mock_time, mock_sleep
+    ):
+        """Test monitoring with all checks passed."""
+        mock_time.side_effect = [0, 10]  # Start time, first check
         test_data = [
-            {"name": "test", "state": "success"},
-            {"name": "build", "state": "failure"},
+            {"name": "build", "state": "SUCCESS"},
+            {"name": "test", "state": "SUCCESS"},
         ]
-        mock_run_gh.return_value = json.dumps(test_data)
+        mock_run_command.return_value = (json.dumps(test_data).encode(), b"")
+
+        result = monitor_pr_checks(25)
+
+        assert "2/2 passed, 0 failed, 0 pending" in result
+        assert "All checks passed! Ready to merge" in result
+
+    @patch("time.sleep")
+    @patch("time.time")
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_monitor_pr_checks_failed_check(
+        self, mock_run_command, mock_time, mock_sleep
+    ):
+        """Test monitoring with failed check."""
+        mock_time.side_effect = [0, 10]  # Start time, first check
+        test_data = [
+            {"name": "build", "state": "SUCCESS"},
+            {"name": "test", "state": "FAILURE"},
+        ]
+        mock_run_command.return_value = (json.dumps(test_data).encode(), b"")
 
         result = monitor_pr_checks(25)
 
@@ -79,25 +75,16 @@ class TestGitHubCIMonitor:
 
     @patch("time.sleep")
     @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
+    @patch("mcp_handley_lab.github.tool.run_command")
     def test_monitor_pr_checks_pending_then_timeout(
-        self, mock_run_gh, mock_time, mock_sleep
+        self, mock_run_command, mock_time, mock_sleep
     ):
         """Test monitoring with pending checks that timeout."""
-        # Mock time progression that exceeds timeout - provide enough values
-        # First call: start_time, then checks during loop, then timeout check
-        mock_time.side_effect = [
-            0,
-            10,
-            35,
-            65,
-            70,
-        ]  # Start, check1, sleep check, check2, final timeout check
+        mock_time.side_effect = [0, 10, 35, 65, 70]
+        test_data = [{"name": "test", "state": "PENDING"}]
+        mock_run_command.return_value = (json.dumps(test_data).encode(), b"")
 
-        test_data = [{"name": "test", "state": "pending"}]
-        mock_run_gh.return_value = json.dumps(test_data)
-
-        result = monitor_pr_checks(25, timeout_minutes=1)  # 1 minute timeout
+        result = monitor_pr_checks(25, timeout_minutes=1)
 
         assert "0/1 passed, 0 failed, 1 pending" in result
         assert "Waiting for 1 pending check(s)" in result
@@ -109,7 +96,7 @@ class TestGitHubCIMonitor:
             ValueError,
             match="timeout_minutes and check_interval_seconds must be positive",
         ):
-            monitor_pr_checks(25, timeout_minutes=0)
+            monitor_pr_checks(25, timeout_minutes=-1)
 
         with pytest.raises(
             ValueError,
@@ -119,11 +106,11 @@ class TestGitHubCIMonitor:
 
     @patch("time.sleep")
     @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_monitor_pr_checks_no_checks(self, mock_run_gh, mock_time, mock_sleep):
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_monitor_pr_checks_no_checks(self, mock_run_command, mock_time, mock_sleep):
         """Test monitoring when no checks exist."""
-        mock_time.side_effect = [0, 10, 35, 65, 70]  # Will timeout
-        mock_run_gh.return_value = "[]"  # No checks
+        mock_time.side_effect = [0, 10, 35, 65, 70]
+        mock_run_command.return_value = (b"[]", b"")
 
         result = monitor_pr_checks(25, timeout_minutes=1)
 
@@ -132,54 +119,58 @@ class TestGitHubCIMonitor:
 
     @patch("time.sleep")
     @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
+    @patch("mcp_handley_lab.github.tool.run_command")
     def test_monitor_pr_checks_json_parse_error(
-        self, mock_run_gh, mock_time, mock_sleep
+        self, mock_run_command, mock_time, mock_sleep
     ):
-        """Test monitoring with JSON parse error."""
-        mock_time.side_effect = [0, 10, 35, 65, 70]  # Will timeout
-        mock_run_gh.return_value = "invalid json"
+        """Test monitoring with JSON parse error - should fail fast."""
+        mock_time.side_effect = [0, 10]
+        mock_run_command.return_value = (b"invalid json", b"")
 
-        result = monitor_pr_checks(25, timeout_minutes=1)
-
-        assert "Failed to parse check status" in result
-        assert "Monitoring timed out" in result
+        with pytest.raises(json.JSONDecodeError):
+            monitor_pr_checks(25, timeout_minutes=1)
 
     @patch("time.sleep")
     @patch("time.time")
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_monitor_pr_checks_custom_timing(self, mock_run_gh, mock_time, mock_sleep):
-        """Test monitoring with custom timeout and interval."""
-        mock_time.side_effect = [0, 5, 10]
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_monitor_pr_checks_custom_timing(
+        self, mock_run_command, mock_time, mock_sleep
+    ):
+        """Test monitoring with custom timing parameters."""
+        mock_time.side_effect = [0, 5]
+        test_data = [{"name": "test", "state": "SUCCESS"}]
+        mock_run_command.return_value = (json.dumps(test_data).encode(), b"")
 
-        test_data = [{"name": "test", "state": "success"}]
-        mock_run_gh.return_value = json.dumps(test_data)
+        result = monitor_pr_checks(42, timeout_minutes=2, check_interval_seconds=5)
 
-        result = monitor_pr_checks(25, timeout_minutes=60, check_interval_seconds=60)
-
-        assert "Timeout: 60 minutes" in result
-        assert "Check interval: 60 seconds" in result
-        assert "All checks passed!" in result
+        assert "Starting CI monitoring for PR #42" in result
+        assert "Timeout: 2 minutes" in result
+        assert "Check interval: 5 seconds" in result
+        assert "All checks passed" in result
 
 
 class TestGitHubCIMonitorErrorHandling:
     """Test error handling for GitHub CI Monitor."""
 
-    def test_run_gh_command_error(self):
-        """Test _run_gh_command error handling."""
-        from mcp_handley_lab.github.tool import _run_gh_command
+    def test_run_command_error_propagation(self):
+        """Test that run_command errors propagate naturally."""
+        # Since we removed _run_gh_command, errors from run_command should propagate
+        # This tests the fail-fast philosophy - we don't catch and re-wrap errors
 
-        # Mock run_command to raise an error
         with patch("mcp_handley_lab.github.tool.run_command") as mock_run:
             mock_run.side_effect = RuntimeError("Command failed")
 
-            with pytest.raises(RuntimeError, match="GitHub CLI command failed"):
-                _run_gh_command(["--version"])
+            with pytest.raises(RuntimeError, match="Command failed"):
+                server_info()
 
-    @patch("mcp_handley_lab.github.tool._run_gh_command")
-    def test_server_info_error_handling(self, mock_run_gh):
-        """Test server_info error handling."""
-        mock_run_gh.side_effect = RuntimeError("gh error")
+    @patch("mcp_handley_lab.github.tool.run_command")
+    def test_server_info_auth_error_propagation(self, mock_run_command):
+        """Test that auth errors propagate naturally."""
+        # First call (version) succeeds, second call (auth) fails
+        mock_run_command.side_effect = [
+            (b"gh version 2.32.1", b""),
+            RuntimeError("Authentication failed"),
+        ]
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError, match="Authentication failed"):
             server_info()

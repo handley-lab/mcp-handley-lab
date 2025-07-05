@@ -1,0 +1,86 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What types of files are these and what
+      do they contain?"}, {"text": "[File: tmprgddc0qp.toml]\n[package]\nname = \"test\"\nversion
+      = \"1.0.0\""}, {"text": "[File: tmpwzps0rfi.diff]\ndiff --git a/file.txt b/file.txt\n+added
+      line"}, {"text": "[File: tmpu2iit6df.rs]\nfn main() {\n    println!(\"Hello
+      Rust!\");\n}"}], "role": "user"}], "generationConfig": {"temperature": 0.7,
+      "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '436'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Let's break down each file:\\n\\n---\\n\\n###
+        File: `tmprgddc0qp.toml`\\n\\n*   **Type:** This is a **TOML (Tom's Obvious,
+        Minimal Language)** configuration file. TOML is a simple, human-friendly configuration
+        file format often used for project metadata and settings.\\n*   **Content:**
+        It contains structured data defining a `[package]` section. Specifically,
+        it specifies the `name` of the package as \\\"test\\\" and its `version` as
+        \\\"1.0.0\\\". This is typical for manifest files in software projects (e.g.,
+        `Cargo.toml` in Rust projects).\\n\\n---\\n\\n### File: `tmpwzps0rfi.diff`\\n\\n*
+        \  **Type:** This is a **Diff (or Patch) file**. These files are generated
+        by tools like `diff` or version control systems (like Git) to show the differences
+        between two versions of a file or set of files.\\n*   **Content:** It describes
+        a change made to a file named `file.txt`. The line `+added line` indicates
+        that the text \\\"added line\\\" was inserted into `file.txt` in the newer
+        version. The `diff --git` header suggests it's a Git-style diff.\\n\\n---\\n\\n###
+        File: `tmpu2iit6df.rs`\\n\\n*   **Type:** This is a **Rust source code file**.
+        The `.rs` extension is standard for files containing code written in the Rust
+        programming language.\\n*   **Content:** It contains a simple Rust program.\\n
+        \   *   `fn main() { ... }` defines the main function, which is the entry
+        point of the program.\\n    *   `println!(\\\"Hello Rust!\\\");` is a macro
+        call that prints the string \\\"Hello Rust!\\\" to the standard output (usually
+        the console) when the program is executed.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 104,\n    \"candidatesTokenCount\":
+        398,\n    \"totalTokenCount\": 1337,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 104\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 835\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"oDJpaMewBMr7vdIPp6uTgAU\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 05 Jul 2025 14:11:44 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=6075
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '2079'
+    status:
+      code: 200
+      message: OK
+version: 1

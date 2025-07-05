@@ -2,7 +2,7 @@ import contextlib
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.agent.tool import (
+from mcp_handley_lab.llm.agent.tool import (
     agent_stats,
     clear_agent,
     create_agent,

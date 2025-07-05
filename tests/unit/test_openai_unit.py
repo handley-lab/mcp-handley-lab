@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.agent.tool import get_response
+from mcp_handley_lab.llm.agent.tool import get_response
 from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 from mcp_handley_lab.llm.openai.tool import (
     MODEL_CONFIGS,

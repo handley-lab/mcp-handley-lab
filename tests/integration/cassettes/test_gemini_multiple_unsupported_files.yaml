@@ -1,0 +1,87 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What types of files are these and what
+      do they contain?"}, {"text": "[File: tmpz0nfvdic.toml]\n[package]\nname = \"test\"\nversion
+      = \"1.0.0\""}, {"text": "[File: tmpq3zwbse3.diff]\ndiff --git a/file.txt b/file.txt\n+added
+      line"}, {"text": "[File: tmpknnyvelu.rs]\nfn main() {\n    println!(\"Hello
+      Rust!\");\n}"}], "role": "user"}], "generationConfig": {"temperature": 0.7,
+      "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '436'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Based on the file extensions and their
+        content, here's a breakdown of each file:\\n\\n1.  **File: `tmpz0nfvdic.toml`**\\n
+        \   *   **Type:** This is a **TOML (Tom's Obvious, Minimal Language) configuration
+        file**. The `.toml` extension is standard for this format.\\n    *   **Contains:**
+        It contains **configuration data** for a software package or project. Specifically,
+        it defines a `[package]` section with the package's `name` set to \\\"test\\\"
+        and its `version` set to \\\"1.0.0\\\". This type of file is often used in
+        Rust projects (via Cargo), Python projects (via Poetry or PDM), and many other
+        modern applications for declarative configuration.\\n\\n2.  **File: `tmpq3zwbse3.diff`**\\n
+        \   *   **Type:** This is a **Diff file** (often also called a Patch file).
+        The `.diff` extension is standard for this format.\\n    *   **Contains:**
+        It contains a **record of changes between two versions of a file or set of
+        files**. The content shown is a standard Git-style diff. It indicates that
+        a line `+added line` was added to `file.txt`. Diff files are commonly used
+        in version control systems to show changes, or to apply those changes from
+        one version of a file to another.\\n\\n3.  **File: `tmpknnyvelu.rs`**\\n    *
+        \  **Type:** This is a **Rust source code file**. The `.rs` extension is the
+        standard for files containing code written in the Rust programming language.\\n
+        \   *   **Contains:** It contains **program instructions written in the Rust
+        programming language**. The code defines a `main` function, which is the entry
+        point for Rust programs, and inside it, it uses `println!` to print the string
+        \\\"Hello Rust!\\\" to the console when executed.\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        101,\n    \"candidatesTokenCount\": 407,\n    \"totalTokenCount\": 1481,\n
+        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 101\n      }\n    ],\n    \"thoughtsTokenCount\":
+        973\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"mS1paPvZKtzInsEP9-WViAQ\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 05 Jul 2025 13:50:17 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=6495
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '2187'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -49,9 +49,8 @@ This is a test LaTeX document with mathematical formula: $E = mc^2$
         Path(tex_file_path).unlink(missing_ok=True)
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_patch_file_upload(skip_if_no_api_key, test_output_file):
+def test_gemini_patch_file_upload(skip_if_no_api_key, test_output_file):
     """Test that .patch files work with Gemini after MIME type fix."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
@@ -96,9 +95,8 @@ index 1234567..abcdefg 100644
         Path(patch_file_path).unlink(missing_ok=True)
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_yaml_file_upload(skip_if_no_api_key, test_output_file):
+def test_gemini_yaml_file_upload(skip_if_no_api_key, test_output_file):
     """Test that .yaml files work with Gemini after MIME type fix."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
@@ -146,9 +144,8 @@ database:
         Path(yaml_file_path).unlink(missing_ok=True)
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_shell_script_upload(skip_if_no_api_key, test_output_file):
+def test_gemini_shell_script_upload(skip_if_no_api_key, test_output_file):
     """Test that .sh files work with Gemini after MIME type fix."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
@@ -195,9 +192,8 @@ echo "Deployment complete!"
         Path(script_file_path).unlink(missing_ok=True)
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output_file):
+def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output_file):
     """Test multiple unsupported file types in a single request."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
@@ -240,9 +236,8 @@ async def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output
             Path(path).unlink(missing_ok=True)
 
 
-@pytest.mark.asyncio
 @pytest.mark.vcr
-async def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_file):
+def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_file):
     """Test that already supported files still work correctly."""
     skip_if_no_api_key("GEMINI_API_KEY")
 

@@ -1,0 +1,75 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What is configured in this YAML file?
+      What is the application name?"}, {"text": "[File: tmpdlow2rhn.yaml]\n# Configuration
+      file\napp:\n  name: \"Test Application\"\n  version: \"1.0.0\"\n  features:\n    -
+      authentication\n    - logging\n    - metrics\ndatabase:\n  host: \"localhost\"\n  port:
+      5432\n  name: \"testdb\"\n"}], "role": "user"}], "generationConfig": {"temperature":
+      0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '445'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"This YAML file configures settings
+        for an application and its database connection.\\n\\n**What is configured
+        in this YAML file?**\\n\\nThe file configures two main sections:\\n\\n1.  **Application
+        (`app`) details:**\\n    *   Its name: \\\"Test Application\\\"\\n    *   Its
+        version: \\\"1.0.0\\\"\\n    *   A list of features it includes or supports:
+        \\\"authentication\\\", \\\"logging\\\", and \\\"metrics\\\".\\n\\n2.  **Database
+        (`database`) connection settings:**\\n    *   The database host: \\\"localhost\\\"\\n
+        \   *   The database port: 5432\\n    *   The name of the database to connect
+        to: \\\"testdb\\\"\\n\\n**What is the application name?**\\n\\nThe application
+        name configured in this YAML file is **\\\"Test Application\\\"**.\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        97,\n    \"candidatesTokenCount\": 171,\n    \"totalTokenCount\": 908,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 97\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 640\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"iC1paKulAbmC7M8Pu6XPsQ8\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 05 Jul 2025 13:50:00 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=3975
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1237'
+    status:
+      code: 200
+      message: OK
+version: 1

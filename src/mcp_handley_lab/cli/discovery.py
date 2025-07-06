@@ -1,5 +1,6 @@
 """Tool discovery for MCP CLI."""
 import importlib
+import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import click
@@ -9,8 +10,8 @@ from .config import get_aliases
 
 
 def get_available_tools() -> Dict[str, str]:
-    """Discover available tools from pyproject.toml script entries."""
-    # Use the script entries from pyproject.toml to discover available tools
+    """Get a list of available tool commands."""
+    # Map of tool names to their script entry commands
     scripts = {
         "jq": "mcp-jq",
         "vim": "mcp-vim", 
@@ -28,8 +29,44 @@ def get_available_tools() -> Dict[str, str]:
     return scripts
 
 
+
+
+def get_tool_info_from_cache() -> Dict[str, Dict[str, Any]]:
+    """Load tool information from pre-generated cache."""
+    try:
+        # Use importlib.resources for proper package data access
+        try:
+            # Python 3.9+
+            from importlib.resources import files
+            schema_file = files("mcp_handley_lab") / "tool_schemas.json"
+            if schema_file.is_file():
+                schema_data = json.loads(schema_file.read_text())
+                return schema_data.get("tools", {})
+        except ImportError:
+            # Python 3.8 fallback
+            from importlib.resources import read_text
+            schema_text = read_text("mcp_handley_lab", "tool_schemas.json")
+            schema_data = json.loads(schema_text)
+            return schema_data.get("tools", {})
+        
+        return {}
+    
+    except Exception as e:
+        click.echo(f"Warning: Failed to load tool cache: {e}", err=True)
+        return {}
+
+
 def get_tool_info(tool_name: str, command: str) -> Optional[Dict[str, Any]]:
-    """Get detailed information about a tool and its functions."""
+    """Get detailed information about a tool - try cache first, fallback to RPC introspection."""
+    
+    # Try cached schema first (instant)
+    cached_tools = get_tool_info_from_cache()
+    if tool_name in cached_tools:
+        tool_info = cached_tools[tool_name].copy()
+        tool_info["command"] = command
+        return tool_info
+    
+    # Fallback to RPC introspection
     try:
         client = get_tool_client(tool_name, command)
         tools_list = client.list_tools()
@@ -80,35 +117,3 @@ def get_tool_with_aliases() -> Dict[str, Dict[str, Any]]:
     return tools
 
 
-def get_function_schema(tool_name: str, function_name: str) -> Optional[Dict[str, Any]]:
-    """Get the schema for a specific function."""
-    tools = get_tool_with_aliases()
-    
-    if tool_name not in tools:
-        return None
-    
-    tool_info = tools[tool_name]
-    functions = tool_info.get("functions", {})
-    
-    if function_name not in functions:
-        return None
-    
-    return functions[function_name]
-
-
-def validate_tool_and_function(tool_name: str, function_name: str) -> tuple[bool, Optional[str]]:
-    """Validate that a tool and function exist."""
-    tools = get_tool_with_aliases()
-    
-    if tool_name not in tools:
-        available_tools = list(tools.keys())
-        return False, f"Tool '{tool_name}' not found. Available tools: {', '.join(sorted(available_tools))}"
-    
-    tool_info = tools[tool_name]
-    functions = tool_info.get("functions", {})
-    
-    if function_name not in functions:
-        available_functions = list(functions.keys())
-        return False, f"Function '{function_name}' not found in {tool_name}. Available functions: {', '.join(sorted(available_functions))}"
-    
-    return True, None

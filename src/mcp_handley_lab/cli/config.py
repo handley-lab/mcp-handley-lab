@@ -38,11 +38,6 @@ def get_aliases() -> Dict[str, str]:
     return config.get("aliases", {})
 
 
-def get_default_model(provider: str) -> Optional[str]:
-    """Get default model for a provider."""
-    config = load_config()
-    defaults = config.get("defaults", {})
-    return defaults.get(f"{provider}_model")
 
 
 def get_default_output_format() -> str:

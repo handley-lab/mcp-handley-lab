@@ -3,7 +3,6 @@ import json
 import subprocess
 import time
 from typing import Dict, Any, Optional, List
-import httpx
 import click
 
 

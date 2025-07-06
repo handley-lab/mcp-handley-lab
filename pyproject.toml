@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.1.0"
+version = "0.1.0b1"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -64,7 +64,7 @@ mcp-cli = "mcp_handley_lab.cli.main:cli"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_handley_lab = ["py.typed", "llm/*/models.yaml"]
+mcp_handley_lab = ["py.typed", "llm/*/models.yaml", "tool_schemas.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

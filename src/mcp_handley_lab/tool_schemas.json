@@ -1,0 +1,2474 @@
+{
+  "version": "1.0",
+  "generated_at": "2025-07-06T22:49:45.252693Z",
+  "tools": {
+    "jq": {
+      "name": "jq",
+      "functions": {
+        "query": {
+          "name": "query",
+          "description": "Applies a `jq` filter expression to JSON data. The `data` can be a JSON string, a file path, or a parsed object. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output.",
+          "inputSchema": {
+            "properties": {
+              "data": {
+                "anyOf": [
+                  {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "items": {},
+                    "type": "array"
+                  }
+                ],
+                "title": "Data"
+              },
+              "filter": {
+                "default": ".",
+                "title": "Filter",
+                "type": "string"
+              },
+              "compact": {
+                "default": false,
+                "title": "Compact",
+                "type": "boolean"
+              },
+              "raw_output": {
+                "default": false,
+                "title": "Raw Output",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "title": "queryArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "queryOutput",
+            "type": "object"
+          }
+        },
+        "edit": {
+          "name": "edit",
+          "description": "Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this.",
+          "inputSchema": {
+            "properties": {
+              "file_path": {
+                "minLength": 1,
+                "title": "File Path",
+                "type": "string"
+              },
+              "filter": {
+                "minLength": 1,
+                "title": "Filter",
+                "type": "string"
+              },
+              "backup": {
+                "default": true,
+                "title": "Backup",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "file_path",
+              "filter"
+            ],
+            "title": "editArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "editOutput",
+            "type": "object"
+          }
+        },
+        "read": {
+          "name": "read",
+          "description": "Reads and pretty-prints a JSON file with optional jq filtering. Useful for exploring JSON file structure before processing. The `filter` parameter allows extracting specific parts of the file.",
+          "inputSchema": {
+            "properties": {
+              "file_path": {
+                "title": "File Path",
+                "type": "string"
+              },
+              "filter": {
+                "default": ".",
+                "title": "Filter",
+                "type": "string"
+              }
+            },
+            "required": [
+              "file_path"
+            ],
+            "title": "readArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "readOutput",
+            "type": "object"
+          }
+        },
+        "validate": {
+          "name": "validate",
+          "description": "Validates JSON syntax for strings or files. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors.",
+          "inputSchema": {
+            "properties": {
+              "data": {
+                "anyOf": [
+                  {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "items": {},
+                    "type": "array"
+                  }
+                ],
+                "title": "Data"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "title": "validateArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "validateOutput",
+            "type": "object"
+          }
+        },
+        "format": {
+          "name": "format",
+          "description": "Formats JSON data for readability or compactness. Takes JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys.",
+          "inputSchema": {
+            "properties": {
+              "data": {
+                "anyOf": [
+                  {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "items": {},
+                    "type": "array"
+                  }
+                ],
+                "title": "Data"
+              },
+              "compact": {
+                "default": false,
+                "title": "Compact",
+                "type": "boolean"
+              },
+              "sort_keys": {
+                "default": false,
+                "title": "Sort Keys",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "title": "formatArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "formatOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the JQ tool server and verifies `jq` command availability. Returns server status, jq version, and list of available tools. Use this to verify the tool is operational before making other requests.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/jq/tool.py",
+      "source_hash": "ef973490a8ba6bb556c1ae58145bdea5000d0644b4bd4356de3c40c011f19433"
+    },
+    "vim": {
+      "name": "vim",
+      "functions": {
+        "prompt_user_edit": {
+          "name": "prompt_user_edit",
+          "description": "Opens Vim to edit content in a temporary file. Provide initial `content` and optional `instructions`. Set `file_extension` for syntax highlighting. Returns a diff of changes by default or full content if `show_diff=False`.",
+          "inputSchema": {
+            "properties": {
+              "content": {
+                "title": "Content",
+                "type": "string"
+              },
+              "file_extension": {
+                "default": ".txt",
+                "title": "File Extension",
+                "type": "string"
+              },
+              "instructions": {
+                "default": null,
+                "title": "Instructions",
+                "type": "string"
+              },
+              "show_diff": {
+                "default": true,
+                "title": "Show Diff",
+                "type": "boolean"
+              },
+              "keep_file": {
+                "default": false,
+                "title": "Keep File",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "content"
+            ],
+            "title": "prompt_user_editArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "prompt_user_editOutput",
+            "type": "object"
+          }
+        },
+        "quick_edit": {
+          "name": "quick_edit",
+          "description": "Opens Vim to create new content from scratch with optional `initial_content` and `instructions`. Creates a temporary file, opens Vim for editing, then returns the final content. Instructions are shown as comments and automatically stripped.",
+          "inputSchema": {
+            "properties": {
+              "file_extension": {
+                "default": ".txt",
+                "title": "File Extension",
+                "type": "string"
+              },
+              "instructions": {
+                "default": null,
+                "title": "Instructions",
+                "type": "string"
+              },
+              "initial_content": {
+                "default": "",
+                "title": "Initial Content",
+                "type": "string"
+              }
+            },
+            "title": "quick_editArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "quick_editOutput",
+            "type": "object"
+          }
+        },
+        "open_file": {
+          "name": "open_file",
+          "description": "Opens an existing file in Vim for interactive editing. If `instructions` are provided, the user must first view them in a read-only buffer before proceeding. Creates a backup (.bak) by default. Returns a diff of the changes.",
+          "inputSchema": {
+            "properties": {
+              "file_path": {
+                "title": "File Path",
+                "type": "string"
+              },
+              "instructions": {
+                "default": null,
+                "title": "Instructions",
+                "type": "string"
+              },
+              "show_diff": {
+                "default": true,
+                "title": "Show Diff",
+                "type": "boolean"
+              },
+              "backup": {
+                "default": true,
+                "title": "Backup",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "file_path"
+            ],
+            "title": "open_fileArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "open_fileOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/vim/tool.py",
+      "source_hash": "c982f9c9b5114044caa8239169c5135c995124e59de787a818e172f444b3afc2"
+    },
+    "code2prompt": {
+      "name": "code2prompt",
+      "functions": {
+        "generate_prompt": {
+          "name": "generate_prompt",
+          "description": "Analyzes a source code directory and generates a structured, token-counted summary, saving it to a file. Useful for preparing a large codebase for LLM analysis. Key inputs are the `path` to the code and an `output_file`. Supports filtering files with `include`/`exclude` patterns and can incorporate a `git diff`. Returns the path to the generated summary file.",
+          "inputSchema": {
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "output_file": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Output File"
+              },
+              "include": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Include"
+              },
+              "exclude": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Exclude"
+              },
+              "output_format": {
+                "default": "markdown",
+                "title": "Output Format",
+                "type": "string"
+              },
+              "line_numbers": {
+                "default": false,
+                "title": "Line Numbers",
+                "type": "boolean"
+              },
+              "full_directory_tree": {
+                "default": false,
+                "title": "Full Directory Tree",
+                "type": "boolean"
+              },
+              "follow_symlinks": {
+                "default": false,
+                "title": "Follow Symlinks",
+                "type": "boolean"
+              },
+              "hidden": {
+                "default": false,
+                "title": "Hidden",
+                "type": "boolean"
+              },
+              "no_codeblock": {
+                "default": false,
+                "title": "No Codeblock",
+                "type": "boolean"
+              },
+              "absolute_paths": {
+                "default": false,
+                "title": "Absolute Paths",
+                "type": "boolean"
+              },
+              "encoding": {
+                "default": "cl100k",
+                "title": "Encoding",
+                "type": "string"
+              },
+              "tokens": {
+                "default": "format",
+                "title": "Tokens",
+                "type": "string"
+              },
+              "sort": {
+                "default": "name_asc",
+                "title": "Sort",
+                "type": "string"
+              },
+              "include_priority": {
+                "default": false,
+                "title": "Include Priority",
+                "type": "boolean"
+              },
+              "template": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Template"
+              },
+              "include_git_diff": {
+                "default": false,
+                "title": "Include Git Diff",
+                "type": "boolean"
+              },
+              "git_diff_branch1": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Git Diff Branch1"
+              },
+              "git_diff_branch2": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Git Diff Branch2"
+              },
+              "git_log_branch1": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Git Log Branch1"
+              },
+              "git_log_branch2": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Git Log Branch2"
+              },
+              "no_ignore": {
+                "default": false,
+                "title": "No Ignore",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "generate_promptArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "generate_promptOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Verifies the Code2Prompt tool is operational. Checks for the `code2prompt` CLI and returns its version information and a list of available commands. Use this to confirm the server is ready before generating a codebase summary.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/code2prompt/tool.py",
+      "source_hash": "47163dc78c1696b74827ee5867b269c3573e81995ebca8cfa1aa04f259f34cb2"
+    },
+    "arxiv": {
+      "name": "arxiv",
+      "functions": {
+        "download": {
+          "name": "download",
+          "description": "Downloads an ArXiv paper by its ID. Can fetch the full source ('src'), just the PDF ('pdf'), or only LaTeX files ('tex'). Saves the content to a specified `output_path`. If `output_path` is '-', it lists file information to stdout instead of saving. Returns a status message.",
+          "inputSchema": {
+            "properties": {
+              "arxiv_id": {
+                "title": "Arxiv Id",
+                "type": "string"
+              },
+              "format": {
+                "default": "src",
+                "title": "Format",
+                "type": "string"
+              },
+              "output_path": {
+                "default": null,
+                "title": "Output Path",
+                "type": "string"
+              }
+            },
+            "required": [
+              "arxiv_id"
+            ],
+            "title": "downloadArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "downloadOutput",
+            "type": "object"
+          }
+        },
+        "list_files": {
+          "name": "list_files",
+          "description": "Fetches the source archive for a given ArXiv paper ID and lists all the file names contained within it. This is useful for inspecting the contents of a paper's source code before downloading the entire archive. Returns a list of file paths.",
+          "inputSchema": {
+            "properties": {
+              "arxiv_id": {
+                "title": "Arxiv Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "arxiv_id"
+            ],
+            "title": "list_filesArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Result",
+                "type": "array"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_filesOutput",
+            "type": "object"
+          }
+        },
+        "search": {
+          "name": "search",
+          "description": "Searches ArXiv for papers matching a query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton', 'ti:attention') and boolean operators ('AND', 'OR'). Results can be sorted by relevance or date. Returns a list of papers, each containing metadata like title, authors, and summary.",
+          "inputSchema": {
+            "properties": {
+              "query": {
+                "title": "Query",
+                "type": "string"
+              },
+              "max_results": {
+                "default": 10,
+                "title": "Max Results",
+                "type": "integer"
+              },
+              "start": {
+                "default": 0,
+                "title": "Start",
+                "type": "integer"
+              },
+              "sort_by": {
+                "default": "relevance",
+                "title": "Sort By",
+                "type": "string"
+              },
+              "sort_order": {
+                "default": "descending",
+                "title": "Sort Order",
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "searchArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "title": "Result",
+                "type": "array"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "searchOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Provides metadata about the ArXiv tool itself. Returns a dictionary containing a list of available functions (search, download, etc.), supported formats, and example usage. Use this to discover the server's capabilities.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "additionalProperties": true,
+            "title": "server_infoDictOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/arxiv/tool.py",
+      "source_hash": "146c4a7fab72c46225dd4e8982d9758d35dd352296a18b928fc2b101ac6e73b1"
+    },
+    "google-calendar": {
+      "name": "google-calendar",
+      "functions": {
+        "get_event": {
+          "name": "get_event",
+          "description": "Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.",
+          "inputSchema": {
+            "properties": {
+              "event_id": {
+                "title": "Event Id",
+                "type": "string"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "title": "Calendar Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id"
+            ],
+            "title": "get_eventArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "get_eventOutput",
+            "type": "object"
+          }
+        },
+        "create_event": {
+          "name": "create_event",
+          "description": "Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, and a `calendar_id`.",
+          "inputSchema": {
+            "properties": {
+              "summary": {
+                "title": "Summary",
+                "type": "string"
+              },
+              "start_datetime": {
+                "title": "Start Datetime",
+                "type": "string"
+              },
+              "end_datetime": {
+                "title": "End Datetime",
+                "type": "string"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Description"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "timezone": {
+                "default": "UTC",
+                "title": "Timezone",
+                "type": "string"
+              },
+              "attendees": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Attendees"
+              }
+            },
+            "required": [
+              "summary",
+              "start_datetime",
+              "end_datetime"
+            ],
+            "title": "create_eventArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "create_eventOutput",
+            "type": "object"
+          }
+        },
+        "update_event": {
+          "name": "update_event",
+          "description": "Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Returns confirmation of the update.",
+          "inputSchema": {
+            "properties": {
+              "event_id": {
+                "title": "Event Id",
+                "type": "string"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "summary": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Summary"
+              },
+              "start_datetime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Start Datetime"
+              },
+              "end_datetime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "End Datetime"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Description"
+              }
+            },
+            "required": [
+              "event_id"
+            ],
+            "title": "update_eventArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "update_eventOutput",
+            "type": "object"
+          }
+        },
+        "delete_event": {
+          "name": "delete_event",
+          "description": "Deletes a calendar event permanently by event ID. WARNING: This action is irreversible. Returns confirmation of deletion.",
+          "inputSchema": {
+            "properties": {
+              "event_id": {
+                "title": "Event Id",
+                "type": "string"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "title": "Calendar Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id"
+            ],
+            "title": "delete_eventArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "delete_eventOutput",
+            "type": "object"
+          }
+        },
+        "list_calendars": {
+          "name": "list_calendars",
+          "description": "Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools.",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_calendarsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_calendarsOutput",
+            "type": "object"
+          }
+        },
+        "find_time": {
+          "name": "find_time",
+          "description": "Finds available free time slots within a calendar for scheduling meetings. Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes. Set `work_hours_only=False` to include evenings/weekends.",
+          "inputSchema": {
+            "properties": {
+              "calendar_id": {
+                "default": "primary",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "start_date": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Start Date"
+              },
+              "end_date": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "End Date"
+              },
+              "duration_minutes": {
+                "default": 60,
+                "title": "Duration Minutes",
+                "type": "integer"
+              },
+              "work_hours_only": {
+                "default": true,
+                "title": "Work Hours Only",
+                "type": "boolean"
+              }
+            },
+            "title": "find_timeArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "find_timeOutput",
+            "type": "object"
+          }
+        },
+        "search_events": {
+          "name": "search_events",
+          "description": "Searches for events across one or all calendars within a specified date range. Provide a `search_text` to find events with matching text in the title, description, or location. If no search text is given, it lists all events. Supports advanced client-side filtering by `search_fields` and `case_sensitive` options.",
+          "inputSchema": {
+            "properties": {
+              "search_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Search Text"
+              },
+              "calendar_id": {
+                "default": "all",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "start_date": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Start Date"
+              },
+              "end_date": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "End Date"
+              },
+              "max_results": {
+                "default": 100,
+                "title": "Max Results",
+                "type": "integer"
+              },
+              "search_fields": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Search Fields"
+              },
+              "case_sensitive": {
+                "default": false,
+                "title": "Case Sensitive",
+                "type": "boolean"
+              },
+              "match_all_terms": {
+                "default": true,
+                "title": "Match All Terms",
+                "type": "boolean"
+              }
+            },
+            "title": "search_eventsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "search_eventsOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the Google Calendar Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/google_calendar/tool.py",
+      "source_hash": "d472c2b5acdce9e6eb079c79520353818b39352678534b86e990312d5892ea0a"
+    },
+    "gemini": {
+      "name": "gemini",
+      "functions": {
+        "ask": {
+          "name": "ask",
+          "description": "Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced).",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "-",
+                "title": "Output File"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "model": {
+                "default": "gemini-2.5-pro",
+                "title": "Model",
+                "type": "string"
+              },
+              "temperature": {
+                "default": 0.7,
+                "title": "Temperature",
+                "type": "number"
+              },
+              "grounding": {
+                "default": false,
+                "title": "Grounding",
+                "type": "boolean"
+              },
+              "files": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Files"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "askArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "askOutput",
+            "type": "object"
+          }
+        },
+        "analyze_image": {
+          "name": "analyze_image",
+          "description": "Analyzes images using a Gemini vision model. Requires a `prompt` and image data (via `image_data` or `images` parameters). Supports persistent memory via `agent_name`. Use the `focus` parameter ('objects', 'text', etc.) to guide the analysis. Returns the analysis to the required `output_file` ('-' for stdout).",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "-",
+                "title": "Output File"
+              },
+              "image_data": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Image Data"
+              },
+              "images": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Images"
+              },
+              "focus": {
+                "default": "general",
+                "title": "Focus",
+                "type": "string"
+              },
+              "model": {
+                "default": "gemini-2.5-pro",
+                "title": "Model",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "analyze_imageArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "analyze_imageOutput",
+            "type": "object"
+          }
+        },
+        "generate_image": {
+          "name": "generate_image",
+          "description": "Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations.",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "model": {
+                "default": "imagen-3",
+                "title": "Model",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "generate_imageArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "generate_imageOutput",
+            "type": "object"
+          }
+        },
+        "list_models": {
+          "name": "list_models",
+          "description": "Lists all available Gemini models with pricing, capabilities, and context windows. Helps compare models for cost, performance, and features to select the best model for specific tasks.",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_modelsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_modelsOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the Gemini Tool server and API connectivity.\n\nUse this to verify that the tool is operational before making other requests.\n\n**Input/Output:**\n- **Input**: None.\n- **Output**: A string containing the server status, API connection status, and a list of available tools.\n\n**Error Handling:**\n- Raises `RuntimeError` if the Gemini API is not configured correctly.\n\n**Examples:**\n```python\n# Check the server status.\nserver_info()\n```",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/gemini/tool.py",
+      "source_hash": "0a695b9a7c500a8c7aad36b83c4dca1a83381c834997392b69bc546d06d885f0"
+    },
+    "openai": {
+      "name": "openai",
+      "functions": {
+        "ask": {
+          "name": "ask",
+          "description": "Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.\n\n**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Handling**: The `output_file` parameter is REQUIRED. Use:\n- A file path to save the response for future processing (recommended for large responses)\n- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)\n\n**File Input Formats**:\n- `{\"path\": \"/path/to/file\"}` - Reads file from filesystem\n- `{\"content\": \"text content\"}` - Uses provided text directly\n- `\"direct string\"` - Treats string as literal content\n\n**Key Parameters**:\n- `model`: \"o3-mini\" (default, fast reasoning), \"o3\" (best reasoning), \"gpt-4o\" (multimodal), \"gpt-4o-mini\" (fast multimodal)\n- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)\n- `max_output_tokens`: Override model's default output token limit\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n\n**Token Limits by Model**:\n- o3/o3-mini: 100,000 tokens (default)\n- o1-mini: 65,536 tokens (default)\n- o1-preview: 32,768 tokens (default)\n- gpt-4o/gpt-4o-mini: 4,096 tokens (default)\n- Use max_output_tokens parameter to override defaults\n\n**Model Selection Guide**:\n- o3-mini: Fast reasoning for most tasks, cost-effective (200k context, default)\n- o3: Best reasoning for complex problems (200k context)\n- gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)\n- gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)\n\n**Error Handling**:\n- Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)\n- Raises ValueError for invalid file paths or unsupported content\n- Agent memory automatically handles conversation context limits\n- Large responses automatically saved to avoid MCP message size limits\n\n**Examples**:\n```python\n# Basic question with file context\nask(\n    prompt=\"Explain this code and suggest improvements\",\n    output_file=\"/tmp/analysis.md\",\n    files=[{\"path\": \"/path/to/code.py\"}],\n    model=\"o3-mini\"\n)\n\n# Persistent agent conversation\nask(\n    prompt=\"Continue reviewing the codebase\",\n    output_file=\"/tmp/review.md\",\n    agent_name=\"code_reviewer\",\n    model=\"o3-mini\",\n    temperature=0.3\n)\n\n# Complex reasoning task\nask(\n    prompt=\"Solve this algorithmic problem step by step\",\n    output_file=\"/tmp/solution.md\",\n    model=\"o1-preview\",\n    files=[{\"content\": \"Problem description here\"}]\n)\n\n# Multiple file analysis\nask(\n    prompt=\"Compare these implementations\",\n    output_file=\"/tmp/comparison.md\",\n    files=[\n        {\"path\": \"/path/to/impl1.py\"},\n        {\"path\": \"/path/to/impl2.py\"},\n        {\"content\": \"Additional context\"}\n    ],\n    max_output_tokens=2000\n)\n```",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "-",
+                "title": "Output File"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "model": {
+                "default": "o4-mini",
+                "title": "Model",
+                "type": "string"
+              },
+              "temperature": {
+                "default": 0.7,
+                "title": "Temperature",
+                "type": "number"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              },
+              "files": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Files"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "askArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "askOutput",
+            "type": "object"
+          }
+        },
+        "analyze_image": {
+          "name": "analyze_image",
+          "description": "Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.\n\n**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Handling**: The `output_file` parameter is REQUIRED. Use:\n- A file path to save the analysis for future processing (recommended)\n- '-' to output directly to stdout (use sparingly for large analyses)\n\n**Image Input Formats**:\n- `{\"path\": \"/path/to/image.jpg\"}` - Read from filesystem (preferred)\n- `{\"data\": \"base64_encoded_data\"}` - Base64 encoded image data\n- `\"data:image/jpeg;base64,/9j/4AAQ...\"` - Data URL format\n- `\"/path/to/image.jpg\"` - Direct path string (legacy, use dict format instead)\n\n**Analysis Focus Options**:\n- \"general\" (default) - Overall image description\n- \"objects\" - Focus on object detection and identification\n- \"colors\" - Analyze color palette and composition\n- \"composition\" - Focus on artistic composition and layout\n- \"text\" - Extract and analyze text within images (OCR)\n- \"technical\" - Focus on technical aspects, quality, metadata\n- \"medical\" - Medical image analysis (disclaimer: not for diagnosis)\n- \"code\" - Analyze screenshots of code or diagrams\n\n**Model Options**:\n- \"gpt-4o\" (default) - Best vision capabilities, handles complex visual reasoning\n- \"gpt-4o-mini\" - Faster, cost-effective vision analysis for simple tasks\n\n**Key Parameters**:\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n- `max_output_tokens`: Override model's default output token limit\n\n**Error Handling**:\n- Raises ValueError for missing images or unsupported formats\n- Raises RuntimeError for OpenAI API errors (quota, rate limits, content policy)\n- Supports: JPEG, PNG, GIF, WebP (max 20MB per image)\n- Multiple images increase token usage significantly\n\n**Examples**:\n```python\n# Analyze single image\nanalyze_image(\n    prompt=\"Describe what you see in this screenshot\",\n    output_file=\"/tmp/analysis.md\",\n    image_data=\"/path/to/screenshot.png\",\n    focus=\"general\"\n)\n\n# Multiple images comparison\nanalyze_image(\n    prompt=\"Compare these two UI designs and suggest improvements\",\n    output_file=\"/tmp/comparison.md\",\n    images=[\n        {\"path\": \"/path/to/design1.png\"},\n        {\"path\": \"/path/to/design2.png\"}\n    ],\n    focus=\"composition\"\n)\n\n# Extract text from image\nanalyze_image(\n    prompt=\"Extract and transcribe all text from this document\",\n    output_file=\"/tmp/extracted_text.md\",\n    image_data={\"path\": \"/path/to/document.jpg\"},\n    focus=\"text\",\n    model=\"o3-mini\"\n)\n\n# Code analysis from screenshot\nanalyze_image(\n    prompt=\"Review this code for potential bugs and improvements\",\n    output_file=\"/tmp/code_review.md\",\n    image_data=\"data:image/png;base64,iVBORw0KGgoAAAA...\",\n    focus=\"code\",\n    agent_name=\"code_reviewer\"\n)\n```",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": "-",
+                "title": "Output File"
+              },
+              "image_data": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Image Data"
+              },
+              "images": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Images"
+              },
+              "focus": {
+                "default": "general",
+                "title": "Focus",
+                "type": "string"
+              },
+              "model": {
+                "default": "gpt-4o",
+                "title": "Model",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "analyze_imageArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "analyze_imageOutput",
+            "type": "object"
+          }
+        },
+        "generate_image": {
+          "name": "generate_image",
+          "description": "Generate images using OpenAI's DALL-E models. You provide the detailed description, and the AI creates the image.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.\n\n**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Format**: Generated images are automatically downloaded and saved to temporary files. The file path is returned for further processing.\n\n**Model Options**:\n- \"dall-e-3\" (default) - Latest model with best quality and prompt adherence\n- \"dall-e-2\" - Previous generation, faster and more cost-effective\n\n**Quality Settings**:\n- \"standard\" (default) - Good quality, faster generation\n- \"hd\" - Higher resolution and detail (DALL-E 3 only)\n\n**Size Options**:\n- DALL-E 3: \"1024x1024\" (default), \"1024x1792\" (portrait), \"1792x1024\" (landscape)\n- DALL-E 2: \"256x256\", \"512x512\", \"1024x1024\" (default)\n\n**Prompt Guidelines**:\n- Be descriptive and specific for best results\n- Include style, mood, lighting, and composition details\n- DALL-E 3 follows prompts more precisely than DALL-E 2\n- Avoid requesting copyrighted characters or inappropriate content\n\n**Key Parameters**:\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n- `model`: DALL-E model to use (default: \"dall-e-3\")\n- `quality`: Quality setting for DALL-E 3 (default: \"standard\")\n- `size`: Image dimensions (default: \"1024x1024\")\n\n**Error Handling**:\n- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)\n- Raises ValueError for prompts violating OpenAI's usage policies\n- Image download may fail due to network issues; temporary URLs expire quickly\n- DALL-E 3 may revise prompts for safety compliance\n\n**Examples**:\n```python\n# High-quality artistic image\ngenerate_image(\n    prompt=\"A serene mountain landscape at sunset with golden light reflecting on a crystal-clear lake, painted in impressionist style with visible brushstrokes\",\n    model=\"dall-e-3\",\n    quality=\"hd\",\n    size=\"1792x1024\"\n)\n\n# Technical diagram\ngenerate_image(\n    prompt=\"Clean, minimalist flowchart showing a software deployment pipeline with rounded rectangles and arrow connections, professional blue and white colors\",\n    model=\"dall-e-3\",\n    size=\"1024x1792\"\n)\n\n# Portrait with specific style\ngenerate_image(\n    prompt=\"Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field, photorealistic style\",\n    model=\"dall-e-3\",\n    quality=\"hd\",\n    agent_name=\"design_assistant\"\n)\n\n# Cost-effective generation\ngenerate_image(\n    prompt=\"Simple icon design for a mobile app, minimalist style, single color\",\n    model=\"dall-e-2\",\n    size=\"512x512\"\n)\n```",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "model": {
+                "default": "dall-e-3",
+                "title": "Model",
+                "type": "string"
+              },
+              "quality": {
+                "default": "standard",
+                "title": "Quality",
+                "type": "string"
+              },
+              "size": {
+                "default": "1024x1024",
+                "title": "Size",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "title": "generate_imageArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "generate_imageOutput",
+            "type": "object"
+          }
+        },
+        "list_models": {
+          "name": "list_models",
+          "description": "Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.\n\n**Purpose & Benefits:**\nThis tool helps users:\n- Discover all models offered by OpenAI (GPT, DALL-E, reasoning models)\n- Compare models based on cost, performance, context windows, and capabilities\n- Identify the most suitable OpenAI model for specific tasks or budget constraints\n- Understand model generations and specialized features (reasoning, vision, etc.)\n\n**Returns:**\nFormatted listing with detailed information including:\n- Model IDs and descriptions\n- Context windows and token limits\n- Pricing per 1M tokens (including cached input pricing)\n- Capabilities (text generation, vision, reasoning, image generation, etc.)\n- Model categories (reasoning, multimodal, legacy, etc.)\n- API availability status\n\n**Examples:**\n```python\n# Discover all available models\nlist_models()\n\n# Use cases this enables:\n# - \"Which models can reason?\" \u2192 o3, o4-mini, o1 series\n# - \"What's the cheapest multimodal model?\" \u2192 gpt-4o-mini ($0.15/M input)\n# - \"Which model is best for coding?\" \u2192 o4-mini, gpt-4.1\n# - \"Show me image generation models\" \u2192 dall-e-3, dall-e-2, gpt-image-1\n# - \"What models support vision?\" \u2192 gpt-4o series, gpt-image-1\n# - \"Which models support caching?\" \u2192 gpt-4.1 series, gpt-4o series\n```",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_modelsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_modelsOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the OpenAI Tool server and API connectivity.\n\nUse this to verify that the tool is operational before making other requests.\n\n**Input/Output:**\n- **Input**: None.\n- **Output**: A string containing the server status, API connection status, and a list of available tools.\n\n**Error Handling:**\n- Raises `RuntimeError` if the OpenAI API is not configured correctly.\n\n**Examples:**\n```python\n# Check the server status.\nserver_info()\n```",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/openai/tool.py",
+      "source_hash": "0d425e971de8dc3c3ce87c49705e6ef06b6ae6d4b5551ec9d565dcd634c9bc15"
+    },
+    "claude": {
+      "name": "claude",
+      "functions": {
+        "ask": {
+          "name": "ask",
+          "description": "Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name=False` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast).",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "title": "Output File",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "model": {
+                "default": "claude-sonnet-3.7",
+                "title": "Model",
+                "type": "string"
+              },
+              "temperature": {
+                "default": 0.7,
+                "title": "Temperature",
+                "type": "number"
+              },
+              "files": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Files"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              }
+            },
+            "required": [
+              "prompt",
+              "output_file"
+            ],
+            "title": "askArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "askOutput",
+            "type": "object"
+          }
+        },
+        "analyze_image": {
+          "name": "analyze_image",
+          "description": "Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options.",
+          "inputSchema": {
+            "properties": {
+              "prompt": {
+                "title": "Prompt",
+                "type": "string"
+              },
+              "output_file": {
+                "title": "Output File",
+                "type": "string"
+              },
+              "image_data": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Image Data"
+              },
+              "images": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Images"
+              },
+              "focus": {
+                "default": "general",
+                "title": "Focus",
+                "type": "string"
+              },
+              "model": {
+                "default": "claude-3-5-sonnet-20240620",
+                "title": "Model",
+                "type": "string"
+              },
+              "agent_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Agent Name"
+              },
+              "max_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Max Output Tokens"
+              }
+            },
+            "required": [
+              "prompt",
+              "output_file"
+            ],
+            "title": "analyze_imageArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "analyze_imageOutput",
+            "type": "object"
+          }
+        },
+        "list_models": {
+          "name": "list_models",
+          "description": "Retrieves a comprehensive catalog of all available Claude models with pricing, capabilities, and performance information. Helps compare models and select the most suitable one for specific tasks or budget constraints.",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_modelsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_modelsOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the Claude Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/claude/tool.py",
+      "source_hash": "8165187c728c87dcd3482824a73a20c7249a48e0c3aa8fded7b36db095f917b6"
+    },
+    "agent": {
+      "name": "agent",
+      "functions": {
+        "create_agent": {
+          "name": "create_agent",
+          "description": "Creates a new persistent conversation agent with optional personality. Agents maintain conversation history across sessions and can be used with any LLM tool by specifying the agent_name parameter.",
+          "inputSchema": {
+            "properties": {
+              "agent_name": {
+                "minLength": 1,
+                "title": "Agent Name",
+                "type": "string"
+              },
+              "personality": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Personality"
+              }
+            },
+            "required": [
+              "agent_name"
+            ],
+            "title": "create_agentArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "create_agentOutput",
+            "type": "object"
+          }
+        },
+        "list_agents": {
+          "name": "list_agents",
+          "description": "Lists all persistent agents with statistics: creation date, message count, token usage, and cost. Essential for managing agent resources and monitoring usage across projects.",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_agentsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "list_agentsOutput",
+            "type": "object"
+          }
+        },
+        "agent_stats": {
+          "name": "agent_stats",
+          "description": "Retrieves detailed statistics and recent conversation history for a specific agent. Shows total tokens, cost, and last 5 messages for usage analysis.",
+          "inputSchema": {
+            "properties": {
+              "agent_name": {
+                "title": "Agent Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_name"
+            ],
+            "title": "agent_statsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "agent_statsOutput",
+            "type": "object"
+          }
+        },
+        "clear_agent": {
+          "name": "clear_agent",
+          "description": "Clears all conversation history for an agent while preserving the agent and its personality. Useful for starting fresh conversations without recreating the agent.",
+          "inputSchema": {
+            "properties": {
+              "agent_name": {
+                "title": "Agent Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_name"
+            ],
+            "title": "clear_agentArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "clear_agentOutput",
+            "type": "object"
+          }
+        },
+        "delete_agent": {
+          "name": "delete_agent",
+          "description": "Permanently deletes an agent and all conversation data. WARNING: Irreversible action. Use clear_agent() to only reset conversation history instead.",
+          "inputSchema": {
+            "properties": {
+              "agent_name": {
+                "minLength": 1,
+                "title": "Agent Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_name"
+            ],
+            "title": "delete_agentArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "delete_agentOutput",
+            "type": "object"
+          }
+        },
+        "get_response": {
+          "name": "get_response",
+          "description": "Retrieves a specific message from an agent's conversation history by index. Use -1 for latest message (default), 0 for first message, or positive integers for specific positions.",
+          "inputSchema": {
+            "properties": {
+              "agent_name": {
+                "title": "Agent Name",
+                "type": "string"
+              },
+              "index": {
+                "default": -1,
+                "title": "Index",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "agent_name"
+            ],
+            "title": "get_responseArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "get_responseOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Checks the status of the Agent Tool server and displays total agent count with available functions.",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/agent/tool.py",
+      "source_hash": "78d69a12a58a281bdf6cb60edee40eea91e9f703548d77b48337189d2f36a25e"
+    },
+    "email": {
+      "name": "email",
+      "functions": {
+        "email_server_info": {
+          "name": "email_server_info",
+          "description": "Check email tool server status and verify tool availability.",
+          "inputSchema": {
+            "properties": {
+              "config_file": {
+                "default": null,
+                "title": "Config File",
+                "type": "string"
+              }
+            },
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/email/tool.py",
+      "source_hash": "445d35a0da35fe9b28085d0102043b02b974fb762c23bcc6cb08932ef1a0750c"
+    },
+    "github": {
+      "name": "github",
+      "functions": {
+        "monitor_pr_checks": {
+          "name": "monitor_pr_checks",
+          "description": "Continuously monitors the CI checks for a GitHub pull request, providing live updates. Specify the `pr_number` to watch. The tool reports the status of each check and automatically exits when all checks pass, any check fails, or the `timeout_minutes` is reached. Returns a log of the monitoring session.",
+          "inputSchema": {
+            "properties": {
+              "pr_number": {
+                "title": "Pr Number",
+                "type": "integer"
+              },
+              "timeout_minutes": {
+                "default": 30,
+                "title": "Timeout Minutes",
+                "type": "integer"
+              },
+              "check_interval_seconds": {
+                "default": 30,
+                "title": "Check Interval Seconds",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "pr_number"
+            ],
+            "title": "monitor_pr_checksArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "monitor_pr_checksOutput",
+            "type": "object"
+          }
+        },
+        "server_info": {
+          "name": "server_info",
+          "description": "Check GitHub CI Monitor server status and gh command availability",
+          "inputSchema": {
+            "properties": {},
+            "title": "server_infoArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "server_infoOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/github/tool.py",
+      "source_hash": "7b3a0d98ee9ac2914232235b2eeee05aa5c888fffe46f0b4202792c07b960fc8"
+    }
+  }
+}

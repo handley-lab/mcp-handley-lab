@@ -132,8 +132,12 @@ class YAMLNoteStorage:
                     data = self.yaml.load(f)
                 if data and data.get("id") == uuid:
                     return yaml_file
-            except Exception:
+            except (FileNotFoundError, PermissionError):
+                # Skip files that are inaccessible - expected in concurrent access
                 continue
+            except Exception as e:
+                # Fail fast on unexpected errors like corrupted YAML
+                raise RuntimeError(f"Failed to read note file {yaml_file}: {e}") from e
         return None
 
     def delete_note(self, note_id: str) -> bool:
@@ -153,8 +157,14 @@ class YAMLNoteStorage:
                     data = self.yaml.load(f)
                 if data and "id" in data:
                     ids.append(data["id"])
-            except Exception:
+            except (FileNotFoundError, PermissionError):
+                # Skip files that are inaccessible - expected in concurrent access
                 continue
+            except Exception as e:
+                # Fail fast on unexpected errors like corrupted YAML
+                raise RuntimeError(
+                    f"Failed to read note ID from {yaml_file}: {e}"
+                ) from e
         return ids
 
     def load_all_notes(self) -> dict[str, Note]:
@@ -170,8 +180,12 @@ class YAMLNoteStorage:
                     relative_path = str(yaml_file.relative_to(self.notes_dir))
                     note.inherit_path_tags(relative_path)
                     notes[note.id] = note
-            except Exception:
+            except (FileNotFoundError, PermissionError):
+                # Skip files that are inaccessible - expected in concurrent access
                 continue
+            except Exception as e:
+                # Fail fast on unexpected errors like corrupted YAML or malformed data
+                raise RuntimeError(f"Failed to load note from {yaml_file}: {e}") from e
         return notes
 
     def note_exists(self, note_id: str) -> bool:

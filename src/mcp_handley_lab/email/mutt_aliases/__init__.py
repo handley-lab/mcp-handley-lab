@@ -1,0 +1,1 @@
+"""Mutt aliases management for email address book."""

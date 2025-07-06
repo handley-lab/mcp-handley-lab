@@ -6,11 +6,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.email.tool import (
-    search,
-    send,
-    sync,
-)
+from mcp_handley_lab.email.msmtp.tool import send
+from mcp_handley_lab.email.notmuch.tool import search
+from mcp_handley_lab.email.offlineimap.tool import sync
 
 
 def find_email_in_maildir(
@@ -514,7 +512,7 @@ Subject: {test_subject}
             test_body = f"Email tool integration test sent at {time.strftime('%Y-%m-%d %H:%M:%S')} with ID: {test_id}"
 
             # Mock the config paths to use our test configurations
-            def mock_run_command(cmd, input_text=None, cwd=None):
+            def mock_run_command(cmd, input_data=None, cwd=None):
                 if cmd[0] == "msmtp":
                     # Add our test config to msmtp command
                     test_cmd = ["msmtp", "-C", "msmtprc"] + cmd[1:]
@@ -522,7 +520,7 @@ Subject: {test_subject}
 
                     result = subprocess.run(
                         test_cmd,
-                        input=input_text,
+                        input=input_data.decode() if input_data else None,
                         capture_output=True,
                         text=True,
                         cwd=fixtures_dir,
@@ -531,7 +529,7 @@ Subject: {test_subject}
                         raise RuntimeError(
                             f"Command '{' '.join(test_cmd)}' failed: {result.stderr.strip()}"
                         )
-                    return result.stdout.strip()
+                    return (result.stdout.encode(), result.stderr.encode())
                 elif cmd[0] == "offlineimap":
                     # Add our test config to offlineimap command
                     test_cmd = ["offlineimap", "-c", "offlineimaprc"] + cmd[1:]
@@ -540,15 +538,15 @@ Subject: {test_subject}
                     result = subprocess.run(
                         test_cmd, capture_output=True, text=True, cwd=fixtures_dir
                     )
-                    return result.stdout.strip()
+                    return (result.stdout.encode(), result.stderr.encode())
                 else:
                     # For other commands, use the original function
-                    from mcp_handley_lab.email.tool import _run_command
+                    from mcp_handley_lab.common.process import run_command
 
-                    return _run_command(cmd, input_text, cwd)
+                    return run_command(cmd, input_data=input_data)
 
             with patch(
-                "mcp_handley_lab.email.tool._run_command", side_effect=mock_run_command
+                "mcp_handley_lab.common.process.run_command", side_effect=mock_run_command
             ):
                 # Step 1: Send email using email tool
                 print(f"📧 Sending test email with email tool, ID: {test_id}")

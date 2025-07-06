@@ -259,6 +259,66 @@ def handle_agent_memory(
     return None
 
 
+def resolve_multimodal_content(
+    files: list[str] = [], images: list[str] = []
+) -> list[dict]:
+    """
+    Resolves file paths and image data into a standardized list of content blocks.
+    Each block is a dict with 'type', 'mime_type', and 'data' (or 'text').
+    """
+    content_blocks = []
+
+    # Process text/binary files
+    for file_path_str in files:
+        file_path = Path(file_path_str)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        mime_type = determine_mime_type(file_path)
+        if is_text_file(file_path):
+            text_content = file_path.read_text(encoding="utf-8")
+            content_blocks.append(
+                {
+                    "type": "text_file",
+                    "filename": file_path.name,
+                    "text": text_content,
+                }
+            )
+        else:
+            # For binary files, pass as base64 data
+            binary_data = file_path.read_bytes()
+            content_blocks.append(
+                {
+                    "type": "binary_file",
+                    "filename": file_path.name,
+                    "mime_type": mime_type,
+                    "data": base64.b64encode(binary_data),
+                }
+            )
+
+    # Process images
+    for image_item in images:
+        image_bytes = resolve_image_data(image_item)
+
+        # Determine mime type for the image
+        if isinstance(image_item, str) and image_item.startswith("data:image"):
+            mime_type = image_item.split(";")[0].split(":")[1]
+        else:
+            mime_type = determine_mime_type(Path(image_item))
+            if not mime_type.startswith("image/"):
+                mime_type = "image/jpeg"  # Default for safety
+
+        content_blocks.append(
+            {
+                "type": "image",
+                "mime_type": mime_type,
+                "data": base64.b64encode(image_bytes),
+            }
+        )
+
+    return content_blocks
+
+
 def resolve_files_for_llm(
     files: list[str], max_file_size: int = 1024 * 1024
 ) -> list[str]:
@@ -298,3 +358,30 @@ def resolve_files_for_llm(
                 raise
 
     return inline_content
+
+
+def format_server_info(
+    provider_name: str,
+    api_key_configured: bool,
+    model_count: int,
+    model_examples: list[str],
+    agent_count: int,
+    storage_dir: str,
+    available_tools: list[str],
+) -> str:
+    """Generates a standardized server info string."""
+    status_str = f"{provider_name} Tool Server Status\n"
+    status_str += "=" * (len(provider_name) + 20) + "\n"
+    status_str += "Status: Connected and ready\n"
+    status_str += (
+        f"API Key: {'Configured ✓' if api_key_configured else 'Not Configured ✗'}\n"
+    )
+    status_str += f"Available Models: {model_count} models\n"
+    status_str += f"- {', '.join(model_examples)}{'...' if len(model_examples) < model_count else ''}\n\n"
+    status_str += "Agent Management:\n"
+    status_str += f"- Active Agents: {agent_count}\n"
+    status_str += f"- Memory Storage: {storage_dir}\n\n"
+    status_str += "Available tools:\n" + "\n".join(
+        f"- {tool}" for tool in available_tools
+    )
+    return status_str

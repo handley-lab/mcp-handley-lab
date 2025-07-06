@@ -1,5 +1,8 @@
 """Shared utilities for LLM providers."""
+import tempfile
+import uuid
 from collections.abc import Callable
+from pathlib import Path
 
 from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.common.pricing import calculate_cost
@@ -36,9 +39,7 @@ def process_llm_request(
     actual_agent_name = agent_name
 
     # Handle agent memory with string-based pattern
-    use_memory = (
-        agent_name != "" and agent_name.lower() != "false"
-    )  # Empty string or "false" = no memory
+    use_memory = should_use_memory(agent_name)
     if use_memory:
         if agent_name == "session":
             actual_agent_name = get_session_id(mcp_instance)
@@ -95,3 +96,59 @@ def process_llm_request(
     return handle_output(
         response_text, output_file, model, input_tokens, output_tokens, cost, provider
     )
+
+
+def should_use_memory(agent_name: str | bool | None) -> bool:
+    """Determines if agent memory should be used based on the agent_name parameter."""
+    if isinstance(agent_name, bool):
+        return agent_name
+    if agent_name is None:
+        return True
+    return agent_name != "" and agent_name.lower() != "false"
+
+
+def process_image_generation(
+    prompt: str,
+    agent_name: str,
+    model: str,
+    provider: str,
+    generation_func: Callable,
+    mcp_instance,
+    **kwargs,
+) -> str:
+    """Generic handler for LLM image generation requests."""
+    if not prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+
+    # Call the provider-specific generation function to get the image
+    response_data = generation_func(prompt=prompt, model=model, **kwargs)
+    image_bytes = response_data["image_bytes"]
+    input_tokens = response_data.get("input_tokens", 0)
+    output_tokens = response_data.get("output_tokens", 1)
+
+    # Save to temporary file
+    file_id = str(uuid.uuid4())[:8]
+    filename = f"{provider}_generated_{file_id}.png"
+    filepath = Path(tempfile.gettempdir()) / filename
+    filepath.write_bytes(image_bytes)
+
+    # Calculate cost
+    cost = calculate_cost(
+        model, input_tokens, output_tokens, provider, images_generated=1
+    )
+
+    # Handle agent memory
+    handle_agent_memory(
+        agent_name,
+        f"Generate image: {prompt}",
+        f"Generated image saved to {filepath}",
+        input_tokens,
+        output_tokens,
+        cost,
+        lambda: get_session_id(mcp_instance),
+    )
+
+    # Format response
+    file_size = len(image_bytes)
+    cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
+    return f"✅ Image Generated Successfully\n📁 Saved to: {filepath}\n📏 Size: {file_size:,} bytes\n💰 Cost: {cost_str}"

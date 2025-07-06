@@ -546,7 +546,11 @@ Subject: {test_subject}
                     return run_command(cmd, input_data=input_data)
 
             with patch(
-                "mcp_handley_lab.common.process.run_command", side_effect=mock_run_command
+                "mcp_handley_lab.email.msmtp.tool.run_command",
+                side_effect=mock_run_command,
+            ), patch(
+                "mcp_handley_lab.email.offlineimap.tool.run_command",
+                side_effect=mock_run_command,
             ):
                 # Step 1: Send email using email tool
                 print(f"📧 Sending test email with email tool, ID: {test_id}")

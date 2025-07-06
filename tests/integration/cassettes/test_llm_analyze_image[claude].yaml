@@ -20,7 +20,7 @@ interactions:
       host:
       - api.anthropic.com
       user-agent:
-      - Anthropic/Python 0.56.0
+      - Anthropic/Python 0.57.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -30,7 +30,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 0.56.0
+      - 0.57.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -45,19 +45,19 @@ interactions:
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01Q2VysPT367mb2VnbxikNW5","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"This
-        image is a solid, bright red color. It appears to be a simple square or rectangular
-        shape filled entirely with a vivid, pure red hue. There are no other colors,
-        patterns, or elements visible in this image - it is uniformly red throughout."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":32,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":57,"service_tier":"standard"}}'
+      string: '{"id":"msg_01S9jtbKwzcLhDQNWnoQfKNy","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"This
+        image is a solid, vibrant red color. It appears to be a simple square or rectangular
+        shape filled entirely with a bright, pure red hue without any other colors,
+        patterns, or elements visible."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":32,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":45,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 95aea0352d52eb15-MAN
+      - 95b1b5bf19eeb314-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 11:05:15 GMT
+      - Sun, 06 Jul 2025 20:04:15 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -71,31 +71,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-06T11:05:14Z'
+      - '2025-07-06T20:04:14Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-06T11:05:15Z'
+      - '2025-07-06T20:04:15Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-06T11:05:13Z'
+      - '2025-07-06T20:04:13Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-06T11:05:14Z'
+      - '2025-07-06T20:04:14Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '570'
+      - '523'
       request-id:
-      - req_011CQqezTnxUCPr4tw3Wafts
+      - req_011CQrN6M8ZHMuFgSncyG4mb
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

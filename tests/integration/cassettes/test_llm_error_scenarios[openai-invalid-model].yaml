@@ -16,7 +16,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.91.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -26,7 +26,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.91.0
+      - 1.93.0
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -44,13 +44,13 @@ interactions:
         \       \"param\": null,\n        \"code\": \"model_not_found\"\n    }\n}\n"
     headers:
       CF-RAY:
-      - 95aea0999fe0b107-MAN
+      - 95b1b61b29704f47-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 11:05:30 GMT
+      - Sun, 06 Jul 2025 20:04:28 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -68,7 +68,7 @@ interactions:
       vary:
       - Origin
       x-request-id:
-      - req_0939be4f73e062a7f9e78741a99fd45b
+      - req_05852d0bbb92419af4815ac98601f600
     status:
       code: 404
       message: Not Found

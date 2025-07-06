@@ -2,7 +2,6 @@
 import base64
 import io
 import os
-import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -23,7 +22,6 @@ from PIL import Image
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.common.memory import memory_manager
-from mcp_handley_lab.common.pricing import calculate_cost, format_usage
 from mcp_handley_lab.llm.common import (
     get_gemini_safe_mime_type,
     get_session_id,
@@ -35,7 +33,7 @@ from mcp_handley_lab.llm.model_loader import (
     format_model_listing,
     load_model_config,
 )
-from mcp_handley_lab.llm.shared import process_llm_request
+from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 
 mcp = FastMCP("Gemini Tool")
 
@@ -51,18 +49,6 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 def require_client(func):
     """Identity decorator - no longer needed with fail-fast approach."""
     return func
-
-
-def _convert_history_to_gemini_format(
-    history: list[dict[str, str]],
-) -> list[dict[str, Any]]:
-    """Convert generic history to Gemini's expected format."""
-    gemini_history = []
-    for message in history:
-        # Map "assistant" role to "model" for Gemini
-        role = "model" if message["role"] == "assistant" else message["role"]
-        gemini_history.append({"role": role, "parts": [{"text": message["content"]}]})
-    return gemini_history
 
 
 # Load model configurations from YAML
@@ -95,9 +81,14 @@ def _resolve_files(
         return []
 
     parts = []
-    for file_path_str in files:
-        # All items are file paths
-        file_path = Path(file_path_str)
+    for file_item in files:
+        # Handle unified format: strings or {"path": "..."} dicts
+        if isinstance(file_item, str):
+            file_path = Path(file_item)
+        elif isinstance(file_item, dict) and "path" in file_item:
+            file_path = Path(file_item["path"])
+        else:
+            continue  # Skip invalid items
         file_size = file_path.stat().st_size
 
         if file_size > 20 * 1024 * 1024:  # 20MB threshold
@@ -189,7 +180,13 @@ def _gemini_generation_adapter(
     config = GenerateContentConfig(**config_params)
 
     # Convert history to Gemini format
-    gemini_history = _convert_history_to_gemini_format(history)
+    gemini_history = [
+        {
+            "role": "model" if msg["role"] == "assistant" else msg["role"],
+            "parts": [{"text": msg["content"]}],
+        }
+        for msg in history
+    ]
 
     # Generate content
     if gemini_history:
@@ -254,9 +251,6 @@ def _gemini_image_analysis_adapter(
         config_params["system_instruction"] = system_instruction
 
     config = GenerateContentConfig(**config_params)
-
-    # Convert history to Gemini format
-    _convert_history_to_gemini_format(history)
 
     # Generate response - image analysis starts fresh conversation
     response = client.models.generate_content(
@@ -350,6 +344,33 @@ def analyze_image(
     )
 
 
+def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Gemini-specific image generation function."""
+    model_mapping = {
+        "imagen-3": "imagen-3.0-generate-002",
+        "image": "imagen-3.0-generate-002",
+        "image-flash": "imagen-3.0-generate-002",
+    }
+    actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
+
+    response = client.models.generate_images(
+        model=actual_model,
+        prompt=prompt,
+        config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+    )
+
+    if not response.generated_images or not response.generated_images[0].image:
+        raise RuntimeError("Generated image has no data")
+
+    # Estimate tokens for cost calculation
+    input_tokens = len(prompt.split()) * 2
+
+    return {
+        "image_bytes": response.generated_images[0].image.image_bytes,
+        "input_tokens": input_tokens,
+    }
+
+
 @mcp.tool(
     description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
@@ -358,80 +379,14 @@ def generate_image(
     prompt: str, model: str = "imagen-3", agent_name: str = "session"
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
-    # Input validation
-    if not prompt or not prompt.strip():
-        raise ValueError("Prompt is required and cannot be empty")
-
-    # Map model names to actual model IDs
-    model_mapping = {
-        "imagen-3": "imagen-3.0-generate-002",
-        "image": "imagen-3.0-generate-002",
-        "image-flash": "imagen-3.0-generate-002",
-    }
-
-    actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
-
-    # Generate image
-    response = client.models.generate_images(
-        model=actual_model,
+    return process_image_generation(
         prompt=prompt,
-        config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+        agent_name=agent_name,
+        model=model,
+        provider="gemini",
+        generation_func=_gemini_image_generation_adapter,
+        mcp_instance=mcp,
     )
-
-    if not response.generated_images:
-        raise RuntimeError("No images were generated")
-
-    # Save the generated image
-    generated_image = response.generated_images[0]
-    if not generated_image.image or not generated_image.image.image_bytes:
-        raise RuntimeError("Generated image has no data")
-
-    # Save to temporary file
-    import uuid
-
-    file_id = str(uuid.uuid4())[:8]
-    filename = f"gemini_generated_{file_id}.png"
-    filepath = Path(tempfile.gettempdir()) / filename
-
-    filepath.write_bytes(generated_image.image.image_bytes)
-
-    # Calculate usage and cost (estimate)
-    input_tokens = len(prompt.split()) * 2  # Rough estimate
-    output_tokens = 1  # Image generation
-    cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
-
-    # Handle agent memory with string-based pattern
-    use_memory = (
-        agent_name != "" and agent_name.lower() != "false"
-    )  # Empty string or "false" = no memory
-
-    if use_memory:
-        actual_agent_name = _get_session_id() if agent_name == "session" else agent_name
-
-        agent = memory_manager.get_agent(actual_agent_name)
-        if not agent:
-            agent = memory_manager.create_agent(actual_agent_name)
-
-        memory_manager.add_message(
-            actual_agent_name,
-            "user",
-            f"Generate image: {prompt}",
-            input_tokens,
-            cost / 2,
-        )
-        memory_manager.add_message(
-            actual_agent_name,
-            "assistant",
-            f"Generated image saved to {filepath}",
-            output_tokens,
-            cost / 2,
-        )
-
-    # Format response
-    file_size = len(generated_image.image.image_bytes)
-    usage_info = format_usage(input_tokens, output_tokens, cost)
-
-    return f"✅ **Image Generated Successfully**\n\n📁 **File:** `{filepath}`\n📏 **Size:** {file_size:,} bytes\n\n{usage_info}"
 
 
 @mcp.tool(

@@ -1,6 +1,5 @@
 """OpenAI LLM tool for AI interactions via MCP."""
 import base64
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +9,6 @@ from openai import OpenAI
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.common.memory import memory_manager
-from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.common import (
     resolve_files_for_llm,
 )
@@ -19,7 +17,7 @@ from mcp_handley_lab.llm.model_loader import (
     format_model_listing,
     load_model_config,
 )
-from mcp_handley_lab.llm.shared import process_llm_request
+from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -398,6 +396,22 @@ def analyze_image(
     )
 
 
+def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """OpenAI-specific image generation function."""
+    params = {"model": model, "prompt": prompt, "size": kwargs.get("size"), "n": 1}
+    if model == "dall-e-3":
+        params["quality"] = kwargs.get("quality")
+
+    response = client.images.generate(**params)
+    image_url = response.data[0].url
+
+    # Download the image
+    with httpx.Client() as http_client:
+        image_response = http_client.get(image_url)
+        image_response.raise_for_status()
+        return {"image_bytes": image_response.content}
+
+
 @mcp.tool(
     description="""Generate images using OpenAI's DALL-E models. You provide the detailed description, and the AI creates the image.
 
@@ -478,63 +492,16 @@ def generate_image(
     agent_name: str = "session",
 ) -> str:
     """Generate images with DALL-E."""
-    # Input validation
-    if not prompt or not prompt.strip():
-        raise ValueError("Prompt is required and cannot be empty")
-
-    # Make API call (quality only supported for DALL-E 3)
-    params = {"model": model, "prompt": prompt, "size": size, "n": 1}
-    if model == "dall-e-3":
-        params["quality"] = quality
-
-    response = client.images.generate(**params)
-
-    # Get the image URL
-    image_url = response.data[0].url
-
-    # Download and save the image using httpx
-    with httpx.Client() as http_client:
-        image_response = http_client.get(image_url)
-        image_response.raise_for_status()
-
-        # Save to temp file
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            f.write(image_response.content)
-            saved_path = f.name
-
-    # Calculate cost (DALL-E pricing is per image)
-    cost = calculate_cost(model, 1, 0, "openai")  # 1 image
-
-    # Handle agent memory with string-based pattern
-    use_memory = (
-        agent_name != "" and agent_name.lower() != "false"
-    )  # Empty string or "false" = no memory
-    if use_memory:
-        from mcp_handley_lab.llm.common import get_session_id
-
-        if agent_name == "session":
-            actual_agent_name = get_session_id(mcp)
-        else:
-            actual_agent_name = agent_name
-
-        agent = memory_manager.get_agent(actual_agent_name)
-        if not agent:
-            agent = memory_manager.create_agent(actual_agent_name)
-
-        memory_manager.add_message(
-            actual_agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
-        )
-        memory_manager.add_message(
-            actual_agent_name,
-            "assistant",
-            f"Image generated and saved to {saved_path}",
-            0,
-            cost / 2,
-        )
-
-    cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
-
-    return f"✅ Image generated successfully!\n📁 Saved to: {saved_path}\n💰 Cost: {cost_str}"
+    return process_image_generation(
+        prompt=prompt,
+        agent_name=agent_name,
+        model=model,
+        provider="openai",
+        generation_func=_openai_image_generation_adapter,
+        mcp_instance=mcp,
+        quality=quality,
+        size=size,
+    )
 
 
 @mcp.tool(

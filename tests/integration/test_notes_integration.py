@@ -39,7 +39,7 @@ class TestNotesIntegrationWithMockData:
                 manager.storage.save_note(note, scope)
 
                 # Sync to in-memory database
-                manager._sync_entity_to_db(note, scope)
+                manager._sync_note_to_db(note, scope)
 
                 # Add to semantic search
                 manager.semantic_search.add_note(note)
@@ -49,23 +49,28 @@ class TestNotesIntegrationWithMockData:
     def test_data_loading_and_integrity(self, populated_manager):
         """Test that all mock data loads correctly with proper relationships."""
         # Verify total count
-        all_notes = populated_manager.list_entities()
+        all_notes = populated_manager.list_notes()
         assert len(all_notes) == 14  # Should match fixture count
 
-        # Verify type distribution
+        # Verify tag distribution
         stats = populated_manager.get_stats()
-        expected_types = {
-            "person": 4,
-            "project": 3,
-            "paper": 3,
-            "grant": 1,
-            "equipment": 1,
-            "idea": 1,
-            "meeting": 1,
-        }
 
-        for note_type, expected_count in expected_types.items():
-            assert stats["note_types"][note_type] == expected_count
+        # Count notes by their primary path tags
+        person_notes = populated_manager.list_notes(tags=["person"])
+        project_notes = populated_manager.list_notes(tags=["project"])
+        paper_notes = populated_manager.list_notes(tags=["paper"])
+        grant_notes = populated_manager.list_notes(tags=["grant"])
+        equipment_notes = populated_manager.list_notes(tags=["equipment"])
+        idea_notes = populated_manager.list_notes(tags=["idea"])
+        meeting_notes = populated_manager.list_notes(tags=["meeting"])
+
+        assert len(person_notes) == 4
+        assert len(project_notes) == 3
+        assert len(paper_notes) == 3
+        assert len(grant_notes) == 1
+        assert len(equipment_notes) == 1
+        assert len(idea_notes) == 1
+        assert len(meeting_notes) == 1
 
         # Verify scope distribution
         assert stats["scopes"]["global"] == 5
@@ -75,7 +80,7 @@ class TestNotesIntegrationWithMockData:
         """Test semantic search with realistic research queries."""
 
         # Query 1: Looking for machine learning expertise
-        ml_results = populated_manager.search_entities_semantic(
+        ml_results = populated_manager.search_notes_semantic(
             "machine learning expertise", n_results=5
         )
 
@@ -87,7 +92,7 @@ class TestNotesIntegrationWithMockData:
         assert all(note._similarity_score > 0.3 for note in ml_results)
 
         # Query 2: Climate modeling research
-        climate_results = populated_manager.search_entities_semantic(
+        climate_results = populated_manager.search_notes_semantic(
             "climate modeling differential equations", n_results=5
         )
 
@@ -100,7 +105,7 @@ class TestNotesIntegrationWithMockData:
         )
 
         # Query 3: Funding and grants
-        funding_results = populated_manager.search_entities_semantic(
+        funding_results = populated_manager.search_notes_semantic(
             "research funding grant proposal", n_results=5
         )
 
@@ -129,15 +134,15 @@ class TestNotesIntegrationWithMockData:
         # Verify related papers
         paper_ids = neural_odes_project.properties["related_papers"]
         paper = populated_manager.get_note(paper_ids[0])
-        assert paper.type == "paper"
+        assert "paper" in paper.tags
         assert "neural" in paper.properties["title"].lower()
 
     def test_complex_jmespath_queries(self, populated_manager):
         """Test complex queries that span multiple note types."""
 
         # Find all active projects with their team sizes
-        active_projects = populated_manager.query_entities_jmespath(
-            "[?type=='project' && properties.status=='active'].{title: properties.title, team_size: properties.team_size}"
+        active_projects = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'project') && properties.status=='active'].{title: properties.title, team_size: properties.team_size}"
         )
 
         assert len(active_projects) >= 1
@@ -146,16 +151,16 @@ class TestNotesIntegrationWithMockData:
             assert "team_size" in project
 
         # Find all people with machine learning expertise
-        ml_experts = populated_manager.query_entities_jmespath(
-            "[?type=='person' && contains(properties.expertise || `[]`, 'machine learning')].properties.name"
+        ml_experts = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'person') && contains(properties.expertise || `[]`, 'machine learning')].properties.name"
         )
 
         assert len(ml_experts) >= 1  # Should find ML experts
         assert "Dr. Sarah Chen" in ml_experts
 
         # Find published papers by journal
-        published_papers = populated_manager.query_entities_jmespath(
-            "[?type=='paper' && properties.status=='published'].{title: properties.title, journal: properties.journal}"
+        published_papers = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'paper') && properties.status=='published'].{title: properties.title, journal: properties.journal}"
         )
 
         assert len(published_papers) >= 1
@@ -164,32 +169,32 @@ class TestNotesIntegrationWithMockData:
         """Test queries that analyze collaboration networks."""
 
         # Find all projects supervised by Prof. Johnson
-        johnson_projects = populated_manager.get_entities_by_property(
+        johnson_projects = populated_manager.get_notes_by_property(
             "supervisor", "320bd1c6-850f-4bbf-917e-ff7050723172"
         )
 
         assert len(johnson_projects) >= 1
         for project in johnson_projects:
-            assert project.type == "project"
+            assert "project" in project.tags
 
         # Find equipment shared across projects
-        shared_equipment = populated_manager.query_entities_jmespath(
-            "[?type=='equipment' && length(properties.projects_using || `[]`) > `1`]"
+        shared_equipment = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'equipment') && length(properties.projects_using || `[]`) > `1`]"
         )
 
         # Should find GPU cluster used by multiple projects
         assert len(shared_equipment) >= 1
 
         # Find meeting notes about specific projects
-        meeting_notes = populated_manager.search_entities_text("neural ODEs")
-        meeting_found = any(note.type == "meeting" for note in meeting_notes)
+        meeting_notes = populated_manager.search_notes_text("neural ODEs")
+        meeting_found = any("meeting" in note.tags for note in meeting_notes)
         assert meeting_found
 
     def test_research_pipeline_tracking(self, populated_manager):
         """Test tracking research from idea to publication."""
 
         # Find completed projects and their related papers
-        completed_projects = populated_manager.list_entities(note_type="project")
+        completed_projects = populated_manager.list_notes(tags=["project"])
 
         completed = [
             p for p in completed_projects if p.properties.get("status") == "completed"
@@ -203,7 +208,7 @@ class TestNotesIntegrationWithMockData:
                 paper_ids = project.properties["related_papers"]
                 for paper_id in paper_ids:
                     paper = populated_manager.get_note(paper_id)
-                    assert paper.type == "paper"
+                    assert "paper" in paper.tags
 
         # Find funding sources for active research
         active_projects = [
@@ -221,29 +226,29 @@ class TestNotesIntegrationWithMockData:
         """Test finding people by expertise and skills."""
 
         # Find differential equations experts
-        de_experts = populated_manager.search_entities_text("differential equations")
-        expert_people = [note for note in de_experts if note.type == "person"]
+        de_experts = populated_manager.search_notes_text("differential equations")
+        expert_people = [note for note in de_experts if "person" in note.tags]
 
         assert len(expert_people) >= 1
 
         # Find genomics researchers
-        genomics_researchers = populated_manager.search_entities_text("genomics")
+        genomics_researchers = populated_manager.search_notes_text("genomics")
         genomics_people = [
-            note for note in genomics_researchers if note.type == "person"
+            note for note in genomics_researchers if "person" in note.tags
         ]
 
         assert len(genomics_people) >= 1
 
         # Find students and their advisors
-        students = populated_manager.query_entities_jmespath(
-            "[?type=='person' && properties.role=='PhD Student']"
+        students = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'person') && properties.role=='PhD Student']"
         )
 
         for student in students:
             if "advisor" in student["properties"]:
                 advisor_id = student["properties"]["advisor"]
                 advisor = populated_manager.get_note(advisor_id)
-                assert advisor.type == "person"
+                assert "person" in advisor.tags
                 assert advisor.properties["role"] in [
                     "Principal Investigator",
                     "Department Head",
@@ -253,7 +258,7 @@ class TestNotesIntegrationWithMockData:
         """Test analyzing resource usage across projects."""
 
         # Find all equipment and what projects use it
-        equipment_notes = populated_manager.list_entities(note_type="equipment")
+        equipment_notes = populated_manager.list_notes(tags=["equipment"])
 
         for equipment in equipment_notes:
             if "projects_using" in equipment.properties:
@@ -262,10 +267,10 @@ class TestNotesIntegrationWithMockData:
                 # Verify each project reference is valid
                 for project_id in project_ids:
                     project = populated_manager.get_note(project_id)
-                    assert project.type == "project"
+                    assert "project" in project.tags
 
         # Find grants and their funded projects
-        grants = populated_manager.list_entities(note_type="grant")
+        grants = populated_manager.list_notes(tags=["grant"])
 
         for grant in grants:
             if "funded_projects" in grant.properties:
@@ -274,13 +279,13 @@ class TestNotesIntegrationWithMockData:
                 # Verify funding relationships
                 for project_id in project_ids:
                     project = populated_manager.get_note(project_id)
-                    assert project.type == "project"
+                    assert "project" in project.tags
 
     def test_publication_and_impact_tracking(self, populated_manager):
         """Test tracking publications and their relationships."""
 
         # Find all papers and their authors
-        papers = populated_manager.list_entities(note_type="paper")
+        papers = populated_manager.list_notes(tags=["paper"])
 
         for paper in papers:
             authors = paper.properties.get("authors", [])
@@ -289,19 +294,19 @@ class TestNotesIntegrationWithMockData:
             for author_id in authors:
                 if isinstance(author_id, str) and len(author_id) == 36:  # UUID format
                     author = populated_manager.get_note(author_id)
-                    assert author.type == "person"
+                    assert "person" in author.tags
 
         # Find papers related to specific projects
-        project_papers = populated_manager.query_entities_jmespath(
-            "[?type=='paper' && properties.related_project].{title: properties.title, project: properties.related_project}"
+        project_papers = populated_manager.query_notes_jmespath(
+            "[?contains(tags, 'paper') && properties.related_project].{title: properties.title, project: properties.related_project}"
         )
 
         for paper_info in project_papers:
             project = populated_manager.get_note(paper_info["project"])
-            assert project.type == "project"
+            assert "project" in project.tags
 
         # Find papers by publication status
-        published_papers = populated_manager.list_entities(note_type="paper")
+        published_papers = populated_manager.list_notes(tags=["paper"])
         published = [
             p for p in published_papers if p.properties.get("status") == "published"
         ]
@@ -323,26 +328,28 @@ class TestNotesIntegrationWithMockData:
         """Test that semantically similar notes cluster together."""
 
         # Find notes similar to climate modeling
-        climate_notes = populated_manager.search_entities_semantic(
+        climate_notes = populated_manager.search_notes_semantic(
             "climate science atmospheric modeling", n_results=10
         )
 
         # Should find multiple related items
         assert len(climate_notes) >= 3
 
-        # Check for expected types in results
-        types_found = {note.type for note in climate_notes}
-        expected_types = {"person", "project", "paper"}
+        # Check for expected tags in results (path-derived tags)
+        tags_found = set()
+        for note in climate_notes:
+            tags_found.update(note.tags)
+        expected_tags = {"person", "project", "paper"}
 
         # Should find people, projects, and papers related to climate
-        assert len(types_found.intersection(expected_types)) >= 2
+        assert len(tags_found.intersection(expected_tags)) >= 2
 
         # Test semantic similarity between related concepts
-        ml_notes = populated_manager.search_entities_semantic(
+        ml_notes = populated_manager.search_notes_semantic(
             "deep learning neural networks", n_results=5
         )
 
-        genomics_notes = populated_manager.search_entities_semantic(
+        genomics_notes = populated_manager.search_notes_semantic(
             "genomics bioinformatics DNA", n_results=5
         )
 
@@ -362,7 +369,7 @@ class TestNotesIntegrationWithMockData:
 
         # Record some statistics before reload
         original_stats = populated_manager.get_stats()
-        original_notes = populated_manager.list_entities()
+        original_notes = populated_manager.list_notes()
         original_note_id = original_notes[0].id
 
         # Create new manager instance with the same storage directory and home patch
@@ -371,14 +378,14 @@ class TestNotesIntegrationWithMockData:
 
         # Verify data persisted
         new_stats = new_manager.get_stats()
-        assert new_stats["total_entities"] == original_stats["total_entities"]
-        assert new_stats["note_types"] == original_stats["note_types"]
+        assert new_stats["total_notes"] == original_stats["total_notes"]
+        # Note: In pure tag-based system, we don't artificially track "types"
 
         # Verify specific note still exists and is unchanged
         reloaded_note = new_manager.get_note(original_note_id)
         original_note = next(n for n in original_notes if n.id == original_note_id)
 
-        assert reloaded_note.type == original_note.type
+        # Note: No more artificial 'type' field in pure tag-based system
         assert reloaded_note.properties == original_note.properties
         assert reloaded_note.tags == original_note.tags
         assert reloaded_note.content == original_note.content

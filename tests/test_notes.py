@@ -89,7 +89,7 @@ class TestNote:
             },
         )
 
-        linked_ids = note.get_linked_entities()
+        linked_ids = note.get_linked_notes()
         assert "550e8400-e29b-41d4-a716-446655440000" in linked_ids
         assert "550e8400-e29b-41d4-a716-446655440001" in linked_ids
         assert "550e8400-e29b-41d4-a716-446655440002" in linked_ids
@@ -101,12 +101,9 @@ class TestNote:
         note = Note(title="Research Note", tags=["machine-learning", "algorithms"])
 
         # Simulate deep hierarchy: person/researcher/phd/bob-wilson.yaml
-        note.set_derived_fields("person/researcher/phd/bob-wilson.yaml")
+        note.inherit_path_tags("person/researcher/phd/bob-wilson.yaml")
 
-        # Check derived fields
-        assert note.type == "person"
-        assert note.slug == "bob-wilson"
-        assert note.file_path == "person/researcher/phd/bob-wilson.yaml"
+        # No more derived fields - these are computed on-demand from filesystem
 
         # Check tag inheritance - path tags should be inserted at beginning
         expected_tags = [
@@ -118,18 +115,13 @@ class TestNote:
         ]
         assert note.tags == expected_tags
 
-        # Test path_tags property
-        assert note.path_tags == ["person", "researcher", "phd"]
-
     def test_shallow_hierarchy_tags(self):
         """Test tag inheritance with shallow hierarchy."""
         note = Note(title="Simple Project", tags=["web", "frontend"])
 
         # Simulate shallow hierarchy: project/simple-project.yaml
-        note.set_derived_fields("project/simple-project.yaml")
+        note.inherit_path_tags("project/simple-project.yaml")
 
-        assert note.type == "project"
-        assert note.slug == "simple-project"
         expected_tags = ["project", "web", "frontend"]
         assert note.tags == expected_tags
 
@@ -138,7 +130,7 @@ class TestNote:
         note = Note(title="Person Note", tags=["person", "researcher", "contact"])
 
         # Path would normally add "person" and "researcher" but they already exist
-        note.set_derived_fields("person/researcher/person-note.yaml")
+        note.inherit_path_tags("person/researcher/person-note.yaml")
 
         # Should not have duplicates
         assert note.tags.count("person") == 1
@@ -157,11 +149,11 @@ class TestYAMLNoteStorage:
 
     def test_storage_initialization(self, temp_storage):
         """Test storage initialization."""
-        assert temp_storage.entities_dir.exists()
-        assert temp_storage.entities_dir.is_dir()
+        assert temp_storage.notes_dir.exists()
+        assert temp_storage.notes_dir.is_dir()
 
-    def test_save_and_load_entity(self, temp_storage):
-        """Test saving and loading an note."""
+    def test_save_and_load_note(self, temp_storage):
+        """Test saving and loading a note."""
         note = Note(
             title="Bob Smith",
             properties={"name": "Bob", "age": 30},
@@ -173,16 +165,14 @@ class TestYAMLNoteStorage:
         temp_storage.save_note(note, "person", "bob-smith")
 
         # Load note
-        loaded_entity = temp_storage.load_entity(note.id)
-        assert loaded_entity is not None
-        assert loaded_entity.id == note.id
-        assert loaded_entity.title == note.title
-        assert loaded_entity.type == "person"  # Derived from path
-        assert loaded_entity.slug == "bob-smith"  # Derived from filename
-        assert loaded_entity.properties == note.properties
-        assert "friend" in loaded_entity.tags
-        assert "person" in loaded_entity.tags  # Path-derived tag
-        assert loaded_entity.content == note.content
+        loaded_note = temp_storage.load_note(note.id)
+        assert loaded_note is not None
+        assert loaded_note.id == note.id
+        assert loaded_note.title == note.title
+        assert loaded_note.properties == note.properties
+        assert "friend" in loaded_note.tags
+        assert "person" in loaded_note.tags  # Path-derived tag
+        assert loaded_note.content == note.content
 
     def test_delete_note(self, temp_storage):
         """Test deleting an note."""

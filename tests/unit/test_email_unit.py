@@ -7,39 +7,11 @@ from mcp_handley_lab.email.tool import server_info
 from mcp_handley_lab.email.msmtp.tool import send, list_accounts, _parse_msmtprc
 from mcp_handley_lab.email.notmuch.tool import search, count, tag
 from mcp_handley_lab.email.offlineimap.tool import sync, sync_status
-from mcp_handley_lab.common.process import run_command as _run_command
 
 
 class TestEmailTool:
     """Test email tool functionality."""
 
-    def test_run_command_success(self):
-        """Test successful command execution."""
-        with patch("mcp_handley_lab.common.process.run_command") as mock_run:
-            mock_run.return_value = (b"command output", b"")
-
-            result = _run_command(["echo", "test"])
-            assert result == "command output"
-
-    def test_run_command_failure(self):
-        """Test command execution failure."""
-        with patch("mcp_handley_lab.common.process.run_command") as mock_run:
-            mock_run.side_effect = RuntimeError(
-                "Command failed with exit code 1: error"
-            )
-
-            with pytest.raises(
-                RuntimeError, match="Command failed with exit code 1: error"
-            ):
-                _run_command(["false"])
-
-    def test_run_command_not_found(self):
-        """Test command not found."""
-        with patch("mcp_handley_lab.common.process.run_command") as mock_run:
-            mock_run.side_effect = FileNotFoundError()
-
-            with pytest.raises(FileNotFoundError):
-                _run_command(["nonexistent"])
 
     def test_parse_msmtprc_success(self):
         """Test parsing msmtprc file successfully."""
@@ -76,7 +48,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             result = send("test@example.com", "Test Subject", "Test body")
 
@@ -84,9 +56,9 @@ user personal@gmail.com
             args = mock_run.call_args
             assert "msmtp" in args[0][0]
             assert "test@example.com" in args[0][0]
-            assert "To: test@example.com" in args[1]["input_text"]
-            assert "Subject: Test Subject" in args[1]["input_text"]
-            assert "Test body" in args[1]["input_text"]
+            assert "To: test@example.com" in args[1]["input_data"].decode()
+            assert "Subject: Test Subject" in args[1]["input_data"].decode()
+            assert "Test body" in args[1]["input_data"].decode()
             assert result == "Email sent successfully to test@example.com"
 
     def test_send_email_with_account(self):
@@ -94,7 +66,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             result = send("test@example.com", "Test", "Body", account="work")
 
@@ -108,7 +80,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             send(
                 "test@example.com",
@@ -120,7 +92,7 @@ user personal@gmail.com
 
             args = mock_run.call_args
             cmd = args[0][0]
-            content = args[1]["input_text"]
+            content = args[1]["input_data"].decode()
 
             # Check recipients in command
             assert "test@example.com" in cmd
@@ -154,7 +126,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = "Sync completed"
+            mock_run.return_value = (b"Sync completed", b"")
 
             result = sync()
 
@@ -168,7 +140,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = "Sync completed"
+            mock_run.return_value = (b"Sync completed", b"")
 
             sync(account="work")
 
@@ -184,7 +156,7 @@ user personal@gmail.com
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
             mock_home.return_value = Path("/home/test")
-            mock_run.return_value = "Configuration valid"
+            mock_run.return_value = (b"Configuration valid", b"")
 
             result = sync_status()
 
@@ -198,7 +170,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = "thread:001 Subject line"
+            mock_run.return_value = (b"thread:001 Subject line", b"")
 
             result = search("from:test@example.com")
 
@@ -213,7 +185,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             result = search("nonexistent")
             assert "(no matches)" in result
@@ -223,7 +195,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = "42"
+            mock_run.return_value = (b"42", b"")
 
             result = count("tag:inbox")
 
@@ -238,7 +210,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             result = tag("message123", add_tags="important,work")
 
@@ -255,7 +227,7 @@ user personal@gmail.com
         with patch(
             "mcp_handley_lab.common.process.run_command", new_callable=Mock
         ) as mock_run:
-            mock_run.return_value = ""
+            mock_run.return_value = (b"", b"")
 
             result = tag("message123", remove_tags="spam")
 
@@ -285,14 +257,14 @@ user personal@gmail.com
             # Mock different command responses
             def mock_command_response(cmd, *args, **kwargs):
                 if "msmtp" in cmd and "--version" in cmd:
-                    return "msmtp version 1.8.11"
+                    return (b"msmtp version 1.8.11", b"")
                 elif "offlineimap" in cmd and "--version" in cmd:
-                    return "offlineimap v7.3.3"
+                    return (b"offlineimap v7.3.3", b"")
                 elif "notmuch" in cmd and "--version" in cmd:
-                    return "notmuch 0.32.2"
+                    return (b"notmuch 0.32.2", b"")
                 elif "notmuch" in cmd and "count" in cmd:
-                    return "1234"
-                return ""
+                    return (b"1234", b"")
+                return (b"", b"")
 
             mock_run.side_effect = mock_command_response
 

@@ -21,7 +21,7 @@ def _run_code2prompt(args: list[str]) -> str:
 )
 def generate_prompt(
     path: str,
-    output_file: str | None = None,
+    output_file: str = "",
     include: list[str] = [],
     exclude: list[str] = [],
     output_format: str = "markdown",
@@ -35,12 +35,12 @@ def generate_prompt(
     tokens: str = "format",
     sort: str = "name_asc",
     include_priority: bool = False,
-    template: str | None = None,
+    template: str = "",
     include_git_diff: bool = False,
-    git_diff_branch1: str | None = None,
-    git_diff_branch2: str | None = None,
-    git_log_branch1: str | None = None,
-    git_log_branch2: str | None = None,
+    git_diff_branch1: str = "",
+    git_diff_branch2: str = "",
+    git_log_branch1: str = "",
+    git_log_branch2: str = "",
     no_ignore: bool = False,
 ) -> str:
     """Generate a structured prompt from codebase."""

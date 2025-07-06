@@ -110,7 +110,7 @@ def _format_datetime(dt_str: str) -> str:
 
 def _client_side_filter(
     events: list[dict[str, Any]],
-    search_text: str | None = None,
+    search_text: str = "",
     search_fields: list[str] = [],
     case_sensitive: bool = False,
     match_all_terms: bool = True,
@@ -129,7 +129,7 @@ def _client_side_filter(
     if not search_text:
         return events
 
-    if search_fields is None:
+    if not search_fields:
         search_fields = ["summary", "description", "location"]
 
     # Split search text into terms
@@ -232,7 +232,7 @@ def create_event(
     summary: str,
     start_datetime: str,
     end_datetime: str,
-    description: str | None = None,
+    description: str = "",
     calendar_id: str = "primary",
     timezone: str = "UTC",
     attendees: list[str] = [],
@@ -294,19 +294,19 @@ def create_event(
 def update_event(
     event_id: str,
     calendar_id: str = "primary",
-    summary: str | None = None,
-    start_datetime: str | None = None,
-    end_datetime: str | None = None,
-    description: str | None = None,
+    summary: str = "",
+    start_datetime: str = "",
+    end_datetime: str = "",
+    description: str = "",
 ) -> str:
     """Update an existing calendar event. Trusts the provided event_id."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
     update_body = {}
-    if summary is not None:
+    if summary:
         update_body["summary"] = summary
-    if description is not None:
+    if description:
         update_body["description"] = description
 
     if start_datetime:
@@ -382,8 +382,8 @@ def list_calendars() -> str:
 )
 def find_time(
     calendar_id: str = "primary",
-    start_date: str | None = None,
-    end_date: str | None = None,
+    start_date: str = "",
+    end_date: str = "",
     duration_minutes: int = 60,
     work_hours_only: bool = True,
 ) -> str:
@@ -471,10 +471,10 @@ def find_time(
     description="Searches for events across one or all calendars within a specified date range. Provide a `search_text` to find events with matching text in the title, description, or location. If no search text is given, it lists all events. Supports advanced client-side filtering by `search_fields` and `case_sensitive` options."
 )
 def search_events(
-    search_text: str | None = None,
+    search_text: str = "",
     calendar_id: str = "all",
-    start_date: str | None = None,
-    end_date: str | None = None,
+    start_date: str = "",
+    end_date: str = "",
     max_results: int = 100,
     search_fields: list[str] = [],
     case_sensitive: bool = False,

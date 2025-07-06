@@ -329,7 +329,7 @@ def ask(
 def analyze_image(
     prompt: str,
     output_file: str = "-",
-    images: list[str] = [],
+    files: list[str] = [],
     focus: str = "general",
     model: str = DEFAULT_MODEL,
     agent_name: str = "session",
@@ -344,7 +344,7 @@ def analyze_image(
         provider="gemini",
         generation_func=_gemini_image_analysis_adapter,
         mcp_instance=mcp,
-        images=images,
+        images=files,
         focus=focus,
         max_output_tokens=max_output_tokens,
     )

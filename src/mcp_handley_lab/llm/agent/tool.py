@@ -1,7 +1,6 @@
 """Agent management tool for persistent conversation memory across LLM providers."""
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import constr
 
 from mcp_handley_lab.common.memory import memory_manager
 
@@ -11,9 +10,7 @@ mcp = FastMCP("Agent Management Tool")
 @mcp.tool(
     description="Creates a new persistent conversation agent with optional personality. Agents maintain conversation history across sessions and can be used with any LLM tool by specifying the agent_name parameter."
 )
-def create_agent(
-    agent_name: constr(min_length=1), personality: str | None = None
-) -> str:
+def create_agent(agent_name: str, personality: str = "") -> str:
     """Create a new agent with optional personality."""
     memory_manager.create_agent(agent_name, personality)
     personality_info = f" with personality: {personality}" if personality else ""
@@ -95,7 +92,7 @@ def clear_agent(agent_name: str) -> str:
 @mcp.tool(
     description="Permanently deletes an agent and all conversation data. WARNING: Irreversible action. Use clear_agent() to only reset conversation history instead."
 )
-def delete_agent(agent_name: constr(min_length=1)) -> str:
+def delete_agent(agent_name: str) -> str:
     """Delete an agent permanently."""
     memory_manager.delete_agent(agent_name)
     return f"✅ Agent '{agent_name}' deleted permanently!"
@@ -109,7 +106,9 @@ def get_response(agent_name: str, index: int = -1) -> str:
     return memory_manager.get_response(agent_name, index)
 
 
-@mcp.tool(description="Checks the status of the Agent Tool server and displays total agent count with available functions.")
+@mcp.tool(
+    description="Checks the status of the Agent Tool server and displays total agent count with available functions."
+)
 def server_info() -> str:
     """Get server status."""
     agents = memory_manager.list_agents()

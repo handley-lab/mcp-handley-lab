@@ -141,9 +141,10 @@ class TestInputValidation:
             ask("Test prompt", "")
 
     def test_ask_empty_agent_name(self):
-        """Test ask with empty agent name."""
-        with pytest.raises(ValueError, match="Agent name cannot be empty"):
-            ask("Test prompt", "/tmp/output.txt", agent_name="")
+        """Test ask with empty agent name disables memory."""
+        # Empty agent name should disable memory (valid behavior per PLAN.md)
+        result = ask("Test prompt", "/tmp/output.txt", agent_name="")
+        assert "Response saved to" in result
 
     def test_analyze_image_empty_prompt(self):
         """Test analyze_image with empty prompt."""

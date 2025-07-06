@@ -129,7 +129,7 @@ def prompt_user_edit(
 )
 def quick_edit(
     file_extension: str = ".txt",
-    instructions: str | None = None,
+    instructions: str = "",
     initial_content: str = "",
 ) -> str:
     """Open vim for creating new content."""

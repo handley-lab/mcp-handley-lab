@@ -377,7 +377,7 @@ analyze_image(
 def analyze_image(
     prompt: str,
     output_file: str = "-",
-    images: list[str] = [],
+    files: list[str] = [],
     focus: str = "general",
     model: str = "gpt-4o",
     agent_name: str = "session",
@@ -392,7 +392,7 @@ def analyze_image(
         provider="openai",
         generation_func=_openai_image_analysis_adapter,
         mcp_instance=mcp,
-        images=images,
+        images=files,
         focus=focus,
         max_output_tokens=max_output_tokens,
     )

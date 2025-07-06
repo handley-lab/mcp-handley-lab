@@ -22,7 +22,7 @@ class YAMLNoteStorage:
         self.yaml.preserve_quotes = True
         self.yaml.default_flow_style = False
 
-    def _entity_file_path(
+    def _note_file_path(
         self, note_id: str, note_type: str = None, slug: str = None
     ) -> Path:
         """Get the file path for a note.
@@ -38,10 +38,14 @@ class YAMLNoteStorage:
             type_dir.mkdir(parents=True, exist_ok=True)
             return type_dir / f"{slug}.yaml"
         else:
-            # Fallback to UUID.yaml in root (for backward compatibility)
+            # Find file by UUID scanning
+            found_path = self._find_file_by_uuid(note_id)
+            if found_path:
+                return found_path
+            # Default fallback for new notes
             return self.notes_dir / f"{note_id}.yaml"
 
-    def _serialize_entity(self, note: Note) -> dict[str, Any]:
+    def _serialize_note(self, note: Note) -> dict[str, Any]:
         """Convert Note to YAML-serializable dict."""
         data = note.model_dump()
 
@@ -53,7 +57,7 @@ class YAMLNoteStorage:
 
         return data
 
-    def _deserialize_entity(self, data: dict[str, Any]) -> Note:
+    def _deserialize_note(self, data: dict[str, Any]) -> Note:
         """Convert YAML dict to Note."""
         # Parse datetime fields
         if "created_at" in data and isinstance(data["created_at"], str):
@@ -73,13 +77,10 @@ class YAMLNoteStorage:
         """
         # Determine file path
         if note_type and slug:
-            file_path = self._entity_file_path(note.id, note_type, slug)
-        elif note.file_path:
-            # Update existing note at its current location
-            file_path = self.notes_dir / note.file_path
+            file_path = self._note_file_path(note.id, note_type, slug)
         else:
-            # Fallback to UUID.yaml
-            file_path = self._entity_file_path(note.id)
+            # Update existing note at its current location
+            file_path = self._note_file_path(note.id)
 
         # Ensure parent directory exists
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -89,25 +90,20 @@ class YAMLNoteStorage:
             relative_path = str(file_path.relative_to(self.notes_dir))
             note.inherit_path_tags(relative_path)
 
-        data = self._serialize_entity(note)
+        data = self._serialize_note(note)
         with open(file_path, "w") as f:
             self.yaml.dump(data, f)
 
     def load_note(self, note_id: str) -> Note | None:
         """Load a note from its YAML file by UUID."""
-        # First try to find by UUID in index
         file_path = self._find_file_by_uuid(note_id)
-        if not file_path:
-            # Fallback to old UUID.yaml format
-            file_path = self._entity_file_path(note_id)
-
-        if not file_path.exists():
+        if not file_path or not file_path.exists():
             return None
 
         with open(file_path) as f:
             data = self.yaml.load(f)
 
-        note = self._deserialize_entity(data)
+        note = self._deserialize_note(data)
         # Inherit tags from filesystem path for consistency
         relative_path = str(file_path.relative_to(self.notes_dir))
         note.inherit_path_tags(relative_path)
@@ -122,7 +118,7 @@ class YAMLNoteStorage:
         with open(file_path) as f:
             data = self.yaml.load(f)
 
-        note = self._deserialize_entity(data)
+        note = self._deserialize_note(data)
         # Inherit tags from filesystem path for consistency
         relative_path = str(file_path.relative_to(self.notes_dir))
         note.inherit_path_tags(relative_path)
@@ -142,12 +138,7 @@ class YAMLNoteStorage:
 
     def delete_note(self, note_id: str) -> bool:
         """Delete a note's YAML file."""
-        # Find the actual file path
         file_path = self._find_file_by_uuid(note_id)
-        if not file_path:
-            # Try fallback path
-            file_path = self._entity_file_path(note_id)
-
         if file_path and file_path.exists():
             file_path.unlink()
             return True
@@ -174,7 +165,7 @@ class YAMLNoteStorage:
                 with open(yaml_file) as f:
                     data = self.yaml.load(f)
                 if data and "id" in data:
-                    note = self._deserialize_entity(data)
+                    note = self._deserialize_note(data)
                     # Inherit tags from filesystem path
                     relative_path = str(yaml_file.relative_to(self.notes_dir))
                     note.inherit_path_tags(relative_path)
@@ -183,24 +174,16 @@ class YAMLNoteStorage:
                 continue
         return notes
 
-    def entity_exists(self, note_id: str) -> bool:
-        """Check if an note file exists."""
-        # Try to find by UUID first
+    def note_exists(self, note_id: str) -> bool:
+        """Check if a note file exists."""
         file_path = self._find_file_by_uuid(note_id)
-        if file_path and file_path.exists():
-            return True
-        # Fallback to old UUID.yaml format
-        return self._entity_file_path(note_id).exists()
+        return file_path is not None and file_path.exists()
 
-    def backup_entity(self, note_id: str) -> bool:
-        """Create a backup of an note file."""
-        # Find the actual file path by UUID
+    def backup_note(self, note_id: str) -> bool:
+        """Create a backup of a note file."""
         file_path = self._find_file_by_uuid(note_id)
         if not file_path or not file_path.exists():
-            # Fallback to old UUID.yaml format
-            file_path = self._entity_file_path(note_id)
-            if not file_path.exists():
-                return False
+            return False
 
         backup_path = file_path.with_suffix(
             f".yaml.backup_{int(datetime.now().timestamp())}"
@@ -221,7 +204,7 @@ class GlobalLocalYAMLStorage:
         local_dir = Path(local_storage_dir)
         self.local_storage = YAMLNoteStorage(str(local_dir))
 
-        self._entity_scopes: dict[str, str] = {}
+        self._note_scopes: dict[str, str] = {}
         self._load_scope_mappings()
 
     def _scope_mapping_file(self, scope: str) -> Path:
@@ -239,7 +222,7 @@ class GlobalLocalYAMLStorage:
             with open(global_mapping_file) as f:
                 global_mappings = json.load(f)
                 for note_id in global_mappings.get("notes", []):
-                    self._entity_scopes[note_id] = "global"
+                    self._note_scopes[note_id] = "global"
 
         # Load local scope mappings
         local_mapping_file = self._scope_mapping_file("local")
@@ -247,37 +230,37 @@ class GlobalLocalYAMLStorage:
             with open(local_mapping_file) as f:
                 local_mappings = json.load(f)
                 for note_id in local_mappings.get("notes", []):
-                    self._entity_scopes[note_id] = "local"
+                    self._note_scopes[note_id] = "local"
 
         # Sync with actual files (notes that exist but aren't in mappings)
         for note_id in self.global_storage.list_note_ids():
-            if note_id not in self._entity_scopes:
-                self._entity_scopes[note_id] = "global"
+            if note_id not in self._note_scopes:
+                self._note_scopes[note_id] = "global"
 
         for note_id in self.local_storage.list_note_ids():
-            if note_id not in self._entity_scopes:
-                self._entity_scopes[note_id] = "local"
+            if note_id not in self._note_scopes:
+                self._note_scopes[note_id] = "local"
 
     def _save_scope_mappings(self):
         """Save note scope mappings to both files."""
-        global_entities = [
-            eid for eid, scope in self._entity_scopes.items() if scope == "global"
+        global_notes = [
+            note_id for note_id, scope in self._note_scopes.items() if scope == "global"
         ]
-        local_entities = [
-            eid for eid, scope in self._entity_scopes.items() if scope == "local"
+        local_notes = [
+            note_id for note_id, scope in self._note_scopes.items() if scope == "local"
         ]
 
         # Save global mappings
         global_mapping_file = self._scope_mapping_file("global")
         global_mapping_file.parent.mkdir(parents=True, exist_ok=True)
         with open(global_mapping_file, "w") as f:
-            json.dump({"notes": global_entities}, f, indent=2)
+            json.dump({"notes": global_notes}, f, indent=2)
 
         # Save local mappings
         local_mapping_file = self._scope_mapping_file("local")
         local_mapping_file.parent.mkdir(parents=True, exist_ok=True)
         with open(local_mapping_file, "w") as f:
-            json.dump({"notes": local_entities}, f, indent=2)
+            json.dump({"notes": local_notes}, f, indent=2)
 
     def save_note(
         self, note: Note, scope: str = "local", note_type: str = None, slug: str = None
@@ -295,7 +278,7 @@ class GlobalLocalYAMLStorage:
 
         storage = self.global_storage if scope == "global" else self.local_storage
         storage.save_note(note, note_type, slug)
-        self._entity_scopes[note.id] = scope
+        self._note_scopes[note.id] = scope
         self._save_scope_mappings()
 
     def load_note(self, note_id: str) -> Note | None:
@@ -303,13 +286,13 @@ class GlobalLocalYAMLStorage:
         # Check local first (takes precedence)
         note = self.local_storage.load_note(note_id)
         if note:
-            self._entity_scopes[note_id] = "local"
+            self._note_scopes[note_id] = "local"
             return note
 
         # Check global
         note = self.global_storage.load_note(note_id)
         if note:
-            self._entity_scopes[note_id] = "global"
+            self._note_scopes[note_id] = "global"
             return note
 
         return None
@@ -319,20 +302,20 @@ class GlobalLocalYAMLStorage:
         # Check local first
         note = self.local_storage.load_note_by_slug(note_type, slug)
         if note:
-            self._entity_scopes[note.id] = "local"
+            self._note_scopes[note.id] = "local"
             return note
 
         # Check global
         note = self.global_storage.load_note_by_slug(note_type, slug)
         if note:
-            self._entity_scopes[note.id] = "global"
+            self._note_scopes[note.id] = "global"
             return note
 
         return None
 
     def delete_note(self, note_id: str) -> bool:
-        """Delete an note from its appropriate storage."""
-        scope = self._entity_scopes.get(note_id)
+        """Delete a note from its appropriate storage."""
+        scope = self._note_scopes.get(note_id)
         if not scope:
             # Try both storages if scope unknown
             success = self.local_storage.delete_note(note_id)
@@ -341,15 +324,15 @@ class GlobalLocalYAMLStorage:
             storage = self.global_storage if scope == "global" else self.local_storage
             success = storage.delete_note(note_id)
 
-        if success and note_id in self._entity_scopes:
-            del self._entity_scopes[note_id]
+        if success and note_id in self._note_scopes:
+            del self._note_scopes[note_id]
             self._save_scope_mappings()
 
         return success
 
     def get_note_scope(self, note_id: str) -> str | None:
-        """Get the scope of an note."""
-        return self._entity_scopes.get(note_id)
+        """Get the scope of a note."""
+        return self._note_scopes.get(note_id)
 
     def list_all_note_ids(self) -> list[str]:
         """List all note IDs from both storages."""
@@ -362,18 +345,18 @@ class GlobalLocalYAMLStorage:
         notes = {}
 
         # Load global notes first
-        global_entities = self.global_storage.load_all_notes()
-        notes.update(global_entities)
+        global_notes = self.global_storage.load_all_notes()
+        notes.update(global_notes)
 
         # Load local notes (overwrites global with same ID)
-        local_entities = self.local_storage.load_all_notes()
-        notes.update(local_entities)
+        local_notes = self.local_storage.load_all_notes()
+        notes.update(local_notes)
 
         # Update scope mappings
-        for note_id, _entity in notes.items():
-            if note_id in local_entities:
-                self._entity_scopes[note_id] = "local"
-            elif note_id in global_entities:
-                self._entity_scopes[note_id] = "global"
+        for note_id, _note in notes.items():
+            if note_id in local_notes:
+                self._note_scopes[note_id] = "local"
+            elif note_id in global_notes:
+                self._note_scopes[note_id] = "global"
 
         return notes

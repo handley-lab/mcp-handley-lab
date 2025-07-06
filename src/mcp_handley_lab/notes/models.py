@@ -74,7 +74,7 @@ class Note(BaseModel):
         if path_tags:
             self.updated_at = datetime.now()
 
-    def get_linked_entities(self) -> list[str]:
+    def get_linked_notes(self) -> list[str]:
         """Get list of note IDs this note links to via pkm: scheme."""
 
         linked_ids = []

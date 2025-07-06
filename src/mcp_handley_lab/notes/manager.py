@@ -269,11 +269,7 @@ class NotesManager:
         tags: list[str] = None,
     ) -> list[Note]:
         """Search notes using semantic similarity (requires ChromaDB)."""
-        # Extract primary tag from tags for semantic search compatibility
-        primary_tag = tags[0] if tags else None
-        similar_ids = self.semantic_search.search_similar(
-            query, n_results, primary_tag, tags
-        )
+        similar_ids = self.semantic_search.search_similar(query, n_results, tags)
         notes = []
 
         for note_id, similarity_score in similar_ids:
@@ -311,8 +307,8 @@ class NotesManager:
         linked_notes = []
 
         for linked_id in linked_ids:
-            linked_entity = self.get_note(linked_id)
-            linked_notes.append(linked_entity)
+            linked_note = self.get_note(linked_id)
+            linked_notes.append(linked_note)
 
         return linked_notes
 
@@ -369,12 +365,7 @@ class NotesManager:
         """Get statistics about the notes database."""
         all_docs = self.db.all()
 
-        # Count by primary tag (first tag is usually the path-derived primary tag)
-        primary_tag_counts = {}
-        for doc in all_docs:
-            tags = doc.get("tags", [])
-            primary_tag = tags[0] if tags else "unknown"
-            primary_tag_counts[primary_tag] = primary_tag_counts.get(primary_tag, 0) + 1
+        # No need for artificial primary tag counting - just count scopes
 
         # Count by scope
         scope_counts = {}
@@ -384,7 +375,6 @@ class NotesManager:
 
         return {
             "total_notes": len(all_docs),
-            "primary_tags": primary_tag_counts,
             "scopes": scope_counts,
             "unique_tags": len(self.get_all_tags()),
             "unique_paths": len(self.get_note_paths()),

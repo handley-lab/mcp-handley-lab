@@ -383,43 +383,30 @@ def list_notes_resource() -> str:
     manager = get_manager()
     notes = manager.list_notes()
 
-    lines = ["# Notes Database Entities\n"]
+    lines = ["# Notes Database\n"]
 
-    # Group by type
-    by_type = {}
     for note in notes:
-        note_type = note.type
-        if note_type not in by_type:
-            by_type[note_type] = []
-        by_type[note_type].append(note)
+        scope = manager.get_note_scope(note.id) or "unknown"
+        tag_str = f" [{', '.join(note.tags)}]" if note.tags else ""
+        lines.append(f"- **{note.title}** ({scope}){tag_str}")
 
-    for note_type, type_notes in sorted(by_type.items()):
-        lines.append(f"## {note_type.title()} ({len(type_notes)})\n")
+        # Show key properties
+        if note.properties:
+            key_props = []
+            for key, value in list(note.properties.items())[:3]:  # Show first 3
+                if isinstance(value, str) and len(value) < 50:
+                    key_props.append(f"{key}: {value}")
+            if key_props:
+                lines.append(f"  - {'; '.join(key_props)}")
 
-        for note in type_notes:
-            scope = manager.get_note_scope(note.id) or "unknown"
-            tag_str = f" [{', '.join(note.tags)}]" if note.tags else ""
-            lines.append(f"- **{note.id}** ({scope}){tag_str}")
+        # Show content preview
+        if note.content:
+            preview = (
+                note.content[:100] + "..." if len(note.content) > 100 else note.content
+            )
+            lines.append(f"  - {preview}")
 
-            # Show key properties
-            if note.properties:
-                key_props = []
-                for key, value in list(note.properties.items())[:3]:  # Show first 3
-                    if isinstance(value, str) and len(value) < 50:
-                        key_props.append(f"{key}: {value}")
-                if key_props:
-                    lines.append(f"  - {'; '.join(key_props)}")
-
-            # Show content preview
-            if note.content:
-                preview = (
-                    note.content[:100] + "..."
-                    if len(note.content) > 100
-                    else note.content
-                )
-                lines.append(f"  - {preview}")
-
-            lines.append("")
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -432,13 +419,10 @@ def notes_stats_resource() -> str:
 
     lines = [
         "# Notes Database Statistics\n",
-        f"**Total Entities:** {stats['total_notes']}\n",
+        f"**Total Notes:** {stats['total_notes']}\n",
         f"**Unique Tags:** {stats['unique_tags']}\n",
-        "## Note Types\n",
+        f"**Unique Paths:** {stats['unique_paths']}\n",
     ]
-
-    for note_type, count in sorted(stats["note_types"].items()):
-        lines.append(f"- {note_type}: {count}")
 
     lines.append("\n## Storage Scopes\n")
     for scope, count in sorted(stats["scopes"].items()):

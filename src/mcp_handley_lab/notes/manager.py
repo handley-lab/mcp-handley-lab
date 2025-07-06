@@ -139,7 +139,9 @@ class NotesManager:
         # Try as just slug in all paths (search all directories)
         all_notes = self.list_notes()
         for note in all_notes:
-            if note.slug == identifier:
+            # Compute slug from filesystem path
+            file_path = self.storage._find_file_by_uuid(note.id)
+            if file_path and file_path.stem == identifier:
                 return note
 
         return None

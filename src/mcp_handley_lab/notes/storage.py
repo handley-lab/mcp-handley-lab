@@ -360,3 +360,17 @@ class GlobalLocalYAMLStorage:
                 self._note_scopes[note_id] = "global"
 
         return notes
+
+    def _find_file_by_uuid(self, uuid: str) -> Path | None:
+        """Find file path by UUID by searching both storages."""
+        # Try local storage first (takes precedence)
+        local_path = self.local_storage._find_file_by_uuid(uuid)
+        if local_path:
+            return local_path
+
+        # Try global storage
+        global_path = self.global_storage._find_file_by_uuid(uuid)
+        if global_path:
+            return global_path
+
+        return None

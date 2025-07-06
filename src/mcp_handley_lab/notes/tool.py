@@ -1,5 +1,4 @@
 """Generic MCP tools for notes management."""
-from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -29,32 +28,6 @@ def set_manager(manager: NotesManager) -> None:
     """Set the global manager instance (used by persistent server)."""
     global _manager
     _manager = manager
-
-
-def _get_note_slug(manager: NotesManager, note_id: str) -> str | None:
-    """Compute note slug from filesystem path."""
-    file_path = manager.storage._find_file_by_uuid(note_id)
-    if file_path:
-        return file_path.stem
-    return None
-
-
-def _get_note_path(manager: NotesManager, note_id: str) -> str | None:
-    """Compute note path from filesystem location."""
-    file_path = manager.storage._find_file_by_uuid(note_id)
-    if file_path:
-        # Get relative path from storage root
-        for storage in [manager.storage.local_storage, manager.storage.global_storage]:
-            try:
-                relative_path = file_path.relative_to(storage.notes_dir)
-                return (
-                    str(relative_path.parent)
-                    if relative_path.parent != Path(".")
-                    else None
-                )
-            except ValueError:
-                continue
-    return None
 
 
 @mcp.tool()
@@ -101,11 +74,7 @@ def get_note(note_id: str) -> dict[str, Any] | None:
     manager = get_manager()
     note = manager.get_note_by_identifier(note_id)
     if note:
-        result = note.model_dump()
-        result["slug"] = note.slug
-        result["path"] = str(Path(note.file_path).parent) if note.file_path else None
-        # Tags already include the path hierarchy - no need for artificial "type" concept
-        return result
+        return note.model_dump()
     return None
 
 
@@ -128,7 +97,9 @@ def update_note(
         Confirmation message
     """
     manager = get_manager()
-    manager.update_note(note_id, properties, tags, content)
+    manager.update_note(
+        note_id, title=None, properties=properties, tags=tags, content=content
+    )
     return f"Note {note_id} updated successfully"
 
 
@@ -159,15 +130,7 @@ def list_notes(tags: list[str] = None, scope: str = None) -> list[dict[str, Any]
     """
     manager = get_manager()
     notes = manager.list_notes(tags, scope)
-    result = []
-    for note in notes:
-        note_dict = note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, note.id)
-        note_dict["path"] = _get_note_path(manager, note.id)
-        # Tags already include the path hierarchy - no artificial type concept needed
-        result.append(note_dict)
-    return result
+    return [note.model_dump() for note in notes]
 
 
 @mcp.tool()
@@ -182,15 +145,7 @@ def search_notes(query: str) -> list[dict[str, Any]]:
     """
     manager = get_manager()
     notes = manager.search_notes_text(query)
-    result = []
-    for note in notes:
-        note_dict = note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, note.id)
-        note_dict["path"] = _get_note_path(manager, note.id)
-        # Tags already include the path hierarchy - no artificial type concept needed
-        result.append(note_dict)
-    return result
+    return [note.model_dump() for note in notes]
 
 
 @mcp.tool()
@@ -213,9 +168,6 @@ def search_notes_semantic(
     results = []
     for note in notes:
         note_dict = note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, note.id)
-        note_dict["path"] = _get_note_path(manager, note.id)
         note_dict["similarity_score"] = note._similarity_score
         results.append(note_dict)
 
@@ -251,15 +203,7 @@ def get_notes_by_property(
     """
     manager = get_manager()
     notes = manager.get_notes_by_property(property_name, property_value)
-    result = []
-    for note in notes:
-        note_dict = note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, note.id)
-        note_dict["path"] = _get_note_path(manager, note.id)
-        # Tags already include the path hierarchy - no artificial type concept needed
-        result.append(note_dict)
-    return result
+    return [note.model_dump() for note in notes]
 
 
 @mcp.tool()
@@ -279,14 +223,7 @@ def get_linked_notes(note_id: str) -> list[dict[str, Any]]:
         return []
 
     notes = manager.get_linked_notes(note.id)
-    result = []
-    for linked_note in notes:
-        note_dict = linked_note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, linked_note.id)
-        note_dict["path"] = _get_note_path(manager, linked_note.id)
-        result.append(note_dict)
-    return result
+    return [note.model_dump() for note in notes]
 
 
 @mcp.tool()
@@ -306,14 +243,7 @@ def get_notes_linking_to(target_note_id: str) -> list[dict[str, Any]]:
         return []
 
     notes = manager.get_notes_linking_to(note.id)
-    result = []
-    for linking_note in notes:
-        note_dict = linking_note.model_dump()
-        # Compute slug and path from filesystem
-        note_dict["slug"] = _get_note_slug(manager, linking_note.id)
-        note_dict["path"] = _get_note_path(manager, linking_note.id)
-        result.append(note_dict)
-    return result
+    return [note.model_dump() for note in notes]
 
 
 @mcp.tool()

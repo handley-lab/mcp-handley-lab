@@ -32,8 +32,6 @@ interactions:
       - Sun, 06 Jul 2025 11:04:55 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -86,8 +84,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -170,8 +166,6 @@ interactions:
       - Sun, 06 Jul 2025 11:04:56 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -186,6 +180,56 @@ interactions:
       - '2729'
       x-l2-request-path:
       - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.3 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6NyqJSIlKp4D13fWJZTQy94ZTF5-30_zlcp5YNb_2rU9XtC39ZFdh6atsNGviisU61fm763joQoYUh0NRmPilcHoTopV0ihl4jDzYKP1Nq_Yk5J51odQxrcC5ScIFzYGPYpLtUvfVXE_QrnGPDVHwQb0BEbMkS4lg4xUFQaCgYKAe0SARcSFQHGX2MiCAQwdfLJY30vSrSRF3_Pjw0177\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sun, 06 Jul 2025 07:38:24 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '351'
     status:
       code: 200
       message: OK

@@ -1,82 +1,82 @@
-"""Comprehensive tests for the generic knowledge management system."""
+"""Comprehensive tests for the notes management system."""
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.knowledge.generic_manager import GenericKnowledgeManager
-from mcp_handley_lab.knowledge.models import Entity
-from mcp_handley_lab.knowledge.storage import GlobalLocalYAMLStorage, YAMLEntityStorage
+from mcp_handley_lab.notes.manager import NotesManager
+from mcp_handley_lab.notes.models import Note
+from mcp_handley_lab.notes.storage import GlobalLocalYAMLStorage, YAMLNoteStorage
 
 
-class TestEntity:
-    """Test Entity model functionality."""
+class TestNote:
+    """Test Note model functionality."""
 
     def test_entity_creation(self):
-        """Test creating a basic entity."""
-        entity = Entity(
+        """Test creating a basic note."""
+        note = Note(
             type="person",
             properties={"name": "Alice", "email": "alice@example.com"},
             tags=["contact", "researcher"],
             content="Alice is a researcher working on AI.",
         )
 
-        assert entity.type == "person"
-        assert entity.properties["name"] == "Alice"
-        assert entity.properties["email"] == "alice@example.com"
-        assert "contact" in entity.tags
-        assert "researcher" in entity.tags
-        assert entity.content == "Alice is a researcher working on AI."
-        assert isinstance(entity.id, str)
-        assert len(entity.id) == 36  # UUID format
+        assert note.type == "person"
+        assert note.properties["name"] == "Alice"
+        assert note.properties["email"] == "alice@example.com"
+        assert "contact" in note.tags
+        assert "researcher" in note.tags
+        assert note.content == "Alice is a researcher working on AI."
+        assert isinstance(note.id, str)
+        assert len(note.id) == 36  # UUID format
 
     def test_property_operations(self):
         """Test property get/set operations."""
-        entity = Entity(type="test")
+        note = Note(type="test")
 
         # Test getting non-existent property
-        assert entity.get_property("nonexistent") is None
-        assert entity.get_property("nonexistent", "default") == "default"
+        assert note.get_property("nonexistent") is None
+        assert note.get_property("nonexistent", "default") == "default"
 
         # Test setting and getting property
-        entity.set_property("test_prop", "test_value")
-        assert entity.get_property("test_prop") == "test_value"
-        assert entity.properties["test_prop"] == "test_value"
+        note.set_property("test_prop", "test_value")
+        assert note.get_property("test_prop") == "test_value"
+        assert note.properties["test_prop"] == "test_value"
 
     def test_tag_operations(self):
         """Test tag-related operations."""
-        entity = Entity(type="test", tags=["initial"])
+        note = Note(type="test", tags=["initial"])
 
         # Test has_tag
-        assert entity.has_tag("initial")
-        assert not entity.has_tag("nonexistent")
+        assert note.has_tag("initial")
+        assert not note.has_tag("nonexistent")
 
         # Test add_tag
-        entity.add_tag("new_tag")
-        assert entity.has_tag("new_tag")
-        assert "new_tag" in entity.tags
+        note.add_tag("new_tag")
+        assert note.has_tag("new_tag")
+        assert "new_tag" in note.tags
 
         # Test adding duplicate tag (should not duplicate)
-        entity.add_tag("initial")
-        assert entity.tags.count("initial") == 1
+        note.add_tag("initial")
+        assert note.tags.count("initial") == 1
 
         # Test remove_tag
-        entity.remove_tag("initial")
-        assert not entity.has_tag("initial")
-        assert "initial" not in entity.tags
+        note.remove_tag("initial")
+        assert not note.has_tag("initial")
+        assert "initial" not in note.tags
 
         # Test has_any_tags
-        assert entity.has_any_tags(["new_tag", "missing"])
-        assert not entity.has_any_tags(["missing1", "missing2"])
+        assert note.has_any_tags(["new_tag", "missing"])
+        assert not note.has_any_tags(["missing1", "missing2"])
 
         # Test has_all_tags
-        entity.add_tag("another")
-        assert entity.has_all_tags(["new_tag", "another"])
-        assert not entity.has_all_tags(["new_tag", "missing"])
+        note.add_tag("another")
+        assert note.has_all_tags(["new_tag", "another"])
+        assert not note.has_all_tags(["new_tag", "missing"])
 
     def test_linked_entities(self):
-        """Test entity linking detection."""
-        entity = Entity(
+        """Test note linking detection."""
+        note = Note(
             type="project",
             properties={
                 "lead_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -89,7 +89,7 @@ class TestEntity:
             },
         )
 
-        linked_ids = entity.get_linked_entities()
+        linked_ids = note.get_linked_entities()
         assert "550e8400-e29b-41d4-a716-446655440000" in linked_ids
         assert "550e8400-e29b-41d4-a716-446655440001" in linked_ids
         assert "550e8400-e29b-41d4-a716-446655440002" in linked_ids
@@ -97,14 +97,14 @@ class TestEntity:
         assert len(linked_ids) == 3
 
 
-class TestYAMLEntityStorage:
-    """Test YAML entity storage functionality."""
+class TestYAMLNoteStorage:
+    """Test YAML note storage functionality."""
 
     @pytest.fixture
     def temp_storage(self):
         """Create a temporary storage directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            yield YAMLEntityStorage(temp_dir)
+            yield YAMLNoteStorage(temp_dir)
 
     def test_storage_initialization(self, temp_storage):
         """Test storage initialization."""
@@ -112,54 +112,54 @@ class TestYAMLEntityStorage:
         assert temp_storage.entities_dir.is_dir()
 
     def test_save_and_load_entity(self, temp_storage):
-        """Test saving and loading an entity."""
-        entity = Entity(
+        """Test saving and loading an note."""
+        note = Note(
             type="person",
             properties={"name": "Bob", "age": 30},
             tags=["friend"],
             content="Bob is a good friend.",
         )
 
-        # Save entity
-        success = temp_storage.save_entity(entity)
+        # Save note
+        success = temp_storage.save_note(note)
         assert success
 
         # Check file exists
-        file_path = temp_storage._entity_file_path(entity.id)
+        file_path = temp_storage._entity_file_path(note.id)
         assert file_path.exists()
 
-        # Load entity
-        loaded_entity = temp_storage.load_entity(entity.id)
+        # Load note
+        loaded_entity = temp_storage.load_entity(note.id)
         assert loaded_entity is not None
-        assert loaded_entity.id == entity.id
-        assert loaded_entity.type == entity.type
-        assert loaded_entity.properties == entity.properties
-        assert loaded_entity.tags == entity.tags
-        assert loaded_entity.content == entity.content
+        assert loaded_entity.id == note.id
+        assert loaded_entity.type == note.type
+        assert loaded_entity.properties == note.properties
+        assert loaded_entity.tags == note.tags
+        assert loaded_entity.content == note.content
 
-    def test_delete_entity(self, temp_storage):
-        """Test deleting an entity."""
-        entity = Entity(type="test", content="To be deleted")
+    def test_delete_note(self, temp_storage):
+        """Test deleting an note."""
+        note = Note(type="test", content="To be deleted")
 
         # Save then delete
-        temp_storage.save_entity(entity)
-        assert temp_storage.entity_exists(entity.id)
+        temp_storage.save_note(note)
+        assert temp_storage.entity_exists(note.id)
 
-        success = temp_storage.delete_entity(entity.id)
+        success = temp_storage.delete_note(note.id)
         assert success
-        assert not temp_storage.entity_exists(entity.id)
+        assert not temp_storage.entity_exists(note.id)
 
     def test_list_entity_ids(self, temp_storage):
-        """Test listing entity IDs."""
+        """Test listing note IDs."""
         # Initially empty
         assert temp_storage.list_entity_ids() == []
 
-        # Add some entities
-        entity1 = Entity(type="test1")
-        entity2 = Entity(type="test2")
+        # Add some notes
+        entity1 = Note(type="test1")
+        entity2 = Note(type="test2")
 
-        temp_storage.save_entity(entity1)
-        temp_storage.save_entity(entity2)
+        temp_storage.save_note(entity1)
+        temp_storage.save_note(entity2)
 
         entity_ids = temp_storage.list_entity_ids()
         assert len(entity_ids) == 2
@@ -167,32 +167,30 @@ class TestYAMLEntityStorage:
         assert entity2.id in entity_ids
 
     def test_load_all_entities(self, temp_storage):
-        """Test loading all entities."""
-        entity1 = Entity(type="type1", content="First entity")
-        entity2 = Entity(type="type2", content="Second entity")
+        """Test loading all notes."""
+        entity1 = Note(type="type1", content="First note")
+        entity2 = Note(type="type2", content="Second note")
 
-        temp_storage.save_entity(entity1)
-        temp_storage.save_entity(entity2)
+        temp_storage.save_note(entity1)
+        temp_storage.save_note(entity2)
 
         all_entities = temp_storage.load_all_entities()
         assert len(all_entities) == 2
         assert entity1.id in all_entities
         assert entity2.id in all_entities
-        assert all_entities[entity1.id].content == "First entity"
-        assert all_entities[entity2.id].content == "Second entity"
+        assert all_entities[entity1.id].content == "First note"
+        assert all_entities[entity2.id].content == "Second note"
 
     def test_backup_entity(self, temp_storage):
-        """Test entity backup functionality."""
-        entity = Entity(type="test", content="Important data")
-        temp_storage.save_entity(entity)
+        """Test note backup functionality."""
+        note = Note(type="test", content="Important data")
+        temp_storage.save_note(note)
 
-        success = temp_storage.backup_entity(entity.id)
+        success = temp_storage.backup_entity(note.id)
         assert success
 
         # Check backup file exists
-        backup_files = list(
-            temp_storage.entities_dir.glob(f"{entity.id}.yaml.backup_*")
-        )
+        backup_files = list(temp_storage.entities_dir.glob(f"{note.id}.yaml.backup_*"))
         assert len(backup_files) == 1
 
 
@@ -209,17 +207,17 @@ class TestGlobalLocalYAMLStorage:
             yield GlobalLocalYAMLStorage(temp_dir)
 
     def test_global_local_separation(self, temp_storage):
-        """Test that global and local entities are stored separately."""
-        global_entity = Entity(type="global_test", content="Global content")
-        local_entity = Entity(type="local_test", content="Local content")
+        """Test that global and local notes are stored separately."""
+        global_entity = Note(type="global_test", content="Global content")
+        local_entity = Note(type="local_test", content="Local content")
 
         # Save to different scopes
-        temp_storage.save_entity(global_entity, "global")
-        temp_storage.save_entity(local_entity, "local")
+        temp_storage.save_note(global_entity, "global")
+        temp_storage.save_note(local_entity, "local")
 
         # Verify scope mappings
-        assert temp_storage.get_entity_scope(global_entity.id) == "global"
-        assert temp_storage.get_entity_scope(local_entity.id) == "local"
+        assert temp_storage.get_note_scope(global_entity.id) == "global"
+        assert temp_storage.get_note_scope(local_entity.id) == "local"
 
         # Verify both can be loaded
         loaded_global = temp_storage.load_entity(global_entity.id)
@@ -229,29 +227,29 @@ class TestGlobalLocalYAMLStorage:
         assert loaded_local.content == "Local content"
 
     def test_local_precedence(self, temp_storage):
-        """Test that local entities take precedence over global."""
+        """Test that local notes take precedence over global."""
         entity_id = "test-precedence-id"
 
-        # Create entities with same ID
-        global_entity = Entity(id=entity_id, type="test", content="Global version")
-        local_entity = Entity(id=entity_id, type="test", content="Local version")
+        # Create notes with same ID
+        global_entity = Note(id=entity_id, type="test", content="Global version")
+        local_entity = Note(id=entity_id, type="test", content="Local version")
 
         # Save global first, then local
-        temp_storage.save_entity(global_entity, "global")
-        temp_storage.save_entity(local_entity, "local")
+        temp_storage.save_note(global_entity, "global")
+        temp_storage.save_note(local_entity, "local")
 
         # Load should return local version
         loaded_entity = temp_storage.load_entity(entity_id)
         assert loaded_entity.content == "Local version"
-        assert temp_storage.get_entity_scope(entity_id) == "local"
+        assert temp_storage.get_note_scope(entity_id) == "local"
 
     def test_list_all_entity_ids(self, temp_storage):
         """Test listing IDs from both storages."""
-        global_entity = Entity(type="global")
-        local_entity = Entity(type="local")
+        global_entity = Note(type="global")
+        local_entity = Note(type="local")
 
-        temp_storage.save_entity(global_entity, "global")
-        temp_storage.save_entity(local_entity, "local")
+        temp_storage.save_note(global_entity, "global")
+        temp_storage.save_note(local_entity, "local")
 
         all_ids = temp_storage.list_all_entity_ids()
         assert len(all_ids) == 2
@@ -260,8 +258,8 @@ class TestGlobalLocalYAMLStorage:
 
     def test_scope_mapping_persistence(self, temp_storage):
         """Test that scope mappings persist across instances."""
-        entity = Entity(type="test", content="Persistent test")
-        temp_storage.save_entity(entity, "global")
+        note = Note(type="test", content="Persistent test")
+        temp_storage.save_note(note, "global")
 
         # Create new storage instance
         with patch(
@@ -273,13 +271,13 @@ class TestGlobalLocalYAMLStorage:
             )
 
         # Should remember the scope
-        assert new_storage.get_entity_scope(entity.id) == "global"
-        loaded_entity = new_storage.load_entity(entity.id)
+        assert new_storage.get_note_scope(note.id) == "global"
+        loaded_entity = new_storage.load_entity(note.id)
         assert loaded_entity.content == "Persistent test"
 
 
-class TestGenericKnowledgeManager:
-    """Test GenericKnowledgeManager functionality."""
+class TestNotesManager:
+    """Test NotesManager functionality."""
 
     @pytest.fixture
     def temp_manager(self):
@@ -288,19 +286,19 @@ class TestGenericKnowledgeManager:
             tempfile.TemporaryDirectory() as temp_dir,
             patch("pathlib.Path.home", return_value=Path(temp_dir) / "home"),
         ):
-            yield GenericKnowledgeManager(temp_dir)
+            yield NotesManager(temp_dir)
 
     def test_manager_initialization(self, temp_manager):
         """Test manager initialization."""
-        assert isinstance(temp_manager, GenericKnowledgeManager)
+        assert isinstance(temp_manager, NotesManager)
         assert temp_manager.storage is not None
         assert temp_manager.db is not None
         assert temp_manager.semantic_search is not None
 
-    def test_create_entity(self, temp_manager):
-        """Test creating an entity."""
-        entity_id = temp_manager.create_entity(
-            entity_type="person",
+    def test_create_note(self, temp_manager):
+        """Test creating an note."""
+        entity_id = temp_manager.create_note(
+            note_type="person",
             properties={"name": "Charlie", "role": "developer"},
             tags=["team", "backend"],
             content="Charlie is a backend developer.",
@@ -310,25 +308,25 @@ class TestGenericKnowledgeManager:
         assert isinstance(entity_id, str)
         assert len(entity_id) == 36
 
-        # Verify entity was created
-        entity = temp_manager.get_entity(entity_id)
-        assert entity is not None
-        assert entity.type == "person"
-        assert entity.properties["name"] == "Charlie"
-        assert entity.properties["role"] == "developer"
-        assert "team" in entity.tags
-        assert "backend" in entity.tags
-        assert entity.content == "Charlie is a backend developer."
+        # Verify note was created
+        note = temp_manager.get_note(entity_id)
+        assert note is not None
+        assert note.type == "person"
+        assert note.properties["name"] == "Charlie"
+        assert note.properties["role"] == "developer"
+        assert "team" in note.tags
+        assert "backend" in note.tags
+        assert note.content == "Charlie is a backend developer."
 
-    def test_update_entity(self, temp_manager):
-        """Test updating an entity."""
-        # Create entity
-        entity_id = temp_manager.create_entity(
+    def test_update_note(self, temp_manager):
+        """Test updating an note."""
+        # Create note
+        entity_id = temp_manager.create_note(
             "project", {"status": "planning"}, ["active"], "Initial project"
         )
 
-        # Update entity
-        success = temp_manager.update_entity(
+        # Update note
+        success = temp_manager.update_note(
             entity_id,
             properties={"status": "in_progress", "priority": "high"},
             tags=["active", "urgent"],
@@ -337,38 +335,38 @@ class TestGenericKnowledgeManager:
         assert success
 
         # Verify update
-        entity = temp_manager.get_entity(entity_id)
-        assert entity.properties["status"] == "in_progress"
-        assert entity.properties["priority"] == "high"
-        assert set(entity.tags) == {"active", "urgent"}
-        assert entity.content == "Updated project description"
+        note = temp_manager.get_note(entity_id)
+        assert note.properties["status"] == "in_progress"
+        assert note.properties["priority"] == "high"
+        assert set(note.tags) == {"active", "urgent"}
+        assert note.content == "Updated project description"
 
-    def test_delete_entity(self, temp_manager):
-        """Test deleting an entity."""
-        entity_id = temp_manager.create_entity("test", content="To be deleted")
-        assert temp_manager.get_entity(entity_id) is not None
+    def test_delete_note(self, temp_manager):
+        """Test deleting an note."""
+        entity_id = temp_manager.create_note("test", content="To be deleted")
+        assert temp_manager.get_note(entity_id) is not None
 
-        success = temp_manager.delete_entity(entity_id)
+        success = temp_manager.delete_note(entity_id)
         assert success
-        assert temp_manager.get_entity(entity_id) is None
+        assert temp_manager.get_note(entity_id) is None
 
     def test_list_entities(self, temp_manager):
-        """Test listing entities with filtering."""
-        # Create test entities
-        temp_manager.create_entity("person", {"name": "Alice"}, ["team", "frontend"])
-        temp_manager.create_entity("person", {"name": "Bob"}, ["team", "backend"])
-        temp_manager.create_entity("project", {"name": "Website"}, ["active"])
+        """Test listing notes with filtering."""
+        # Create test notes
+        temp_manager.create_note("person", {"name": "Alice"}, ["team", "frontend"])
+        temp_manager.create_note("person", {"name": "Bob"}, ["team", "backend"])
+        temp_manager.create_note("project", {"name": "Website"}, ["active"])
 
-        # Test listing all entities
+        # Test listing all notes
         all_entities = temp_manager.list_entities()
         assert len(all_entities) == 3
 
         # Test filtering by type
-        people = temp_manager.list_entities(entity_type="person")
+        people = temp_manager.list_entities(note_type="person")
         assert len(people) == 2
         assert all(e.type == "person" for e in people)
 
-        projects = temp_manager.list_entities(entity_type="project")
+        projects = temp_manager.list_entities(note_type="project")
         assert len(projects) == 1
         assert projects[0].type == "project"
 
@@ -380,21 +378,21 @@ class TestGenericKnowledgeManager:
         assert len(frontend_entities) == 1
 
     def test_search_entities_text(self, temp_manager):
-        """Test text search across entities."""
-        # Create test entities
-        temp_manager.create_entity(
+        """Test text search across notes."""
+        # Create test notes
+        temp_manager.create_note(
             "person",
             {"name": "Alice Developer", "email": "alice@company.com"},
             ["developer"],
             "Alice is a senior developer specializing in frontend work.",
         )
-        temp_manager.create_entity(
+        temp_manager.create_note(
             "project",
             {"name": "Mobile App", "tech": "React Native"},
             ["mobile", "app"],
             "A mobile application for iOS and Android.",
         )
-        temp_manager.create_entity(
+        temp_manager.create_note(
             "idea",
             {"title": "AI Assistant"},
             ["ai", "future"],
@@ -422,10 +420,10 @@ class TestGenericKnowledgeManager:
 
     def test_query_entities_jmespath(self, temp_manager):
         """Test JMESPath queries."""
-        # Create test entities
-        temp_manager.create_entity("person", {"name": "Alice", "age": 30}, ["senior"])
-        temp_manager.create_entity("person", {"name": "Bob", "age": 25}, ["junior"])
-        temp_manager.create_entity("project", {"name": "Website", "budget": 50000})
+        # Create test notes
+        temp_manager.create_note("person", {"name": "Alice", "age": 30}, ["senior"])
+        temp_manager.create_note("person", {"name": "Bob", "age": 25}, ["junior"])
+        temp_manager.create_note("project", {"name": "Website", "budget": 50000})
 
         # Query for all person names
         results = temp_manager.query_entities_jmespath(
@@ -441,10 +439,10 @@ class TestGenericKnowledgeManager:
         assert results[0]["properties"]["name"] == "Alice"
 
     def test_get_entities_by_property(self, temp_manager):
-        """Test getting entities by property value."""
-        temp_manager.create_entity("person", {"role": "developer", "name": "Alice"})
-        temp_manager.create_entity("person", {"role": "designer", "name": "Bob"})
-        temp_manager.create_entity("person", {"role": "developer", "name": "Charlie"})
+        """Test getting notes by property value."""
+        temp_manager.create_note("person", {"role": "developer", "name": "Alice"})
+        temp_manager.create_note("person", {"role": "designer", "name": "Bob"})
+        temp_manager.create_note("person", {"role": "developer", "name": "Charlie"})
 
         # Get all developers
         developers = temp_manager.get_entities_by_property("role", "developer")
@@ -458,12 +456,12 @@ class TestGenericKnowledgeManager:
         assert designers[0].properties["name"] == "Bob"
 
     def test_linked_entities(self, temp_manager):
-        """Test entity linking functionality."""
-        # Create entities
-        alice_id = temp_manager.create_entity("person", {"name": "Alice"})
-        bob_id = temp_manager.create_entity("person", {"name": "Bob"})
+        """Test note linking functionality."""
+        # Create notes
+        alice_id = temp_manager.create_note("person", {"name": "Alice"})
+        bob_id = temp_manager.create_note("person", {"name": "Bob"})
 
-        project_id = temp_manager.create_entity(
+        project_id = temp_manager.create_note(
             "project",
             {
                 "name": "Team Project",
@@ -472,7 +470,7 @@ class TestGenericKnowledgeManager:
             },
         )
 
-        # Test getting linked entities
+        # Test getting linked notes
         linked_entities = temp_manager.get_linked_entities(project_id)
         assert len(linked_entities) >= 2  # At least Alice and Bob
 
@@ -480,44 +478,44 @@ class TestGenericKnowledgeManager:
         assert "Alice" in linked_names
         assert "Bob" in linked_names
 
-        # Test getting entities linking to Alice
+        # Test getting notes linking to Alice
         linking_to_alice = temp_manager.get_entities_linking_to(alice_id)
         assert len(linking_to_alice) == 1
         assert linking_to_alice[0].properties["name"] == "Team Project"
 
-    def test_get_entity_types(self, temp_manager):
-        """Test getting unique entity types."""
-        temp_manager.create_entity("person", {"name": "Alice"})
-        temp_manager.create_entity("project", {"name": "Website"})
-        temp_manager.create_entity("idea", {"title": "New Feature"})
-        temp_manager.create_entity("person", {"name": "Bob"})  # Duplicate type
+    def test_get_note_types(self, temp_manager):
+        """Test getting unique note types."""
+        temp_manager.create_note("person", {"name": "Alice"})
+        temp_manager.create_note("project", {"name": "Website"})
+        temp_manager.create_note("idea", {"title": "New Feature"})
+        temp_manager.create_note("person", {"name": "Bob"})  # Duplicate type
 
-        types = temp_manager.get_entity_types()
+        types = temp_manager.get_note_types()
         assert len(types) == 3
         assert set(types) == {"idea", "person", "project"}  # Should be sorted
 
     def test_get_all_tags(self, temp_manager):
         """Test getting all unique tags."""
-        temp_manager.create_entity("person", tags=["team", "senior"])
-        temp_manager.create_entity("project", tags=["active", "urgent"])
-        temp_manager.create_entity("idea", tags=["team", "future"])  # Duplicate "team"
+        temp_manager.create_note("person", tags=["team", "senior"])
+        temp_manager.create_note("project", tags=["active", "urgent"])
+        temp_manager.create_note("idea", tags=["team", "future"])  # Duplicate "team"
 
         tags = temp_manager.get_all_tags()
-        assert len(tags) == 4
+        assert len(tags) == 5
         assert set(tags) == {"active", "future", "senior", "team", "urgent"}
 
     def test_get_stats(self, temp_manager):
-        """Test getting knowledge base statistics."""
-        # Create test entities in different scopes
-        temp_manager.create_entity("person", scope="global")
-        temp_manager.create_entity("person", scope="local")
-        temp_manager.create_entity("project", scope="local")
+        """Test getting notes database statistics."""
+        # Create test notes in different scopes
+        temp_manager.create_note("person", scope="global")
+        temp_manager.create_note("person", scope="local")
+        temp_manager.create_note("project", scope="local")
 
         stats = temp_manager.get_stats()
 
         assert stats["total_entities"] == 3
-        assert stats["entity_types"]["person"] == 2
-        assert stats["entity_types"]["project"] == 1
+        assert stats["note_types"]["person"] == 2
+        assert stats["note_types"]["project"] == 1
         assert stats["scopes"]["global"] == 1
         assert stats["scopes"]["local"] == 2
         assert "semantic_search" in stats
@@ -525,32 +523,32 @@ class TestGenericKnowledgeManager:
 
     def test_refresh_from_files(self, temp_manager):
         """Test refreshing from YAML files."""
-        # Create entity
-        entity_id = temp_manager.create_entity("test", {"value": "original"})
+        # Create note
+        entity_id = temp_manager.create_note("test", {"value": "original"})
 
         # Manually modify the YAML file
-        entity = temp_manager.get_entity(entity_id)
-        entity.properties["value"] = "modified"
-        temp_manager.storage.save_entity(entity, "local")
+        note = temp_manager.get_note(entity_id)
+        note.properties["value"] = "modified"
+        temp_manager.storage.save_note(note, "local")
 
         # Refresh from files
         temp_manager.refresh_from_files()
 
         # Verify the change is reflected
-        updated_entity = temp_manager.get_entity(entity_id)
+        updated_entity = temp_manager.get_note(entity_id)
         assert updated_entity.properties["value"] == "modified"
 
     def test_scope_operations(self, temp_manager):
         """Test scope-related operations."""
-        # Create entities in different scopes
-        global_id = temp_manager.create_entity(
+        # Create notes in different scopes
+        global_id = temp_manager.create_note(
             "test", {"scope": "global"}, scope="global"
         )
-        local_id = temp_manager.create_entity("test", {"scope": "local"}, scope="local")
+        local_id = temp_manager.create_note("test", {"scope": "local"}, scope="local")
 
         # Verify scopes
-        assert temp_manager.get_entity_scope(global_id) == "global"
-        assert temp_manager.get_entity_scope(local_id) == "local"
+        assert temp_manager.get_note_scope(global_id) == "global"
+        assert temp_manager.get_note_scope(local_id) == "local"
 
         # Test listing by scope
         global_entities = temp_manager.list_entities(scope="global")
@@ -563,44 +561,44 @@ class TestGenericKnowledgeManager:
 
 
 @pytest.mark.integration
-class TestGenericKnowledgeIntegration:
-    """Integration tests for the generic knowledge system."""
+class TestNotesIntegration:
+    """Integration tests for the notes system."""
 
     @pytest.fixture
     def real_manager(self):
         """Create a manager with real file system (in temp directory)."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            yield GenericKnowledgeManager(temp_dir)
+            yield NotesManager(temp_dir)
 
     def test_persistence_across_sessions(self, real_manager):
         """Test that data persists across manager instances."""
-        # Create entity in first session
-        entity_id = real_manager.create_entity(
+        # Create note in first session
+        entity_id = real_manager.create_note(
             "persistent_test",
             {"data": "should persist"},
             ["persistence"],
-            "This entity should persist across sessions",
+            "This note should persist across sessions",
         )
 
         # Get storage directory
         storage_dir = str(real_manager.storage.local_storage.storage_dir.parent)
 
         # Create new manager instance (simulating restart)
-        new_manager = GenericKnowledgeManager(storage_dir)
+        new_manager = NotesManager(storage_dir)
 
-        # Verify entity exists in new session
-        loaded_entity = new_manager.get_entity(entity_id)
+        # Verify note exists in new session
+        loaded_entity = new_manager.get_note(entity_id)
         assert loaded_entity is not None
         assert loaded_entity.properties["data"] == "should persist"
         assert "persistence" in loaded_entity.tags
 
     def test_yaml_file_structure(self, real_manager):
         """Test that YAML files are created with correct structure."""
-        entity_id = real_manager.create_entity(
+        entity_id = real_manager.create_note(
             "yaml_test",
-            {"name": "Test Entity", "count": 42},
+            {"name": "Test Note", "count": 42},
             ["yaml", "test"],
-            "This is a test entity for YAML structure validation.",
+            "This is a test note for YAML structure validation.",
         )
 
         # Check that YAML file exists
@@ -617,37 +615,37 @@ class TestGenericKnowledgeIntegration:
 
         assert data["id"] == entity_id
         assert data["type"] == "yaml_test"
-        assert data["properties"]["name"] == "Test Entity"
+        assert data["properties"]["name"] == "Test Note"
         assert data["properties"]["count"] == 42
         assert "yaml" in data["tags"]
         assert "test" in data["tags"]
-        assert data["content"] == "This is a test entity for YAML structure validation."
+        assert data["content"] == "This is a test note for YAML structure validation."
         assert "created_at" in data
         assert "updated_at" in data
 
     def test_concurrent_operations(self, real_manager):
         """Test basic concurrent-like operations."""
-        # Create multiple entities rapidly
+        # Create multiple notes rapidly
         entity_ids = []
         for i in range(10):
-            entity_id = real_manager.create_entity(
+            entity_id = real_manager.create_note(
                 f"type_{i % 3}",  # Mix of 3 different types
                 {"index": i, "batch": "concurrent_test"},
                 ["batch", f"index_{i}"],
-                f"Entity number {i} in concurrent test batch.",
+                f"Note number {i} in concurrent test batch.",
             )
             entity_ids.append(entity_id)
 
-        # Verify all entities were created
+        # Verify all notes were created
         assert len(entity_ids) == 10
         assert len(set(entity_ids)) == 10  # All unique
 
         # Verify all can be retrieved
         for i, entity_id in enumerate(entity_ids):
-            entity = real_manager.get_entity(entity_id)
-            assert entity is not None
-            assert entity.properties["index"] == i
-            assert entity.properties["batch"] == "concurrent_test"
+            note = real_manager.get_note(entity_id)
+            assert note is not None
+            assert note.properties["index"] == i
+            assert note.properties["batch"] == "concurrent_test"
 
         # Test batch operations
         batch_entities = real_manager.get_entities_by_property(

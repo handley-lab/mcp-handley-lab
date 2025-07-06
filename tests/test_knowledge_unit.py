@@ -5,8 +5,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.knowledge.manager import KnowledgeManager
-from mcp_handley_lab.knowledge.models import (
+from mcp_handley_lab.notes.manager import KnowledgeManager
+from mcp_handley_lab.notes.models import (
     KnowledgeEntry,
     PersonEntry,
     ProjectEntry,
@@ -560,7 +560,7 @@ class TestKnowledgeManager:
         )
 
         # Manually create local entry with same ID to test precedence
-        from mcp_handley_lab.knowledge.models import PersonEntry
+        from mcp_handley_lab.notes.models import PersonEntry
 
         local_entry = PersonEntry(
             id=global_entry,  # Same ID as global entry

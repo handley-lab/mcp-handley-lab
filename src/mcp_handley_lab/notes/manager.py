@@ -1,4 +1,4 @@
-"""Generic knowledge manager with YAML storage and TinyDB queries."""
+"""Generic notes manager with YAML storage and TinyDB queries."""
 import re
 from datetime import datetime
 from typing import Any
@@ -7,125 +7,125 @@ import jmespath
 from tinydb import Query, TinyDB
 from tinydb.storages import MemoryStorage
 
-from .models import Entity
+from .models import Note
 from .semantic_search import OptionalSemanticSearch
 from .storage import GlobalLocalYAMLStorage
 
 
-class GenericKnowledgeManager:
-    """Generic knowledge management with YAML files and TinyDB queries."""
+class NotesManager:
+    """Generic notes management with YAML files and TinyDB queries."""
 
     def __init__(self, local_storage_dir: str = ".mcp_handley_lab"):
         self.storage = GlobalLocalYAMLStorage(local_storage_dir)
         self.db = TinyDB(storage=MemoryStorage)
-        self.semantic_search = OptionalSemanticSearch(local_storage_dir + "/knowledge")
+        self.semantic_search = OptionalSemanticSearch(local_storage_dir + "/notes")
         self._load_entities_to_db()
 
     def _load_entities_to_db(self):
-        """Load all entities from YAML files into TinyDB for fast queries."""
+        """Load all notes from YAML files into TinyDB for fast queries."""
         self.db.truncate()
-        entities = self.storage.load_all_entities()
+        notes = self.storage.load_all_entities()
 
-        for entity_id, entity in entities.items():
-            doc = entity.model_dump()
+        for entity_id, note in notes.items():
+            doc = note.model_dump()
             doc["_entity_id"] = entity_id
-            doc["_scope"] = self.storage.get_entity_scope(entity_id)
+            doc["_scope"] = self.storage.get_note_scope(entity_id)
             self.db.insert(doc)
 
-    def _sync_entity_to_db(self, entity: Entity, scope: str):
-        """Sync a single entity to the in-memory database."""
-        doc = entity.model_dump()
-        doc["_entity_id"] = entity.id
+    def _sync_entity_to_db(self, note: Note, scope: str):
+        """Sync a single note to the in-memory database."""
+        doc = note.model_dump()
+        doc["_entity_id"] = note.id
         doc["_scope"] = scope
 
         # Update if exists, insert if new
-        if self.db.search(Query()._entity_id == entity.id):
-            self.db.update(doc, Query()._entity_id == entity.id)
+        if self.db.search(Query()._entity_id == note.id):
+            self.db.update(doc, Query()._entity_id == note.id)
         else:
             self.db.insert(doc)
 
-    def create_entity(
+    def create_note(
         self,
-        entity_type: str,
+        note_type: str,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = "",
         scope: str = "local",
     ) -> str:
-        """Create a new generic entity."""
-        entity = Entity(
-            type=entity_type,
+        """Create a new note."""
+        note = Note(
+            type=note_type,
             properties=properties or {},
             tags=tags or [],
             content=content,
         )
 
-        success = self.storage.save_entity(entity, scope)
+        success = self.storage.save_note(note, scope)
         if success:
-            self._sync_entity_to_db(entity, scope)
-            self.semantic_search.add_entity(entity)
-            return entity.id
+            self._sync_entity_to_db(note, scope)
+            self.semantic_search.add_entity(note)
+            return note.id
         else:
-            raise RuntimeError(f"Failed to save entity {entity.id}")
+            raise RuntimeError(f"Failed to save note {note.id}")
 
-    def get_entity(self, entity_id: str) -> Entity | None:
-        """Get an entity by ID."""
+    def get_note(self, entity_id: str) -> Note | None:
+        """Get an note by ID."""
         return self.storage.load_entity(entity_id)
 
-    def update_entity(
+    def update_note(
         self,
         entity_id: str,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = None,
     ) -> bool:
-        """Update an existing entity."""
-        entity = self.storage.load_entity(entity_id)
-        if not entity:
+        """Update an existing note."""
+        note = self.storage.load_entity(entity_id)
+        if not note:
             return False
 
         if properties is not None:
-            entity.properties.update(properties)
+            note.properties.update(properties)
         if tags is not None:
-            entity.tags = tags
+            note.tags = tags
         if content is not None:
-            entity.content = content
+            note.content = content
 
-        entity.updated_at = datetime.now()
+        note.updated_at = datetime.now()
 
-        scope = self.storage.get_entity_scope(entity_id) or "local"
-        success = self.storage.save_entity(entity, scope)
+        scope = self.storage.get_note_scope(entity_id) or "local"
+        success = self.storage.save_note(note, scope)
 
         if success:
-            self._sync_entity_to_db(entity, scope)
-            self.semantic_search.update_entity(entity)
+            self._sync_entity_to_db(note, scope)
+            self.semantic_search.update_note(note)
 
         return success
 
-    def delete_entity(self, entity_id: str) -> bool:
-        """Delete an entity."""
-        success = self.storage.delete_entity(entity_id)
+    def delete_note(self, entity_id: str) -> bool:
+        """Delete an note."""
+        success = self.storage.delete_note(entity_id)
         if success:
             self.db.remove(Query()._entity_id == entity_id)
             self.semantic_search.remove_entity(entity_id)
         return success
 
-    def get_entity_scope(self, entity_id: str) -> str | None:
-        """Get the scope (global or local) of an entity."""
-        return self.storage.get_entity_scope(entity_id)
+    def get_note_scope(self, entity_id: str) -> str | None:
+        """Get the scope (global or local) of an note."""
+        return self.storage.get_note_scope(entity_id)
 
     def list_entities(
-        self, entity_type: str = None, tags: list[str] = None, scope: str = None
-    ) -> list[Entity]:
-        """List entities with optional filtering."""
+        self, note_type: str = None, tags: list[str] = None, scope: str = None
+    ) -> list[Note]:
+        """List notes with optional filtering."""
         query_conditions = []
 
-        if entity_type:
-            query_conditions.append(Query().type == entity_type)
+        if note_type:
+            query_conditions.append(Query().type == note_type)
         if scope:
             query_conditions.append(Query()._scope == scope)
         if tags:
-            # Entity must have any of the specified tags
+            # Note must have any of the specified tags
             query_conditions.append(Query().tags.any(tags))
 
         # Combine all conditions with AND
@@ -137,8 +137,8 @@ class GenericKnowledgeManager:
         else:
             results = self.db.all()
 
-        # Convert back to Entity objects
-        entities = []
+        # Convert back to Note objects
+        notes = []
         for doc in results:
             doc.pop("_entity_id")
             doc.pop("_scope", None)
@@ -149,12 +149,12 @@ class GenericKnowledgeManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            entities.append(Entity(**doc))
+            notes.append(Note(**doc))
 
-        return entities
+        return notes
 
     def query_entities_jmespath(self, jmespath_query: str) -> list[dict[str, Any]]:
-        """Query entities using JMESPath expressions."""
+        """Query notes using JMESPath expressions."""
         all_docs = self.db.all()
         try:
             result = jmespath.search(jmespath_query, all_docs)
@@ -162,8 +162,8 @@ class GenericKnowledgeManager:
         except Exception as e:
             raise ValueError(f"Invalid JMESPath query: {e}") from e
 
-    def search_entities_text(self, query: str) -> list[Entity]:
-        """Search entities by text across content, properties, and tags."""
+    def search_entities_text(self, query: str) -> list[Note]:
+        """Search notes by text across content, properties, and tags."""
         query_lower = query.lower()
 
         # Search in content
@@ -191,8 +191,8 @@ class GenericKnowledgeManager:
         for match in content_matches + tag_matches + property_matches:
             all_matches[match["_entity_id"]] = match
 
-        # Convert to Entity objects
-        entities = []
+        # Convert to Note objects
+        notes = []
         for doc in all_matches.values():
             doc.pop("_entity_id")
             doc.pop("_scope", None)
@@ -203,41 +203,41 @@ class GenericKnowledgeManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            entities.append(Entity(**doc))
+            notes.append(Note(**doc))
 
-        return entities
+        return notes
 
     def search_entities_semantic(
         self,
         query: str,
         n_results: int = 10,
-        entity_type: str = None,
+        note_type: str = None,
         tags: list[str] = None,
-    ) -> list[Entity]:
-        """Search entities using semantic similarity (requires ChromaDB)."""
+    ) -> list[Note]:
+        """Search notes using semantic similarity (requires ChromaDB)."""
         similar_ids = self.semantic_search.search_similar(
-            query, n_results, entity_type, tags
+            query, n_results, note_type, tags
         )
-        entities = []
+        notes = []
 
         for entity_id, similarity_score in similar_ids:
-            entity = self.get_entity(entity_id)
-            if entity:
+            note = self.get_note(entity_id)
+            if note:
                 # Add similarity score as metadata (not persisted)
-                entity._similarity_score = similarity_score
-                entities.append(entity)
+                note._similarity_score = similarity_score
+                notes.append(note)
 
-        return entities
+        return notes
 
     def get_entities_by_property(
         self, property_name: str, property_value: Any
-    ) -> list[Entity]:
-        """Get entities with a specific property value."""
-        # Search for entities with the specified property value
+    ) -> list[Note]:
+        """Get notes with a specific property value."""
+        # Search for notes with the specified property value
         results = self.db.search(Query().properties[property_name] == property_value)
 
-        # Convert to Entity objects
-        entities = []
+        # Convert to Note objects
+        notes = []
         for doc in results:
             doc.pop("_entity_id")
             doc.pop("_scope", None)
@@ -248,45 +248,45 @@ class GenericKnowledgeManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            entities.append(Entity(**doc))
+            notes.append(Note(**doc))
 
-        return entities
+        return notes
 
-    def get_linked_entities(self, entity_id: str) -> list[Entity]:
-        """Get entities that this entity links to."""
-        entity = self.get_entity(entity_id)
-        if not entity:
+    def get_linked_entities(self, entity_id: str) -> list[Note]:
+        """Get notes that this note links to."""
+        note = self.get_note(entity_id)
+        if not note:
             return []
 
-        linked_ids = entity.get_linked_entities()
+        linked_ids = note.get_linked_entities()
         linked_entities = []
 
         for linked_id in linked_ids:
-            linked_entity = self.get_entity(linked_id)
+            linked_entity = self.get_note(linked_id)
             if linked_entity:
                 linked_entities.append(linked_entity)
 
         return linked_entities
 
-    def get_entities_linking_to(self, target_entity_id: str) -> list[Entity]:
-        """Get entities that link to the specified entity."""
+    def get_entities_linking_to(self, target_note_id: str) -> list[Note]:
+        """Get notes that link to the specified note."""
         all_entities = self.list_entities()
         linking_entities = []
 
-        for entity in all_entities:
-            if target_entity_id in entity.get_linked_entities():
-                linking_entities.append(entity)
+        for note in all_entities:
+            if target_note_id in note.get_linked_entities():
+                linking_entities.append(note)
 
         return linking_entities
 
-    def get_entity_types(self) -> list[str]:
-        """Get all unique entity types."""
+    def get_note_types(self) -> list[str]:
+        """Get all unique note types."""
         all_docs = self.db.all()
         types = {doc.get("type") for doc in all_docs if doc.get("type")}
         return sorted(types)
 
     def get_all_tags(self) -> list[str]:
-        """Get all unique tags across all entities."""
+        """Get all unique tags across all notes."""
         all_docs = self.db.all()
         all_tags = set()
 
@@ -301,18 +301,18 @@ class GenericKnowledgeManager:
         """Refresh the in-memory database from YAML files."""
         self._load_entities_to_db()
         # Rebuild semantic search index
-        entities = list(self.storage.load_all_entities().values())
-        self.semantic_search.rebuild_index(entities)
+        notes = list(self.storage.load_all_entities().values())
+        self.semantic_search.rebuild_index(notes)
 
     def get_stats(self) -> dict[str, Any]:
-        """Get statistics about the knowledge base."""
+        """Get statistics about the notes database."""
         all_docs = self.db.all()
 
         # Count by type
         type_counts = {}
         for doc in all_docs:
-            entity_type = doc.get("type", "unknown")
-            type_counts[entity_type] = type_counts.get(entity_type, 0) + 1
+            note_type = doc.get("type", "unknown")
+            type_counts[note_type] = type_counts.get(note_type, 0) + 1
 
         # Count by scope
         scope_counts = {}
@@ -322,7 +322,7 @@ class GenericKnowledgeManager:
 
         return {
             "total_entities": len(all_docs),
-            "entity_types": type_counts,
+            "note_types": type_counts,
             "scopes": scope_counts,
             "unique_tags": len(self.get_all_tags()),
             "semantic_search": self.semantic_search.get_stats(),

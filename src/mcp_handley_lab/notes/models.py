@@ -1,4 +1,4 @@
-"""Generic entity models for the knowledge management system."""
+"""Generic note models for the notes management system."""
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
@@ -6,8 +6,8 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-class Entity(BaseModel):
-    """A generic knowledge entity that can represent any type of information."""
+class Note(BaseModel):
+    """A note that can represent any type of information."""
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: str  # e.g., "person", "project", "attic_item", "idea", etc.
@@ -27,31 +27,31 @@ class Entity(BaseModel):
         self.updated_at = datetime.now()
 
     def has_tag(self, tag: str) -> bool:
-        """Check if this entity has a specific tag."""
+        """Check if this note has a specific tag."""
         return tag in self.tags
 
     def add_tag(self, tag: str) -> None:
-        """Add a tag to this entity."""
+        """Add a tag to this note."""
         if tag not in self.tags:
             self.tags.append(tag)
             self.updated_at = datetime.now()
 
     def remove_tag(self, tag: str) -> None:
-        """Remove a tag from this entity."""
+        """Remove a tag from this note."""
         if tag in self.tags:
             self.tags.remove(tag)
             self.updated_at = datetime.now()
 
     def has_any_tags(self, tags: list[str]) -> bool:
-        """Check if this entity has any of the specified tags."""
+        """Check if this note has any of the specified tags."""
         return any(tag in self.tags for tag in tags)
 
     def has_all_tags(self, tags: list[str]) -> bool:
-        """Check if this entity has all of the specified tags."""
+        """Check if this note has all of the specified tags."""
         return all(tag in self.tags for tag in tags)
 
     def get_linked_entities(self) -> list[str]:
-        """Get list of entity IDs this entity links to (for relationship traversal)."""
+        """Get list of note IDs this note links to (for relationship traversal)."""
         linked_ids = []
 
         # Look for ID references in properties

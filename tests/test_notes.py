@@ -325,13 +325,12 @@ class TestNotesManager:
         )
 
         # Update note
-        success = temp_manager.update_note(
+        temp_manager.update_note(
             entity_id,
             properties={"status": "in_progress", "priority": "high"},
             tags=["active", "urgent"],
             content="Updated project description",
         )
-        assert success
 
         # Verify update
         note = temp_manager.get_note(entity_id)

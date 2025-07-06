@@ -56,9 +56,9 @@ class YAMLNoteStorage:
         with open(file_path, "w") as f:
             self.yaml.dump(data, f)
 
-    def load_entity(self, entity_id: str) -> Note | None:
+    def load_entity(self, note_id: str) -> Note | None:
         """Load an note from its YAML file."""
-        file_path = self._entity_file_path(entity_id)
+        file_path = self._entity_file_path(note_id)
         if not file_path.exists():
             return None
 
@@ -184,18 +184,18 @@ class GlobalLocalYAMLStorage:
         self._entity_scopes[note.id] = scope
         self._save_scope_mappings()
 
-    def load_entity(self, entity_id: str) -> Note | None:
+    def load_entity(self, note_id: str) -> Note | None:
         """Load an note from appropriate storage (local takes precedence)."""
         # Check local first (takes precedence)
-        note = self.local_storage.load_entity(entity_id)
+        note = self.local_storage.load_entity(note_id)
         if note:
-            self._entity_scopes[entity_id] = "local"
+            self._entity_scopes[note_id] = "local"
             return note
 
         # Check global
-        note = self.global_storage.load_entity(entity_id)
+        note = self.global_storage.load_entity(note_id)
         if note:
-            self._entity_scopes[entity_id] = "global"
+            self._entity_scopes[note_id] = "global"
             return note
 
         return None

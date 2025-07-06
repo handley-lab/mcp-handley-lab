@@ -1,0 +1,277 @@
+"""YAML-based entity storage with file-per-entity pattern."""
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from ruamel.yaml import YAML
+
+from .models import Entity
+
+
+class YAMLEntityStorage:
+    """Manages YAML file storage with one entity per file."""
+
+    def __init__(self, storage_dir: str = ".mcp_handley_lab/knowledge"):
+        self.storage_dir = Path(storage_dir)
+        self.entities_dir = self.storage_dir / "entities"
+        self.entities_dir.mkdir(parents=True, exist_ok=True)
+
+        # Configure YAML with comment preservation
+        self.yaml = YAML()
+        self.yaml.preserve_quotes = True
+        self.yaml.default_flow_style = False
+
+    def _entity_file_path(self, entity_id: str) -> Path:
+        """Get the file path for an entity."""
+        return self.entities_dir / f"{entity_id}.yaml"
+
+    def _serialize_entity(self, entity: Entity) -> dict[str, Any]:
+        """Convert Entity to YAML-serializable dict."""
+        data = entity.model_dump()
+
+        # Convert datetime objects to ISO strings
+        if isinstance(data.get("created_at"), datetime):
+            data["created_at"] = data["created_at"].isoformat()
+        if isinstance(data.get("updated_at"), datetime):
+            data["updated_at"] = data["updated_at"].isoformat()
+
+        return data
+
+    def _deserialize_entity(self, data: dict[str, Any]) -> Entity:
+        """Convert YAML dict to Entity."""
+        # Parse datetime fields
+        if "created_at" in data and isinstance(data["created_at"], str):
+            data["created_at"] = datetime.fromisoformat(data["created_at"])
+        if "updated_at" in data and isinstance(data["updated_at"], str):
+            data["updated_at"] = datetime.fromisoformat(data["updated_at"])
+
+        return Entity(**data)
+
+    def save_entity(self, entity: Entity) -> bool:
+        """Save an entity to a YAML file."""
+        try:
+            file_path = self._entity_file_path(entity.id)
+            data = self._serialize_entity(entity)
+
+            with open(file_path, "w") as f:
+                self.yaml.dump(data, f)
+
+            return True
+        except Exception:
+            return False
+
+    def load_entity(self, entity_id: str) -> Entity | None:
+        """Load an entity from its YAML file."""
+        try:
+            file_path = self._entity_file_path(entity_id)
+            if not file_path.exists():
+                return None
+
+            with open(file_path) as f:
+                data = self.yaml.load(f)
+
+            return self._deserialize_entity(data)
+        except Exception:
+            return None
+
+    def delete_entity(self, entity_id: str) -> bool:
+        """Delete an entity's YAML file."""
+        try:
+            file_path = self._entity_file_path(entity_id)
+            if file_path.exists():
+                file_path.unlink()
+                return True
+            return False
+        except Exception:
+            return False
+
+    def list_entity_ids(self) -> list[str]:
+        """List all entity IDs (filenames without .yaml extension)."""
+        try:
+            return [f.stem for f in self.entities_dir.glob("*.yaml")]
+        except Exception:
+            return []
+
+    def load_all_entities(self) -> dict[str, Entity]:
+        """Load all entities into memory."""
+        entities = {}
+        for entity_id in self.list_entity_ids():
+            entity = self.load_entity(entity_id)
+            if entity:
+                entities[entity_id] = entity
+        return entities
+
+    def entity_exists(self, entity_id: str) -> bool:
+        """Check if an entity file exists."""
+        return self._entity_file_path(entity_id).exists()
+
+    def backup_entity(self, entity_id: str) -> bool:
+        """Create a backup of an entity file."""
+        try:
+            file_path = self._entity_file_path(entity_id)
+            if not file_path.exists():
+                return False
+
+            backup_path = file_path.with_suffix(
+                f".yaml.backup_{int(datetime.now().timestamp())}"
+            )
+            backup_path.write_text(file_path.read_text())
+            return True
+        except Exception:
+            return False
+
+
+class GlobalLocalYAMLStorage:
+    """Manages both global and local YAML entity storage."""
+
+    def __init__(self, local_storage_dir: str = ".mcp_handley_lab"):
+        # Global storage (shared across projects)
+        global_dir = Path.home() / ".mcp_handley_lab" / "knowledge"
+        self.global_storage = YAMLEntityStorage(str(global_dir))
+
+        # Local storage (project-specific)
+        local_dir = Path(local_storage_dir) / "knowledge"
+        self.local_storage = YAMLEntityStorage(str(local_dir))
+
+        self._entity_scopes: dict[str, str] = {}
+        self._load_scope_mappings()
+
+    def _scope_mapping_file(self, scope: str) -> Path:
+        """Get the scope mapping file path."""
+        if scope == "global":
+            return self.global_storage.storage_dir / "scope_mapping.json"
+        else:
+            return self.local_storage.storage_dir / "scope_mapping.json"
+
+    def _load_scope_mappings(self):
+        """Load entity scope mappings from both storages."""
+        # Load global scope mappings
+        global_mapping_file = self._scope_mapping_file("global")
+        if global_mapping_file.exists():
+            try:
+                with open(global_mapping_file) as f:
+                    global_mappings = json.load(f)
+                    for entity_id in global_mappings.get("entities", []):
+                        self._entity_scopes[entity_id] = "global"
+            except Exception:
+                pass
+
+        # Load local scope mappings
+        local_mapping_file = self._scope_mapping_file("local")
+        if local_mapping_file.exists():
+            try:
+                with open(local_mapping_file) as f:
+                    local_mappings = json.load(f)
+                    for entity_id in local_mappings.get("entities", []):
+                        self._entity_scopes[entity_id] = "local"
+            except Exception:
+                pass
+
+        # Sync with actual files (entities that exist but aren't in mappings)
+        for entity_id in self.global_storage.list_entity_ids():
+            if entity_id not in self._entity_scopes:
+                self._entity_scopes[entity_id] = "global"
+
+        for entity_id in self.local_storage.list_entity_ids():
+            if entity_id not in self._entity_scopes:
+                self._entity_scopes[entity_id] = "local"
+
+    def _save_scope_mappings(self):
+        """Save entity scope mappings to both files."""
+        global_entities = [
+            eid for eid, scope in self._entity_scopes.items() if scope == "global"
+        ]
+        local_entities = [
+            eid for eid, scope in self._entity_scopes.items() if scope == "local"
+        ]
+
+        # Save global mappings
+        global_mapping_file = self._scope_mapping_file("global")
+        global_mapping_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(global_mapping_file, "w") as f:
+            json.dump({"entities": global_entities}, f, indent=2)
+
+        # Save local mappings
+        local_mapping_file = self._scope_mapping_file("local")
+        local_mapping_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(local_mapping_file, "w") as f:
+            json.dump({"entities": local_entities}, f, indent=2)
+
+    def save_entity(self, entity: Entity, scope: str = "local") -> bool:
+        """Save an entity to the specified scope."""
+        if scope not in ("global", "local"):
+            raise ValueError("Scope must be 'global' or 'local'")
+
+        storage = self.global_storage if scope == "global" else self.local_storage
+        success = storage.save_entity(entity)
+
+        if success:
+            self._entity_scopes[entity.id] = scope
+            self._save_scope_mappings()
+
+        return success
+
+    def load_entity(self, entity_id: str) -> Entity | None:
+        """Load an entity from appropriate storage (local takes precedence)."""
+        # Check local first (takes precedence)
+        entity = self.local_storage.load_entity(entity_id)
+        if entity:
+            self._entity_scopes[entity_id] = "local"
+            return entity
+
+        # Check global
+        entity = self.global_storage.load_entity(entity_id)
+        if entity:
+            self._entity_scopes[entity_id] = "global"
+            return entity
+
+        return None
+
+    def delete_entity(self, entity_id: str) -> bool:
+        """Delete an entity from its appropriate storage."""
+        scope = self._entity_scopes.get(entity_id)
+        if not scope:
+            # Try both storages if scope unknown
+            success = self.local_storage.delete_entity(entity_id)
+            success = self.global_storage.delete_entity(entity_id) or success
+        else:
+            storage = self.global_storage if scope == "global" else self.local_storage
+            success = storage.delete_entity(entity_id)
+
+        if success and entity_id in self._entity_scopes:
+            del self._entity_scopes[entity_id]
+            self._save_scope_mappings()
+
+        return success
+
+    def get_entity_scope(self, entity_id: str) -> str | None:
+        """Get the scope of an entity."""
+        return self._entity_scopes.get(entity_id)
+
+    def list_all_entity_ids(self) -> list[str]:
+        """List all entity IDs from both storages."""
+        all_ids = set(self.global_storage.list_entity_ids())
+        all_ids.update(self.local_storage.list_entity_ids())
+        return list(all_ids)
+
+    def load_all_entities(self) -> dict[str, Entity]:
+        """Load all entities from both storages (local takes precedence)."""
+        entities = {}
+
+        # Load global entities first
+        global_entities = self.global_storage.load_all_entities()
+        entities.update(global_entities)
+
+        # Load local entities (overwrites global with same ID)
+        local_entities = self.local_storage.load_all_entities()
+        entities.update(local_entities)
+
+        # Update scope mappings
+        for entity_id, _entity in entities.items():
+            if entity_id in local_entities:
+                self._entity_scopes[entity_id] = "local"
+            elif entity_id in global_entities:
+                self._entity_scopes[entity_id] = "global"
+
+        return entities

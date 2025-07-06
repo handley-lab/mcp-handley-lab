@@ -46,7 +46,7 @@ user personal@gmail.com
     def test_send_email_basic(self):
         """Test sending a basic email."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.msmtp.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -64,7 +64,7 @@ user personal@gmail.com
     def test_send_email_with_account(self):
         """Test sending email with specific account."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.msmtp.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -78,7 +78,7 @@ user personal@gmail.com
     def test_send_email_with_cc_bcc(self):
         """Test sending email with CC and BCC."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.msmtp.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -124,7 +124,7 @@ user personal@gmail.com
     def test_sync_basic(self):
         """Test basic email sync."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.offlineimap.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"Sync completed", b"")
 
@@ -138,7 +138,7 @@ user personal@gmail.com
     def test_sync_with_account(self):
         """Test sync with specific account."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.offlineimap.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"Sync completed", b"")
 
@@ -153,7 +153,7 @@ user personal@gmail.com
         with patch("pathlib.Path.home") as mock_home, patch(
             "pathlib.Path.exists", return_value=True
         ), patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.offlineimap.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_home.return_value = Path("/home/test")
             mock_run.return_value = (b"Configuration valid", b"")
@@ -168,7 +168,7 @@ user personal@gmail.com
     def test_search_emails(self):
         """Test email search."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"thread:001 Subject line", b"")
 
@@ -183,7 +183,7 @@ user personal@gmail.com
     def test_search_no_results(self):
         """Test search with no results."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -193,7 +193,7 @@ user personal@gmail.com
     def test_count_emails(self):
         """Test email count."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"42", b"")
 
@@ -208,7 +208,7 @@ user personal@gmail.com
     def test_tag_add(self):
         """Test adding tags."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -225,7 +225,7 @@ user personal@gmail.com
     def test_tag_remove(self):
         """Test removing tags."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
@@ -245,7 +245,7 @@ user personal@gmail.com
     def test_server_info(self):
         """Test server info collection."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.tool.run_command", new_callable=Mock
         ) as mock_run, patch(
             "mcp_handley_lab.email.msmtp.tool._parse_msmtprc"
         ) as mock_parse, patch("pathlib.Path.home") as mock_home, patch(
@@ -279,7 +279,7 @@ user personal@gmail.com
     def test_server_info_tool_missing(self):
         """Test server info when tools are missing."""
         with patch(
-            "mcp_handley_lab.common.process.run_command", new_callable=Mock
+            "mcp_handley_lab.email.tool.run_command", new_callable=Mock
         ) as mock_run:
             mock_run.side_effect = RuntimeError("Command 'msmtp' not found")
 

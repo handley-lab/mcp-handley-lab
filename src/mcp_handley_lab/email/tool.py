@@ -8,12 +8,7 @@ from mcp_handley_lab.email.common import mcp
 
 # Import all provider modules to trigger tool registration
 print("Loading and registering email provider tools...")
-import mcp_handley_lab.email.msmtp.tool
-import mcp_handley_lab.email.offlineimap.tool
-import mcp_handley_lab.email.notmuch.tool
-import mcp_handley_lab.email.oauth2.tool
-import mcp_handley_lab.email.mutt.tool
-import mcp_handley_lab.email.mutt_aliases.tool
+
 print("All email tools registered.")
 
 
@@ -23,7 +18,7 @@ def server_info(config_file: str = None) -> str:
     # Check msmtp first - if it fails, entire email system is broken
     stdout, stderr = run_command(["msmtp", "--version"])
     msmtp_version = stdout.decode().split("\n")[0]
-    
+
     # Parse msmtp accounts
     from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
     accounts = _parse_msmtprc()
@@ -47,8 +42,8 @@ def server_info(config_file: str = None) -> str:
     # Check OAuth2 accounts
     oauth2_accounts = []
     try:
-        from mcp_handley_lab.email.offlineimap.tool import _parse_offlineimaprc
         from mcp_handley_lab.email.oauth2.tool import _get_m365_oauth2_config
+        from mcp_handley_lab.email.offlineimap.tool import _parse_offlineimaprc
         offlineimap_accounts = _parse_offlineimaprc(config_file)
         for account_name in offlineimap_accounts:
             try:
@@ -59,7 +54,7 @@ def server_info(config_file: str = None) -> str:
                 continue
     except Exception:
         pass
-    
+
     oauth2_status = f"{len(oauth2_accounts)} OAuth2 configured" if oauth2_accounts else "none configured"
 
     return f"""Email Tool Server Status:
@@ -79,6 +74,6 @@ if __name__ == "__main__":
     print("\n--- Registered Email Tools ---")
     for tool_name in sorted(mcp.tools.keys()):
         print(f"- {tool_name}")
-    
+
     print(f"\nStarting unified email tool server with {len(mcp.tools)} tools...")
     mcp.run()

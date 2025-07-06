@@ -9,7 +9,7 @@ mcp = FastMCP("Agent Management Tool")
 
 
 @mcp.tool(
-    description="Creates a new persistent conversation agent with optional personality."
+    description="Creates a new persistent conversation agent with optional personality. Agents maintain conversation history across sessions and can be used with any LLM tool by specifying the agent_name parameter."
 )
 def create_agent(
     agent_name: constr(min_length=1), personality: str | None = None
@@ -21,7 +21,7 @@ def create_agent(
 
 
 @mcp.tool(
-    description="Lists all persistent agents with summary statistics including creation date, message count, token usage, and total cost. Use this to manage and monitor agent usage across your projects."
+    description="Lists all persistent agents with statistics: creation date, message count, token usage, and cost. Essential for managing agent resources and monitoring usage across projects."
 )
 def list_agents() -> str:
     """List all agents with their statistics."""
@@ -46,7 +46,7 @@ def list_agents() -> str:
 
 
 @mcp.tool(
-    description="Retrieves comprehensive statistics and recent conversation history for a specific agent."
+    description="Retrieves detailed statistics and recent conversation history for a specific agent. Shows total tokens, cost, and last 5 messages for usage analysis."
 )
 def agent_stats(agent_name: str) -> str:
     """Get detailed statistics for a specific agent."""
@@ -84,7 +84,7 @@ def agent_stats(agent_name: str) -> str:
 
 
 @mcp.tool(
-    description="Clears all conversation history for an agent while preserving the agent itself and its personality. Use this to start fresh conversations while maintaining the agent's configuration."
+    description="Clears all conversation history for an agent while preserving the agent and its personality. Useful for starting fresh conversations without recreating the agent."
 )
 def clear_agent(agent_name: str) -> str:
     """Clear an agent's conversation history."""
@@ -93,7 +93,7 @@ def clear_agent(agent_name: str) -> str:
 
 
 @mcp.tool(
-    description="Permanently deletes an agent and all associated conversation data. WARNING: This action cannot be undone. Use clear_agent() instead if you only want to reset the conversation history."
+    description="Permanently deletes an agent and all conversation data. WARNING: Irreversible action. Use clear_agent() to only reset conversation history instead."
 )
 def delete_agent(agent_name: constr(min_length=1)) -> str:
     """Delete an agent permanently."""
@@ -102,31 +102,14 @@ def delete_agent(agent_name: constr(min_length=1)) -> str:
 
 
 @mcp.tool(
-    description="""Retrieves a specific message from an agent's conversation history by index.
-
-Index Usage:
-- -1 (default): Last/most recent message
-- 0: First message in history
-- Positive integers: Specific message position
-
-Example:
-```python
-# Get the last response
-get_response("code_mentor")
-
-# Get the first message
-get_response("code_mentor", index=0)
-
-# Get third message
-get_response("code_mentor", index=2)
-```"""
+    description="Retrieves a specific message from an agent's conversation history by index. Use -1 for latest message (default), 0 for first message, or positive integers for specific positions."
 )
 def get_response(agent_name: str, index: int = -1) -> str:
     """Get a message from an agent's conversation history by index."""
     return memory_manager.get_response(agent_name, index)
 
 
-@mcp.tool(description="Checks the status of the Agent Tool server.")
+@mcp.tool(description="Checks the status of the Agent Tool server and displays total agent count with available functions.")
 def server_info() -> str:
     """Get server status."""
     agents = memory_manager.list_agents()

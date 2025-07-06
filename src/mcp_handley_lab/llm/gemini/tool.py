@@ -293,68 +293,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="""Start or continue a conversation with a Google Gemini model. This tool sends your prompt, along with any provided files, directly to the Gemini model and returns its response.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
-
-**Memory Behavior**: Conversations with Gemini are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
-
-**Output Handling**: The `output_file` parameter is REQUIRED. Use:
-- A file path to save the response for future processing (recommended for large responses)
-- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
-
-**File Input Formats**:
-- `{"path": "/path/to/file"}` - Reads file from filesystem
-- `{"content": "text content"}` - Uses provided text directly
-- `"direct string"` - Treats string as literal content
-
-**Key Parameters**:
-- `model`: "gemini-2.5-flash" (fast, default), "gemini-2.5-pro" (advanced reasoning), or full model name
-- `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
-- `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
-- `max_output_tokens`: Override model's default output token limit
-
-**Token Limits by Model**:
-- gemini-2.5-flash/pro: 65,536 tokens (default)
-- gemini-1.5-flash/pro: 8,192 tokens (default)
-- Use max_output_tokens parameter to override defaults
-
-**Error Handling**:
-- Raises RuntimeError for Gemini API errors (authentication, quota, network)
-- Raises ValueError for invalid file paths or malformed requests
-- Large responses automatically saved to avoid MCP message size limits
-
-**Examples**:
-```python
-# Quick question with stdout (default, immediate response)
-ask(prompt="What is 2+2?")
-
-# Continue conversation in same session
-ask(prompt="Now multiply that by 3")
-
-# Longer response saved to file
-ask(
-    prompt="Explain this code in detail",
-    output_file="/tmp/explanation.md",
-    files=[{"path": "/path/to/code.py"}]
-)
-
-# Named agent for cross-session persistence
-ask(
-    prompt="Review this codebase",
-    output_file="/tmp/review.md",
-    agent_name="code_reviewer",
-    model="gemini-2.5-pro"
-)
-
-# One-off query with grounding
-ask(
-    prompt="What is the weather like?",
-    agent_name=False,
-    grounding=True
-)
-```"""
+    description="Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced)."
 )
 @require_client
 def ask(
@@ -403,74 +342,7 @@ def ask(
 
 
 @mcp.tool(
-    description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
-
-**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
-
-**Output Handling**: The `output_file` parameter is REQUIRED. Use:
-- A file path to save the analysis for future processing (recommended)
-- '-' to output directly to stdout (use sparingly for large analyses)
-
-**Image Input Formats**:
-- `{"path": "/path/to/image.jpg"}` - Read from filesystem (preferred)
-- `{"data": "base64_encoded_data"}` - Base64 encoded image data
-- `"data:image/jpeg;base64,/9j/4AAQ..."` - Data URL format
-- `"/path/to/image.jpg"` - Direct path string (legacy, use dict format instead)
-
-**Analysis Focus Options**:
-- "general" (default) - Overall image description
-- "objects" - Focus on object detection and identification
-- "colors" - Analyze color palette and composition
-- "composition" - Focus on artistic composition and layout
-- "text" - Extract and analyze text within images
-- "technical" - Focus on technical aspects, quality, metadata
-
-**Model Options**:
-- "gemini-2.5-pro" (default) - Best for detailed analysis and complex reasoning
-- "gemini-2.5-flash" - Faster response, good for simple image descriptions
-
-**Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
-- `max_output_tokens`: Override model's default output token limit
-
-**Error Handling**:
-- Raises ValueError for missing or invalid image inputs
-- Raises RuntimeError for Gemini API errors (quota, authentication, unsupported formats)
-- Supports common formats: JPEG, PNG, GIF, WebP
-- Large images may be automatically resized by the API
-
-**Examples**:
-```python
-# Quick image analysis with stdout (default)
-analyze_image(
-    prompt="What's in this image?",
-    image_data="/path/to/photo.jpg"
-)
-
-# Continue analysis in same session
-analyze_image(
-    prompt="Now focus on the text in the image",
-    focus="text"
-)
-
-# Detailed analysis saved to file
-analyze_image(
-    prompt="Analyze this architectural diagram in detail",
-    output_file="/tmp/architecture.md",
-    image_data={"path": "/path/to/diagram.png"},
-    agent_name="architect_reviewer",
-    focus="technical"
-)
-
-# One-off analysis without memory
-analyze_image(
-    prompt="What's in this random image?",
-    image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
-    agent_name=False
-)
-```"""
+    description="Analyzes images using a Gemini vision model. Requires a `prompt` and image data (via `image_data` or `images` parameters). Supports persistent memory via `agent_name`. Use the `focus` parameter ('objects', 'text', etc.) to guide the analysis. Returns the analysis to the required `output_file` ('-' for stdout)."
 )
 @require_client
 def analyze_image(
@@ -500,56 +372,7 @@ def analyze_image(
 
 
 @mcp.tool(
-    description="""Generate high-quality images using Google's Imagen 3 model. You provide the creative direction, and the AI generates the visual content.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
-
-**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
-
-**Output Format**: Generated images are saved as PNG files to a temporary location and the file path is returned.
-
-**Model Options**:
-- "imagen-3" (default) - Latest model with best quality and prompt adherence
-
-**Prompt Guidelines**:
-- Be descriptive and specific for best results
-- Include style, mood, lighting, and composition details
-- Mention aspect ratio preferences if needed
-- Avoid requesting copyrighted characters or inappropriate content
-
-**Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
-- `model`: Imagen model to use (default: "imagen-3")
-
-**Error Handling**:
-- Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
-- Raises ValueError for prompts that violate content policies
-- Generated images are PNG format, saved to system temp directory
-
-**Examples**:
-```python
-# Generate with session memory (default)
-generate_image(
-    prompt="A serene mountain landscape at sunset, with golden light reflecting on a crystal-clear lake, painted in impressionist style"
-)
-
-# Continue with variations in same session
-generate_image(
-    prompt="Now make it more abstract and colorful"
-)
-
-# Named agent for cross-session persistence
-generate_image(
-    prompt="Professional headshot of a confident software engineer",
-    agent_name="portrait_artist"
-)
-
-# One-off generation without memory
-generate_image(
-    prompt="Random abstract art",
-    agent_name=False
-)
-```"""
+    description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
 @require_client
 def generate_image(
@@ -631,36 +454,7 @@ def generate_image(
 
 
 @mcp.tool(
-    description="""Retrieves a comprehensive catalog of all available Gemini models to aid in model discovery and selection.
-
-**Purpose & Benefits:**
-This tool helps users:
-- Discover all models offered by Google's Gemini family and related models (Imagen, Veo)
-- Compare models based on cost, performance, context windows, and capabilities
-- Identify the most suitable Gemini model for specific tasks or budget constraints
-- Understand model generations and recommended use cases
-
-**Returns:**
-Formatted listing with detailed information including:
-- Model IDs and descriptions
-- Context windows and token limits
-- Pricing per 1M tokens (tiered, modality-based, or per-image/second)
-- Capabilities (text generation, image understanding, multimodal, etc.)
-- Recommended use cases and performance characteristics
-- API availability status
-
-**Examples:**
-```python
-# Discover all available models
-list_models()
-
-# Use cases this enables:
-# - "Which models support image input?" → gemini-2.5-pro, gemini-2.5-flash, etc.
-# - "What's the cheapest text model?" → gemini-1.5-flash-8b ($0.0375/M input)
-# - "Which model has the largest context?" → gemini-2.5-pro (2M tokens)
-# - "Show me image generation models" → imagen-4, imagen-4-ultra, imagen-3
-# - "What models support video generation?" → veo-2 ($0.35/second)
-```"""
+    description="Lists all available Gemini models with pricing, capabilities, and context windows. Helps compare models for cost, performance, and features to select the best model for specific tasks."
 )
 @require_client
 def list_models() -> str:

@@ -22,9 +22,24 @@ class YAMLNoteStorage:
         self.yaml.preserve_quotes = True
         self.yaml.default_flow_style = False
 
-    def _entity_file_path(self, entity_id: str) -> Path:
-        """Get the file path for an note."""
-        return self.entities_dir / f"{entity_id}.yaml"
+    def _entity_file_path(
+        self, entity_id: str, note_type: str = None, slug: str = None
+    ) -> Path:
+        """Get the file path for a note.
+
+        Args:
+            entity_id: UUID of the note
+            note_type: Type directory (e.g., 'person', 'project')
+            slug: Human-readable slug for filename
+        """
+        if note_type and slug:
+            # Use type/slug.yaml structure
+            type_dir = self.entities_dir / note_type
+            type_dir.mkdir(exist_ok=True)
+            return type_dir / f"{slug}.yaml"
+        else:
+            # Fallback to UUID.yaml in root (for backward compatibility)
+            return self.entities_dir / f"{entity_id}.yaml"
 
     def _serialize_entity(self, note: Note) -> dict[str, Any]:
         """Convert Note to YAML-serializable dict."""
@@ -48,43 +63,123 @@ class YAMLNoteStorage:
 
         return Note(**data)
 
-    def save_note(self, note: Note) -> None:
-        """Save an note to a YAML file."""
-        file_path = self._entity_file_path(note.id)
-        data = self._serialize_entity(note)
+    def save_note(self, note: Note, note_type: str = None, slug: str = None) -> None:
+        """Save a note to a YAML file.
 
+        Args:
+            note: The note to save
+            note_type: Type directory (can be hierarchical like 'person/researcher')
+            slug: Slug for filename (required for new notes)
+        """
+        # Determine file path
+        if note_type and slug:
+            file_path = self._entity_file_path(note.id, note_type, slug)
+        elif note.file_path:
+            # Update existing note at its current location
+            file_path = self.entities_dir / note.file_path
+        else:
+            # Fallback to UUID.yaml
+            file_path = self._entity_file_path(note.id)
+
+        # Ensure parent directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Set derived fields before saving to ensure tags are updated
+        if note_type and slug:
+            relative_path = str(file_path.relative_to(self.entities_dir))
+            note.set_derived_fields(relative_path)
+
+        data = self._serialize_entity(note)
         with open(file_path, "w") as f:
             self.yaml.dump(data, f)
 
+        # Update note's derived fields again to ensure consistency
+        note.set_derived_fields(str(file_path.relative_to(self.entities_dir)))
+
     def load_entity(self, note_id: str) -> Note | None:
-        """Load an note from its YAML file."""
-        file_path = self._entity_file_path(note_id)
+        """Load a note from its YAML file by UUID."""
+        # First try to find by UUID in index
+        file_path = self._find_file_by_uuid(note_id)
+        if not file_path:
+            # Fallback to old UUID.yaml format
+            file_path = self._entity_file_path(note_id)
+
         if not file_path.exists():
             return None
 
         with open(file_path) as f:
             data = self.yaml.load(f)
 
-        return self._deserialize_entity(data)
+        note = self._deserialize_entity(data)
+        note.set_derived_fields(str(file_path.relative_to(self.entities_dir)))
+        return note
+
+    def load_entity_by_slug(self, note_type: str, slug: str) -> Note | None:
+        """Load a note by its type and slug."""
+        file_path = self.entities_dir / note_type / f"{slug}.yaml"
+        if not file_path.exists():
+            return None
+
+        with open(file_path) as f:
+            data = self.yaml.load(f)
+
+        note = self._deserialize_entity(data)
+        note.set_derived_fields(str(file_path.relative_to(self.entities_dir)))
+        return note
+
+    def _find_file_by_uuid(self, uuid: str) -> Path | None:
+        """Find file path by UUID by scanning all YAML files."""
+        for yaml_file in self.entities_dir.rglob("*.yaml"):
+            try:
+                with open(yaml_file) as f:
+                    data = self.yaml.load(f)
+                if data and data.get("id") == uuid:
+                    return yaml_file
+            except Exception:
+                continue
+        return None
 
     def delete_note(self, entity_id: str) -> bool:
-        """Delete an note's YAML file."""
-        file_path = self._entity_file_path(entity_id)
-        if file_path.exists():
+        """Delete a note's YAML file."""
+        # Find the actual file path
+        file_path = self._find_file_by_uuid(entity_id)
+        if not file_path:
+            # Try fallback path
+            file_path = self._entity_file_path(entity_id)
+
+        if file_path and file_path.exists():
             file_path.unlink()
             return True
         return False
 
     def list_entity_ids(self) -> list[str]:
-        """List all note IDs (filenames without .yaml extension)."""
-        return [f.stem for f in self.entities_dir.glob("*.yaml")]
+        """List all note IDs by scanning YAML files."""
+        ids = []
+        for yaml_file in self.entities_dir.rglob("*.yaml"):
+            try:
+                with open(yaml_file) as f:
+                    data = self.yaml.load(f)
+                if data and "id" in data:
+                    ids.append(data["id"])
+            except Exception:
+                continue
+        return ids
 
     def load_all_entities(self) -> dict[str, Note]:
         """Load all notes into memory."""
         notes = {}
-        for entity_id in self.list_entity_ids():
-            note = self.load_entity(entity_id)
-            notes[entity_id] = note
+        for yaml_file in self.entities_dir.rglob("*.yaml"):
+            try:
+                with open(yaml_file) as f:
+                    data = self.yaml.load(f)
+                if data and "id" in data:
+                    note = self._deserialize_entity(data)
+                    note.set_derived_fields(
+                        str(yaml_file.relative_to(self.entities_dir))
+                    )
+                    notes[note.id] = note
+            except Exception:
+                continue
         return notes
 
     def entity_exists(self, entity_id: str) -> bool:
@@ -174,18 +269,27 @@ class GlobalLocalYAMLStorage:
         with open(local_mapping_file, "w") as f:
             json.dump({"notes": local_entities}, f, indent=2)
 
-    def save_note(self, note: Note, scope: str = "local") -> None:
-        """Save an note to the specified scope."""
+    def save_note(
+        self, note: Note, scope: str = "local", note_type: str = None, slug: str = None
+    ) -> None:
+        """Save a note to the specified scope.
+
+        Args:
+            note: The note to save
+            scope: 'global' or 'local' storage
+            note_type: Type directory (required for new notes)
+            slug: Slug for filename (required for new notes)
+        """
         if scope not in ("global", "local"):
             raise ValueError("Scope must be 'global' or 'local'")
 
         storage = self.global_storage if scope == "global" else self.local_storage
-        storage.save_note(note)
+        storage.save_note(note, note_type, slug)
         self._entity_scopes[note.id] = scope
         self._save_scope_mappings()
 
     def load_entity(self, note_id: str) -> Note | None:
-        """Load an note from appropriate storage (local takes precedence)."""
+        """Load a note from appropriate storage (local takes precedence)."""
         # Check local first (takes precedence)
         note = self.local_storage.load_entity(note_id)
         if note:
@@ -196,6 +300,22 @@ class GlobalLocalYAMLStorage:
         note = self.global_storage.load_entity(note_id)
         if note:
             self._entity_scopes[note_id] = "global"
+            return note
+
+        return None
+
+    def load_entity_by_slug(self, note_type: str, slug: str) -> Note | None:
+        """Load a note by type and slug (local takes precedence)."""
+        # Check local first
+        note = self.local_storage.load_entity_by_slug(note_type, slug)
+        if note:
+            self._entity_scopes[note.id] = "local"
+            return note
+
+        # Check global
+        note = self.global_storage.load_entity_by_slug(note_type, slug)
+        if note:
+            self._entity_scopes[note.id] = "global"
             return note
 
         return None

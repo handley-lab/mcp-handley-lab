@@ -33,43 +33,52 @@ def set_manager(manager: NotesManager) -> None:
 @mcp.tool()
 def create_note(
     note_type: str,
+    title: str,
     properties: dict[str, Any] = None,
     tags: list[str] = None,
     content: str = "",
     scope: str = "local",
+    slug: str = None,
 ) -> str:
     """Create a new note.
 
     Args:
-        note_type: Type of note (e.g., "person", "project", "attic_item", "idea")
+        note_type: Type directory (e.g., "person", "project", "idea")
+        title: Human-readable title for the note
         properties: Dictionary of structured properties
         tags: List of tags for categorization
         content: Unstructured text content/description
         scope: Storage scope - "global" (shared) or "local" (project-specific)
+        slug: Custom slug (auto-generated from title if not provided)
 
     Returns:
-        The ID of the created note
+        The UUID of the created note
     """
     if scope not in ("global", "local"):
         raise ValueError("Scope must be 'global' or 'local'")
 
     manager = get_manager()
-    return manager.create_note(note_type, properties, tags, content, scope)
+    return manager.create_note(note_type, title, properties, tags, content, scope, slug)
 
 
 @mcp.tool()
 def get_note(entity_id: str) -> dict[str, Any] | None:
-    """Get an note by its ID.
+    """Get a note by its UUID or type/slug identifier.
 
     Args:
-        entity_id: The unique identifier of the note
+        entity_id: UUID, type/slug (e.g. 'person/david-yallup'), or just slug
 
     Returns:
         Note data as a dictionary, or None if not found
     """
     manager = get_manager()
-    note = manager.get_note(entity_id)
-    return note.model_dump() if note else None
+    note = manager.get_note_by_identifier(entity_id)
+    if note:
+        result = note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        result["type"] = note.type
+        result["slug"] = note.slug
+        return result
+    return None
 
 
 @mcp.tool()
@@ -125,7 +134,13 @@ def list_entities(
     """
     manager = get_manager()
     notes = manager.list_entities(note_type, tags, scope)
-    return [note.model_dump() for note in notes]
+    result = []
+    for note in notes:
+        note_dict = note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        note_dict["type"] = note.type
+        note_dict["slug"] = note.slug
+        result.append(note_dict)
+    return result
 
 
 @mcp.tool()
@@ -140,7 +155,13 @@ def search_entities(query: str) -> list[dict[str, Any]]:
     """
     manager = get_manager()
     notes = manager.search_entities_text(query)
-    return [note.model_dump() for note in notes]
+    result = []
+    for note in notes:
+        note_dict = note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        note_dict["type"] = note.type
+        note_dict["slug"] = note.slug
+        result.append(note_dict)
+    return result
 
 
 @mcp.tool()
@@ -163,7 +184,9 @@ def search_entities_semantic(
 
     results = []
     for note in notes:
-        entity_dict = note.model_dump()
+        entity_dict = note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        entity_dict["type"] = note.type
+        entity_dict["slug"] = note.slug
         entity_dict["similarity_score"] = note._similarity_score
         results.append(entity_dict)
 
@@ -199,7 +222,13 @@ def get_entities_by_property(
     """
     manager = get_manager()
     notes = manager.get_entities_by_property(property_name, property_value)
-    return [note.model_dump() for note in notes]
+    result = []
+    for note in notes:
+        note_dict = note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        note_dict["type"] = note.type
+        note_dict["slug"] = note.slug
+        result.append(note_dict)
+    return result
 
 
 @mcp.tool()
@@ -213,8 +242,19 @@ def get_linked_entities(entity_id: str) -> list[dict[str, Any]]:
         List of linked note dictionaries
     """
     manager = get_manager()
-    notes = manager.get_linked_entities(entity_id)
-    return [note.model_dump() for note in notes]
+    # Resolve entity_id to UUID first
+    note = manager.get_note_by_identifier(entity_id)
+    if not note:
+        return []
+
+    notes = manager.get_linked_entities(note.id)
+    result = []
+    for linked_note in notes:
+        note_dict = linked_note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        note_dict["type"] = linked_note.type
+        note_dict["slug"] = linked_note.slug
+        result.append(note_dict)
+    return result
 
 
 @mcp.tool()
@@ -228,8 +268,19 @@ def get_entities_linking_to(target_note_id: str) -> list[dict[str, Any]]:
         List of notes that link to the target
     """
     manager = get_manager()
-    notes = manager.get_entities_linking_to(target_note_id)
-    return [note.model_dump() for note in notes]
+    # Resolve target_note_id to UUID first
+    note = manager.get_note_by_identifier(target_note_id)
+    if not note:
+        return []
+
+    notes = manager.get_entities_linking_to(note.id)
+    result = []
+    for linking_note in notes:
+        note_dict = linking_note.model_dump(exclude={"_type", "_slug", "_file_path"})
+        note_dict["type"] = linking_note.type
+        note_dict["slug"] = linking_note.slug
+        result.append(note_dict)
+    return result
 
 
 @mcp.tool()

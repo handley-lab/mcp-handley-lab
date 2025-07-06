@@ -37,9 +37,13 @@ class NotesManager:
 
     def _sync_entity_to_db(self, note: Note, scope: str):
         """Sync a single note to the in-memory database."""
-        doc = note.model_dump()
+        doc = note.model_dump(
+            exclude={"_type", "_slug", "_file_path"}
+        )  # Exclude runtime fields
         doc["_entity_id"] = note.id
         doc["_scope"] = scope
+        doc["_type"] = note.type  # Include derived type
+        doc["_slug"] = note.slug  # Include derived slug
 
         # Update if exists, insert if new
         if self.db.search(Query()._entity_id == note.id):
@@ -47,34 +51,107 @@ class NotesManager:
         else:
             self.db.insert(doc)
 
+    def _generate_slug(self, title: str) -> str:
+        """Generate a URL-friendly slug from title."""
+        import re
+
+        # Convert to lowercase and replace spaces/special chars with hyphens
+        slug = re.sub(r"[^a-z0-9]+", "-", title.lower())
+        # Remove leading/trailing hyphens
+        slug = slug.strip("-")
+        return slug
+
+    def _ensure_unique_slug(self, note_type: str, base_slug: str, scope: str) -> str:
+        """Ensure slug is unique within the given type and scope."""
+        slug = base_slug
+        counter = 1
+
+        while True:
+            # Check if this slug already exists
+            existing = self.storage.load_entity_by_slug(note_type, slug)
+            if not existing:
+                return slug
+
+            # Try with suffix
+            counter += 1
+            slug = f"{base_slug}-{counter}"
+
     def create_note(
         self,
         note_type: str,
+        title: str,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = "",
         scope: str = "local",
+        slug: str = None,
     ) -> str:
-        """Create a new note."""
+        """Create a new note.
+
+        Args:
+            note_type: Type directory for the note (e.g., 'person', 'project')
+            title: Human-readable title
+            properties: Additional structured properties
+            tags: List of tags for categorization
+            content: Unstructured content
+            scope: 'global' or 'local' storage
+            slug: Custom slug (auto-generated from title if not provided)
+        """
         note = Note(
-            type=note_type,
+            title=title,
             properties=properties or {},
             tags=tags or [],
             content=content,
         )
 
-        self.storage.save_note(note, scope)
+        # Generate slug if not provided
+        if not slug:
+            slug = self._generate_slug(title)
+
+        # Ensure slug is unique within this type
+        slug = self._ensure_unique_slug(note_type, slug, scope)
+
+        self.storage.save_note(note, scope, note_type, slug)
         self._sync_entity_to_db(note, scope)
         self.semantic_search.add_note(note)
         return note.id
 
     def get_note(self, note_id: str) -> Note | None:
-        """Get an note by ID."""
+        """Get a note by UUID."""
         return self.storage.load_entity(note_id)
+
+    def get_note_by_slug(self, note_type: str, slug: str) -> Note | None:
+        """Get a note by its type and slug."""
+        return self.storage.load_entity_by_slug(note_type, slug)
+
+    def get_note_by_identifier(self, identifier: str) -> Note | None:
+        """Get a note by UUID or type/slug identifier.
+
+        Args:
+            identifier: Either a UUID or 'type/slug' format
+        """
+        # Check if it looks like a UUID
+        if len(identifier) == 36 and identifier.count("-") == 4:
+            return self.get_note(identifier)
+
+        # Try to parse as type/slug
+        if "/" in identifier:
+            parts = identifier.split("/", 1)
+            if len(parts) == 2:
+                return self.get_note_by_slug(parts[0], parts[1])
+
+        # Try as just slug in all types
+        for note_type in self.get_note_types():
+            note = self.get_note_by_slug(note_type, identifier)
+            if note:
+                return note
+
+        return None
 
     def update_note(
         self,
         note_id: str,
+        title: str = None,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = None,
@@ -84,6 +161,8 @@ class NotesManager:
         if not note:
             raise ValueError(f"Note with ID {note_id} not found")
 
+        if title is not None:
+            note.title = title
         if properties is not None:
             note.properties.update(properties)
         if tags is not None:
@@ -94,15 +173,15 @@ class NotesManager:
         note.updated_at = datetime.now()
 
         scope = self.storage.get_note_scope(note_id) or "local"
-        self.storage.save_note(note, scope)
+        self.storage.save_note(note, scope)  # Saves to existing location
         self._sync_entity_to_db(note, scope)
         self.semantic_search.update_note(note)
 
     def delete_note(self, note_id: str) -> bool:
-        """Delete an note."""
+        """Delete a note."""
         success = self.storage.delete_note(note_id)
         if success:
-            self.db.remove(Query()._note_id == note_id)
+            self.db.remove(Query()._entity_id == note_id)
             self.semantic_search.remove_note(note_id)
         return success
 
@@ -136,8 +215,11 @@ class NotesManager:
         # Convert back to Note objects
         notes = []
         for doc in results:
-            doc.pop("_note_id", None)
+            # Remove internal fields
+            doc.pop("_entity_id", None)
             doc.pop("_scope", None)
+            derived_type = doc.pop("_type", None)
+            derived_slug = doc.pop("_slug", None)
 
             # Parse datetime fields
             if "created_at" in doc and isinstance(doc["created_at"], str):
@@ -145,7 +227,12 @@ class NotesManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            notes.append(Note(**doc))
+            note = Note(**doc)
+            # Set derived fields if available
+            if derived_type and derived_slug:
+                note._type = derived_type
+                note._slug = derived_slug
+            notes.append(note)
 
         return notes
 
@@ -187,8 +274,11 @@ class NotesManager:
         # Convert to Note objects
         notes = []
         for doc in all_matches.values():
-            doc.pop("_entity_id")
+            # Remove internal fields
+            doc.pop("_entity_id", None)
             doc.pop("_scope", None)
+            derived_type = doc.pop("_type", None)
+            derived_slug = doc.pop("_slug", None)
 
             # Parse datetime fields
             if "created_at" in doc and isinstance(doc["created_at"], str):
@@ -196,7 +286,12 @@ class NotesManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            notes.append(Note(**doc))
+            note = Note(**doc)
+            # Set derived fields if available
+            if derived_type and derived_slug:
+                note._type = derived_type
+                note._slug = derived_slug
+            notes.append(note)
 
         return notes
 
@@ -232,8 +327,11 @@ class NotesManager:
         # Convert to Note objects
         notes = []
         for doc in results:
-            doc.pop("_entity_id")
+            # Remove internal fields
+            doc.pop("_entity_id", None)
             doc.pop("_scope", None)
+            derived_type = doc.pop("_type", None)
+            derived_slug = doc.pop("_slug", None)
 
             # Parse datetime fields
             if "created_at" in doc and isinstance(doc["created_at"], str):
@@ -241,7 +339,12 @@ class NotesManager:
             if "updated_at" in doc and isinstance(doc["updated_at"], str):
                 doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
 
-            notes.append(Note(**doc))
+            note = Note(**doc)
+            # Set derived fields if available
+            if derived_type and derived_slug:
+                note._type = derived_type
+                note._slug = derived_slug
+            notes.append(note)
 
         return notes
 

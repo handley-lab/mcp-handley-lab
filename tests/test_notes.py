@@ -121,8 +121,7 @@ class TestYAMLNoteStorage:
         )
 
         # Save note
-        success = temp_storage.save_note(note)
-        assert success
+        temp_storage.save_note(note)
 
         # Check file exists
         file_path = temp_storage._entity_file_path(note.id)

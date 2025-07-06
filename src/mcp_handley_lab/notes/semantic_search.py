@@ -40,7 +40,7 @@ class SemanticSearchManager:
         # Metadata for filtering
         metadata = {
             "type": note.type,
-            "tags": note.tags,
+            "tags": ",".join(note.tags),  # Convert list to comma-separated string
             "created_at": note.created_at.isoformat(),
             "updated_at": note.updated_at.isoformat(),
         }
@@ -87,7 +87,7 @@ class SemanticSearchManager:
             where_and_clauses.append({"type": {"$eq": note_type}})
 
         if tags:
-            # Note must have at least one of the specified tags
+            # Note must have at least one of the specified tags (now comma-separated)
             tag_conditions = []
             for tag in tags:
                 tag_conditions.append({"tags": {"$contains": tag}})
@@ -131,16 +131,11 @@ class SemanticSearchManager:
         count = self.collection.count()
         return {"total_entities": count}
 
-    def rebuild_index(self, notes: list[Note]) -> bool:
+    def rebuild_index(self, notes: list[Note]) -> None:
         """Rebuild the entire semantic search index."""
-        # Clear existing collection
-        self.collection.delete()
-
-        # Re-add all notes
+        # Re-add all notes (ChromaDB upsert will handle duplicates)
         for note in notes:
             self.add_entity(note)
-
-        return True
 
     def update_note(self, note: Note) -> bool:
         """Update an note in the semantic search index."""

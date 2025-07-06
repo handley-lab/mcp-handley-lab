@@ -12,7 +12,9 @@ print("Loading and registering email provider tools...")
 print("All email tools registered.")
 
 
-@mcp.tool(name="email_server_info", description="Check email tool server status and verify tool availability.")
+@mcp.tool(
+    description="Checks status of all email tools (msmtp, offlineimap, notmuch) and their configurations."
+)
 def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
     # Check msmtp first - if it fails, entire email system is broken
@@ -21,6 +23,7 @@ def server_info(config_file: str = None) -> str:
 
     # Parse msmtp accounts
     from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
+
     accounts = _parse_msmtprc()
 
     # Check offlineimap
@@ -44,6 +47,7 @@ def server_info(config_file: str = None) -> str:
     try:
         from mcp_handley_lab.email.oauth2.tool import _get_m365_oauth2_config
         from mcp_handley_lab.email.offlineimap.tool import _parse_offlineimaprc
+
         offlineimap_accounts = _parse_offlineimaprc(config_file)
         for account_name in offlineimap_accounts:
             try:
@@ -55,7 +59,11 @@ def server_info(config_file: str = None) -> str:
     except Exception:
         pass
 
-    oauth2_status = f"{len(oauth2_accounts)} OAuth2 configured" if oauth2_accounts else "none configured"
+    oauth2_status = (
+        f"{len(oauth2_accounts)} OAuth2 configured"
+        if oauth2_accounts
+        else "none configured"
+    )
 
     return f"""Email Tool Server Status:
 ✓ msmtp: {msmtp_version}

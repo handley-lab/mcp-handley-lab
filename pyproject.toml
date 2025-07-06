@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.0.2"
+version = "0.0.4"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -86,7 +86,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]  # Line too long, handled by black
+ignore = ["E501", "B006"]  # Line too long, mutable defaults (intentional for MCP tools)
 
 [tool.coverage.run]
 omit = [

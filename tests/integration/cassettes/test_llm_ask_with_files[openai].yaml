@@ -17,7 +17,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.91.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -27,7 +27,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.91.0
+      - 1.93.0
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -40,29 +40,28 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BqHTEJHxnvZuNCuxh0EBAWqp8Q1LA\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751799912,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+      string: "{\n  \"id\": \"chatcmpl-BqPsqXPAQOUkhznEKHDS20HcNtb0G\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1751832252,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The file `test.txt` contains the following
-        text:\\n\\n```\\nHello World\\nThis is a test file.\\n```\\n\\nIt consists
-        of two lines: the first line is \\\"Hello World,\\\" and the second line states,
-        \\\"This is a test file.\\\"\",\n        \"refusal\": null,\n        \"annotations\":
-        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n
-        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 28,\n    \"completion_tokens\":
-        51,\n    \"total_tokens\": 79,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        \"assistant\",\n        \"content\": \"The file \\\"test.txt\\\" contains
+        two lines of text:\\n\\n1. \\\"Hello World\\\"\\n2. \\\"This is a test file.\\\"
+        \\n\\nIt appears to be a simple text file used for testing purposes.\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        28,\n    \"completion_tokens\": 41,\n    \"total_tokens\": 69,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+        \"default\",\n  \"system_fingerprint\": \"fp_62a23a81ef\"\n}\n"
     headers:
       CF-RAY:
-      - 95aea02c6bd04889-LHR
+      - 95b1b5b80a91269a-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 11:05:13 GMT
+      - Sun, 06 Jul 2025 20:04:13 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -76,17 +75,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '1019'
+      - '974'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '897'
+      - '674'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '901'
+      - '678'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -100,7 +99,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_94800b6417048480a5948522141e157e
+      - req_2959910d1b7faa6142d10495d5dff8bf
     status:
       code: 200
       message: OK

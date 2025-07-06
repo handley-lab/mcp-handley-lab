@@ -13,6 +13,7 @@ import mcp_handley_lab.email.offlineimap.tool
 import mcp_handley_lab.email.notmuch.tool
 import mcp_handley_lab.email.oauth2.tool
 import mcp_handley_lab.email.mutt.tool
+import mcp_handley_lab.email.mutt_aliases.tool
 print("All email tools registered.")
 
 
@@ -61,9 +62,6 @@ def server_info(config_file: str = None) -> str:
     
     oauth2_status = f"{len(oauth2_accounts)} OAuth2 configured" if oauth2_accounts else "none configured"
 
-    # Count registered tools
-    tool_count = len(mcp.tools)
-    
     return f"""Email Tool Server Status:
 ✓ msmtp: {msmtp_version}
   Accounts: {len(accounts)} configured
@@ -74,7 +72,7 @@ def server_info(config_file: str = None) -> str:
   Database: {db_status}
 ✓ Microsoft 365 OAuth2: supported (msal available)
 ✓ mutt: integrated
-✓ Total MCP tools: {tool_count} registered"""
+✓ All email tools are registered and available"""
 
 
 if __name__ == "__main__":

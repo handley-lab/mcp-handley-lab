@@ -42,7 +42,7 @@ def sync(account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    stdout, stderr = run_command(cmd)
+    stdout, stderr = run_command(cmd, timeout=300)  # 5 minutes for email sync
     output = stdout.decode().strip()
     return f"Email sync completed successfully\n{output}"
 
@@ -90,7 +90,7 @@ def quick_sync(account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    stdout, stderr = run_command(cmd)
+    stdout, stderr = run_command(cmd, timeout=180)  # 3 minutes for quick sync
     output = stdout.decode().strip()
     return f"Quick sync completed successfully\n{output}"
 
@@ -103,7 +103,7 @@ def sync_folders(folders: str, account: str | None = None) -> str:
     if account:
         cmd.extend(["-a", account])
 
-    stdout, stderr = run_command(cmd)
+    stdout, stderr = run_command(cmd, timeout=180)  # 3 minutes for folder sync
     output = stdout.decode().strip()
     return f"Folder sync completed successfully\n{output}"
 

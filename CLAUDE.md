@@ -559,6 +559,12 @@ mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_rev
 
 ## Reference Documentation
 
+### MCP Protocol and SDK Documentation
+- **MCP Python SDK README**: https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/refs/heads/main/README.md
+- **FastMCP Framework**: Used throughout this project for MCP tool implementation
+- **User Input with `ctx.elicit()`**: MCP tools can gather interactive user input using the elicitation mechanism
+- **IMPORTANT**: Although the README shows async examples, this project uses synchronous implementations
+
 ### Official Pricing and Model Information
 - **OpenAI Pricing**: https://platform.openai.com/docs/pricing (Note: Requires authentication)
 - **Google Gemini Pricing**: https://ai.google.dev/gemini-api/docs/pricing

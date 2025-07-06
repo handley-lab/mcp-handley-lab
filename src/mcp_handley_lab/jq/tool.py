@@ -127,7 +127,7 @@ def format(
 
 
 @mcp.tool(
-    description="Checks the status of the JQ tool server and verifies `jq` command availability. Returns server status, jq version, and list of available tools. Use this to verify the tool is operational before making other requests."
+    description="Checks the status of the JQ server and jq command availability. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and jq version."""

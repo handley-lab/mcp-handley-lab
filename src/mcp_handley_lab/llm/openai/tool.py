@@ -189,84 +189,7 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
-
-**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
-
-**Output Handling**: The `output_file` parameter is REQUIRED. Use:
-- A file path to save the response for future processing (recommended for large responses)
-- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
-
-**File Input Formats**:
-- File paths as strings: `["/path/to/file1.py", "/path/to/file2.txt"]`
-- All files are read from filesystem and included inline
-
-**Key Parameters**:
-- `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
-- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)
-- `max_output_tokens`: Override model's default output token limit
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
-
-**Token Limits by Model**:
-- o3/o3-mini: 100,000 tokens (default)
-- o1-mini: 65,536 tokens (default)
-- o1-preview: 32,768 tokens (default)
-- gpt-4o/gpt-4o-mini: 4,096 tokens (default)
-- Use max_output_tokens parameter to override defaults
-
-**Model Selection Guide**:
-- o3-mini: Fast reasoning for most tasks, cost-effective (200k context, default)
-- o3: Best reasoning for complex problems (200k context)
-- gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)
-- gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)
-
-**Error Handling**:
-- Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)
-- Raises ValueError for invalid file paths or unsupported content
-- Agent memory automatically handles conversation context limits
-- Large responses automatically saved to avoid MCP message size limits
-
-**Examples**:
-```python
-# Basic question with file context
-ask(
-    prompt="Explain this code and suggest improvements",
-    output_file="/tmp/analysis.md",
-    files=[{"path": "/path/to/code.py"}],
-    model="o3-mini"
-)
-
-# Persistent agent conversation
-ask(
-    prompt="Continue reviewing the codebase",
-    output_file="/tmp/review.md",
-    agent_name="code_reviewer",
-    model="o3-mini",
-    temperature=0.3
-)
-
-# Complex reasoning task
-ask(
-    prompt="Solve this algorithmic problem step by step",
-    output_file="/tmp/solution.md",
-    model="o1-preview",
-    files=[{"content": "Problem description here"}]
-)
-
-# Multiple file analysis
-ask(
-    prompt="Compare these implementations",
-    output_file="/tmp/comparison.md",
-    files=[
-        {"path": "/path/to/impl1.py"},
-        {"path": "/path/to/impl2.py"},
-        {"content": "Additional context"}
-    ],
-    max_output_tokens=2000
-)
-```"""
+    description="Sends a prompt to an OpenAI GPT model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to the required `output_file` ('-' for stdout)."
 )
 def ask(
     prompt: str,
@@ -293,84 +216,7 @@ def ask(
 
 
 @mcp.tool(
-    description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
-
-**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
-
-**Output Handling**: The `output_file` parameter is REQUIRED. Use:
-- A file path to save the analysis for future processing (recommended)
-- '-' to output directly to stdout (use sparingly for large analyses)
-
-**Image Input Formats**:
-- File paths: `["/path/to/image1.jpg", "/path/to/image2.png"]`
-- Data URLs: `["data:image/jpeg;base64,/9j/4AAQ..."]`
-- Mixed: `["/path/to/local.jpg", "data:image/png;base64,iVBORw..."]`
-
-**Analysis Focus Options**:
-- "general" (default) - Overall image description
-- "objects" - Focus on object detection and identification
-- "colors" - Analyze color palette and composition
-- "composition" - Focus on artistic composition and layout
-- "text" - Extract and analyze text within images (OCR)
-- "technical" - Focus on technical aspects, quality, metadata
-- "medical" - Medical image analysis (disclaimer: not for diagnosis)
-- "code" - Analyze screenshots of code or diagrams
-
-**Model Options**:
-- "gpt-4o" (default) - Best vision capabilities, handles complex visual reasoning
-- "gpt-4o-mini" - Faster, cost-effective vision analysis for simple tasks
-
-**Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
-- `max_output_tokens`: Override model's default output token limit
-
-**Error Handling**:
-- Raises ValueError for missing images or unsupported formats
-- Raises RuntimeError for OpenAI API errors (quota, rate limits, content policy)
-- Supports: JPEG, PNG, GIF, WebP (max 20MB per image)
-- Multiple images increase token usage significantly
-
-**Examples**:
-```python
-# Analyze single image
-analyze_image(
-    prompt="Describe what you see in this screenshot",
-    output_file="/tmp/analysis.md",
-    image_data="/path/to/screenshot.png",
-    focus="general"
-)
-
-# Multiple images comparison
-analyze_image(
-    prompt="Compare these two UI designs and suggest improvements",
-    output_file="/tmp/comparison.md",
-    images=[
-        {"path": "/path/to/design1.png"},
-        {"path": "/path/to/design2.png"}
-    ],
-    focus="composition"
-)
-
-# Extract text from image
-analyze_image(
-    prompt="Extract and transcribe all text from this document",
-    output_file="/tmp/extracted_text.md",
-    image_data={"path": "/path/to/document.jpg"},
-    focus="text",
-    model="o3-mini"
-)
-
-# Code analysis from screenshot
-analyze_image(
-    prompt="Review this code for potential bugs and improvements",
-    output_file="/tmp/code_review.md",
-    image_data="data:image/png;base64,iVBORw0KGgoAAAA...",
-    focus="code",
-    agent_name="code_reviewer"
-)
-```"""
+    description="Analyzes images using an OpenAI vision model (GPT-4o series). Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
     prompt: str,
@@ -413,76 +259,7 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
 
 @mcp.tool(
-    description="""Generate images using OpenAI's DALL-E models. You provide the detailed description, and the AI creates the image.
-
-**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
-
-**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
-
-**Output Format**: Generated images are automatically downloaded and saved to temporary files. The file path is returned for further processing.
-
-**Model Options**:
-- "dall-e-3" (default) - Latest model with best quality and prompt adherence
-- "dall-e-2" - Previous generation, faster and more cost-effective
-
-**Quality Settings**:
-- "standard" (default) - Good quality, faster generation
-- "hd" - Higher resolution and detail (DALL-E 3 only)
-
-**Size Options**:
-- DALL-E 3: "1024x1024" (default), "1024x1792" (portrait), "1792x1024" (landscape)
-- DALL-E 2: "256x256", "512x512", "1024x1024" (default)
-
-**Prompt Guidelines**:
-- Be descriptive and specific for best results
-- Include style, mood, lighting, and composition details
-- DALL-E 3 follows prompts more precisely than DALL-E 2
-- Avoid requesting copyrighted characters or inappropriate content
-
-**Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
-- `model`: DALL-E model to use (default: "dall-e-3")
-- `quality`: Quality setting for DALL-E 3 (default: "standard")
-- `size`: Image dimensions (default: "1024x1024")
-
-**Error Handling**:
-- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)
-- Raises ValueError for prompts violating OpenAI's usage policies
-- Image download may fail due to network issues; temporary URLs expire quickly
-- DALL-E 3 may revise prompts for safety compliance
-
-**Examples**:
-```python
-# High-quality artistic image
-generate_image(
-    prompt="A serene mountain landscape at sunset with golden light reflecting on a crystal-clear lake, painted in impressionist style with visible brushstrokes",
-    model="dall-e-3",
-    quality="hd",
-    size="1792x1024"
-)
-
-# Technical diagram
-generate_image(
-    prompt="Clean, minimalist flowchart showing a software deployment pipeline with rounded rectangles and arrow connections, professional blue and white colors",
-    model="dall-e-3",
-    size="1024x1792"
-)
-
-# Portrait with specific style
-generate_image(
-    prompt="Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field, photorealistic style",
-    model="dall-e-3",
-    quality="hd",
-    agent_name="design_assistant"
-)
-
-# Cost-effective generation
-generate_image(
-    prompt="Simple icon design for a mobile app, minimalist style, single color",
-    model="dall-e-2",
-    size="512x512"
-)
-```"""
+    description="Generates an image using OpenAI's DALL-E models from a text prompt. Supports different quality and size options. Returns the file path of the saved image."
 )
 def generate_image(
     prompt: str,
@@ -505,37 +282,7 @@ def generate_image(
 
 
 @mcp.tool(
-    description="""Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.
-
-**Purpose & Benefits:**
-This tool helps users:
-- Discover all models offered by OpenAI (GPT, DALL-E, reasoning models)
-- Compare models based on cost, performance, context windows, and capabilities
-- Identify the most suitable OpenAI model for specific tasks or budget constraints
-- Understand model generations and specialized features (reasoning, vision, etc.)
-
-**Returns:**
-Formatted listing with detailed information including:
-- Model IDs and descriptions
-- Context windows and token limits
-- Pricing per 1M tokens (including cached input pricing)
-- Capabilities (text generation, vision, reasoning, image generation, etc.)
-- Model categories (reasoning, multimodal, legacy, etc.)
-- API availability status
-
-**Examples:**
-```python
-# Discover all available models
-list_models()
-
-# Use cases this enables:
-# - "Which models can reason?" → o3, o4-mini, o1 series
-# - "What's the cheapest multimodal model?" → gpt-4o-mini ($0.15/M input)
-# - "Which model is best for coding?" → o4-mini, gpt-4.1
-# - "Show me image generation models" → dall-e-3, dall-e-2, gpt-image-1
-# - "What models support vision?" → gpt-4o series, gpt-image-1
-# - "Which models support caching?" → gpt-4.1 series, gpt-4o series
-```"""
+    description="Retrieves a catalog of available OpenAI models with their capabilities, pricing, and context windows. Use this to select the best model for a task."
 )
 def list_models() -> str:
     """List available OpenAI models with detailed information."""
@@ -548,22 +295,7 @@ def list_models() -> str:
 
 
 @mcp.tool(
-    description="""Checks the status of the OpenAI Tool server and API connectivity.
-
-Use this to verify that the tool is operational before making other requests.
-
-**Input/Output:**
-- **Input**: None.
-- **Output**: A string containing the server status, API connection status, and a list of available tools.
-
-**Error Handling:**
-- Raises `RuntimeError` if the OpenAI API is not configured correctly.
-
-**Examples:**
-```python
-# Check the server status.
-server_info()
-```"""
+    description="Checks OpenAI Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
 def server_info() -> str:
     """Get server status and OpenAI configuration."""

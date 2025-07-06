@@ -244,7 +244,7 @@ def open_file(
 
 
 @mcp.tool(
-    description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools."
+    description="Checks the status of the Vim server and vim command availability. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and vim version."""

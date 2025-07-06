@@ -623,7 +623,7 @@ def search_events(
 
 
 @mcp.tool(
-    description="Checks the status of the Google Calendar Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests."
+    description="Checks the status of the Google Calendar server and API connectivity. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and Google Calendar API connection info."""

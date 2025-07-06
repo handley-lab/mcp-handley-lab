@@ -268,7 +268,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=\"\"` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced)."
+    description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def ask(
@@ -281,26 +281,7 @@ def ask(
     files: list[str] = [],
     max_output_tokens: int = 0,
 ) -> str:
-    """Ask Gemini a question with optional persistent memory.
-
-    Args:
-        prompt: The question or instruction to send to Gemini
-        output_file: Output destination - use '-' for immediate stdout (default, faster for short queries) or file path for longer responses
-        agent_name: Named agent for persistent memory (\"session\"=session, \"\"=disabled)
-        model: Gemini model name (gemini-2.5-flash for speed, gemini-2.5-pro for complex reasoning)
-        temperature: Creativity level 0.0-1.0 (default: 0.7)
-        grounding: Enable Google Search integration for current information
-        files: List of files to include as context
-        max_output_tokens: Override model's default output token limit
-
-    Token Limits by Model:
-        - gemini-2.5-flash/pro: 65,536 tokens (default)
-        - gemini-1.5-flash/pro: 8,192 tokens (default)
-        - Use max_output_tokens parameter to override defaults
-
-    Example with custom token limit:
-        ask(prompt="Write a long essay", model="gemini-2.5-flash", max_output_tokens=32000)
-    """
+    """Ask Gemini a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
         output_file=output_file,
@@ -317,7 +298,7 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using a Gemini vision model. Requires a `prompt` and image data (via `image_data` or `images` parameters). Supports persistent memory via `agent_name`. Use the `focus` parameter ('objects', 'text', etc.) to guide the analysis. Returns the analysis to the required `output_file` ('-' for stdout)."
+    description="Analyzes images using a Gemini vision model. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def analyze_image(
@@ -405,22 +386,7 @@ def list_models() -> str:
 
 
 @mcp.tool(
-    description="""Checks the status of the Gemini Tool server and API connectivity.
-
-Use this to verify that the tool is operational before making other requests.
-
-**Input/Output:**
-- **Input**: None.
-- **Output**: A string containing the server status, API connection status, and a list of available tools.
-
-**Error Handling:**
-- Raises `RuntimeError` if the Gemini API is not configured correctly.
-
-**Examples:**
-```python
-# Check the server status.
-server_info()
-```"""
+    description="Checks Gemini Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
 @require_client
 def server_info() -> str:

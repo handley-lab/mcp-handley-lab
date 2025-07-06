@@ -124,7 +124,7 @@ def _handle_tar_archive(
 
 
 @mcp.tool(
-    description="Downloads an ArXiv paper by its ID. Can fetch the full source ('src'), just the PDF ('pdf'), or only LaTeX files ('tex'). Saves the content to a specified `output_path`. If `output_path` is '-', it lists file information to stdout instead of saving. Returns a status message."
+    description="Downloads an ArXiv paper by its ID in 'src', 'pdf', or 'tex' format. Saves content to `output_path` or lists file info to stdout if `output_path` is '-'. Returns a status message."
 )
 def download(arxiv_id: str, format: str = "src", output_path: str = "") -> str:
     if format not in ["src", "pdf", "tex"]:
@@ -157,7 +157,7 @@ def download(arxiv_id: str, format: str = "src", output_path: str = "") -> str:
 
 
 @mcp.tool(
-    description="Fetches the source archive for a given ArXiv paper ID and lists all the file names contained within it. This is useful for inspecting the contents of a paper's source code before downloading the entire archive. Returns a list of file paths."
+    description="Lists the file names within an ArXiv paper's source archive. Use this to inspect contents before downloading. Returns a list of file paths."
 )
 def list_files(arxiv_id: str) -> list[str]:
     content = _get_source_archive(arxiv_id)
@@ -284,7 +284,7 @@ def search(
 
 
 @mcp.tool(
-    description="Provides metadata about the ArXiv tool itself. Returns a dictionary containing a list of available functions (search, download, etc.), supported formats, and example usage. Use this to discover the server's capabilities."
+    description="Checks ArXiv tool status and lists available functions. Use this to discover server capabilities."
 )
 def server_info() -> dict[str, Any]:
     return {

@@ -276,13 +276,12 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name="
-    "` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast)."
+    description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def ask(
     prompt: str,
-    output_file: str,
+    output_file: str = "-",
     agent_name: str = "session",
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
@@ -307,13 +306,12 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name="
-    "` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options."
+    description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def analyze_image(
     prompt: str,
-    output_file: str,
+    output_file: str = "-",
     files: list[str] = [],
     focus: str = "general",
     model: str = "claude-3-5-sonnet-20240620",

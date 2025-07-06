@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"timeMin": "2025-07-05T13:51:39.962639Z", "timeMax": "2025-07-12T13:51:39.962639Z",
+    body: '{"timeMin": "2025-07-06T12:05:00.510547Z", "timeMax": "2025-07-13T12:05:00.510547Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -32,7 +32,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sat, 05 Jul 2025 12:51:40 GMT
+      - Sun, 06 Jul 2025 11:05:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -71,7 +71,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nw7WNO1EO95B-CoLmx3icDGXtqov9Uc_5LXDOSElvHOMLqq1OehE7JjYDWlCo6wUALCL1HqHfLWKB0JRaAORlRiUwDhqwnKGv71T7SnjiToCmARUwikJvZK8kewNnU9p9aGqtb1crUpzPpW-3XQUSqpyolFWGC8euE7DAaCgYKATYSARcSFQHGX2MiUmY0Xo60-yOUCmiIuPuRMw0177\",\n
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nx1qchKQsRXxu_L0IZl7nwAfHqdwGsW4iE8_XTW5of2oSb9bhHKsyhaZKH4OvNsop6QGaSqdUcfz0-Jgz2HgkpXA_uf6k1N0m5Talh3WnCePnUIN0VXdXhRyLnJnfMCF1X8lvW5My6tuJYzJxStrGj-WjTzRiUZvcNBtAaCgYKAZUSARcSFQHGX2Mi6aMZJscieZNops-VO08SAA0177\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -82,7 +82,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sat, 05 Jul 2025 12:51:40 GMT
+      - Sun, 06 Jul 2025 11:05:00 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -107,7 +107,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"timeMin": "2025-07-05T13:51:39.962639Z", "timeMax": "2025-07-12T13:51:39.962639Z",
+    body: '{"timeMin": "2025-07-06T12:05:00.510547Z", "timeMax": "2025-07-13T12:05:00.510547Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -126,8 +126,8 @@ interactions:
     uri: https://www.googleapis.com/calendar/v3/freeBusy?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-07-05T13:51:39.962Z\",\n
-        \"timeMax\": \"2025-07-12T13:51:39.962Z\",\n \"calendars\": {\n  \"primary\":
+      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-07-06T12:05:00.510Z\",\n
+        \"timeMax\": \"2025-07-13T12:05:00.510Z\",\n \"calendars\": {\n  \"primary\":
         {\n   \"busy\": []\n  }\n }\n}\n"
     headers:
       Alt-Svc:
@@ -137,7 +137,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sat, 05 Jul 2025 12:51:40 GMT
+      - Sun, 06 Jul 2025 11:05:00 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

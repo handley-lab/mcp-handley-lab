@@ -41,39 +41,7 @@ def _run_jq(args: list[str], input_text: str | None = None) -> str:
 
 
 @mcp.tool(
-    description="""Queries JSON data using a jq filter expression.
-
-Data Input: Accepts JSON strings, parsed objects/arrays, or file paths. Automatically handles FastMCP's JSON parsing and file path detection.
-
-Filter Parameter: Defaults to "." (identity filter). Use standard jq syntax:
-- `.field` - Extract field value
-- `.[]` - Array elements
-- `.[0]` - First array element
-- `.field1.field2` - Nested field access
-- `select(.field > 5)` - Filter with condition
-
-Output Options:
-- `compact`: Single-line compressed JSON output (removes whitespace)
-- `raw_output`: Raw string values without JSON quotes (useful for extracting plain text)
-
-Examples:
-```python
-# Query from JSON string
-query('{"users": [{"name": "Alice", "age": 30}]}', '.users[0].name')
-# Returns: "Alice"
-
-# Query from file
-query('/path/to/data.json', '.users | length')
-# Returns: 2
-
-# Get raw string output
-query('{"message": "Hello World"}', '.message', raw_output=True)
-# Returns: Hello World (not "Hello World")
-
-# Compact output
-query('{"a": 1, "b": 2}', '.', compact=True)
-# Returns: {"a":1,"b":2}
-```"""
+    description="Applies a `jq` filter expression to JSON data. The `data` can be a JSON string, a file path, or a parsed object. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output."
 )
 def query(
     data: constr(min_length=1) | dict | list,
@@ -100,30 +68,7 @@ def query(
 
 
 @mcp.tool(
-    description="""Edits a JSON file in-place using a jq transformation filter.
-
-WARNING: Modifies the original file. Backup is created by default (.bak extension).
-
-Filter must be a transformation expression that modifies the data:
-- `.field = "new_value"` - Set field value
-- `.items += [{"new": "item"}]` - Add to array
-- `del(.field)` - Delete field
-- `.[] |= select(.age > 18)` - Filter array elements
-
-Examples:
-```python
-# Update a field
-edit('/path/config.json', '.debug = true')
-
-# Add new item to array
-edit('/path/users.json', '.users += [{"name": "Bob", "age": 25}]')
-
-# Remove field
-edit('/path/data.json', 'del(.temp_field)')
-
-# Transform all array items
-edit('/path/products.json', '.products[].price *= 1.1')
-```"""
+    description="Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this."
 )
 def edit(
     file_path: constr(min_length=1), filter: constr(min_length=1), backup: bool = True
@@ -150,21 +95,7 @@ def edit(
 
 
 @mcp.tool(
-    description="""Reads and pretty-prints a JSON file with optional jq filtering.
-
-Useful for exploring JSON file structure before processing. The `filter` parameter allows extracting specific parts.
-
-Examples:
-```python
-# Read entire file
-read('/path/config.json')
-
-# Read specific section
-read('/path/data.json', '.users')
-
-# Read with transformation
-read('/path/products.json', '.items | length')
-```"""
+    description="Reads and pretty-prints a JSON file with optional jq filtering. Useful for exploring JSON file structure before processing. The `filter` parameter allows extracting specific parts of the file."
 )
 def read(file_path: str, filter: str = ".") -> str:
     """Read and pretty-print a JSON file."""
@@ -172,27 +103,7 @@ def read(file_path: str, filter: str = ".") -> str:
 
 
 @mcp.tool(
-    description="""Validates JSON syntax for strings or files.
-
-Returns "JSON is valid" for well-formed JSON.
-
-Error Details:
-- Provides line and character position for syntax errors
-- Identifies specific JSON parsing issues (missing quotes, brackets, etc.)
-- Works with both file paths and direct JSON strings
-
-Examples:
-```python
-# Validate JSON string
-validate('{"valid": true}')
-# Returns: "JSON is valid"
-
-# Validate file
-validate('/path/data.json')
-
-# Invalid JSON raises error
-validate('{invalid: json}')
-```"""
+    description="Validates JSON syntax for strings or files. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors."
 )
 def validate(data: constr(min_length=1) | dict | list) -> str:
     """Validate JSON syntax."""
@@ -203,31 +114,7 @@ def validate(data: constr(min_length=1) | dict | list) -> str:
 
 
 @mcp.tool(
-    description="""Formats JSON data for readability or compactness.
-
-Data Input: JSON string or file path (auto-detected).
-
-Formatting Options:
-- `compact`: Single-line format (removes indentation and whitespace)
-- `sort_keys`: Alphabetically sort object keys at all levels
-
-Examples:
-```python
-# Pretty-print JSON
-format('{"b":2,"a":1}')
-# Returns:
-# {
-#   "b": 2,
-#   "a": 1
-# }
-
-# Compact format with sorted keys
-format('{"b":2,"a":1}', compact=True, sort_keys=True)
-# Returns: {"a":1,"b":2}
-
-# Format file
-format('/path/data.json', sort_keys=True)
-```"""
+    description="Formats JSON data for readability or compactness. Takes JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys."
 )
 def format(
     data: constr(min_length=1) | dict | list,
@@ -245,19 +132,7 @@ def format(
 
 
 @mcp.tool(
-    description="""Checks the status of the JQ tool server and the availability of the `jq` command.
-
-Use this to verify that the tool is operational before making other requests.
-
-**Input/Output:**
-- **Input**: None.
-- **Output**: A string containing the server status, `jq` version, and a list of available tools.
-
-**Examples:**
-```python
-# Check the server status.
-server_info()
-```"""
+    description="Checks the status of the JQ tool server and verifies `jq` command availability. Returns server status, jq version, and list of available tools. Use this to verify the tool is operational before making other requests."
 )
 def server_info() -> str:
     """Get server status and jq version."""

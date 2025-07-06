@@ -226,45 +226,7 @@ def get_event(event_id: str, calendar_id: str = "primary") -> str:
 
 
 @mcp.tool(
-    description="""Creates a new event in the specified calendar.
-
-Date/Time Formats (ISO 8601 required):
-- Timed events: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
-- All-day events: "2024-06-24" (date only, no time component)
-
-The `timezone` parameter defaults to UTC and is only used for timed events.
-
-Error Handling:
-- Raises ValueError for invalid date/time formats or missing required fields
-- Raises RuntimeError for Google Calendar API errors (authentication, permissions, quota)
-- Invalid attendee emails are accepted by the API but may not receive invitations
-
-Examples:
-```python
-# Create a 1-hour meeting
-create_event(
-    summary="Team Standup",
-    start_datetime="2024-06-24T10:00:00Z",
-    end_datetime="2024-06-24T11:00:00Z",
-    description="Daily team synchronization",
-    attendees=["alice@company.com", "bob@company.com"]
-)
-
-# Create an all-day event
-create_event(
-    summary="Company Holiday",
-    start_datetime="2024-12-25",
-    end_datetime="2024-12-26"
-)
-
-# Create event with timezone
-create_event(
-    summary="Client Meeting",
-    start_datetime="2024-06-24T14:00:00",
-    end_datetime="2024-06-24T15:00:00",
-    timezone="America/New_York"
-)
-```"""
+    description="Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, and a `calendar_id`."
 )
 def create_event(
     summary: str,
@@ -310,42 +272,24 @@ def create_event(
 
     start = created_event["start"].get("dateTime", created_event["start"].get("date"))
 
-    result = "Event created successfully!\n"
-    result += f"Title: {created_event['summary']}\n"
-    result += f"Time: {_format_datetime(start)}\n"
-    result += f"Event ID: {created_event['id']}\n"
-    result += f"Calendar: {calendar_id}\n"
+    # Return structured data as JSON string for programmatic access
+    import json
 
-    if attendees:
-        result += f"Attendees: {', '.join(attendees)}\n"
+    result_data = {
+        "status": "Event created successfully!",
+        "event_id": created_event["id"],
+        "title": created_event["summary"],
+        "time": _format_datetime(start),
+        "calendar": calendar_id,
+        "attendees": attendees or [],
+    }
 
-    return result
+    # Format as human-readable JSON
+    return json.dumps(result_data, indent=2)
 
 
 @mcp.tool(
-    description="""Updates an existing calendar event.
-Only non-None parameters will be updated. To clear a field, pass an empty string.
-
-Error Handling:
-- Raises ValueError if event_id not found in specified calendar.
-- Raises googleapiclient.errors.HttpError for API-level issues (permissions, etc).
-
-Examples:
-```python
-# Update event time only
-update_event(
-    event_id="abc123def456",
-    start_datetime="2024-06-24T11:00:00Z",
-    end_datetime="2024-06-24T12:00:00Z"
-)
-
-# Update title and clear description
-update_event(
-    event_id="abc123def456",
-    summary="New Meeting Title",
-    description=""
-)
-```"""
+    description="Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Returns confirmation of the update."
 )
 def update_event(
     event_id: str,
@@ -392,21 +336,7 @@ def update_event(
 
 
 @mcp.tool(
-    description="""Deletes a calendar event permanently.
-WARNING: This action is irreversible.
-
-Error Handling:
-- Raises ValueError if event_id not found.
-- Raises googleapiclient.errors.HttpError for API-level issues.
-
-Example:
-```python
-# Delete an event by its ID
-delete_event(
-    event_id="abc123def456",
-    calendar_id="primary"
-)
-```"""
+    description="Deletes a calendar event permanently by event ID. WARNING: This action is irreversible. Returns confirmation of deletion."
 )
 def delete_event(event_id: str, calendar_id: str = "primary") -> str:
     """Delete a calendar event. Trusts the provided event_id."""
@@ -448,39 +378,7 @@ def list_calendars() -> str:
 
 
 @mcp.tool(
-    description="""Finds available free time slots within a calendar for scheduling meetings.
-
-Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes.
-
-Parameters:
-- `duration_minutes`: Length of desired time slot (default: 60)
-- `work_hours_only`: If True (default), restricts to weekdays 9 AM - 5 PM in the calendar's local timezone (not configurable)
-
-Date Format: ISO 8601 format required ("2024-06-24T09:00:00Z" or "2024-06-24")
-
-Error Handling:
-- Raises ValueError for invalid date formats or missing required parameters
-- Raises RuntimeError for Google Calendar API errors (network, authentication, quota)
-- Returns descriptive error messages for debugging
-
-Examples:
-```python
-# Find 1-hour slots in work hours for next week
-find_time()
-
-# Find 30-minute slots including evenings/weekends
-find_time(
-    duration_minutes=30,
-    work_hours_only=False
-)
-
-# Find slots in specific date range
-find_time(
-    start_date="2024-06-24T09:00:00Z",
-    end_date="2024-06-28T17:00:00Z",
-    duration_minutes=90
-)
-```"""
+    description="Finds available free time slots within a calendar for scheduling meetings. Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes. Set `work_hours_only=False` to include evenings/weekends."
 )
 def find_time(
     calendar_id: str = "primary",
@@ -570,82 +468,7 @@ def find_time(
 
 
 @mcp.tool(
-    description="""Search and list calendar events with optional advanced filtering. This unified function handles both basic event listing and advanced search scenarios.
-
-**Basic Usage (Event Listing):**
-- Call without `search_text` for basic event listing
-- Defaults to next 7 days if no date range specified
-- Searches all accessible calendars by default
-
-**Advanced Search Features:**
-- Server-side pre-filtering using Google Calendar API's 'q' parameter reduces data transfer and improves performance
-- Client-side filtering enables advanced search options not available in the API
-- Search across multiple fields: title, description, location, attendees
-- Flexible search logic: AND (all terms) or OR (any term) matching
-- Case-sensitive or case-insensitive search options
-
-**Date Format:** ISO 8601 format required:
-- DateTime: "2024-06-24T14:30:00Z" (UTC) or "2024-06-24T14:30:00+02:00" (with timezone)
-- Date only: "2024-06-24" (for all-day events)
-
-**Parameters:**
-- `search_text`: Optional search terms. If not provided, lists all events in date range. Uses Google API 'q' parameter for server-side filtering when provided
-- `search_fields`: Specific fields for client-side filtering. Default: ['summary', 'description', 'location']
-- `case_sensitive`: Whether search should be case sensitive (default: False)
-- `match_all_terms`: If True (default), all search terms must match (AND logic). If False, any term can match (OR logic)
-- `calendar_id`: Calendar to search. Default: 'all' (searches all accessible calendars)
-- `start_date`/`end_date`: Date range to search within
-- `max_results`: Maximum number of events to return per calendar
-
-**Error Handling:**
-- Raises ValueError for invalid date formats
-- Raises RuntimeError for Google Calendar API errors
-- Gracefully handles inaccessible calendars when using 'all'
-
-**Examples:**
-```python
-# Basic event listing (next 7 days, all calendars)
-search_events()
-
-# List events in specific date range
-search_events(
-    start_date="2024-06-24",
-    end_date="2024-06-25"
-)
-
-# Basic text search
-search_events(search_text="meeting")
-
-# Find events about "Chris Lovell" anywhere in the event
-search_events(search_text="Chris Lovell")
-
-# Search only in event titles, case-sensitive
-search_events(
-    search_text="Team Meeting",
-    search_fields=["summary"],
-    case_sensitive=True
-)
-
-# Find events with any of these terms (OR logic)
-search_events(
-    search_text="standup retrospective planning",
-    match_all_terms=False
-)
-
-# Search in specific calendar and date range
-search_events(
-    search_text="interview",
-    calendar_id="work@company.com",
-    start_date="2024-06-01",
-    end_date="2024-06-30"
-)
-
-# Advanced search in attendees
-search_events(
-    search_text="alice@company.com",
-    search_fields=["attendees"]
-)
-```"""
+    description="Searches for events across one or all calendars within a specified date range. Provide a `search_text` to find events with matching text in the title, description, or location. If no search text is given, it lists all events. Supports advanced client-side filtering by `search_fields` and `case_sensitive` options."
 )
 def search_events(
     search_text: str | None = None,
@@ -800,22 +623,7 @@ def search_events(
 
 
 @mcp.tool(
-    description="""Checks the status of the Google Calendar Tool server and API connectivity.
-
-Use this to verify that the tool is operational before making other requests.
-
-**Input/Output:**
-- **Input**: None.
-- **Output**: A string containing the server status, API connection status, and a list of available tools.
-
-**Error Handling:**
-- Returns an error message if the server is not configured correctly or if there is a connection error.
-
-**Examples:**
-```python
-# Check the server status.
-server_info()
-```"""
+    description="Checks the status of the Google Calendar Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests."
 )
 def server_info() -> str:
     """Get server status and Google Calendar API connection info."""

@@ -58,18 +58,18 @@ def create_note(
 
 
 @mcp.tool()
-def get_note(entity_id: str) -> dict[str, Any]:
+def get_note(entity_id: str) -> dict[str, Any] | None:
     """Get an note by its ID.
 
     Args:
         entity_id: The unique identifier of the note
 
     Returns:
-        Note data as a dictionary
+        Note data as a dictionary, or None if not found
     """
     manager = get_manager()
     note = manager.get_note(entity_id)
-    return note.model_dump()
+    return note.model_dump() if note else None
 
 
 @mcp.tool()

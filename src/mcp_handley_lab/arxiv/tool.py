@@ -123,19 +123,8 @@ def _handle_tar_archive(
                 return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
 
 
-@mcp.tool()
+@mcp.tool(description="Downloads an ArXiv paper by its ID. Can fetch the full source ('src'), just the PDF ('pdf'), or only LaTeX files ('tex'). Saves the content to a specified `output_path`. If `output_path` is '-', it lists file information to stdout instead of saving. Returns a status message.")
 def download(arxiv_id: str, format: str = "src", output_path: str = None) -> str:
-    """
-    Download ArXiv paper in specified format.
-
-    Args:
-        arxiv_id: ArXiv paper ID (e.g., "2301.07041")
-        format: Download format - 'src' (source archive), 'pdf' (PDF file), or 'tex' (LaTeX files only)
-        output_path: Output path ('-' for stdout listing, defaults to arxiv_id/arxiv_id.pdf)
-
-    Returns:
-        Download status and file information
-    """
     if format not in ["src", "pdf", "tex"]:
         raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
 
@@ -165,17 +154,8 @@ def download(arxiv_id: str, format: str = "src", output_path: str = None) -> str
         return _handle_source_content(arxiv_id, content, format, output_path)
 
 
-@mcp.tool()
+@mcp.tool(description="Fetches the source archive for a given ArXiv paper ID and lists all the file names contained within it. This is useful for inspecting the contents of a paper's source code before downloading the entire archive. Returns a list of file paths.")
 def list_files(arxiv_id: str) -> list[str]:
-    """
-    List all files in an ArXiv source archive.
-
-    Args:
-        arxiv_id: ArXiv paper ID (e.g., "2301.07041")
-
-    Returns:
-        List of filenames in the archive
-    """
     content = _get_source_archive(arxiv_id)
 
     try:
@@ -248,7 +228,7 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(description="Searches ArXiv for papers matching a query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton', 'ti:attention') and boolean operators ('AND', 'OR'). Results can be sorted by relevance or date. Returns a list of papers, each containing metadata like title, authors, and summary.")
 def search(
     query: str,
     max_results: int = 10,
@@ -256,21 +236,6 @@ def search(
     sort_by: str = "relevance",
     sort_order: str = "descending",
 ) -> list[dict[str, Any]]:
-    """
-    Search ArXiv papers using the official ArXiv API.
-
-    Args:
-        query: Search query string. Supports field prefixes like 'ti:' (title), 'au:' (author),
-               'abs:' (abstract), 'cat:' (category), 'all:' (all fields).
-               Boolean operators: AND, OR, NOT. Example: 'ti:transformer AND cat:cs.AI'
-        max_results: Maximum number of results to return (default: 10, max: 100)
-        start: Starting index for pagination (default: 0)
-        sort_by: Sort criterion - 'relevance', 'lastUpdatedDate', 'submittedDate' (default: 'relevance')
-        sort_order: Sort order - 'ascending', 'descending' (default: 'descending')
-
-    Returns:
-        List of paper dictionaries with id, title, authors, summary, published date, categories, and URLs
-    """
     if max_results > 100:
         max_results = 100
 
@@ -312,14 +277,8 @@ def search(
     return results
 
 
-@mcp.tool()
+@mcp.tool(description="Provides metadata about the ArXiv tool itself. Returns a dictionary containing a list of available functions (search, download, etc.), supported formats, and example usage. Use this to discover the server's capabilities.")
 def server_info() -> dict[str, Any]:
-    """
-    Get information about the ArXiv tool server.
-
-    Returns:
-        Server information including available functions
-    """
     return {
         "name": "ArXiv Tool",
         "description": "Tool for searching and downloading ArXiv papers",

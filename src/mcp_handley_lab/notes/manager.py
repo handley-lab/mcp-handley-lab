@@ -81,6 +81,8 @@ class NotesManager:
     ) -> None:
         """Update an existing note."""
         note = self.storage.load_entity(note_id)
+        if not note:
+            raise ValueError(f"Note with ID {note_id} not found")
 
         if properties is not None:
             note.properties.update(properties)
@@ -100,7 +102,7 @@ class NotesManager:
         """Delete an note."""
         success = self.storage.delete_note(note_id)
         if success:
-            self.db.remove(Query()._entity_id == note_id)
+            self.db.remove(Query()._note_id == note_id)
             self.semantic_search.remove_note(note_id)
         return success
 
@@ -134,7 +136,7 @@ class NotesManager:
         # Convert back to Note objects
         notes = []
         for doc in results:
-            doc.pop("_entity_id")
+            doc.pop("_note_id", None)
             doc.pop("_scope", None)
 
             # Parse datetime fields

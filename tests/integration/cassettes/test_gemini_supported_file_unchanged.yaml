@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What is in this text file?"}, {"text":
-      "[File: tmphzm580gp.txt]\nThis is a simple text file with some content for testing."}],
+      "[File: tmp4tsfi793.txt]\nThis is a simple text file with some content for testing."}],
       "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
       65536}}'
     headers:
@@ -18,34 +18,33 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.21.1 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The text file `tmphzm580gp.txt` contains
-        the following content:\\n\\n\\\"This is a simple text file with some content
-        for testing.\\\"\"\n          }\n        ],\n        \"role\": \"model\"\n
-        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
-        \ \"usageMetadata\": {\n    \"promptTokenCount\": 34,\n    \"candidatesTokenCount\":
-        33,\n    \"totalTokenCount\": 118,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 34\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 51\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"oDJpaOSyO_bZvdIPyeOQuQI\"\n}\n"
+        [\n          {\n            \"text\": \"The text file `tmp4tsfi793.txt` contains
+        the following:\\n\\n\\\"This is a simple text file with some content for testing.\\\"\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        34,\n    \"candidatesTokenCount\": 32,\n    \"totalTokenCount\": 175,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 34\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 109\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"V1hqaO_MK4u6xN8Pkaa1qQI\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sat, 05 Jul 2025 14:11:44 GMT
+      - Sun, 06 Jul 2025 11:04:55 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=817
+      - gfet4t7; dur=1083
       Transfer-Encoding:
       - chunked
       Vary:
@@ -59,7 +58,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '671'
+      - '664'
     status:
       code: 200
       message: OK

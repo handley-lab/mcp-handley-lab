@@ -1,8 +1,7 @@
 interactions:
 - request:
-    body: '{"contents": [{"parts": [{"text": "What is in this text file?"}, {"text":
-      "[File: tmp4tsfi793.txt]\nThis is a simple text file with some content for testing."}],
-      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+    body: '{"contents": [{"parts": [{"text": "Remember this number: 6. What is 3+3?"}],
+      "role": "user"}], "generationConfig": {"temperature": 0.0, "maxOutputTokens":
       65536}}'
     headers:
       accept:
@@ -12,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '247'
+      - '162'
       content-type:
       - application/json
       host:
@@ -26,25 +25,24 @@ interactions:
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The text file `tmp4tsfi793.txt` contains
-        the following:\\n\\n\\\"This is a simple text file with some content for testing.\\\"\"\n
+        [\n          {\n            \"text\": \"I will remember 6.\\n\\n3 + 3 = 6\"\n
         \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        34,\n    \"candidatesTokenCount\": 32,\n    \"totalTokenCount\": 175,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 34\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 109\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"V1hqaO_MK4u6xN8Pkaa1qQI\"\n}\n"
+        15,\n    \"candidatesTokenCount\": 14,\n    \"totalTokenCount\": 67,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 15\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 38\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"dlhqaLiAL9-Dxs0P9u-0gQQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:04:55 GMT
+      - Sun, 06 Jul 2025 11:05:26 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=1083
+      - gfet4t7; dur=546
       Transfer-Encoding:
       - chunked
       Vary:
@@ -58,7 +56,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '664'
+      - '573'
     status:
       code: 200
       message: OK

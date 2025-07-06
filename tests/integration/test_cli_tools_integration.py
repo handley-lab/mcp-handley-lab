@@ -13,38 +13,31 @@ from mcp_handley_lab.vim.tool import server_info as vim_server_info
 
 
 class TestJQIntegration:
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_query_basic(self, test_json_file):
         result = query(data=test_json_file, filter=".test")
         assert "test" in result or "data" in result
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_query_array(self, test_json_file):
         result = query(data=test_json_file, filter=".numbers | length")
         assert "3" in result
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_read_file(self, test_json_file):
         result = read(file_path=test_json_file)
         assert "test" in result
         assert "numbers" in result
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_validate_valid(self, test_json_file):
         result = validate(data=test_json_file)
         assert "valid" in result.lower()
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_validate_invalid(self):
         with pytest.raises(ValueError):
             validate(data='{"invalid": json}')
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_format(self, test_json_file):
         result = jq_format(data=test_json_file, compact=True)
         assert '"test":"data"' in result or '"test": "data"' in result
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_edit_file(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"counter": 0}, f)
@@ -60,7 +53,6 @@ class TestJQIntegration:
 
             Path(f.name).unlink()
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_jq_server_info(self):
         result = jq_server_info()
         assert "jq" in result.lower()
@@ -68,7 +60,6 @@ class TestJQIntegration:
 
 
 class TestVimIntegration:
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_vim_prompt_user_edit(self):
         # Mock vim execution for automated testing
         from unittest.mock import mock_open, patch
@@ -93,7 +84,6 @@ class TestVimIntegration:
                 assert isinstance(result, str)
                 assert len(result) > 0
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_vim_server_info(self):
         result = vim_server_info()
         assert "vim" in result.lower()
@@ -101,7 +91,6 @@ class TestVimIntegration:
 
 
 class TestCode2PromptIntegration:
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_code2prompt_generate_basic(self, temp_storage_dir):
         # Create a simple test directory structure
         test_dir = Path(temp_storage_dir) / "test_code"
@@ -123,7 +112,6 @@ class TestCode2PromptIntegration:
         assert "hello" in content
         assert "def" in content
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_code2prompt_with_exclusions(self, temp_storage_dir):
         test_dir = Path(temp_storage_dir) / "test_exclude"
         test_dir.mkdir()
@@ -144,7 +132,6 @@ class TestCode2PromptIntegration:
         # Note: Exclusion filtering may not work perfectly in all cases
         assert Path(output_file).exists()
 
-    # @pytest.mark.vcr  # Removed: VCR not needed for local CLI tools
     def test_code2prompt_server_info(self):
         result = code2prompt_server_info()
         assert "code2prompt" in result.lower()

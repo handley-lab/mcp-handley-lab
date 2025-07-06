@@ -93,21 +93,6 @@ class MemoryManager:
             agent = AgentMemory.model_validate_json(agent_file.read_text())
             self._agents[agent.name] = agent
 
-    def _serialize_agent_data(self, agent: AgentMemory) -> dict:
-        """Convert agent to JSON-serializable dictionary."""
-        data = agent.model_dump()
-        data["created_at"] = data["created_at"].isoformat()
-        for msg in data.get("messages", []):
-            msg["timestamp"] = msg["timestamp"].isoformat()
-        return data
-
-    def _deserialize_agent_data(self, data: dict) -> AgentMemory:
-        """Convert dictionary to AgentMemory object, parsing datetimes."""
-        data["created_at"] = datetime.fromisoformat(data["created_at"])
-        for msg in data.get("messages", []):
-            msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-        return AgentMemory(**data)
-
     def _save_agent(self, agent: AgentMemory):
         """Save a single agent to disk."""
         agent_file = self._get_agent_file(agent.name)

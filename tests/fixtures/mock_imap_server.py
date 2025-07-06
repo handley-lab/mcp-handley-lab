@@ -25,6 +25,20 @@ class MockIMAPServer:
             }
         ]
 
+    def add_test_message(self, test_id, subject, body="Test email body"):
+        """Add a test message with specific test ID for verification."""
+        self.messages.append(
+            {
+                "uid": len(self.messages) + 1,
+                "flags": ["\\Recent"],
+                "date": datetime.now(),
+                "subject": subject,
+                "from": "test@example.com",
+                "to": "handleylab@gmail.com",
+                "body": f"{body}\n\nTest ID: {test_id}",
+            }
+        )
+
     def handle_client(self, client_socket):
         """Handle IMAP client connections."""
         try:
@@ -50,9 +64,31 @@ class MockIMAPServer:
                 elif cmd.upper() == "LOGIN":
                     client_socket.send(f"{tag} OK LOGIN completed\r\n".encode())
                 elif cmd.upper() == "SELECT":
-                    client_socket.send(b"* 1 EXISTS\r\n")
-                    client_socket.send(b"* 1 RECENT\r\n")
+                    client_socket.send(f"* {len(self.messages)} EXISTS\r\n".encode())
+                    client_socket.send(f"* {len(self.messages)} RECENT\r\n".encode())
                     client_socket.send(f"{tag} OK SELECT completed\r\n".encode())
+                elif cmd.upper() == "FETCH":
+                    # Handle FETCH commands to serve test messages
+                    if len(parts) >= 3:
+                        msg_num = parts[2]
+                        fetch_items = " ".join(parts[3:])
+                        if (
+                            "BODY" in fetch_items.upper()
+                            or "RFC822" in fetch_items.upper()
+                        ) and self.messages:
+                            msg = self.messages[0]
+                            email_content = f"""Subject: {msg['subject']}
+From: {msg['from']}
+To: {msg['to']}
+Date: {msg['date'].strftime('%a, %d %b %Y %H:%M:%S +0000')}
+
+{msg['body']}"""
+                            client_socket.send(
+                                f"* {msg_num} FETCH (RFC822 {{{len(email_content)}}}\r\n".encode()
+                            )
+                            client_socket.send(email_content.encode())
+                            client_socket.send(b")\r\n")
+                    client_socket.send(f"{tag} OK FETCH completed\r\n".encode())
                 elif cmd.upper() == "LOGOUT":
                     client_socket.send(b"* BYE\r\n")
                     client_socket.send(f"{tag} OK LOGOUT completed\r\n".encode())

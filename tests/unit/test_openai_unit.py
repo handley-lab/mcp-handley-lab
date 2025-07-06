@@ -4,13 +4,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.llm.agent.tool import get_response
 from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 from mcp_handley_lab.llm.openai.tool import (
     MODEL_CONFIGS,
     _get_model_config,
-    _resolve_files,
-    _resolve_images,
     analyze_image,
     ask,
     generate_image,
@@ -130,78 +127,6 @@ class TestOpenAIHelperFunctions:
         assert is_text_file(Path("test.exe")) is False
 
 
-class TestResolveFiles:
-    """Test file resolution logic."""
-
-    def test_resolve_files_none(self):
-        """Test resolve_files with None input."""
-        inline_content = _resolve_files(None)
-        assert inline_content == []
-
-    def test_resolve_files_empty_list(self):
-        """Test resolve_files with empty list."""
-        inline_content = _resolve_files([])
-        assert inline_content == []
-
-    def test_resolve_files_direct_string(self):
-        """Test resolve_files with direct string content."""
-        files = ["This is direct content", "More content"]
-        inline_content = _resolve_files(files)
-        assert inline_content == ["This is direct content", "More content"]
-
-    def test_resolve_files_dict_content(self):
-        """Test resolve_files with dict content."""
-        files = [{"content": "Dict content"}, {"content": "More dict content"}]
-        inline_content = _resolve_files(files)
-        assert inline_content == ["Dict content", "More dict content"]
-
-    def test_resolve_files_small_text_file(self):
-        """Test resolve_files with small text file."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write("Small text file content")
-            temp_path = f.name
-
-        try:
-            files = [{"path": temp_path}]
-            inline_content = _resolve_files(files)
-
-            assert len(inline_content) == 1
-            assert "Small text file content" in inline_content[0]
-            assert (
-                Path(temp_path).name in inline_content[0]
-            )  # Should include filename header
-        finally:
-            Path(temp_path).unlink()
-
-
-class TestResolveImages:
-    """Test image resolution for vision models."""
-
-    def test_resolve_images_none(self):
-        """Test resolve_images with None input."""
-        images = _resolve_images()
-        assert images == []
-
-    def test_resolve_images_direct_data_url(self):
-        """Test resolve_images with data URL."""
-        data_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-        resolved_images = _resolve_images(image_data=data_url)
-
-        assert len(resolved_images) == 1
-        assert resolved_images[0] == data_url
-
-    def test_resolve_images_dict_data(self):
-        """Test resolve_images with dict containing base64 data."""
-        base64_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-        images = [{"data": base64_data}]
-        resolved_images = _resolve_images(images=images)
-
-        assert len(resolved_images) == 1
-        assert (
-            "data:image/jpeg;base64," in resolved_images[0]
-        )  # Function defaults to JPEG for dict data
-
-
 class TestInputValidation:
     """Test input validation for main functions."""
 
@@ -234,14 +159,6 @@ class TestInputValidation:
         """Test generate_image with empty prompt."""
         with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
             generate_image("")
-
-    def test_get_response_nonexistent_agent(self, mock_memory_manager):
-        """Test get_response with nonexistent agent."""
-        mock_memory_manager.get_response.return_value = None
-        mock_memory_manager.get_agent.return_value = None
-
-        with pytest.raises(ValueError, match="Agent 'nonexistent' not found"):
-            get_response("nonexistent")
 
 
 @pytest.fixture

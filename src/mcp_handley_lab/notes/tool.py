@@ -58,18 +58,18 @@ def create_note(
 
 
 @mcp.tool()
-def get_note(entity_id: str) -> dict[str, Any] | None:
+def get_note(entity_id: str) -> dict[str, Any]:
     """Get an note by its ID.
 
     Args:
         entity_id: The unique identifier of the note
 
     Returns:
-        Note data as a dictionary, or None if not found
+        Note data as a dictionary
     """
     manager = get_manager()
     note = manager.get_note(entity_id)
-    return note.model_dump() if note else None
+    return note.model_dump()
 
 
 @mcp.tool()
@@ -164,9 +164,7 @@ def search_entities_semantic(
     results = []
     for note in notes:
         entity_dict = note.model_dump()
-        # Add similarity score if available
-        if hasattr(note, "_similarity_score"):
-            entity_dict["similarity_score"] = note._similarity_score
+        entity_dict["similarity_score"] = note._similarity_score
         results.append(entity_dict)
 
     return results
@@ -300,9 +298,6 @@ def list_entities_resource() -> str:
     """Browse all notes in the notes database."""
     manager = get_manager()
     notes = manager.list_entities()
-
-    if not notes:
-        return "No notes found in the notes database."
 
     lines = ["# Notes Database Entities\n"]
 

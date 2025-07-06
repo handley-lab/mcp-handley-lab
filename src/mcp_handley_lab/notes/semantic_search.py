@@ -25,20 +25,15 @@ class SemanticSearchManager:
         # Combine content and key properties for embedding
         text_parts = []
 
-        if note.content:
-            text_parts.append(note.content)
+        text_parts.append(note.content)
 
         # Add important string properties
         for key, value in note.properties.items():
-            if isinstance(value, str) and len(value) > 0:
+            if isinstance(value, str):
                 text_parts.append(f"{key}: {value}")
 
         # Add tags
-        if note.tags:
-            text_parts.append(f"Tags: {', '.join(note.tags)}")
-
-        if not text_parts:
-            text_parts = [f"Note of type {note.type}"]
+        text_parts.append(f"Tags: {', '.join(note.tags)}")
 
         document_text = " | ".join(text_parts)
 

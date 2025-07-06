@@ -246,16 +246,12 @@ class NotesManager:
     def get_linked_entities(self, entity_id: str) -> list[Note]:
         """Get notes that this note links to."""
         note = self.get_note(entity_id)
-        if not note:
-            return []
-
         linked_ids = note.get_linked_entities()
         linked_entities = []
 
         for linked_id in linked_ids:
             linked_entity = self.get_note(linked_id)
-            if linked_entity:
-                linked_entities.append(linked_entity)
+            linked_entities.append(linked_entity)
 
         return linked_entities
 

@@ -84,8 +84,7 @@ class YAMLNoteStorage:
         notes = {}
         for entity_id in self.list_entity_ids():
             note = self.load_entity(entity_id)
-            if note:
-                notes[entity_id] = note
+            notes[entity_id] = note
         return notes
 
     def entity_exists(self, entity_id: str) -> bool:

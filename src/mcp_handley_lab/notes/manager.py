@@ -19,35 +19,31 @@ class NotesManager:
         self.storage = GlobalLocalYAMLStorage(local_storage_dir)
         self.db = TinyDB(storage=MemoryStorage)
         self.semantic_search = SemanticSearchManager(local_storage_dir + "/notes")
-        self._load_entities_to_db()
+        self._load_notes_to_db()
         # Build initial semantic search index
-        notes = list(self.storage.load_all_entities().values())
+        notes = list(self.storage.load_all_notes().values())
         self.semantic_search.rebuild_index(notes)
 
-    def _load_entities_to_db(self):
+    def _load_notes_to_db(self):
         """Load all notes from YAML files into TinyDB for fast queries."""
         self.db.truncate()
-        notes = self.storage.load_all_entities()
+        notes = self.storage.load_all_notes()
 
-        for entity_id, note in notes.items():
+        for note_id, note in notes.items():
             doc = note.model_dump()
-            doc["_entity_id"] = entity_id
-            doc["_scope"] = self.storage.get_note_scope(entity_id)
+            doc["_note_id"] = note_id
+            doc["_scope"] = self.storage.get_note_scope(note_id)
             self.db.insert(doc)
 
-    def _sync_entity_to_db(self, note: Note, scope: str):
+    def _sync_note_to_db(self, note: Note, scope: str):
         """Sync a single note to the in-memory database."""
-        doc = note.model_dump(
-            exclude={"_type", "_slug", "_file_path"}
-        )  # Exclude runtime fields
-        doc["_entity_id"] = note.id
+        doc = note.model_dump()
+        doc["_note_id"] = note.id
         doc["_scope"] = scope
-        doc["_type"] = note.type  # Include derived type
-        doc["_slug"] = note.slug  # Include derived slug
 
         # Update if exists, insert if new
-        if self.db.search(Query()._entity_id == note.id):
-            self.db.update(doc, Query()._entity_id == note.id)
+        if self.db.search(Query()._note_id == note.id):
+            self.db.update(doc, Query()._note_id == note.id)
         else:
             self.db.insert(doc)
 
@@ -61,14 +57,14 @@ class NotesManager:
         slug = slug.strip("-")
         return slug
 
-    def _ensure_unique_slug(self, note_type: str, base_slug: str, scope: str) -> str:
-        """Ensure slug is unique within the given type and scope."""
+    def _ensure_unique_slug(self, path: str, base_slug: str, scope: str) -> str:
+        """Ensure slug is unique within the given path and scope."""
         slug = base_slug
         counter = 1
 
         while True:
             # Check if this slug already exists
-            existing = self.storage.load_entity_by_slug(note_type, slug)
+            existing = self.storage.load_note_by_slug(path, slug)
             if not existing:
                 return slug
 
@@ -78,7 +74,7 @@ class NotesManager:
 
     def create_note(
         self,
-        note_type: str,
+        path: str,
         title: str,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
@@ -89,7 +85,7 @@ class NotesManager:
         """Create a new note.
 
         Args:
-            note_type: Type directory for the note (e.g., 'person', 'project')
+            path: Directory path for the note (e.g., 'person', 'person/researcher/phd')
             title: Human-readable title
             properties: Additional structured properties
             tags: List of tags for categorization
@@ -108,21 +104,21 @@ class NotesManager:
         if not slug:
             slug = self._generate_slug(title)
 
-        # Ensure slug is unique within this type
-        slug = self._ensure_unique_slug(note_type, slug, scope)
+        # Ensure slug is unique within this path
+        slug = self._ensure_unique_slug(path, slug, scope)
 
-        self.storage.save_note(note, scope, note_type, slug)
-        self._sync_entity_to_db(note, scope)
+        self.storage.save_note(note, scope, path, slug)
+        self._sync_note_to_db(note, scope)
         self.semantic_search.add_note(note)
         return note.id
 
     def get_note(self, note_id: str) -> Note | None:
         """Get a note by UUID."""
-        return self.storage.load_entity(note_id)
+        return self.storage.load_note(note_id)
 
-    def get_note_by_slug(self, note_type: str, slug: str) -> Note | None:
-        """Get a note by its type and slug."""
-        return self.storage.load_entity_by_slug(note_type, slug)
+    def get_note_by_slug(self, path: str, slug: str) -> Note | None:
+        """Get a note by its path and slug."""
+        return self.storage.load_note_by_slug(path, slug)
 
     def get_note_by_identifier(self, identifier: str) -> Note | None:
         """Get a note by UUID or type/slug identifier.
@@ -134,16 +130,16 @@ class NotesManager:
         if len(identifier) == 36 and identifier.count("-") == 4:
             return self.get_note(identifier)
 
-        # Try to parse as type/slug
+        # Try to parse as path/slug
         if "/" in identifier:
-            parts = identifier.split("/", 1)
+            parts = identifier.rsplit("/", 1)  # Split on last / to handle deep paths
             if len(parts) == 2:
                 return self.get_note_by_slug(parts[0], parts[1])
 
-        # Try as just slug in all types
-        for note_type in self.get_note_types():
-            note = self.get_note_by_slug(note_type, identifier)
-            if note:
+        # Try as just slug in all paths (search all directories)
+        all_notes = self.list_notes()
+        for note in all_notes:
+            if note.slug == identifier:
                 return note
 
         return None
@@ -157,7 +153,7 @@ class NotesManager:
         content: str = None,
     ) -> None:
         """Update an existing note."""
-        note = self.storage.load_entity(note_id)
+        note = self.storage.load_note(note_id)
         if not note:
             raise ValueError(f"Note with ID {note_id} not found")
 
@@ -174,14 +170,14 @@ class NotesManager:
 
         scope = self.storage.get_note_scope(note_id) or "local"
         self.storage.save_note(note, scope)  # Saves to existing location
-        self._sync_entity_to_db(note, scope)
+        self._sync_note_to_db(note, scope)
         self.semantic_search.update_note(note)
 
     def delete_note(self, note_id: str) -> bool:
         """Delete a note."""
         success = self.storage.delete_note(note_id)
         if success:
-            self.db.remove(Query()._entity_id == note_id)
+            self.db.remove(Query()._note_id == note_id)
             self.semantic_search.remove_note(note_id)
         return success
 
@@ -189,14 +185,9 @@ class NotesManager:
         """Get the scope (global or local) of an note."""
         return self.storage.get_note_scope(note_id)
 
-    def list_entities(
-        self, note_type: str = None, tags: list[str] = None, scope: str = None
-    ) -> list[Note]:
+    def list_notes(self, tags: list[str] = None, scope: str = None) -> list[Note]:
         """List notes with optional filtering."""
         query_conditions = []
-
-        if note_type:
-            query_conditions.append(Query().type == note_type)
         if scope:
             query_conditions.append(Query()._scope == scope)
         if tags:
@@ -212,37 +203,25 @@ class NotesManager:
         else:
             results = self.db.all()
 
-        # Convert back to Note objects
+        # Convert back to Note objects and reload from storage to get current filesystem info
         notes = []
         for doc in results:
-            # Remove internal fields
-            doc.pop("_entity_id", None)
-            doc.pop("_scope", None)
-            derived_type = doc.pop("_type", None)
-            derived_slug = doc.pop("_slug", None)
-
-            # Parse datetime fields
-            if "created_at" in doc and isinstance(doc["created_at"], str):
-                doc["created_at"] = datetime.fromisoformat(doc["created_at"])
-            if "updated_at" in doc and isinstance(doc["updated_at"], str):
-                doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
-
-            note = Note(**doc)
-            # Set derived fields if available
-            if derived_type and derived_slug:
-                note._type = derived_type
-                note._slug = derived_slug
-            notes.append(note)
+            note_id = doc.get("_note_id")
+            if note_id:
+                # Load from storage to get current filesystem-derived info
+                note = self.storage.load_note(note_id)
+                if note:
+                    notes.append(note)
 
         return notes
 
-    def query_entities_jmespath(self, jmespath_query: str) -> list[dict[str, Any]]:
+    def query_notes_jmespath(self, jmespath_query: str) -> list[dict[str, Any]]:
         """Query notes using JMESPath expressions."""
         all_docs = self.db.all()
         result = jmespath.search(jmespath_query, all_docs)
         return result if isinstance(result, list) else [result] if result else []
 
-    def search_entities_text(self, query: str) -> list[Note]:
+    def search_notes_text(self, query: str) -> list[Note]:
         """Search notes by text across content, properties, and tags."""
         query_lower = query.lower()
 
@@ -269,47 +248,36 @@ class NotesManager:
         # Combine and deduplicate results
         all_matches = {}
         for match in content_matches + tag_matches + property_matches:
-            all_matches[match["_entity_id"]] = match
+            all_matches[match["_note_id"]] = match
 
-        # Convert to Note objects
+        # Convert to Note objects by loading from storage
         notes = []
         for doc in all_matches.values():
-            # Remove internal fields
-            doc.pop("_entity_id", None)
-            doc.pop("_scope", None)
-            derived_type = doc.pop("_type", None)
-            derived_slug = doc.pop("_slug", None)
-
-            # Parse datetime fields
-            if "created_at" in doc and isinstance(doc["created_at"], str):
-                doc["created_at"] = datetime.fromisoformat(doc["created_at"])
-            if "updated_at" in doc and isinstance(doc["updated_at"], str):
-                doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
-
-            note = Note(**doc)
-            # Set derived fields if available
-            if derived_type and derived_slug:
-                note._type = derived_type
-                note._slug = derived_slug
-            notes.append(note)
+            note_id = doc.get("_note_id")
+            if note_id:
+                # Load from storage to get current filesystem-derived info
+                note = self.storage.load_note(note_id)
+                if note:
+                    notes.append(note)
 
         return notes
 
-    def search_entities_semantic(
+    def search_notes_semantic(
         self,
         query: str,
         n_results: int = 10,
-        note_type: str = None,
         tags: list[str] = None,
     ) -> list[Note]:
         """Search notes using semantic similarity (requires ChromaDB)."""
+        # Extract primary tag from tags for semantic search compatibility
+        primary_tag = tags[0] if tags else None
         similar_ids = self.semantic_search.search_similar(
-            query, n_results, note_type, tags
+            query, n_results, primary_tag, tags
         )
         notes = []
 
-        for entity_id, similarity_score in similar_ids:
-            note = self.get_note(entity_id)
+        for note_id, similarity_score in similar_ids:
+            note = self.get_note(note_id)
             if note:
                 # Add similarity score as metadata (not persisted)
                 note._similarity_score = similarity_score
@@ -317,65 +285,66 @@ class NotesManager:
 
         return notes
 
-    def get_entities_by_property(
+    def get_notes_by_property(
         self, property_name: str, property_value: Any
     ) -> list[Note]:
         """Get notes with a specific property value."""
         # Search for notes with the specified property value
         results = self.db.search(Query().properties[property_name] == property_value)
 
-        # Convert to Note objects
+        # Convert to Note objects by loading from storage
         notes = []
         for doc in results:
-            # Remove internal fields
-            doc.pop("_entity_id", None)
-            doc.pop("_scope", None)
-            derived_type = doc.pop("_type", None)
-            derived_slug = doc.pop("_slug", None)
-
-            # Parse datetime fields
-            if "created_at" in doc and isinstance(doc["created_at"], str):
-                doc["created_at"] = datetime.fromisoformat(doc["created_at"])
-            if "updated_at" in doc and isinstance(doc["updated_at"], str):
-                doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
-
-            note = Note(**doc)
-            # Set derived fields if available
-            if derived_type and derived_slug:
-                note._type = derived_type
-                note._slug = derived_slug
-            notes.append(note)
+            note_id = doc.get("_note_id")
+            if note_id:
+                # Load from storage to get current filesystem-derived info
+                note = self.storage.load_note(note_id)
+                if note:
+                    notes.append(note)
 
         return notes
 
-    def get_linked_entities(self, entity_id: str) -> list[Note]:
+    def get_linked_notes(self, note_id: str) -> list[Note]:
         """Get notes that this note links to."""
-        note = self.get_note(entity_id)
-        linked_ids = note.get_linked_entities()
-        linked_entities = []
+        note = self.get_note(note_id)
+        linked_ids = note.get_linked_notes()
+        linked_notes = []
 
         for linked_id in linked_ids:
             linked_entity = self.get_note(linked_id)
-            linked_entities.append(linked_entity)
+            linked_notes.append(linked_entity)
 
-        return linked_entities
+        return linked_notes
 
-    def get_entities_linking_to(self, target_note_id: str) -> list[Note]:
+    def get_notes_linking_to(self, target_note_id: str) -> list[Note]:
         """Get notes that link to the specified note."""
-        all_entities = self.list_entities()
-        linking_entities = []
+        all_notes = self.list_notes()
+        linking_notes = []
 
-        for note in all_entities:
-            if target_note_id in note.get_linked_entities():
-                linking_entities.append(note)
+        for note in all_notes:
+            if target_note_id in note.get_linked_notes():
+                linking_notes.append(note)
 
-        return linking_entities
+        return linking_notes
 
-    def get_note_types(self) -> list[str]:
-        """Get all unique note types."""
-        all_docs = self.db.all()
-        types = {doc.get("type") for doc in all_docs if doc.get("type")}
-        return sorted(types)
+    def get_note_paths(self) -> list[str]:
+        """Get all unique note paths by scanning filesystem."""
+        paths = set()
+        # Scan the filesystem for directories containing YAML files
+        for yaml_file in self.storage.local_storage.notes_dir.rglob("*.yaml"):
+            relative_path = yaml_file.relative_to(self.storage.local_storage.notes_dir)
+            dir_path = str(relative_path.parent)
+            if dir_path and dir_path != ".":
+                paths.add(dir_path)
+
+        # Also scan global storage
+        for yaml_file in self.storage.global_storage.notes_dir.rglob("*.yaml"):
+            relative_path = yaml_file.relative_to(self.storage.global_storage.notes_dir)
+            dir_path = str(relative_path.parent)
+            if dir_path and dir_path != ".":
+                paths.add(dir_path)
+
+        return sorted(paths)
 
     def get_all_tags(self) -> list[str]:
         """Get all unique tags across all notes."""
@@ -391,20 +360,21 @@ class NotesManager:
 
     def refresh_from_files(self):
         """Refresh the in-memory database from YAML files."""
-        self._load_entities_to_db()
+        self._load_notes_to_db()
         # Rebuild semantic search index
-        notes = list(self.storage.load_all_entities().values())
+        notes = list(self.storage.load_all_notes().values())
         self.semantic_search.rebuild_index(notes)
 
     def get_stats(self) -> dict[str, Any]:
         """Get statistics about the notes database."""
         all_docs = self.db.all()
 
-        # Count by type
-        type_counts = {}
+        # Count by primary tag (first tag is usually the path-derived primary tag)
+        primary_tag_counts = {}
         for doc in all_docs:
-            note_type = doc.get("type", "unknown")
-            type_counts[note_type] = type_counts.get(note_type, 0) + 1
+            tags = doc.get("tags", [])
+            primary_tag = tags[0] if tags else "unknown"
+            primary_tag_counts[primary_tag] = primary_tag_counts.get(primary_tag, 0) + 1
 
         # Count by scope
         scope_counts = {}
@@ -413,13 +383,14 @@ class NotesManager:
             scope_counts[scope] = scope_counts.get(scope, 0) + 1
 
         return {
-            "total_entities": len(all_docs),
-            "note_types": type_counts,
+            "total_notes": len(all_docs),
+            "primary_tags": primary_tag_counts,
             "scopes": scope_counts,
             "unique_tags": len(self.get_all_tags()),
+            "unique_paths": len(self.get_note_paths()),
             "semantic_search": self.semantic_search.get_collection_stats(),
             "storage_dirs": {
-                "global": str(self.storage.global_storage.entities_dir),
-                "local": str(self.storage.local_storage.entities_dir),
+                "global": str(self.storage.global_storage.notes_dir),
+                "local": str(self.storage.local_storage.notes_dir),
             },
         }

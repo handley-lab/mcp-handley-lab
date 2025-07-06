@@ -39,7 +39,7 @@ class SemanticSearchManager:
 
         # Metadata for filtering
         metadata = {
-            "type": note.type,
+            "primary_tag": note.tags[0] if note.tags else "unknown",
             "tags": ",".join(note.tags),  # Convert list to comma-separated string
             "created_at": note.created_at.isoformat(),
             "updated_at": note.updated_at.isoformat(),
@@ -65,7 +65,7 @@ class SemanticSearchManager:
         self,
         query: str,
         n_results: int = 10,
-        note_type: str = None,
+        primary_tag: str = None,
         tags: list[str] = None,
     ) -> list[tuple[str, float]]:
         """Search for notes similar to the query text.
@@ -73,7 +73,7 @@ class SemanticSearchManager:
         Args:
             query: Text query for semantic similarity
             n_results: Maximum number of results to return
-            note_type: Filter by note type
+            primary_tag: Filter by primary tag (first tag)
             tags: Filter by notes having any of these tags
 
         Returns:
@@ -83,8 +83,8 @@ class SemanticSearchManager:
         where_clause = {}
         where_and_clauses = []
 
-        if note_type:
-            where_and_clauses.append({"type": {"$eq": note_type}})
+        if primary_tag:
+            where_and_clauses.append({"primary_tag": {"$eq": primary_tag}})
 
         if tags:
             # Note must have at least one of the specified tags (now comma-separated)

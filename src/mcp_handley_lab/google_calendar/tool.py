@@ -310,16 +310,20 @@ def create_event(
 
     start = created_event["start"].get("dateTime", created_event["start"].get("date"))
 
-    result = "Event created successfully!\n"
-    result += f"Title: {created_event['summary']}\n"
-    result += f"Time: {_format_datetime(start)}\n"
-    result += f"Event ID: {created_event['id']}\n"
-    result += f"Calendar: {calendar_id}\n"
+    # Return structured data as JSON string for programmatic access
+    import json
 
-    if attendees:
-        result += f"Attendees: {', '.join(attendees)}\n"
+    result_data = {
+        "status": "Event created successfully!",
+        "event_id": created_event["id"],
+        "title": created_event["summary"],
+        "time": _format_datetime(start),
+        "calendar": calendar_id,
+        "attendees": attendees or [],
+    }
 
-    return result
+    # Format as human-readable JSON
+    return json.dumps(result_data, indent=2)
 
 
 @mcp.tool(

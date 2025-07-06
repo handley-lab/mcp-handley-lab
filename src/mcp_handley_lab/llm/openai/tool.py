@@ -195,7 +195,7 @@ def _openai_image_analysis_adapter(
 
 **Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
-**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
 
 **Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
@@ -209,7 +209,7 @@ def _openai_image_analysis_adapter(
 - `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
 - `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)
 - `max_output_tokens`: Override model's default output token limit
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
 
 **Token Limits by Model**:
 - o3/o3-mini: 100,000 tokens (default)
@@ -299,7 +299,7 @@ def ask(
 
 **Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
-**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
 
 **Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
@@ -325,7 +325,7 @@ def ask(
 - "gpt-4o-mini" - Faster, cost-effective vision analysis for simple tasks
 
 **Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
 - `max_output_tokens`: Override model's default output token limit
 
 **Error Handling**:
@@ -403,7 +403,7 @@ def analyze_image(
 
 **Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
-**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=""` to disable memory entirely.
 
 **Output Format**: Generated images are automatically downloaded and saved to temporary files. The file path is returned for further processing.
 
@@ -426,7 +426,7 @@ def analyze_image(
 - Avoid requesting copyrighted characters or inappropriate content
 
 **Key Parameters**:
-- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory ("")
 - `model`: DALL-E model to use (default: "dall-e-3")
 - `quality`: Quality setting for DALL-E 3 (default: "standard")
 - `size`: Image dimensions (default: "1024x1024")
@@ -506,7 +506,9 @@ def generate_image(
     cost = calculate_cost(model, 1, 0, "openai")  # 1 image
 
     # Handle agent memory with string-based pattern
-    use_memory = agent_name != ""  # Empty string = no memory
+    use_memory = (
+        agent_name != "" and agent_name.lower() != "false"
+    )  # Empty string or "false" = no memory
     if use_memory:
         from mcp_handley_lab.llm.common import get_session_id
 

@@ -274,7 +274,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced)."
+    description="Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=\"\"` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced)."
 )
 @require_client
 def ask(
@@ -292,7 +292,7 @@ def ask(
     Args:
         prompt: The question or instruction to send to Gemini
         output_file: Output destination - use '-' for immediate stdout (default, faster for short queries) or file path for longer responses
-        agent_name: Named agent for persistent memory (None=session, False=disabled)
+        agent_name: Named agent for persistent memory (\"session\"=session, \"\"=disabled)
         model: Gemini model name (gemini-2.5-flash for speed, gemini-2.5-pro for complex reasoning)
         temperature: Creativity level 0.0-1.0 (default: 0.7)
         grounding: Enable Google Search integration for current information
@@ -401,7 +401,9 @@ def generate_image(
     cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
 
     # Handle agent memory with string-based pattern
-    use_memory = agent_name != ""  # Empty string = no memory
+    use_memory = (
+        agent_name != "" and agent_name.lower() != "false"
+    )  # Empty string or "false" = no memory
 
     if use_memory:
         actual_agent_name = _get_session_id() if agent_name == "session" else agent_name
@@ -491,9 +493,9 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Gemini models (persistent memory by default, agent_name=False to disable)
-- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=False to disable)
-- generate_image: Generate images with Imagen 3 (persistent memory by default, agent_name=False to disable)
+- ask: Chat with Gemini models (persistent memory by default, agent_name=\"\" to disable)
+- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=\"\" to disable)
+- generate_image: Generate images with Imagen 3 (persistent memory by default, agent_name=\"\" to disable)
 - create_agent: Create persistent conversation agents
 - list_agents: List all agents and stats
 - agent_stats: Get detailed agent statistics

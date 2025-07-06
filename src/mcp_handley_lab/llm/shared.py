@@ -36,7 +36,9 @@ def process_llm_request(
     actual_agent_name = agent_name
 
     # Handle agent memory with string-based pattern
-    use_memory = agent_name != ""  # Empty string = no memory
+    use_memory = (
+        agent_name != "" and agent_name.lower() != "false"
+    )  # Empty string or "false" = no memory
     if use_memory:
         if agent_name == "session":
             actual_agent_name = get_session_id(mcp_instance)

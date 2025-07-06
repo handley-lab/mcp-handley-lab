@@ -276,7 +276,8 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name=False` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast)."
+    description="Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name="
+    "` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast)."
 )
 @require_client
 def ask(
@@ -306,7 +307,8 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options."
+    description="Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name="
+    "` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options."
 )
 @require_client
 def analyze_image(
@@ -377,8 +379,8 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Claude models (persistent memory by default, agent_name=False to disable)
-- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=False to disable)
+- ask: Chat with Claude models (persistent memory by default, agent_name="" to disable)
+- analyze_image: Image analysis with vision models (persistent memory by default, agent_name="" to disable)
 - server_info: Get server status
 
 Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""

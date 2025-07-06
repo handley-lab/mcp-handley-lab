@@ -172,14 +172,14 @@ def search_entities_semantic(
 
 
 @mcp.tool()
-def query_entities(jmespath_query: str) -> list[dict[str, Any]]:
+def query_entities(jmespath_query: str) -> Any:
     """Query notes using JMESPath expressions for structured queries.
 
     Args:
         jmespath_query: JMESPath expression (e.g., "[?type=='person'].properties.name")
 
     Returns:
-        Query results
+        Query results (can be any data structure: strings, numbers, arrays, objects, etc.)
     """
     manager = get_manager()
     return manager.query_entities_jmespath(jmespath_query)

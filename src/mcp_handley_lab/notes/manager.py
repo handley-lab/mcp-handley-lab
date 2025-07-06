@@ -20,6 +20,9 @@ class NotesManager:
         self.db = TinyDB(storage=MemoryStorage)
         self.semantic_search = OptionalSemanticSearch(local_storage_dir + "/notes")
         self._load_entities_to_db()
+        # Build initial semantic search index
+        notes = list(self.storage.load_all_entities().values())
+        self.semantic_search.rebuild_index(notes)
 
     def _load_entities_to_db(self):
         """Load all notes from YAML files into TinyDB for fast queries."""

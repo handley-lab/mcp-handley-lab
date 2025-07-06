@@ -285,43 +285,45 @@ def _openai_image_analysis_adapter(
 @mcp.tool(
     description="""Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.
 
-**Agent Recommendation**: For best results, consider creating a specialized agent with memory_manager.create_agent() before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
 - '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
 
-File Input Formats:
-- {"path": "/path/to/file"} - Reads file from filesystem
-- {"content": "text content"} - Uses provided text directly
-- "direct string" - Treats string as literal content
+**File Input Formats**:
+- `{"path": "/path/to/file"}` - Reads file from filesystem
+- `{"content": "text content"}` - Uses provided text directly
+- `"direct string"` - Treats string as literal content
 
-Key Parameters:
+**Key Parameters**:
 - `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
 - `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)
 - `max_output_tokens`: Override model's default output token limit
-- `agent_name`: Store conversation in persistent memory for ongoing interactions
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 
-Token Limits by Model:
+**Token Limits by Model**:
 - o3/o3-mini: 100,000 tokens (default)
 - o1-mini: 65,536 tokens (default)
 - o1-preview: 32,768 tokens (default)
 - gpt-4o/gpt-4o-mini: 4,096 tokens (default)
 - Use max_output_tokens parameter to override defaults
 
-Model Selection Guide:
+**Model Selection Guide**:
 - o3-mini: Fast reasoning for most tasks, cost-effective (200k context, default)
 - o3: Best reasoning for complex problems (200k context)
 - gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)
 - gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)
 
-Error Handling:
+**Error Handling**:
 - Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)
 - Raises ValueError for invalid file paths or unsupported content
 - Agent memory automatically handles conversation context limits
 - Large responses automatically saved to avoid MCP message size limits
 
-Examples:
+**Examples**:
 ```python
 # Basic question with file context
 ask(
@@ -388,19 +390,21 @@ def ask(
 @mcp.tool(
     description="""Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.
 
-**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
 - '-' to output directly to stdout (use sparingly for large analyses)
 
-Image Input Formats:
-- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
-- {"data": "base64_encoded_data"} - Base64 encoded image data
-- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
-- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+**Image Input Formats**:
+- `{"path": "/path/to/image.jpg"}` - Read from filesystem (preferred)
+- `{"data": "base64_encoded_data"}` - Base64 encoded image data
+- `"data:image/jpeg;base64,/9j/4AAQ..."` - Data URL format
+- `"/path/to/image.jpg"` - Direct path string (legacy, use dict format instead)
 
-Analysis Focus Options:
+**Analysis Focus Options**:
 - "general" (default) - Overall image description
 - "objects" - Focus on object detection and identification
 - "colors" - Analyze color palette and composition
@@ -410,17 +414,21 @@ Analysis Focus Options:
 - "medical" - Medical image analysis (disclaimer: not for diagnosis)
 - "code" - Analyze screenshots of code or diagrams
 
-Model Options:
+**Model Options**:
 - "gpt-4o" (default) - Best vision capabilities, handles complex visual reasoning
 - "gpt-4o-mini" - Faster, cost-effective vision analysis for simple tasks
 
-Error Handling:
+**Key Parameters**:
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `max_output_tokens`: Override model's default output token limit
+
+**Error Handling**:
 - Raises ValueError for missing images or unsupported formats
 - Raises RuntimeError for OpenAI API errors (quota, rate limits, content policy)
 - Supports: JPEG, PNG, GIF, WebP (max 20MB per image)
 - Multiple images increase token usage significantly
 
-Examples:
+**Examples**:
 ```python
 # Analyze single image
 analyze_image(
@@ -487,29 +495,45 @@ def analyze_image(
 
 
 @mcp.tool(
-    description="""Instruct an OpenAI DALL-E model to generate an image based on your text prompt. You provide the detailed description, and the AI creates the image.
+    description="""Generate images using OpenAI's DALL-E models. You provide the detailed description, and the AI creates the image.
 
-**Agent Recommendation**: Consider creating a specialized agent with memory_manager.create_agent() for image generation projects. This enables iterative creative work and maintains context for related image requests.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
-Model Options:
+**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+**Output Format**: Generated images are automatically downloaded and saved to temporary files. The file path is returned for further processing.
+
+**Model Options**:
 - "dall-e-3" (default) - Latest model with best quality and prompt adherence
 - "dall-e-2" - Previous generation, faster and more cost-effective
 
-Quality Settings:
+**Quality Settings**:
 - "standard" (default) - Good quality, faster generation
 - "hd" - Higher resolution and detail (DALL-E 3 only)
 
-Size Options:
+**Size Options**:
 - DALL-E 3: "1024x1024" (default), "1024x1792" (portrait), "1792x1024" (landscape)
 - DALL-E 2: "256x256", "512x512", "1024x1024" (default)
 
-Prompt Guidelines:
+**Prompt Guidelines**:
 - Be descriptive and specific for best results
 - Include style, mood, lighting, and composition details
 - DALL-E 3 follows prompts more precisely than DALL-E 2
 - Avoid requesting copyrighted characters or inappropriate content
 
-Examples:
+**Key Parameters**:
+- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `model`: DALL-E model to use (default: "dall-e-3")
+- `quality`: Quality setting for DALL-E 3 (default: "standard")
+- `size`: Image dimensions (default: "1024x1024")
+
+**Error Handling**:
+- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)
+- Raises ValueError for prompts violating OpenAI's usage policies
+- Image download may fail due to network issues; temporary URLs expire quickly
+- DALL-E 3 may revise prompts for safety compliance
+
+**Examples**:
 ```python
 # High-quality artistic image
 generate_image(
@@ -540,15 +564,7 @@ generate_image(
     model="dall-e-2",
     size="512x512"
 )
-```
-
-Note: Generated images are automatically downloaded and saved to temporary files. Use the returned file path for further processing.
-
-Error Handling:
-- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)
-- Raises ValueError for prompts violating OpenAI's usage policies
-- Image download may fail due to network issues; temporary URLs expire quickly
-- DALL-E 3 may revise prompts for safety compliance"""
+```"""
 )
 def generate_image(
     prompt: str,

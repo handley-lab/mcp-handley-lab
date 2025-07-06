@@ -40,7 +40,8 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 
 ```bash
 # Use the automated version bump script with semantic versioning
-python scripts/bump_version.py beta    # For development iterations (0.0.0b5 → 0.0.0b6)
+python scripts/bump_version.py         # Auto-detect minimal bump (0.0.1b5 → 0.0.1b6, 0.0.1 → 0.0.2)
+python scripts/bump_version.py beta    # For development iterations (0.0.1 → 0.0.1b1, 0.0.1b5 → 0.0.1b6)
 python scripts/bump_version.py patch   # For bug fixes (0.0.0b5 → 0.0.1)
 python scripts/bump_version.py minor   # For new features (0.0.0b5 → 0.1.0)  
 python scripts/bump_version.py major   # For breaking changes (0.0.0b5 → 1.0.0)
@@ -50,7 +51,7 @@ python scripts/bump_version.py rc      # Release candidate (0.0.0b5 → 0.0.0rc1
 python scripts/bump_version.py release # Final release (0.0.0rc1 → 0.0.0)
 
 # Test first with dry-run:
-python scripts/bump_version.py patch --dry-run
+python scripts/bump_version.py --dry-run
 ```
 
 **The script automatically updates both pyproject.toml and PKGBUILD** - never edit version numbers manually.

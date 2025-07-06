@@ -17,40 +17,7 @@ def _run_code2prompt(args: list[str]) -> str:
 
 
 @mcp.tool(
-    description="""Generates a structured, token-counted summary of a codebase and saves it to a file.
-
-Use this tool to create a summary file of a large codebase for analysis by an LLM. The primary output is a file, and the tool returns the path to this file.
-
-**Key Parameters:**
-- `path`: The path to the codebase to convert.
-- `output_file`: The path to save the summary file to. If not provided, a temporary file is created.
-- `include`/`exclude`: Glob patterns to filter files (e.g., `["*.py"]`, `["node_modules"]`).
-- `output_format`: The format of the summary file ("markdown", "json", "xml", or "plain").
-- `include_git_diff`: Set to `True` to include a git diff in the summary. Requires `git_diff_branch1` and `git_diff_branch2`.
-
-**Input/Output:**
-- **Input**: A path to a directory.
-- **Output**: A string containing the path to the generated summary file.
-
-**Examples:**
-```python
-# Analyze a Python project and save the summary to a file.
-generate_prompt(
-    path="/path/to/project",
-    include=["*.py"],
-    exclude=["__pycache__", "venv"],
-    output_file="/tmp/summary.md"
-)
-
-# Generate a summary including a git diff.
-generate_prompt(
-    path="/path/to/project",
-    include_git_diff=True,
-    git_diff_branch1="main",
-    git_diff_branch2="feature-branch",
-    output_file="/tmp/diff_summary.md"
-)
-```"""
+    description="Analyzes a source code directory and generates a structured, token-counted summary, saving it to a file. Useful for preparing a large codebase for LLM analysis. Key inputs are the `path` to the code and an `output_file`. Supports filtering files with `include`/`exclude` patterns and can incorporate a `git diff`. Returns the path to the generated summary file."
 )
 def generate_prompt(
     path: str,
@@ -143,7 +110,7 @@ def generate_prompt(
 
 
 @mcp.tool(
-    description="Checks the status of the Code2Prompt server and the availability of the `code2prompt` CLI tool. Use this to verify the tool is operational before calling other Code2Prompt functions. Returns version information and available commands."
+    description="Verifies the Code2Prompt tool is operational. Checks for the `code2prompt` CLI and returns its version information and a list of available commands. Use this to confirm the server is ready before generating a codebase summary."
 )
 def server_info() -> str:
     """Get server status and code2prompt version."""

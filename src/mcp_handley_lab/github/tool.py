@@ -11,21 +11,7 @@ mcp = FastMCP("GitHub CI Monitor")
 
 
 @mcp.tool(
-    description="""Monitor CI checks for a pull request continuously.
-
-This provides functionality not available in the native GitHub CLI - continuous
-monitoring of CI status with live updates. Use `gh pr merge` manually when ready.
-
-Features:
-- Live status updates with timestamps
-- Detailed check-by-check reporting
-- Automatic completion when all checks pass or any fail
-- Timeout protection to prevent infinite loops
-
-Use native gh CLI for other operations:
-- gh pr merge 25 --squash  # Merge PR after checks pass
-- gh pr view 25            # View PR details
-- gh pr list              # List open PRs"""
+    description="Continuously monitors the CI checks for a GitHub pull request, providing live updates. Specify the `pr_number` to watch. The tool reports the status of each check and automatically exits when all checks pass, any check fails, or the `timeout_minutes` is reached. Returns a log of the monitoring session."
 )
 def monitor_pr_checks(
     pr_number: int,
@@ -136,11 +122,14 @@ def server_info() -> str:
     stdout, stderr = run_command(["gh", "auth", "status"])
     auth_status = stdout.decode("utf-8").strip()
 
+    # Extract first line of auth status
+    first_auth_line = auth_status.split('\n')[0] if auth_status else 'Unknown'
+
     return f"""GitHub CI Monitor Server Status
 ==================================
 Status: Connected and ready
 GitHub CLI Version: {version.split()[0] if version else 'Unknown'}
-Authentication: {auth_status.split('\n')[0] if auth_status else 'Unknown'}
+Authentication: {first_auth_line}
 
 Available Functions:
 - monitor_pr_checks: Monitor CI status with live updates

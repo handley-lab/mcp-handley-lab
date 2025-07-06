@@ -22,40 +22,7 @@ def _parse_msmtprc(config_file: str = None) -> list[str]:
     return accounts
 
 
-@mcp.tool(description="""Sends an email programmatically and non-interactively using a pre-configured msmtp account.
-
-This tool is ideal for automated notifications or sending emails from scripts without opening an interactive client. It relies on your existing `~/.msmtprc` configuration for server details, authentication, and sender information.
-
-**Key Parameters:**
-- `to`: The primary recipient's email address.
-- `subject`: The subject line of the email.
-- `body`: The plain text content of the email body.
-- `account`: (Optional) The specific msmtp account to use for sending, as defined in `~/.msmtprc`. If omitted, the default account is used.
-- `cc`: (Optional) Comma-separated list of carbon copy recipients.
-- `bcc`: (Optional) Comma-separated list of blind carbon copy recipients.
-
-**Behavior:**
-- The email is constructed and piped directly to the `msmtp` command-line tool.
-- The command executes synchronously and will raise an error if sending fails (e.g., due to configuration issues or network problems).
-
-**Examples:**
-```python
-# Send a simple notification.
-send(
-    to="user@example.com",
-    subject="Automated Task Complete",
-    body="The nightly backup job has finished successfully."
-)
-
-# Send an email using a specific account with a CC.
-send(
-    to="team-lead@example.com",
-    cc="team@example.com",
-    subject="[Project X] Weekly Report",
-    body="Please find the weekly report attached.",
-    account="work_account"
-)
-```""")
+@mcp.tool(description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients.")
 def send(
     to: str,
     subject: str,
@@ -100,27 +67,7 @@ def send(
     )
 
 
-@mcp.tool(description="""Lists all available sending accounts configured in your msmtp settings file (`~/.msmtprc`).
-
-Use this tool to discover the valid account names you can use with the `send` tool's `account` parameter. It parses the configuration file and returns a list of all defined accounts, excluding the 'default' entry.
-
-**Key Parameters:**
-- `config_file`: (Optional) The path to a custom `msmtprc` file. If omitted, it defaults to `~/.msmtprc`.
-
-**Behavior:**
-- Reads the specified configuration file line by line.
-- Extracts any line starting with "account" that is not "account default".
-- Returns a formatted string listing the account names.
-
-**Examples:**
-```python
-# List all configured accounts from the default location.
-list_accounts()
-# Example Output:
-# Available msmtp accounts:
-# - work_account
-# - personal_gmail
-```""")
+@mcp.tool(description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool.")
 def list_accounts(config_file: str = None) -> str:
     """List available msmtp accounts by parsing msmtp config."""
     accounts = _parse_msmtprc(config_file)

@@ -56,31 +56,7 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
 
 
 @mcp.tool(
-    description="""Opens Vim to edit content in a temporary file.
-
-**Key Parameters:**
-- `content`: The initial content to edit.
-- `file_extension`: The file extension to use for the temporary file. Defaults to ".txt".
-- `instructions`: Optional instructions to display as comments at the top of the file.
-- `show_diff`: If `True`, returns a diff of the changes. Otherwise, returns the full edited content. Defaults to `True`.
-- `keep_file`: If `True`, the temporary file is not deleted after editing. Defaults to `False`.
-
-**Input/Output:**
-- **Input**: Initial content and optional instructions.
-- **Output**: A string containing either a diff of the changes or the full edited content.
-
-**Error Handling:**
-- Raises `subprocess.CalledProcessError` if Vim exits with a non-zero status.
-
-**Examples:**
-```python
-# Edit a Python code snippet with instructions.
-prompt_user_edit(
-    content="def hello():\n    pass",
-    file_extension=".py",
-    instructions="Add a docstring and a print statement."
-)
-```"""
+    description="Opens Vim to edit content in a temporary file. Provide initial `content` and optional `instructions`. Set `file_extension` for syntax highlighting. Returns a diff of changes by default or full content if `show_diff=False`."
 )
 def prompt_user_edit(
     content: str,
@@ -149,53 +125,7 @@ def prompt_user_edit(
 
 
 @mcp.tool(
-    description="""Opens Vim to create new content from scratch with optional starting content and instructions.
-
-Creates a temporary file with optional initial content and instructions, opens Vim for editing, then returns the final content.
-
-Behavior:
-- Opens vim directly in the current terminal environment
-- Requires interactive terminal access for proper functionality
-
-Features:
-- Start with empty file or pre-populate with `initial_content`
-- Add instructions as comments that are automatically stripped
-- Temporary file is automatically cleaned up
-- Choose file extension for proper syntax highlighting
-
-Error Handling:
-- Raises subprocess.CalledProcessError if vim exits abnormally
-- File creation/deletion errors are handled gracefully
-- Returns empty string if user exits vim without saving
-
-Examples:
-```python
-# Create new Python script
-quick_edit(
-    file_extension=".py",
-    instructions="Create a function that calculates fibonacci numbers",
-    initial_content="#!/usr/bin/env python3\n\n"
-)
-
-# Create configuration file
-quick_edit(
-    file_extension=".json",
-    instructions="Create a config for database connection",
-    initial_content="{\n  \n}"
-)
-
-# Create plain text document
-quick_edit(
-    instructions="Write a brief project summary"
-)
-
-# Create shell script
-quick_edit(
-    file_extension=".sh",
-    instructions="Create a deployment script",
-    initial_content="#!/bin/bash\nset -e\n\n"
-)
-```"""
+    description="Opens Vim to create new content from scratch with optional `initial_content` and `instructions`. Creates a temporary file, opens Vim for editing, then returns the final content. Instructions are shown as comments and automatically stripped."
 )
 def quick_edit(
     file_extension: str = ".txt", instructions: str = None, initial_content: str = ""
@@ -229,66 +159,7 @@ def quick_edit(
 
 
 @mcp.tool(
-    description="""Opens an existing file in Vim for editing with optional instructions and automatic backup.
-
-Opens the specified file directly in Vim. If instructions are provided, they are shown in a read-only buffer first, then the actual file opens for editing.
-
-Behavior:
-- Opens vim directly in the current terminal environment
-- Requires interactive terminal access for proper functionality
-
-File Safety:
-- Automatic backup creation (file.ext.bak) unless `backup=False`
-- Instructions shown in separate read-only buffer to avoid accidental modification
-- Error handling if file doesn't exist or isn't readable
-
-Output Options:
-- `show_diff=True` (default): Shows unified diff of changes with line counts
-- `show_diff=False`: Simple confirmation message
-
-Behavior:
-1. Create backup if enabled
-2. Show instructions in read-only Vim buffer (if provided)
-3. Open actual file for editing
-4. Calculate and return diff or confirmation
-
-Examples:
-```python
-# Edit existing file with guidance
-open_file(
-    file_path="/path/to/config.py",
-    instructions="Update the database URL and add error handling",
-    show_diff=True
-)
-
-# Quick edit without backup
-open_file(
-    file_path="/tmp/notes.txt",
-    backup=False,
-    show_diff=False
-)
-
-# Edit with detailed instructions
-open_file(
-    file_path="src/main.py",
-    instructions=\"\"\"Please make the following changes:
-1. Add type hints to all functions
-2. Add docstrings following Google style
-3. Fix any linting issues\"\"\",
-    backup=True
-)
-
-# Simple edit (no instructions)
-open_file("/path/to/file.txt")
-```
-
-Note: If the file doesn't exist, Vim will create it. The backup will only be created if the file exists before editing.
-
-Error Handling:
-- Raises FileNotFoundError if file path is invalid or inaccessible
-- Raises PermissionError if file cannot be read or written
-- Backup creation failures are logged but don't prevent editing
-- Instructions display errors don't prevent file editing"""
+    description="Opens an existing file in Vim for interactive editing. If `instructions` are provided, the user must first view them in a read-only buffer before proceeding. Creates a backup (.bak) by default. Returns a diff of the changes."
 )
 def open_file(
     file_path: str,

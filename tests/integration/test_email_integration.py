@@ -512,7 +512,7 @@ Subject: {test_subject}
             test_body = f"Email tool integration test sent at {time.strftime('%Y-%m-%d %H:%M:%S')} with ID: {test_id}"
 
             # Mock the config paths to use our test configurations
-            def mock_run_command(cmd, input_data=None, cwd=None):
+            def mock_run_command(cmd, input_data=None, timeout=30, cwd=None):
                 if cmd[0] == "msmtp":
                     # Add our test config to msmtp command
                     test_cmd = ["msmtp", "-C", "msmtprc"] + cmd[1:]
@@ -524,6 +524,7 @@ Subject: {test_subject}
                         capture_output=True,
                         text=True,
                         cwd=fixtures_dir,
+                        timeout=timeout,
                     )
                     if result.returncode != 0:
                         raise RuntimeError(
@@ -536,14 +537,18 @@ Subject: {test_subject}
                     import subprocess
 
                     result = subprocess.run(
-                        test_cmd, capture_output=True, text=True, cwd=fixtures_dir
+                        test_cmd,
+                        capture_output=True,
+                        text=True,
+                        cwd=fixtures_dir,
+                        timeout=timeout,
                     )
                     return (result.stdout.encode(), result.stderr.encode())
                 else:
                     # For other commands, use the original function
                     from mcp_handley_lab.common.process import run_command
 
-                    return run_command(cmd, input_data=input_data)
+                    return run_command(cmd, input_data=input_data, timeout=timeout)
 
             with patch(
                 "mcp_handley_lab.email.msmtp.tool.run_command",

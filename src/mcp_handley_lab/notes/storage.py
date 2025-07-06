@@ -134,28 +134,18 @@ class GlobalLocalYAMLStorage:
         # Load global scope mappings
         global_mapping_file = self._scope_mapping_file("global")
         if global_mapping_file.exists():
-            # Gracefully handle corrupted mapping files by skipping them
-            try:
-                with open(global_mapping_file) as f:
-                    global_mappings = json.load(f)
-                    for entity_id in global_mappings.get("notes", []):
-                        self._entity_scopes[entity_id] = "global"
-            except (json.JSONDecodeError, KeyError):
-                # Skip corrupted mapping files - they'll be rebuilt
-                pass
+            with open(global_mapping_file) as f:
+                global_mappings = json.load(f)
+                for entity_id in global_mappings.get("notes", []):
+                    self._entity_scopes[entity_id] = "global"
 
         # Load local scope mappings
         local_mapping_file = self._scope_mapping_file("local")
         if local_mapping_file.exists():
-            # Gracefully handle corrupted mapping files by skipping them
-            try:
-                with open(local_mapping_file) as f:
-                    local_mappings = json.load(f)
-                    for entity_id in local_mappings.get("notes", []):
-                        self._entity_scopes[entity_id] = "local"
-            except (json.JSONDecodeError, KeyError):
-                # Skip corrupted mapping files - they'll be rebuilt
-                pass
+            with open(local_mapping_file) as f:
+                local_mappings = json.load(f)
+                for entity_id in local_mappings.get("notes", []):
+                    self._entity_scopes[entity_id] = "local"
 
         # Sync with actual files (notes that exist but aren't in mappings)
         for entity_id in self.global_storage.list_entity_ids():

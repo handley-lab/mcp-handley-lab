@@ -144,7 +144,3 @@ Available tools:
 - delete_agent: Permanently delete an agent
 - get_response: Get specific message from agent history
 - server_info: Get server status"""
-
-
-if __name__ == "__main__":
-    mcp.run()

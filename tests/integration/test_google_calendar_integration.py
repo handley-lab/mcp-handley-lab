@@ -50,12 +50,16 @@ def test_google_calendar_event_lifecycle(google_calendar_test_config):
 
     assert "created" in create_result.lower()
 
-    # Extract event ID from create result
-    event_id = None
-    for line in create_result.split("\n"):
-        if "event id" in line.lower() or "id:" in line.lower():
-            event_id = line.split(":")[-1].strip()
-            break
+    # Extract event ID from structured JSON response
+    import json
+
+    try:
+        result_data = json.loads(create_result)
+        event_id = result_data.get("event_id")
+        assert result_data.get("status") == "Event created successfully!"
+        assert result_data.get("title") == event_title
+    except (json.JSONDecodeError, AssertionError):
+        pytest.fail(f"Invalid create_event response format: {create_result}")
 
     if event_id:
         # Get event

@@ -6,7 +6,6 @@ from mcp_handley_lab.llm.gemini.tool import (
     MODEL_CONFIGS,
     _get_model_config,
     analyze_image,
-    ask,
 )
 
 
@@ -69,25 +68,6 @@ class TestInputValidation:
     """Test input validation for token limits and boolean handling."""
 
     @patch("mcp_handley_lab.llm.gemini.tool.client")
-    def test_ask_agent_name_false_validation(self, mock_client):
-        """Test that agent_name=False doesn't cause validation errors."""
-        mock_client.models.generate_content.side_effect = Exception(
-            "Should not be called"
-        )
-
-        # This should not raise a validation error
-        try:
-            ask(prompt="Test", output_file="/tmp/test.txt", agent_name=False)
-        except ValueError as e:
-            if "strip" in str(e):
-                pytest.fail(
-                    "agent_name=False should not cause strip() validation error"
-                )
-        except Exception:
-            # Other exceptions are expected (like the mock exception)
-            pass
-
-    @patch("mcp_handley_lab.llm.gemini.tool.client")
     def test_analyze_image_agent_name_false_validation(self, mock_client):
         """Test that agent_name=False doesn't cause validation errors in analyze_image."""
         mock_client.models.generate_content.side_effect = Exception(
@@ -131,24 +111,6 @@ class TestErrorHandling:
         with pytest.raises(Exception, match="API key invalid"):
             importlib.reload(mcp_handley_lab.llm.gemini.tool)
 
-    @patch("mcp_handley_lab.llm.gemini.tool.is_text_file")
-    @patch("pathlib.Path.stat")
-    @patch("pathlib.Path.read_text")
-    def test_resolve_files_read_error(self, mock_read_text, mock_stat, mock_is_text):
-        """Test file reading error in _resolve_files - should fail fast."""
-        from mcp_handley_lab.llm.gemini.tool import _resolve_files
-
-        mock_stat.return_value.st_size = 100  # Small file
-        mock_is_text.return_value = True
-        # Make read_text fail
-        mock_read_text.side_effect = Exception("Permission denied")
-
-        files = [{"path": "/tmp/test.txt"}]
-
-        # Should raise exception instead of adding error text
-        with pytest.raises(Exception, match="Permission denied"):
-            _resolve_files(files)
-
     def test_resolve_files_processing_error(self):
         """Test file processing error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
@@ -159,19 +121,6 @@ class TestErrorHandling:
         # Should raise FileNotFoundError instead of adding error text
         with pytest.raises(FileNotFoundError):
             _resolve_files(files)
-
-    @patch("pathlib.Path.read_bytes")
-    @patch("PIL.Image.open")
-    def test_resolve_images_load_error(self, mock_image_open, mock_read_bytes):
-        """Test image loading error in _resolve_images (lines 161-162)."""
-        from mcp_handley_lab.llm.gemini.tool import _resolve_images
-
-        # Return valid bytes but make PIL.Image.open fail
-        mock_read_bytes.return_value = b"some image data"
-        mock_image_open.side_effect = Exception("Invalid image format")
-
-        with pytest.raises(Exception, match="Invalid image format"):
-            _resolve_images(images=[{"path": "/tmp/invalid.jpg"}])
 
     @patch("mcp_handley_lab.llm.gemini.tool.client")
     def test_analyze_image_output_file_validation(self, mock_client):

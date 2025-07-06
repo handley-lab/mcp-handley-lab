@@ -1,0 +1,68 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What color is this image?"}, {"inlineData":
+      {"data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD_gAIDAAAA5klEQVR4nO3QQQkAIADAQLV_Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx_GEGnoAAAAASUVORK5CYII=",
+      "mimeType": "image/png"}}], "role": "user"}], "generationConfig": {"temperature":
+      0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '589'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Based on the image you provided, the
+        color is **red**.\\n\\nMore specifically, it's a solid, bright red. In digital
+        color systems, this pure red is typically represented by:\\n*   **Hex code:**
+        #FF0000\\n*   **RGB value:** (255, 0, 0)\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 265,\n    \"candidatesTokenCount\":
+        70,\n    \"totalTokenCount\": 787,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 7\n      },\n      {\n
+        \       \"modality\": \"IMAGE\",\n        \"tokenCount\": 258\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 452\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"5jNqaPrgFcyFxs0PpKPlgQk\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sun, 06 Jul 2025 08:29:26 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=6841
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '844'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,113 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What does this shell script do? What
+      are the main steps?"}, {"text": "[File: tmp97e4cped.sh]\n#!/bin/bash\n# Build
+      and deploy script\nset -e\n\necho \"Starting build process...\"\nnpm install\nnpm
+      run build\nnpm test\n\necho \"Deploying to production...\"\nrsync -av dist/
+      user@server:/var/www/\necho \"Deployment complete!\"\n"}], "role": "user"}],
+      "generationConfig": {"temperature": 0.7, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '452'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"This shell script is a **build and
+        deployment script** for a web application, likely a Node.js or JavaScript-based
+        project, given the use of `npm`. It automates the process of preparing the
+        application for production and then transferring it to a remote server.\\n\\n###
+        What the script does:\\n\\nThe script first ensures that any command failure
+        will stop the script immediately (`set -e`). Then, it proceeds to:\\n1.  **Build
+        the application**: It installs project dependencies, compiles/bundles the
+        application code, and runs automated tests.\\n2.  **Deploy to production**:
+        If all build and test steps are successful, it copies the ready-to-deploy
+        application files from a local `dist/` directory to a specified directory
+        on a remote server using `rsync`.\\n\\n### Main Steps:\\n\\n1.  **Initialization
+        and Error Handling (`set -e`)**:\\n    *   `#!/bin/bash`: Specifies that the
+        script should be executed with Bash.\\n    *   `set -e`: This is a crucial
+        command. It ensures that the script will exit immediately if any command fails
+        (returns a non-zero exit status). This prevents deploying an application that
+        failed to build or pass tests.\\n\\n2.  **Build Process**:\\n    *   `echo
+        \\\"Starting build process...\\\"`: Prints a message indicating the start
+        of the build phase.\\n    *   `npm install`: Installs all the project dependencies
+        (libraries, frameworks, etc.) defined in the `package.json` file. This ensures
+        that all necessary packages are available for building the application.\\n
+        \   *   `npm run build`: Executes a custom build script defined in the `package.json`
+        file (e.g., `scripts.build`). This command typically compiles source code
+        (e.g., TypeScript, Babel), bundles JavaScript, CSS, and other assets (e.g.,
+        using Webpack, Rollup), minifies files, and generally prepares the application
+        for production. The output of this step is usually placed in a dedicated directory,
+        often named `dist/` or `build/`.\\n    *   `npm test`: Runs the automated
+        tests for the project, as defined in `package.json`. This acts as a quality
+        gate; if tests fail, `set -e` will cause the script to exit, preventing the
+        deployment of potentially broken code.\\n\\n3.  **Deployment Process**:\\n
+        \   *   `echo \\\"Deploying to production...\\\"`: Prints a message indicating
+        the start of the deployment phase.\\n    *   `rsync -av dist/ user@server:/var/www/`:
+        This is the core deployment command.\\n        *   `rsync`: A powerful utility
+        for synchronizing files and directories efficiently, only transferring changes.\\n
+        \       *   `-a`: Archive mode. This is a shorthand for several options (`-rlptgoD`)
+        that preserve permissions, ownership, timestamps, and recursively copy directories.
+        It's essential for deploying applications.\\n        *   `-v`: Verbose mode.
+        Shows details of the files being transferred.\\n        *   `dist/`: The source
+        directory on the local machine. This is where the `npm run build` command
+        would have placed the optimized, production-ready application files.\\n        *
+        \  `user@server:/var/www/`: The destination on the remote server.\\n            *
+        \  `user`: The SSH username to connect with.\\n            *   `server`: The
+        hostname or IP address of the production server.\\n            *   `/var/www/`:
+        The target directory on the remote server where the application files will
+        be placed (a common location for web server roots).\\n    *   `echo \\\"Deployment
+        complete!\\\"`: Prints a final success message after the deployment is finished.\\n\\nIn
+        summary, this script automates the continuous integration/continuous deployment
+        (CI/CD) process for a web project, ensuring that only successfully built and
+        tested code makes it to the production server.\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        89,\n    \"candidatesTokenCount\": 815,\n    \"totalTokenCount\": 1963,\n
+        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 89\n      }\n    ],\n    \"thoughtsTokenCount\": 1059\n
+        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"dzFqaMeoI_bZvdIPyeOQuQI\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sun, 06 Jul 2025 08:19:03 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=10603
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '4197'
+    status:
+      code: 200
+      message: OK
+version: 1

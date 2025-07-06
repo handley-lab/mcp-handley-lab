@@ -1,0 +1,81 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Test prompt"}], "model": "invalid-model-name-that-does-not-exist",
+      "max_completion_tokens": 100000, "temperature": 0.7}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '152'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.91.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.91.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.3
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n    \"error\": {\n        \"message\": \"The model `invalid-model-name-that-does-not-exist`
+        does not exist or you do not have access to it.\",\n        \"type\": \"invalid_request_error\",\n
+        \       \"param\": null,\n        \"code\": \"model_not_found\"\n    }\n}\n"
+    headers:
+      CF-RAY:
+      - 95ade4ea2e45eb18-MAN
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sun, 06 Jul 2025 08:57:23 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=LZneSIr1Q81BeuHHVUaygmlRPmqeSE1Jmg2FbsxLsa4-1751792243-1.0.1.1-136F_e4QmOdkO7XeJmycrZtq5PJN0AoYiWTcbfJyYN34DCLTsojocxDxlLxAK4qEQAPrUKyNz.yUSG13tvGzy1grojlis0hBDYmN3DCieoY;
+        path=/; expires=Sun, 06-Jul-25 09:27:23 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=8VUbVD55LoLZqZwNNJN07NmhuCZvG.sOqf.skWNbNJE-1751792243981-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '244'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      vary:
+      - Origin
+      x-request-id:
+      - req_cf7e88537bcf05f65f9d5caefc1806c6
+    status:
+      code: 404
+      message: Not Found
+version: 1

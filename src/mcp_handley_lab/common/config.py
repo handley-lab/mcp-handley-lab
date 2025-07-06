@@ -1,11 +1,14 @@
 """Configuration management for MCP Framework."""
 from pathlib import Path
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """Global settings for MCP Framework."""
+
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     # API Keys
     gemini_api_key: str = "YOUR_API_KEY_HERE"
@@ -15,10 +18,6 @@ class Settings(BaseSettings):
     # Google Calendar
     google_credentials_file: str = "~/.google_calendar_credentials.json"
     google_token_file: str = "~/.google_calendar_token.json"
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
     @property
     def google_credentials_path(self) -> Path:

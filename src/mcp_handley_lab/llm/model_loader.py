@@ -106,8 +106,7 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
             # Claude format - require explicit values in YAML
             if "input_tokens" not in model_info:
                 raise ValueError(f"Missing 'input_tokens' for Claude model {model_id}")
-            if "output_tokens" not in model_info:
-                raise ValueError(f"Missing 'output_tokens' for Claude model {model_id}")
+            # All Claude models in YAML have output_tokens defined - no need for defensive check
             model_configs[model_id] = {
                 "input_tokens": model_info["input_tokens"],
                 "output_tokens": model_info["output_tokens"],

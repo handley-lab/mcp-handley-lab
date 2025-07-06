@@ -50,48 +50,36 @@ class YAMLNoteStorage:
 
     def save_note(self, note: Note) -> bool:
         """Save an note to a YAML file."""
-        try:
-            file_path = self._entity_file_path(note.id)
-            data = self._serialize_entity(note)
+        file_path = self._entity_file_path(note.id)
+        data = self._serialize_entity(note)
 
-            with open(file_path, "w") as f:
-                self.yaml.dump(data, f)
+        with open(file_path, "w") as f:
+            self.yaml.dump(data, f)
 
-            return True
-        except Exception:
-            return False
+        return True
 
     def load_entity(self, entity_id: str) -> Note | None:
         """Load an note from its YAML file."""
-        try:
-            file_path = self._entity_file_path(entity_id)
-            if not file_path.exists():
-                return None
-
-            with open(file_path) as f:
-                data = self.yaml.load(f)
-
-            return self._deserialize_entity(data)
-        except Exception:
+        file_path = self._entity_file_path(entity_id)
+        if not file_path.exists():
             return None
+
+        with open(file_path) as f:
+            data = self.yaml.load(f)
+
+        return self._deserialize_entity(data)
 
     def delete_note(self, entity_id: str) -> bool:
         """Delete an note's YAML file."""
-        try:
-            file_path = self._entity_file_path(entity_id)
-            if file_path.exists():
-                file_path.unlink()
-                return True
-            return False
-        except Exception:
-            return False
+        file_path = self._entity_file_path(entity_id)
+        if file_path.exists():
+            file_path.unlink()
+            return True
+        return False
 
     def list_entity_ids(self) -> list[str]:
         """List all note IDs (filenames without .yaml extension)."""
-        try:
-            return [f.stem for f in self.entities_dir.glob("*.yaml")]
-        except Exception:
-            return []
+        return [f.stem for f in self.entities_dir.glob("*.yaml")]
 
     def load_all_entities(self) -> dict[str, Note]:
         """Load all notes into memory."""
@@ -108,18 +96,15 @@ class YAMLNoteStorage:
 
     def backup_entity(self, entity_id: str) -> bool:
         """Create a backup of an note file."""
-        try:
-            file_path = self._entity_file_path(entity_id)
-            if not file_path.exists():
-                return False
-
-            backup_path = file_path.with_suffix(
-                f".yaml.backup_{int(datetime.now().timestamp())}"
-            )
-            backup_path.write_text(file_path.read_text())
-            return True
-        except Exception:
+        file_path = self._entity_file_path(entity_id)
+        if not file_path.exists():
             return False
+
+        backup_path = file_path.with_suffix(
+            f".yaml.backup_{int(datetime.now().timestamp())}"
+        )
+        backup_path.write_text(file_path.read_text())
+        return True
 
 
 class GlobalLocalYAMLStorage:
@@ -149,23 +134,27 @@ class GlobalLocalYAMLStorage:
         # Load global scope mappings
         global_mapping_file = self._scope_mapping_file("global")
         if global_mapping_file.exists():
+            # Gracefully handle corrupted mapping files by skipping them
             try:
                 with open(global_mapping_file) as f:
                     global_mappings = json.load(f)
                     for entity_id in global_mappings.get("notes", []):
                         self._entity_scopes[entity_id] = "global"
-            except Exception:
+            except (json.JSONDecodeError, KeyError):
+                # Skip corrupted mapping files - they'll be rebuilt
                 pass
 
         # Load local scope mappings
         local_mapping_file = self._scope_mapping_file("local")
         if local_mapping_file.exists():
+            # Gracefully handle corrupted mapping files by skipping them
             try:
                 with open(local_mapping_file) as f:
                     local_mappings = json.load(f)
                     for entity_id in local_mappings.get("notes", []):
                         self._entity_scopes[entity_id] = "local"
-            except Exception:
+            except (json.JSONDecodeError, KeyError):
+                # Skip corrupted mapping files - they'll be rebuilt
                 pass
 
         # Sync with actual files (notes that exist but aren't in mappings)

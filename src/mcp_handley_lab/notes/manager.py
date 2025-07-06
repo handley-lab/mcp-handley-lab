@@ -8,7 +8,7 @@ from tinydb import Query, TinyDB
 from tinydb.storages import MemoryStorage
 
 from .models import Note
-from .semantic_search import OptionalSemanticSearch
+from .semantic_search import SemanticSearchManager
 from .storage import GlobalLocalYAMLStorage
 
 
@@ -18,7 +18,7 @@ class NotesManager:
     def __init__(self, local_storage_dir: str = ".mcp_handley_lab"):
         self.storage = GlobalLocalYAMLStorage(local_storage_dir)
         self.db = TinyDB(storage=MemoryStorage)
-        self.semantic_search = OptionalSemanticSearch(local_storage_dir + "/notes")
+        self.semantic_search = SemanticSearchManager(local_storage_dir + "/notes")
         self._load_entities_to_db()
         # Build initial semantic search index
         notes = list(self.storage.load_all_entities().values())
@@ -328,7 +328,7 @@ class NotesManager:
             "note_types": type_counts,
             "scopes": scope_counts,
             "unique_tags": len(self.get_all_tags()),
-            "semantic_search": self.semantic_search.get_stats(),
+            "semantic_search": self.semantic_search.get_collection_stats(),
             "storage_dirs": {
                 "global": str(self.storage.global_storage.entities_dir),
                 "local": str(self.storage.local_storage.entities_dir),

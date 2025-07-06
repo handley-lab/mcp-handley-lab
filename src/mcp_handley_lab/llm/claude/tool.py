@@ -338,42 +338,44 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="""Asks a question to a Claude model with optional file context and persistent memory.
+    description="""Start or continue a conversation with a Claude model. This tool sends your prompt, along with any provided files, directly to the Claude model and returns its response.
 
-**Memory Behavior**: Conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Memory Behavior**: Conversations with Claude are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
 - '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
 
-File Input Formats:
-- {"path": "/path/to/file"} - Reads file from filesystem
-- {"content": "text content"} - Uses provided text directly
-- "direct string" - Treats string as literal content
+**File Input Formats**:
+- `{"path": "/path/to/file"}` - Reads file from filesystem
+- `{"content": "text content"}` - Uses provided text directly
+- `"direct string"` - Treats string as literal content
 
-Key Parameters:
+**Key Parameters**:
 - `model`: "sonnet" (balanced, default), "opus" (best reasoning), "haiku" (fast), or full model name
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
 - `max_output_tokens`: Override model's default output token limit
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 
-Token Limits by Model:
+**Token Limits by Model**:
 - claude-3-opus: 4,096 tokens (default), 200k context
 - claude-3-5-sonnet: 8,192 tokens (default), 200k context
 - claude-3-5-haiku: 8,192 tokens (default), 200k context
 - Use max_output_tokens parameter to override defaults
 
-Model Selection Guide:
+**Model Selection Guide**:
 - sonnet: Best balance of speed and capability (default)
 - opus: Best for complex reasoning and analysis
 - haiku: Fastest and most cost-effective
 
-Error Handling:
+**Error Handling**:
 - Raises RuntimeError for Claude API errors (authentication, quota, network)
 - Raises ValueError for invalid file paths or malformed requests
 - Large responses automatically saved to avoid MCP message size limits
 
-Examples:
+**Examples**:
 ```python
 # Basic question with session memory (default)
 ask(
@@ -433,21 +435,23 @@ def ask(
 
 
 @mcp.tool(
-    description="""Analyzes images using Claude's advanced vision capabilities.
+    description="""Analyze images using Claude's advanced vision capabilities. This tool sends your prompt and images to a Claude vision model, allowing you to have a conversation about the visual content.
+
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
 - '-' to output directly to stdout (use sparingly for large analyses)
 
-Image Input Formats:
-- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
-- {"data": "base64_encoded_data"} - Base64 encoded image data
-- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
-- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+**Image Input Formats**:
+- `{"path": "/path/to/image.jpg"}` - Read from filesystem (preferred)
+- `{"data": "base64_encoded_data"}` - Base64 encoded image data
+- `"data:image/jpeg;base64,/9j/4AAQ..."` - Data URL format
+- `"/path/to/image.jpg"` - Direct path string (legacy, use dict format instead)
 
-Analysis Focus Options:
+**Analysis Focus Options**:
 - "general" (default) - Overall image description
 - "objects" - Focus on object detection and identification
 - "colors" - Analyze color palette and composition
@@ -456,21 +460,22 @@ Analysis Focus Options:
 - "technical" - Focus on technical aspects, quality, metadata
 - "code" - Analyze screenshots of code or diagrams
 
-Model Options:
+**Model Options**:
 - "claude-3-5-sonnet-20240620" (default) - Best for detailed analysis
 - "claude-3-opus-20240229" - Best for complex visual reasoning
 - "claude-3-5-haiku-20241022" - Faster response for simple descriptions
 
-Key Parameters:
+**Key Parameters**:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `max_output_tokens`: Override model's default output token limit
 
-Error Handling:
+**Error Handling**:
 - Raises ValueError for missing or invalid image inputs
 - Raises RuntimeError for Claude API errors (quota, authentication, unsupported formats)
 - Supports common formats: JPEG, PNG, GIF, WebP
 - Large images may be automatically resized by the API
 
-Examples:
+**Examples**:
 ```python
 # Analyze image with session memory (default)
 analyze_image(

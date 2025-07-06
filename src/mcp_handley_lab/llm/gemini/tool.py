@@ -299,27 +299,33 @@ def _gemini_image_analysis_adapter(
 
 **Memory Behavior**: Conversations with Gemini are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the response for future processing (recommended for large responses)
 - '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
 
-File Input Formats:
-- {"path": "/path/to/file"} - Reads file from filesystem
-- {"content": "text content"} - Uses provided text directly
-- "direct string" - Treats string as literal content
+**File Input Formats**:
+- `{"path": "/path/to/file"}` - Reads file from filesystem
+- `{"content": "text content"}` - Uses provided text directly
+- `"direct string"` - Treats string as literal content
 
-Key Parameters:
+**Key Parameters**:
 - `model`: "gemini-2.5-flash" (fast, default), "gemini-2.5-pro" (advanced reasoning), or full model name
 - `grounding`: Enable Google Search integration for current/recent information and factual accuracy (default: False, may increase response time). **Recommended for**: current date/time, recent events, real-time data, breaking news, or any information that may have changed recently
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
 - `temperature`: Creativity level 0.0 (deterministic) to 1.0 (creative, default: 0.7)
+- `max_output_tokens`: Override model's default output token limit
 
-Error Handling:
+**Token Limits by Model**:
+- gemini-2.5-flash/pro: 65,536 tokens (default)
+- gemini-1.5-flash/pro: 8,192 tokens (default)
+- Use max_output_tokens parameter to override defaults
+
+**Error Handling**:
 - Raises RuntimeError for Gemini API errors (authentication, quota, network)
 - Raises ValueError for invalid file paths or malformed requests
 - Large responses automatically saved to avoid MCP message size limits
 
-Examples:
+**Examples**:
 ```python
 # Quick question with stdout (default, immediate response)
 ask(prompt="What is 2+2?")
@@ -399,21 +405,21 @@ def ask(
 @mcp.tool(
     description="""Engage Gemini's vision capabilities to analyze and discuss images. This tool sends your prompt and images to a Gemini vision model, allowing you to have a conversation about the visual content.
 
-**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.
 
 **Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
-CRITICAL: The `output_file` parameter is REQUIRED. Use:
+**Output Handling**: The `output_file` parameter is REQUIRED. Use:
 - A file path to save the analysis for future processing (recommended)
 - '-' to output directly to stdout (use sparingly for large analyses)
 
-Image Input Formats:
-- {"path": "/path/to/image.jpg"} - Read from filesystem (preferred)
-- {"data": "base64_encoded_data"} - Base64 encoded image data
-- "data:image/jpeg;base64,/9j/4AAQ..." - Data URL format
-- "/path/to/image.jpg" - Direct path string (legacy, use dict format instead)
+**Image Input Formats**:
+- `{"path": "/path/to/image.jpg"}` - Read from filesystem (preferred)
+- `{"data": "base64_encoded_data"}` - Base64 encoded image data
+- `"data:image/jpeg;base64,/9j/4AAQ..."` - Data URL format
+- `"/path/to/image.jpg"` - Direct path string (legacy, use dict format instead)
 
-Analysis Focus Options:
+**Analysis Focus Options**:
 - "general" (default) - Overall image description
 - "objects" - Focus on object detection and identification
 - "colors" - Analyze color palette and composition
@@ -421,20 +427,21 @@ Analysis Focus Options:
 - "text" - Extract and analyze text within images
 - "technical" - Focus on technical aspects, quality, metadata
 
-Model Options:
+**Model Options**:
 - "gemini-2.5-pro" (default) - Best for detailed analysis and complex reasoning
 - "gemini-2.5-flash" - Faster response, good for simple image descriptions
 
-Key Parameters:
+**Key Parameters**:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `max_output_tokens`: Override model's default output token limit
 
-Error Handling:
+**Error Handling**:
 - Raises ValueError for missing or invalid image inputs
 - Raises RuntimeError for Gemini API errors (quota, authentication, unsupported formats)
 - Supports common formats: JPEG, PNG, GIF, WebP
 - Large images may be automatically resized by the API
 
-Examples:
+**Examples**:
 ```python
 # Quick image analysis with stdout (default)
 analyze_image(
@@ -493,24 +500,33 @@ def analyze_image(
 
 
 @mcp.tool(
-    description="""Instruct Google's Imagen 3 model to generate a high-quality image from your text prompt. You provide the creative direction, and the AI generates the visual content.
+    description="""Generate high-quality images using Google's Imagen 3 model. You provide the creative direction, and the AI generates the visual content.
 
-**Agent Recommendation**: Consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
+**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.
 
-**Memory Behavior**: Image generation requests are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
+**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.
 
-Creates images from text descriptions with advanced artistic capabilities. Generated images are saved as PNG files to a temporary location.
+**Output Format**: Generated images are saved as PNG files to a temporary location and the file path is returned.
 
-Prompt Guidelines:
+**Model Options**:
+- "imagen-3" (default) - Latest model with best quality and prompt adherence
+
+**Prompt Guidelines**:
 - Be descriptive and specific for best results
 - Include style, mood, lighting, and composition details
 - Mention aspect ratio preferences if needed
 - Avoid requesting copyrighted characters or inappropriate content
 
-Key Parameters:
+**Key Parameters**:
 - `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)
+- `model`: Imagen model to use (default: "imagen-3")
 
-Examples:
+**Error Handling**:
+- Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
+- Raises ValueError for prompts that violate content policies
+- Generated images are PNG format, saved to system temp directory
+
+**Examples**:
 ```python
 # Generate with session memory (default)
 generate_image(
@@ -533,14 +549,7 @@ generate_image(
     prompt="Random abstract art",
     agent_name=False
 )
-```
-
-Note: Generated images are automatically saved to temporary files. Use the returned file path for further processing.
-
-Error Handling:
-- Raises RuntimeError for Imagen API errors (quota exceeded, content policy violations)
-- Raises ValueError for prompts that violate content policies
-- Generated images are PNG format, saved to system temp directory"""
+```"""
 )
 @require_client
 def generate_image(

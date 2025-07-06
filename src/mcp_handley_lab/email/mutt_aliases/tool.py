@@ -64,31 +64,37 @@ def get_mutt_alias_file(config_file: str = None) -> Path:
 
 
 @mcp.tool(
-    description="""Add contact to mutt address book.
+    description="""Adds a new contact or group to your Mutt address book (alias file).
 
-Adds a new contact to mutt's alias system for easy addressing.
+Aliases are shortcuts that let you use a simple nickname (e.g., "gw-team") instead of typing full email addresses when composing mail. This tool supports adding both individual contacts and groups of contacts.
 
-Examples:
+**Key Parameters:**
+- `alias`: The short nickname for the contact or group (e.g., "john-doe", "project-team").
+- `email`: The contact's full email address(es). For a group, provide a comma-separated list of emails OR a space-separated list of other aliases.
+- `name`: (Optional) The full name of the contact or a description for the group.
+- `config_file`: (Optional) Path to a custom mutt config file.
+
+**Behavior:**
+- The tool determines the correct path to your alias file from your Mutt configuration.
+- It appends the new alias entry to the end of the file.
+
+**Examples:**
 ```python
-# Add individual contact
-add_contact(
-    alias="john",
-    email="john.doe@example.com",
-    name="John Doe"
-)
+# Add an individual contact with a name.
+add_contact(alias="john-doe", email="john.doe@example.com", name="John Doe")
 
-# Add group with email addresses
+# Add a group of people using their email addresses.
 add_contact(
     alias="gw-team",
-    email="alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk",
-    name="GW Project Team"
+    email="alice@cam.ac.uk,bob@cam.ac.uk",
+    name="Gravitational Wave Team"
 )
 
-# Add group with existing aliases
+# Create a new group composed of existing aliases.
 add_contact(
-    alias="my-students",
-    email="alice-smith bob-jones carol-white",  # Space-separated aliases
-    name="My Research Students"
+    alias="all-students",
+    email="john-doe jane-smith", # Note: space-separated aliases
+    name="All Research Students"
 )
 ```"""
 )
@@ -127,16 +133,31 @@ def add_contact(alias: str, email: str, name: str = "", config_file: str = None)
 
 
 @mcp.tool(
-    description="""Find contacts using fuzzy matching.
+    description="""Performs a fuzzy search within your Mutt address book to find contacts.
 
-Searches for contacts using fuzzy string matching, useful when you remember part of a name.
+This is useful when you only remember part of a contact's alias or name. It uses `fzf`-style matching to find the closest matches.
 
-Examples:
+**Key Parameters:**
+- `query`: The partial name, alias, or email to search for.
+- `max_results`: (Optional) The maximum number of matches to return. Defaults to 10.
+- `config_file`: (Optional) Path to a custom mutt config file.
+
+**Behavior:**
+- Reads the entire alias file into memory.
+- Filters the contacts using a non-interactive fuzzy matching algorithm.
+- Returns a formatted string of the best matches.
+
+**Examples:**
 ```python
-# Find contacts with partial names
-find_contact("lhergt")      # Finds lukas-hergt
-find_contact("handley")     # Finds will-handley-*, mike-handley-*, etc.
-find_contact("partiii")     # Finds partiii groups
+# Find a contact when I only remember part of the alias.
+find_contact(query="handley")
+# Example Output:
+# Fuzzy matches for 'handley':
+# - alias will-handley-prof "Will Handley" <w.handley@cam.ac.uk>
+# - alias mike-handley "Mike Handley" <m.handley@cam.ac.uk>
+
+# Find a group alias.
+find_contact(query="partiii")
 ```"""
 )
 def find_contact(query: str, max_results: int = 10, config_file: str = None) -> str:
@@ -156,17 +177,39 @@ def find_contact(query: str, max_results: int = 10, config_file: str = None) -> 
 
 
 @mcp.tool(
-    description="""Remove contact from mutt address book with fuzzy matching.
+    description="""Removes a contact from your Mutt address book, with support for fuzzy matching.
 
-Removes a contact by alias name. If exact match not found, shows fuzzy matches.
+This tool first attempts to find and remove an exact match for the provided alias. If no exact match is found, it performs a fuzzy search.
 
-Examples:
+**Key Parameters:**
+- `alias`: The alias of the contact to remove.
+- `config_file`: (Optional) Path to a custom mutt config file.
+
+**Behavior:**
+1.  **Exact Match:** The tool first searches for an alias that exactly matches the `alias` parameter. If found, it is removed.
+2.  **Fuzzy Match:** If no exact match is found, it performs a fuzzy search.
+    - If **one** unique fuzzy match is found, that contact is removed.
+    - If **multiple** fuzzy matches are found, it returns a list of the matches and asks you to be more specific, preventing accidental deletion.
+    - If **no** matches are found, it reports that the contact was not found.
+
+**WARNING:** This action permanently modifies your address book file.
+
+**Examples:**
 ```python
-# Remove exact contact
-remove_contact("lukas-hergt")
+# Remove a contact with an exact alias.
+remove_contact(alias="john-doe")
 
-# Fuzzy matching helps with partial names
-remove_contact("lhergt")  # Will find lukas-hergt
+# Remove a contact using a partial, unique alias.
+# If "lukas-h" uniquely matches "lukas-hergt", it will be removed.
+remove_contact(alias="lukas-h")
+
+# If the alias is ambiguous, it will prompt for clarification.
+# remove_contact(alias="handley")
+# Example Output:
+# Multiple matches found for 'handley':
+# - alias will-handley-prof ...
+# - alias mike-handley ...
+# Please be more specific.
 ```"""
 )
 def remove_contact(alias: str, config_file: str = None) -> str:

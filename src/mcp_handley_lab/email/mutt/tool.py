@@ -19,49 +19,37 @@ def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str
 
 
 @mcp.tool(
-    description="""Compose and send an email using mutt with interactive editing.
+    description="""Opens the Mutt email client in a new interactive terminal window to compose and send an email.
 
-Opens mutt in compose mode with the specified recipient and subject. This allows you to:
-- Use your existing mutt configuration (signatures, from addresses, etc.)
-- Compose the email in your preferred editor
-- Review and send or save as draft
-- Attach files to the email
+This tool provides a powerful, familiar, and fully-featured email composition experience by leveraging your complete Mutt configuration, including signatures, from addresses, editor preferences, and hooks.
 
-All your mutt settings will be automatically applied including:
-- Real name from ~/.muttrc
-- Signature from account-specific settings
-- Proper from address based on folder hooks
+**Key Parameters:**
+- `to`: The primary recipient's email address.
+- `subject`: (Optional) The subject line of the email.
+- `cc`, `bcc`: (Optional) Comma-separated lists of CC and BCC recipients.
+- `initial_body`: (Optional) Text to pre-populate the email body. The user can edit this in their terminal editor.
+- `attachments`: (Optional) A list of local file paths to attach to the email.
+- `auto_send`: (Optional) If `True`, the email is sent immediately without interactive review.
 
-Examples:
+**Behavior:**
+- A new interactive terminal window (e.g., tmux window or xterm) is launched with Mutt in compose mode.
+- The user can edit the email, add/remove attachments, and then send, postpone, or cancel.
+- The tool will wait for the user to close the Mutt composition window before returning.
+
+**WARNING:**
+- The `auto_send=True` option bypasses the interactive review step and sends the email immediately. Use with extreme caution, especially with programmatically generated content.
+
+**Examples:**
 ```python
-# Basic email composition
-compose_email(
-    to="user@example.com",
-    subject="Meeting follow-up"
-)
+# Open Mutt to compose a new email.
+compose_email(to="user@example.com", subject="Meeting follow-up")
 
-# Email with CC and initial body
+# Compose an email with a pre-filled body and an attachment.
 compose_email(
-    to="user@example.com",
-    cc="team@example.com",
-    subject="Project update",
-    initial_body="Hi team,\n\nHere's the latest update..."
-)
-
-# Email with attachments
-compose_email(
-    to="user@example.com",
-    subject="Report and data",
-    attachments=["/path/to/report.pdf", "/path/to/data.csv"],
-    initial_body="Please find attached the report and data files."
-)
-
-# Auto-send email (WARNING: sends immediately without review!)
-compose_email(
-    to="user@example.com",
-    subject="Automated notification",
-    initial_body="This email was sent automatically.",
-    auto_send=True
+    to="team@example.com",
+    subject="Project Update",
+    initial_body="Hi Team,\\n\\nHere is the latest progress report.",
+    attachments=["/path/to/report.pdf"]
 )
 ```"""
 )
@@ -211,15 +199,20 @@ def compose_email(
 
 
 @mcp.tool(
-    description="""Open mutt's main interface for reading and managing emails.
+    description="""Opens the main Mutt interface in a new interactive terminal window for general-purpose email management.
 
-Launches the full mutt interface where you can:
-- Read and reply to emails
-- Navigate folders
-- Search and filter messages
-- Manage your email workflow
+This tool is for when you need to read, search, or organize emails, rather than composing a new one. It gives you full access to your entire Mutt setup.
 
-Uses your existing mutt configuration and folder setup."""
+**Behavior:**
+- Launches `mutt` in a new interactive terminal window (e.g., tmux or xterm).
+- The tool waits for you to exit the Mutt session before it completes.
+- All your existing Mutt keybindings, configurations, and mailboxes will be available.
+
+**Examples:**
+```python
+# Open Mutt to check my email.
+open_mutt()
+```"""
 )
 def open_mutt() -> str:
     """Open mutt's main interface."""
@@ -231,14 +224,23 @@ def open_mutt() -> str:
 
 
 @mcp.tool(
-    description="""Reply to an email using mutt.
+    description="""Opens Mutt in reply mode for a specific email in a new interactive terminal window.
 
-Opens mutt in reply mode for a specific email. You can specify:
-- Message ID or thread ID to reply to
-- Whether to reply to all recipients
-- Initial body content for the reply
+This tool allows you to reply to an existing email using your complete Mutt configuration, including signature files, account settings, and editor preferences.
 
-Examples:
+**Key Parameters:**
+- `message_id`: The Message-ID header of the email to reply to (e.g., "20241201.123456@example.com")
+- `reply_all`: If `True`, replies to all recipients (sender + CC recipients). If `False`, replies only to the sender
+- `initial_body`: Optional text to pre-populate the reply body. The user can edit this in their terminal editor
+
+**Behavior:**
+- Opens Mutt in a new interactive terminal window with the reply composition interface
+- The original message is automatically quoted according to your Mutt configuration
+- Headers (To, CC, Subject) are automatically populated based on the original message
+- The tool waits for you to complete the reply composition before returning
+- All your existing Mutt settings apply (signatures, from addresses, editor, etc.)
+
+**Examples:**
 ```python
 # Reply to specific message
 reply_to_email(
@@ -305,11 +307,24 @@ def reply_to_email(
 
 
 @mcp.tool(
-    description="""Forward an email using mutt.
+    description="""Opens Mutt in forward mode for a specific email in a new interactive terminal window.
 
-Opens mutt in forward mode for a specific email with optional initial content.
+This tool allows you to forward an existing email to new recipients using your complete Mutt configuration, including signature files, account settings, and editor preferences.
 
-Examples:
+**Key Parameters:**
+- `message_id`: The Message-ID header of the email to forward (e.g., "20241201.123456@example.com")
+- `to`: Optional recipient email address to pre-populate the To field
+- `initial_body`: Optional text to add before the forwarded message content
+
+**Behavior:**
+- Opens Mutt in a new interactive terminal window with the forward composition interface
+- The original message is included as an attachment or inline content according to your Mutt configuration
+- Subject line is automatically prefixed with "Fwd:" or according to your configuration
+- You can add recipients, modify the subject, and add commentary before sending
+- The tool waits for you to complete the forward composition before returning
+- All your existing Mutt settings apply (signatures, from addresses, editor, etc.)
+
+**Examples:**
 ```python
 # Forward email
 forward_email(
@@ -370,11 +385,28 @@ def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
 
 
 @mcp.tool(
-    description="""Move or delete emails using mutt operations.
+    description="""Moves emails between folders or deletes them by moving to trash using Mutt's email management capabilities.
 
-Supports moving emails between folders or deleting (moving to trash).
+This tool provides programmatic email organization by leveraging Mutt's save/move functionality to transfer messages between mailboxes or folders.
 
-Examples:
+**Key Parameters:**
+- `message_id`: Single Message-ID header of the email to move (e.g., "20241201.123456@example.com")
+- `message_ids`: List of Message-ID headers for batch operations
+- `destination`: Target folder name (defaults to "Trash" for deletion)
+
+**Behavior:**
+- Uses Mutt's internal scripting to locate and move messages
+- Supports both single message and batch operations
+- Moves are permanent - messages are transferred from current location to destination folder
+- "Trash" destination effectively deletes messages according to your email setup
+- Operation is non-interactive and returns immediately after completion
+
+**Important Notes:**
+- Either `message_id` or `message_ids` must be specified, but not both
+- Folder names must match your Mutt mailbox configuration
+- Messages are moved, not copied - they disappear from their original location
+
+**Examples:**
 ```python
 # Move to archive
 move_email(
@@ -440,21 +472,40 @@ def move_email(
 
 
 @mcp.tool(
-    description="""List available mailboxes/folders in mutt configuration.
+    description="""Retrieves and displays all configured mailboxes and folders from your Mutt configuration.
 
-Shows all configured mailboxes that can be accessed through mutt.
+This tool queries your Mutt configuration to discover all available mailboxes that can be used for email organization, helping you understand your folder structure before moving or organizing emails.
 
-Examples:
+**Behavior:**
+- Queries Mutt's `mailboxes` configuration setting to discover available folders
+- Returns a formatted list of all configured mailboxes
+- Includes both local folders and remote IMAP folders if configured
+- Useful for discovering folder names needed for other operations like `move_email` or `open_folder`
+
+**Return Format:**
+- Returns a formatted list with each mailbox on a separate line
+- Mailbox names are displayed exactly as configured in Mutt
+- If no mailboxes are configured, returns an appropriate message
+
+**Use Cases:**
+- Discover available destinations for `move_email` operations
+- Understand your email folder structure
+- Verify mailbox configuration before organizing emails
+- Get exact folder names for use in other tools
+
+**Examples:**
 ```python
 # List all folders
 list_folders()
 
 # Output shows folders like:
+# Available mailboxes:
 # - INBOX
 # - Sent Items
 # - Archive
 # - Trash
 # - Projects/GW
+# - Work/Urgent
 ```"""
 )
 def list_folders() -> str:
@@ -480,11 +531,27 @@ def list_folders() -> str:
 
 
 @mcp.tool(
-    description="""Open a specific mailbox/folder in mutt.
+    description="""Opens Mutt with a specific mailbox or folder selected in a new interactive terminal window.
 
-Launches mutt with a specific folder open for browsing and management.
+This tool launches Mutt directly into a specific folder, allowing you to browse, read, and manage emails within that particular mailbox using the full Mutt interface.
 
-Examples:
+**Key Parameters:**
+- `folder`: The name of the mailbox/folder to open (must match your Mutt configuration exactly)
+
+**Behavior:**
+- Opens Mutt in a new interactive terminal window focused on the specified folder
+- The folder becomes the active mailbox, showing all emails within it
+- Full Mutt functionality is available: reading, replying, forwarding, searching, etc.
+- Uses your complete Mutt configuration including keybindings and display preferences
+- The tool waits for you to exit the Mutt session before returning
+
+**Important Notes:**
+- Folder names must exactly match those in your Mutt configuration
+- Use `list_folders()` to discover available folder names if uncertain
+- Remote IMAP folders may take time to load depending on connection speed
+- All Mutt keybindings and operations work normally within the folder
+
+**Examples:**
 ```python
 # Open inbox
 open_folder("INBOX")
@@ -494,6 +561,9 @@ open_folder("Archive")
 
 # Open project-specific folder
 open_folder("Projects/GW")
+
+# Open sent items
+open_folder("Sent Items")
 ```"""
 )
 def open_folder(folder: str) -> str:

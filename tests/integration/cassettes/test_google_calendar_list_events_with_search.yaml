@@ -11,7 +11,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -68,7 +68,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6NzdmkH22KL2WOr_cL-aiBO4d57XmhRACpfLOVlkl8PjqPClU4IuLW1mkeEXHIoRknwvc1XZBx2LeZgqlOqA4f44SRzfhtt-BNXMmPSke408BAyABbziOgUttaYjlJBYJoIGuQkW3jQGuEbO35xo_i_jAQUC1M2M7JuhCQaCgYKAagSARcSFQHGX2Mil4DGrMwnf68nt7wvAMNmMg0177\",\n
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nzwp-EYEg5BOL_YQIlwHh8u0pqIrB9xV_8KXMVywPR5c3lE2eRVVs1iwE81eTlbgzMmahajQxMKt6NwpSGUiOsBYRto98-WKEyDKOhNulRA-kmqVpPwAu8qE2jQ6Qd4px90kkEyDvowkxeWPN_ijhlK1Tuwd7dtLha0SQaCgYKAaESARcSFQHGX2MinWvjQnJztVZa0vOlcLDpmg0177\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -115,13 +115,13 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32frr74mhek8s0o\\\"\",\n
-        \"nextSyncToken\": \"CJ-9nJaLqI4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33nvrruhgekos0o\\\"\",\n
+        \"nextSyncToken\": \"CO_979GDqY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
@@ -165,9 +165,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -201,14 +201,14 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/williamjameshandley.arxiv%40gmail.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32frr74mhek8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33nvrruhgekos0o\\\"\",\n
         \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-07-06T11:05:00.348Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"updated\": \"2025-07-06T20:03:57.702Z\",\n \"timeZone\": \"Europe/London\",\n
         \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
         \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
     headers:
@@ -219,9 +219,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:05:02 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -255,12 +255,12 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/en.uk%23holiday%40group.v.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p3379hg4nhek8s0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33veld6jgekos0o\\\"\",\n
         \"summary\": \"Holidays in United Kingdom\",\n \"description\": \"Holidays
         and Observances in United Kingdom\",\n \"updated\": \"2025-05-02T13:55:42.356Z\",\n
         \"timeZone\": \"Europe/London\",\n \"accessRole\": \"reader\",\n \"defaultReminders\":
@@ -273,9 +273,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -309,7 +309,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/48799f0fc362053eeb75ab613f81422594eee6c1b0fc74ef2f42fb025a4dbcb4%40group.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
@@ -327,9 +327,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:01 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:01 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -363,7 +363,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/a6acf9c6db52b0d7b636d364f6d9d808f672af4aeacc70a0967e6571976f3adc%40group.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
@@ -381,9 +381,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:01 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:05:03 GMT
+      - Sun, 06 Jul 2025 20:04:01 GMT
       Server:
       - ESF
       Transfer-Encoding:

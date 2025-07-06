@@ -3,32 +3,29 @@ import json
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import constr
 
 from mcp_handley_lab.common.process import run_command
 
 mcp = FastMCP("JQ Tool")
 
 
-def _resolve_data(data: str | dict | list) -> str:
-    """Resolves input, handling strings, dicts, lists, or file paths.
+def _resolve_data(data: str) -> str:
+    """Resolves input, handling strings or file paths.
 
-    This function gracefully handles cases where FastMCP auto-parses JSON strings
-    into dictionaries or lists, converting them back to JSON strings as needed.
+    Note: While the type signature indicates str, FastMCP may still pass
+    parsed JSON objects at runtime. This function handles both cases gracefully.
     """
-    # If it's a dict or list (FastMCP parsed JSON), convert back to string
-    if isinstance(data, dict | list):
+    # Handle non-string inputs (FastMCP auto-parsing)
+    if not isinstance(data, str):
         return json.dumps(data)
 
     # If it's a string, check if it's a file path
-    if isinstance(data, str):
-        p = Path(data)
-        if p.is_file():
-            return p.read_text()
-        return data
+    p = Path(data)
+    if p.is_file():
+        return p.read_text()
 
-    # Fallback: convert to string
-    return str(data)
+    # Otherwise treat as JSON string
+    return data
 
 
 def _run_jq(args: list[str], input_text: str | None = None) -> str:
@@ -41,10 +38,10 @@ def _run_jq(args: list[str], input_text: str | None = None) -> str:
 
 
 @mcp.tool(
-    description="Applies a `jq` filter expression to JSON data. The `data` can be a JSON string, a file path, or a parsed object. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output."
+    description="Applies a `jq` filter expression to JSON data. The `data` can be a JSON string or a file path. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output."
 )
 def query(
-    data: constr(min_length=1) | dict | list,
+    data: str,
     filter: str = ".",
     compact: bool = False,
     raw_output: bool = False,
@@ -70,9 +67,7 @@ def query(
 @mcp.tool(
     description="Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this."
 )
-def edit(
-    file_path: constr(min_length=1), filter: constr(min_length=1), backup: bool = True
-) -> str:
+def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
 
     path = Path(file_path)
@@ -103,9 +98,9 @@ def read(file_path: str, filter: str = ".") -> str:
 
 
 @mcp.tool(
-    description="Validates JSON syntax for strings or files. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors."
+    description="Validates JSON syntax for JSON strings or file paths. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors."
 )
-def validate(data: constr(min_length=1) | dict | list) -> str:
+def validate(data: str) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
 
@@ -114,10 +109,10 @@ def validate(data: constr(min_length=1) | dict | list) -> str:
 
 
 @mcp.tool(
-    description="Formats JSON data for readability or compactness. Takes JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys."
+    description="Formats JSON data for readability or compactness. Takes a JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys."
 )
 def format(
-    data: constr(min_length=1) | dict | list,
+    data: str,
     compact: bool = False,
     sort_keys: bool = False,
 ) -> str:
@@ -132,7 +127,7 @@ def format(
 
 
 @mcp.tool(
-    description="Checks the status of the JQ tool server and verifies `jq` command availability. Returns server status, jq version, and list of available tools. Use this to verify the tool is operational before making other requests."
+    description="Checks the status of the JQ server and jq command availability. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and jq version."""

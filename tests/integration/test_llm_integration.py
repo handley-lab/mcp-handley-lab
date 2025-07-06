@@ -126,7 +126,7 @@ def test_llm_ask_with_files(
     result = ask_func(
         prompt="What is in this file?",
         output_file=test_output_file,
-        files=[{"path": str(test_file)}],
+        files=[str(test_file)],
         model=model,
         agent_name=False,
     )
@@ -156,7 +156,7 @@ def test_llm_analyze_image(
     result = analyze_func(
         prompt="What color is this image?",
         output_file=test_output_file,
-        image_data=str(image_path),
+        files=[str(image_path)],
         model=model,
         agent_name=False,  # Disable memory for clean test
     )

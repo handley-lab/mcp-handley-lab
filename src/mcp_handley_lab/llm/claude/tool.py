@@ -7,12 +7,12 @@ from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.llm.common import (
     determine_mime_type,
-    is_text_file,
+    resolve_files_for_llm,
     resolve_image_data,
 )
+from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
@@ -97,7 +97,7 @@ def _convert_history_to_claude_format(
     return claude_history
 
 
-def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
+def _resolve_files(files: list[str]) -> str:
     """Resolve file inputs to text content for Claude.
 
     Claude has a large context window (200K tokens), so we can include most files directly.
@@ -106,73 +106,16 @@ def _resolve_files(files: list[str | dict[str, str]] | None) -> str:
     if not files:
         return ""
 
-    file_contents = []
-
-    for file_item in files:
-        if isinstance(file_item, str):
-            # Direct content string
-            file_contents.append(file_item)
-        elif isinstance(file_item, dict):
-            if "content" in file_item:
-                # Direct content from dict
-                file_contents.append(file_item["content"])
-            elif "path" in file_item:
-                # File path - read content
-                file_path = Path(file_item["path"])
-                if not file_path.exists():
-                    raise FileNotFoundError(f"File not found: {file_path}")
-
-                file_size = file_path.stat().st_size
-
-                # Claude can handle large files, but let's be reasonable (20MB limit)
-                if file_size > 20 * 1024 * 1024:
-                    raise ValueError(f"File too large: {file_path} ({file_size} bytes)")
-
-                if is_text_file(file_path):
-                    # Text file - read directly
-                    content = file_path.read_text(encoding="utf-8")
-                    file_contents.append(f"[File: {file_path.name}]\n{content}")
-                else:
-                    # Binary file - describe only (Claude doesn't need base64 for non-image files)
-                    mime_type = determine_mime_type(file_path)
-                    file_contents.append(
-                        f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes - content not included]"
-                    )
-
+    # Use shared file resolution with larger max size for Claude's big context
+    file_contents = resolve_files_for_llm(files, max_file_size=20 * 1024 * 1024)  # 20MB
     return "\n\n".join(file_contents)
 
 
 def _resolve_images_to_content_blocks(
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    images: list[str] = [],
 ) -> list[dict[str, Any]]:
     """Resolve image inputs to Claude content blocks."""
     image_blocks = []
-
-    # Handle single image_data parameter
-    if image_data:
-        image_bytes = resolve_image_data(image_data)
-        # Determine media type
-        if isinstance(image_data, str) and image_data.startswith("data:image"):
-            media_type = image_data.split(";")[0].split(":")[1]
-        else:
-            # File path - use determine_mime_type for consistent MIME detection
-            media_type = determine_mime_type(Path(str(image_data)))
-            # Default to JPEG for non-image types
-            if not media_type.startswith("image/"):
-                media_type = "image/jpeg"
-
-        encoded_data = base64.b64encode(image_bytes).decode("utf-8")
-        image_blocks.append(
-            {
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": media_type,
-                    "data": encoded_data,
-                },
-            }
-        )
 
     # Handle images array
     if images:
@@ -227,9 +170,7 @@ def _claude_generation_adapter(
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
     output_tokens = (
-        min(max_output_tokens, max_output)
-        if max_output_tokens is not None
-        else max_output
+        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
     )
 
     # Resolve file contents
@@ -281,8 +222,7 @@ def _claude_image_analysis_adapter(
 ) -> dict[str, Any]:
     """Claude-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
-    image_data = kwargs.get("image_data")
-    images = kwargs.get("images")
+    images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
 
@@ -294,13 +234,11 @@ def _claude_image_analysis_adapter(
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
     output_tokens = (
-        min(max_output_tokens, max_output)
-        if max_output_tokens is not None
-        else max_output
+        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
     )
 
     # Resolve images to content blocks
-    image_blocks = _resolve_images_to_content_blocks(image_data, images)
+    image_blocks = _resolve_images_to_content_blocks(images)
 
     # Build content with text and images
     content_blocks = [{"type": "text", "text": prompt}] + image_blocks
@@ -338,17 +276,17 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name=False` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast)."
+    description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def ask(
     prompt: str,
-    output_file: str,
-    agent_name: str | bool | None = None,
+    output_file: str = "-",
+    agent_name: str = "session",
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
-    files: list[str | dict[str, str]] | None = None,
-    max_output_tokens: int | None = None,
+    files: list[str] = [],
+    max_output_tokens: int = 0,
 ) -> str:
     """Ask Claude a question with optional persistent memory."""
     # Resolve model alias to full model name for consistent pricing
@@ -368,18 +306,17 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options."
+    description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 @require_client
 def analyze_image(
     prompt: str,
-    output_file: str,
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    output_file: str = "-",
+    files: list[str] = [],
     focus: str = "general",
     model: str = "claude-3-5-sonnet-20240620",
-    agent_name: str | bool | None = None,
-    max_output_tokens: int | None = None,
+    agent_name: str = "session",
+    max_output_tokens: int = 0,
 ) -> str:
     """Analyze images with Claude vision model."""
     return process_llm_request(
@@ -390,8 +327,7 @@ def analyze_image(
         provider="claude",
         generation_func=_claude_image_analysis_adapter,
         mcp_instance=mcp,
-        image_data=image_data,
-        images=images,
+        images=files,
         focus=focus,
         max_output_tokens=max_output_tokens,
     )
@@ -441,8 +377,9 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Claude models (persistent memory by default, agent_name=False to disable)
-- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=False to disable)
+- ask: Chat with Claude models (persistent memory enabled by default)
+- analyze_image: Image analysis with vision models (persistent memory enabled by default)
+- list_models: List available Claude models with detailed information
 - server_info: Get server status
 
-Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
+Note: Claude does not support image generation. Agent memory is managed automatically - use agent_name parameter for persistent conversations."""

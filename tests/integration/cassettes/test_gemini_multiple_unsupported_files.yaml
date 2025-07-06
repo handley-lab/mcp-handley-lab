@@ -1,9 +1,9 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What types of files are these and what
-      do they contain?"}, {"text": "[File: tmpxdvj3ect.toml]\n[package]\nname = \"test\"\nversion
-      = \"1.0.0\""}, {"text": "[File: tmprzpt0v_j.diff]\ndiff --git a/file.txt b/file.txt\n+added
-      line"}, {"text": "[File: tmppw36kv64.rs]\nfn main() {\n    println!(\"Hello
+      do they contain?"}, {"text": "[File: tmpfmu16lv7.toml]\n[package]\nname = \"test\"\nversion
+      = \"1.0.0\""}, {"text": "[File: tmpnh559lb3.diff]\ndiff --git a/file.txt b/file.txt\n+added
+      line"}, {"text": "[File: tmpnxdubmx0.rs]\nfn main() {\n    println!(\"Hello
       Rust!\");\n}"}], "role": "user"}], "generationConfig": {"temperature": 0.7,
       "maxOutputTokens": 65536}}'
     headers:
@@ -20,51 +20,52 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Let's break down each file:\\n\\n1.
-        \ **File: `tmpxdvj3ect.toml`**\\n    *   **Type:** This is a **TOML (Tom's
-        Obvious, Minimal Language) configuration file**.\\n    *   **Content:** It
-        contains structured data in key-value pairs, typically used for defining metadata
-        or settings for a project or application. In this specific case, it defines
-        a `[package]` section with a `name` (\\\"test\\\") and a `version` (\\\"1.0.0\\\").
-        This format is commonly used in Rust projects (e.g., `Cargo.toml`), Python
-        projects (e.g., `pyproject.toml`), and various other tools for configuration.\\n\\n2.
-        \ **File: `tmprzpt0v_j.diff`**\\n    *   **Type:** This is a **Diff file**
-        (specifically, a unified diff or Git diff).\\n    *   **Content:** It shows
-        the differences between two versions of a file or set of files. The content
-        `diff --git a/file.txt b/file.txt\\\\n+added line` indicates that a line containing
-        \\\"added line\\\" was added to a file named `file.txt`. These files are generated
-        by version control systems (like Git) or diff utilities to track changes between
-        file versions.\\n\\n3.  **File: `tmppw36kv64.rs`**\\n    *   **Type:** This
-        is a **Rust source code file**.\\n    *   **Content:** It contains source
-        code written in the Rust programming language. This particular code defines
-        a `main` function, which is the entry point for Rust programs, and uses the
-        `println!` macro to print the string \\\"Hello Rust!\\\" to the console when
-        the program is compiled and executed.\"\n          }\n        ],\n        \"role\":
-        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 104,\n    \"candidatesTokenCount\":
-        381,\n    \"totalTokenCount\": 1458,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 104\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 973\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"VlhqaNq3I4i3xN8Pu7TUuQk\"\n}\n"
+        [\n          {\n            \"text\": \"Here's an analysis of each file:\\n\\n1.
+        \ **File: `tmpfmu16lv7.toml`**\\n    *   **Type:** This is a **TOML** (Tom's
+        Obvious, Minimal Language) file. The `.toml` extension is standard for this
+        format.\\n    *   **Content:** TOML files are configuration files used for
+        storing settings and metadata in a human-readable, key-value pair format.
+        In this specific example, it contains basic metadata for a \\\"package,\\\"
+        defining its `name` as \\\"test\\\" and `version` as \\\"1.0.0\\\". This structure
+        is very common in Rust projects (e.g., in a `Cargo.toml` file) or other software
+        projects for defining project details.\\n\\n2.  **File: `tmpnh559lb3.diff`**\\n
+        \   *   **Type:** This is a **Diff** or **Patch** file. The `.diff` extension
+        is standard for this type.\\n    *   **Content:** These files record the differences
+        between two versions of a file or set of files. They are commonly generated
+        by version control systems (like Git, as indicated by `diff --git`) to show
+        what has been added, removed, or changed. In this example, it shows that the
+        line `+added line` was added to a file named `file.txt`.\\n\\n3.  **File:
+        `tmpnxdubmx0.rs`**\\n    *   **Type:** This is a **Rust source code** file.
+        The `.rs` extension is standard for files containing code written in the Rust
+        programming language.\\n    *   **Content:** This file contains source code
+        written in Rust. The code defines a `main` function, which is the entry point
+        for a Rust executable program. Inside the `main` function, it uses `println!`
+        to print the string \\\"Hello Rust!\\\" to the console when the program is
+        executed.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
+        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
+        {\n    \"promptTokenCount\": 103,\n    \"candidatesTokenCount\": 409,\n    \"totalTokenCount\":
+        1451,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 103\n      }\n    ],\n    \"thoughtsTokenCount\":
+        939\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"pdZqaL-ZM9PrnsEP5fnMyQ8\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:04:54 GMT
+      - Sun, 06 Jul 2025 20:03:49 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=6296
+      - gfet4t7; dur=6592
       Transfer-Encoding:
       - chunked
       Vary:
@@ -78,7 +79,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1996'
+      - '2117'
     status:
       code: 200
       message: OK

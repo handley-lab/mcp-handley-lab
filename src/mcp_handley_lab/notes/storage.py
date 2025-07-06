@@ -127,11 +127,11 @@ class GlobalLocalYAMLStorage:
 
     def __init__(self, local_storage_dir: str = ".mcp_handley_lab"):
         # Global storage (shared across projects)
-        global_dir = Path.home() / ".mcp_handley_lab" / "notes"
+        global_dir = Path.home() / ".mcp_handley_lab"
         self.global_storage = YAMLNoteStorage(str(global_dir))
 
         # Local storage (project-specific)
-        local_dir = Path(local_storage_dir) / "notes"
+        local_dir = Path(local_storage_dir)
         self.local_storage = YAMLNoteStorage(str(local_dir))
 
         self._entity_scopes: dict[str, str] = {}

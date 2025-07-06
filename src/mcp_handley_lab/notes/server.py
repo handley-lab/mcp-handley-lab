@@ -14,31 +14,15 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from .manager import NotesManager
+
+# Use the original MCP server from tool.py
 from .tool import (
-    create_note,
-    delete_note,
-    get_all_tags,
-    get_entities_by_property,
-    get_entities_linking_to,
-    get_linked_entities,
-    get_note,
-    get_note_scope,
-    get_note_types,
-    get_notes_stats,
-    list_entities,
-    list_entities_resource,
-    notes_stats_resource,
-    query_entities,
-    refresh_notes_database,
-    search_entities,
-    search_entities_semantic,
+    mcp,
     set_manager,
-    update_note,
 )
 
 # Configure logging
@@ -183,30 +167,7 @@ def get_manager() -> NotesManager:
     return _manager
 
 
-# Create MCP server with lifespan management
-mcp_server = FastMCP("Notes", lifespan=notes_lifespan)
-
-# Register all tools with the persistent server
-mcp_server.tool()(create_note)
-mcp_server.tool()(get_note)
-mcp_server.tool()(update_note)
-mcp_server.tool()(delete_note)
-mcp_server.tool()(list_entities)
-mcp_server.tool()(search_entities)
-mcp_server.tool()(search_entities_semantic)
-mcp_server.tool()(query_entities)
-mcp_server.tool()(get_entities_by_property)
-mcp_server.tool()(get_linked_entities)
-mcp_server.tool()(get_entities_linking_to)
-mcp_server.tool()(get_note_types)
-mcp_server.tool()(get_all_tags)
-mcp_server.tool()(get_notes_stats)
-mcp_server.tool()(refresh_notes_database)
-mcp_server.tool()(get_note_scope)
-
-# Register resources
-mcp_server.resource("notes://notes")(list_entities_resource)
-mcp_server.resource("notes://stats")(notes_stats_resource)
+mcp_server = mcp
 
 
 def handle_shutdown(signum, frame):

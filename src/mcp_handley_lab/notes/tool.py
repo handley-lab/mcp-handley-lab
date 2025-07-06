@@ -78,7 +78,7 @@ def update_note(
     properties: dict[str, Any] = None,
     tags: list[str] = None,
     content: str = None,
-) -> bool:
+) -> str:
     """Update an existing note.
 
     Args:
@@ -88,10 +88,11 @@ def update_note(
         content: New content (replaces existing)
 
     Returns:
-        True if update succeeded, False otherwise
+        Confirmation message
     """
     manager = get_manager()
-    return manager.update_note(entity_id, properties, tags, content)
+    manager.update_note(entity_id, properties, tags, content)
+    return f"Note {entity_id} updated successfully"
 
 
 @mcp.tool()

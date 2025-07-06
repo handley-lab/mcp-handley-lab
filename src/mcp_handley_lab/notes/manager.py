@@ -63,13 +63,10 @@ class NotesManager:
             content=content,
         )
 
-        success = self.storage.save_note(note, scope)
-        if success:
-            self._sync_entity_to_db(note, scope)
-            self.semantic_search.add_entity(note)
-            return note.id
-        else:
-            raise RuntimeError(f"Failed to save note {note.id}")
+        self.storage.save_note(note, scope)
+        self._sync_entity_to_db(note, scope)
+        self.semantic_search.add_entity(note)
+        return note.id
 
     def get_note(self, entity_id: str) -> Note | None:
         """Get an note by ID."""
@@ -81,11 +78,9 @@ class NotesManager:
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = None,
-    ) -> bool:
+    ) -> None:
         """Update an existing note."""
         note = self.storage.load_entity(entity_id)
-        if not note:
-            return False
 
         if properties is not None:
             note.properties.update(properties)
@@ -97,13 +92,9 @@ class NotesManager:
         note.updated_at = datetime.now()
 
         scope = self.storage.get_note_scope(entity_id) or "local"
-        success = self.storage.save_note(note, scope)
-
-        if success:
-            self._sync_entity_to_db(note, scope)
-            self.semantic_search.update_note(note)
-
-        return success
+        self.storage.save_note(note, scope)
+        self._sync_entity_to_db(note, scope)
+        self.semantic_search.update_note(note)
 
     def delete_note(self, entity_id: str) -> bool:
         """Delete an note."""
@@ -159,11 +150,8 @@ class NotesManager:
     def query_entities_jmespath(self, jmespath_query: str) -> list[dict[str, Any]]:
         """Query notes using JMESPath expressions."""
         all_docs = self.db.all()
-        try:
-            result = jmespath.search(jmespath_query, all_docs)
-            return result if isinstance(result, list) else [result] if result else []
-        except Exception as e:
-            raise ValueError(f"Invalid JMESPath query: {e}") from e
+        result = jmespath.search(jmespath_query, all_docs)
+        return result if isinstance(result, list) else [result] if result else []
 
     def search_entities_text(self, query: str) -> list[Note]:
         """Search notes by text across content, properties, and tags."""

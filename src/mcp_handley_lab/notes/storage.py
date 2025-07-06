@@ -48,15 +48,13 @@ class YAMLNoteStorage:
 
         return Note(**data)
 
-    def save_note(self, note: Note) -> bool:
+    def save_note(self, note: Note) -> None:
         """Save an note to a YAML file."""
         file_path = self._entity_file_path(note.id)
         data = self._serialize_entity(note)
 
         with open(file_path, "w") as f:
             self.yaml.dump(data, f)
-
-        return True
 
     def load_entity(self, entity_id: str) -> Note | None:
         """Load an note from its YAML file."""
@@ -177,19 +175,15 @@ class GlobalLocalYAMLStorage:
         with open(local_mapping_file, "w") as f:
             json.dump({"notes": local_entities}, f, indent=2)
 
-    def save_note(self, note: Note, scope: str = "local") -> bool:
+    def save_note(self, note: Note, scope: str = "local") -> None:
         """Save an note to the specified scope."""
         if scope not in ("global", "local"):
             raise ValueError("Scope must be 'global' or 'local'")
 
         storage = self.global_storage if scope == "global" else self.local_storage
-        success = storage.save_note(note)
-
-        if success:
-            self._entity_scopes[note.id] = scope
-            self._save_scope_mappings()
-
-        return success
+        storage.save_note(note)
+        self._entity_scopes[note.id] = scope
+        self._save_scope_mappings()
 
     def load_entity(self, entity_id: str) -> Note | None:
         """Load an note from appropriate storage (local takes precedence)."""

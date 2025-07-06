@@ -65,22 +65,22 @@ class NotesManager:
 
         self.storage.save_note(note, scope)
         self._sync_entity_to_db(note, scope)
-        self.semantic_search.add_entity(note)
+        self.semantic_search.add_note(note)
         return note.id
 
-    def get_note(self, entity_id: str) -> Note | None:
+    def get_note(self, note_id: str) -> Note | None:
         """Get an note by ID."""
-        return self.storage.load_entity(entity_id)
+        return self.storage.load_entity(note_id)
 
     def update_note(
         self,
-        entity_id: str,
+        note_id: str,
         properties: dict[str, Any] = None,
         tags: list[str] = None,
         content: str = None,
     ) -> None:
         """Update an existing note."""
-        note = self.storage.load_entity(entity_id)
+        note = self.storage.load_entity(note_id)
 
         if properties is not None:
             note.properties.update(properties)
@@ -91,22 +91,22 @@ class NotesManager:
 
         note.updated_at = datetime.now()
 
-        scope = self.storage.get_note_scope(entity_id) or "local"
+        scope = self.storage.get_note_scope(note_id) or "local"
         self.storage.save_note(note, scope)
         self._sync_entity_to_db(note, scope)
         self.semantic_search.update_note(note)
 
-    def delete_note(self, entity_id: str) -> bool:
+    def delete_note(self, note_id: str) -> bool:
         """Delete an note."""
-        success = self.storage.delete_note(entity_id)
+        success = self.storage.delete_note(note_id)
         if success:
-            self.db.remove(Query()._entity_id == entity_id)
-            self.semantic_search.remove_entity(entity_id)
+            self.db.remove(Query()._entity_id == note_id)
+            self.semantic_search.remove_note(note_id)
         return success
 
-    def get_note_scope(self, entity_id: str) -> str | None:
+    def get_note_scope(self, note_id: str) -> str | None:
         """Get the scope (global or local) of an note."""
-        return self.storage.get_note_scope(entity_id)
+        return self.storage.get_note_scope(note_id)
 
     def list_entities(
         self, note_type: str = None, tags: list[str] = None, scope: str = None

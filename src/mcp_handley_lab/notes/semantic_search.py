@@ -20,7 +20,7 @@ class SemanticSearchManager:
             name="notes", metadata={"hnsw:space": "cosine"}
         )
 
-    def add_entity(self, note: Note) -> bool:
+    def add_note(self, note: Note) -> bool:
         """Add an note to the semantic search index."""
         # Combine content and key properties for embedding
         text_parts = []
@@ -56,9 +56,9 @@ class SemanticSearchManager:
 
         return True
 
-    def remove_entity(self, entity_id: str) -> bool:
+    def remove_note(self, note_id: str) -> bool:
         """Remove an note from the semantic search index."""
-        self.collection.delete(ids=[entity_id])
+        self.collection.delete(ids=[note_id])
         return True
 
     def search_similar(
@@ -77,7 +77,7 @@ class SemanticSearchManager:
             tags: Filter by notes having any of these tags
 
         Returns:
-            List of tuples (entity_id, similarity_score)
+            List of tuples (note_id, similarity_score)
         """
         # Build where clause for filtering
         where_clause = {}
@@ -110,17 +110,17 @@ class SemanticSearchManager:
 
         # Extract note IDs and distances (convert to similarity scores)
         if results["ids"] and len(results["ids"]) > 0:
-            entity_ids = results["ids"][0]
+            note_ids = results["ids"][0]
             distances = (
                 results["distances"][0]
                 if results["distances"]
-                else [0.0] * len(entity_ids)
+                else [0.0] * len(note_ids)
             )
 
             # Convert cosine distance to similarity score (1 - distance)
             similarities = [
-                (entity_id, 1.0 - distance)
-                for entity_id, distance in zip(entity_ids, distances, strict=False)
+                (note_id, 1.0 - distance)
+                for note_id, distance in zip(note_ids, distances, strict=False)
             ]
             return similarities
         else:
@@ -129,17 +129,17 @@ class SemanticSearchManager:
     def get_collection_stats(self) -> dict[str, int]:
         """Get statistics about the semantic search collection."""
         count = self.collection.count()
-        return {"total_entities": count}
+        return {"total_notes": count}
 
     def rebuild_index(self, notes: list[Note]) -> None:
         """Rebuild the entire semantic search index."""
         # Re-add all notes (ChromaDB upsert will handle duplicates)
         for note in notes:
-            self.add_entity(note)
+            self.add_note(note)
 
     def update_note(self, note: Note) -> bool:
         """Update an note in the semantic search index."""
-        return self.add_entity(note)  # upsert handles updates
+        return self.add_note(note)  # upsert handles updates
 
 
 # Alias for backwards compatibility

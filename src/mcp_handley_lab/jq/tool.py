@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import constr
 
 from mcp_handley_lab.common.process import run_command
 
@@ -44,7 +43,7 @@ def _run_jq(args: list[str], input_text: str | None = None) -> str:
     description="Applies a `jq` filter expression to JSON data. The `data` can be a JSON string, a file path, or a parsed object. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output."
 )
 def query(
-    data: constr(min_length=1) | dict | list,
+    data: str | dict | list,
     filter: str = ".",
     compact: bool = False,
     raw_output: bool = False,
@@ -70,9 +69,7 @@ def query(
 @mcp.tool(
     description="Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this."
 )
-def edit(
-    file_path: constr(min_length=1), filter: constr(min_length=1), backup: bool = True
-) -> str:
+def edit(file_path: str, filter: str, backup: bool = True) -> str:
     """Edit a JSON file in-place."""
 
     path = Path(file_path)
@@ -105,7 +102,7 @@ def read(file_path: str, filter: str = ".") -> str:
 @mcp.tool(
     description="Validates JSON syntax for strings or files. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors."
 )
-def validate(data: constr(min_length=1) | dict | list) -> str:
+def validate(data: str | dict | list) -> str:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
 
@@ -117,7 +114,7 @@ def validate(data: constr(min_length=1) | dict | list) -> str:
     description="Formats JSON data for readability or compactness. Takes JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys."
 )
 def format(
-    data: constr(min_length=1) | dict | list,
+    data: str | dict | list,
     compact: bool = False,
     sort_keys: bool = False,
 ) -> str:

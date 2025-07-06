@@ -12,8 +12,7 @@ from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.common import (
-    determine_mime_type,
-    is_text_file,
+    resolve_files_for_llm,
 )
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
@@ -40,109 +39,6 @@ def _get_model_config(model: str) -> dict[str, Any]:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-def _resolve_files(
-    files: list[str | dict[str, str]] | None,
-) -> list[str]:
-    """Resolve file inputs to text content for OpenAI Chat Completions.
-
-    NOTE: Chat Completions API requires all content to be inline.
-    Files API is only for Assistants API, not Chat Completions.
-
-    Returns list of strings with file contents for inclusion in messages.
-    Large files are truncated to prevent token overflow.
-    """
-    if not files:
-        return []
-
-    inline_content = []
-
-    for file_item in files:
-        if isinstance(file_item, str):
-            # Direct content string
-            inline_content.append(file_item)
-        elif isinstance(file_item, dict):
-            if "content" in file_item:
-                # Direct content from dict
-                inline_content.append(file_item["content"])
-            elif "path" in file_item:
-                # File path - read content directly
-                file_path = Path(file_item["path"])
-                file_size = file_path.stat().st_size
-
-                if file_size > 1024 * 1024:  # 1MB threshold - truncate large files
-                    # Large file - read first part only to prevent token overflow
-                    content = file_path.read_text(encoding="utf-8")[
-                        :100000
-                    ]  # ~100KB limit
-                    inline_content.append(
-                        f"[File: {file_path.name} (truncated)]\n{content}..."
-                    )
-                else:
-                    # Small file - include directly
-                    if is_text_file(file_path):
-                        # Text file - read as string with header
-                        content = file_path.read_text(encoding="utf-8")
-                        inline_content.append(f"[File: {file_path.name}]\n{content}")
-                    else:
-                        # Small binary file - base64 encode with metadata
-                        file_content = file_path.read_bytes()
-                        encoded_content = base64.b64encode(file_content).decode()
-                        mime_type = determine_mime_type(file_path)
-                        inline_content.append(
-                            f"[Binary file: {file_path.name}, {mime_type}, {file_size} bytes]\n{encoded_content}"
-                        )
-
-    return inline_content
-
-
-def _resolve_images(
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
-) -> list[str]:
-    """Resolve image inputs to base64 encoded strings for OpenAI."""
-    image_list = []
-
-    if image_data:
-        if image_data.startswith("data:image"):
-            image_list.append(image_data)
-        else:
-            # File path - convert to base64
-            image_path = Path(image_data)
-            image_bytes = image_path.read_bytes()
-            # Use standard mime type detection
-            mime_type = determine_mime_type(image_path)
-            encoded = base64.b64encode(image_bytes).decode()
-            image_list.append(f"data:{mime_type};base64,{encoded}")
-
-    if images:
-        for image_item in images:
-            if isinstance(image_item, str):
-                if image_item.startswith("data:image"):
-                    image_list.append(image_item)
-                else:
-                    # File path
-                    image_path = Path(image_item)
-                    image_bytes = image_path.read_bytes()
-                    mime_type = determine_mime_type(image_path)
-                    encoded = base64.b64encode(image_bytes).decode()
-                    image_list.append(f"data:{mime_type};base64,{encoded}")
-            elif isinstance(image_item, dict):
-                if "data" in image_item:
-                    # Already base64 encoded
-                    encoded_data = image_item["data"]
-                    if not encoded_data.startswith("data:image"):
-                        encoded_data = f"data:image/jpeg;base64,{encoded_data}"
-                    image_list.append(encoded_data)
-                elif "path" in image_item:
-                    image_path = Path(image_item["path"])
-                    image_bytes = image_path.read_bytes()
-                    mime_type = determine_mime_type(image_path)
-                    encoded = base64.b64encode(image_bytes).decode()
-                    image_list.append(f"data:{mime_type};base64,{encoded}")
-
-    return image_list
-
-
 def _openai_generation_adapter(
     prompt: str,
     model: str,
@@ -167,7 +63,7 @@ def _openai_generation_adapter(
     messages.extend(history)
 
     # Resolve files
-    inline_content = _resolve_files(files)
+    inline_content = resolve_files_for_llm(files)
 
     # Add user message with any inline content
     user_content = prompt
@@ -191,7 +87,7 @@ def _openai_generation_adapter(
         request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
-    if max_output_tokens is not None:
+    if max_output_tokens > 0:
         request_params[param_name] = max_output_tokens
     else:
         request_params[param_name] = default_tokens
@@ -218,13 +114,25 @@ def _openai_image_analysis_adapter(
 ) -> dict[str, Any]:
     """OpenAI-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
-    image_data = kwargs.get("image_data")
-    images = kwargs.get("images")
+    images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
 
     # Load images
-    image_list = _resolve_images(image_data, images)
+    from mcp_handley_lab.llm.common import resolve_image_data
+
+    image_urls = []
+    for image_path in images:
+        image_bytes = resolve_image_data(image_path)
+        encoded = base64.b64encode(image_bytes).decode()
+
+        from mcp_handley_lab.llm.common import determine_mime_type
+
+        if image_path.startswith("data:image"):
+            image_urls.append(image_path)
+        else:
+            mime_type = determine_mime_type(Path(image_path))
+            image_urls.append(f"data:{mime_type};base64,{encoded}")
 
     # Enhance prompt based on focus
     if focus != "general":
@@ -232,7 +140,7 @@ def _openai_image_analysis_adapter(
 
     # Build message content with images
     content = [{"type": "text", "text": prompt}]
-    for image_url in image_list:
+    for image_url in image_urls:
         content.append({"type": "image_url", "image_url": {"url": image_url}})
 
     # Build messages
@@ -264,7 +172,7 @@ def _openai_image_analysis_adapter(
         request_params["temperature"] = 0.7
 
     # Add max tokens with correct parameter name
-    if max_output_tokens is not None:
+    if max_output_tokens > 0:
         request_params[param_name] = max_output_tokens
     else:
         request_params[param_name] = default_tokens
@@ -294,9 +202,8 @@ def _openai_image_analysis_adapter(
 - '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)
 
 **File Input Formats**:
-- `{"path": "/path/to/file"}` - Reads file from filesystem
-- `{"content": "text content"}` - Uses provided text directly
-- `"direct string"` - Treats string as literal content
+- File paths as strings: `["/path/to/file1.py", "/path/to/file2.txt"]`
+- All files are read from filesystem and included inline
 
 **Key Parameters**:
 - `model`: "o3-mini" (default, fast reasoning), "o3" (best reasoning), "gpt-4o" (multimodal), "gpt-4o-mini" (fast multimodal)
@@ -365,12 +272,12 @@ ask(
 )
 def ask(
     prompt: str,
-    output_file: str | None = "-",
-    agent_name: str | bool | None = None,
+    output_file: str = "-",
+    agent_name: str = "session",
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
-    max_output_tokens: int | None = None,
-    files: list[str | dict[str, str]] | None = None,
+    max_output_tokens: int = 0,
+    files: list[str] = [],
 ) -> str:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
@@ -399,10 +306,9 @@ def ask(
 - '-' to output directly to stdout (use sparingly for large analyses)
 
 **Image Input Formats**:
-- `{"path": "/path/to/image.jpg"}` - Read from filesystem (preferred)
-- `{"data": "base64_encoded_data"}` - Base64 encoded image data
-- `"data:image/jpeg;base64,/9j/4AAQ..."` - Data URL format
-- `"/path/to/image.jpg"` - Direct path string (legacy, use dict format instead)
+- File paths: `["/path/to/image1.jpg", "/path/to/image2.png"]`
+- Data URLs: `["data:image/jpeg;base64,/9j/4AAQ..."]`
+- Mixed: `["/path/to/local.jpg", "data:image/png;base64,iVBORw..."]`
 
 **Analysis Focus Options**:
 - "general" (default) - Overall image description
@@ -470,13 +376,12 @@ analyze_image(
 )
 def analyze_image(
     prompt: str,
-    output_file: str | None = "-",
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    output_file: str = "-",
+    images: list[str] = [],
     focus: str = "general",
     model: str = "gpt-4o",
-    agent_name: str | bool | None = None,
-    max_output_tokens: int | None = None,
+    agent_name: str = "session",
+    max_output_tokens: int = 0,
 ) -> str:
     """Analyze images with OpenAI vision model."""
     return process_llm_request(
@@ -487,7 +392,6 @@ def analyze_image(
         provider="openai",
         generation_func=_openai_image_analysis_adapter,
         mcp_instance=mcp,
-        image_data=image_data,
         images=images,
         focus=focus,
         max_output_tokens=max_output_tokens,
@@ -571,14 +475,12 @@ def generate_image(
     model: str = "dall-e-3",
     quality: str = "standard",
     size: str = "1024x1024",
-    agent_name: str | None = None,
+    agent_name: str = "session",
 ) -> str:
     """Generate images with DALL-E."""
     # Input validation
     if not prompt or not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
-    if agent_name is not None and agent_name is not False and not agent_name.strip():
-        raise ValueError("Agent name cannot be empty when provided")
 
     # Make API call (quality only supported for DALL-E 3)
     params = {"model": model, "prompt": prompt, "size": size, "n": 1}
@@ -603,17 +505,25 @@ def generate_image(
     # Calculate cost (DALL-E pricing is per image)
     cost = calculate_cost(model, 1, 0, "openai")  # 1 image
 
-    # Handle agent memory
-    if agent_name:
-        agent = memory_manager.get_agent(agent_name)
+    # Handle agent memory with string-based pattern
+    use_memory = agent_name != ""  # Empty string = no memory
+    if use_memory:
+        from mcp_handley_lab.llm.common import get_session_id
+
+        if agent_name == "session":
+            actual_agent_name = get_session_id(mcp)
+        else:
+            actual_agent_name = agent_name
+
+        agent = memory_manager.get_agent(actual_agent_name)
         if not agent:
-            agent = memory_manager.create_agent(agent_name)
+            agent = memory_manager.create_agent(actual_agent_name)
 
         memory_manager.add_message(
-            agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
+            actual_agent_name, "user", f"Generate image: {prompt}", 0, cost / 2
         )
         memory_manager.add_message(
-            agent_name,
+            actual_agent_name,
             "assistant",
             f"Image generated and saved to {saved_path}",
             0,

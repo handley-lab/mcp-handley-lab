@@ -84,7 +84,7 @@ def _get_model_config(model: str) -> dict[str, int]:
 
 
 def _resolve_files(
-    files: list[str | dict[str, str]] | None,
+    files: list[str],
 ) -> list[Part]:
     """Resolve file inputs to structured content parts for google-genai API.
 
@@ -95,59 +95,45 @@ def _resolve_files(
         return []
 
     parts = []
-    for file_item in files:
-        if isinstance(file_item, str):
-            # Direct content string - create text part
-            parts.append(Part(text=file_item))
-        elif isinstance(file_item, dict):
-            if "content" in file_item:
-                # Direct content - create text part
-                parts.append(Part(text=file_item["content"]))
-            elif "path" in file_item:
-                # File path - determine optimal handling based on size
-                file_path = Path(file_item["path"])
-                file_size = file_path.stat().st_size
+    for file_path_str in files:
+        # All items are file paths
+        file_path = Path(file_path_str)
+        file_size = file_path.stat().st_size
 
-                if file_size > 20 * 1024 * 1024:  # 20MB threshold
-                    # Large file - use Files API
-                    uploaded_file = client.files.upload(
-                        file=str(file_path),
-                        mime_type=get_gemini_safe_mime_type(file_path),
-                    )
-                    parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
-                else:
-                    # Small file - use inlineData with base64 encoding
-                    if is_text_file(file_path):
-                        # For text files, read directly as text
-                        content = file_path.read_text(encoding="utf-8")
-                        parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
-                    else:
-                        # For binary files, use inlineData
-                        file_content = file_path.read_bytes()
-                        encoded_content = base64.b64encode(file_content).decode()
-                        parts.append(
-                            Part(
-                                inlineData=Blob(
-                                    mimeType=get_gemini_safe_mime_type(file_path),
-                                    data=encoded_content,
-                                )
-                            )
+        if file_size > 20 * 1024 * 1024:  # 20MB threshold
+            # Large file - use Files API
+            uploaded_file = client.files.upload(
+                file=str(file_path),
+                mime_type=get_gemini_safe_mime_type(file_path),
+            )
+            parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
+        else:
+            # Small file - use inlineData with base64 encoding
+            if is_text_file(file_path):
+                # For text files, read directly as text
+                content = file_path.read_text(encoding="utf-8")
+                parts.append(Part(text=f"[File: {file_path.name}]\n{content}"))
+            else:
+                # For binary files, use inlineData
+                file_content = file_path.read_bytes()
+                encoded_content = base64.b64encode(file_content).decode()
+                parts.append(
+                    Part(
+                        inlineData=Blob(
+                            mimeType=get_gemini_safe_mime_type(file_path),
+                            data=encoded_content,
                         )
+                    )
+                )
 
     return parts
 
 
 def _resolve_images(
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    images: list[str] = [],
 ) -> list[Image.Image]:
     """Resolve image inputs to PIL Image objects."""
     image_list = []
-
-    # Handle single image_data parameter
-    if image_data:
-        image_bytes = resolve_image_data(image_data)
-        image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     # Handle images array
     if images:
@@ -187,9 +173,7 @@ def _gemini_generation_adapter(
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
     output_tokens = (
-        min(max_output_tokens, max_output)
-        if max_output_tokens is not None
-        else max_output
+        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
     )
 
     # Prepare config
@@ -248,20 +232,17 @@ def _gemini_image_analysis_adapter(
 ) -> dict[str, Any]:
     """Gemini-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
-    image_data = kwargs.get("image_data")
-    images = kwargs.get("images")
+    images = kwargs.get("images", [])
     max_output_tokens = kwargs.get("max_output_tokens")
 
     # Load images
-    image_list = _resolve_images(image_data, images)
+    image_list = _resolve_images(images)
 
     # Get model configuration
     model_config = _get_model_config(model)
     max_output = model_config["output_tokens"]
     output_tokens = (
-        min(max_output_tokens, max_output)
-        if max_output_tokens is not None
-        else max_output
+        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
     )
 
     # Prepare content with images
@@ -298,13 +279,13 @@ def _gemini_image_analysis_adapter(
 @require_client
 def ask(
     prompt: str,
-    output_file: str | None = "-",
-    agent_name: str | bool | None = None,
+    output_file: str = "-",
+    agent_name: str = "session",
     model: str = DEFAULT_MODEL,
     temperature: float = 0.7,
     grounding: bool = False,
-    files: list[str | dict[str, str]] | None = None,
-    max_output_tokens: int | None = None,
+    files: list[str] = [],
+    max_output_tokens: int = 0,
 ) -> str:
     """Ask Gemini a question with optional persistent memory.
 
@@ -347,13 +328,12 @@ def ask(
 @require_client
 def analyze_image(
     prompt: str,
-    output_file: str | None = "-",
-    image_data: str | None = None,
-    images: list[str | dict[str, str]] | None = None,
+    output_file: str = "-",
+    images: list[str] = [],
     focus: str = "general",
     model: str = DEFAULT_MODEL,
-    agent_name: str | bool | None = None,
-    max_output_tokens: int | None = None,
+    agent_name: str = "session",
+    max_output_tokens: int = 0,
 ) -> str:
     """Analyze images with Gemini vision model."""
     return process_llm_request(
@@ -364,7 +344,6 @@ def analyze_image(
         provider="gemini",
         generation_func=_gemini_image_analysis_adapter,
         mcp_instance=mcp,
-        image_data=image_data,
         images=images,
         focus=focus,
         max_output_tokens=max_output_tokens,
@@ -376,14 +355,12 @@ def analyze_image(
 )
 @require_client
 def generate_image(
-    prompt: str, model: str = "imagen-3", agent_name: str | bool | None = None
+    prompt: str, model: str = "imagen-3", agent_name: str = "session"
 ) -> str:
     """Generate images with Google's Imagen 3 model."""
     # Input validation
     if not prompt or not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
-    if agent_name is not None and agent_name is not False and not agent_name.strip():
-        raise ValueError("Agent name cannot be empty when provided")
 
     # Map model names to actual model IDs
     model_mapping = {
@@ -423,23 +400,25 @@ def generate_image(
     output_tokens = 1  # Image generation
     cost = calculate_cost(model, input_tokens, output_tokens, "gemini")
 
-    # Handle agent memory (only if enabled)
-    use_memory = agent_name is not False
+    # Handle agent memory with string-based pattern
+    use_memory = agent_name != ""  # Empty string = no memory
 
     if use_memory:
-        # Use session-specific agent if no agent_name provided
-        if not agent_name:
-            agent_name = _get_session_id()
+        actual_agent_name = _get_session_id() if agent_name == "session" else agent_name
 
-        agent = memory_manager.get_agent(agent_name)
+        agent = memory_manager.get_agent(actual_agent_name)
         if not agent:
-            agent = memory_manager.create_agent(agent_name)
+            agent = memory_manager.create_agent(actual_agent_name)
 
         memory_manager.add_message(
-            agent_name, "user", f"Generate image: {prompt}", input_tokens, cost / 2
+            actual_agent_name,
+            "user",
+            f"Generate image: {prompt}",
+            input_tokens,
+            cost / 2,
         )
         memory_manager.add_message(
-            agent_name,
+            actual_agent_name,
             "assistant",
             f"Generated image saved to {filepath}",
             output_tokens,

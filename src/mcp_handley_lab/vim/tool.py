@@ -61,7 +61,7 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
 def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
-    instructions: str = None,
+    instructions: str = "",
     show_diff: bool = True,
     keep_file: bool = False,
 ) -> str:
@@ -128,7 +128,9 @@ def prompt_user_edit(
     description="Opens Vim to create new content from scratch with optional `initial_content` and `instructions`. Creates a temporary file, opens Vim for editing, then returns the final content. Instructions are shown as comments and automatically stripped."
 )
 def quick_edit(
-    file_extension: str = ".txt", instructions: str = None, initial_content: str = ""
+    file_extension: str = ".txt",
+    instructions: str | None = None,
+    initial_content: str = "",
 ) -> str:
     """Open vim for creating new content."""
     # Create temp file
@@ -163,7 +165,7 @@ def quick_edit(
 )
 def open_file(
     file_path: str,
-    instructions: str = None,
+    instructions: str = "",
     show_diff: bool = True,
     backup: bool = True,
 ) -> str:

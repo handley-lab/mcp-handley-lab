@@ -255,3 +255,44 @@ def handle_agent_memory(
         return agent_name
 
     return None
+
+
+def resolve_files_for_llm(
+    files: list[str], max_file_size: int = 1024 * 1024
+) -> list[str]:
+    """Resolve list of file paths to inline content strings for LLM providers.
+
+    Args:
+        files: List of file paths
+        max_file_size: Maximum file size to include (default 1MB)
+
+    Returns:
+        List of formatted content strings with file headers
+    """
+    if not files:
+        return []
+
+    inline_content = []
+    for file_path_str in files:
+        file_path = Path(file_path_str)
+        try:
+            content, is_text = read_file_smart(file_path, max_file_size)
+            inline_content.append(content)
+        except ValueError as e:
+            if "too large" in str(e):
+                # File too large - read truncated version
+                if is_text_file(file_path):
+                    content = file_path.read_text(encoding="utf-8")[
+                        :100000
+                    ]  # 100KB limit
+                    inline_content.append(
+                        f"[File: {file_path.name} (truncated)]\n{content}..."
+                    )
+                else:
+                    inline_content.append(
+                        f"[File: {file_path.name} - too large to include]"
+                    )
+            else:
+                raise
+
+    return inline_content

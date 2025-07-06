@@ -22,8 +22,8 @@ def _run_code2prompt(args: list[str]) -> str:
 def generate_prompt(
     path: str,
     output_file: str | None = None,
-    include: list[str] | None = None,
-    exclude: list[str] | None = None,
+    include: list[str] = [],
+    exclude: list[str] = [],
     output_format: str = "markdown",
     line_numbers: bool = False,
     full_directory_tree: bool = False,

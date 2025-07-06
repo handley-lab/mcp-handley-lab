@@ -13,7 +13,7 @@ from mcp_handley_lab.llm.common import (
 def process_llm_request(
     prompt: str,
     output_file: str,
-    agent_name: str | bool | None,
+    agent_name: str,
     model: str,
     provider: str,
     generation_func: Callable,
@@ -26,8 +26,8 @@ def process_llm_request(
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file.strip():
         raise ValueError("Output file is required and cannot be empty")
-    if isinstance(agent_name, str) and not agent_name.strip():
-        raise ValueError("Agent name cannot be empty")
+    # agent_name validation: "session", "" (no memory), or actual name
+    # No validation needed - all string values are valid
 
     # Store original prompt for memory
     user_prompt = prompt
@@ -35,11 +35,13 @@ def process_llm_request(
     system_instruction = None
     actual_agent_name = agent_name
 
-    # Handle agent memory
-    use_memory = agent_name is not False
+    # Handle agent memory with string-based pattern
+    use_memory = agent_name != ""  # Empty string = no memory
     if use_memory:
-        if not actual_agent_name:
+        if agent_name == "session":
             actual_agent_name = get_session_id(mcp_instance)
+        else:
+            actual_agent_name = agent_name
 
         agent = memory_manager.get_agent(actual_agent_name)
         if agent:

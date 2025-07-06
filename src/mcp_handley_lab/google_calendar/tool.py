@@ -111,7 +111,7 @@ def _format_datetime(dt_str: str) -> str:
 def _client_side_filter(
     events: list[dict[str, Any]],
     search_text: str | None = None,
-    search_fields: list[str] | None = None,
+    search_fields: list[str] = [],
     case_sensitive: bool = False,
     match_all_terms: bool = True,
 ) -> list[dict[str, Any]]:
@@ -235,7 +235,7 @@ def create_event(
     description: str | None = None,
     calendar_id: str = "primary",
     timezone: str = "UTC",
-    attendees: list[str] | None = None,
+    attendees: list[str] = [],
 ) -> str:
     """Create a new calendar event."""
     service = _get_calendar_service()
@@ -476,7 +476,7 @@ def search_events(
     start_date: str | None = None,
     end_date: str | None = None,
     max_results: int = 100,
-    search_fields: list[str] | None = None,
+    search_fields: list[str] = [],
     case_sensitive: bool = False,
     match_all_terms: bool = True,
 ) -> str:

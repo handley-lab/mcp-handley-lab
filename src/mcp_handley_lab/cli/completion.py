@@ -16,16 +16,22 @@ _mcp_cli() {
 
     # Check completion context based on current position
     if [[ $CURRENT -eq 2 ]]; then
-        # Completing first argument (tool name)
-        _arguments -C \\
-            '(--help)--help[Show help message]' \\
-            '(--list-tools)--list-tools[List all available tools]' \\
-            '(--config)--config[Show configuration file location]' \\
-            '(--init-config)--init-config[Create default configuration file]' \\
-            '(--install-completion)--install-completion[Install zsh completion script]' \\
-            '(--show-completion)--show-completion[Show completion installation instructions]' \\
-            '1:tool:->tools' \\
-            && return 0
+        # Use _alternative approach like git to get proper group headers
+        local -a tools option_values alts
+
+        # Get available tools dynamically
+        tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
+
+        # Define options
+        option_values=(
+            '--help' '--list-tools' '--config' '--init-config'
+            '--install-completion' '--show-completion'
+        )
+
+        # Add completions to their respective groups
+        compadd -J 'tools' -a tools
+        compadd -J 'options' -a option_values
+        return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Completing second argument (function name) when tool is specified
         _arguments -C \\
@@ -44,31 +50,31 @@ _mcp_cli() {
             '*:params:->params' \\
             && return 0
     else
-        # Fallback to global options
-        _arguments -C \\
-            '(--help)--help[Show help message]' \\
-            '(--list-tools)--list-tools[List all available tools]' \\
-            '(--config)--config[Show configuration file location]' \\
-            '(--init-config)--init-config[Create default configuration file]' \\
-            '(--install-completion)--install-completion[Install zsh completion script]' \\
-            '(--show-completion)--show-completion[Show completion installation instructions]' \\
-            '1:tool:->tools' \\
-            && return 0
+        # Fallback - use same _alternative approach as first case
+        local -a tools option_values alts
+
+        tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
+        option_values=(
+            '--help' '--list-tools' '--config' '--init-config'
+            '--install-completion' '--show-completion'
+        )
+
+        # Add completions to their respective groups
+        compadd -J 'tools' -a tools
+        compadd -J 'options' -a option_values
+        return 0
     fi
 
     case $state in
-        tools)
-            # Get available tools - parse the actual output format
-            tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
-            _describe 'tools' tools
-            ;;
         functions)
             # Get functions for the selected tool
             local tool=$words[2]
             if [[ -n $tool ]]; then
-                # Parse the "Available functions:" section from tool help
-                local functions=($(mcp-cli $tool --help 2>/dev/null | awk '/Available functions:/,/^$/ {if (/^  [a-zA-Z]/) print $1}'))
-                _describe 'functions' functions
+                # Parse the "FUNCTIONS" section from tool help
+                local functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
+                if [[ ${#functions[@]} -gt 0 ]]; then
+                    _describe 'functions' functions
+                fi
             fi
             ;;
         params)
@@ -77,6 +83,12 @@ _mcp_cli() {
             ;;
     esac
 }
+
+# Configure group display with headers (must be outside the function)
+zstyle ':completion:*:*:mcp-cli:*:*' format '%F{yellow}--- %d ---%f'
+zstyle ':completion:*:*:mcp-cli:*:tools' group-name 'Tools'
+zstyle ':completion:*:*:mcp-cli:*:options' group-name 'Options'
+zstyle ':completion:*:*:mcp-cli:*:*' group-order 'Tools' 'Options'
 
 compdef _mcp_cli mcp-cli
 """

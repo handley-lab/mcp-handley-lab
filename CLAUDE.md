@@ -96,7 +96,7 @@ git commit --no-verify -m "bypass hooks"
 **THE PRIME DIRECTIVE: Write concise, elegant code above all else.**
 
 - **Elegant simplicity**: Every line should justify its existence. If it can be removed without loss of functionality, remove it
-- **Ruthless conciseness**: Favor clarity through brevity. Dense but readable code is better than verbose "enterprise" patterns
+- **Ruthless concision**: Favor clarity through brevity. Dense but readable code is better than verbose "enterprise" patterns
 - **No defensive programming**: This is a local tool - assume happy paths. Add guards only after actual failures occur
 - **Trust the environment**: Don't check if tools exist or APIs are configured - they are
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)

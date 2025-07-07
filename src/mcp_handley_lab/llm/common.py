@@ -4,7 +4,7 @@ import mimetypes
 import os
 from pathlib import Path
 
-from mcp_handley_lab.common.memory import memory_manager
+from mcp_handley_lab.llm.memory import memory_manager
 
 # Enhance mimetypes with common text file types that might not be in the default database
 # This runs once when the module is imported

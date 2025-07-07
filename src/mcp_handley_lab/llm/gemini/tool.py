@@ -21,13 +21,13 @@ from mcp.server.fastmcp import FastMCP
 from PIL import Image
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.llm.common import (
     get_gemini_safe_mime_type,
     get_session_id,
     is_text_file,
     resolve_image_data,
 )
+from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
@@ -414,13 +414,10 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Gemini models (persistent memory by default, agent_name=\"\" to disable)
-- analyze_image: Image analysis with vision models (persistent memory by default, agent_name=\"\" to disable)
-- generate_image: Generate images with Imagen 3 (persistent memory by default, agent_name=\"\" to disable)
-- create_agent: Create persistent conversation agents
-- list_agents: List all agents and stats
-- agent_stats: Get detailed agent statistics
-- get_response: Retrieve messages from agent conversation history
-- clear_agent: Clear agent conversation history
-- delete_agent: Permanently delete agents
-- server_info: Get server status"""
+- ask: Chat with Gemini models (persistent memory enabled by default)
+- analyze_image: Image analysis with vision models (persistent memory enabled by default)
+- generate_image: Generate images with Imagen 3 (persistent memory enabled by default)
+- list_models: List available Gemini models with detailed information
+- server_info: Get server status
+
+Note: Agent memory is managed automatically. Use agent_name parameter in ask/analyze_image for persistent conversations."""

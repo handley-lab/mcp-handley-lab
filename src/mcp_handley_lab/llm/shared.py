@@ -4,13 +4,13 @@ import uuid
 from collections.abc import Callable
 from pathlib import Path
 
-from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.common import (
     get_session_id,
     handle_agent_memory,
     handle_output,
 )
+from mcp_handley_lab.llm.memory import memory_manager
 
 
 def process_llm_request(

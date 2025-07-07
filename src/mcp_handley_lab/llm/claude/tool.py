@@ -7,12 +7,12 @@ from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.llm.common import (
     determine_mime_type,
     resolve_files_for_llm,
     resolve_image_data,
 )
+from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
@@ -377,8 +377,9 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with Claude models (persistent memory by default, agent_name="" to disable)
-- analyze_image: Image analysis with vision models (persistent memory by default, agent_name="" to disable)
+- ask: Chat with Claude models (persistent memory enabled by default)
+- analyze_image: Image analysis with vision models (persistent memory enabled by default)
+- list_models: List available Claude models with detailed information
 - server_info: Get server status
 
-Note: Claude does not support image generation. Use Gemini or OpenAI for image generation tasks."""
+Note: Claude does not support image generation. Agent memory is managed automatically - use agent_name parameter for persistent conversations."""

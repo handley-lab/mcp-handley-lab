@@ -42,38 +42,27 @@ def server_info(config_file: str = None) -> str:
     db_info = stdout.decode().strip()
     db_status = f"{db_info} messages indexed"
 
-    # Check OAuth2 accounts
-    oauth2_accounts = []
+    # Check OAuth2 support by checking for msal library
     try:
-        from mcp_handley_lab.email.oauth2.tool import _get_m365_oauth2_config
-        from mcp_handley_lab.email.offlineimap.tool import _parse_offlineimaprc
+        import importlib.util
 
-        offlineimap_accounts = _parse_offlineimaprc(config_file)
-        for account_name in offlineimap_accounts:
-            try:
-                oauth2_config = _get_m365_oauth2_config(account_name, config_file)
-                if oauth2_config:
-                    oauth2_accounts.append(account_name)
-            except Exception:
-                continue
-    except Exception:
-        pass
-
-    oauth2_status = (
-        f"{len(oauth2_accounts)} OAuth2 configured"
-        if oauth2_accounts
-        else "none configured"
-    )
+        spec = importlib.util.find_spec("msal")
+        oauth2_status = (
+            "supported (msal available)"
+            if spec
+            else "not supported (msal not installed)"
+        )
+    except ImportError:
+        oauth2_status = "not supported (msal not installed)"
 
     return f"""Email Tool Server Status:
 ✓ msmtp: {msmtp_version}
   Accounts: {len(accounts)} configured
 ✓ offlineimap: {offlineimap_version}
   Config: found
-  OAuth2: {oauth2_status}
 ✓ notmuch: {notmuch_version}
   Database: {db_status}
-✓ Microsoft 365 OAuth2: supported (msal available)
+✓ Microsoft 365 OAuth2: {oauth2_status}
 ✓ mutt: integrated
 ✓ All email tools are registered and available"""
 

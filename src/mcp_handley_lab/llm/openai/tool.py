@@ -8,10 +8,10 @@ from mcp.server.fastmcp import FastMCP
 from openai import OpenAI
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.common.memory import memory_manager
 from mcp_handley_lab.llm.common import (
     resolve_files_for_llm,
 )
+from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
@@ -320,8 +320,10 @@ Agent Management:
 - Memory Storage: {memory_manager.storage_dir}
 
 Available tools:
-- ask: Chat with GPT models (requires output_file parameter)
-- analyze_image: Image analysis with vision models (requires output_file parameter)
+- ask: Chat with GPT models (persistent memory enabled by default)
+- analyze_image: Image analysis with vision models (persistent memory enabled by default)
 - generate_image: Generate images with DALL-E
-- get_response: Retrieve messages from agent conversation history
-- server_info: Get server status"""
+- list_models: List available OpenAI models with detailed information
+- server_info: Get server status
+
+Note: Agent memory is managed automatically. Use agent_name parameter in ask/analyze_image for persistent conversations."""

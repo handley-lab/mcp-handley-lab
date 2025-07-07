@@ -35,19 +35,15 @@ def launch_interactive(
     in_tmux = bool(os.environ.get("TMUX"))
 
     if in_tmux and prefer_tmux:
-        # Launch in new tmux window
         if wait:
-            # Use tmux window name as signal (clean UX)
             unique_id = str(uuid.uuid4())[:8]
             window_name = f"task-{unique_id}"
             done_name = f"done-{unique_id}"
 
-            # Command with window rename after completion
             sync_command = f"{command}; tmux rename-window '{done_name}'"
             tmux_cmd = ["tmux", "new-window", "-n", window_name, sync_command]
 
             try:
-                # Get current window index RIGHT BEFORE launching (not at function start)
                 current_window = subprocess.check_output(
                     ["tmux", "display-message", "-p", "#{window_index}"], text=True
                 ).strip()
@@ -55,20 +51,16 @@ def launch_interactive(
                 subprocess.run(tmux_cmd, check=True)
                 print(f"Waiting for user input from {window_title or 'tmux window'}...")
 
-                # Poll tmux list-windows for the renamed window (no timeout)
                 while True:
                     output = subprocess.check_output(
                         ["tmux", "list-windows"], text=True
                     )
                     if re.search(rf"{done_name}", output):
                         break
-                    # Also check if the window still exists
                     if not re.search(rf"{window_name}", output):
-                        # Window was closed/renamed by user - consider it done
                         break
                     time.sleep(0.1)
 
-                # Return to the window we were in when mutt was launched
                 if current_window:
                     with contextlib.suppress(subprocess.CalledProcessError):
                         subprocess.run(
@@ -79,7 +71,6 @@ def launch_interactive(
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(f"Failed to run command in tmux: {e}") from e
         else:
-            # Async execution (original behavior)
             tmux_cmd = ["tmux", "new-window"]
 
             if window_title:
@@ -94,9 +85,7 @@ def launch_interactive(
                 raise RuntimeError(f"Failed to create tmux window: {e}") from e
 
     else:
-        # Fallback to xterm
         if wait:
-            # For xterm, we can wait on the xterm process itself
             xterm_cmd = ["xterm"]
 
             if window_title:
@@ -108,13 +97,11 @@ def launch_interactive(
                 print(
                     f"Waiting for user input from {window_title or 'xterm window'}..."
                 )
-                # xterm process will exit when the command inside exits
                 subprocess.run(xterm_cmd, check=True)
                 return f"Completed in xterm: {command}"
             except FileNotFoundError as e:
                 raise RuntimeError("xterm not available for interactive launch") from e
         else:
-            # Async execution (original behavior)
             xterm_cmd = ["xterm"]
 
             if window_title:
@@ -145,21 +132,19 @@ def check_interactive_support() -> dict:
         "xterm_error": None,
     }
 
-    # Check tmux availability
     try:
         subprocess.run(["tmux", "list-sessions"], capture_output=True, check=True)
         result["tmux_available"] = True
     except FileNotFoundError:
-        pass  # tmux not installed, expected
+        pass
     except subprocess.CalledProcessError as e:
         result["tmux_error"] = str(e)
 
-    # Check xterm availability
     try:
         subprocess.run(["which", "xterm"], capture_output=True, check=True)
         result["xterm_available"] = True
     except FileNotFoundError:
-        pass  # xterm not installed, expected
+        pass
     except subprocess.CalledProcessError as e:
         result["xterm_error"] = str(e)
 

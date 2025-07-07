@@ -39,10 +39,8 @@ def _find_contact_fuzzy(
         return []
 
     fzf = FzfPrompt()
-    # Use fzf non-interactive filter mode (without --print-query)
     matches = fzf.prompt(contacts, f'--filter="{query}" --no-sort')
 
-    # Check if matches exist and return them
     if matches:
         return [m for m in matches[:max_results] if m.startswith("alias ")]
     else:
@@ -55,9 +53,7 @@ def get_mutt_alias_file(config_file: str = None) -> Path:
     if config_file:
         cmd.extend(["-F", config_file])
     result = _run_command(cmd)
-    # Parse: alias_file="~/.mutt/addressbook"
     path = result.split("=")[1].strip("\"'")
-    # Expand ~ to home directory
     if path.startswith("~"):
         path = str(Path.home()) + path[1:]
     return Path(path)
@@ -69,31 +65,24 @@ def get_mutt_alias_file(config_file: str = None) -> Path:
 def add_contact(alias: str, email: str, name: str = "", config_file: str = None) -> str:
     """Add a contact to mutt's address book."""
 
-    # Validate inputs
     if not alias or not email:
         raise ValueError("Both alias and email are required")
 
-    # Use alias as-is (your addressbook uses consistent hyphen format)
     clean_alias = alias.lower()
 
-    # Get mutt alias file path from configuration
     alias_file = get_mutt_alias_file(config_file)
 
-    # Determine alias format based on email content
     if "@" in email:
-        # Email addresses - use email format
         if name:
             alias_line = f'alias {clean_alias} "{name}" <{email}>\n'
         else:
             alias_line = f"alias {clean_alias} {email}\n"
     else:
-        # Space-separated aliases - use alias group format
         if name:
             alias_line = f"alias {clean_alias} {email}  # {name}\n"
         else:
             alias_line = f"alias {clean_alias} {email}\n"
 
-    # Append to alias file
     with open(alias_file, "a") as f:
         f.write(alias_line)
 
@@ -128,46 +117,36 @@ def remove_contact(alias: str, config_file: str = None) -> str:
     if not alias:
         raise ValueError("Alias is required")
 
-    # Use alias as-is for exact match first
     clean_alias = alias.lower()
 
-    # Determine file path
     alias_file = get_mutt_alias_file(config_file)
 
     if not alias_file.exists():
         return "No mutt alias file found"
 
-    # Read current contents
     with open(alias_file) as f:
         lines = f.readlines()
 
-    # Try exact match first
     target_line = f"alias {clean_alias} "
     filtered_lines = [line for line in lines if not line.startswith(target_line)]
 
     if len(filtered_lines) == len(lines):
-        # No exact match, try fuzzy matching
         fuzzy_matches = _find_contact_fuzzy(
             alias, max_results=5, config_file=config_file
         )
         if not fuzzy_matches:
             return f"Contact '{clean_alias}' not found"
         elif len(fuzzy_matches) == 1:
-            # Single fuzzy match, remove it
-            fuzzy_alias = fuzzy_matches[0].split()[
-                1
-            ]  # Extract alias from "alias name ..."
+            fuzzy_alias = fuzzy_matches[0].split()[1]
             target_line = f"alias {fuzzy_alias} "
             filtered_lines = [
                 line for line in lines if not line.startswith(target_line)
             ]
-            clean_alias = fuzzy_alias  # Update for return message
+            clean_alias = fuzzy_alias
         else:
-            # Multiple matches, ask user to be more specific
             matches_str = "\n".join(f"- {match}" for match in fuzzy_matches)
             return f"Multiple matches found for '{alias}':\n{matches_str}\n\nPlease be more specific."
 
-    # Write back filtered contents
     with open(alias_file, "w") as f:
         f.writelines(filtered_lines)
 
@@ -180,7 +159,6 @@ def remove_contact(alias: str, config_file: str = None) -> str:
 def server_info() -> str:
     """Get server status and mutt version."""
     result = _run_command(["mutt", "-v"])
-    # Extract first line of version info
     version_lines = result.split("\n")
     version_line = version_lines[0] if version_lines else "Unknown version"
 

@@ -14,7 +14,7 @@ def get_available_tools():
     tools = []
     for tool_file in tool_files:
         # Calculate the relative path from tools_dir to the parent directory of tool.py
-        # e.g., 'src/mcp_handley_lab/agent/tool.py' -> 'agent'
+        # e.g., 'src/mcp_handley_lab/jq/tool.py' -> 'jq'
         # 'src/mcp_handley_lab/llm/gemini/tool.py' -> 'llm.gemini'
         relative_path = tool_file.parent.relative_to(tools_dir)
 

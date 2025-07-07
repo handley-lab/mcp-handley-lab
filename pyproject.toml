@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.0.3"
+version = "0.1.1"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -60,7 +60,6 @@ mcp-google-calendar = "mcp_handley_lab.google_calendar.tool:mcp.run"
 mcp-gemini = "mcp_handley_lab.llm.gemini.tool:mcp.run"
 mcp-openai = "mcp_handley_lab.llm.openai.tool:mcp.run"
 mcp-claude = "mcp_handley_lab.llm.claude.tool:mcp.run"
-mcp-agent = "mcp_handley_lab.llm.agent.tool:mcp.run"
 mcp-email = "mcp_handley_lab.email.tool:mcp.run"
 mcp-mutt-aliases = "mcp_handley_lab.email.mutt_aliases.tool:mcp.run"
 mcp-github = "mcp_handley_lab.github.tool:mcp.run"
@@ -97,7 +96,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]  # Line too long, handled by black
+ignore = ["E501", "B006"]  # Line too long, mutable defaults (intentional for MCP tools)
 
 [tool.coverage.run]
 omit = [

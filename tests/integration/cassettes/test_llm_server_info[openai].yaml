@@ -13,7 +13,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.91.0
+      - OpenAI/Python 1.93.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -23,7 +23,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.91.0
+      - 1.93.0
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -197,13 +197,13 @@ interactions:
         \"openai-internal\"\n    }\n  ]\n}"
     headers:
       CF-RAY:
-      - 95aea09309d6b107-MAN
+      - 95b1b612f9c44f47-MAN
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 11:05:29 GMT
+      - Sun, 06 Jul 2025 20:04:27 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -217,13 +217,13 @@ interactions:
       content-length:
       - '10975'
       openai-processing-ms:
-      - '359'
+      - '431'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-request-id:
-      - 4083be86b39e1a5ba2054f89c4ad83e6
+      - 28db9dc44bd425d92a818d9b2bd2e524
     status:
       code: 200
       message: OK

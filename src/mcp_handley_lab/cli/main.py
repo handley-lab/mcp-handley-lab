@@ -17,8 +17,6 @@ from .completion import install_completion_script, show_completion_install
 @click.argument("function_name", required=False)
 @click.argument("params", nargs=-1)
 @click.option("--list-tools", is_flag=True, help="List all available tools")
-@click.option("--list-functions", is_flag=True, help="List functions for this tool")
-@click.option("--help-function", metavar="FUNCTION", help="Show help for a specific function")
 @click.option("--help", is_flag=True, help="Show help message")
 @click.option("--json-output", is_flag=True, help="Output in JSON format")
 @click.option("--params-from-json", type=click.File('r'), help="Load parameters from JSON file")
@@ -27,14 +25,12 @@ from .completion import install_completion_script, show_completion_install
 @click.option("--install-completion", help="Install zsh completion script", is_flag=True)
 @click.option("--show-completion", help="Show completion installation instructions", is_flag=True)
 @click.pass_context
-def cli(ctx, tool_name, function_name, params, list_tools, list_functions, help_function, help, json_output, params_from_json, config, init_config, install_completion, show_completion):
+def cli(ctx, tool_name, function_name, params, list_tools, help, json_output, params_from_json, config, init_config, install_completion, show_completion):
     """MCP CLI - Unified command-line interface for MCP tools.
     
     Examples:
       mcp-cli --list-tools                    # List available tools
       mcp-cli jq --help                       # Show help for jq tool
-      mcp-cli jq --list-functions             # List functions in jq tool  
-      mcp-cli jq --help-function query        # Show help for jq query function
       mcp-cli jq query data='{"x":1}'         # Run jq query function
     """
     
@@ -75,19 +71,10 @@ def cli(ctx, tool_name, function_name, params, list_tools, list_functions, help_
         click.echo(ctx.get_help())
         ctx.exit()
     
-    # Handle tool-specific options
-    if list_functions:
-        list_tool_functions(tool_name)
-        ctx.exit()
-    
-    if help_function:
-        show_function_details(tool_name, help_function)
-        ctx.exit()
-    
     # Require function name for execution
     if not function_name:
         click.echo(f"Usage: mcp-cli {tool_name} <function> [params...]", err=True)
-        click.echo(f"Use 'mcp-cli {tool_name} --list-functions' to see available functions.", err=True)
+        click.echo(f"Use 'mcp-cli {tool_name} --help' to see available functions.", err=True)
         ctx.exit(1)
     
     # Execute tool function
@@ -105,30 +92,8 @@ def list_all_tools():
     
     # Note: aliases would require config loading, skip for speed
     click.echo(f"\nTotal: {len(available_tools)} tools")
-    click.echo("Use 'mcp-cli <tool> --list-functions' to see available functions.")
+    click.echo("Use 'mcp-cli <tool> --help' to see available functions.")
 
-
-def list_tool_functions(tool_name):
-    """List functions available in a tool."""
-    tools = get_tool_with_aliases()
-    
-    if tool_name not in tools:
-        click.echo(f"Tool '{tool_name}' not found. Use 'mcp-cli --list-tools' to see available tools.", err=True)
-        return
-    
-    tool_info = tools[tool_name]
-    functions = tool_info.get("functions", {})
-    
-    if not functions:
-        click.echo(f"No functions found for tool '{tool_name}'")
-        return
-    
-    click.echo(f"Functions in {tool_name}:")
-    for func_name, func_info in sorted(functions.items()):
-        description = func_info.get("description", "No description")
-        click.echo(f"  {func_name} - {description}")
-    
-    click.echo(f"\nUse 'mcp-cli {tool_name} --help-function <function>' for parameter details.")
 
 
 def show_tool_help(tool_name):
@@ -155,8 +120,6 @@ def show_tool_help(tool_name):
     
     # Show tool usage
     click.echo("Usage:")
-    click.echo(f"  mcp-cli {tool_name} --list-functions           # List available functions")
-    click.echo(f"  mcp-cli {tool_name} --help-function FUNC      # Show help for specific function")
     click.echo(f"  mcp-cli {tool_name} FUNCTION [params...]      # Execute a function")
     click.echo()
     
@@ -187,68 +150,10 @@ def show_tool_help(tool_name):
                 click.echo(f"  mcp-cli {tool_name} {func_name}")
         
         click.echo()
-        click.echo(f"For detailed parameter information, use:")
-        click.echo(f"  mcp-cli {tool_name} --help-function <function_name>")
     else:
         click.echo("No functions available for this tool.")
 
 
-def show_function_details(tool_name, function_name):
-    """Show detailed information about a specific function."""
-    available_tools = get_available_tools()
-    
-    if tool_name not in available_tools:
-        click.echo(f"Tool '{tool_name}' not found. Available tools: {', '.join(available_tools.keys())}", err=True)
-        return
-    
-    command = available_tools[tool_name]
-    tool_info = get_tool_info(tool_name, command)
-    
-    if not tool_info:
-        click.echo(f"Failed to introspect tool '{tool_name}'")
-        return
-    
-    functions = tool_info.get("functions", {})
-    if function_name not in functions:
-        click.echo(f"Function '{function_name}' not found in {tool_name}. Available: {', '.join(functions.keys())}", err=True)
-        return
-    
-    func_info = functions[function_name]
-    click.echo(f"Function: {function_name}")
-    click.echo(f"Description: {func_info.get('description', 'No description')}")
-    
-    # Show parameters
-    input_schema = func_info.get('inputSchema', {})
-    properties = input_schema.get('properties', {})
-    required = input_schema.get('required', [])
-    
-    if properties:
-        click.echo("\nParameters:")
-        for param_name, param_info in properties.items():
-            required_mark = " (required)" if param_name in required else ""
-            param_type = param_info.get('type', 'any')
-            default = param_info.get('default')
-            description = param_info.get('description', 'No description')
-            
-            click.echo(f"  --{param_name}{required_mark}")
-            click.echo(f"    Type: {param_type}")
-            if default is not None:
-                click.echo(f"    Default: {default}")
-            click.echo(f"    Description: {description}")
-    else:
-        click.echo("\nNo parameters required.")
-        
-    # Show usage example
-    click.echo(f"\nUsage:")
-    if properties:
-        example_params = []
-        for param_name, param_info in list(properties.items())[:2]:  # Show first 2 params
-            if param_name in required:
-                example_params.append(f"{param_name}=<value>")
-        param_str = " " + " ".join(example_params) if example_params else ""
-        click.echo(f"  mcp-cli {tool_name} {function_name}{param_str}")
-    else:
-        click.echo(f"  mcp-cli {tool_name} {function_name}")
 
 
 # Register cleanup on exit

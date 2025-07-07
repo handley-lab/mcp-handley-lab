@@ -56,36 +56,6 @@ class TestCLIIntegration:
         assert "validate" in result.stdout
         assert "Examples:" in result.stdout
     
-    def test_jq_list_functions_integration(self):
-        """Test jq --list-functions integration."""
-        result = subprocess.run(
-            ["python", "-m", "mcp_handley_lab.cli.main", "jq", "--list-functions"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent
-        )
-        
-        assert result.returncode == 0
-        assert "Functions in jq:" in result.stdout
-        assert "query - " in result.stdout
-        assert "validate - " in result.stdout
-        assert "edit - " in result.stdout
-    
-    def test_jq_help_function_integration(self):
-        """Test jq --help-function integration."""
-        result = subprocess.run(
-            ["python", "-m", "mcp_handley_lab.cli.main", "jq", "--help-function", "query"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent
-        )
-        
-        assert result.returncode == 0
-        assert "Function: query" in result.stdout
-        assert "Description:" in result.stdout
-        assert "Parameters:" in result.stdout
-        assert "--data" in result.stdout
-        assert "Usage:" in result.stdout
     
     def test_jq_execution_integration(self):
         """Test actual jq tool execution integration."""
@@ -211,7 +181,7 @@ class TestCLIIntegration:
         
         assert result.returncode == 1
         assert "Usage: mcp-cli jq <function>" in result.stderr
-        assert "Use 'mcp-cli jq --list-functions'" in result.stderr
+        assert "Use 'mcp-cli jq --help'" in result.stderr
 
 
 @pytest.mark.integration

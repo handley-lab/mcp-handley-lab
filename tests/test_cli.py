@@ -98,54 +98,6 @@ class TestToolSpecificHelp:
         assert "validate" in result.output
         assert "Examples:" in result.output
     
-    @patch('mcp_handley_lab.cli.main.get_tool_info')
-    def test_list_functions(self, mock_get_tool_info):
-        """Test --list-functions for a tool."""
-        mock_get_tool_info.return_value = {
-            "name": "jq",
-            "functions": {
-                "query": {"description": "Query JSON data"},
-                "validate": {"description": "Validate JSON"}
-            }
-        }
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ['jq', '--list-functions'])
-        
-        assert result.exit_code == 0
-        assert "Functions in jq:" in result.output
-        assert "query -" in result.output
-        assert "validate -" in result.output
-    
-    @patch('mcp_handley_lab.cli.main.get_tool_info')
-    def test_help_function(self, mock_get_tool_info):
-        """Test --help-function for specific function."""
-        mock_get_tool_info.return_value = {
-            "name": "jq",
-            "functions": {
-                "query": {
-                    "description": "Query JSON data with jq filters",
-                    "inputSchema": {
-                        "properties": {
-                            "data": {"type": "string", "description": "JSON data"},
-                            "filter": {"type": "string", "default": "."}
-                        },
-                        "required": ["data"]
-                    }
-                }
-            }
-        }
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ['jq', '--help-function', 'query'])
-        
-        assert result.exit_code == 0
-        assert "Function: query" in result.output
-        assert "Description: Query JSON data with jq filters" in result.output
-        assert "Parameters:" in result.output
-        assert "--data (required)" in result.output
-        assert "--filter" in result.output
-        assert "Usage:" in result.output
 
 
 class TestToolExecution:
@@ -374,7 +326,7 @@ class TestErrorHandling:
         
         assert result.exit_code == 1
         assert "Usage: mcp-cli jq <function>" in result.output
-        assert "Use 'mcp-cli jq --list-functions'" in result.output
+        assert "Use 'mcp-cli jq --help'" in result.output
 
 
 class TestDiscovery:

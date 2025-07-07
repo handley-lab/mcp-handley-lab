@@ -32,19 +32,6 @@ def load_config() -> Dict[str, Any]:
         return {}
 
 
-def get_aliases() -> Dict[str, str]:
-    """Get tool aliases from configuration."""
-    config = load_config()
-    return config.get("aliases", {})
-
-
-
-
-def get_default_output_format() -> str:
-    """Get default output format."""
-    config = load_config()
-    defaults = config.get("defaults", {})
-    return defaults.get("output_format", "human")
 
 
 def create_default_config():

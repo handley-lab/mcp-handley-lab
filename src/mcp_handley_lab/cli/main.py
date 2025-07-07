@@ -4,10 +4,25 @@ import sys
 from typing import Dict, Any, Optional
 import click
 
-from .discovery import get_tool_with_aliases, get_available_tools, get_tool_info
+from .discovery import get_available_tools, get_tool_info
 from .rpc_client import get_tool_client, cleanup_clients
-from .config import get_config_file, create_default_config, get_default_output_format
+from .config import get_config_file, create_default_config
 from .completion import install_completion_script, show_completion_install
+
+
+def _get_validated_tool_info(tool_name: str) -> tuple[str, dict]:
+    """Gets tool command and info, or exits if not found."""
+    available_tools = get_available_tools()
+    if tool_name not in available_tools:
+        click.echo(f"Error: Tool '{tool_name}' not found. Available: {', '.join(available_tools.keys())}", err=True)
+        sys.exit(1)
+
+    command = available_tools[tool_name]
+    tool_info = get_tool_info(tool_name, command)
+    if not tool_info:
+        click.echo(f"Error: Failed to introspect tool '{tool_name}'", err=True)
+        sys.exit(1)
+    return command, tool_info
 
 
 
@@ -148,19 +163,7 @@ def list_all_tools():
 
 def show_tool_help(tool_name):
     """Show comprehensive help for a specific tool."""
-    available_tools = get_available_tools()
-    
-    if tool_name not in available_tools:
-        click.echo(f"Tool '{tool_name}' not found. Available tools: {', '.join(available_tools.keys())}", err=True)
-        return
-    
-    command = available_tools[tool_name]
-    tool_info = get_tool_info(tool_name, command)
-    
-    if not tool_info:
-        click.echo(f"Failed to introspect tool '{tool_name}'")
-        return
-    
+    command, tool_info = _get_validated_tool_info(tool_name)
     functions = tool_info.get("functions", {})
     
     # Show tool header
@@ -216,24 +219,12 @@ def show_tool_help(tool_name):
 
 def show_function_help(tool_name, function_name):
     """Show detailed help for a specific function."""
-    available_tools = get_available_tools()
-    
-    if tool_name not in available_tools:
-        click.echo(f"Tool '{tool_name}' not found. Available tools: {', '.join(available_tools.keys())}", err=True)
-        return
-    
-    command = available_tools[tool_name]
-    tool_info = get_tool_info(tool_name, command)
-    
-    if not tool_info:
-        click.echo(f"Failed to introspect tool '{tool_name}'")
-        return
-    
+    command, tool_info = _get_validated_tool_info(tool_name)
     functions = tool_info.get("functions", {})
     if function_name not in functions:
         available_functions = list(functions.keys())
         click.echo(f"Function '{function_name}' not found in {tool_name}. Available: {', '.join(available_functions)}", err=True)
-        return
+        sys.exit(1)
     
     func_info = functions[function_name]
     description = func_info.get("description", "No description available")
@@ -327,103 +318,63 @@ atexit.register(cleanup_clients)
 
 def run_tool_function(ctx, tool_name, function_name, params, json_output, params_from_json):
     """Run a tool function."""
+    command, tool_info = _get_validated_tool_info(tool_name)
     
-    # Get available tools
-    available_tools = get_available_tools()
-    if tool_name not in available_tools:
-        click.echo(f"Tool '{tool_name}' not found. Available tools: {', '.join(available_tools.keys())}", err=True)
+    functions = tool_info.get("functions", {})
+    if function_name not in functions:
+        available_functions = list(functions.keys())
+        click.echo(f"Function '{function_name}' not found in {tool_name}. Available: {', '.join(available_functions)}", err=True)
         ctx.exit(1)
     
-    command = available_tools[tool_name]
+    # Parse parameters
+    kwargs = {}
+    if params_from_json:
+        kwargs = json.load(params_from_json)
     
-    # Get tool info and validate function
-    try:
-        tool_info = get_tool_info(tool_name, command)
-        if not tool_info:
-            click.echo(f"Failed to introspect tool '{tool_name}'", err=True)
+    # Get function schema for parameter mapping
+    function_schema = functions[function_name]
+    input_schema = function_schema.get("inputSchema", {})
+    required_params = input_schema.get("required", [])
+    
+    # Simplified parameter parsing
+    positional_args = [p for p in params if "=" not in p]
+    kwargs.update(dict(p.split("=", 1) for p in params if "=" in p))
+    
+    # Map positional args to required params
+    for i, param_name in enumerate(required_params):
+        if i < len(positional_args) and param_name not in kwargs:
+            kwargs[param_name] = positional_args[i]
+    
+    # Execute the tool
+    client = get_tool_client(tool_name, command)
+    response = client.call_tool(function_name, kwargs)
+    
+    if response is None:
+        click.echo(f"Failed to execute {function_name}", err=True)
+        ctx.exit(1)
+    
+    # Handle response
+    if response.get("jsonrpc") == "2.0":
+        if "error" in response:
+            error = response["error"]
+            click.echo(f"Error: {error.get('message', 'Unknown error')}", err=True)
             ctx.exit(1)
-        
-        functions = tool_info.get("functions", {})
-        if function_name not in functions:
-            available_functions = list(functions.keys())
-            click.echo(f"Function '{function_name}' not found in {tool_name}. Available: {', '.join(available_functions)}", err=True)
-            ctx.exit(1)
-        
-        # Parse parameters
-        kwargs = {}
-        if params_from_json:
-            kwargs = json.load(params_from_json)
-        
-        # Get function schema for parameter mapping
-        function_schema = functions[function_name]
-        input_schema = function_schema.get("inputSchema", {})
-        properties = input_schema.get("properties", {})
-        required_params = input_schema.get("required", [])
-        
-        # Parse command line params
-        positional_args = []
-        for param in params:
-            if "=" in param:
-                # Named parameter: key=value format
-                key, value = param.split("=", 1)
-                kwargs[key] = value
-            else:
-                # Positional argument
-                positional_args.append(param)
-        
-        # Map positional arguments to parameters (required first, then optional)
-        if positional_args:
-            # Create ordered parameter list: required first, then optional
-            param_order = required_params + [p for p in properties.keys() if p not in required_params]
-            
-            for i, value in enumerate(positional_args):
-                if i < len(param_order):
-                    param_name = param_order[i]
-                    # Only assign if not already set by named parameter
-                    if param_name not in kwargs:
-                        kwargs[param_name] = value
-        
-        # Execute the tool
-        client = get_tool_client(tool_name, command)
-        response = client.call_tool(function_name, kwargs)
-        
-        if response is None:
-            click.echo(f"Failed to execute {function_name}", err=True)
-            ctx.exit(1)
-        
-        # Handle response
-        if response.get("jsonrpc") == "2.0":
-            if "error" in response:
-                error = response["error"]
-                click.echo(f"Error: {error.get('message', 'Unknown error')}", err=True)
-                ctx.exit(1)
-            else:
-                result = response.get("result", {})
-                if json_output:
-                    click.echo(json.dumps(result, indent=2))
-                else:
-                    # Extract text content for human-readable output
-                    if isinstance(result, dict) and "content" in result:
-                        content = result["content"]
-                        if isinstance(content, list) and len(content) > 0:
-                            text_parts = []
-                            for item in content:
-                                if isinstance(item, dict) and item.get("type") == "text":
-                                    text_parts.append(item.get("text", ""))
-                            if text_parts:
-                                click.echo("\n".join(text_parts))
-                            else:
-                                click.echo(json.dumps(result, indent=2))
-                        else:
-                            click.echo(str(content))
-                    else:
-                        click.echo(str(result))
         else:
-            click.echo(str(response))
-            
-    except Exception as e:
-        click.echo(f"Unexpected error: {e}", err=True)
-        ctx.exit(1)
+            result = response.get("result", {})
+            if json_output:
+                click.echo(json.dumps(result, indent=2))
+            else:
+                # Simplified output handling
+                if isinstance(result, dict) and "content" in result:
+                    content = result["content"]
+                    if isinstance(content, str):
+                        click.echo(content)
+                    else:
+                        click.echo(json.dumps(result, indent=2))
+                else:
+                    click.echo(json.dumps(result, indent=2) if isinstance(result, (dict, list)) else str(result))
+    else:
+        click.echo(str(response))
 
 
 

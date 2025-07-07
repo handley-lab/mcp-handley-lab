@@ -102,9 +102,15 @@ class MCPToolClient:
                 click.echo(f"Stderr: {stderr}", err=True)
             return False
     
+    def _ensure_initialized(self) -> bool:
+        """Starts the tool server if not already running. Returns success."""
+        if not self._initialized:
+            return self.start_tool_server()
+        return True
+    
     def list_tools(self) -> Optional[List[Dict[str, Any]]]:
         """Get list of available tools from the server."""
-        if not self._initialized and not self.start_tool_server():
+        if not self._ensure_initialized():
             return None
         
         try:
@@ -134,7 +140,7 @@ class MCPToolClient:
     
     def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Call a specific tool function."""
-        if not self._initialized and not self.start_tool_server():
+        if not self._ensure_initialized():
             return None
         
         try:
@@ -178,34 +184,19 @@ class MCPToolClient:
                 self._initialized = False
 
 
-class MCPClientManager:
-    """Manager for multiple MCP tool clients."""
-    
-    def __init__(self):
-        self.clients: Dict[str, MCPToolClient] = {}
-    
-    def get_client(self, tool_name: str, command: str) -> MCPToolClient:
-        """Get or create a client for a tool."""
-        if tool_name not in self.clients:
-            self.clients[tool_name] = MCPToolClient(tool_name, command)
-        return self.clients[tool_name]
-    
-    def cleanup_all(self):
-        """Clean up all clients."""
-        for client in self.clients.values():
-            client.cleanup()
-        self.clients.clear()
-
-
-# Global client manager instance
-client_manager = MCPClientManager()
+# Global clients dictionary
+_CLIENTS: Dict[str, MCPToolClient] = {}
 
 
 def get_tool_client(tool_name: str, command: str) -> MCPToolClient:
-    """Get a tool client instance."""
-    return client_manager.get_client(tool_name, command)
+    """Get or create a client for a tool."""
+    if tool_name not in _CLIENTS:
+        _CLIENTS[tool_name] = MCPToolClient(tool_name, command)
+    return _CLIENTS[tool_name]
 
 
 def cleanup_clients():
     """Clean up all clients."""
-    client_manager.cleanup_all()
+    for client in _CLIENTS.values():
+        client.cleanup()
+    _CLIENTS.clear()

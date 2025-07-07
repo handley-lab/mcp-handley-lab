@@ -375,7 +375,7 @@ class TestNotesManager:
         assert isinstance(temp_manager, NotesManager)
         assert temp_manager.storage is not None
         assert temp_manager.db is not None
-        assert temp_manager.semantic_search is not None
+        assert hasattr(temp_manager, "_semantic_search")
 
     def test_create_note(self, temp_manager):
         """Test creating a note."""
@@ -477,7 +477,7 @@ class TestNotesManager:
         frontend_notes = temp_manager.list_notes(tags=["frontend"])
         assert len(frontend_notes) == 1
 
-    def test_search_notes_text(self, temp_manager):
+    def test_find_text(self, temp_manager):
         """Test text search across notes."""
         # Create test notes
         temp_manager.create_note(
@@ -503,25 +503,25 @@ class TestNotesManager:
         )
 
         # Search by content
-        results = temp_manager.search_notes_text("frontend")
+        results = temp_manager.find(text="frontend")
         assert len(results) == 1
         assert results[0].properties["name"] == "Alice Developer"
 
         # Search by property
-        results = temp_manager.search_notes_text("React Native")
+        results = temp_manager.find(text="React Native")
         assert len(results) == 1
         assert results[0].properties["name"] == "Mobile App"
 
         # Search by tag
-        results = temp_manager.search_notes_text("ai")
+        results = temp_manager.find(text="ai")
         assert len(results) == 1
         assert results[0].properties["title"] == "AI Assistant"
 
         # Case insensitive search
-        results = temp_manager.search_notes_text("MOBILE")
+        results = temp_manager.find(text="MOBILE")
         assert len(results) == 1
 
-    def test_query_notes_jmespath(self, temp_manager):
+    def test_extract_data(self, temp_manager):
         """Test JMESPath queries."""
         # Create test notes
         temp_manager.create_note(
@@ -535,7 +535,7 @@ class TestNotesManager:
         )
 
         # Query for all notes with person tag
-        results = temp_manager.query_notes_jmespath(
+        results = temp_manager.extract_data(
             "[?contains(tags, 'person')].properties.name"
         )
         assert len(results) == 2
@@ -543,7 +543,7 @@ class TestNotesManager:
         assert "Bob" in results
 
         # Query for senior people
-        results = temp_manager.query_notes_jmespath("[?contains(tags, 'senior')]")
+        results = temp_manager.extract_data("[?contains(tags, 'senior')]")
         assert len(results) == 1
         assert results[0]["properties"]["name"] == "Alice"
 

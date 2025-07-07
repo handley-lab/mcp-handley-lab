@@ -13,18 +13,15 @@ import pytest
 from mcp_handley_lab.notes.tool import (
     create_note,
     delete_note,
+    extract_data,
+    find,
     get_all_tags,
     get_linked_notes,
     get_note,
     get_note_scope,
-    get_notes_by_property,
     get_notes_linking_to,
     get_notes_stats,
-    list_notes,
-    query_notes,
     refresh_notes_database,
-    search_notes,
-    search_notes_semantic,
     update_note,
 )
 
@@ -121,34 +118,34 @@ class TestNotesMcpIntegration:
         )
 
         # List all notes
-        all_notes = list_notes()
+        all_notes = find()
         assert len(all_notes) >= 2
 
         # List by tags
-        projects = list_notes(tags=["project"])
+        projects = find(tags=["project"])
         assert len(projects) == 1
         assert "project" in projects[0]["tags"]
 
-        papers = list_notes(tags=["paper"])
+        papers = find(tags=["paper"])
         assert len(papers) == 1
         assert "paper" in papers[0]["tags"]
 
         # List by tags
-        ml_notes = list_notes(tags=["ml"])
+        ml_notes = find(tags=["ml"])
         assert len(ml_notes) == 2
 
         # List by scope
-        local_notes = list_notes(scope="local")
+        local_notes = find(scope="local")
         assert len(local_notes) >= 1
 
-        global_notes = list_notes(scope="global")
+        global_notes = find(scope="global")
         assert len(global_notes) >= 1
 
         # Text search
-        search_results = search_notes(query="machine learning")
+        search_results = find(text="machine learning")
         assert len(search_results) >= 1
 
-        neural_search = search_notes(query="neural networks")
+        neural_search = find(text="neural networks")
         assert len(neural_search) >= 1
 
     def test_semantic_search_mcp(self, isolated_notes_storage):
@@ -175,8 +172,10 @@ class TestNotesMcpIntegration:
 
         try:
             # Test semantic search
-            climate_results = search_notes_semantic(
-                query="artificial intelligence weather climate", n_results=5
+            climate_results = find(
+                text="artificial intelligence weather climate",
+                semantic=True,
+                n_results=5,
             )
 
             # Should find both related notes
@@ -223,7 +222,7 @@ class TestNotesMcpIntegration:
         )
 
         # Query all people
-        people = query_notes(
+        people = extract_data(
             jmespath_query="[?contains(tags, 'person')].properties.name"
         )
         assert len(people) >= 2
@@ -231,14 +230,14 @@ class TestNotesMcpIntegration:
         assert "Bob Johnson" in people
 
         # Query researchers only
-        researchers = query_notes(
+        researchers = extract_data(
             jmespath_query="[?contains(tags, 'person') && properties.role=='Principal Investigator']"
         )
         assert len(researchers) >= 1
         assert researchers[0]["properties"]["name"] == "Dr. Alice Smith"
 
         # Query by expertise
-        ml_experts = query_notes(
+        ml_experts = extract_data(
             jmespath_query="[?contains(tags, 'person') && contains(properties.expertise || `[]`, 'machine learning')].properties.name"
         )
         assert "Dr. Alice Smith" in ml_experts
@@ -264,16 +263,12 @@ class TestNotesMcpIntegration:
         )
 
         # Search by property value
-        active_projects = get_notes_by_property(
-            property_name="status", property_value="active"
-        )
+        active_projects = find(properties={"status": "active"})
         assert len(active_projects) >= 1
         assert active_projects[0]["properties"]["status"] == "active"
 
         # Search by funding source
-        nsf_projects = get_notes_by_property(
-            property_name="funding", property_value="NSF Grant 12345"
-        )
+        nsf_projects = find(properties={"funding": "NSF Grant 12345"})
         assert len(nsf_projects) >= 2
 
     def test_cross_references_mcp(self, isolated_notes_storage):
@@ -371,11 +366,11 @@ class TestNotesMcpIntegration:
         assert local_scope == "local"
 
         # Test scope filtering
-        global_notes = list_notes(scope="global")
+        global_notes = find(scope="global")
         global_ids = [note["id"] for note in global_notes]
         assert global_id in global_ids
 
-        local_notes = list_notes(scope="local")
+        local_notes = find(scope="local")
         local_ids = [note["id"] for note in local_notes]
         assert local_id in local_ids
 
@@ -395,7 +390,7 @@ class TestNotesMcpIntegration:
         assert "refreshed" in refresh_result.lower()
 
         # Verify note still exists after refresh
-        test_notes = list_notes(tags=["test"])
+        test_notes = find(tags=["test"])
         assert len(test_notes) >= 1
 
         refresh_note = None

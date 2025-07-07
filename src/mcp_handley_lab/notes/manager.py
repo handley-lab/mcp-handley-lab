@@ -1,5 +1,4 @@
 """Generic notes manager with YAML storage and TinyDB queries."""
-import re
 from datetime import datetime
 from typing import Any
 
@@ -18,11 +17,20 @@ class NotesManager:
     def __init__(self, local_storage_dir: str = ".mcp_handley_lab"):
         self.storage = GlobalLocalYAMLStorage(local_storage_dir)
         self.db = TinyDB(storage=MemoryStorage)
-        self.semantic_search = SemanticSearchManager(local_storage_dir + "/notes")
+        self._semantic_search: SemanticSearchManager | None = None
+        self._semantic_storage_dir = local_storage_dir + "/notes"
         self._load_notes_to_db()
-        # Build initial semantic search index
-        notes = list(self.storage.load_all_notes().values())
-        self.semantic_search.rebuild_index(notes)
+
+    def _get_semantic_search(self) -> SemanticSearchManager:
+        """Lazy-load semantic search manager to avoid startup delays."""
+        if self._semantic_search is None:
+            print("Initializing semantic search (ChromaDB) for the first time...")
+            self._semantic_search = SemanticSearchManager(self._semantic_storage_dir)
+            # Build initial index from existing notes
+            notes = list(self.storage.load_all_notes().values())
+            self._semantic_search.rebuild_index(notes)
+            print(f"Semantic search initialized with {len(notes)} notes.")
+        return self._semantic_search
 
     def _load_notes_to_db(self):
         """Load all notes from YAML files into TinyDB for fast queries."""
@@ -109,7 +117,9 @@ class NotesManager:
 
         self.storage.save_note(note, scope, path, slug)
         self._sync_note_to_db(note, scope)
-        self.semantic_search.add_note(note)
+        # Only update semantic search if it's already initialized
+        if self._semantic_search is not None:
+            self._semantic_search.add_note(note)
         return note.id
 
     def get_note(self, note_id: str) -> Note | None:
@@ -173,14 +183,18 @@ class NotesManager:
         scope = self.storage.get_note_scope(note_id) or "local"
         self.storage.save_note(note, scope)  # Saves to existing location
         self._sync_note_to_db(note, scope)
-        self.semantic_search.update_note(note)
+        # Only update semantic search if it's already initialized
+        if self._semantic_search is not None:
+            self._semantic_search.update_note(note)
 
     def delete_note(self, note_id: str) -> bool:
         """Delete a note."""
         success = self.storage.delete_note(note_id)
         if success:
             self.db.remove(Query()._note_id == note_id)
-            self.semantic_search.remove_note(note_id)
+            # Only update semantic search if it's already initialized
+            if self._semantic_search is not None:
+                self._semantic_search.remove_note(note_id)
         return success
 
     def get_note_scope(self, note_id: str) -> str | None:
@@ -217,61 +231,27 @@ class NotesManager:
 
         return notes
 
-    def query_notes_jmespath(self, jmespath_query: str) -> list[dict[str, Any]]:
-        """Query notes using JMESPath expressions."""
+    def extract_data(self, jmespath_query: str) -> list[dict[str, Any]]:
+        """Extract data from notes using JMESPath expressions."""
         all_docs = self.db.all()
         result = jmespath.search(jmespath_query, all_docs)
-        return result if isinstance(result, list) else [result] if result else []
 
-    def search_notes_text(self, query: str) -> list[Note]:
-        """Search notes by text across content, properties, and tags."""
-        query_lower = query.lower()
+        if isinstance(result, list):
+            return result
+        elif result is not None:
+            return [result]
+        else:
+            return []
 
-        # Search in content
-        content_matches = self.db.search(
-            Query().content.matches(
-                f".*{re.escape(query_lower)}.*", flags=re.IGNORECASE
-            )
-        )
-
-        # Search in tags (case-insensitive)
-        tag_matches = self.db.search(
-            Query().tags.any(lambda tag: query_lower in tag.lower())
-        )
-
-        # Search in properties (string values only)
-        property_matches = []
-        for doc in self.db.all():
-            for _key, value in doc.get("properties", {}).items():
-                if isinstance(value, str) and query_lower in value.lower():
-                    property_matches.append(doc)
-                    break
-
-        # Combine and deduplicate results
-        all_matches = {}
-        for match in content_matches + tag_matches + property_matches:
-            all_matches[match["_note_id"]] = match
-
-        # Convert to Note objects by loading from storage
-        notes = []
-        for doc in all_matches.values():
-            note_id = doc.get("_note_id")
-            if note_id:
-                # Load from storage to get current filesystem-derived info
-                note = self.storage.load_note(note_id)
-                if note:
-                    notes.append(note)
-
-        return notes
-
-    def search_notes_semantic(
+    def _search_semantic(
         self,
         query: str,
         n_results: int = 10,
         tags: list[str] = None,
     ) -> list[Note]:
         """Search notes using semantic similarity (requires ChromaDB)."""
-        similar_ids = self.semantic_search.search_similar(query, n_results, tags)
+        semantic_search = self._get_semantic_search()  # Lazy load
+        similar_ids = semantic_search.search_similar(query, n_results, tags)
         notes = []
 
         for note_id, similarity_score in similar_ids:
@@ -282,6 +262,128 @@ class NotesManager:
                 notes.append(note)
 
         return notes
+
+    def find(
+        self,
+        text: str = None,
+        tags: list[str] = None,
+        properties: dict[str, Any] = None,
+        scope: str = None,
+        semantic: bool = False,
+        n_results: int = 10,
+    ) -> list[Note]:
+        """Find notes with multiple filtering options.
+
+        Args:
+            text: Text to search for in content, properties, and tags
+            tags: Filter by notes having any of these tags
+            properties: Filter by property key-value pairs
+            scope: Filter by scope ("global" or "local")
+            semantic: Use semantic/vector search instead of text search
+            n_results: Maximum results for semantic search
+
+        Returns:
+            List of matching Note objects
+        """
+        # If using semantic search, delegate to semantic method
+        if semantic:
+            if not text:
+                raise ValueError("Semantic search requires a text query")
+            return self._search_semantic(text, n_results, tags)
+
+        # Build TinyDB query conditions
+        query_conditions = []
+
+        # Scope filter
+        if scope:
+            query_conditions.append(Query()._scope == scope)
+
+        # Tags filter - note must have any of the specified tags
+        if tags:
+            query_conditions.append(Query().tags.any(tags))
+
+        # Properties filter - all key-value pairs must match
+        if properties:
+            for key, value in properties.items():
+                query_conditions.append(Query().properties[key] == value)
+
+        # Execute TinyDB query with filters
+        if query_conditions:
+            combined_query = query_conditions[0]
+            for condition in query_conditions[1:]:
+                combined_query = combined_query & condition
+            results = self.db.search(combined_query)
+        else:
+            results = self.db.all()
+
+        # Apply text search on filtered results if specified
+        if text:
+            text_lower = text.lower()
+            filtered_results = []
+
+            for doc in results:
+                # Search in content
+                if text_lower in doc.get("content", "").lower():
+                    filtered_results.append(doc)
+                    continue
+
+                # Search in tags
+                tags_list = doc.get("tags", [])
+                if any(text_lower in tag.lower() for tag in tags_list):
+                    filtered_results.append(doc)
+                    continue
+
+                # Search in properties (string values only)
+                properties_dict = doc.get("properties", {})
+                for value in properties_dict.values():
+                    if isinstance(value, str) and text_lower in value.lower():
+                        filtered_results.append(doc)
+                        break
+
+            results = filtered_results
+
+        # Convert docs to Note objects by loading from storage
+        notes = []
+        for doc in results:
+            note_id = doc.get("_note_id")
+            if note_id:
+                note = self.storage.load_note(note_id)
+                if note:
+                    notes.append(note)
+
+        return notes
+
+    def get_related_notes(
+        self, note_id: str, relationship: str = "supervisors"
+    ) -> list[Note]:
+        """Get notes related to this note through a specific relationship.
+
+        Args:
+            note_id: UUID or identifier of the source note
+            relationship: Property name containing related note UUIDs
+
+        Returns:
+            List of related Note objects
+        """
+        # Resolve note_id to UUID first
+        note = self.get_note_by_identifier(note_id)
+        if not note:
+            return []
+
+        # Get related UUIDs from the specified property
+        related_uuids = note.properties.get(relationship, [])
+        if not isinstance(related_uuids, list):
+            related_uuids = [related_uuids]  # Handle single UUID
+
+        # Load related notes
+        related_notes = []
+        for uuid in related_uuids:
+            if isinstance(uuid, str):
+                related_note = self.get_note(uuid)
+                if related_note:
+                    related_notes.append(related_note)
+
+        return related_notes
 
     def get_notes_by_property(
         self, property_name: str, property_value: Any
@@ -359,9 +461,10 @@ class NotesManager:
     def refresh_from_files(self):
         """Refresh the in-memory database from YAML files."""
         self._load_notes_to_db()
-        # Rebuild semantic search index
-        notes = list(self.storage.load_all_notes().values())
-        self.semantic_search.rebuild_index(notes)
+        # Rebuild semantic search index if it's already initialized
+        if self._semantic_search is not None:
+            notes = list(self.storage.load_all_notes().values())
+            self._semantic_search.rebuild_index(notes)
 
     def get_stats(self) -> dict[str, Any]:
         """Get statistics about the notes database."""
@@ -375,14 +478,21 @@ class NotesManager:
             scope = doc.get("_scope", "unknown")
             scope_counts[scope] = scope_counts.get(scope, 0) + 1
 
-        return {
+        stats = {
             "total_notes": len(all_docs),
             "scopes": scope_counts,
             "unique_tags": len(self.get_all_tags()),
             "unique_paths": len(self.get_note_paths()),
-            "semantic_search": self.semantic_search.get_collection_stats(),
             "storage_dirs": {
                 "global": str(self.storage.global_storage.notes_dir),
                 "local": str(self.storage.local_storage.notes_dir),
             },
         }
+
+        # Only include semantic search stats if it's initialized
+        if self._semantic_search is not None:
+            stats["semantic_search"] = self._semantic_search.get_collection_stats()
+        else:
+            stats["semantic_search"] = {"status": "not_initialized"}
+
+        return stats

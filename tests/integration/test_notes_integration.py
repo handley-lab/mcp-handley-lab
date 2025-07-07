@@ -42,7 +42,7 @@ class TestNotesIntegrationWithMockData:
                 manager._sync_note_to_db(note, scope)
 
                 # Add to semantic search
-                manager.semantic_search.add_note(note)
+                manager._get_semantic_search().add_note(note)
 
             yield manager
 
@@ -80,7 +80,7 @@ class TestNotesIntegrationWithMockData:
         """Test semantic search with realistic research queries."""
 
         # Query 1: Looking for machine learning expertise
-        ml_results = populated_manager.search_notes_semantic(
+        ml_results = populated_manager._search_semantic(
             "machine learning expertise", n_results=5
         )
 
@@ -92,7 +92,7 @@ class TestNotesIntegrationWithMockData:
         assert all(note._similarity_score > 0.3 for note in ml_results)
 
         # Query 2: Climate modeling research
-        climate_results = populated_manager.search_notes_semantic(
+        climate_results = populated_manager._search_semantic(
             "climate modeling differential equations", n_results=5
         )
 
@@ -105,7 +105,7 @@ class TestNotesIntegrationWithMockData:
         )
 
         # Query 3: Funding and grants
-        funding_results = populated_manager.search_notes_semantic(
+        funding_results = populated_manager._search_semantic(
             "research funding grant proposal", n_results=5
         )
 
@@ -141,7 +141,7 @@ class TestNotesIntegrationWithMockData:
         """Test complex queries that span multiple note types."""
 
         # Find all active projects with their team sizes
-        active_projects = populated_manager.query_notes_jmespath(
+        active_projects = populated_manager.extract_data(
             "[?contains(tags, 'project') && properties.status=='active'].{title: properties.title, team_size: properties.team_size}"
         )
 
@@ -151,7 +151,7 @@ class TestNotesIntegrationWithMockData:
             assert "team_size" in project
 
         # Find all people with machine learning expertise
-        ml_experts = populated_manager.query_notes_jmespath(
+        ml_experts = populated_manager.extract_data(
             "[?contains(tags, 'person') && contains(properties.expertise || `[]`, 'machine learning')].properties.name"
         )
 
@@ -159,7 +159,7 @@ class TestNotesIntegrationWithMockData:
         assert "Dr. Sarah Chen" in ml_experts
 
         # Find published papers by journal
-        published_papers = populated_manager.query_notes_jmespath(
+        published_papers = populated_manager.extract_data(
             "[?contains(tags, 'paper') && properties.status=='published'].{title: properties.title, journal: properties.journal}"
         )
 
@@ -178,7 +178,7 @@ class TestNotesIntegrationWithMockData:
             assert "project" in project.tags
 
         # Find equipment shared across projects
-        shared_equipment = populated_manager.query_notes_jmespath(
+        shared_equipment = populated_manager.extract_data(
             "[?contains(tags, 'equipment') && length(properties.projects_using || `[]`) > `1`]"
         )
 
@@ -186,7 +186,7 @@ class TestNotesIntegrationWithMockData:
         assert len(shared_equipment) >= 1
 
         # Find meeting notes about specific projects
-        meeting_notes = populated_manager.search_notes_text("neural ODEs")
+        meeting_notes = populated_manager.find(text="neural ODEs")
         meeting_found = any("meeting" in note.tags for note in meeting_notes)
         assert meeting_found
 
@@ -226,13 +226,13 @@ class TestNotesIntegrationWithMockData:
         """Test finding people by expertise and skills."""
 
         # Find differential equations experts
-        de_experts = populated_manager.search_notes_text("differential equations")
+        de_experts = populated_manager.find(text="differential equations")
         expert_people = [note for note in de_experts if "person" in note.tags]
 
         assert len(expert_people) >= 1
 
         # Find genomics researchers
-        genomics_researchers = populated_manager.search_notes_text("genomics")
+        genomics_researchers = populated_manager.find(text="genomics")
         genomics_people = [
             note for note in genomics_researchers if "person" in note.tags
         ]
@@ -240,7 +240,7 @@ class TestNotesIntegrationWithMockData:
         assert len(genomics_people) >= 1
 
         # Find students and their advisors
-        students = populated_manager.query_notes_jmespath(
+        students = populated_manager.extract_data(
             "[?contains(tags, 'person') && properties.role=='PhD Student']"
         )
 
@@ -297,7 +297,7 @@ class TestNotesIntegrationWithMockData:
                     assert "person" in author.tags
 
         # Find papers related to specific projects
-        project_papers = populated_manager.query_notes_jmespath(
+        project_papers = populated_manager.extract_data(
             "[?contains(tags, 'paper') && properties.related_project].{title: properties.title, project: properties.related_project}"
         )
 
@@ -328,7 +328,7 @@ class TestNotesIntegrationWithMockData:
         """Test that semantically similar notes cluster together."""
 
         # Find notes similar to climate modeling
-        climate_notes = populated_manager.search_notes_semantic(
+        climate_notes = populated_manager._search_semantic(
             "climate science atmospheric modeling", n_results=10
         )
 
@@ -345,11 +345,11 @@ class TestNotesIntegrationWithMockData:
         assert len(tags_found.intersection(expected_tags)) >= 2
 
         # Test semantic similarity between related concepts
-        ml_notes = populated_manager.search_notes_semantic(
+        ml_notes = populated_manager._search_semantic(
             "deep learning neural networks", n_results=5
         )
 
-        genomics_notes = populated_manager.search_notes_semantic(
+        genomics_notes = populated_manager._search_semantic(
             "genomics bioinformatics DNA", n_results=5
         )
 

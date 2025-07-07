@@ -118,91 +118,70 @@ def delete_note(note_id: str) -> bool:
 
 
 @mcp.tool()
-def list_notes(tags: list[str] = None, scope: str = None) -> list[dict[str, Any]]:
-    """List notes with optional filtering.
+def find(
+    text: str = None,
+    tags: list[str] = None,
+    properties: dict[str, Any] = None,
+    scope: str = None,
+    semantic: bool = False,
+    n_results: int = 10,
+) -> list[dict[str, Any]]:
+    """Find notes with multiple filtering options.
 
     Args:
+        text: Text to search for in content, properties, and tags
         tags: Filter by notes having any of these tags
+        properties: Filter by property key-value pairs (e.g., {"status": "current"})
         scope: Filter by scope ("global" or "local")
-
-    Returns:
-        List of note dictionaries
-    """
-    manager = get_manager()
-    notes = manager.list_notes(tags, scope)
-    return [note.model_dump() for note in notes]
-
-
-@mcp.tool()
-def search_notes(query: str) -> list[dict[str, Any]]:
-    """Search notes by text across content, properties, and tags.
-
-    Args:
-        query: Text to search for
+        semantic: Use semantic/vector search instead of text search (requires text)
+        n_results: Maximum results for semantic search
 
     Returns:
         List of matching note dictionaries
     """
     manager = get_manager()
-    notes = manager.search_notes_text(query)
-    return [note.model_dump() for note in notes]
-
-
-@mcp.tool()
-def search_notes_semantic(
-    query: str, n_results: int = 10, tags: list[str] = None
-) -> list[dict[str, Any]]:
-    """Search notes using semantic similarity (requires ChromaDB).
-
-    Args:
-        query: Text query for semantic similarity
-        n_results: Maximum number of results to return
-        tags: Filter by notes having any of these tags
-
-    Returns:
-        List of note dictionaries with similarity scores
-    """
-    manager = get_manager()
-    notes = manager.search_notes_semantic(query, n_results, tags)
+    notes = manager.find(text, tags, properties, scope, semantic, n_results)
 
     results = []
     for note in notes:
         note_dict = note.model_dump()
-        note_dict["similarity_score"] = note._similarity_score
+        # Include similarity score for semantic search results
+        if semantic and hasattr(note, "_similarity_score"):
+            note_dict["similarity_score"] = note._similarity_score
         results.append(note_dict)
 
     return results
 
 
 @mcp.tool()
-def query_notes(jmespath_query: str) -> Any:
-    """Query notes using JMESPath expressions for structured queries.
+def extract_data(jmespath_query: str) -> Any:
+    """Extract data from notes using JMESPath expressions for flexible data processing.
 
     Args:
-        jmespath_query: JMESPath expression (e.g., "[?type=='person'].properties.name")
+        jmespath_query: JMESPath expression (e.g., "length(@)", "[0].title", "[?properties.status == 'current']")
 
     Returns:
-        Query results (can be any data structure: strings, numbers, arrays, objects, etc.)
+        Extracted data - could be int, string, list, dict, etc.
     """
     manager = get_manager()
-    return manager.query_notes_jmespath(jmespath_query)
+    return manager.extract_data(jmespath_query)
 
 
 @mcp.tool()
-def get_notes_by_property(
-    property_name: str, property_value: Any
+def get_related_notes(
+    note_id: str, relationship: str = "supervisors"
 ) -> list[dict[str, Any]]:
-    """Get notes with a specific property value.
+    """Get notes related to this note through a specific relationship.
 
     Args:
-        property_name: Name of the property
-        property_value: Value to match
+        note_id: UUID or identifier of the source note
+        relationship: Property name containing related note UUIDs (e.g., "supervisors", "students")
 
     Returns:
-        List of matching note dictionaries
+        List of related note dictionaries
     """
     manager = get_manager()
-    notes = manager.get_notes_by_property(property_name, property_value)
+    notes = manager.get_related_notes(note_id, relationship)
     return [note.model_dump() for note in notes]
 
 

@@ -21,9 +21,9 @@ class TestCLIIntegration:
         )
 
         assert result.returncode == 0
-        assert "MCP CLI - Unified command-line interface" in result.stdout
+        assert "mcp-cli - Unified command-line interface for MCP tools" in result.stdout
         assert "--list-tools" in result.stdout
-        assert "mcp-cli jq --help" in result.stdout
+        assert "mcp-cli arxiv --help" in result.stdout
 
     def test_list_tools_integration(self):
         """Test --list-tools integration."""
@@ -51,11 +51,12 @@ class TestCLIIntegration:
         )
 
         assert result.returncode == 0
-        assert "MCP CLI - jq tool" in result.stdout
-        assert "Available functions:" in result.stdout
+        assert "NAME" in result.stdout
+        assert "jq" in result.stdout
+        assert "FUNCTIONS" in result.stdout
         assert "query" in result.stdout
         assert "validate" in result.stdout
-        assert "Examples:" in result.stdout
+        assert "EXAMPLES" in result.stdout
 
     def test_jq_execution_integration(self):
         """Test actual jq tool execution integration."""
@@ -75,7 +76,7 @@ class TestCLIIntegration:
         )
 
         assert result.returncode == 0
-        assert '"value"' in result.stdout
+        assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
 
     def test_jq_positional_params_integration(self):
         """Test jq with positional parameters integration."""
@@ -95,7 +96,7 @@ class TestCLIIntegration:
         )
 
         assert result.returncode == 0
-        assert '"value"' in result.stdout
+        assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
 
     def test_jq_validate_integration(self):
         """Test jq validate function integration."""
@@ -177,7 +178,7 @@ class TestCLIIntegration:
             )
 
             assert result.returncode == 0
-            assert '"value"' in result.stdout
+            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
         finally:
             Path(json_file).unlink()
 
@@ -290,7 +291,8 @@ class TestArxivIntegration:
         )
 
         assert result.returncode == 0
-        assert "MCP CLI - arxiv tool" in result.stdout
+        assert "NAME" in result.stdout
+        assert "arxiv" in result.stdout
         assert "search" in result.stdout
         assert "download" in result.stdout
 

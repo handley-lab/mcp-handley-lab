@@ -70,7 +70,6 @@ class TestMuttContactManagement:
         with pytest.raises(ValueError, match="Both alias and email are required"):
             add_contact("test", "")
 
-
     @patch(
         "builtins.open",
         new_callable=mock_open,
@@ -222,4 +221,3 @@ class TestMuttContactWorkflows:
         # Verify the alias format is correct for mutt
         expected_alias = 'alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk>\n'
         mock_file().write.assert_called_once_with(expected_alias)
-

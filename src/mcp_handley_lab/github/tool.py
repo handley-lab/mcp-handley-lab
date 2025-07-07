@@ -123,7 +123,7 @@ def server_info() -> str:
     auth_status = stdout.decode("utf-8").strip()
 
     # Extract first line of auth status
-    first_auth_line = auth_status.split('\n')[0] if auth_status else 'Unknown'
+    first_auth_line = auth_status.split("\n")[0] if auth_status else "Unknown"
 
     return f"""GitHub CI Monitor Server Status
 ==================================

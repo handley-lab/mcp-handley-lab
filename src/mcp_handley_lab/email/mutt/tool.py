@@ -15,8 +15,6 @@ def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str
     return stdout.decode().strip()
 
 
-
-
 @mcp.tool(
     description="""Opens Mutt in interactive terminal to compose and send emails with your complete configuration (signatures, editor, etc.). Supports recipients, attachments, and initial body text. WARNING: auto_send bypasses review."""
 )
@@ -366,9 +364,7 @@ def open_folder(folder: str) -> str:
     return f"Opened folder: {folder}"
 
 
-@mcp.tool(
-    description="Checks Mutt Tool server status and mutt command availability."
-)
+@mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
 def server_info() -> str:
     """Get server status and mutt version."""
     result = _run_command(["mutt", "-v"])

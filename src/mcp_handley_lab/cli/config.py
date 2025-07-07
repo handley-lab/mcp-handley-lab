@@ -1,9 +1,10 @@
 """Configuration management for MCP CLI."""
 import os
 from pathlib import Path
-from typing import Dict, Any, Optional
-import tomllib
+from typing import Any
+
 import click
+import tomllib
 
 
 def get_config_dir() -> Path:
@@ -18,12 +19,12 @@ def get_config_file() -> Path:
     return get_config_dir() / "config.toml"
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """Load configuration from file."""
     config_file = get_config_file()
     if not config_file.exists():
         return {}
-    
+
     try:
         with open(config_file, "rb") as f:
             return tomllib.load(f)
@@ -32,16 +33,14 @@ def load_config() -> Dict[str, Any]:
         return {}
 
 
-
-
 def create_default_config():
     """Create a default configuration file."""
     config_file = get_config_file()
     config_dir = config_file.parent
-    
+
     # Create config directory if it doesn't exist
     config_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Default configuration
     default_config = """# MCP CLI Configuration
 
@@ -62,7 +61,7 @@ output_format = "human"
 # Default file output behavior
 # output_file = "-"  # stdout by default
 """
-    
+
     if not config_file.exists():
         with open(config_file, "w") as f:
             f.write(default_config)

@@ -109,7 +109,9 @@ def get_response(agent_name: str, index: int = -1) -> str:
     return memory_manager.get_response(agent_name, index)
 
 
-@mcp.tool(description="Checks the status of the Agent Tool server and displays total agent count with available functions.")
+@mcp.tool(
+    description="Checks the status of the Agent Tool server and displays total agent count with available functions."
+)
 def server_info() -> str:
     """Get server status."""
     agents = memory_manager.list_agents()

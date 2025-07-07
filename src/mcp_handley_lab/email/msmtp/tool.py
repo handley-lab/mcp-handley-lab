@@ -22,7 +22,9 @@ def _parse_msmtprc(config_file: str = None) -> list[str]:
     return accounts
 
 
-@mcp.tool(description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients.")
+@mcp.tool(
+    description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients."
+)
 def send(
     to: str,
     subject: str,
@@ -67,7 +69,9 @@ def send(
     )
 
 
-@mcp.tool(description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool.")
+@mcp.tool(
+    description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool."
+)
 def list_accounts(config_file: str = None) -> str:
     """List available msmtp accounts by parsing msmtp config."""
     accounts = _parse_msmtprc(config_file)
@@ -78,5 +82,3 @@ def list_accounts(config_file: str = None) -> str:
     return "Available msmtp accounts:\n" + "\n".join(
         f"- {account}" for account in accounts
     )
-
-

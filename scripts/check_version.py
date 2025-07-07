@@ -80,7 +80,15 @@ def main():
     print("Fetching latest from origin/master...")
     result = subprocess.run(["git", "fetch", "origin", "master"], capture_output=True)
     if result.returncode != 0:
-        print("Warning: Could not fetch from origin. Proceeding with local comparison.")
+        print(
+            "❌ Error: Could not fetch from origin. Network or git issue detected.",
+            file=sys.stderr,
+        )
+        print(f"Git fetch failed with exit code {result.returncode}", file=sys.stderr)
+        if result.stderr:
+            print(f"Error details: {result.stderr.decode()}", file=sys.stderr)
+        print("Please fix the git/network issue and try again.", file=sys.stderr)
+        return 1
 
     master_content = get_git_file_content("origin/master", "pyproject.toml")
     if not master_content:

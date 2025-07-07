@@ -4,7 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.2.0"
+<<<<<<< HEAD
+version = "0.0.0b8"
+=======
+version = "0.0.2"
+>>>>>>> 8418371efb6554782a7e1e660cdc86bd70740cfb
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,12 +29,14 @@ dependencies = [
     "httpx>=0.25.0",
     "packaging>=21.0",
     "PyYAML>=6.0.0",
+<<<<<<< HEAD
     "ruamel.yaml>=0.17.0",
     "tinydb>=4.8.0",
     "jmespath>=1.0.0",
     "watchdog>=3.0.0",
+=======
     "msal>=1.20.0",
-    "chromadb>=1.0.0",
+>>>>>>> 8418371efb6554782a7e1e660cdc86bd70740cfb
 ]
 
 [project.optional-dependencies]
@@ -60,6 +66,7 @@ mcp-google-calendar = "mcp_handley_lab.google_calendar.tool:mcp.run"
 mcp-gemini = "mcp_handley_lab.llm.gemini.tool:mcp.run"
 mcp-openai = "mcp_handley_lab.llm.openai.tool:mcp.run"
 mcp-claude = "mcp_handley_lab.llm.claude.tool:mcp.run"
+mcp-agent = "mcp_handley_lab.llm.agent.tool:mcp.run"
 mcp-email = "mcp_handley_lab.email.tool:mcp.run"
 mcp-mutt-aliases = "mcp_handley_lab.email.mutt_aliases.tool:mcp.run"
 mcp-github = "mcp_handley_lab.github.tool:mcp.run"
@@ -96,7 +103,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501", "B006"]  # Line too long, mutable defaults (intentional for MCP tools)
+ignore = ["E501"]  # Line too long, handled by black
 
 [tool.coverage.run]
 omit = [

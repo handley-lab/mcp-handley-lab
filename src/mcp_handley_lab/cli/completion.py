@@ -21,7 +21,7 @@ _mcp_cli() {
 
         # Define tags and their display order
         _tags tools options
-        compstate[group-order]=(tools options)
+        compstate[group-order]='tools options'
 
         # Get available tools dynamically
         tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
@@ -57,7 +57,7 @@ _mcp_cli() {
 
         # Define tags and their display order
         _tags functions options
-        compstate[group-order]=(functions options)
+        compstate[group-order]='functions options'
 
         # Get functions for the selected tool
         functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
@@ -88,7 +88,7 @@ _mcp_cli() {
 
         # Define tags and their display order
         _tags parameters options
-        compstate[group-order]=(parameters options)
+        compstate[group-order]='parameters options'
 
         # Get parameter names for the function
         params=($(mcp-cli $tool $function --help 2>/dev/null | awk '/^OPTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1 "="}}'))

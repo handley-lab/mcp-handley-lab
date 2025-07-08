@@ -37,8 +37,9 @@ mimetypes.add_type("text/plain", ".ini")
 mimetypes.add_type("text/plain", ".conf")
 mimetypes.add_type("text/plain", ".log")
 
-# Define text-based application types that match our add_type calls above
-# This set should only contain application/* types that are known to be text-based.
+# A set of application/* MIME types that are known to be text-based.
+# This is used by is_text_file() to correctly identify text files that
+# don't start with the 'text/' prefix (e.g., 'application/json').
 # Note: text/* types are handled by the startswith('text/') check in is_text_file()
 TEXT_BASED_APPLICATION_TYPES = {
     # Standard text-based application types

@@ -24,7 +24,6 @@ class PricingCalculator:
         input_tokens: int = 0,
         output_tokens: int = 0,
         provider: str = "gemini",
-        # Extended parameters for complex pricing
         input_modality: str = "text",
         output_quality: str = "medium",
         cached_input_tokens: int = 0,
@@ -32,7 +31,6 @@ class PricingCalculator:
         seconds_generated: int = 0,
     ) -> float:
         """Calculate cost using YAML-based pricing configurations."""
-        # Load pricing config for provider
         config = cls._load_pricing_config(provider)
 
         models = config.get("models", {})
@@ -44,21 +42,17 @@ class PricingCalculator:
         model_config = models[model]
         total_cost = 0.0
 
-        # Handle different pricing types
         pricing_type = model_config.get("pricing_type")
 
         if pricing_type == "per_image":
-            # Image generation models
             price_per_image = model_config.get("price_per_image", 0.0)
             return images_generated * price_per_image
 
         elif pricing_type == "per_second":
-            # Video generation models
             price_per_second = model_config.get("price_per_second", 0.0)
             return seconds_generated * price_per_second
 
         elif "input_tiers" in model_config:
-            # Tiered pricing (e.g., Gemini 2.5 Pro)
             for tier in model_config["input_tiers"]:
                 threshold = (
                     float("inf") if tier["threshold"] == ".inf" else tier["threshold"]
@@ -76,7 +70,6 @@ class PricingCalculator:
                     break
 
         elif "input_by_modality" in model_config:
-            # Modality-specific pricing (e.g., Gemini Flash)
             modality_price = model_config["input_by_modality"].get(input_modality, 0.30)
             total_cost += (input_tokens / 1_000_000) * modality_price
             total_cost += (output_tokens / 1_000_000) * model_config.get(
@@ -84,9 +77,7 @@ class PricingCalculator:
             )
 
         elif pricing_type == "complex":
-            # Handle complex models with special pricing (e.g., GPT-image-1)
             if model == "gpt-image-1":
-                # Handle GPT-image-1 special pricing
                 if input_modality == "text":
                     total_cost += (input_tokens / 1_000_000) * model_config[
                         "text_input_per_1m"
@@ -102,21 +93,18 @@ class PricingCalculator:
                         "cached_image_input_per_1m"
                     ]
 
-                # Add per-image output cost
                 if images_generated > 0:
                     image_pricing = model_config["image_output_pricing"]
                     per_image_cost = image_pricing.get(output_quality, 0.04)
                     total_cost += images_generated * per_image_cost
 
         else:
-            # Standard per-token pricing
             input_price = model_config.get("input_per_1m", 0.0)
             output_price = model_config.get("output_per_1m", 0.0)
 
             total_cost += (input_tokens / 1_000_000) * input_price
             total_cost += (output_tokens / 1_000_000) * output_price
 
-            # Add cached input pricing if supported
             if cached_input_tokens > 0 and "cached_input_per_1m" in model_config:
                 cached_price = model_config["cached_input_per_1m"]
                 total_cost += (cached_input_tokens / 1_000_000) * cached_price

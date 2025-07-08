@@ -73,7 +73,8 @@ _mcp_cli() {
                 # Parse the "FUNCTIONS" section from tool help
                 local functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
                 if [[ ${#functions[@]} -gt 0 ]]; then
-                    _describe 'functions' functions
+                    # Use grouped completion like the first tier
+                    compadd -J 'functions' -a functions
                 fi
             fi
             ;;
@@ -88,7 +89,8 @@ _mcp_cli() {
 zstyle ':completion:*:*:mcp-cli:*:*' format '%F{yellow}--- %d ---%f'
 zstyle ':completion:*:*:mcp-cli:*:tools' group-name 'Tools'
 zstyle ':completion:*:*:mcp-cli:*:options' group-name 'Options'
-zstyle ':completion:*:*:mcp-cli:*:*' group-order 'Tools' 'Options'
+zstyle ':completion:*:*:mcp-cli:*:functions' group-name 'Functions'
+zstyle ':completion:*:*:mcp-cli:*:*' group-order 'Tools' 'Options' 'Functions'
 
 compdef _mcp_cli mcp-cli
 """

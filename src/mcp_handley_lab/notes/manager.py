@@ -24,11 +24,9 @@ class NotesManager:
     def _get_semantic_search(self) -> SemanticSearchManager:
         """Lazy-load semantic search manager to avoid startup delays."""
         if self._semantic_search is None:
-            print("Initializing semantic search (ChromaDB) for the first time...")
             self._semantic_search = SemanticSearchManager(self._semantic_storage_dir)
             notes = list(self.storage.load_all_notes().values())
             self._semantic_search.rebuild_index(notes)
-            print(f"Semantic search initialized with {len(notes)} notes.")
         return self._semantic_search
 
     def _load_notes_to_db(self):

@@ -7,9 +7,6 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 # Import all provider modules to trigger tool registration
-print("Loading and registering email provider tools...")
-
-print("All email tools registered.")
 
 
 @mcp.tool(
@@ -62,9 +59,4 @@ def server_info(config_file: str = None) -> str:
 
 
 if __name__ == "__main__":
-    print("\n--- Registered Email Tools ---")
-    for tool_name in sorted(mcp.tools.keys()):
-        print(f"- {tool_name}")
-
-    print(f"\nStarting unified email tool server with {len(mcp.tools)} tools...")
     mcp.run()

@@ -78,6 +78,17 @@ Open vim for user input when needed
   - Useful for drafting emails or documentation
   - _Claude example_: `> use vim to open a draft of a relevant email`
 
+### 📝 **Notes Management** (`notes`)
+Persistent, searchable note-taking system
+  - Human-readable YAML files with automatic tagging
+  - Real-time file watching and fast search
+  - Automatic server startup for millisecond response times
+  - _Claude example_: `> create a note about this conversation in the testing folder`
+
+## Notes System Setup
+
+The notes system automatically starts a background server for optimal performance when first accessed. No additional setup required.
+
 ## Using AI Tools Together
 
 You can use AI tools to analyze outputs from other tools. For example:

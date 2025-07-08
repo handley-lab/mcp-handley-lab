@@ -100,6 +100,13 @@ class YAMLNoteStorage:
         if not file_path or not file_path.exists():
             return None
 
+        return self._load_note_from_file(file_path)
+
+    def _load_note_from_file(self, file_path: Path) -> Note | None:
+        """Load a note directly from a file path."""
+        if not file_path.exists():
+            return None
+
         with open(file_path) as f:
             data = self.yaml.load(f)
 
@@ -388,3 +395,9 @@ class GlobalLocalYAMLStorage:
             return global_path
 
         return None
+
+    def _load_note_from_file(self, file_path: Path) -> Note | None:
+        """Load a note directly from a file path."""
+        if str(file_path).startswith(str(self.global_storage.notes_dir)):
+            return self.global_storage._load_note_from_file(file_path)
+        return self.local_storage._load_note_from_file(file_path)

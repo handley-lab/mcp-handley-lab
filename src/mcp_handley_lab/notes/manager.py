@@ -342,14 +342,13 @@ class NotesManager:
 
             results = filtered_results
 
-        # Convert docs to Note objects by loading from storage
+        # Convert docs to Note objects directly from TinyDB (no storage I/O)
         notes = []
         for doc in results:
-            note_id = doc.get("_note_id")
-            if note_id:
-                note = self.storage.load_note(note_id)
-                if note:
-                    notes.append(note)
+            # Remove internal TinyDB fields before creating Note
+            note_data = {k: v for k, v in doc.items() if not k.startswith("_")}
+            note = Note(**note_data)
+            notes.append(note)
 
         return notes
 
@@ -465,6 +464,45 @@ class NotesManager:
         if self._semantic_search is not None:
             notes = list(self.storage.load_all_notes().values())
             self._semantic_search.rebuild_index(notes)
+
+    def refresh_single_file(self, file_path: str):
+        """Refresh a single note file in the database without full reload."""
+        from pathlib import Path
+
+        file_path = Path(file_path)
+
+        # Check if file still exists (not deleted)
+        if file_path.exists() and file_path.suffix in [".yaml", ".yml"]:
+            note = self.storage._load_note_from_file(file_path)
+            if note:
+                # Update the timestamp to reflect when the file was modified
+                from datetime import datetime
+
+                note.updated_at = datetime.now()
+
+                # Determine scope based on file location
+                scope = self.storage.get_note_scope(note.id) or "local"
+                # Update in TinyDB
+                self._sync_note_to_db(note, scope)
+                # Update semantic search if initialized
+                if self._semantic_search is not None:
+                    self._semantic_search.update_note(note)
+                return True
+
+        # File was deleted - find and remove from DB
+        all_docs = self.db.all()
+        for doc in all_docs:
+            note_id = doc.get("_note_id")
+            if note_id:
+                current_path = self.storage._find_file_by_uuid(note_id)
+                if current_path and Path(current_path) == file_path:
+                    # Remove from database
+                    self.db.remove(Query()._note_id == note_id)
+                    if self._semantic_search is not None:
+                        self._semantic_search.remove_note(note_id)
+                    return True
+
+        return False
 
     def get_stats(self) -> dict[str, Any]:
         """Get statistics about the notes database."""

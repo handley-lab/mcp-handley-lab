@@ -9,22 +9,9 @@ from .models import Note
 # Initialize the FastMCP server
 mcp = FastMCP("Notes")
 
-# Global manager instance - can be overridden by persistent server
-_manager: NotesManager = None
-
-
-def set_manager(manager: NotesManager) -> None:
-    """Set the global manager instance (used by persistent server)."""
-    global _manager
-    _manager = manager
-
 
 def get_manager() -> NotesManager:
     """Get or create the notes manager instance."""
-    global _manager
-    if _manager is not None:
-        return _manager
-
     _ensure_server_running()
     return NotesManager()
 

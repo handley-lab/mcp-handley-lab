@@ -16,81 +16,67 @@ _mcp_cli() {
 
     # Check completion context based on current position
     if [[ $CURRENT -eq 2 ]]; then
-        # Use _alternative approach like git to get proper group headers
-        local -a tools option_values alts
+        # First tier: tools and options
+        local -a tools options
 
         # Get available tools dynamically
         tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
 
         # Define options
-        option_values=(
-            '--help' '--list-tools' '--config' '--init-config'
-            '--install-completion' '--show-completion'
+        options=(
+            '--help:Show help message'
+            '--list-tools:List all available tools'
+            '--config:Show configuration file location'
+            '--init-config:Create default configuration file'
+            '--install-completion:Install zsh completion script'
+            '--show-completion:Show completion installation instructions'
         )
 
-        # Add completions to their respective groups
-        compadd -J 'tools' -a tools
-        compadd -J 'options' -a option_values
+        # Add all completions together
+        _describe 'tools' tools
+        _describe 'options' options
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
-        # Completing second argument (function name) when tool is specified
-        _arguments -C \\
-            '(--help)--help[Show help for this tool]' \\
-            '(--json-output)--json-output[Output in JSON format]' \\
-            '(--params-from-json)--params-from-json[Load parameters from JSON file]:file:_files' \\
-            '2:function:->functions' \\
-            '*:params:->params' \\
-            && return 0
-    elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
-        # Completing parameters when both tool and function are specified
-        _arguments -C \\
-            '(--help)--help[Show detailed help for this function]' \\
-            '(--json-output)--json-output[Output in JSON format]' \\
-            '(--params-from-json)--params-from-json[Load parameters from JSON file]:file:_files' \\
-            '*:params:->params' \\
-            && return 0
-    else
-        # Fallback - use same _alternative approach as first case
-        local -a tools option_values alts
+        # Second tier: functions and tool options
+        local tool=$words[2]
+        local -a functions options
 
-        tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
-        option_values=(
-            '--help' '--list-tools' '--config' '--init-config'
-            '--install-completion' '--show-completion'
+        # Get functions for the selected tool
+        functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
+
+        # Tool-level options
+        options=(
+            '--help:Show help for this tool'
+            '--json-output:Output in JSON format'
+            '--params-from-json:Load parameters from JSON file'
         )
 
-        # Add completions to their respective groups
-        compadd -J 'tools' -a tools
-        compadd -J 'options' -a option_values
+        # Add all completions together
+        _describe 'functions' functions
+        _describe 'options' options
+        return 0
+    elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
+        # Third tier: parameters and function options
+        local tool=$words[2]
+        local function=$words[3]
+        local -a params options
+
+        # Get parameter names for the function
+        params=($(mcp-cli $tool $function --help 2>/dev/null | awk '/^OPTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1 "="}}'))
+
+        # Function-level options
+        options=(
+            '--help:Show detailed help for this function'
+            '--json-output:Output in JSON format'
+            '--params-from-json:Load parameters from JSON file'
+        )
+
+        # Add all completions together
+        _describe 'parameters' params
+        _describe 'options' options
         return 0
     fi
-
-    case $state in
-        functions)
-            # Get functions for the selected tool
-            local tool=$words[2]
-            if [[ -n $tool ]]; then
-                # Parse the "FUNCTIONS" section from tool help
-                local functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
-                if [[ ${#functions[@]} -gt 0 ]]; then
-                    # Use grouped completion like the first tier
-                    compadd -J 'functions' -a functions
-                fi
-            fi
-            ;;
-        params)
-            # For now, just complete filenames for parameters
-            _files
-            ;;
-    esac
 }
-
-# Configure group display with headers (must be outside the function)
-zstyle ':completion:*:*:mcp-cli:*:*' format '%F{yellow}--- %d ---%f'
-zstyle ':completion:*:*:mcp-cli:*:tools' group-name 'Tools'
-zstyle ':completion:*:*:mcp-cli:*:options' group-name 'Options'
-zstyle ':completion:*:*:mcp-cli:*:functions' group-name 'Functions'
-zstyle ':completion:*:*:mcp-cli:*:*' group-order 'Tools' 'Options' 'Functions'
 
 compdef _mcp_cli mcp-cli
 """

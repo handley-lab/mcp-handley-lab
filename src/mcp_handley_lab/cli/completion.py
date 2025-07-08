@@ -33,7 +33,9 @@ _mcp_cli() {
         )
 
         # Add all completions (tools first, then options)
-        compadd "$@" -- $tools $options
+        local -a all_completions
+        all_completions=($tools $options)
+        _describe '' all_completions
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options
@@ -51,7 +53,9 @@ _mcp_cli() {
         )
 
         # Add all completions (functions first, then options)
-        compadd "$@" -- $functions $options
+        local -a all_completions
+        all_completions=($functions $options)
+        _describe '' all_completions
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options
@@ -70,7 +74,9 @@ _mcp_cli() {
         )
 
         # Add all completions (parameters first, then options)
-        compadd "$@" -- $params $options
+        local -a all_completions
+        all_completions=($params $options)
+        _describe '' all_completions
         return 0
     fi
 }

@@ -98,7 +98,9 @@ def test_llm_ask_basic(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
@@ -131,7 +133,9 @@ def test_llm_ask_with_files(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert any(word in content.lower() for word in ["hello", "world", "test"])
@@ -161,7 +165,9 @@ def test_llm_analyze_image(
         agent_name=False,  # Disable memory for clean test
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert "red" in content.lower()
@@ -183,7 +189,9 @@ def test_llm_memory_disabled(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
@@ -197,8 +205,16 @@ def test_llm_server_info(skip_if_no_api_key, server_info_func, api_key):
 
     result = server_info_func()
 
-    assert "server" in result.lower() or "tool" in result.lower()
-    assert "available" in result.lower() or "status" in result.lower()
+    # Handle both string and ServerInfo object returns
+    if hasattr(result, "name"):
+        # ServerInfo object
+        assert "server" in result.name.lower() or "tool" in result.name.lower()
+        assert result.status == "active"
+        assert result.dependencies
+    else:
+        # String return
+        assert result.status == "active"
+        assert "Tool" in result.name
 
 
 @pytest.mark.vcr

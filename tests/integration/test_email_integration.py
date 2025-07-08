@@ -566,7 +566,8 @@ Subject: {test_subject}
                     account="HandleyLab",
                 )
 
-                assert "sent successfully" in send_result.lower()
+                assert send_result.status == "success"
+                assert send_result.recipient == "handleylab@gmail.com"
                 print("✅ Email sent via email tool")
 
                 # Step 2: Wait for delivery

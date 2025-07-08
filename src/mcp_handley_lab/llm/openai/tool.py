@@ -18,6 +18,7 @@ from mcp_handley_lab.llm.model_loader import (
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
+from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult, ServerInfo
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -41,7 +42,7 @@ def _openai_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
-    system_instruction: str | None,
+    system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
     """OpenAI-specific text generation function for the shared processor."""
@@ -107,7 +108,7 @@ def _openai_image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
-    system_instruction: str | None,
+    system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
     """OpenAI-specific image analysis function for the shared processor."""
@@ -199,7 +200,7 @@ def ask(
     temperature: float = 0.7,
     max_output_tokens: int = 0,
     files: list[str] = [],
-) -> str:
+) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
@@ -226,7 +227,7 @@ def analyze_image(
     model: str = "gpt-4o",
     agent_name: str = "session",
     max_output_tokens: int = 0,
-) -> str:
+) -> LLMResult:
     """Analyze images with OpenAI vision model."""
     return process_llm_request(
         prompt=prompt,
@@ -267,7 +268,7 @@ def generate_image(
     quality: str = "standard",
     size: str = "1024x1024",
     agent_name: str = "session",
-) -> str:
+) -> ImageGenerationResult:
     """Generate images with DALL-E."""
     return process_image_generation(
         prompt=prompt,
@@ -297,7 +298,7 @@ def list_models() -> str:
 @mcp.tool(
     description="Checks OpenAI Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and OpenAI configuration."""
     # Test API key by listing models
     models = client.models.list()
@@ -308,22 +309,23 @@ def server_info() -> str:
     # Get agent count
     agent_count = len(memory_manager.list_agents())
 
-    return f"""OpenAI Tool Server Status
-==========================
-Status: Connected and ready
-API Key: Configured ✓
-Available Models: {len(available_models)} models
-- {', '.join(available_models[:5])}{'...' if len(available_models) > 5 else ''}
-
-Agent Management:
-- Active Agents: {agent_count}
-- Memory Storage: {memory_manager.storage_dir}
-
-Available tools:
-- ask: Chat with GPT models (persistent memory enabled by default)
-- analyze_image: Image analysis with vision models (persistent memory enabled by default)
-- generate_image: Generate images with DALL-E
-- list_models: List available OpenAI models with detailed information
-- server_info: Get server status
-
-Note: Agent memory is managed automatically. Use agent_name parameter in ask/analyze_image for persistent conversations."""
+    return ServerInfo(
+        name="OpenAI Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=[
+            "ask - Chat with GPT models (persistent memory enabled by default)",
+            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
+            "generate_image - Generate images with DALL-E",
+            "list_models - List available OpenAI models with detailed information",
+            "server_info - Get server status",
+        ],
+        dependencies={
+            "api_key": "configured",
+            "available_models": f"{len(available_models)} models",
+            "active_agents": str(agent_count),
+            "memory_storage": str(memory_manager.storage_dir),
+            "vision_support": "true",
+            "image_generation": "true",
+        },
+    )

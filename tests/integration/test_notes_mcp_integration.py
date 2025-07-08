@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.notes.tool import (
     create_note,
     delete_note,
@@ -64,10 +65,10 @@ class TestNotesMcpIntegration:
 
         # Get the note
         note_data = get_note(note_id=note_id)
-        assert "person" in note_data["tags"]
-        assert note_data["properties"]["name"] == "Dr. Test User"
-        assert "testing" in note_data["properties"]["expertise"]
-        assert "test" in note_data["tags"]
+        assert "person" in note_data.tags
+        assert note_data.properties["name"] == "Dr. Test User"
+        assert "testing" in note_data.properties["expertise"]
+        assert "test" in note_data.tags
 
         # Update the note
         update_result = update_note(
@@ -81,19 +82,22 @@ class TestNotesMcpIntegration:
 
         # Verify update
         updated_note = get_note(note_id=note_id)
-        assert updated_note["properties"]["name"] == "Dr. Updated User"
-        assert updated_note["properties"]["role"] == "Senior Researcher"
-        assert "updated" in updated_note["tags"]
-        assert "person" in updated_note["tags"]
-        assert updated_note["content"] == "Updated content for testing."
+        assert updated_note.properties["name"] == "Dr. Updated User"
+        assert updated_note.properties["role"] == "Senior Researcher"
+        assert "updated" in updated_note.tags
+        assert "person" in updated_note.tags
+        assert updated_note.content == "Updated content for testing."
 
         # Delete the note
         delete_result = delete_note(note_id=note_id)
         assert delete_result is True
 
         # Verify deletion
-        deleted_note = get_note(note_id=note_id)
-        assert deleted_note is None
+        try:
+            get_note(note_id=note_id)
+            raise AssertionError("Should have raised ValueError")
+        except ValueError as e:
+            assert "not found" in str(e)
 
     def test_list_and_search_mcp(self, isolated_notes_storage):
         """Test listing and searching notes through MCP."""
@@ -406,8 +410,11 @@ class TestNotesMcpIntegration:
         """Test error handling in MCP functions."""
 
         # Test getting non-existent note
-        result = get_note(note_id="non-existent-id")
-        assert result is None
+        try:
+            get_note(note_id="non-existent-id")
+            raise AssertionError("Should have raised ValueError")
+        except ValueError as e:
+            assert "not found" in str(e)
 
         # Test deleting non-existent note
         delete_result = delete_note(note_id="non-existent-id")

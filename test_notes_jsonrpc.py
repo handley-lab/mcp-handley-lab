@@ -46,7 +46,8 @@ def test_notes_jsonrpc():
             "params": {
                 "name": "create_note",
                 "arguments": {
-                    "note_type": "test",
+                    "path": "test",
+                    "title": "Test Note",
                     "content": "Test note via JSON-RPC",
                     "scope": "local",
                 },

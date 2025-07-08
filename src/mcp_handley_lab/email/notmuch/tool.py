@@ -35,7 +35,6 @@ def show(query: str, part: str | None = None) -> str:
     """Show email content using notmuch show."""
     cmd = ["notmuch", "show"]
 
-    # Add format options for plain text
     cmd.extend(["--format=text"])
 
     if part:
@@ -110,21 +109,18 @@ def tag(
 
     cmd = ["notmuch", "tag"]
 
-    # Add tags to add
     if add_tags:
         for tag in add_tags.split(","):
             tag = tag.strip()
             if tag:
                 cmd.append(f"+{tag}")
 
-    # Add tags to remove
     if remove_tags:
         for tag in remove_tags.split(","):
             tag = tag.strip()
             if tag:
                 cmd.append(f"-{tag}")
 
-    # Add message ID
     cmd.append(f"id:{message_id}")
 
     stdout, stderr = run_command(cmd)

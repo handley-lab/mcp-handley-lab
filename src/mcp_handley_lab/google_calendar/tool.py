@@ -84,12 +84,10 @@ def _get_calendar_service():
     token_file = settings.google_token_path
     credentials_file = settings.google_credentials_path
 
-    # Load existing token
     if token_file.exists():
         with open(token_file, "rb") as f:
             creds = pickle.load(f)
 
-    # Refresh or get new credentials
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -99,7 +97,6 @@ def _get_calendar_service():
             )
             creds = flow.run_local_server(port=0)
 
-        # Save credentials for next run
         token_file.parent.mkdir(parents=True, exist_ok=True)
         with open(token_file, "wb") as f:
             pickle.dump(creds, f)
@@ -112,14 +109,12 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
     if calendar_id in ["primary", "all"] or "@" in calendar_id:
         return calendar_id
 
-    # Try to find calendar by name
     calendar_list = service.calendarList().list().execute()
 
     for calendar in calendar_list.get("items", []):
         if calendar.get("summary", "").lower() == calendar_id.lower():
             return calendar["id"]
 
-    # If not found, assume it's already an ID
     return calendar_id
 
 
@@ -137,32 +132,25 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
         return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     if "T" not in dt_str:
-        # Date only format - treat as start of day in UTC
         return dt_str + "T00:00:00Z"
 
     if dt_str.endswith("Z"):
-        # Already UTC
         return dt_str
     elif "+" in dt_str or dt_str.count("-") > 2:
-        # Has timezone info - convert to UTC properly
         dt = datetime.fromisoformat(dt_str)
         utc_dt = dt.astimezone(timezone.utc)
         return utc_dt.isoformat().replace("+00:00", "Z")
     else:
-        # Naive datetime - assume UTC
         return dt_str + "Z"
 
 
 def _format_datetime(dt_str: str) -> str:
     """Format datetime string for display with proper timezone handling."""
     if "T" in dt_str:
-        # DateTime format
         dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
         if dt.tzinfo:
-            # Format with timezone info
             return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
         else:
-            # Naive datetime - assume UTC for display
             dt = dt.replace(tzinfo=timezone.utc)
             return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
     else:
@@ -193,19 +181,16 @@ def _client_side_filter(
     if not search_fields:
         search_fields = ["summary", "description", "location"]
 
-    # Split search text into terms
     search_terms = search_text.split()
     if not search_terms:
         return events
 
-    # Prepare search terms for comparison
     if not case_sensitive:
         search_terms = [term.lower() for term in search_terms]
 
     filtered_events = []
 
     for event in events:
-        # Extract searchable text from event
         searchable_text_parts = []
 
         for field in search_fields:
@@ -216,7 +201,6 @@ def _client_side_filter(
             elif field == "location":
                 text = event.get("location", "")
             elif field == "attendees":
-                # Search in attendee names and emails
                 attendees = event.get("attendees", [])
                 attendee_texts = []
                 for attendee in attendees:
@@ -229,17 +213,13 @@ def _client_side_filter(
             if text:
                 searchable_text_parts.append(text)
 
-        # Combine all searchable text
         full_searchable_text = " ".join(searchable_text_parts)
         if not case_sensitive:
             full_searchable_text = full_searchable_text.lower()
 
-        # Check if event matches search criteria
         if match_all_terms:
-            # AND logic: all terms must be present
             matches = all(term in full_searchable_text for term in search_terms)
         else:
-            # OR logic: any term can be present
             matches = any(term in full_searchable_text for term in search_terms)
 
         if matches:
@@ -310,7 +290,6 @@ def create_event(
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # Build event object
     event_body = {
         "summary": summary,
         "description": description or "",
@@ -318,23 +297,18 @@ def create_event(
         "end": {},
     }
 
-    # Handle all-day vs timed events
     if "T" in start_datetime:
-        # Timed event
         event_body["start"]["dateTime"] = start_datetime
         event_body["start"]["timeZone"] = timezone
         event_body["end"]["dateTime"] = end_datetime
         event_body["end"]["timeZone"] = timezone
     else:
-        # All-day event
         event_body["start"]["date"] = start_datetime
         event_body["end"]["date"] = end_datetime
 
-    # Add attendees if provided
     if attendees:
         event_body["attendees"] = [{"email": email} for email in attendees]
 
-    # Create the event
     created_event = (
         service.events().insert(calendarId=resolved_id, body=event_body).execute()
     )
@@ -389,7 +363,6 @@ def update_event(
     if not update_body:
         return "No updates specified. Nothing to do."
 
-    # Use 'patch' which is more efficient for partial updates
     updated_event = (
         service.events()
         .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
@@ -406,7 +379,6 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # The API will return a 404 if it doesn't exist, which is handled below.
     service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
     return f"Event (ID: {event_id}) has been permanently deleted."
 
@@ -446,7 +418,6 @@ def find_time(
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # Set default date range
     start_dt = datetime.now() if not start_date else datetime.fromisoformat(start_date)
 
     if not end_date:
@@ -454,7 +425,6 @@ def find_time(
     else:
         end_dt = datetime.fromisoformat(end_date)
 
-    # Get busy times with proper timezone handling
     freebusy_request = {
         "timeMin": _parse_datetime_to_utc(start_dt.isoformat()),
         "timeMax": _parse_datetime_to_utc(end_dt.isoformat()),
@@ -464,9 +434,7 @@ def find_time(
     freebusy_result = service.freebusy().query(body=freebusy_request).execute()
     busy_times = freebusy_result["calendars"][resolved_id].get("busy", [])
 
-    # Generate time slots with proper timezone handling
     slots = []
-    # Convert to UTC for consistent comparison
     if start_dt.tzinfo:
         current = start_dt.astimezone(timezone.utc).replace(tzinfo=None)
     else:
@@ -486,14 +454,11 @@ def find_time(
 
         slot_end = current + slot_duration
 
-        # Check if slot conflicts with busy times
         is_free = True
         for busy in busy_times:
-            # Parse busy times properly
             busy_start = datetime.fromisoformat(busy["start"].replace("Z", "+00:00"))
             busy_end = datetime.fromisoformat(busy["end"].replace("Z", "+00:00"))
 
-            # Convert to UTC naive for comparison
             if busy_start.tzinfo:
                 busy_start = busy_start.astimezone(timezone.utc).replace(tzinfo=None)
             if busy_end.tzinfo:
@@ -506,7 +471,7 @@ def find_time(
         if is_free:
             slots.append((current, slot_end))
 
-        current += timedelta(minutes=30)  # Check every 30 minutes
+        current += timedelta(minutes=30)
 
     if not slots:
         return []
@@ -539,23 +504,18 @@ def search_events(
     match_all_terms: bool = True,
 ) -> str:
     """Advanced hybrid search for calendar events."""
-    # Step 1: Server-side filtering using Google API 'q' parameter
-    # This reduces data transfer and improves initial search performance
     service = _get_calendar_service()
 
-    # Set default date range if not provided with proper timezone handling
     if not start_date:
-        start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
+        start_date = _parse_datetime_to_utc("")
     else:
         start_date = _parse_datetime_to_utc(start_date)
 
     if not end_date:
-        # Default to 7 days for basic listing, 1 year for search
         days = 7 if not search_text else 365
         end_dt = datetime.now(timezone.utc) + timedelta(days=days)
         end_date = end_dt.isoformat().replace("+00:00", "Z")
     else:
-        # Handle end date - for date-only format, use end of day
         if "T" not in end_date:
             end_date = end_date + "T23:59:59Z"
         else:
@@ -565,7 +525,6 @@ def search_events(
     warnings = []
 
     if calendar_id == "all":
-        # Search all calendars
         calendar_list = service.calendarList().list().execute()
 
         for calendar in calendar_list.get("items", []):
@@ -588,7 +547,6 @@ def search_events(
                 event["calendar_name"] = calendar.get("summary", cal_id)
             events_list.extend(cal_events)
     else:
-        # Search specific calendar
         resolved_id = _resolve_calendar_id(calendar_id, service)
 
         params = {
@@ -604,8 +562,6 @@ def search_events(
         events_result = service.events().list(**params).execute()
         events_list = events_result.get("items", [])
 
-    # Step 2: Apply client-side filtering if advanced options are specified
-    # This provides granular control not available in the Google API
     if search_fields or case_sensitive or not match_all_terms:
         filtered_events = _client_side_filter(
             events_list,
@@ -625,7 +581,6 @@ def search_events(
         else:
             return "No events found in the specified date range."
 
-    # Sort by start time
     filtered_events.sort(
         key=lambda x: x.get("start", {}).get(
             "dateTime", x.get("start", {}).get("date", "")
@@ -653,7 +608,6 @@ def search_events(
             result += f"  Location: {event['location']}\n"
 
         if event.get("description"):
-            # Show first 100 characters of description
             desc = event["description"]
             if len(desc) > 100:
                 desc = desc[:97] + "..."
@@ -661,13 +615,11 @@ def search_events(
 
         result += "\n"
 
-    # Add warnings if any calendars were inaccessible
     if warnings:
         result += (
             "\n⚠️ Warnings:\n" + "\n".join(f"- {warning}" for warning in warnings) + "\n"
         )
 
-    # Add search summary only for advanced searches
     if search_text and (search_fields or case_sensitive or not match_all_terms):
         search_summary = "\nSearch Details:\n"
         search_summary += f"- Search text: '{search_text}'\n"
@@ -687,7 +639,6 @@ def server_info() -> ServerInfo:
     """Get server status and Google Calendar API connection info."""
     service = _get_calendar_service()
 
-    # Test API connection by getting calendar list
     calendar_list = service.calendarList().list(maxResults=1).execute()
 
     return ServerInfo(

@@ -61,12 +61,9 @@ def _cache_source(arxiv_id: str, content: bytes) -> None:
 
 def _get_source_archive(arxiv_id: str) -> bytes:
     """Get source archive, using cache if available."""
-    # Check cache first
     cached = _get_cached_source(arxiv_id)
     if cached:
         return cached
-
-    # Download and cache
     url = f"https://arxiv.org/src/{arxiv_id}"
     with httpx.Client(follow_redirects=True) as client:
         response = client.get(url)
@@ -103,14 +100,11 @@ def _handle_single_file(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> str:
     """Handle a single gzipped file (not a tar archive)."""
-    # Decompress the gzipped content
     decompressed = gzip.decompress(content)
 
     if output_path == "-":
-        # Return file info for stdout
         return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
     else:
-        # Save to directory
         os.makedirs(output_path, exist_ok=True)
         filename = f"{arxiv_id}.tex"  # Assume it's a tex file
         file_path = os.path.join(output_path, filename)
@@ -127,7 +121,6 @@ def _handle_tar_archive(
 
     with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
         if output_path == "-":
-            # List files for stdout
             files = []
             for member in tar.getmembers():
                 if member.isfile() and (
@@ -143,21 +136,20 @@ def _handle_tar_archive(
             else:
                 return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
         else:
-            # Save to directory
             os.makedirs(output_path, exist_ok=True)
 
             if format == "tex":
-                # Extract .tex, .bib, .bbl files
                 extracted_files = []
                 for member in tar.getmembers():
                     if member.isfile() and any(
                         member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
                     ):
+                        # Use filter='data' for security to prevent path traversal attacks
                         tar.extract(member, path=output_path, filter="data")
                         extracted_files.append(member.name)
                 return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
             else:
-                # Extract all files (src format)
+                # Use filter='data' for security to prevent path traversal attacks
                 tar.extractall(path=output_path, filter="data")
                 file_count = len([m for m in tar.getmembers() if m.isfile()])
                 return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
@@ -271,7 +263,6 @@ def download(
     if format not in ["src", "pdf", "tex"]:
         raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
 
-    # Determine default output path
     if not output_path:
         output_path = f"{arxiv_id}.pdf" if format == "pdf" else arxiv_id
 
@@ -305,7 +296,7 @@ def download(
                 files=[output_path],
             )
 
-    else:  # src or tex format
+    else:
         content = _get_source_archive(arxiv_id)
         return _handle_source_content_structured(arxiv_id, content, format, output_path)
 
@@ -317,7 +308,6 @@ def list_files(arxiv_id: str) -> list[str]:
     content = _get_source_archive(arxiv_id)
 
     try:
-        # Try to handle as tar archive first (most common case)
         tar_stream = BytesIO(content)
         filenames = []
         with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
@@ -327,11 +317,8 @@ def list_files(arxiv_id: str) -> list[str]:
         return filenames
     except tarfile.TarError:
         # Not a valid tar, so try to handle as a single gzipped file
-        # This will raise gzip.BadGzipFile if the content is corrupted
         gzip.decompress(content)
-        return [
-            f"{arxiv_id}.tex"
-        ]  # It's a valid gzipped file, likely a single tex file
+        return [f"{arxiv_id}.tex"]
 
 
 def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
@@ -345,7 +332,6 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
         elem = entry.find(path, ns)
         return elem.text.strip() if elem is not None and elem.text else default
 
-    # Extract basic information
     title = find_text("atom:title")
     summary = find_text("atom:summary")
     id_text = find_text("atom:id")
@@ -356,12 +342,10 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
         if author.text
     ]
 
-    # Extract published date
     published_text = find_text("atom:published")
     dt = datetime.fromisoformat(published_text.replace("Z", "+00:00"))
     published_date = dt.strftime("%Y-%m-%d")
 
-    # Extract categories and links
     categories = [
         cat.get("term") for cat in entry.findall("atom:category", ns) if cat.get("term")
     ]
@@ -399,7 +383,6 @@ def search(
     if max_results > 100:
         max_results = 100
 
-    # Construct API URL
     base_url = "http://export.arxiv.org/api/query"
     encoded_query = quote_plus(query)
 
@@ -411,7 +394,6 @@ def search(
         "sortOrder": sort_order,
     }
 
-    # Build URL with parameters
     param_str = "&".join([f"{k}={v}" for k, v in params.items()])
     url = f"{base_url}?{param_str}"
 
@@ -419,16 +401,13 @@ def search(
         response = client.get(url)
         response.raise_for_status()
 
-    # Parse XML response
     root = ElementTree.fromstring(response.content)
 
-    # Define namespaces
     ns = {
         "atom": "http://www.w3.org/2005/Atom",
         "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
     }
 
-    # Extract search results
     results = []
     for entry in root.findall("atom:entry", ns):
         paper_dict = _parse_arxiv_entry(entry)

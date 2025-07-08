@@ -55,14 +55,11 @@ def generate_prompt(
     no_ignore: bool = False,
 ) -> GenerationResult:
     """Generate a structured prompt from codebase."""
-    # Create output file if not provided
     if not output_file:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".md", delete=False
         ) as temp_file:
             output_file = temp_file.name
-
-    # Define all arguments in one data structure
     arg_definitions = [
         {"name": "--output-file", "value": output_file, "type": "value"},
         {"name": "--output-format", "value": output_format, "type": "value"},
@@ -87,7 +84,6 @@ def generate_prompt(
         {"name": "--exclude", "values": exclude or [], "type": "multi_value"},
     ]
 
-    # Build command args
     args = [path]
     for arg_def in arg_definitions:
         if (
@@ -103,17 +99,14 @@ def generate_prompt(
             for val in arg_def.get("values", []):
                 args.extend([arg_def["name"], val])
 
-    # Special handling for git branch options
     if git_diff_branch1 and git_diff_branch2:
         args.extend(["--git-diff-branch", git_diff_branch1, git_diff_branch2])
 
     if git_log_branch1 and git_log_branch2:
         args.extend(["--git-log-branch", git_log_branch1, git_log_branch2])
 
-    # Run code2prompt
     _run_code2prompt(args)
 
-    # Get file size for reporting
     output_path = Path(output_file)
     file_size = output_path.stat().st_size
 

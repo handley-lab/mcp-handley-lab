@@ -29,9 +29,6 @@ def process_llm_request(
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file.strip():
         raise ValueError("Output file is required and cannot be empty")
-    # agent_name validation: "session", "" (no memory), or actual name
-    # No validation needed - all string values are valid
-
     # Store original prompt for memory
     user_prompt = prompt
     history = []
@@ -141,18 +138,15 @@ def process_image_generation(
     input_tokens = response_data.get("input_tokens", 0)
     output_tokens = response_data.get("output_tokens", 1)
 
-    # Save to temporary file
     file_id = str(uuid.uuid4())[:8]
     filename = f"{provider}_generated_{file_id}.png"
     filepath = Path(tempfile.gettempdir()) / filename
     filepath.write_bytes(image_bytes)
 
-    # Calculate cost
     cost = calculate_cost(
         model, input_tokens, output_tokens, provider, images_generated=1
     )
 
-    # Handle agent memory
     handle_agent_memory(
         agent_name,
         f"Generate image: {prompt}",
@@ -163,7 +157,6 @@ def process_image_generation(
         lambda: get_session_id(mcp_instance),
     )
 
-    # Format response
     file_size = len(image_bytes)
 
     from mcp_handley_lab.shared.models import UsageStats

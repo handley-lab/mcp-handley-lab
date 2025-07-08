@@ -15,36 +15,31 @@ class SemanticSearchManager:
             settings=Settings(anonymized_telemetry=False),
         )
 
-        # Create or get collection for notes
         self.collection = self.client.get_or_create_collection(
             name="notes", metadata={"hnsw:space": "cosine"}
         )
 
     def add_note(self, note: Note) -> bool:
         """Add an note to the semantic search index."""
-        # Combine content and key properties for embedding
         text_parts = []
 
         text_parts.append(note.content)
 
-        # Add important string properties
         for key, value in note.properties.items():
             if isinstance(value, str):
                 text_parts.append(f"{key}: {value}")
 
-        # Add tags
         text_parts.append(f"Tags: {', '.join(note.tags)}")
 
         document_text = " | ".join(text_parts)
 
         # Metadata for filtering
         metadata = {
-            "tags": ",".join(note.tags),  # Convert list to comma-separated string
+            "tags": ",".join(note.tags),
             "created_at": note.created_at.isoformat(),
             "updated_at": note.updated_at.isoformat(),
         }
 
-        # Add key properties to metadata (string values only)
         for key, value in note.properties.items():
             if isinstance(value, str | int | float | bool):
                 metadata[f"prop_{key}"] = str(value)

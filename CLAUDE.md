@@ -151,6 +151,7 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 4. **Data Modeling**: Pydantic BaseModel for complex data structures
 5. **Stateless Design**: Functions take explicit storage_dir parameters instead of using global state
 6. **Alpha Development**: This is alpha software - APIs may change without notice to improve design
+7. **CRITICAL: Avoid Union types for inputs**: Never use `Union[str, dict, list]` or similar union types for MCP tool parameters. This makes Claude Code integration difficult as Claude cannot determine which type to use. Always use single, specific types (e.g., `str`) and handle type variations internally within the function implementation.
 
 ### Development Phases
 

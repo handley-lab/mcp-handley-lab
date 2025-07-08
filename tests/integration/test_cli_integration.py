@@ -1,7 +1,6 @@
 """Integration tests for the MCP CLI."""
 import json
 import subprocess
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -60,62 +59,83 @@ class TestCLIIntegration:
 
     def test_jq_execution_integration(self):
         """Test actual jq tool execution integration."""
-        result = subprocess.run(
-            [
-                "python",
-                "-m",
-                "mcp_handley_lab.cli.main",
-                "jq",
-                "query",
-                'data={"test": "value"}',
-                "filter=.test",
-            ],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent,
-        )
+        # Use a temp file to avoid JSON auto-parsing issues
+        import tempfile
 
-        assert result.returncode == 0
-        assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
+            f.write('{"test": "value"}')
+            f.flush()  # Ensure content is written
+
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f"data={f.name}",
+                    "filter=.test",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
 
     def test_jq_positional_params_integration(self):
         """Test jq with positional parameters integration."""
-        result = subprocess.run(
-            [
-                "python",
-                "-m",
-                "mcp_handley_lab.cli.main",
-                "jq",
-                "query",
-                '{"test": "value"}',
-                ".test",
-            ],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent,
-        )
+        # Use a temp file to avoid JSON auto-parsing issues
+        import tempfile
 
-        assert result.returncode == 0
-        assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
+            f.write('{"test": "value"}')
+            f.flush()  # Ensure content is written
+
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f.name,
+                    ".test",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
 
     def test_jq_validate_integration(self):
         """Test jq validate function integration."""
-        result = subprocess.run(
-            [
-                "python",
-                "-m",
-                "mcp_handley_lab.cli.main",
-                "jq",
-                "validate",
-                'data={"valid": "json"}',
-            ],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent,
-        )
+        # Use a temp file to avoid JSON auto-parsing issues
+        import tempfile
 
-        assert result.returncode == 0
-        assert "JSON is valid" in result.stdout
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as f:
+            f.write('{"valid": "json"}')
+            f.flush()  # Ensure content is written
+
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "validate",
+                    f"data={f.name}",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            assert "JSON is valid" in result.stdout
 
     def test_jq_server_info_integration(self):
         """Test jq server_info function integration."""
@@ -156,31 +176,35 @@ class TestCLIIntegration:
 
     def test_params_from_json_integration(self):
         """Test --params-from-json integration."""
-        # Create temporary JSON file
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json.dump({"data": '{"test": "value"}', "filter": ".test"}, f)
-            json_file = f.name
+        import tempfile
 
-        try:
-            result = subprocess.run(
-                [
-                    "python",
-                    "-m",
-                    "mcp_handley_lab.cli.main",
-                    "jq",
-                    "query",
-                    "--params-from-json",
-                    json_file,
-                ],
-                capture_output=True,
-                text=True,
-                cwd=Path(__file__).parent.parent.parent,
-            )
+        # Create temporary JSON data file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as data_f:
+            data_f.write('{"test": "value"}')
+            data_f.flush()  # Ensure content is written
 
-            assert result.returncode == 0
-            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
-        finally:
-            Path(json_file).unlink()
+            # Create temporary params JSON file
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as params_f:
+                json.dump({"data": data_f.name, "filter": ".test"}, params_f)
+                params_f.flush()  # Ensure content is written
+
+                result = subprocess.run(
+                    [
+                        "python",
+                        "-m",
+                        "mcp_handley_lab.cli.main",
+                        "jq",
+                        "query",
+                        "--params-from-json",
+                        params_f.name,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    cwd=Path(__file__).parent.parent.parent,
+                )
+
+                assert result.returncode == 0
+                assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
 
     def test_nonexistent_tool_integration(self):
         """Test error handling for nonexistent tool."""

@@ -16,64 +16,100 @@ _mcp_cli() {
 
     # Check completion context based on current position
     if [[ $CURRENT -eq 2 ]]; then
-        # First tier: tools and options
-        local -a tools options
+        # First tier: tools and options with proper ordering using tags
+        local -a tools options option_descs
+
+        # Define tags and their display order
+        _tags tools options
+        compstate[group-order]=(tools options)
 
         # Get available tools dynamically
         tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
 
-        # Define options
+        # Define options and their descriptions separately
         options=(
-            '--help:Show help message'
-            '--list-tools:List all available tools'
-            '--config:Show configuration file location'
-            '--init-config:Create default configuration file'
-            '--install-completion:Install zsh completion script'
-            '--show-completion:Show completion installation instructions'
+            '--help'
+            '--list-tools'
+            '--config'
+            '--init-config'
+            '--install-completion'
+            '--show-completion'
+        )
+        option_descs=(
+            'Show help message'
+            'List all available tools'
+            'Show configuration file location'
+            'Create default configuration file'
+            'Install zsh completion script'
+            'Show completion installation instructions'
         )
 
-        # Add completions in order (tools first, then options)
-        _describe '' "$tools[@]"
-        _describe '' "$options[@]"
+        # Add tools first (no descriptions needed for tools)
+        compadd -J 'available tools' -t tools -a tools
+
+        # Add options with descriptions
+        compadd -J 'global options' -t options -d option_descs -- $options
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
-        # Second tier: functions and tool options
+        # Second tier: functions and tool options with proper ordering
         local tool=$words[2]
-        local -a functions options
+        local -a functions options option_descs
+
+        # Define tags and their display order
+        _tags functions options
+        compstate[group-order]=(functions options)
 
         # Get functions for the selected tool
         functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
 
-        # Tool-level options
+        # Tool-level options and descriptions
         options=(
-            '--help:Show help for this tool'
-            '--json-output:Output in JSON format'
-            '--params-from-json:Load parameters from JSON file'
+            '--help'
+            '--json-output'
+            '--params-from-json'
+        )
+        option_descs=(
+            'Show help for this tool'
+            'Output in JSON format'
+            'Load parameters from JSON file'
         )
 
-        # Add completions in order (functions first, then options)
-        _describe '' "$functions[@]"
-        _describe '' "$options[@]"
+        # Add functions first (no descriptions needed for functions)
+        compadd -J 'available functions' -t functions -a functions
+
+        # Add options with descriptions
+        compadd -J 'tool options' -t options -d option_descs -- $options
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
-        # Third tier: parameters and function options
+        # Third tier: parameters and function options with proper ordering
         local tool=$words[2]
         local function=$words[3]
-        local -a params options
+        local -a params options option_descs
+
+        # Define tags and their display order
+        _tags parameters options
+        compstate[group-order]=(parameters options)
 
         # Get parameter names for the function
         params=($(mcp-cli $tool $function --help 2>/dev/null | awk '/^OPTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1 "="}}'))
 
-        # Function-level options
+        # Function-level options and descriptions
         options=(
-            '--help:Show detailed help for this function'
-            '--json-output:Output in JSON format'
-            '--params-from-json:Load parameters from JSON file'
+            '--help'
+            '--json-output'
+            '--params-from-json'
+        )
+        option_descs=(
+            'Show detailed help for this function'
+            'Output in JSON format'
+            'Load parameters from JSON file'
         )
 
-        # Add completions in order (parameters first, then options)
-        _describe '' "$params[@]"
-        _describe '' "$options[@]"
+        # Add parameters first (no descriptions needed for parameters)
+        compadd -J 'function parameters' -t parameters -a params
+
+        # Add options with descriptions
+        compadd -J 'function options' -t options -d option_descs -- $options
         return 0
     fi
 }

@@ -13,22 +13,37 @@ mcp = FastMCP("Notes")
 _manager: NotesManager = None
 
 
-def get_manager() -> NotesManager:
-    """Get or create the notes manager instance.
-
-    For stdio mode: Creates a new manager each time (stateless)
-    For HTTP mode: Uses the persistent server's manager (stateful)
-    """
-    global _manager
-    if _manager is None:
-        _manager = NotesManager()
-    return _manager
-
-
 def set_manager(manager: NotesManager) -> None:
     """Set the global manager instance (used by persistent server)."""
     global _manager
     _manager = manager
+
+
+def get_manager() -> NotesManager:
+    """Get or create the notes manager instance."""
+    global _manager
+    if _manager is not None:
+        return _manager
+
+    _ensure_server_running()
+    return NotesManager()
+
+
+def _ensure_server_running():
+    """Start server if not running."""
+    import socket
+    import subprocess
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(("127.0.0.1", 8000))
+    sock.close()
+
+    if result == 0:
+        return
+
+    subprocess.Popen(
+        ["mcp-notes-server"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
 
 
 @mcp.tool()

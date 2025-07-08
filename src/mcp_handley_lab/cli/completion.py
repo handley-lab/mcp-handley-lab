@@ -9,6 +9,84 @@ def install_completion_script():
 
     zsh_completion = """#compdef mcp-cli
 
+# Helper function to complete tools
+_mcp_cli_tools() {
+    local -a tools
+    tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
+    compadd -a tools
+}
+
+# Helper function to complete global options
+_mcp_cli_options() {
+    local -a options option_descs
+    options=(
+        '--help'
+        '--list-tools'
+        '--config'
+        '--init-config'
+        '--install-completion'
+        '--show-completion'
+    )
+    option_descs=(
+        'Show help message'
+        'List all available tools'
+        'Show configuration file location'
+        'Create default configuration file'
+        'Install zsh completion script'
+        'Show completion installation instructions'
+    )
+    compadd -d option_descs -- $options
+}
+
+# Helper function to complete functions for a tool
+_mcp_cli_functions() {
+    local tool=$words[2]
+    local -a functions
+    functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
+    compadd -a functions
+}
+
+# Helper function to complete tool options
+_mcp_cli_tool_options() {
+    local -a options option_descs
+    options=(
+        '--help'
+        '--json-output'
+        '--params-from-json'
+    )
+    option_descs=(
+        'Show help for this tool'
+        'Output in JSON format'
+        'Load parameters from JSON file'
+    )
+    compadd -d option_descs -- $options
+}
+
+# Helper function to complete function parameters
+_mcp_cli_parameters() {
+    local tool=$words[2]
+    local function=$words[3]
+    local -a params
+    params=($(mcp-cli $tool $function --help 2>/dev/null | awk '/^OPTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1 "="}}'))
+    compadd -a params
+}
+
+# Helper function to complete function options
+_mcp_cli_function_options() {
+    local -a options option_descs
+    options=(
+        '--help'
+        '--json-output'
+        '--params-from-json'
+    )
+    option_descs=(
+        'Show detailed help for this function'
+        'Output in JSON format'
+        'Load parameters from JSON file'
+    )
+    compadd -d option_descs -- $options
+}
+
 _mcp_cli() {
     local curcontext="$curcontext" state line
     local -a commands tools
@@ -17,96 +95,36 @@ _mcp_cli() {
     # Check completion context based on current position
     if [[ $CURRENT -eq 2 ]]; then
         # First tier: tools and options with proper ordering using tags
-        local -a tools options option_descs
-
         # Define tags and their display order
         _tags tools options
         compstate[group-order]='tools options'
 
-        # Get available tools dynamically
-        tools=($(mcp-cli --list-tools 2>/dev/null | awk '/^  [a-zA-Z]/ {print $1}'))
-
-        # Define options and their descriptions separately
-        options=(
-            '--help'
-            '--list-tools'
-            '--config'
-            '--init-config'
-            '--install-completion'
-            '--show-completion'
-        )
-        option_descs=(
-            'Show help message'
-            'List all available tools'
-            'Show configuration file location'
-            'Create default configuration file'
-            'Install zsh completion script'
-            'Show completion installation instructions'
-        )
-
         # Use _alternative to handle tags and ordering
         _alternative \
-            'tools:available tools:(compadd -a tools)' \
-            'options:global options:(compadd -d option_descs -- $options)'
+            'tools:available tools:(_mcp_cli_tools)' \
+            'options:global options:(_mcp_cli_options)'
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options with proper ordering
-        local tool=$words[2]
-        local -a functions options option_descs
-
         # Define tags and their display order
         _tags functions options
         compstate[group-order]='functions options'
 
-        # Get functions for the selected tool
-        functions=($(mcp-cli $tool --help 2>/dev/null | awk '/^FUNCTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1}}'))
-
-        # Tool-level options and descriptions
-        options=(
-            '--help'
-            '--json-output'
-            '--params-from-json'
-        )
-        option_descs=(
-            'Show help for this tool'
-            'Output in JSON format'
-            'Load parameters from JSON file'
-        )
-
         # Use _alternative to handle tags and ordering
         _alternative \
-            'functions:available functions:(compadd -a functions)' \
-            'options:tool options:(compadd -d option_descs -- $options)'
+            'functions:available functions:(_mcp_cli_functions)' \
+            'options:tool options:(_mcp_cli_tool_options)'
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options with proper ordering
-        local tool=$words[2]
-        local function=$words[3]
-        local -a params options option_descs
-
         # Define tags and their display order
         _tags parameters options
         compstate[group-order]='parameters options'
 
-        # Get parameter names for the function
-        params=($(mcp-cli $tool $function --help 2>/dev/null | awk '/^OPTIONS$/,/^$/ {if (/^    [a-zA-Z]/) {gsub(/^    /, ""); print $1 "="}}'))
-
-        # Function-level options and descriptions
-        options=(
-            '--help'
-            '--json-output'
-            '--params-from-json'
-        )
-        option_descs=(
-            'Show detailed help for this function'
-            'Output in JSON format'
-            'Load parameters from JSON file'
-        )
-
         # Use _alternative to handle tags and ordering
         _alternative \
-            'parameters:function parameters:(compadd -a params)' \
-            'options:function options:(compadd -d option_descs -- $options)'
+            'parameters:function parameters:(_mcp_cli_parameters)' \
+            'options:function options:(_mcp_cli_function_options)'
         return 0
     fi
 }

@@ -44,11 +44,10 @@ _mcp_cli() {
             'Show completion installation instructions'
         )
 
-        # Add tools first (no descriptions needed for tools)
-        compadd -J 'available tools' -t tools -a tools
-
-        # Add options with descriptions
-        compadd -J 'global options' -t options -d option_descs -- $options
+        # Use _alternative to handle tags and ordering
+        _alternative \
+            'tools:available tools:(compadd -a tools)' \
+            'options:global options:(compadd -d option_descs -- $options)'
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options with proper ordering
@@ -74,11 +73,10 @@ _mcp_cli() {
             'Load parameters from JSON file'
         )
 
-        # Add functions first (no descriptions needed for functions)
-        compadd -J 'available functions' -t functions -a functions
-
-        # Add options with descriptions
-        compadd -J 'tool options' -t options -d option_descs -- $options
+        # Use _alternative to handle tags and ordering
+        _alternative \
+            'functions:available functions:(compadd -a functions)' \
+            'options:tool options:(compadd -d option_descs -- $options)'
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options with proper ordering
@@ -105,11 +103,10 @@ _mcp_cli() {
             'Load parameters from JSON file'
         )
 
-        # Add parameters first (no descriptions needed for parameters)
-        compadd -J 'function parameters' -t parameters -a params
-
-        # Add options with descriptions
-        compadd -J 'function options' -t options -d option_descs -- $options
+        # Use _alternative to handle tags and ordering
+        _alternative \
+            'parameters:function parameters:(compadd -a params)' \
+            'options:function options:(compadd -d option_descs -- $options)'
         return 0
     fi
 }

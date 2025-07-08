@@ -357,13 +357,27 @@ echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "as
 }
 ```
 
-**Tool Call Response:**
+**Tool Call Response (Structured Output):**
 ```json
 {
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "content": [{"type": "text", "text": "Response saved to: /tmp/test.txt..."}],
+    "content": [
+      {
+        "type": "text", 
+        "text": {
+          "content": "The answer is 10.",
+          "usage": {
+            "input_tokens": 15,
+            "output_tokens": 8,
+            "cost": 0.0002,
+            "model_used": "gemini-2.5-pro"
+          },
+          "agent_name": "session"
+        }
+      }
+    ],
     "isError": false
   }
 }

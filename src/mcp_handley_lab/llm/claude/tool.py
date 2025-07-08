@@ -19,6 +19,7 @@ from mcp_handley_lab.llm.model_loader import (
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_llm_request
+from mcp_handley_lab.shared.models import LLMResult, ServerInfo
 
 mcp = FastMCP("Claude Tool")
 
@@ -97,7 +98,7 @@ def _convert_history_to_claude_format(
     return claude_history
 
 
-def _resolve_files(files: list[str]) -> str:
+def _resolve_files(files: list[str]) -> LLMResult:
     """Resolve file inputs to text content for Claude.
 
     Claude has a large context window (200K tokens), so we can include most files directly.
@@ -157,7 +158,7 @@ def _claude_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
-    system_instruction: str | None,
+    system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
     """Claude-specific text generation function for the shared processor."""
@@ -194,6 +195,7 @@ def _claude_generation_adapter(
         "messages": claude_history,
         "max_tokens": output_tokens,
         "temperature": temperature,
+        "timeout": 599,
     }
 
     # Add system instruction if provided
@@ -217,7 +219,7 @@ def _claude_image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
-    system_instruction: str | None,
+    system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
     """Claude-specific image analysis function for the shared processor."""
@@ -256,6 +258,7 @@ def _claude_image_analysis_adapter(
         "messages": claude_history,
         "max_tokens": output_tokens,
         "temperature": 0.7,
+        "timeout": 599,
     }
 
     # Add system instruction if provided
@@ -287,7 +290,7 @@ def ask(
     temperature: float = 0.7,
     files: list[str] = [],
     max_output_tokens: int = 0,
-) -> str:
+) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
     # Resolve model alias to full model name for consistent pricing
     resolved_model = _resolve_model_alias(model)
@@ -317,7 +320,7 @@ def analyze_image(
     model: str = "claude-3-5-sonnet-20240620",
     agent_name: str = "session",
     max_output_tokens: int = 0,
-) -> str:
+) -> LLMResult:
     """Analyze images with Claude vision model."""
     return process_llm_request(
         prompt=prompt,
@@ -336,17 +339,26 @@ def analyze_image(
 @mcp.tool(
     description="Retrieves a comprehensive catalog of all available Claude models with pricing, capabilities, and performance information. Helps compare models and select the most suitable one for specific tasks or budget constraints."
 )
-def list_models() -> str:
+def list_models() -> LLMResult:
     """List available Claude models with detailed information."""
     # Use YAML-based model listing
-    return format_model_listing("claude")
+    from mcp_handley_lab.shared.models import LLMResult, UsageStats
+
+    content = format_model_listing("claude")
+    return LLMResult(
+        content=content,
+        usage=UsageStats(
+            input_tokens=0, output_tokens=0, cost=0.0, model_used="list_models"
+        ),
+        agent_name="",
+    )
 
 
 @mcp.tool(
     description="Checks the status of the Claude Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests."
 )
 @require_client
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and Claude configuration."""
     # Test API by making a simple request
     client.messages.create(
@@ -360,26 +372,22 @@ def server_info() -> str:
 
     available_models = list(MODEL_CONFIGS.keys())
 
-    return f"""Claude Tool Server Status
-==========================
-Status: Connected and ready
-API Key: Configured ✓
-Available Models: {len(available_models)} models
-- {', '.join(available_models[:3])}{'...' if len(available_models) > 3 else ''}
-
-Model Features:
-- Context Window: 200,000 tokens (all models)
-- Vision Support: ✓ (all models)
-- Image Generation: ✗ (not available)
-
-Agent Management:
-- Active Agents: {agent_count}
-- Memory Storage: {memory_manager.storage_dir}
-
-Available tools:
-- ask: Chat with Claude models (persistent memory enabled by default)
-- analyze_image: Image analysis with vision models (persistent memory enabled by default)
-- list_models: List available Claude models with detailed information
-- server_info: Get server status
-
-Note: Claude does not support image generation. Agent memory is managed automatically - use agent_name parameter for persistent conversations."""
+    return ServerInfo(
+        name="Claude Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=[
+            "ask - Chat with Claude models (persistent memory enabled by default)",
+            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
+            "list_models - List available Claude models with detailed information",
+            "server_info - Get server status",
+        ],
+        dependencies={
+            "api_key": "configured",
+            "available_models": f"{len(available_models)} models",
+            "active_agents": str(agent_count),
+            "memory_storage": str(memory_manager.storage_dir),
+            "vision_support": "true",
+            "image_generation": "false",
+        },
+    )

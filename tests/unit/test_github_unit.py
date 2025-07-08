@@ -23,9 +23,10 @@ class TestGitHubCIMonitor:
 
         result = server_info()
 
-        assert "Status: Connected and ready" in result
-        assert "GitHub CLI Version: gh" in result
-        assert "Authentication: github.com" in result
+        assert result.status == "active"
+        assert result.name == "GitHub CI Monitor"
+        assert "monitor_pr_checks" in str(result.capabilities)
+        assert "github.com" in result.dependencies["auth_status"]
 
     @patch("mcp_handley_lab.github.tool.run_command")
     def test_server_info_not_found(self, mock_run_command):
@@ -51,8 +52,12 @@ class TestGitHubCIMonitor:
 
         result = monitor_pr_checks(25)
 
-        assert "2/2 passed, 0 failed, 0 pending" in result
-        assert "All checks passed! Ready to merge" in result
+        assert result.final_status == "success"
+        assert result.passed_checks == 2
+        assert result.failed_checks == 0
+        assert result.pending_checks == 0
+        assert "2/2 passed, 0 failed, 0 pending" in result.log
+        assert "All checks passed! Ready to merge" in result.log
 
     @patch("time.sleep")
     @patch("time.time")
@@ -70,8 +75,12 @@ class TestGitHubCIMonitor:
 
         result = monitor_pr_checks(25)
 
-        assert "1/2 passed, 1 failed, 0 pending" in result
-        assert "1 check(s) failed - monitoring stopped" in result
+        assert result.final_status == "failure"
+        assert result.passed_checks == 1
+        assert result.failed_checks == 1
+        assert result.pending_checks == 0
+        assert "1/2 passed, 1 failed, 0 pending" in result.log
+        assert "1 check(s) failed - monitoring stopped" in result.log
 
     @patch("time.sleep")
     @patch("time.time")
@@ -86,9 +95,13 @@ class TestGitHubCIMonitor:
 
         result = monitor_pr_checks(25, timeout_minutes=1)
 
-        assert "0/1 passed, 0 failed, 1 pending" in result
-        assert "Waiting for 1 pending check(s)" in result
-        assert "Monitoring timed out after 1 minutes" in result
+        assert result.final_status == "timeout"
+        assert result.passed_checks == 0
+        assert result.failed_checks == 0
+        assert result.pending_checks == 1
+        assert "0/1 passed, 0 failed, 1 pending" in result.log
+        assert "Waiting for 1 pending check(s)" in result.log
+        assert "Monitoring timed out after 1 minutes" in result.log
 
     def test_monitor_pr_checks_invalid_parameters(self):
         """Test invalid parameters for monitor_pr_checks."""
@@ -114,8 +127,10 @@ class TestGitHubCIMonitor:
 
         result = monitor_pr_checks(25, timeout_minutes=1)
 
-        assert "No checks found for this PR" in result
-        assert "Monitoring timed out" in result
+        assert result.final_status == "timeout"
+        assert result.total_checks == 0
+        assert "No checks found for this PR" in result.log
+        assert "Monitoring timed out" in result.log
 
     @patch("time.sleep")
     @patch("time.time")
@@ -143,10 +158,11 @@ class TestGitHubCIMonitor:
 
         result = monitor_pr_checks(42, timeout_minutes=2, check_interval_seconds=5)
 
-        assert "Starting CI monitoring for PR #42" in result
-        assert "Timeout: 2 minutes" in result
-        assert "Check interval: 5 seconds" in result
-        assert "All checks passed" in result
+        assert result.final_status == "success"
+        assert "Starting CI monitoring for PR #42" in result.log
+        assert "Timeout: 2 minutes" in result.log
+        assert "Check interval: 5 seconds" in result.log
+        assert "All checks passed" in result.log
 
 
 class TestGitHubCIMonitorErrorHandling:

@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.3.2
+pkgver=0.3.3
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -35,6 +35,7 @@ makedepends=(
     'python-anthropic>=0.21.3'
     'python-msal>=1.20.0'
     'python-chromadb>=1.0.0'
+    'python-pyfzf>=0.3.1'
 )
 checkdepends=(
     'python-pytest>=7.0.0'

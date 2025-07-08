@@ -1,20 +1,31 @@
 """Notmuch email search and indexing provider."""
+
+from pydantic import BaseModel
+
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
+
+
+class TagResult(BaseModel):
+    """Result of tag operation."""
+
+    message_id: str
+    added_tags: list[str]
+    removed_tags: list[str]
 
 
 @mcp.tool(
     description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 )
-def search(query: str, limit: int = 20) -> str:
+def search(query: str, limit: int = 20) -> list[str]:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
 
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
     if not output:
-        return f"Search results for '{query}':\n(no matches)"
-    return f"Search results for '{query}':\n{output}"
+        return []
+    return [line.strip() for line in output.split("\n") if line.strip()]
 
 
 @mcp.tool(
@@ -48,14 +59,13 @@ def new() -> str:
 @mcp.tool(
     description="""List all tags in notmuch database. Shows system tags (inbox, unread, sent) and custom tags. Useful for understanding organization and planning searches."""
 )
-def list_tags() -> str:
+def list_tags() -> list[str]:
     """List all tags in the notmuch database."""
     stdout, stderr = run_command(["notmuch", "search", "--output=tags", "*"])
     output = stdout.decode().strip()
     if not output:
-        return "Available tags:\n(none found)"
-    tags = sorted(output.split("\n"))
-    return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
+        return []
+    return sorted([tag.strip() for tag in output.split("\n") if tag.strip()])
 
 
 @mcp.tool(
@@ -78,13 +88,13 @@ def config(key: str | None = None) -> str:
 @mcp.tool(
     description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes."""
 )
-def count(query: str) -> str:
+def count(query: str) -> int:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
 
     stdout, stderr = run_command(cmd)
     count_result = stdout.decode().strip()
-    return f"Found {count_result} emails matching '{query}'"
+    return int(count_result)
 
 
 @mcp.tool(
@@ -92,7 +102,7 @@ def count(query: str) -> str:
 )
 def tag(
     message_id: str, add_tags: str | None = None, remove_tags: str | None = None
-) -> str:
+) -> TagResult:
     """Add or remove tags from a specific email using notmuch."""
     if not add_tags and not remove_tags:
         raise ValueError("Must specify either add_tags or remove_tags")
@@ -114,10 +124,11 @@ def tag(
     cmd.append(f"id:{message_id}")
 
     stdout, stderr = run_command(cmd)
-    changes = []
-    if add_tags:
-        changes.append(f"added: {add_tags}")
-    if remove_tags:
-        changes.append(f"removed: {remove_tags}")
+    added_list = [tag.strip() for tag in add_tags.split(",")] if add_tags else []
+    removed_list = (
+        [tag.strip() for tag in remove_tags.split(",")] if remove_tags else []
+    )
 
-    return f"Tags updated for message {message_id} ({', '.join(changes)})"
+    return TagResult(
+        message_id=message_id, added_tags=added_list, removed_tags=removed_list
+    )

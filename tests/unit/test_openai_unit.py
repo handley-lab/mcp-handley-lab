@@ -171,7 +171,9 @@ class TestInputValidation:
             # Mock file writing
             with patch("pathlib.Path.write_text"):
                 result = ask("Test prompt", "/tmp/output.txt", agent_name="")
-                assert "Response saved to" in result
+                assert result.content == "Mocked response"
+                assert result.agent_name == ""
+                assert result.usage.model_used == "o4-mini"
                 # Verify memory manager is not called when agent_name is empty
                 mock_memory_manager.get_response.assert_not_called()
 

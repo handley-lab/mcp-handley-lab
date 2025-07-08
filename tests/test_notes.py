@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.notes.manager import NotesManager
 from mcp_handley_lab.notes.models import Note
 from mcp_handley_lab.notes.storage import GlobalLocalYAMLStorage, YAMLNoteStorage

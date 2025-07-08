@@ -6,16 +6,13 @@ from mcp_handley_lab.common.process import run_command
 # Import the shared mcp instance
 from mcp_handley_lab.email.common import mcp
 
-# Import all provider modules to trigger tool registration
-print("Loading and registering email provider tools...")
-# These imports are necessary for tool registration
-__import__("mcp_handley_lab.email.msmtp.tool")
-__import__("mcp_handley_lab.email.notmuch.tool")
-__import__("mcp_handley_lab.email.offlineimap.tool")
-__import__("mcp_handley_lab.email.oauth2.tool")
-__import__("mcp_handley_lab.email.mutt.tool")
-__import__("mcp_handley_lab.email.mutt_aliases.tool")
-print("All email tools registered.")
+# Import all provider modules to trigger tool registration - needed for side effects
+from mcp_handley_lab.email.msmtp import tool  # noqa: F401
+from mcp_handley_lab.email.mutt import tool  # noqa: F401, F811
+from mcp_handley_lab.email.mutt_aliases import tool  # noqa: F401, F811
+from mcp_handley_lab.email.notmuch import tool  # noqa: F401, F811
+from mcp_handley_lab.email.oauth2 import tool  # noqa: F401, F811
+from mcp_handley_lab.email.offlineimap import tool  # noqa: F401, F811
 
 
 @mcp.tool(

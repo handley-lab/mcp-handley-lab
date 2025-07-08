@@ -32,6 +32,7 @@ dependencies = [
     "msal>=1.20.0",
     "chromadb>=1.0.0",
     "pyfzf>=0.3.1",
+    "click>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -68,13 +69,14 @@ mcp-knowledge = "mcp_handley_lab.knowledge.generic_tools:mcp.run"
 mcp-notes = "mcp_handley_lab.notes.tool:mcp.run"
 mcp-notes-server = "mcp_handley_lab.notes.server:main"
 mcp-handley-lab = "mcp_handley_lab.__main__:main"
+mcp-cli = "mcp_handley_lab.cli.main:cli"
 
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_handley_lab = ["py.typed", "llm/*/models.yaml"]
+mcp_handley_lab = ["py.typed", "llm/*/models.yaml", "tool_schemas.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

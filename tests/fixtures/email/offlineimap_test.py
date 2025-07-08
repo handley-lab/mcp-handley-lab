@@ -5,7 +5,7 @@ import os
 
 def get_test_password():
     """Get password from environment variable for CI testing."""
-    password = os.environ.get('GMAIL_TEST_PASSWORD')
+    password = os.environ.get("GMAIL_TEST_PASSWORD")
     if not password:
         raise ValueError("GMAIL_TEST_PASSWORD environment variable not set")
     return password

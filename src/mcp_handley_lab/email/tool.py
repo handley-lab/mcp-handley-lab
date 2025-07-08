@@ -1,4 +1,5 @@
 """Unified email client MCP tool integrating all email providers."""
+import importlib
 from pathlib import Path
 
 from mcp_handley_lab.common.process import run_command
@@ -7,7 +8,36 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 from mcp_handley_lab.shared.models import ServerInfo
 
-# Import all provider modules to trigger tool registration
+
+def discover_and_register_tools():
+    """
+    Automatically discovers and imports tool modules from subdirectories
+    to trigger their @mcp.tool decorators for registration.
+    """
+    package_dir = Path(__file__).parent
+    package_name = package_dir.name
+
+    print(f"Discovering tools in '{package_name}' sub-packages...")
+
+    for sub_dir in package_dir.iterdir():
+        # Look for subdirectories that are valid packages (have __init__.py)
+        # and contain a tool.py file.
+        if sub_dir.is_dir() and (sub_dir / "__init__.py").exists():
+            tool_module_path = sub_dir / "tool.py"
+            if tool_module_path.exists():
+                # Construct the full module path for importlib
+                # e.g., 'mcp_handley_lab.email.msmtp.tool'
+                module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
+                try:
+                    # This import triggers the @mcp.tool decorators
+                    importlib.import_module(module_name)
+                    print(f"  ✓ Registered tools from: {sub_dir.name}")
+                except ImportError as e:
+                    print(f"  ✗ Failed to import {module_name}: {e}")
+
+
+# Run the discovery process when this module is loaded
+discover_and_register_tools()
 
 
 @mcp.tool(

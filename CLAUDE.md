@@ -96,7 +96,7 @@ git commit --no-verify -m "bypass hooks"
 **THE PRIME DIRECTIVE: Write concise, elegant code above all else.**
 
 - **Elegant simplicity**: Every line should justify its existence. If it can be removed without loss of functionality, remove it
-- **Ruthless conciseness**: Favor clarity through brevity. Dense but readable code is better than verbose "enterprise" patterns
+- **Ruthless concision**: Favor clarity through brevity. Dense but readable code is better than verbose "enterprise" patterns
 - **No defensive programming**: This is a local tool - assume happy paths. Add guards only after actual failures occur
 - **Trust the environment**: Don't check if tools exist or APIs are configured - they are
 - **Minimal abstractions**: Use abstractions only when they eliminate significant duplication (3+ occurrences)
@@ -151,6 +151,7 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 4. **Data Modeling**: Pydantic BaseModel for complex data structures
 5. **Stateless Design**: Functions take explicit storage_dir parameters instead of using global state
 6. **Alpha Development**: This is alpha software - APIs may change without notice to improve design
+7. **CRITICAL: Avoid Union types for inputs**: Never use `Union[str, dict, list]` or similar union types for MCP tool parameters. This makes Claude Code integration difficult as Claude cannot determine which type to use. Always use single, specific types (e.g., `str`) and handle type variations internally within the function implementation.
 
 ### Development Phases
 

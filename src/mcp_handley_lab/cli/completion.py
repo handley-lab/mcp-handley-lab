@@ -32,9 +32,9 @@ _mcp_cli() {
             '--show-completion:Show completion installation instructions'
         )
 
-        # Add all completions together
-        _describe 'tools' tools
+        # Add all completions together (tools first, then options)
         _describe 'options' options
+        _describe 'tools' tools
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options
@@ -51,9 +51,9 @@ _mcp_cli() {
             '--params-from-json:Load parameters from JSON file'
         )
 
-        # Add all completions together
-        _describe 'functions' functions
+        # Add all completions together (functions first, then options)
         _describe 'options' options
+        _describe 'functions' functions
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options
@@ -71,9 +71,9 @@ _mcp_cli() {
             '--params-from-json:Load parameters from JSON file'
         )
 
-        # Add all completions together
-        _describe 'parameters' params
+        # Add all completions together (parameters first, then options)
         _describe 'options' options
+        _describe 'parameters' params
         return 0
     fi
 }

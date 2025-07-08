@@ -54,7 +54,6 @@ def complete_m365_oauth2(
     scopes = ["https://outlook.office365.com/IMAP.AccessAsUser.All"]
     redirect_uri = "http://localhost"
 
-    # Extract authorization code from redirect URL
     code_start = redirect_url.find("code=") + 5
     code_end = (
         redirect_url.find("&", code_start)
@@ -68,12 +67,10 @@ def complete_m365_oauth2(
         client_id, client_credential=client_secret, token_cache=cache
     )
 
-    # Exchange authorization code for tokens
     app.acquire_token_by_authorization_code(
         auth_code, scopes, redirect_uri=redirect_uri
     )
 
-    # Extract refresh token
     refresh_token = cache.find("RefreshToken")[0]["secret"]
 
     return f"""✅ OAuth2 setup completed successfully!

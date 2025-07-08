@@ -17,7 +17,6 @@ def _parse_offlineimaprc(config_file: str = None) -> dict:
 
     accounts = {}
 
-    # Find all accounts in general section
     if config.has_section("general") and config.has_option("general", "accounts"):
         account_names = [
             name.strip() for name in config.get("general", "accounts").split(",")
@@ -43,7 +42,7 @@ def _parse_offlineimaprc(config_file: str = None) -> dict:
 )
 def sync(account: str | None = None) -> str:
     """Run offlineimap to synchronize emails."""
-    cmd = ["offlineimap", "-o1"]  # -o1 for one-time sync
+    cmd = ["offlineimap", "-o1"]
 
     if account:
         cmd.extend(["-a", account])
@@ -58,12 +57,10 @@ def sync(account: str | None = None) -> str:
 )
 def sync_status(config_file: str = None) -> str:
     """Check offlineimap sync status."""
-    # Check if offlineimap config exists
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
         raise FileNotFoundError(f"offlineimap configuration not found at {config_path}")
 
-    # Run dry-run to check configuration
     stdout, stderr = run_command(["offlineimap", "--dry-run", "-o1"])
     output = stdout.decode().strip()
     return f"Offlineimap configuration valid:\n{output}"

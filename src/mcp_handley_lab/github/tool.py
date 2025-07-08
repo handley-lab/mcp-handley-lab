@@ -39,7 +39,6 @@ def monitor_pr_checks(
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
         status_log.append(f"[{current_time}] Check #{check_count}")
 
-        # Get current status in JSON format for parsing
         stdout, stderr = run_command(
             ["gh", "pr", "checks", str(pr_number), "--json", "state,name"]
         )
@@ -48,7 +47,6 @@ def monitor_pr_checks(
         if not checks_data:
             status_log.append("  No checks found for this PR")
         else:
-            # Analyze check status
             total_checks = len(checks_data)
             passed_checks = sum(
                 1
@@ -71,13 +69,11 @@ def monitor_pr_checks(
                 f"  Checks: {passed_checks}/{total_checks} passed, {failed_checks} failed, {pending_checks} pending"
             )
 
-            # Log individual check statuses
             for check in checks_data:
                 name = check.get("name", "unknown")
                 state = check.get("state", "unknown")
                 status_log.append(f"    {name}: {state}")
 
-            # Check if we're done monitoring
             if failed_checks > 0:
                 status_log.append(
                     f"  ❌ {failed_checks} check(s) failed - monitoring stopped"
@@ -93,12 +89,10 @@ def monitor_pr_checks(
             else:
                 status_log.append(f"  ⏳ Waiting for {pending_checks} pending check(s)")
 
-        # Wait before next check if not done and still within timeout
         if time.time() - start_time < timeout_seconds and not monitoring_finished:
             status_log.append(f"  Waiting {check_interval_seconds} seconds...")
             time.sleep(check_interval_seconds)
 
-    # Check if we timed out
     if not monitoring_finished and time.time() - start_time >= timeout_seconds:
         status_log.append(f"⏰ Monitoring timed out after {timeout_minutes} minutes")
         status_log.append(f"  Use `gh pr checks {pr_number}` to check current status")
@@ -114,15 +108,12 @@ def monitor_pr_checks(
 )
 def server_info() -> str:
     """Check server status and GitHub CLI availability."""
-    # Check gh version
     stdout, stderr = run_command(["gh", "--version"])
     version = stdout.decode("utf-8").strip()
 
-    # Check authentication status
     stdout, stderr = run_command(["gh", "auth", "status"])
     auth_status = stdout.decode("utf-8").strip()
 
-    # Extract first line of auth status
     first_auth_line = auth_status.split("\n")[0] if auth_status else "Unknown"
 
     return f"""GitHub CI Monitor Server Status
@@ -135,8 +126,8 @@ Available Functions:
 - monitor_pr_checks: Monitor CI status with live updates
 
 Use native gh CLI for other operations:
-- gh pr checks 25      # Check current status
-- gh pr merge 25       # Merge PR #25
+- gh pr checks 25      Check current status
+- gh pr merge 25       Merge PR #25
 - gh pr list           # List open PRs
 - gh pr view 25        # View PR details"""
 

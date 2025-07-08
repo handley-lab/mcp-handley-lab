@@ -44,32 +44,26 @@ discover_and_register_tools()
 )
 def server_info(config_file: str = None) -> str:
     """Check the status of email tools and their configurations."""
-    # Check msmtp first - if it fails, entire email system is broken
     stdout, stderr = run_command(["msmtp", "--version"])
     msmtp_version = stdout.decode().split("\n")[0]
 
-    # Parse msmtp accounts
     from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
 
     accounts = _parse_msmtprc()
 
-    # Check offlineimap
     stdout, stderr = run_command(["offlineimap", "--version"])
     offlineimap_version = stdout.decode().split("\n")[0]
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
         raise RuntimeError(f"offlineimap configuration not found at {config_path}")
 
-    # Check notmuch
     stdout, stderr = run_command(["notmuch", "--version"])
     notmuch_version = stdout.decode().strip()
 
-    # Check notmuch database - let failures propagate as they indicate real problems
     stdout, stderr = run_command(["notmuch", "count", "*"])
     db_info = stdout.decode().strip()
     db_status = f"{db_info} messages indexed"
 
-    # Check OAuth2 support by checking for msal library
     try:
         import importlib.util
 
@@ -95,9 +89,4 @@ def server_info(config_file: str = None) -> str:
 
 
 if __name__ == "__main__":
-    print("\n--- Registered Email Tools ---")
-    for tool_name in sorted(mcp.tools.keys()):
-        print(f"- {tool_name}")
-
-    print(f"\nStarting unified email tool server with {len(mcp.tools)} tools...")
     mcp.run()

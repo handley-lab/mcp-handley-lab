@@ -14,12 +14,9 @@ def _run_vim(file_path: str, vim_args: list[str] = None) -> None:
     """Run vim directly using subprocess."""
     vim_cmd = ["vim"] + (vim_args or []) + [file_path]
 
-    # Check if we have a TTY - if yes, run vim directly
-    if os.isatty(0):  # stdin is a tty
+    if os.isatty(0):
         subprocess.run(vim_cmd, check=True)
     else:
-        # No TTY available - this will happen in non-interactive environments
-        # Just run vim anyway and let it handle the situation
         subprocess.run(
             vim_cmd,
             capture_output=True,
@@ -66,27 +63,21 @@ def prompt_user_edit(
     keep_file: bool = False,
 ) -> str:
     """Open vim for editing provided content."""
-    # Create temp file with proper extension
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
 
     try:
-        # Write initial content with optional instructions
-        os.close(fd)  # Close file descriptor so we can use regular file operations
+        os.close(fd)
         _handle_instructions_and_content(temp_path, suffix, instructions, content)
 
-        # Open vim
         _run_vim(temp_path)
 
-        # Read edited content
         with open(temp_path) as f:
             edited_content = f.read()
 
-        # Remove instruction comments if present
         edited_content = _strip_instructions(edited_content, instructions, suffix)
 
         if show_diff:
-            # Calculate diff
             original_lines = content.splitlines(keepends=True)
             edited_lines = edited_content.splitlines(keepends=True)
 
@@ -133,25 +124,20 @@ def quick_edit(
     initial_content: str = "",
 ) -> str:
     """Open vim for creating new content."""
-    # Create temp file
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
 
     try:
-        # Write initial content with optional instructions
-        os.close(fd)  # Close file descriptor so we can use regular file operations
+        os.close(fd)
         _handle_instructions_and_content(
             temp_path, suffix, instructions, initial_content
         )
 
-        # Open vim
         _run_vim(temp_path)
 
-        # Read content
         with open(temp_path) as f:
             content = f.read()
 
-        # Remove instruction comments if present
         content = _strip_instructions(content, instructions, suffix)
 
         return content
@@ -172,15 +158,11 @@ def open_file(
     """Open existing file in vim."""
     path = Path(file_path)
 
-    # Read original content
     original_content = path.read_text()
-
-    # Create backup if requested
     if backup:
         backup_path = path.with_suffix(path.suffix + ".bak")
         backup_path.write_text(original_content)
 
-    # If instructions provided, show them in a temp file first
     if instructions:
         fd, inst_path = tempfile.mkstemp(suffix=".txt", text=True)
         try:
@@ -191,19 +173,15 @@ def open_file(
                 f.write("=" * 60 + "\n")
                 f.write("\nPress any key to continue to the file...")
 
-            # Show instructions
             _run_vim(inst_path, ["-R"])
         finally:
             os.unlink(inst_path)
 
-    # Open the actual file
     _run_vim(str(path))
 
-    # Read edited content
     edited_content = path.read_text()
 
     if show_diff:
-        # Calculate diff
         original_lines = original_content.splitlines(keepends=True)
         edited_lines = edited_content.splitlines(keepends=True)
 
@@ -258,7 +236,6 @@ def server_info() -> str:
     except FileNotFoundError:
         raise RuntimeError("vim command not found") from None
 
-    # Extract first line of version info
     version_line = result.stdout.split("\n")[0]
 
     return f"""Vim Tool Server Status

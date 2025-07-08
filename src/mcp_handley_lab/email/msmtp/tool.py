@@ -34,7 +34,6 @@ def send(
     bcc: str | None = None,
 ) -> str:
     """Send an email using msmtp with existing ~/.msmtprc configuration."""
-    # Create email message
     email_content = f"To: {to}\n"
     email_content += f"Subject: {subject}\n"
 
@@ -43,15 +42,13 @@ def send(
     if bcc:
         email_content += f"Bcc: {bcc}\n"
 
-    email_content += "\n"  # Empty line separates headers from body
+    email_content += "\n"
     email_content += body
 
-    # Build msmtp command
     cmd = ["msmtp"]
     if account:
         cmd.extend(["-a", account])
 
-    # Add recipients
     recipients = [to]
     if cc:
         recipients.extend([addr.strip() for addr in cc.split(",")])
@@ -60,7 +57,6 @@ def send(
 
     cmd.extend(recipients)
 
-    # Send email
     input_bytes = email_content.encode()
     stdout, stderr = run_command(cmd, input_data=input_bytes)
 

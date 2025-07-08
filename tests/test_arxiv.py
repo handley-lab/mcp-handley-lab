@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import pytest
+
 from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info
 
 
@@ -23,9 +24,11 @@ class TestArxivIntegration:
 
         # Test downloading source with stdout
         result = download(arxiv_id, format="src", output_path="-")
-        assert f"ArXiv source file for {arxiv_id}:" in result
-        assert "single .tex file" in result
-        assert "bytes" in result
+        assert result.arxiv_id == arxiv_id
+        assert result.format == "src"
+        assert result.output_path == "-"
+        assert result.size_bytes > 0
+        assert f"{arxiv_id}.tex" in result.files
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration

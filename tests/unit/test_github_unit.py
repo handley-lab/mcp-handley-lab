@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.github.tool import (
     monitor_pr_checks,
     server_info,

@@ -4,6 +4,7 @@ import tempfile
 
 from mcp_handley_lab.common.terminal import launch_interactive
 from mcp_handley_lab.email.common import mcp
+from mcp_handley_lab.shared.models import ServerInfo
 
 
 def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
@@ -325,7 +326,7 @@ def move_email(
 @mcp.tool(
     description="""Lists all configured mailboxes from Mutt configuration. Useful for discovering folder names for move_email operations and understanding your email folder structure."""
 )
-def list_folders() -> str:
+def list_folders() -> list[str]:
     """List available mailboxes from mutt configuration."""
     # Use mutt to query mailboxes configuration
     result = _run_command(["mutt", "-Q", "mailboxes"])
@@ -335,16 +336,13 @@ def list_folders() -> str:
     # Parse mailboxes output
     mailboxes_line = result.strip()
     if not mailboxes_line or "mailboxes=" not in mailboxes_line:
-        return "No mailboxes configured in mutt"
+        return []
 
     # Extract mailbox names (basic parsing)
     folders_part = mailboxes_line.split("mailboxes=", 1)[1].strip('"')
     folders = [f.strip() for f in folders_part.split() if f.strip()]
 
-    if not folders:
-        return "No mailboxes found in configuration"
-
-    return "Available mailboxes:\n" + "\n".join(f"- {folder}" for folder in folders)
+    return folders
 
 
 @mcp.tool(
@@ -365,26 +363,26 @@ def open_folder(folder: str) -> str:
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and mutt version."""
     result = _run_command(["mutt", "-v"])
     # Extract first line of version info
     version_lines = result.split("\n")
     version_line = version_lines[0] if version_lines else "Unknown version"
 
-    return f"""Mutt Tool Server Status
-======================
-Status: Connected and ready
-Mutt Version: {version_line}
-
-Available tools:
-- compose_email: Compose and send emails interactively
-- open_mutt: Open mutt's main interface
-- reply_to_email: Reply to emails with optional reply-all
-- forward_email: Forward emails with optional comments
-- move_email: Move/delete emails between folders
-- list_folders: Show available mailboxes
-- open_folder: Open specific mailbox in mutt
-- server_info: Get server status
-
-Configuration: Uses your existing ~/.muttrc and account settings"""
+    return ServerInfo(
+        name="Mutt Tool",
+        version=version_line,
+        status="active",
+        capabilities=[
+            "compose_email - Compose and send emails interactively",
+            "open_mutt - Open mutt's main interface",
+            "reply_to_email - Reply to emails with optional reply-all",
+            "forward_email - Forward emails with optional comments",
+            "move_email - Move/delete emails between folders",
+            "list_folders - Show available mailboxes",
+            "open_folder - Open specific mailbox in mutt",
+            "server_info - Get server status",
+        ],
+        dependencies={"mutt": version_line},
+    )

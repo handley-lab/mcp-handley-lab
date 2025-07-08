@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
+
 from mcp_handley_lab.code2prompt.tool import generate_prompt
 from mcp_handley_lab.jq.tool import edit, query, read, validate
 from mcp_handley_lab.jq.tool import format as jq_format
@@ -490,7 +491,7 @@ class TestCode2PromptUnit:
 
             try:
                 result = generate_prompt(path=temp_dir, output_file=f.name)
-                assert "success" in result.lower()
+                assert "success" in result.message.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -510,7 +511,10 @@ class TestCode2PromptUnit:
                     exclude=["__pycache__"],
                     output_file=f.name,
                 )
-                assert "success" in result.lower() or "generated" in result.lower()
+                assert (
+                    "success" in result.message.lower()
+                    or "generated" in result.message.lower()
+                )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 

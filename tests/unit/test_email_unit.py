@@ -3,10 +3,11 @@ from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
-from mcp_handley_lab.email.tool import server_info
-from mcp_handley_lab.email.msmtp.tool import send, list_accounts, _parse_msmtprc
-from mcp_handley_lab.email.notmuch.tool import search, count, tag
+
+from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc, list_accounts, send
+from mcp_handley_lab.email.notmuch.tool import count, search, tag
 from mcp_handley_lab.email.offlineimap.tool import sync, sync_status
+from mcp_handley_lab.email.tool import server_info
 
 
 class TestEmailTool:

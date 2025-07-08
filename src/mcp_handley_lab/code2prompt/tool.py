@@ -3,8 +3,19 @@ import tempfile
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel
 
 from mcp_handley_lab.common.process import run_command
+from mcp_handley_lab.shared.models import ServerInfo
+
+
+class GenerationResult(BaseModel):
+    """Result of code2prompt generation."""
+
+    message: str
+    output_file_path: str
+    file_size_bytes: int
+
 
 mcp = FastMCP("Code2Prompt Tool")
 
@@ -42,7 +53,7 @@ def generate_prompt(
     git_log_branch1: str = "",
     git_log_branch2: str = "",
     no_ignore: bool = False,
-) -> str:
+) -> GenerationResult:
     """Generate a structured prompt from codebase."""
     # Create output file if not provided
     if not output_file:
@@ -106,21 +117,27 @@ def generate_prompt(
     output_path = Path(output_file)
     file_size = output_path.stat().st_size
 
-    return f"✅ Code2prompt Generation Successful:\n\n- **Output File Path:** `{output_file}`\n- **File Size:** {file_size:,} bytes\n\n💡 **Next Steps:** You can now use this file path (e.g., in a 'files' parameter) with other AI tools like Gemini or OpenAI for comprehensive analysis, without incurring direct context window usage from this response."
+    return GenerationResult(
+        message="Code2prompt Generation Successful",
+        output_file_path=output_file,
+        file_size_bytes=file_size,
+    )
 
 
 @mcp.tool(
     description="Checks the status of the Code2Prompt server and its CLI dependency. Returns version info and available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and code2prompt version."""
     version = _run_code2prompt(["--version"])
 
-    return f"""Code2Prompt Tool Server Status
-==============================
-Status: Connected and ready
-Code2Prompt Version: {version}
-
-Available tools:
-- generate_prompt: Create structured prompts from codebases (includes git diff options)
-- server_info: Get server status"""
+    return ServerInfo(
+        name="Code2Prompt Tool",
+        version=version.strip(),
+        status="active",
+        capabilities=[
+            "generate_prompt - Create structured prompts from codebases",
+            "server_info - Get server status",
+        ],
+        dependencies={"code2prompt": version.strip()},
+    )

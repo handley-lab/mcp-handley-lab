@@ -10,8 +10,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from mcp_handley_lab.notes.manager import NotesManager
 
+from mcp_handley_lab.notes.manager import NotesManager
 from tests.fixtures.notes_fixtures import get_fixture_scopes, get_test_notes_data
 
 

@@ -13,6 +13,34 @@ from xml.etree import ElementTree
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel, Field
+
+from mcp_handley_lab.shared.models import ServerInfo
+
+
+class DownloadResult(BaseModel):
+    """Result of downloading an ArXiv paper."""
+
+    message: str
+    arxiv_id: str
+    format: str
+    output_path: str
+    size_bytes: int
+    files: list[str] = Field(default_factory=list)
+
+
+class ArxivPaper(BaseModel):
+    """ArXiv paper metadata."""
+
+    id: str
+    title: str
+    authors: list[str]
+    summary: str
+    published: str
+    categories: list[str]
+    pdf_url: str
+    abs_url: str
+
 
 mcp = FastMCP("ArXiv Tool")
 
@@ -45,6 +73,18 @@ def _get_source_archive(arxiv_id: str) -> bytes:
         response.raise_for_status()
         _cache_source(arxiv_id, response.content)
         return response.content
+
+
+def _handle_source_content_structured(
+    arxiv_id: str, content: bytes, format: str, output_path: str
+) -> DownloadResult:
+    """Handle source content, trying tar first, then single file."""
+    try:
+        # Try to handle as tar archive first (most common case)
+        return _handle_tar_archive_structured(arxiv_id, content, format, output_path)
+    except tarfile.TarError:
+        # Not a tar archive, try as single gzipped file
+        return _handle_single_file_structured(arxiv_id, content, format, output_path)
 
 
 def _handle_source_content(
@@ -123,10 +163,111 @@ def _handle_tar_archive(
                 return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
 
 
+def _handle_single_file_structured(
+    arxiv_id: str, content: bytes, format: str, output_path: str
+) -> DownloadResult:
+    """Handle a single gzipped file (not a tar archive)."""
+    # Decompress the gzipped content
+    decompressed = gzip.decompress(content)
+    filename = f"{arxiv_id}.tex"  # Assume it's a tex file
+
+    if output_path == "-":
+        # Return file info for stdout
+        return DownloadResult(
+            message=f"ArXiv source file for {arxiv_id}: single .tex file",
+            arxiv_id=arxiv_id,
+            format=format,
+            output_path=output_path,
+            size_bytes=len(decompressed),
+            files=[filename],
+        )
+    else:
+        # Save to directory
+        os.makedirs(output_path, exist_ok=True)
+        file_path = os.path.join(output_path, filename)
+        with open(file_path, "wb") as f:
+            f.write(decompressed)
+        return DownloadResult(
+            message=f"ArXiv source saved to directory: {output_path}",
+            arxiv_id=arxiv_id,
+            format=format,
+            output_path=output_path,
+            size_bytes=len(decompressed),
+            files=[filename],
+        )
+
+
+def _handle_tar_archive_structured(
+    arxiv_id: str, content: bytes, format: str, output_path: str
+) -> DownloadResult:
+    """Handle a tar archive."""
+    tar_stream = BytesIO(content)
+
+    with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
+        if output_path == "-":
+            # List files for stdout
+            files = []
+            total_size = 0
+            for member in tar.getmembers():
+                if member.isfile() and (
+                    format != "tex"
+                    or any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    )
+                ):
+                    files.append(member.name)
+                    total_size += member.size
+
+            message = (
+                f"ArXiv {'LaTeX' if format == 'tex' else 'source'} files for {arxiv_id}"
+            )
+            return DownloadResult(
+                message=message,
+                arxiv_id=arxiv_id,
+                format=format,
+                output_path=output_path,
+                size_bytes=total_size,
+                files=files,
+            )
+        else:
+            # Save to directory
+            os.makedirs(output_path, exist_ok=True)
+            extracted_files = []
+            total_size = 0
+
+            if format == "tex":
+                # Extract .tex, .bib, .bbl files
+                for member in tar.getmembers():
+                    if member.isfile() and any(
+                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
+                    ):
+                        tar.extract(member, path=output_path, filter="data")
+                        extracted_files.append(member.name)
+                        total_size += member.size
+            else:
+                # Extract all files (src format)
+                tar.extractall(path=output_path, filter="data")
+                for member in tar.getmembers():
+                    if member.isfile():
+                        extracted_files.append(member.name)
+                        total_size += member.size
+
+            return DownloadResult(
+                message=f"ArXiv {'LaTeX' if format == 'tex' else 'source'} files saved to directory: {output_path}",
+                arxiv_id=arxiv_id,
+                format=format,
+                output_path=output_path,
+                size_bytes=total_size,
+                files=extracted_files,
+            )
+
+
 @mcp.tool(
     description="Downloads an ArXiv paper by its ID in 'src', 'pdf', or 'tex' format. Saves content to `output_path` or lists file info to stdout if `output_path` is '-'. Returns a status message."
 )
-def download(arxiv_id: str, format: str = "src", output_path: str = "") -> str:
+def download(
+    arxiv_id: str, format: str = "src", output_path: str = ""
+) -> DownloadResult:
     if format not in ["src", "pdf", "tex"]:
         raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
 
@@ -141,19 +282,32 @@ def download(arxiv_id: str, format: str = "src", output_path: str = "") -> str:
             response = client.get(url)
             response.raise_for_status()
 
+        size_bytes = len(response.content)
         if output_path == "-":
             # Return file info for stdout
-            size_mb = len(response.content) / (1024 * 1024)
-            return f"ArXiv PDF for {arxiv_id}: {size_mb:.2f} MB\\nUse output_path to save to file"
+            return DownloadResult(
+                message=f"ArXiv PDF for {arxiv_id}: {size_bytes / (1024 * 1024):.2f} MB",
+                arxiv_id=arxiv_id,
+                format=format,
+                output_path=output_path,
+                size_bytes=size_bytes,
+                files=[f"{arxiv_id}.pdf"],
+            )
         else:
             with open(output_path, "wb") as f:
                 f.write(response.content)
-            size_mb = len(response.content) / (1024 * 1024)
-            return f"ArXiv PDF saved to: {output_path} ({size_mb:.2f} MB)"
+            return DownloadResult(
+                message=f"ArXiv PDF saved to: {output_path}",
+                arxiv_id=arxiv_id,
+                format=format,
+                output_path=output_path,
+                size_bytes=size_bytes,
+                files=[output_path],
+            )
 
     else:  # src or tex format
         content = _get_source_archive(arxiv_id)
-        return _handle_source_content(arxiv_id, content, format, output_path)
+        return _handle_source_content_structured(arxiv_id, content, format, output_path)
 
 
 @mcp.tool(
@@ -277,8 +431,8 @@ def search(
     # Extract search results
     results = []
     for entry in root.findall("atom:entry", ns):
-        paper = _parse_arxiv_entry(entry)
-        results.append(paper)
+        paper_dict = _parse_arxiv_entry(entry)
+        results.append(ArxivPaper(**paper_dict))
 
     return results
 
@@ -286,33 +440,22 @@ def search(
 @mcp.tool(
     description="Checks ArXiv tool status and lists available functions. Use this to discover server capabilities."
 )
-def server_info() -> dict[str, Any]:
-    return {
-        "name": "ArXiv Tool",
-        "description": "Tool for searching and downloading ArXiv papers",
-        "functions": [
+def server_info() -> ServerInfo:
+    return ServerInfo(
+        name="ArXiv Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=[
             "search - Search ArXiv papers using official API with advanced query syntax",
             "download - Download ArXiv papers in src/pdf/tex format",
             "list_files - List files in ArXiv source archive",
             "server_info - Get server information",
         ],
-        "supported_formats": ["src", "pdf", "tex"],
-        "search_features": {
-            "field_prefixes": ["ti:", "au:", "abs:", "cat:", "all:"],
-            "boolean_operators": ["AND", "OR", "NOT"],
-            "sort_options": ["relevance", "lastUpdatedDate", "submittedDate"],
-            "max_results": 100,
+        dependencies={
+            "httpx": "latest",
+            "pydantic": "latest",
+            "supported_formats": "src,pdf,tex",
+            "caching": "Source archives cached in /tmp for performance",
+            "tex_format_includes": ".tex,.bib,.bbl",
         },
-        "example_usage": {
-            "search_basic": "search('machine learning')",
-            "search_advanced": "search('ti:transformer AND cat:cs.AI', max_results=20)",
-            "search_author": "search('au:Hinton', sort_by='submittedDate')",
-            "download_src": "download('2301.07041', format='src')",
-            "download_pdf": "download('2301.07041', format='pdf')",
-            "download_tex": "download('2301.07041', format='tex')",
-            "download_to_stdout": "download('2301.07041', output_path='-')",
-            "list": "list_files('2301.07041')",
-        },
-        "caching": "Source archives cached in /tmp for performance",
-        "tex_format_includes": [".tex", ".bib", ".bbl"],
-    }
+    )

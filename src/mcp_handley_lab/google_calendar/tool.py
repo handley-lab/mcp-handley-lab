@@ -7,8 +7,69 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.config import settings
+from mcp_handley_lab.shared.models import ServerInfo
+
+
+class Attendee(BaseModel):
+    """Calendar event attendee."""
+
+    email: str
+    status: str = Field(alias="responseStatus", default="needsAction")
+
+
+class EventDateTime(BaseModel):
+    """Event date/time information."""
+
+    date_time: str = Field("", alias="dateTime")
+    date: str = ""
+    time_zone: str = Field("", alias="timeZone")
+
+
+class CalendarEvent(BaseModel):
+    """Calendar event details."""
+
+    id: str
+    summary: str
+    description: str = ""
+    location: str = ""
+    start: EventDateTime
+    end: EventDateTime
+    attendees: list[Attendee] = Field(default_factory=list)
+    calendar_name: str = ""
+    created: str = ""
+    updated: str = ""
+
+
+class CreatedEventResult(BaseModel):
+    """Result of creating a calendar event."""
+
+    status: str
+    event_id: str
+    title: str
+    time: str
+    calendar: str
+    attendees: list[str]
+
+
+class CalendarInfo(BaseModel):
+    """Calendar information."""
+
+    id: str
+    name: str = Field(alias="summary")
+    access_role: str = Field(alias="accessRole")
+    color_id: str = Field(alias="colorId")
+
+
+class FreeTimeSlot(BaseModel):
+    """Available time slot."""
+
+    start: str
+    end: str
+    duration_minutes: int
+
 
 mcp = FastMCP("Google Calendar Tool")
 
@@ -190,39 +251,47 @@ def _client_side_filter(
 @mcp.tool(
     description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps."
 )
-def get_event(event_id: str, calendar_id: str = "primary") -> str:
+def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
     """Get detailed information about a specific event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
     event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
 
-    result = "Event Details:\n"
-    result += f"Title: {event.get('summary', 'No Title')}\n"
+    # Convert start/end to EventDateTime objects
+    start_dt = EventDateTime(
+        dateTime=event["start"].get("dateTime", ""),
+        date=event["start"].get("date", ""),
+        timeZone=event["start"].get("timeZone", ""),
+    )
+    end_dt = EventDateTime(
+        dateTime=event["end"].get("dateTime", ""),
+        date=event["end"].get("date", ""),
+        timeZone=event["end"].get("timeZone", ""),
+    )
 
-    start = event["start"].get("dateTime", event["start"].get("date"))
-    end = event["end"].get("dateTime", event["end"].get("date"))
-    result += f"Start: {_format_datetime(start)}\n"
-    result += f"End: {_format_datetime(end)}\n"
-
-    if event.get("description"):
-        result += f"Description: {event['description']}\n"
-
-    if event.get("location"):
-        result += f"Location: {event['location']}\n"
-
+    # Convert attendees
+    attendees = []
     if event.get("attendees"):
-        result += "Attendees:\n"
-        for attendee in event["attendees"]:
-            email = attendee.get("email", "Unknown")
-            status = attendee.get("responseStatus", "needsAction")
-            result += f"  - {email} ({status})\n"
+        attendees = [
+            Attendee(
+                email=att.get("email", "Unknown"),
+                responseStatus=att.get("responseStatus", "needsAction"),
+            )
+            for att in event["attendees"]
+        ]
 
-    result += f"Event ID: {event['id']}\n"
-    result += f"Created: {event.get('created', 'Unknown')}\n"
-    result += f"Updated: {event.get('updated', 'Unknown')}\n"
-
-    return result
+    return CalendarEvent(
+        id=event["id"],
+        summary=event.get("summary", "No Title"),
+        description=event.get("description", ""),
+        location=event.get("location", ""),
+        start=start_dt,
+        end=end_dt,
+        attendees=attendees,
+        created=event.get("created", ""),
+        updated=event.get("updated", ""),
+    )
 
 
 @mcp.tool(
@@ -236,7 +305,7 @@ def create_event(
     calendar_id: str = "primary",
     timezone: str = "UTC",
     attendees: list[str] = [],
-) -> str:
+) -> CreatedEventResult:
     """Create a new calendar event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
@@ -272,20 +341,14 @@ def create_event(
 
     start = created_event["start"].get("dateTime", created_event["start"].get("date"))
 
-    # Return structured data as JSON string for programmatic access
-    import json
-
-    result_data = {
-        "status": "Event created successfully!",
-        "event_id": created_event["id"],
-        "title": created_event["summary"],
-        "time": _format_datetime(start),
-        "calendar": calendar_id,
-        "attendees": attendees or [],
-    }
-
-    # Format as human-readable JSON
-    return json.dumps(result_data, indent=2)
+    return CreatedEventResult(
+        status="Event created successfully!",
+        event_id=created_event["id"],
+        title=created_event["summary"],
+        time=_format_datetime(start),
+        calendar=calendar_id,
+        attendees=attendees or [],
+    )
 
 
 @mcp.tool(
@@ -351,30 +414,22 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
 @mcp.tool(
     description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools."
 )
-def list_calendars() -> str:
+def list_calendars() -> list[CalendarInfo]:
     """List all accessible calendars."""
     service = _get_calendar_service()
 
     calendar_list = service.calendarList().list().execute()
     calendars = calendar_list.get("items", [])
 
-    if not calendars:
-        return "No calendars found."
-
-    result = f"Found {len(calendars)} accessible calendars:\n\n"
-
-    for calendar in calendars:
-        name = calendar.get("summary", "Unknown")
-        cal_id = calendar["id"]
-        access_role = calendar.get("accessRole", "unknown")
-        color_id = calendar.get("colorId", "default")
-
-        result += f"• {name}\n"
-        result += f"  ID: {cal_id}\n"
-        result += f"  Access: {access_role}\n"
-        result += f"  Color: {color_id}\n\n"
-
-    return result.strip()
+    return [
+        CalendarInfo(
+            id=cal["id"],
+            summary=cal.get("summary", "Unknown"),
+            accessRole=cal.get("accessRole", "unknown"),
+            colorId=cal.get("colorId", "default"),
+        )
+        for cal in calendars
+    ]
 
 
 @mcp.tool(
@@ -386,7 +441,7 @@ def find_time(
     end_date: str = "",
     duration_minutes: int = 60,
     work_hours_only: bool = True,
-) -> str:
+) -> list[FreeTimeSlot]:
     """Find free time slots in a calendar."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
@@ -454,17 +509,20 @@ def find_time(
         current += timedelta(minutes=30)  # Check every 30 minutes
 
     if not slots:
-        return f"No free {duration_minutes}-minute slots found in the specified time range."
+        return []
 
-    result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
-
+    # Convert to FreeTimeSlot objects
+    free_slots = []
     for start_time, end_time in slots[:20]:  # Limit to first 20 slots
-        result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
+        free_slots.append(
+            FreeTimeSlot(
+                start=start_time.strftime("%Y-%m-%d %H:%M"),
+                end=end_time.strftime("%Y-%m-%d %H:%M"),
+                duration_minutes=duration_minutes,
+            )
+        )
 
-    if len(slots) > 20:
-        result += f"\n... and {len(slots) - 20} more slots"
-
-    return result
+    return free_slots
 
 
 @mcp.tool(
@@ -625,25 +683,29 @@ def search_events(
 @mcp.tool(
     description="Checks the status of the Google Calendar server and API connectivity. Returns version info and available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and Google Calendar API connection info."""
     service = _get_calendar_service()
 
     # Test API connection by getting calendar list
     calendar_list = service.calendarList().list(maxResults=1).execute()
 
-    return f"""Google Calendar Tool Server Status
-========================================
-Status: Connected and ready
-API Connection: ✓ Active
-Calendars Access: ✓ Available ({len(calendar_list.get('items', []))} calendars accessible)
-
-Available tools:
-- search_events: Search and list calendar events (handles both basic listing and advanced search)
-- get_event: Get detailed event information
-- create_event: Create new calendar events
-- update_event: Update existing events
-- delete_event: Delete calendar events
-- list_calendars: List all accessible calendars
-- find_time: Find free time slots
-- server_info: Get server status"""
+    return ServerInfo(
+        name="Google Calendar Tool",
+        version="1.9.4",
+        status="active",
+        capabilities=[
+            "search_events - Search and list calendar events",
+            "get_event - Get detailed event information",
+            "create_event - Create new calendar events",
+            "update_event - Update existing events",
+            "delete_event - Delete calendar events",
+            "list_calendars - List all accessible calendars",
+            "find_time - Find free time slots",
+            "server_info - Get server status",
+        ],
+        dependencies={
+            "google_calendar_api": "active",
+            "calendars_accessible": str(len(calendar_list.get("items", []))),
+        },
+    )

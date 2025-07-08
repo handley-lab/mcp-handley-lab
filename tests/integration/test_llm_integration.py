@@ -2,6 +2,8 @@
 from pathlib import Path
 
 import pytest
+from PIL import Image
+
 from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
 from mcp_handley_lab.llm.claude.tool import ask as claude_ask
 from mcp_handley_lab.llm.claude.tool import server_info as claude_server_info
@@ -11,7 +13,6 @@ from mcp_handley_lab.llm.gemini.tool import server_info as gemini_server_info
 from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
 from mcp_handley_lab.llm.openai.tool import ask as openai_ask
 from mcp_handley_lab.llm.openai.tool import server_info as openai_server_info
-from PIL import Image
 
 # Define provider-specific parameters
 llm_providers = [
@@ -197,8 +198,16 @@ def test_llm_server_info(skip_if_no_api_key, server_info_func, api_key):
 
     result = server_info_func()
 
-    assert "server" in result.lower() or "tool" in result.lower()
-    assert "available" in result.lower() or "status" in result.lower()
+    # Handle both string and ServerInfo object returns
+    if hasattr(result, "name"):
+        # ServerInfo object
+        assert "server" in result.name.lower() or "tool" in result.name.lower()
+        assert result.status == "active"
+        assert result.dependencies
+    else:
+        # String return
+        assert "server" in result.lower() or "tool" in result.lower()
+        assert "available" in result.lower() or "status" in result.lower()
 
 
 @pytest.mark.vcr

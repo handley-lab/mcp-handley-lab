@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.email.msmtp.tool import send
 from mcp_handley_lab.email.notmuch.tool import search
 from mcp_handley_lab.email.offlineimap.tool import sync

@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
+
 from mcp_handley_lab.email.mutt.tool import (
     list_folders,
     server_info,

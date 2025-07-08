@@ -4,12 +4,13 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from .manager import NotesManager
+from .models import Note
 
 # Initialize the FastMCP server
 mcp = FastMCP("Notes")
 
 # Global manager instance - can be overridden by persistent server
-_manager: NotesManager | None = None
+_manager: NotesManager = None
 
 
 def get_manager() -> NotesManager:
@@ -34,11 +35,11 @@ def set_manager(manager: NotesManager) -> None:
 def create_note(
     path: str,
     title: str,
-    properties: dict[str, Any] = None,
-    tags: list[str] = None,
+    properties: dict[str, Any] = {},
+    tags: list[str] = [],
     content: str = "",
     scope: str = "local",
-    slug: str = None,
+    slug: str = "",
 ) -> str:
     """Create a new note.
 
@@ -58,11 +59,13 @@ def create_note(
         raise ValueError("Scope must be 'global' or 'local'")
 
     manager = get_manager()
-    return manager.create_note(path, title, properties, tags, content, scope, slug)
+    return manager.create_note(
+        path, title, properties or None, tags or None, content, scope, slug or None
+    )
 
 
 @mcp.tool()
-def get_note(note_id: str) -> dict[str, Any] | None:
+def get_note(note_id: str) -> Note:
     """Get a note by its UUID or type/slug identifier.
 
     Args:
@@ -73,17 +76,17 @@ def get_note(note_id: str) -> dict[str, Any] | None:
     """
     manager = get_manager()
     note = manager.get_note_by_identifier(note_id)
-    if note:
-        return note.model_dump()
-    return None
+    if note is None:
+        raise ValueError(f"Note not found: {note_id}")
+    return note
 
 
 @mcp.tool()
 def update_note(
     note_id: str,
-    properties: dict[str, Any] = None,
-    tags: list[str] = None,
-    content: str = None,
+    properties: dict[str, Any] = {},
+    tags: list[str] = [],
+    content: str = "",
 ) -> str:
     """Update an existing note.
 
@@ -98,7 +101,11 @@ def update_note(
     """
     manager = get_manager()
     manager.update_note(
-        note_id, title=None, properties=properties, tags=tags, content=content
+        note_id,
+        title=None,
+        properties=properties or None,
+        tags=tags or None,
+        content=content or None,
     )
     return f"Note {note_id} updated successfully"
 
@@ -119,10 +126,10 @@ def delete_note(note_id: str) -> bool:
 
 @mcp.tool()
 def find(
-    text: str = None,
-    tags: list[str] = None,
-    properties: dict[str, Any] = None,
-    scope: str = None,
+    text: str = "",
+    tags: list[str] = [],
+    properties: dict[str, Any] = {},
+    scope: str = "",
     semantic: bool = False,
     n_results: int = 10,
 ) -> list[dict[str, Any]]:
@@ -140,7 +147,14 @@ def find(
         List of matching note dictionaries
     """
     manager = get_manager()
-    notes = manager.find(text, tags, properties, scope, semantic, n_results)
+    notes = manager.find(
+        text or None,
+        tags or None,
+        properties or None,
+        scope or None,
+        semantic,
+        n_results,
+    )
 
     results = []
     for note in notes:
@@ -272,7 +286,7 @@ def refresh_notes_database() -> str:
 
 
 @mcp.tool()
-def get_note_scope(note_id: str) -> str | None:
+def get_note_scope(note_id: str) -> str:
     """Get the scope (global or local) of an note.
 
     Args:
@@ -282,7 +296,10 @@ def get_note_scope(note_id: str) -> str | None:
         "global", "local", or None if note not found
     """
     manager = get_manager()
-    return manager.get_note_scope(note_id)
+    scope = manager.get_note_scope(note_id)
+    if scope is None:
+        raise ValueError(f"Note not found: {note_id}")
+    return scope
 
 
 # Resource for browsing notes

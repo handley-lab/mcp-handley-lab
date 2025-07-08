@@ -2,6 +2,7 @@
 """Test helper functions for OfflineIMAP authentication."""
 import os
 
+
 def get_test_password():
     """Get password from environment variable for CI testing."""
     password = os.environ.get('GMAIL_TEST_PASSWORD')

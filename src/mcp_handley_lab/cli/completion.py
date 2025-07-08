@@ -101,8 +101,8 @@ _mcp_cli() {
 
         # Use _alternative to handle tags and ordering
         _alternative \
-            'tools:available tools:(_mcp_cli_tools)' \
-            'options:global options:(_mcp_cli_options)'
+            'tools:available tools:_mcp_cli_tools' \
+            'options:global options:_mcp_cli_options'
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options with proper ordering
@@ -112,8 +112,8 @@ _mcp_cli() {
 
         # Use _alternative to handle tags and ordering
         _alternative \
-            'functions:available functions:(_mcp_cli_functions)' \
-            'options:tool options:(_mcp_cli_tool_options)'
+            'functions:available functions:_mcp_cli_functions' \
+            'options:tool options:_mcp_cli_tool_options'
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options with proper ordering
@@ -123,8 +123,8 @@ _mcp_cli() {
 
         # Use _alternative to handle tags and ordering
         _alternative \
-            'parameters:function parameters:(_mcp_cli_parameters)' \
-            'options:function options:(_mcp_cli_function_options)'
+            'parameters:function parameters:_mcp_cli_parameters' \
+            'options:function options:_mcp_cli_function_options'
         return 0
     fi
 }

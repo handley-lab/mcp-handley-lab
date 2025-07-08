@@ -3,7 +3,9 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 
-@mcp.tool(description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators.""")
+@mcp.tool(
+    description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
+)
 def search(query: str, limit: int = 20) -> str:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
@@ -15,12 +17,13 @@ def search(query: str, limit: int = 20) -> str:
     return f"Search results for '{query}':\n{output}"
 
 
-@mcp.tool(description="""Display complete email content by message ID, thread ID, or notmuch query. Supports specific MIME parts for multipart messages.""")
+@mcp.tool(
+    description="""Display complete email content by message ID, thread ID, or notmuch query. Supports specific MIME parts for multipart messages."""
+)
 def show(query: str, part: str | None = None) -> str:
     """Show email content using notmuch show."""
     cmd = ["notmuch", "show"]
 
-    # Add format options for plain text
     cmd.extend(["--format=text"])
 
     if part:
@@ -32,7 +35,9 @@ def show(query: str, part: str | None = None) -> str:
     return stdout.decode().strip()
 
 
-@mcp.tool(description="""Index newly received emails into notmuch database. Required after email sync to make new messages searchable. Updates tags per initial rules.""")
+@mcp.tool(
+    description="""Index newly received emails into notmuch database. Required after email sync to make new messages searchable. Updates tags per initial rules."""
+)
 def new() -> str:
     """Index newly received emails with notmuch new."""
     stdout, stderr = run_command(["notmuch", "new"])
@@ -40,7 +45,9 @@ def new() -> str:
     return f"Notmuch database updated:\n{output}"
 
 
-@mcp.tool(description="""List all tags in notmuch database. Shows system tags (inbox, unread, sent) and custom tags. Useful for understanding organization and planning searches.""")
+@mcp.tool(
+    description="""List all tags in notmuch database. Shows system tags (inbox, unread, sent) and custom tags. Useful for understanding organization and planning searches."""
+)
 def list_tags() -> str:
     """List all tags in the notmuch database."""
     stdout, stderr = run_command(["notmuch", "search", "--output=tags", "*"])
@@ -51,7 +58,9 @@ def list_tags() -> str:
     return "Available tags:\n" + "\n".join(f"- {tag}" for tag in tags if tag)
 
 
-@mcp.tool(description="""Retrieve notmuch configuration settings. Shows all settings or specific key. Useful for troubleshooting database path, user info, and tagging rules.""")
+@mcp.tool(
+    description="""Retrieve notmuch configuration settings. Shows all settings or specific key. Useful for troubleshooting database path, user info, and tagging rules."""
+)
 def config(key: str | None = None) -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
@@ -66,7 +75,9 @@ def config(key: str | None = None) -> str:
     return f"Notmuch configuration:\n{output}"
 
 
-@mcp.tool(description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes.""")
+@mcp.tool(
+    description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes."""
+)
 def count(query: str) -> str:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
@@ -76,7 +87,9 @@ def count(query: str) -> str:
     return f"Found {count_result} emails matching '{query}'"
 
 
-@mcp.tool(description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch. Supports comma-separated tag lists.""")
+@mcp.tool(
+    description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch. Supports comma-separated tag lists."""
+)
 def tag(
     message_id: str, add_tags: str | None = None, remove_tags: str | None = None
 ) -> str:
@@ -86,21 +99,18 @@ def tag(
 
     cmd = ["notmuch", "tag"]
 
-    # Add tags to add
     if add_tags:
         for tag in add_tags.split(","):
             tag = tag.strip()
             if tag:
                 cmd.append(f"+{tag}")
 
-    # Add tags to remove
     if remove_tags:
         for tag in remove_tags.split(","):
             tag = tag.strip()
             if tag:
                 cmd.append(f"-{tag}")
 
-    # Add message ID
     cmd.append(f"id:{message_id}")
 
     stdout, stderr = run_command(cmd)
@@ -111,5 +121,3 @@ def tag(
         changes.append(f"removed: {remove_tags}")
 
     return f"Tags updated for message {message_id} ({', '.join(changes)})"
-
-

@@ -24,12 +24,9 @@ class NotesManager:
     def _get_semantic_search(self) -> SemanticSearchManager:
         """Lazy-load semantic search manager to avoid startup delays."""
         if self._semantic_search is None:
-            print("Initializing semantic search (ChromaDB) for the first time...")
             self._semantic_search = SemanticSearchManager(self._semantic_storage_dir)
-            # Build initial index from existing notes
             notes = list(self.storage.load_all_notes().values())
             self._semantic_search.rebuild_index(notes)
-            print(f"Semantic search initialized with {len(notes)} notes.")
         return self._semantic_search
 
     def _load_notes_to_db(self):
@@ -49,7 +46,6 @@ class NotesManager:
         doc["_note_id"] = note.id
         doc["_scope"] = scope
 
-        # Update if exists, insert if new
         if self.db.search(Query()._note_id == note.id):
             self.db.update(doc, Query()._note_id == note.id)
         else:
@@ -59,9 +55,7 @@ class NotesManager:
         """Generate a URL-friendly slug from title."""
         import re
 
-        # Convert to lowercase and replace spaces/special chars with hyphens
         slug = re.sub(r"[^a-z0-9]+", "-", title.lower())
-        # Remove leading/trailing hyphens
         slug = slug.strip("-")
         return slug
 
@@ -71,12 +65,10 @@ class NotesManager:
         counter = 1
 
         while True:
-            # Check if this slug already exists
             existing = self.storage.load_note_by_slug(path, slug)
             if not existing:
                 return slug
 
-            # Try with suffix
             counter += 1
             slug = f"{base_slug}-{counter}"
 
@@ -108,16 +100,13 @@ class NotesManager:
             content=content,
         )
 
-        # Generate slug if not provided
         if not slug:
             slug = self._generate_slug(title)
 
-        # Ensure slug is unique within this path
         slug = self._ensure_unique_slug(path, slug, scope)
 
         self.storage.save_note(note, scope, path, slug)
         self._sync_note_to_db(note, scope)
-        # Only update semantic search if it's already initialized
         if self._semantic_search is not None:
             self._semantic_search.add_note(note)
         return note.id
@@ -136,20 +125,16 @@ class NotesManager:
         Args:
             identifier: Either a UUID or 'type/slug' format
         """
-        # Check if it looks like a UUID
         if len(identifier) == 36 and identifier.count("-") == 4:
             return self.get_note(identifier)
 
-        # Try to parse as path/slug
         if "/" in identifier:
-            parts = identifier.rsplit("/", 1)  # Split on last / to handle deep paths
+            parts = identifier.rsplit("/", 1)
             if len(parts) == 2:
                 return self.get_note_by_slug(parts[0], parts[1])
 
-        # Try as just slug in all paths (search all directories)
         all_notes = self.list_notes()
         for note in all_notes:
-            # Compute slug from filesystem path
             file_path = self.storage._find_file_by_uuid(note.id)
             if file_path and file_path.stem == identifier:
                 return note
@@ -181,9 +166,8 @@ class NotesManager:
         note.updated_at = datetime.now()
 
         scope = self.storage.get_note_scope(note_id) or "local"
-        self.storage.save_note(note, scope)  # Saves to existing location
+        self.storage.save_note(note, scope)
         self._sync_note_to_db(note, scope)
-        # Only update semantic search if it's already initialized
         if self._semantic_search is not None:
             self._semantic_search.update_note(note)
 
@@ -192,7 +176,6 @@ class NotesManager:
         success = self.storage.delete_note(note_id)
         if success:
             self.db.remove(Query()._note_id == note_id)
-            # Only update semantic search if it's already initialized
             if self._semantic_search is not None:
                 self._semantic_search.remove_note(note_id)
         return success
@@ -207,10 +190,8 @@ class NotesManager:
         if scope:
             query_conditions.append(Query()._scope == scope)
         if tags:
-            # Note must have any of the specified tags
             query_conditions.append(Query().tags.any(tags))
 
-        # Combine all conditions with AND
         if query_conditions:
             combined_query = query_conditions[0]
             for condition in query_conditions[1:]:
@@ -219,12 +200,10 @@ class NotesManager:
         else:
             results = self.db.all()
 
-        # Convert back to Note objects and reload from storage to get current filesystem info
         notes = []
         for doc in results:
             note_id = doc.get("_note_id")
             if note_id:
-                # Load from storage to get current filesystem-derived info
                 note = self.storage.load_note(note_id)
                 if note:
                     notes.append(note)
@@ -250,14 +229,13 @@ class NotesManager:
         tags: list[str] = None,
     ) -> list[Note]:
         """Search notes using semantic similarity (requires ChromaDB)."""
-        semantic_search = self._get_semantic_search()  # Lazy load
+        semantic_search = self._get_semantic_search()
         similar_ids = semantic_search.search_similar(query, n_results, tags)
         notes = []
 
         for note_id, similarity_score in similar_ids:
             note = self.get_note(note_id)
             if note:
-                # Add similarity score as metadata (not persisted)
                 note._similarity_score = similarity_score
                 notes.append(note)
 
@@ -285,29 +263,23 @@ class NotesManager:
         Returns:
             List of matching Note objects
         """
-        # If using semantic search, delegate to semantic method
         if semantic:
             if not text:
                 raise ValueError("Semantic search requires a text query")
             return self._search_semantic(text, n_results, tags)
 
-        # Build TinyDB query conditions
         query_conditions = []
 
-        # Scope filter
         if scope:
             query_conditions.append(Query()._scope == scope)
 
-        # Tags filter - note must have any of the specified tags
         if tags:
             query_conditions.append(Query().tags.any(tags))
 
-        # Properties filter - all key-value pairs must match
         if properties:
             for key, value in properties.items():
                 query_conditions.append(Query().properties[key] == value)
 
-        # Execute TinyDB query with filters
         if query_conditions:
             combined_query = query_conditions[0]
             for condition in query_conditions[1:]:
@@ -316,24 +288,20 @@ class NotesManager:
         else:
             results = self.db.all()
 
-        # Apply text search on filtered results if specified
         if text:
             text_lower = text.lower()
             filtered_results = []
 
             for doc in results:
-                # Search in content
                 if text_lower in doc.get("content", "").lower():
                     filtered_results.append(doc)
                     continue
 
-                # Search in tags
                 tags_list = doc.get("tags", [])
                 if any(text_lower in tag.lower() for tag in tags_list):
                     filtered_results.append(doc)
                     continue
 
-                # Search in properties (string values only)
                 properties_dict = doc.get("properties", {})
                 for value in properties_dict.values():
                     if isinstance(value, str) and text_lower in value.lower():
@@ -342,10 +310,8 @@ class NotesManager:
 
             results = filtered_results
 
-        # Convert docs to Note objects directly from TinyDB (no storage I/O)
         notes = []
         for doc in results:
-            # Remove internal TinyDB fields before creating Note
             note_data = {k: v for k, v in doc.items() if not k.startswith("_")}
             note = Note(**note_data)
             notes.append(note)
@@ -364,17 +330,13 @@ class NotesManager:
         Returns:
             List of related Note objects
         """
-        # Resolve note_id to UUID first
         note = self.get_note_by_identifier(note_id)
         if not note:
             return []
 
-        # Get related UUIDs from the specified property
         related_uuids = note.properties.get(relationship, [])
         if not isinstance(related_uuids, list):
-            related_uuids = [related_uuids]  # Handle single UUID
-
-        # Load related notes
+            related_uuids = [related_uuids]
         related_notes = []
         for uuid in related_uuids:
             if isinstance(uuid, str):
@@ -388,15 +350,11 @@ class NotesManager:
         self, property_name: str, property_value: Any
     ) -> list[Note]:
         """Get notes with a specific property value."""
-        # Search for notes with the specified property value
         results = self.db.search(Query().properties[property_name] == property_value)
-
-        # Convert to Note objects by loading from storage
         notes = []
         for doc in results:
             note_id = doc.get("_note_id")
             if note_id:
-                # Load from storage to get current filesystem-derived info
                 note = self.storage.load_note(note_id)
                 if note:
                     notes.append(note)
@@ -429,14 +387,12 @@ class NotesManager:
     def get_note_paths(self) -> list[str]:
         """Get all unique note paths by scanning filesystem."""
         paths = set()
-        # Scan the filesystem for directories containing YAML files
         for yaml_file in self.storage.local_storage.notes_dir.rglob("*.yaml"):
             relative_path = yaml_file.relative_to(self.storage.local_storage.notes_dir)
             dir_path = str(relative_path.parent)
             if dir_path and dir_path != ".":
                 paths.add(dir_path)
 
-        # Also scan global storage
         for yaml_file in self.storage.global_storage.notes_dir.rglob("*.yaml"):
             relative_path = yaml_file.relative_to(self.storage.global_storage.notes_dir)
             dir_path = str(relative_path.parent)
@@ -460,7 +416,6 @@ class NotesManager:
     def refresh_from_files(self):
         """Refresh the in-memory database from YAML files."""
         self._load_notes_to_db()
-        # Rebuild semantic search index if it's already initialized
         if self._semantic_search is not None:
             notes = list(self.storage.load_all_notes().values())
             self._semantic_search.rebuild_index(notes)
@@ -508,9 +463,6 @@ class NotesManager:
         """Get statistics about the notes database."""
         all_docs = self.db.all()
 
-        # No need for artificial primary tag counting - just count scopes
-
-        # Count by scope
         scope_counts = {}
         for doc in all_docs:
             scope = doc.get("_scope", "unknown")

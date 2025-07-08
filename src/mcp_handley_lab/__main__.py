@@ -8,20 +8,13 @@ def get_available_tools():
     """Discover available tools by finding directories with tool.py files."""
     tools_dir = Path(__file__).parent
 
-    # Use rglob to find all 'tool.py' files recursively
     tool_files = sorted(tools_dir.rglob("tool.py"))
 
     tools = []
     for tool_file in tool_files:
-        # Calculate the relative path from tools_dir to the parent directory of tool.py
-        # e.g., 'src/mcp_handley_lab/jq/tool.py' -> 'jq'
-        # 'src/mcp_handley_lab/llm/gemini/tool.py' -> 'llm.gemini'
         relative_path = tool_file.parent.relative_to(tools_dir)
-
-        # Convert path segments to dot-separated module name
         tools.append(".".join(relative_path.parts))
 
-    # Filter out any empty strings that might result from edge cases
     return sorted(t for t in tools if t)
 
 
@@ -51,7 +44,6 @@ def main():
     module_path = f"mcp_handley_lab.{tool_name}.tool"
     tool_module = importlib.import_module(module_path)
 
-    # Run the tool's main function
     if hasattr(tool_module, "mcp"):
         tool_module.mcp.run()
     else:

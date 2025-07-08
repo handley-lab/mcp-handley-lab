@@ -1,4 +1,5 @@
 """Generic notes manager with YAML storage and TinyDB queries."""
+import re
 from datetime import datetime
 from typing import Any
 
@@ -53,7 +54,6 @@ class NotesManager:
 
     def _generate_slug(self, title: str) -> str:
         """Generate a URL-friendly slug from title."""
-        import re
 
         slug = re.sub(r"[^a-z0-9]+", "-", title.lower())
         slug = slug.strip("-")

@@ -342,7 +342,16 @@ def analyze_image(
 def list_models() -> LLMResult:
     """List available Claude models with detailed information."""
     # Use YAML-based model listing
-    return format_model_listing("claude")
+    from mcp_handley_lab.shared.models import LLMResult, UsageStats
+
+    content = format_model_listing("claude")
+    return LLMResult(
+        content=content,
+        usage=UsageStats(
+            input_tokens=0, output_tokens=0, cost=0.0, model_used="list_models"
+        ),
+        agent_name="",
+    )
 
 
 @mcp.tool(

@@ -18,7 +18,7 @@ from mcp_handley_lab.llm.model_loader import (
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
-from mcp_handley_lab.shared.models import ServerInfo
+from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult, ServerInfo
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -200,7 +200,7 @@ def ask(
     temperature: float = 0.7,
     max_output_tokens: int = 0,
     files: list[str] = [],
-) -> str:
+) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
@@ -227,7 +227,7 @@ def analyze_image(
     model: str = "gpt-4o",
     agent_name: str = "session",
     max_output_tokens: int = 0,
-) -> str:
+) -> LLMResult:
     """Analyze images with OpenAI vision model."""
     return process_llm_request(
         prompt=prompt,
@@ -268,7 +268,7 @@ def generate_image(
     quality: str = "standard",
     size: str = "1024x1024",
     agent_name: str = "session",
-) -> str:
+) -> ImageGenerationResult:
     """Generate images with DALL-E."""
     return process_image_generation(
         prompt=prompt,

@@ -84,77 +84,6 @@ def _handle_source_content_structured(
         return _handle_single_file_structured(arxiv_id, content, format, output_path)
 
 
-def _handle_source_content(
-    arxiv_id: str, content: bytes, format: str, output_path: str
-) -> str:
-    """Handle source content, trying tar first, then single file."""
-    try:
-        # Try to handle as tar archive first (most common case)
-        return _handle_tar_archive(arxiv_id, content, format, output_path)
-    except tarfile.TarError:
-        # Not a tar archive, try as single gzipped file
-        return _handle_single_file(arxiv_id, content, format, output_path)
-
-
-def _handle_single_file(
-    arxiv_id: str, content: bytes, format: str, output_path: str
-) -> str:
-    """Handle a single gzipped file (not a tar archive)."""
-    decompressed = gzip.decompress(content)
-
-    if output_path == "-":
-        return f"ArXiv source file for {arxiv_id}: single .tex file ({len(decompressed)} bytes)"
-    else:
-        os.makedirs(output_path, exist_ok=True)
-        filename = f"{arxiv_id}.tex"  # Assume it's a tex file
-        file_path = os.path.join(output_path, filename)
-        with open(file_path, "wb") as f:
-            f.write(decompressed)
-        return f"ArXiv source saved to directory: {output_path}\\nFile: {filename}"
-
-
-def _handle_tar_archive(
-    arxiv_id: str, content: bytes, format: str, output_path: str
-) -> str:
-    """Handle a tar archive."""
-    tar_stream = BytesIO(content)
-
-    with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-        if output_path == "-":
-            files = []
-            for member in tar.getmembers():
-                if member.isfile() and (
-                    format != "tex"
-                    or any(
-                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
-                    )
-                ):
-                    files.append(f"{member.name} ({member.size} bytes)")
-
-            if format == "tex":
-                return f"ArXiv LaTeX files for {arxiv_id}:\\n" + "\\n".join(files)
-            else:
-                return f"ArXiv source files for {arxiv_id}:\\n" + "\\n".join(files)
-        else:
-            os.makedirs(output_path, exist_ok=True)
-
-            if format == "tex":
-                extracted_files = []
-                for member in tar.getmembers():
-                    if member.isfile() and any(
-                        member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
-                    ):
-                        # Use filter='data' for security to prevent path traversal attacks
-                        tar.extract(member, path=output_path, filter="data")
-                        extracted_files.append(member.name)
-                return f'ArXiv LaTeX files saved to directory: {output_path}\\nFiles: {", ".join(extracted_files)}'
-            else:
-                # Use filter='data' for security to prevent path traversal attacks
-                tar.extractall(path=output_path, filter="data")
-                file_count = len([m for m in tar.getmembers() if m.isfile()])
-                return f"ArXiv source saved to directory: {output_path} ({file_count} files)"
-
-
 def _handle_single_file_structured(
     arxiv_id: str, content: bytes, format: str, output_path: str
 ) -> DownloadResult:
@@ -379,7 +308,7 @@ def search(
     start: int = 0,
     sort_by: str = "relevance",
     sort_order: str = "descending",
-) -> list[dict[str, Any]]:
+) -> list[ArxivPaper]:
     if max_results > 100:
         max_results = 100
 

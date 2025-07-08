@@ -4,7 +4,7 @@ import mimetypes
 import os
 from pathlib import Path
 
-from mcp_handley_lab.common.memory import memory_manager
+from mcp_handley_lab.llm.memory import memory_manager
 
 # Enhance mimetypes with common text file types that might not be in the default database
 # This runs once when the module is imported
@@ -232,12 +232,14 @@ def handle_agent_memory(
     session_id_func,
 ) -> str | None:
     """Handle agent memory storage. Returns actual agent name used."""
-    # Normalize string "false" to boolean False for usability
-    if isinstance(agent_name, str) and agent_name.lower() == "false":
+    # Handle memory disable patterns
+    if isinstance(agent_name, str) and (
+        agent_name.lower() == "false" or agent_name == ""
+    ):
         agent_name = False
 
-    # Use session-specific agent if no agent_name provided (and memory not disabled)
-    if not agent_name and agent_name is not False:
+    # Use session-specific agent for "session" or if no agent_name provided (and memory not disabled)
+    if agent_name == "session" or agent_name is None:
         agent_name = session_id_func()
 
     # Store in agent memory (only if memory not disabled)
@@ -255,3 +257,131 @@ def handle_agent_memory(
         return agent_name
 
     return None
+
+
+def resolve_multimodal_content(
+    files: list[str] = [], images: list[str] = []
+) -> list[dict]:
+    """
+    Resolves file paths and image data into a standardized list of content blocks.
+    Each block is a dict with 'type', 'mime_type', and 'data' (or 'text').
+    """
+    content_blocks = []
+
+    # Process text/binary files
+    for file_path_str in files:
+        file_path = Path(file_path_str)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        mime_type = determine_mime_type(file_path)
+        if is_text_file(file_path):
+            text_content = file_path.read_text(encoding="utf-8")
+            content_blocks.append(
+                {
+                    "type": "text_file",
+                    "filename": file_path.name,
+                    "text": text_content,
+                }
+            )
+        else:
+            # For binary files, pass as base64 data
+            binary_data = file_path.read_bytes()
+            content_blocks.append(
+                {
+                    "type": "binary_file",
+                    "filename": file_path.name,
+                    "mime_type": mime_type,
+                    "data": base64.b64encode(binary_data),
+                }
+            )
+
+    # Process images
+    for image_item in images:
+        image_bytes = resolve_image_data(image_item)
+
+        # Determine mime type for the image
+        if isinstance(image_item, str) and image_item.startswith("data:image"):
+            mime_type = image_item.split(";")[0].split(":")[1]
+        else:
+            mime_type = determine_mime_type(Path(image_item))
+            if not mime_type.startswith("image/"):
+                mime_type = "image/jpeg"  # Default for safety
+
+        content_blocks.append(
+            {
+                "type": "image",
+                "mime_type": mime_type,
+                "data": base64.b64encode(image_bytes),
+            }
+        )
+
+    return content_blocks
+
+
+def resolve_files_for_llm(
+    files: list[str], max_file_size: int = 1024 * 1024
+) -> list[str]:
+    """Resolve list of file paths to inline content strings for LLM providers.
+
+    Args:
+        files: List of file paths
+        max_file_size: Maximum file size to include (default 1MB)
+
+    Returns:
+        List of formatted content strings with file headers
+    """
+    if not files:
+        return []
+
+    inline_content = []
+    for file_path_str in files:
+        file_path = Path(file_path_str)
+        try:
+            content, is_text = read_file_smart(file_path, max_file_size)
+            inline_content.append(content)
+        except ValueError as e:
+            if "too large" in str(e):
+                # File too large - read truncated version
+                if is_text_file(file_path):
+                    content = file_path.read_text(encoding="utf-8")[
+                        :100000
+                    ]  # 100KB limit
+                    inline_content.append(
+                        f"[File: {file_path.name} (truncated)]\n{content}..."
+                    )
+                else:
+                    inline_content.append(
+                        f"[File: {file_path.name} - too large to include]"
+                    )
+            else:
+                raise
+
+    return inline_content
+
+
+def format_server_info(
+    provider_name: str,
+    api_key_configured: bool,
+    model_count: int,
+    model_examples: list[str],
+    agent_count: int,
+    storage_dir: str,
+    available_tools: list[str],
+) -> str:
+    """Generates a standardized server info string."""
+    status_str = f"{provider_name} Tool Server Status\n"
+    status_str += "=" * (len(provider_name) + 20) + "\n"
+    status_str += "Status: Connected and ready\n"
+    status_str += (
+        f"API Key: {'Configured ✓' if api_key_configured else 'Not Configured ✗'}\n"
+    )
+    status_str += f"Available Models: {model_count} models\n"
+    status_str += f"- {', '.join(model_examples)}{'...' if len(model_examples) < model_count else ''}\n\n"
+    status_str += "Agent Management:\n"
+    status_str += f"- Active Agents: {agent_count}\n"
+    status_str += f"- Memory Storage: {storage_dir}\n\n"
+    status_str += "Available tools:\n" + "\n".join(
+        f"- {tool}" for tool in available_tools
+    )
+    return status_str

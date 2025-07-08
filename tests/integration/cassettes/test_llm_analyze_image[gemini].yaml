@@ -18,36 +18,35 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
       x-goog-api-client:
-      - google-genai-sdk/1.21.1 gl-python/3.13.3
+      - google-genai-sdk/1.24.0 gl-python/3.13.3
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"Based on the image you provided, the
-        color is **red**.\\n\\nMore specifically, it is a solid, bright, pure red.
-        In digital color models, this color is represented as:\\n*   **Hex code:**
-        `#FF0000`\\n*   **RGB values:** `(255, 0, 0)`\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        265,\n    \"candidatesTokenCount\": 71,\n    \"totalTokenCount\": 840,\n    \"promptTokensDetails\":
+        color is **red**.\\n\\nMore specifically, it appears to be a pure, bright
+        red, which in digital color is represented by the hex code #FF0000.\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        265,\n    \"candidatesTokenCount\": 44,\n    \"totalTokenCount\": 634,\n    \"promptTokensDetails\":
         [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 7\n      },\n
         \     {\n        \"modality\": \"IMAGE\",\n        \"tokenCount\": 258\n      }\n
-        \   ],\n    \"thoughtsTokenCount\": 504\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
-        \ \"responseId\": \"dFhqaKP0ELqrxN8Pg5GAuAI\"\n}\n"
+        \   ],\n    \"thoughtsTokenCount\": 325\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n
+        \ \"responseId\": \"xNZqaNWMIfyznsEP8ZDJyQM\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:05:24 GMT
+      - Sun, 06 Jul 2025 20:04:20 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=8737
+      - gfet4t7; dur=5245
       Transfer-Encoding:
       - chunked
       Vary:
@@ -61,7 +60,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '842'
+      - '790'
     status:
       code: 200
       message: OK

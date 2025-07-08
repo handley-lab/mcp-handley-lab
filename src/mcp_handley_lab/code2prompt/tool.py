@@ -17,13 +17,13 @@ def _run_code2prompt(args: list[str]) -> str:
 
 
 @mcp.tool(
-    description="Analyzes a source code directory and generates a structured, token-counted summary, saving it to a file. Useful for preparing a large codebase for LLM analysis. Key inputs are the `path` to the code and an `output_file`. Supports filtering files with `include`/`exclude` patterns and can incorporate a `git diff`. Returns the path to the generated summary file."
+    description="Generates a structured, token-counted summary of a source code directory, saving it to a file. Supports include/exclude patterns and git diffs. Returns the path to the generated summary."
 )
 def generate_prompt(
     path: str,
-    output_file: str | None = None,
-    include: list[str] | None = None,
-    exclude: list[str] | None = None,
+    output_file: str = "",
+    include: list[str] = [],
+    exclude: list[str] = [],
     output_format: str = "markdown",
     line_numbers: bool = False,
     full_directory_tree: bool = False,
@@ -35,12 +35,12 @@ def generate_prompt(
     tokens: str = "format",
     sort: str = "name_asc",
     include_priority: bool = False,
-    template: str | None = None,
+    template: str = "",
     include_git_diff: bool = False,
-    git_diff_branch1: str | None = None,
-    git_diff_branch2: str | None = None,
-    git_log_branch1: str | None = None,
-    git_log_branch2: str | None = None,
+    git_diff_branch1: str = "",
+    git_diff_branch2: str = "",
+    git_log_branch1: str = "",
+    git_log_branch2: str = "",
     no_ignore: bool = False,
 ) -> str:
     """Generate a structured prompt from codebase."""
@@ -110,7 +110,7 @@ def generate_prompt(
 
 
 @mcp.tool(
-    description="Verifies the Code2Prompt tool is operational. Checks for the `code2prompt` CLI and returns its version information and a list of available commands. Use this to confirm the server is ready before generating a codebase summary."
+    description="Checks the status of the Code2Prompt server and its CLI dependency. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and code2prompt version."""

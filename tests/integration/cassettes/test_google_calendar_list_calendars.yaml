@@ -11,7 +11,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:04:55 GMT
+      - Sun, 06 Jul 2025 20:03:52 GMT
       Server:
       - ESF
       Vary:
@@ -66,8 +66,8 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nw53Mui3eFrO5UNqUyC8qwD-oUz1Dc4AkELftW90msxnF1UxAZEzSggWeLKZpsif0kxOvdNA_fP8whD7i_qrO7jYjGzPbjRXiYN0k3P85mzU2OkF1nQQSAJV-_r02MsfkBnCW9tR6g2--GBiHNoThFQxBJZI_kI1YL1ygaCgYKAWoSARcSFQHGX2MinPGb2e5dchhITThfpHWsPA0177\",\n
-        \ \"expires_in\": 3598,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6NwbAT4f5Hud0JSk7mWA2Fs8wUJYmQVWIPsr7AbLWYOBUvt12O0bTDnIXc74pOfy6B1twlO9PJ0bvW8z-24D3DO31jnntDhKEoRUOwmKVx9I2E4L7hbtBKbfJZ10VZ3TlKGPz11insoWuv8K5gUH2UNMmR6gkB9pXj88ZgaCgYKARESARcSFQHGX2Mi6NzoAf2PXVDNHRAXwVd34g0177\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
       Alt-Svc:
@@ -77,7 +77,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 11:04:56 GMT
+      - Sun, 06 Jul 2025 20:03:53 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -111,13 +111,13 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.174.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32ftdvkis6ios0o\\\"\",\n
-        \"nextSyncToken\": \"CJ_W_pLhpY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32frr74mhek8s0o\\\"\",\n
+        \"nextSyncToken\": \"CJ-9nJaLqI4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
@@ -161,9 +161,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 11:04:56 GMT
+      - Sun, 06 Jul 2025 20:03:53 GMT
       Expires:
-      - Sun, 06 Jul 2025 11:04:56 GMT
+      - Sun, 06 Jul 2025 20:03:53 GMT
       Server:
       - ESF
       Vary:
@@ -198,7 +198,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6NyqJSIlKp4D13fWJZTQy94ZTF5-30_zlcp5YNb_2rU9XtC39ZFdh6atsNGviisU61fm763joQoYUh0NRmPilcHoTopV0ihl4jDzYKP1Nq_Yk5J51odQxrcC5ScIFzYGPYpLtUvfVXE_QrnGPDVHwQb0BEbMkS4lg4xUFQaCgYKAe0SARcSFQHGX2MiCAQwdfLJY30vSrSRF3_Pjw0177\",\n
+      string: "{\n  \"access_token\": \"ya29.a0AS3H6NzrWaVlzn1mA5lMpBt4jka77k8r7Qid0F9O5JCoS_JZLU_RdkA2d2WL0DnX_MTYp2-j2puAj58T0AMktgFy-bMqGZcJIJEg2z0uVl30daRX2acRxBKS_v-tp-n0mBSx2zirAztzf2JGH7Yn5uq0rz4cA_zZ8r73I9OtfAaCgYKAQQSARcSFQHGX2MiWsW1Yoo3TmvjKLfNZp9xSg0177\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -209,7 +209,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 07:38:24 GMT
+      - Sun, 06 Jul 2025 20:21:18 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

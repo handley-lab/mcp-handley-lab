@@ -61,7 +61,7 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
 def prompt_user_edit(
     content: str,
     file_extension: str = ".txt",
-    instructions: str = None,
+    instructions: str = "",
     show_diff: bool = True,
     keep_file: bool = False,
 ) -> str:
@@ -128,7 +128,9 @@ def prompt_user_edit(
     description="Opens Vim to create new content from scratch with optional `initial_content` and `instructions`. Creates a temporary file, opens Vim for editing, then returns the final content. Instructions are shown as comments and automatically stripped."
 )
 def quick_edit(
-    file_extension: str = ".txt", instructions: str = None, initial_content: str = ""
+    file_extension: str = ".txt",
+    instructions: str = "",
+    initial_content: str = "",
 ) -> str:
     """Open vim for creating new content."""
     # Create temp file
@@ -163,7 +165,7 @@ def quick_edit(
 )
 def open_file(
     file_path: str,
-    instructions: str = None,
+    instructions: str = "",
     show_diff: bool = True,
     backup: bool = True,
 ) -> str:
@@ -242,7 +244,7 @@ def open_file(
 
 
 @mcp.tool(
-    description="Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools."
+    description="Checks the status of the Vim server and vim command availability. Returns version info and available functions."
 )
 def server_info() -> str:
     """Get server status and vim version."""

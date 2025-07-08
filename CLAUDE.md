@@ -176,11 +176,13 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 51 test cases covering all functionality, error handling, and edge cases
 - **Status**: Production ready with comprehensive API integration and consolidated search interface
 
-### Agent Memory Management ✓ **100% Test Coverage**
-- **Location**: `src/mcp_handley_lab/agent/`
-- **Purpose**: Centralized, provider-agnostic system for managing persistent conversational memory across all LLM tools
-- **Functions**: `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent`, `server_info`
-- **Integration**: Used by all LLM tools (Gemini, OpenAI, Claude) via `agent_name` parameter
+### LLM Memory Management ✓ **100% Test Coverage**
+- **Location**: 
+  - Backend: `src/mcp_handley_lab/llm/memory.py`
+  - Utilities: `src/mcp_handley_lab/llm/agent_utils.py`
+- **Purpose**: Core LLM module feature providing persistent, provider-agnostic conversational memory
+- **Internal Functions**: `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent` (available as internal utilities only)
+- **Integration**: All LLM provider tools (`gemini`, `openai`, `claude`) use the memory system via the `agent_name` parameter
 - **Status**: Production ready
 
 ### Gemini LLM Tool ✓ **100% Test Coverage**
@@ -550,10 +552,8 @@ Example workflow:
 # Generate code summary
 mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_review.md"
 
-# Create a specialized agent using the agent management system
-mcp__agent__create_agent agent_name="code_reviewer" personality="Expert Python developer focused on clean code and best practices"
-
-# Get review and suggestions from Gemini, using the agent for memory
+# Get review and suggestions from Gemini with persistent memory
+# The agent will be created automatically on first use
 mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini-2.5-pro" files=[{"path": "/tmp/code_review.md"}]
 ```
 

@@ -140,10 +140,40 @@ class TestInputValidation:
         with pytest.raises(ValueError, match="Output file is required"):
             ask("Test prompt", "")
 
-    def test_ask_empty_agent_name(self):
-        """Test ask with empty agent name."""
-        with pytest.raises(ValueError, match="Agent name cannot be empty"):
-            ask("Test prompt", "/tmp/output.txt", agent_name="")
+    def test_ask_empty_agent_name(self, mock_memory_manager):
+        """Test ask with empty agent name disables memory."""
+        # Mock the OpenAI API call to avoid real API requests in unit tests
+        with patch(
+            "mcp_handley_lab.llm.openai.tool.client.chat.completions.create"
+        ) as mock_create:
+            mock_response = type(
+                "MockResponse",
+                (),
+                {
+                    "choices": [
+                        type(
+                            "MockChoice",
+                            (),
+                            {
+                                "message": type(
+                                    "MockMessage", (), {"content": "Mocked response"}
+                                )()
+                            },
+                        )()
+                    ],
+                    "usage": type(
+                        "MockUsage", (), {"prompt_tokens": 10, "completion_tokens": 20}
+                    )(),
+                },
+            )()
+            mock_create.return_value = mock_response
+
+            # Mock file writing
+            with patch("pathlib.Path.write_text"):
+                result = ask("Test prompt", "/tmp/output.txt", agent_name="")
+                assert "Response saved to" in result
+                # Verify memory manager is not called when agent_name is empty
+                mock_memory_manager.get_response.assert_not_called()
 
     def test_analyze_image_empty_prompt(self):
         """Test analyze_image with empty prompt."""

@@ -16,7 +16,7 @@ def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str
 
 
 @mcp.tool(
-    description="""Opens Mutt in interactive terminal to compose and send emails with your complete configuration (signatures, editor, etc.). Supports recipients, attachments, and initial body text. WARNING: auto_send bypasses review."""
+    description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments, pre-filled body, and an `auto_send` option that bypasses interactive review."
 )
 def compose_email(
     to: str,

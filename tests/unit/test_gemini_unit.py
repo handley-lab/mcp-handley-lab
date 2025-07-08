@@ -116,7 +116,7 @@ class TestErrorHandling:
         from mcp_handley_lab.llm.gemini.tool import _resolve_files
 
         # Use invalid path that will cause stat() to fail
-        files = [{"path": "/invalid/nonexistent/path"}]
+        files = ["/invalid/nonexistent/path"]
 
         # Should raise FileNotFoundError instead of adding error text
         with pytest.raises(FileNotFoundError):
@@ -132,5 +132,5 @@ class TestErrorHandling:
             analyze_image(
                 prompt="Test",
                 output_file="   ",  # Whitespace only
-                image_data="data:image/png;base64,test",
+                files=["data:image/png;base64,test"],
             )

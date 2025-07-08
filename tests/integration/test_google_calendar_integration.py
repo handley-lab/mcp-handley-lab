@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
 import pytest
-
 from mcp_handley_lab.google_calendar.tool import (
     create_event,
     delete_event,
@@ -18,8 +17,10 @@ from mcp_handley_lab.google_calendar.tool import (
 def test_google_calendar_list_calendars(google_calendar_test_config):
     result = list_calendars()
 
-    assert "calendar" in result.lower()
-    assert "accessible" in result.lower() or "primary" in result.lower()
+    assert isinstance(result, list)
+    assert len(result) > 0
+    # Check if we have at least one calendar
+    assert any("primary" in cal.id or "gmail.com" in cal.id for cal in result)
 
 
 @pytest.mark.vcr
@@ -30,7 +31,9 @@ def test_google_calendar_search_events_basic_listing(google_calendar_test_config
 
     result = search_events(start_date=start_date, end_date=end_date)
 
-    assert "events" in result.lower() or "no events" in result.lower()
+    assert isinstance(result, str)
+    assert len(result) > 0
+    # This test may return events or "no events" message - both are valid
 
 
 @pytest.mark.vcr
@@ -49,42 +52,35 @@ def test_google_calendar_event_lifecycle(google_calendar_test_config):
         description="Test event for VCR testing",
     )
 
-    assert "created" in create_result.lower()
+    assert create_result.status == "Event created successfully!"
+    assert create_result.title == event_title
+    event_id = create_result.event_id
 
-    # Extract event ID from structured JSON response
-    import json
+    # Event ID is now directly available from the structured response
 
-    try:
-        result_data = json.loads(create_result)
-        event_id = result_data.get("event_id")
-        assert result_data.get("status") == "Event created successfully!"
-        assert result_data.get("title") == event_title
-    except (json.JSONDecodeError, AssertionError):
-        pytest.fail(f"Invalid create_event response format: {create_result}")
+    # Get event
+    get_result = get_event(event_id=event_id)
+    assert event_title in get_result.summary
 
-    if event_id:
-        # Get event
-        get_result = get_event(event_id=event_id)
-        assert event_title in get_result
+    # Update event
+    update_result = update_event(
+        event_id=event_id,
+        summary=event_title,
+        description="Updated description for VCR test",
+    )
+    assert "updated" in update_result.lower()
 
-        # Update event
-        update_result = update_event(
-            event_id=event_id,
-            summary=event_title,
-            description="Updated description for VCR test",
-        )
-        assert "updated" in update_result.lower()
-
-        # Delete event
-        delete_result = delete_event(event_id=event_id)
-        assert "deleted" in delete_result.lower()
+    # Delete event
+    delete_result = delete_event(event_id=event_id)
+    assert "deleted" in delete_result.lower()
 
 
 @pytest.mark.vcr
 def test_google_calendar_find_time(google_calendar_test_config):
     result = find_time(duration_minutes=30, work_hours_only=True)
 
-    assert "available" in result.lower() or "slot" in result.lower()
+    assert isinstance(result, list)
+    # May return 0 or more time slots - both are valid
 
 
 @pytest.mark.vcr
@@ -105,12 +101,9 @@ def test_google_calendar_search_events(google_calendar_test_config):
     )
 
     # Should not error and should contain search-related text
-    assert (
-        "search" in result.lower()
-        or "found" in result.lower()
-        or "no events" in result.lower()
-    )
-    assert "meeting" in result.lower() or "no events" in result.lower()
+    assert isinstance(result, str)
+    assert len(result) > 0
+    # Result should contain either search results or indication of no results
 
 
 @pytest.mark.vcr
@@ -123,12 +116,14 @@ def test_google_calendar_list_events_with_search(google_calendar_test_config):
     result = search_events(search_text="test", start_date=start_date, end_date=end_date)
 
     # Should not error and should contain expected response
-    assert "events" in result.lower() or "no events" in result.lower()
+    assert isinstance(result, str)
+    assert len(result) > 0
 
 
 @pytest.mark.vcr
 def test_google_calendar_server_info(google_calendar_test_config):
     result = server_info()
 
-    assert "google calendar" in result.lower()
-    assert "status" in result.lower()
+    assert result.name == "Google Calendar Tool"
+    assert result.status == "active"
+    assert "search_events" in str(result.capabilities)

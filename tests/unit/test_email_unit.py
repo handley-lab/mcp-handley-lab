@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
-
 from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc, list_accounts, send
 from mcp_handley_lab.email.notmuch.tool import count, search, tag
 from mcp_handley_lab.email.offlineimap.tool import sync, sync_status
@@ -12,7 +11,6 @@ from mcp_handley_lab.email.tool import server_info
 
 class TestEmailTool:
     """Test email tool functionality."""
-
 
     def test_parse_msmtprc_success(self):
         """Test parsing msmtprc file successfully."""
@@ -60,7 +58,9 @@ user personal@gmail.com
             assert "To: test@example.com" in args[1]["input_data"].decode()
             assert "Subject: Test Subject" in args[1]["input_data"].decode()
             assert "Test body" in args[1]["input_data"].decode()
-            assert result == "Email sent successfully to test@example.com"
+            assert result.status == "success"
+            assert result.recipient == "test@example.com"
+            assert result.account_used == ""
 
     def test_send_email_with_account(self):
         """Test sending email with specific account."""
@@ -74,7 +74,7 @@ user personal@gmail.com
             args = mock_run.call_args[0][0]
             assert "-a" in args
             assert "work" in args
-            assert "account: work" in result
+            assert result.account_used == "work"
 
     def test_send_email_with_cc_bcc(self):
         """Test sending email with CC and BCC."""
@@ -110,9 +110,7 @@ user personal@gmail.com
             mock_parse.return_value = ["work", "personal"]
 
             result = list_accounts()
-            assert "Available msmtp accounts:" in result
-            assert "- work" in result
-            assert "- personal" in result
+            assert result == ["work", "personal"]
 
     def test_list_accounts_none(self):
         """Test listing accounts when none exist."""
@@ -120,7 +118,7 @@ user personal@gmail.com
             mock_parse.return_value = []
 
             result = list_accounts()
-            assert "(none configured)" in result
+            assert result == []
 
     def test_sync_basic(self):
         """Test basic email sync."""
@@ -179,7 +177,7 @@ user personal@gmail.com
             assert "notmuch" in args
             assert "search" in args
             assert "from:test@example.com" in args
-            assert "Search results for 'from:test@example.com'" in result
+            assert result == ["thread:001 Subject line"]
 
     def test_search_no_results(self):
         """Test search with no results."""
@@ -189,7 +187,7 @@ user personal@gmail.com
             mock_run.return_value = (b"", b"")
 
             result = search("nonexistent")
-            assert "(no matches)" in result
+            assert result == []
 
     def test_count_emails(self):
         """Test email count."""
@@ -204,7 +202,7 @@ user personal@gmail.com
             assert "notmuch" in args
             assert "count" in args
             assert "tag:inbox" in args
-            assert "Found 42 emails matching 'tag:inbox'" in result
+            assert result == 42
 
     def test_tag_add(self):
         """Test adding tags."""
@@ -221,7 +219,9 @@ user personal@gmail.com
             assert "+important" in args
             assert "+work" in args
             assert "id:message123" in args
-            assert "added: important,work" in result
+            assert result.message_id == "message123"
+            assert result.added_tags == ["important", "work"]
+            assert result.removed_tags == []
 
     def test_tag_remove(self):
         """Test removing tags."""
@@ -234,7 +234,9 @@ user personal@gmail.com
 
             args = mock_run.call_args[0][0]
             assert "-spam" in args
-            assert "removed: spam" in result
+            assert result.message_id == "message123"
+            assert result.added_tags == []
+            assert result.removed_tags == ["spam"]
 
     def test_tag_no_operation(self):
         """Test tag with no add or remove."""
@@ -271,11 +273,14 @@ user personal@gmail.com
 
             result = server_info()
 
-            assert "✓ msmtp: msmtp version 1.8.11" in result
-            assert "Accounts: 2 configured" in result
-            assert "✓ offlineimap: offlineimap v7.3.3" in result
-            assert "✓ notmuch: notmuch 0.32.2" in result
-            assert "Database: 1234 messages indexed" in result
+            assert result.name == "Email Tool Server"
+            assert result.version == "1.9.4"
+            assert result.status == "active"
+            assert "msmtp - msmtp version 1.8.11" in result.capabilities
+            assert "offlineimap - offlineimap v7.3.3" in result.capabilities
+            assert "notmuch - notmuch 0.32.2" in result.capabilities
+            assert result.dependencies["msmtp_accounts"] == "2"
+            assert result.dependencies["notmuch_database"] == "1234 messages indexed"
 
     def test_server_info_tool_missing(self):
         """Test server info when tools are missing."""

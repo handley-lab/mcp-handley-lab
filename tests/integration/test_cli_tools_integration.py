@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from mcp_handley_lab.code2prompt.tool import generate_prompt
 from mcp_handley_lab.code2prompt.tool import server_info as code2prompt_server_info
 from mcp_handley_lab.jq.tool import edit, query, read, validate
@@ -106,7 +105,7 @@ class TestCode2PromptIntegration:
             path=str(test_dir), include=["*.py"], output_file=output_file
         )
 
-        assert "success" in result.lower()
+        assert "success" in result.message.lower()
         assert Path(output_file).exists()
 
         content = Path(output_file).read_text()
@@ -127,7 +126,7 @@ class TestCode2PromptIntegration:
             path=str(test_dir), exclude=["__pycache__"], output_file=output_file
         )
 
-        assert "success" in result.lower()
+        assert "success" in result.message.lower()
         content = Path(output_file).read_text()
         assert "main" in content
         # Note: Exclusion filtering may not work perfectly in all cases
@@ -135,5 +134,6 @@ class TestCode2PromptIntegration:
 
     def test_code2prompt_server_info(self):
         result = code2prompt_server_info()
-        assert "code2prompt" in result.lower()
-        assert "version" in result.lower() or "available" in result.lower()
+        assert "Code2Prompt Tool" in result.name
+        assert result.status == "active"
+        assert "generate_prompt" in str(result.capabilities)

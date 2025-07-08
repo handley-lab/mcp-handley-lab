@@ -2,8 +2,6 @@
 from pathlib import Path
 
 import pytest
-from PIL import Image
-
 from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
 from mcp_handley_lab.llm.claude.tool import ask as claude_ask
 from mcp_handley_lab.llm.claude.tool import server_info as claude_server_info
@@ -13,6 +11,7 @@ from mcp_handley_lab.llm.gemini.tool import server_info as gemini_server_info
 from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
 from mcp_handley_lab.llm.openai.tool import ask as openai_ask
 from mcp_handley_lab.llm.openai.tool import server_info as openai_server_info
+from PIL import Image
 
 # Define provider-specific parameters
 llm_providers = [
@@ -99,7 +98,9 @@ def test_llm_ask_basic(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
@@ -132,7 +133,9 @@ def test_llm_ask_with_files(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert any(word in content.lower() for word in ["hello", "world", "test"])
@@ -162,7 +165,9 @@ def test_llm_analyze_image(
         agent_name=False,  # Disable memory for clean test
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert "red" in content.lower()
@@ -184,7 +189,9 @@ def test_llm_memory_disabled(
         agent_name=False,
     )
 
-    assert "saved" in result.lower() or "success" in result.lower()
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
@@ -206,8 +213,8 @@ def test_llm_server_info(skip_if_no_api_key, server_info_func, api_key):
         assert result.dependencies
     else:
         # String return
-        assert "server" in result.lower() or "tool" in result.lower()
-        assert "available" in result.lower() or "status" in result.lower()
+        assert result.status == "active"
+        assert "Tool" in result.name
 
 
 @pytest.mark.vcr

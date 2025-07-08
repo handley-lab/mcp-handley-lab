@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
-
 from mcp_handley_lab.email.mutt.tool import (
     list_folders,
     server_info,
@@ -70,7 +69,6 @@ class TestMuttContactManagement:
 
         with pytest.raises(ValueError, match="Both alias and email are required"):
             add_contact("test", "")
-
 
     @patch(
         "builtins.open",
@@ -146,9 +144,9 @@ class TestMuttFolderManagement:
 
         result = list_folders()
 
-        assert "Available mailboxes:" in result
-        assert "- INBOX" in result
-        assert "- Projects/GW" in result
+        assert result == ["INBOX", "Sent", "Archive", "Trash", "Projects/GW"]
+        assert "INBOX" in result
+        assert "Projects/GW" in result
 
     @patch("mcp_handley_lab.email.mutt.tool._run_command")
     def test_list_folders_no_config(self, mock_run_command):
@@ -170,7 +168,7 @@ class TestMuttFolderManagement:
 
         result = list_folders()
 
-        assert "No mailboxes found" in result
+        assert result == []
 
 
 class TestMuttServerInfo:
@@ -185,11 +183,13 @@ class TestMuttServerInfo:
 
         result = server_info()
 
-        assert "Mutt Tool Server Status" in result
-        assert "Mutt 2.2.14" in result
-        assert "compose_email" in result
+        assert result.name == "Mutt Tool"
+        assert "Mutt 2.2.14" in result.version
+        assert result.status == "active"
+        assert "compose_email" in str(result.capabilities)
+        assert "compose_email" in str(result.capabilities)
         # add_contact is now in mutt_aliases, not mutt
-        assert "server_info" in result
+        assert "server_info" in str(result.capabilities)
 
     @patch("mcp_handley_lab.email.mutt.tool._run_command")
     def test_server_info_mutt_not_found(self, mock_run_command):
@@ -223,4 +223,3 @@ class TestMuttContactWorkflows:
         # Verify the alias format is correct for mutt
         expected_alias = 'alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk>\n'
         mock_file().write.assert_called_once_with(expected_alias)
-

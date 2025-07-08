@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from mcp_handley_lab.email.msmtp.tool import send
 from mcp_handley_lab.email.notmuch.tool import search
 from mcp_handley_lab.email.offlineimap.tool import sync
@@ -567,7 +566,8 @@ Subject: {test_subject}
                     account="HandleyLab",
                 )
 
-                assert "sent successfully" in send_result.lower()
+                assert send_result.status == "success"
+                assert send_result.recipient == "handleylab@gmail.com"
                 print("✅ Email sent via email tool")
 
                 # Step 2: Wait for delivery

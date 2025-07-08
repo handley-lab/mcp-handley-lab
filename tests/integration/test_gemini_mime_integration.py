@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from mcp_handley_lab.llm.gemini.tool import ask
 
 # File type test parameters
@@ -115,7 +114,8 @@ def test_gemini_file_upload_by_type(
             agent_name=False,
         )
 
-        assert "saved" in result.lower() or "success" in result.lower()
+        assert result.content is not None
+        assert len(result.content) > 0
         assert Path(test_output_file).exists()
 
         content = Path(test_output_file).read_text()
@@ -153,7 +153,8 @@ def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output_file)
             agent_name=False,
         )
 
-        assert "saved" in result.lower() or "success" in result.lower()
+        assert result.content is not None
+        assert len(result.content) > 0
         assert Path(test_output_file).exists()
 
         content = Path(test_output_file).read_text()
@@ -189,7 +190,8 @@ def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_file):
             agent_name=False,
         )
 
-        assert "saved" in result.lower() or "success" in result.lower()
+        assert result.content is not None
+        assert len(result.content) > 0
         assert Path(test_output_file).exists()
 
         content = Path(test_output_file).read_text()

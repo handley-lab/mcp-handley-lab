@@ -384,9 +384,12 @@ def run_tool_function(
     required_params = input_schema.get("required", [])
     all_params = list(input_schema.get("properties", {}).keys())
 
-    # Simplified parameter parsing
+    # Simplified parameter parsing - keep all values as strings
     positional_args = [p for p in params if "=" not in p]
-    kwargs.update(dict(p.split("=", 1) for p in params if "=" in p))
+    for param in params:
+        if "=" in param:
+            key, value = param.split("=", 1)
+            kwargs[key] = value  # Keep as string, don't convert to dict
 
     # Map positional args to parameters (required first, then others)
     param_order = required_params + [p for p in all_params if p not in required_params]

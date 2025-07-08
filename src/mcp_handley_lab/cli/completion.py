@@ -33,8 +33,8 @@ _mcp_cli() {
         )
 
         # Add completions in order (tools first, then options)
-        _describe '' tools
-        _describe '' options
+        _describe '' "$tools[@]"
+        _describe '' "$options[@]"
         return 0
     elif [[ $CURRENT -eq 3 && $words[2] && $words[2] != -* ]]; then
         # Second tier: functions and tool options
@@ -52,8 +52,8 @@ _mcp_cli() {
         )
 
         # Add completions in order (functions first, then options)
-        _describe '' functions
-        _describe '' options
+        _describe '' "$functions[@]"
+        _describe '' "$options[@]"
         return 0
     elif [[ $CURRENT -gt 3 && $words[2] && $words[2] != -* && $words[3] && $words[3] != -* ]]; then
         # Third tier: parameters and function options
@@ -72,8 +72,8 @@ _mcp_cli() {
         )
 
         # Add completions in order (parameters first, then options)
-        _describe '' params
-        _describe '' options
+        _describe '' "$params[@]"
+        _describe '' "$options[@]"
         return 0
     fi
 }

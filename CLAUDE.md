@@ -478,6 +478,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 **CRITICAL: Test Changes Locally Before Using MCP Tools:**
 - After making changes to tool implementations, ALWAYS test locally first
 - **Claude Desktop must be restarted** to use updated tool versions via MCP
+- **When using Claude Code: User must restart Claude Code for tool changes to take effect**
 - For development testing without restarting Claude, use JSON-RPC commands directly
 - Test options:
   1. JSON-RPC testing (preferred): Send test messages to the server

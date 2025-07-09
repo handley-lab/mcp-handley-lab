@@ -70,6 +70,7 @@ Get directions and routing information
   - _Claude example_: `> what time train do I need to get from Cambridge North to get to Euston in time for 10:30 on Sunday?`
   - **Requires**: Google Maps API key (`GOOGLE_MAPS_API_KEY`)
 
+
 ### 🔧 **JSON Manipulation** (`jq`)
 Process JSON data with the power of jq
   - Query, transform, and validate JSON

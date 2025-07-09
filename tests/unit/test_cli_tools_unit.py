@@ -490,7 +490,7 @@ class TestCode2PromptUnit:
 
             try:
                 result = generate_prompt(path=temp_dir, output_file=f.name)
-                assert "success" in result.lower()
+                assert "success" in result.message.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -510,7 +510,10 @@ class TestCode2PromptUnit:
                     exclude=["__pycache__"],
                     output_file=f.name,
                 )
-                assert "success" in result.lower() or "generated" in result.lower()
+                assert (
+                    "success" in result.message.lower()
+                    or "generated" in result.message.lower()
+                )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -578,7 +581,7 @@ class TestCode2PromptUnit:
                 git_diff_branch1="main",
                 git_diff_branch2="feature",
             )
-            assert "success" in result.lower()
+            assert "success" in result.message.lower()
 
             Path(f.name).unlink(missing_ok=True)
 
@@ -600,7 +603,7 @@ class TestCode2PromptUnit:
                 git_log_branch1="v1.0.0",
                 git_log_branch2="HEAD",
             )
-            assert "success" in result.lower()
+            assert "success" in result.message.lower()
 
             Path(f.name).unlink(missing_ok=True)
 
@@ -613,7 +616,8 @@ class TestCode2PromptUnit:
         from mcp_handley_lab.code2prompt.tool import server_info
 
         result = server_info()
-        assert "status" in result.lower() and "code2prompt" in result.lower()
+        assert result.status == "active"
+        assert "Code2Prompt Tool" in result.name
 
     @patch("mcp_handley_lab.code2prompt.tool._run_code2prompt")
     def test_server_info_error_handling(self, mock_run_code2prompt):

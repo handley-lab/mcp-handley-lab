@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.3.1"
+version = "0.4.0"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -33,6 +33,8 @@ dependencies = [
     "chromadb>=1.0.0",
     "nbformat>=5.0.0",
     "nbclient>=0.8.0",
+    "pyfzf>=0.3.1",
+    "click>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -68,14 +70,16 @@ mcp-github = "mcp_handley_lab.github.tool:mcp.run"
 mcp-knowledge = "mcp_handley_lab.knowledge.generic_tools:mcp.run"
 mcp-notes = "mcp_handley_lab.notes.tool:mcp.run"
 mcp-py2nb = "mcp_handley_lab.py2nb.tool:mcp.run"
+mcp-notes-server = "mcp_handley_lab.notes.server:main"
 mcp-handley-lab = "mcp_handley_lab.__main__:main"
+mcp-cli = "mcp_handley_lab.cli.main:cli"
 
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_handley_lab = ["py.typed", "llm/*/models.yaml"]
+mcp_handley_lab = ["py.typed", "llm/*/models.yaml", "tool_schemas.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

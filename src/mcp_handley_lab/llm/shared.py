@@ -8,9 +8,9 @@ from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.common import (
     get_session_id,
     handle_agent_memory,
-    handle_output,
 )
 from mcp_handley_lab.llm.memory import memory_manager
+from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult
 
 
 def process_llm_request(
@@ -22,16 +22,13 @@ def process_llm_request(
     generation_func: Callable,
     mcp_instance,
     **kwargs,
-) -> str:
+) -> LLMResult:
     """Generic handler for LLM requests that abstracts common patterns."""
     # Input validation
     if not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file.strip():
         raise ValueError("Output file is required and cannot be empty")
-    # agent_name validation: "session", "" (no memory), or actual name
-    # No validation needed - all string values are valid
-
     # Store original prompt for memory
     user_prompt = prompt
     history = []
@@ -93,8 +90,23 @@ def process_llm_request(
         )
 
     # Handle output
-    return handle_output(
-        response_text, output_file, model, input_tokens, output_tokens, cost, provider
+    if output_file != "-":
+        output_path = Path(output_file)
+        output_path.write_text(response_text)
+
+    from mcp_handley_lab.shared.models import UsageStats
+
+    usage_stats = UsageStats(
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cost=cost,
+        model_used=model,
+    )
+
+    return LLMResult(
+        content=response_text,
+        usage=usage_stats,
+        agent_name=actual_agent_name if use_memory else "",
     )
 
 
@@ -115,7 +127,7 @@ def process_image_generation(
     generation_func: Callable,
     mcp_instance,
     **kwargs,
-) -> str:
+) -> ImageGenerationResult:
     """Generic handler for LLM image generation requests."""
     if not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
@@ -126,18 +138,15 @@ def process_image_generation(
     input_tokens = response_data.get("input_tokens", 0)
     output_tokens = response_data.get("output_tokens", 1)
 
-    # Save to temporary file
     file_id = str(uuid.uuid4())[:8]
     filename = f"{provider}_generated_{file_id}.png"
     filepath = Path(tempfile.gettempdir()) / filename
     filepath.write_bytes(image_bytes)
 
-    # Calculate cost
     cost = calculate_cost(
         model, input_tokens, output_tokens, provider, images_generated=1
     )
 
-    # Handle agent memory
     handle_agent_memory(
         agent_name,
         f"Generate image: {prompt}",
@@ -148,7 +157,21 @@ def process_image_generation(
         lambda: get_session_id(mcp_instance),
     )
 
-    # Format response
     file_size = len(image_bytes)
-    cost_str = f"${cost:.4f}" if cost < 0.01 else f"${cost:.2f}"
-    return f"✅ Image Generated Successfully\n📁 Saved to: {filepath}\n📏 Size: {file_size:,} bytes\n💰 Cost: {cost_str}"
+
+    from mcp_handley_lab.shared.models import UsageStats
+
+    usage_stats = UsageStats(
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cost=cost,
+        model_used=model,
+    )
+
+    return ImageGenerationResult(
+        message="Image Generated Successfully",
+        file_path=str(filepath),
+        file_size_bytes=file_size,
+        usage=usage_stats,
+        agent_name=agent_name if agent_name else "",
+    )

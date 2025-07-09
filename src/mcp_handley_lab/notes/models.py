@@ -58,19 +58,15 @@ class Note(BaseModel):
         from pathlib import Path
 
         path = Path(file_path)
-        # Extract all directory components as hierarchical tags
         path_tags = []
         for part in path.parent.parts:
-            if part not in (".", "notes", ""):  # Skip root/notes directories
+            if part not in (".", "notes", ""):
                 path_tags.append(part)
 
-        # Add path tags to existing tags (avoid duplicates, maintain hierarchy)
-        # Insert path tags at the beginning in order: most general to most specific
         for i, tag in enumerate(path_tags):
             if tag not in self.tags:
                 self.tags.insert(i, tag)
 
-        # Update timestamp since we're modifying tags
         if path_tags:
             self.updated_at = datetime.now()
 
@@ -89,7 +85,7 @@ class Note(BaseModel):
                     if isinstance(item, str) and self._looks_like_uuid(item):
                         linked_ids.append(item)
 
-        return list(set(linked_ids))  # Remove duplicates
+        return list(set(linked_ids))
 
     def _looks_like_uuid(self, value: str) -> bool:
         """Simple heuristic to detect UUID-like strings."""

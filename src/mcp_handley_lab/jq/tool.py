@@ -15,16 +15,12 @@ def _resolve_data(data: str) -> str:
     Note: While the type signature indicates str, FastMCP may still pass
     parsed JSON objects at runtime. This function handles both cases gracefully.
     """
-    # Handle non-string inputs (FastMCP auto-parsing)
     if not isinstance(data, str):
         return json.dumps(data)
 
-    # If it's a string, check if it's a file path
     p = Path(data)
     if p.is_file():
         return p.read_text()
-
-    # Otherwise treat as JSON string
     return data
 
 
@@ -50,17 +46,13 @@ def query(
     flags = [(compact, "-c"), (raw_output, "-r")]
     args = [flag for condition, flag in flags if condition] + [filter]
 
-    # Resolve data to handle various input types
     data_content = _resolve_data(data)
 
-    # Check if original data is a file path - if so, pass directly to jq for efficiency
     if isinstance(data, str):
         p = Path(data)
         if p.is_file():
             args.append(str(p))
             return _run_jq(args)
-
-    # Otherwise use the resolved content
     return _run_jq(args, input_text=data_content)
 
 
@@ -72,15 +64,12 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
 
     path = Path(file_path)
 
-    # Create backup if requested
     if backup:
         backup_path = path.with_suffix(path.suffix + ".bak")
         backup_path.write_text(path.read_text())
 
-    # Apply transformation
     result = _run_jq([filter, str(path)])
 
-    # Write result back
     path.write_text(result)
 
     msg = f"Successfully edited {file_path}"

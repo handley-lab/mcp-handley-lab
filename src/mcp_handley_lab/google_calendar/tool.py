@@ -7,8 +7,69 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.config import settings
+from mcp_handley_lab.shared.models import ServerInfo
+
+
+class Attendee(BaseModel):
+    """Calendar event attendee."""
+
+    email: str
+    status: str = Field(alias="responseStatus", default="needsAction")
+
+
+class EventDateTime(BaseModel):
+    """Event date/time information."""
+
+    date_time: str = Field("", alias="dateTime")
+    date: str = ""
+    time_zone: str = Field("", alias="timeZone")
+
+
+class CalendarEvent(BaseModel):
+    """Calendar event details."""
+
+    id: str
+    summary: str
+    description: str = ""
+    location: str = ""
+    start: EventDateTime
+    end: EventDateTime
+    attendees: list[Attendee] = Field(default_factory=list)
+    calendar_name: str = ""
+    created: str = ""
+    updated: str = ""
+
+
+class CreatedEventResult(BaseModel):
+    """Result of creating a calendar event."""
+
+    status: str
+    event_id: str
+    title: str
+    time: str
+    calendar: str
+    attendees: list[str]
+
+
+class CalendarInfo(BaseModel):
+    """Calendar information."""
+
+    id: str
+    name: str = Field(alias="summary")
+    access_role: str = Field(alias="accessRole")
+    color_id: str = Field(alias="colorId")
+
+
+class FreeTimeSlot(BaseModel):
+    """Available time slot."""
+
+    start: str
+    end: str
+    duration_minutes: int
+
 
 mcp = FastMCP("Google Calendar Tool")
 
@@ -23,12 +84,10 @@ def _get_calendar_service():
     token_file = settings.google_token_path
     credentials_file = settings.google_credentials_path
 
-    # Load existing token
     if token_file.exists():
         with open(token_file, "rb") as f:
             creds = pickle.load(f)
 
-    # Refresh or get new credentials
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -38,7 +97,6 @@ def _get_calendar_service():
             )
             creds = flow.run_local_server(port=0)
 
-        # Save credentials for next run
         token_file.parent.mkdir(parents=True, exist_ok=True)
         with open(token_file, "wb") as f:
             pickle.dump(creds, f)
@@ -51,14 +109,12 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
     if calendar_id in ["primary", "all"] or "@" in calendar_id:
         return calendar_id
 
-    # Try to find calendar by name
     calendar_list = service.calendarList().list().execute()
 
     for calendar in calendar_list.get("items", []):
         if calendar.get("summary", "").lower() == calendar_id.lower():
             return calendar["id"]
 
-    # If not found, assume it's already an ID
     return calendar_id
 
 
@@ -76,32 +132,25 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
         return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     if "T" not in dt_str:
-        # Date only format - treat as start of day in UTC
         return dt_str + "T00:00:00Z"
 
     if dt_str.endswith("Z"):
-        # Already UTC
         return dt_str
     elif "+" in dt_str or dt_str.count("-") > 2:
-        # Has timezone info - convert to UTC properly
         dt = datetime.fromisoformat(dt_str)
         utc_dt = dt.astimezone(timezone.utc)
         return utc_dt.isoformat().replace("+00:00", "Z")
     else:
-        # Naive datetime - assume UTC
         return dt_str + "Z"
 
 
 def _format_datetime(dt_str: str) -> str:
     """Format datetime string for display with proper timezone handling."""
     if "T" in dt_str:
-        # DateTime format
         dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
         if dt.tzinfo:
-            # Format with timezone info
             return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
         else:
-            # Naive datetime - assume UTC for display
             dt = dt.replace(tzinfo=timezone.utc)
             return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
     else:
@@ -132,19 +181,16 @@ def _client_side_filter(
     if not search_fields:
         search_fields = ["summary", "description", "location"]
 
-    # Split search text into terms
     search_terms = search_text.split()
     if not search_terms:
         return events
 
-    # Prepare search terms for comparison
     if not case_sensitive:
         search_terms = [term.lower() for term in search_terms]
 
     filtered_events = []
 
     for event in events:
-        # Extract searchable text from event
         searchable_text_parts = []
 
         for field in search_fields:
@@ -155,7 +201,6 @@ def _client_side_filter(
             elif field == "location":
                 text = event.get("location", "")
             elif field == "attendees":
-                # Search in attendee names and emails
                 attendees = event.get("attendees", [])
                 attendee_texts = []
                 for attendee in attendees:
@@ -168,17 +213,13 @@ def _client_side_filter(
             if text:
                 searchable_text_parts.append(text)
 
-        # Combine all searchable text
         full_searchable_text = " ".join(searchable_text_parts)
         if not case_sensitive:
             full_searchable_text = full_searchable_text.lower()
 
-        # Check if event matches search criteria
         if match_all_terms:
-            # AND logic: all terms must be present
             matches = all(term in full_searchable_text for term in search_terms)
         else:
-            # OR logic: any term can be present
             matches = any(term in full_searchable_text for term in search_terms)
 
         if matches:
@@ -190,39 +231,47 @@ def _client_side_filter(
 @mcp.tool(
     description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps."
 )
-def get_event(event_id: str, calendar_id: str = "primary") -> str:
+def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
     """Get detailed information about a specific event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
     event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
 
-    result = "Event Details:\n"
-    result += f"Title: {event.get('summary', 'No Title')}\n"
+    # Convert start/end to EventDateTime objects
+    start_dt = EventDateTime(
+        dateTime=event["start"].get("dateTime", ""),
+        date=event["start"].get("date", ""),
+        timeZone=event["start"].get("timeZone", ""),
+    )
+    end_dt = EventDateTime(
+        dateTime=event["end"].get("dateTime", ""),
+        date=event["end"].get("date", ""),
+        timeZone=event["end"].get("timeZone", ""),
+    )
 
-    start = event["start"].get("dateTime", event["start"].get("date"))
-    end = event["end"].get("dateTime", event["end"].get("date"))
-    result += f"Start: {_format_datetime(start)}\n"
-    result += f"End: {_format_datetime(end)}\n"
-
-    if event.get("description"):
-        result += f"Description: {event['description']}\n"
-
-    if event.get("location"):
-        result += f"Location: {event['location']}\n"
-
+    # Convert attendees
+    attendees = []
     if event.get("attendees"):
-        result += "Attendees:\n"
-        for attendee in event["attendees"]:
-            email = attendee.get("email", "Unknown")
-            status = attendee.get("responseStatus", "needsAction")
-            result += f"  - {email} ({status})\n"
+        attendees = [
+            Attendee(
+                email=att.get("email", "Unknown"),
+                responseStatus=att.get("responseStatus", "needsAction"),
+            )
+            for att in event["attendees"]
+        ]
 
-    result += f"Event ID: {event['id']}\n"
-    result += f"Created: {event.get('created', 'Unknown')}\n"
-    result += f"Updated: {event.get('updated', 'Unknown')}\n"
-
-    return result
+    return CalendarEvent(
+        id=event["id"],
+        summary=event.get("summary", "No Title"),
+        description=event.get("description", ""),
+        location=event.get("location", ""),
+        start=start_dt,
+        end=end_dt,
+        attendees=attendees,
+        created=event.get("created", ""),
+        updated=event.get("updated", ""),
+    )
 
 
 @mcp.tool(
@@ -236,12 +285,11 @@ def create_event(
     calendar_id: str = "primary",
     timezone: str = "UTC",
     attendees: list[str] = [],
-) -> str:
+) -> CreatedEventResult:
     """Create a new calendar event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # Build event object
     event_body = {
         "summary": summary,
         "description": description or "",
@@ -249,43 +297,32 @@ def create_event(
         "end": {},
     }
 
-    # Handle all-day vs timed events
     if "T" in start_datetime:
-        # Timed event
         event_body["start"]["dateTime"] = start_datetime
         event_body["start"]["timeZone"] = timezone
         event_body["end"]["dateTime"] = end_datetime
         event_body["end"]["timeZone"] = timezone
     else:
-        # All-day event
         event_body["start"]["date"] = start_datetime
         event_body["end"]["date"] = end_datetime
 
-    # Add attendees if provided
     if attendees:
         event_body["attendees"] = [{"email": email} for email in attendees]
 
-    # Create the event
     created_event = (
         service.events().insert(calendarId=resolved_id, body=event_body).execute()
     )
 
     start = created_event["start"].get("dateTime", created_event["start"].get("date"))
 
-    # Return structured data as JSON string for programmatic access
-    import json
-
-    result_data = {
-        "status": "Event created successfully!",
-        "event_id": created_event["id"],
-        "title": created_event["summary"],
-        "time": _format_datetime(start),
-        "calendar": calendar_id,
-        "attendees": attendees or [],
-    }
-
-    # Format as human-readable JSON
-    return json.dumps(result_data, indent=2)
+    return CreatedEventResult(
+        status="Event created successfully!",
+        event_id=created_event["id"],
+        title=created_event["summary"],
+        time=_format_datetime(start),
+        calendar=calendar_id,
+        attendees=attendees or [],
+    )
 
 
 @mcp.tool(
@@ -326,7 +363,6 @@ def update_event(
     if not update_body:
         return "No updates specified. Nothing to do."
 
-    # Use 'patch' which is more efficient for partial updates
     updated_event = (
         service.events()
         .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
@@ -343,7 +379,6 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # The API will return a 404 if it doesn't exist, which is handled below.
     service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
     return f"Event (ID: {event_id}) has been permanently deleted."
 
@@ -351,30 +386,22 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
 @mcp.tool(
     description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools."
 )
-def list_calendars() -> str:
+def list_calendars() -> list[CalendarInfo]:
     """List all accessible calendars."""
     service = _get_calendar_service()
 
     calendar_list = service.calendarList().list().execute()
     calendars = calendar_list.get("items", [])
 
-    if not calendars:
-        return "No calendars found."
-
-    result = f"Found {len(calendars)} accessible calendars:\n\n"
-
-    for calendar in calendars:
-        name = calendar.get("summary", "Unknown")
-        cal_id = calendar["id"]
-        access_role = calendar.get("accessRole", "unknown")
-        color_id = calendar.get("colorId", "default")
-
-        result += f"• {name}\n"
-        result += f"  ID: {cal_id}\n"
-        result += f"  Access: {access_role}\n"
-        result += f"  Color: {color_id}\n\n"
-
-    return result.strip()
+    return [
+        CalendarInfo(
+            id=cal["id"],
+            summary=cal.get("summary", "Unknown"),
+            accessRole=cal.get("accessRole", "unknown"),
+            colorId=cal.get("colorId", "default"),
+        )
+        for cal in calendars
+    ]
 
 
 @mcp.tool(
@@ -386,12 +413,11 @@ def find_time(
     end_date: str = "",
     duration_minutes: int = 60,
     work_hours_only: bool = True,
-) -> str:
+) -> list[FreeTimeSlot]:
     """Find free time slots in a calendar."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # Set default date range
     start_dt = datetime.now() if not start_date else datetime.fromisoformat(start_date)
 
     if not end_date:
@@ -399,7 +425,6 @@ def find_time(
     else:
         end_dt = datetime.fromisoformat(end_date)
 
-    # Get busy times with proper timezone handling
     freebusy_request = {
         "timeMin": _parse_datetime_to_utc(start_dt.isoformat()),
         "timeMax": _parse_datetime_to_utc(end_dt.isoformat()),
@@ -409,9 +434,7 @@ def find_time(
     freebusy_result = service.freebusy().query(body=freebusy_request).execute()
     busy_times = freebusy_result["calendars"][resolved_id].get("busy", [])
 
-    # Generate time slots with proper timezone handling
     slots = []
-    # Convert to UTC for consistent comparison
     if start_dt.tzinfo:
         current = start_dt.astimezone(timezone.utc).replace(tzinfo=None)
     else:
@@ -431,14 +454,11 @@ def find_time(
 
         slot_end = current + slot_duration
 
-        # Check if slot conflicts with busy times
         is_free = True
         for busy in busy_times:
-            # Parse busy times properly
             busy_start = datetime.fromisoformat(busy["start"].replace("Z", "+00:00"))
             busy_end = datetime.fromisoformat(busy["end"].replace("Z", "+00:00"))
 
-            # Convert to UTC naive for comparison
             if busy_start.tzinfo:
                 busy_start = busy_start.astimezone(timezone.utc).replace(tzinfo=None)
             if busy_end.tzinfo:
@@ -451,20 +471,23 @@ def find_time(
         if is_free:
             slots.append((current, slot_end))
 
-        current += timedelta(minutes=30)  # Check every 30 minutes
+        current += timedelta(minutes=30)
 
     if not slots:
-        return f"No free {duration_minutes}-minute slots found in the specified time range."
+        return []
 
-    result = f"Found {len(slots)} free {duration_minutes}-minute slots:\n\n"
-
+    # Convert to FreeTimeSlot objects
+    free_slots = []
     for start_time, end_time in slots[:20]:  # Limit to first 20 slots
-        result += f"• {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%H:%M')}\n"
+        free_slots.append(
+            FreeTimeSlot(
+                start=start_time.strftime("%Y-%m-%d %H:%M"),
+                end=end_time.strftime("%Y-%m-%d %H:%M"),
+                duration_minutes=duration_minutes,
+            )
+        )
 
-    if len(slots) > 20:
-        result += f"\n... and {len(slots) - 20} more slots"
-
-    return result
+    return free_slots
 
 
 @mcp.tool(
@@ -481,23 +504,18 @@ def search_events(
     match_all_terms: bool = True,
 ) -> str:
     """Advanced hybrid search for calendar events."""
-    # Step 1: Server-side filtering using Google API 'q' parameter
-    # This reduces data transfer and improves initial search performance
     service = _get_calendar_service()
 
-    # Set default date range if not provided with proper timezone handling
     if not start_date:
-        start_date = _parse_datetime_to_utc("")  # Uses current time in UTC
+        start_date = _parse_datetime_to_utc("")
     else:
         start_date = _parse_datetime_to_utc(start_date)
 
     if not end_date:
-        # Default to 7 days for basic listing, 1 year for search
         days = 7 if not search_text else 365
         end_dt = datetime.now(timezone.utc) + timedelta(days=days)
         end_date = end_dt.isoformat().replace("+00:00", "Z")
     else:
-        # Handle end date - for date-only format, use end of day
         if "T" not in end_date:
             end_date = end_date + "T23:59:59Z"
         else:
@@ -507,7 +525,6 @@ def search_events(
     warnings = []
 
     if calendar_id == "all":
-        # Search all calendars
         calendar_list = service.calendarList().list().execute()
 
         for calendar in calendar_list.get("items", []):
@@ -530,7 +547,6 @@ def search_events(
                 event["calendar_name"] = calendar.get("summary", cal_id)
             events_list.extend(cal_events)
     else:
-        # Search specific calendar
         resolved_id = _resolve_calendar_id(calendar_id, service)
 
         params = {
@@ -546,8 +562,6 @@ def search_events(
         events_result = service.events().list(**params).execute()
         events_list = events_result.get("items", [])
 
-    # Step 2: Apply client-side filtering if advanced options are specified
-    # This provides granular control not available in the Google API
     if search_fields or case_sensitive or not match_all_terms:
         filtered_events = _client_side_filter(
             events_list,
@@ -567,7 +581,6 @@ def search_events(
         else:
             return "No events found in the specified date range."
 
-    # Sort by start time
     filtered_events.sort(
         key=lambda x: x.get("start", {}).get(
             "dateTime", x.get("start", {}).get("date", "")
@@ -595,7 +608,6 @@ def search_events(
             result += f"  Location: {event['location']}\n"
 
         if event.get("description"):
-            # Show first 100 characters of description
             desc = event["description"]
             if len(desc) > 100:
                 desc = desc[:97] + "..."
@@ -603,13 +615,11 @@ def search_events(
 
         result += "\n"
 
-    # Add warnings if any calendars were inaccessible
     if warnings:
         result += (
             "\n⚠️ Warnings:\n" + "\n".join(f"- {warning}" for warning in warnings) + "\n"
         )
 
-    # Add search summary only for advanced searches
     if search_text and (search_fields or case_sensitive or not match_all_terms):
         search_summary = "\nSearch Details:\n"
         search_summary += f"- Search text: '{search_text}'\n"
@@ -625,25 +635,28 @@ def search_events(
 @mcp.tool(
     description="Checks the status of the Google Calendar server and API connectivity. Returns version info and available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and Google Calendar API connection info."""
     service = _get_calendar_service()
 
-    # Test API connection by getting calendar list
     calendar_list = service.calendarList().list(maxResults=1).execute()
 
-    return f"""Google Calendar Tool Server Status
-========================================
-Status: Connected and ready
-API Connection: ✓ Active
-Calendars Access: ✓ Available ({len(calendar_list.get('items', []))} calendars accessible)
-
-Available tools:
-- search_events: Search and list calendar events (handles both basic listing and advanced search)
-- get_event: Get detailed event information
-- create_event: Create new calendar events
-- update_event: Update existing events
-- delete_event: Delete calendar events
-- list_calendars: List all accessible calendars
-- find_time: Find free time slots
-- server_info: Get server status"""
+    return ServerInfo(
+        name="Google Calendar Tool",
+        version="1.9.4",
+        status="active",
+        capabilities=[
+            "search_events - Search and list calendar events",
+            "get_event - Get detailed event information",
+            "create_event - Create new calendar events",
+            "update_event - Update existing events",
+            "delete_event - Delete calendar events",
+            "list_calendars - List all accessible calendars",
+            "find_time - Find free time slots",
+            "server_info - Get server status",
+        ],
+        dependencies={
+            "google_calendar_api": "active",
+            "calendars_accessible": str(len(calendar_list.get("items", []))),
+        },
+    )

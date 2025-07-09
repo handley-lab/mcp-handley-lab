@@ -17,7 +17,6 @@ class YAMLNoteStorage:
         self.notes_dir = self.storage_dir / "notes"
         self.notes_dir.mkdir(parents=True, exist_ok=True)
 
-        # Configure YAML with comment preservation
         self.yaml = YAML()
         self.yaml.preserve_quotes = True
         self.yaml.default_flow_style = False
@@ -38,7 +37,6 @@ class YAMLNoteStorage:
             type_dir.mkdir(parents=True, exist_ok=True)
             return type_dir / f"{slug}.yaml"
         else:
-            # Find file by UUID scanning
             found_path = self._find_file_by_uuid(note_id)
             if found_path:
                 return found_path
@@ -49,7 +47,6 @@ class YAMLNoteStorage:
         """Convert Note to YAML-serializable dict."""
         data = note.model_dump()
 
-        # Convert datetime objects to ISO strings
         if isinstance(data.get("created_at"), datetime):
             data["created_at"] = data["created_at"].isoformat()
         if isinstance(data.get("updated_at"), datetime):
@@ -59,7 +56,6 @@ class YAMLNoteStorage:
 
     def _deserialize_note(self, data: dict[str, Any]) -> Note:
         """Convert YAML dict to Note."""
-        # Parse datetime fields
         if "created_at" in data and isinstance(data["created_at"], str):
             data["created_at"] = datetime.fromisoformat(data["created_at"])
         if "updated_at" in data and isinstance(data["updated_at"], str):
@@ -79,10 +75,9 @@ class YAMLNoteStorage:
         if note_type and slug:
             file_path = self._note_file_path(note.id, note_type, slug)
         else:
-            # Update existing note at its current location
             file_path = self._note_file_path(note.id)
 
-        # Ensure parent directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Inherit tags from filesystem path before saving
@@ -98,6 +93,13 @@ class YAMLNoteStorage:
         """Load a note from its YAML file by UUID."""
         file_path = self._find_file_by_uuid(note_id)
         if not file_path or not file_path.exists():
+            return None
+
+        return self._load_note_from_file(file_path)
+
+    def _load_note_from_file(self, file_path: Path) -> Note | None:
+        """Load a note directly from a file path."""
+        if not file_path.exists():
             return None
 
         with open(file_path) as f:
@@ -388,3 +390,9 @@ class GlobalLocalYAMLStorage:
             return global_path
 
         return None
+
+    def _load_note_from_file(self, file_path: Path) -> Note | None:
+        """Load a note directly from a file path."""
+        if str(file_path).startswith(str(self.global_storage.notes_dir)):
+            return self.global_storage._load_note_from_file(file_path)
+        return self.local_storage._load_note_from_file(file_path)

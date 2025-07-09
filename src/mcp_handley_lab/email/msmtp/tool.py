@@ -1,11 +1,23 @@
 """MSMTP email sending provider."""
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 
-def _parse_msmtprc(config_file: str = None) -> list[str]:
+class SendResult(BaseModel):
+    """Result of sending an email."""
+
+    status: str = "success"
+    recipient: str
+    account_used: str = ""
+    cc_recipients: list[str] = []
+    bcc_recipients: list[str] = []
+
+
+def _parse_msmtprc(config_file: str = "") -> list[str]:
     """Parse msmtp config to extract account names."""
     msmtprc_path = Path(config_file) if config_file else Path.home() / ".msmtprc"
     if not msmtprc_path.exists():
@@ -22,17 +34,18 @@ def _parse_msmtprc(config_file: str = None) -> list[str]:
     return accounts
 
 
-@mcp.tool(description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients.")
+@mcp.tool(
+    description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients."
+)
 def send(
     to: str,
     subject: str,
     body: str,
-    account: str | None = None,
-    cc: str | None = None,
-    bcc: str | None = None,
-) -> str:
+    account: str = "",
+    cc: str = "",
+    bcc: str = "",
+) -> SendResult:
     """Send an email using msmtp with existing ~/.msmtprc configuration."""
-    # Create email message
     email_content = f"To: {to}\n"
     email_content += f"Subject: {subject}\n"
 
@@ -41,15 +54,13 @@ def send(
     if bcc:
         email_content += f"Bcc: {bcc}\n"
 
-    email_content += "\n"  # Empty line separates headers from body
+    email_content += "\n"
     email_content += body
 
-    # Build msmtp command
     cmd = ["msmtp"]
     if account:
         cmd.extend(["-a", account])
 
-    # Add recipients
     recipients = [to]
     if cc:
         recipients.extend([addr.strip() for addr in cc.split(",")])
@@ -58,25 +69,25 @@ def send(
 
     cmd.extend(recipients)
 
-    # Send email
     input_bytes = email_content.encode()
     stdout, stderr = run_command(cmd, input_data=input_bytes)
 
-    return f"Email sent successfully to {to}" + (
-        f" (account: {account})" if account else ""
+    cc_list = [addr.strip() for addr in cc.split(",")] if cc else []
+    bcc_list = [addr.strip() for addr in bcc.split(",")] if bcc else []
+
+    return SendResult(
+        recipient=to,
+        account_used=account,
+        cc_recipients=cc_list,
+        bcc_recipients=bcc_list,
     )
 
 
-@mcp.tool(description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool.")
-def list_accounts(config_file: str = None) -> str:
+@mcp.tool(
+    description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool."
+)
+def list_accounts(config_file: str = "") -> list[str]:
     """List available msmtp accounts by parsing msmtp config."""
     accounts = _parse_msmtprc(config_file)
 
-    if not accounts:
-        return "Available msmtp accounts:\n(none configured)"
-
-    return "Available msmtp accounts:\n" + "\n".join(
-        f"- {account}" for account in accounts
-    )
-
-
+    return accounts

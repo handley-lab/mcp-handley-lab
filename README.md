@@ -46,6 +46,12 @@ Search and download academic papers from ArXiv
   - Download source code, PDFs, or LaTeX files
   - _Claude example_: `> find all papers by Harry Bevins on arxiv`
 
+### 📓 **Python/Notebook Conversion** (`py2nb`)
+Convert between Python scripts and Jupyter notebooks
+  - Bidirectional Python ↔ Jupyter notebook conversion
+  - Preserve markdown comments and cell structure
+  - _Claude example_: `> convert this Python script to a Jupyter notebook`
+
 ### 🔍 **Code Flattening** (`code2prompt`)
 Convert codebases into structured, AI-readable text
   - Flatten project structure and code into markdown format

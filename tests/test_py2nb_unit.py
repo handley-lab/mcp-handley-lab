@@ -1,9 +1,9 @@
-"""Improved unit tests for notebook conversion tool using tmp_path fixture."""
+"""Improved unit tests for py2nb conversion tool using tmp_path fixture."""
 import json
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.notebook.converter import (
+from mcp_handley_lab.py2nb.converter import (
     _extract_content,
     _get_comment_type,
     _str_starts_with,

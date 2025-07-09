@@ -1,4 +1,4 @@
-"""Integration tests for notebook conversion tool."""
+"""Integration tests for py2nb conversion tool."""
 import contextlib
 import json
 import subprocess
@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.notebook.tool import (
+from mcp_handley_lab.py2nb.tool import (
     execute_notebook,
     notebook_to_py,
     py_to_notebook,
@@ -14,13 +14,13 @@ from mcp_handley_lab.notebook.tool import (
     validate_notebook,
     validate_python,
 )
-from mcp_handley_lab.notebook.tool import (
+from mcp_handley_lab.py2nb.tool import (
     test_roundtrip as roundtrip_test,
 )
 
 
-class TestNotebookToolIntegration:
-    """Integration tests for notebook conversion tool."""
+class TestPy2nbToolIntegration:
+    """Integration tests for py2nb conversion tool."""
 
     def test_py_to_notebook_integration(self):
         """Test full Python to notebook conversion."""
@@ -515,15 +515,15 @@ result"""
 
 
 @pytest.mark.integration
-class TestNotebookMCPIntegration:
-    """Test notebook tool via MCP JSON-RPC protocol."""
+class TestPy2nbMCPIntegration:
+    """Test py2nb tool via MCP JSON-RPC protocol."""
 
     def test_mcp_server_startup(self):
         """Test that the MCP server starts correctly."""
         try:
             # Test server startup
             result = subprocess.run(
-                ["python", "-m", "mcp_handley_lab.notebook.tool"],
+                ["python", "-m", "mcp_handley_lab.py2nb.tool"],
                 input='{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}',
                 capture_output=True,
                 text=True,
@@ -551,7 +551,7 @@ print("Hello from MCP!")
         try:
             # Test MCP server startup - just check it doesn't crash immediately
             process = subprocess.Popen(
-                ["python", "-m", "mcp_handley_lab.notebook.tool"],
+                ["python", "-m", "mcp_handley_lab.py2nb.tool"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

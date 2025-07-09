@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from mcp_handley_lab.notebook.tool import (
+    execute_notebook,
     notebook_to_py,
     py_to_notebook,
     server_info,
@@ -264,6 +265,68 @@ print(f"Result: {y}")
 
         finally:
             Path(python_file).unlink(missing_ok=True)
+
+    def test_notebook_execution_integration(self):
+        """Test notebook execution functionality."""
+        # Create test Python file with executable content
+        test_content = """import math
+print("Hello from executed notebook!")
+x = 5
+y = x * 2
+print(f"x = {x}, y = {y}")
+
+# This should produce output
+result = math.sqrt(16)
+result"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+            f.write(test_content)
+            python_file = f.name
+
+        try:
+            # Convert to notebook first
+            conversion_result = py_to_notebook(python_file)
+            notebook_file = conversion_result.output_path
+
+            # Execute the notebook
+            execution_result = execute_notebook(notebook_file, allow_errors=True)
+
+            # Verify execution results
+            assert execution_result.success is True
+            assert execution_result.notebook_path == notebook_file
+            assert execution_result.cells_executed >= 1
+            assert execution_result.cells_with_errors == 0
+            assert execution_result.execution_time_seconds > 0
+            assert "Successfully executed" in execution_result.message
+            assert execution_result.kernel_name == "python3"
+
+            # Verify the notebook file was updated with outputs
+            import json
+
+            with open(notebook_file) as f:
+                executed_nb = json.load(f)
+
+            # Check that code cells have execution_count and outputs
+            code_cells = [
+                cell for cell in executed_nb["cells"] if cell["cell_type"] == "code"
+            ]
+            assert len(code_cells) >= 1
+
+            # At least one cell should have been executed
+            executed_cells = [
+                cell for cell in code_cells if cell.get("execution_count") is not None
+            ]
+            assert len(executed_cells) >= 1
+
+            # At least one cell should have outputs
+            cells_with_outputs = [cell for cell in code_cells if cell.get("outputs")]
+            assert len(cells_with_outputs) >= 1
+
+        finally:
+            Path(python_file).unlink(missing_ok=True)
+            Path(notebook_file).unlink(missing_ok=True)
+            if conversion_result.backup_path:
+                Path(conversion_result.backup_path).unlink(missing_ok=True)
 
     def test_server_info_integration(self):
         """Test server info function."""

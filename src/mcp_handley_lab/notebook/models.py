@@ -32,6 +32,19 @@ class RoundtripResult(BaseModel):
     temporary_files_cleaned: bool = True
 
 
+class ExecutionResult(BaseModel):
+    """Result of notebook execution operation."""
+
+    success: bool
+    notebook_path: str
+    cells_executed: int
+    cells_with_errors: int
+    execution_time_seconds: float
+    message: str
+    error_details: str | None = None
+    kernel_name: str | None = None
+
+
 class ServerInfo(BaseModel):
     """Server status and dependency information."""
 

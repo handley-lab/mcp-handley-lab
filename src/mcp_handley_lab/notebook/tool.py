@@ -1,5 +1,6 @@
 """Notebook conversion tool for MCP - bidirectional Python script ↔ Jupyter notebook conversion."""
 import subprocess
+import time
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -10,7 +11,13 @@ from .converter import (
     validate_notebook_file,
     validate_python_file,
 )
-from .models import ConversionResult, RoundtripResult, ServerInfo, ValidationResult
+from .models import (
+    ConversionResult,
+    ExecutionResult,
+    RoundtripResult,
+    ServerInfo,
+    ValidationResult,
+)
 
 mcp = FastMCP("Notebook Conversion Tool")
 
@@ -302,6 +309,7 @@ def server_info() -> ServerInfo:
         "validate_notebook",
         "validate_python",
         "test_roundtrip",
+        "execute_notebook",
         "server_info",
     ]
 
@@ -319,3 +327,138 @@ def server_info() -> ServerInfo:
         available_tools=available_tools,
         comment_syntax=comment_syntax,
     )
+
+
+@mcp.tool(
+    description="Executes all cells in a Jupyter notebook and populates outputs as if a user ran every cell. Returns structured execution results with cell counts and timing."
+)
+def execute_notebook(
+    notebook_path: str,
+    allow_errors: bool = False,
+    timeout: int = 600,
+    kernel_name: str = "python3",
+) -> ExecutionResult:
+    """Execute all cells in a notebook and populate outputs."""
+    notebook_path = Path(notebook_path)
+
+    if not notebook_path.exists():
+        return ExecutionResult(
+            success=False,
+            notebook_path=str(notebook_path),
+            cells_executed=0,
+            cells_with_errors=0,
+            execution_time_seconds=0.0,
+            message="Notebook file not found",
+            error_details=f"File does not exist: {notebook_path}",
+        )
+
+    # Validate notebook first
+    if not validate_notebook_file(str(notebook_path)):
+        return ExecutionResult(
+            success=False,
+            notebook_path=str(notebook_path),
+            cells_executed=0,
+            cells_with_errors=0,
+            execution_time_seconds=0.0,
+            message="Invalid notebook file",
+            error_details="Notebook file has invalid structure",
+        )
+
+    try:
+        import nbformat
+        from nbclient import NotebookClient
+        from nbclient.exceptions import CellExecutionError
+    except ImportError as e:
+        return ExecutionResult(
+            success=False,
+            notebook_path=str(notebook_path),
+            cells_executed=0,
+            cells_with_errors=0,
+            execution_time_seconds=0.0,
+            message="Missing dependencies",
+            error_details=f"Required libraries not installed: {e}",
+        )
+
+    try:
+        # Load the notebook
+        with open(notebook_path, encoding="utf-8") as f:
+            nb = nbformat.read(f, as_version=4)
+
+        # Create execution client
+        client = NotebookClient(
+            nb,
+            timeout=timeout,
+            kernel_name=kernel_name,
+            allow_errors=allow_errors,
+            resources={"metadata": {"path": str(notebook_path.parent)}},
+        )
+
+        # Execute the notebook
+        start_time = time.time()
+
+        try:
+            client.execute()
+            execution_success = True
+            error_message = None
+        except CellExecutionError as e:
+            execution_success = False
+            error_message = str(e)
+        except Exception as e:
+            execution_success = False
+            error_message = f"Execution failed: {str(e)}"
+
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        # Count executed cells and errors
+        cells_executed = 0
+        cells_with_errors = 0
+
+        for cell in client.nb.cells:
+            if cell.cell_type == "code":
+                if (
+                    hasattr(cell, "execution_count")
+                    and cell.execution_count is not None
+                ):
+                    cells_executed += 1
+
+                # Check for errors in outputs
+                if hasattr(cell, "outputs"):
+                    for output in cell.outputs:
+                        if output.get("output_type") == "error":
+                            cells_with_errors += 1
+                            break
+
+        # Save the executed notebook back to file
+        with open(notebook_path, "w", encoding="utf-8") as f:
+            nbformat.write(client.nb, f)
+
+        if execution_success:
+            message = f"Successfully executed {cells_executed} cells in {execution_time:.2f} seconds"
+            if cells_with_errors > 0:
+                message += f" ({cells_with_errors} cells had errors)"
+        else:
+            message = f"Execution stopped after {cells_executed} cells due to error"
+
+        return ExecutionResult(
+            success=execution_success,
+            notebook_path=str(notebook_path),
+            cells_executed=cells_executed,
+            cells_with_errors=cells_with_errors,
+            execution_time_seconds=execution_time,
+            message=message,
+            error_details=error_message,
+            kernel_name=kernel_name,
+        )
+
+    except Exception as e:
+        return ExecutionResult(
+            success=False,
+            notebook_path=str(notebook_path),
+            cells_executed=0,
+            cells_with_errors=0,
+            execution_time_seconds=0.0,
+            message="Execution failed",
+            error_details=str(e),
+            kernel_name=kernel_name,
+        )

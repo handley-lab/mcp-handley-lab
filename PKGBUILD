@@ -18,12 +18,13 @@ depends=(
     'python-pillow>=10.0.0'
     'python-httpx>=0.25.0'
     'python-packaging>=21.0'
-    'python-pyyaml>=6.0.0'
+    'python-yaml>=6.0.0'
     'python-ruamel-yaml>=0.17.0'
     'python-tinydb>=4.8.0'
     'python-jmespath>=1.0.0'
     'python-watchdog>=3.0.0'
     'python-click>=8.0.0'
+    'python-pybase64-git'
 )
 makedepends=(
     'python-build'

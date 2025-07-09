@@ -104,7 +104,9 @@ def _parse_route(route: dict[str, Any]) -> DirectionRoute:
     )
 
 
-@mcp.tool()
+@mcp.tool(
+    description="Gets directions between an origin and destination, supporting multiple travel modes, waypoints, and route preferences like avoiding tolls or highways."
+)
 def get_directions(
     origin: str,
     destination: str,
@@ -116,23 +118,6 @@ def get_directions(
     alternatives: bool = False,
     waypoints: list[str] = [],
 ) -> DirectionsResult:
-    """
-    Get directions between two locations using Google Maps.
-
-    Args:
-        origin: Starting location (address, coordinates, or place name)
-        destination: Ending location (address, coordinates, or place name)
-        mode: Transportation mode (driving, walking, bicycling, transit)
-        departure_time: Departure time in ISO format (e.g., "2024-01-01T09:00:00")
-        avoid_tolls: Whether to avoid toll roads
-        avoid_highways: Whether to avoid highways
-        avoid_ferries: Whether to avoid ferries
-        alternatives: Whether to return alternative routes
-        waypoints: List of intermediate waypoints
-
-    Returns:
-        DirectionsResult containing routes, timing, and navigation details
-    """
     gmaps = _get_maps_client()
 
     # Parse departure time if provided
@@ -182,9 +167,8 @@ def get_directions(
     )
 
 
-@mcp.tool()
+@mcp.tool(description="Get Google Maps Tool server information and capabilities.")
 def server_info() -> ServerInfo:
-    """Get server information and capabilities."""
     return ServerInfo(
         name="Google Maps Tool",
         version="0.4.0",

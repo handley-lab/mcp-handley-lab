@@ -6,9 +6,7 @@ import pytest
 import vcr
 from mcp_handley_lab.google_maps.tool import (
     DirectionsResult,
-    estimate_travel_time,
     get_directions,
-    get_route_alternatives,
     server_info,
 )
 
@@ -133,33 +131,6 @@ class TestGoogleMapsIntegration:
         assert result.status == "OK"
         assert len(result.routes) >= 1
 
-    @google_maps_vcr.use_cassette("test_travel_time_estimation.json")
-    def test_travel_time_estimation(self, mock_api_key):
-        """Test travel time estimation."""
-        result = estimate_travel_time(
-            origin="Times Square, New York, NY",
-            destination="Brooklyn Bridge, New York, NY",
-            mode="driving",
-        )
-
-        assert result["status"] == "OK"
-        assert result["travel_time"]
-        assert result["distance"]
-        assert result["summary"]
-
-    @google_maps_vcr.use_cassette("test_route_alternatives.json")
-    def test_route_alternatives(self, mock_api_key):
-        """Test route alternatives."""
-        result = get_route_alternatives(
-            origin="Times Square, New York, NY",
-            destination="Brooklyn Bridge, New York, NY",
-            mode="driving",
-        )
-
-        assert isinstance(result, DirectionsResult)
-        assert result.status == "OK"
-        assert len(result.routes) >= 1
-
     @google_maps_vcr.use_cassette("test_walking_directions.json")
     def test_walking_directions(self, mock_api_key):
         """Test walking directions."""
@@ -196,11 +167,10 @@ class TestGoogleMapsIntegration:
         assert info.version == "0.4.0"
         assert info.status == "active"
         assert "directions" in info.capabilities
-        assert "travel_time_estimation" in info.capabilities
-        assert "alternative_routes" in info.capabilities
         assert "multiple_transport_modes" in info.capabilities
         assert "waypoint_support" in info.capabilities
         assert "traffic_aware_routing" in info.capabilities
+        assert "alternative_routes" in info.capabilities
 
 
 @pytest.mark.integration

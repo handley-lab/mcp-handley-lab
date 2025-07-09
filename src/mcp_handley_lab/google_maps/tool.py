@@ -1,5 +1,4 @@
 """Google Maps tool for directions and routing via MCP."""
-import os
 from datetime import datetime
 from typing import Any, Literal
 
@@ -53,31 +52,12 @@ class DirectionsResult(BaseModel):
     departure_time: str = ""
 
 
-class RouteOptions(BaseModel):
-    """Options for route calculation."""
-
-    avoid_tolls: bool = False
-    avoid_highways: bool = False
-    avoid_ferries: bool = False
-    departure_time: str = ""
-    waypoints: list[str] = Field(default_factory=list)
-
-
 mcp = FastMCP("Google Maps Tool")
 
 
 def _get_maps_client():
     """Get authenticated Google Maps client."""
-    api_key = settings.google_maps_api_key
-    if api_key == "YOUR_API_KEY_HERE":
-        api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
-
-    if not api_key:
-        raise ValueError(
-            "Google Maps API key not found. Set GOOGLE_MAPS_API_KEY environment variable or update config."
-        )
-
-    return googlemaps.Client(key=api_key)
+    return googlemaps.Client(key=settings.google_maps_api_key)
 
 
 def _parse_step(step: dict[str, Any]) -> DirectionStep:
@@ -153,130 +133,52 @@ def get_directions(
     Returns:
         DirectionsResult containing routes, timing, and navigation details
     """
-    try:
-        gmaps = _get_maps_client()
+    gmaps = _get_maps_client()
 
-        # Parse departure time if provided
-        departure_dt = None
-        if departure_time:
-            departure_dt = datetime.fromisoformat(departure_time.replace("Z", "+00:00"))
+    # Parse departure time if provided
+    departure_dt = None
+    if departure_time:
+        departure_dt = datetime.fromisoformat(departure_time.replace("Z", "+00:00"))
 
-        # Build avoid list
-        avoid = []
-        if avoid_tolls:
-            avoid.append("tolls")
-        if avoid_highways:
-            avoid.append("highways")
-        if avoid_ferries:
-            avoid.append("ferries")
+    # Build avoid list
+    avoid_options = {
+        "tolls": avoid_tolls,
+        "highways": avoid_highways,
+        "ferries": avoid_ferries,
+    }
+    avoid = [option for option, enabled in avoid_options.items() if enabled]
 
-        # Make API request
-        result = gmaps.directions(
-            origin=origin,
-            destination=destination,
-            mode=mode,
-            departure_time=departure_dt,
-            avoid=avoid if avoid else None,
-            alternatives=alternatives,
-            waypoints=waypoints if waypoints else None,
-        )
+    # Make API request
+    result = gmaps.directions(
+        origin=origin,
+        destination=destination,
+        mode=mode,
+        departure_time=departure_dt,
+        avoid=avoid if avoid else None,
+        alternatives=alternatives,
+        waypoints=waypoints if waypoints else None,
+    )
 
-        if not result:
-            return DirectionsResult(
-                routes=[],
-                status="NO_ROUTES_FOUND",
-                origin=origin,
-                destination=destination,
-                mode=mode,
-                departure_time=departure_time,
-            )
-
-        # Parse routes
-        routes = [_parse_route(route) for route in result]
-
-        return DirectionsResult(
-            routes=routes,
-            status="OK",
-            origin=origin,
-            destination=destination,
-            mode=mode,
-            departure_time=departure_time,
-        )
-
-    except Exception as e:
+    if not result:
         return DirectionsResult(
             routes=[],
-            status=f"ERROR: {str(e)}",
+            status="NO_ROUTES_FOUND",
             origin=origin,
             destination=destination,
             mode=mode,
             departure_time=departure_time,
         )
 
+    # Parse routes
+    routes = [_parse_route(route) for route in result]
 
-@mcp.tool()
-def estimate_travel_time(
-    origin: str,
-    destination: str,
-    mode: Literal["driving", "walking", "bicycling", "transit"] = "driving",
-    departure_time: str = "",
-) -> dict[str, Any]:
-    """
-    Estimate travel time between two locations.
-
-    Args:
-        origin: Starting location
-        destination: Ending location
-        mode: Transportation mode
-        departure_time: Departure time in ISO format
-
-    Returns:
-        Dictionary with travel time estimates
-    """
-    try:
-        result = get_directions(origin, destination, mode, departure_time)
-
-        if not result.routes:
-            return {"error": result.status, "travel_time": None}
-
-        main_route = result.routes[0]
-
-        return {
-            "travel_time": main_route.duration,
-            "distance": main_route.distance,
-            "summary": main_route.summary,
-            "status": "OK",
-        }
-
-    except Exception as e:
-        return {"error": str(e), "travel_time": None}
-
-
-@mcp.tool()
-def get_route_alternatives(
-    origin: str,
-    destination: str,
-    mode: Literal["driving", "walking", "bicycling", "transit"] = "driving",
-    departure_time: str = "",
-) -> DirectionsResult:
-    """
-    Get alternative routes between two locations.
-
-    Args:
-        origin: Starting location
-        destination: Ending location
-        mode: Transportation mode
-        departure_time: Departure time in ISO format
-
-    Returns:
-        DirectionsResult with multiple route options
-    """
-    return get_directions(
+    return DirectionsResult(
+        routes=routes,
+        status="OK",
         origin=origin,
         destination=destination,
         mode=mode,
         departure_time=departure_time,
-        alternatives=True,
     )
 
 
@@ -289,11 +191,10 @@ def server_info() -> ServerInfo:
         status="active",
         capabilities=[
             "directions",
-            "travel_time_estimation",
-            "alternative_routes",
             "multiple_transport_modes",
             "waypoint_support",
             "traffic_aware_routing",
+            "alternative_routes",
         ],
         dependencies={"googlemaps": "4.0.0+", "pydantic": "2.0.0+", "mcp": "1.0.0+"},
     )

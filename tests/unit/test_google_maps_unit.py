@@ -13,9 +13,7 @@ from mcp_handley_lab.google_maps.tool import (
     _parse_leg,
     _parse_route,
     _parse_step,
-    estimate_travel_time,
     get_directions,
-    get_route_alternatives,
     server_info,
 )
 
@@ -25,7 +23,7 @@ class TestClientInitialization:
 
     @patch("mcp_handley_lab.google_maps.tool.settings")
     @patch("mcp_handley_lab.google_maps.tool.googlemaps.Client")
-    def test_get_maps_client_with_config_key(self, mock_client_class, mock_settings):
+    def test_get_maps_client(self, mock_client_class, mock_settings):
         """Test client initialization with API key from config."""
         mock_settings.google_maps_api_key = "test_api_key"
         mock_client = MagicMock()
@@ -35,34 +33,6 @@ class TestClientInitialization:
 
         mock_client_class.assert_called_once_with(key="test_api_key")
         assert client == mock_client
-
-    @patch("mcp_handley_lab.google_maps.tool.settings")
-    @patch("mcp_handley_lab.google_maps.tool.os.environ")
-    @patch("mcp_handley_lab.google_maps.tool.googlemaps.Client")
-    def test_get_maps_client_with_env_key(
-        self, mock_client_class, mock_environ, mock_settings
-    ):
-        """Test client initialization with API key from environment."""
-        mock_settings.google_maps_api_key = "YOUR_API_KEY_HERE"
-        mock_environ.get.return_value = "env_api_key"
-        mock_client = MagicMock()
-        mock_client_class.return_value = mock_client
-
-        client = _get_maps_client()
-
-        mock_environ.get.assert_called_once_with("GOOGLE_MAPS_API_KEY")
-        mock_client_class.assert_called_once_with(key="env_api_key")
-        assert client == mock_client
-
-    @patch("mcp_handley_lab.google_maps.tool.settings")
-    @patch("mcp_handley_lab.google_maps.tool.os.environ")
-    def test_get_maps_client_no_key(self, mock_environ, mock_settings):
-        """Test client initialization fails without API key."""
-        mock_settings.google_maps_api_key = "YOUR_API_KEY_HERE"
-        mock_environ.get.return_value = None
-
-        with pytest.raises(ValueError, match="Google Maps API key not found"):
-            _get_maps_client()
 
 
 class TestDataParsing:
@@ -255,91 +225,13 @@ class TestDirectionsFunction:
 
     @patch("mcp_handley_lab.google_maps.tool._get_maps_client")
     def test_get_directions_api_error(self, mock_get_client):
-        """Test directions request with API error."""
+        """Test directions request with API error fails fast."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
         mock_client.directions.side_effect = googlemaps.exceptions.ApiError("API Error")
 
-        result = get_directions("Origin", "Destination")
-
-        assert isinstance(result, DirectionsResult)
-        assert result.status.startswith("ERROR:")
-        assert len(result.routes) == 0
-
-
-class TestTravelTimeEstimation:
-    """Test travel time estimation functionality."""
-
-    @patch("mcp_handley_lab.google_maps.tool.get_directions")
-    def test_estimate_travel_time_success(self, mock_get_directions):
-        """Test successful travel time estimation."""
-        mock_route = DirectionRoute(
-            summary="Test Route",
-            legs=[],
-            distance="5.2 km",
-            duration="12 min",
-            polyline="encoded_polyline",
-        )
-
-        mock_result = DirectionsResult(
-            routes=[mock_route],
-            status="OK",
-            origin="Origin",
-            destination="Destination",
-            mode="driving",
-        )
-        mock_get_directions.return_value = mock_result
-
-        result = estimate_travel_time("Origin", "Destination")
-
-        assert result["status"] == "OK"
-        assert result["travel_time"] == "12 min"
-        assert result["distance"] == "5.2 km"
-        assert result["summary"] == "Test Route"
-
-    @patch("mcp_handley_lab.google_maps.tool.get_directions")
-    def test_estimate_travel_time_no_routes(self, mock_get_directions):
-        """Test travel time estimation with no routes."""
-        mock_result = DirectionsResult(
-            routes=[],
-            status="NO_ROUTES_FOUND",
-            origin="Origin",
-            destination="Destination",
-            mode="driving",
-        )
-        mock_get_directions.return_value = mock_result
-
-        result = estimate_travel_time("Origin", "Destination")
-
-        assert result["error"] == "NO_ROUTES_FOUND"
-        assert result["travel_time"] is None
-
-
-class TestRouteAlternatives:
-    """Test route alternatives functionality."""
-
-    @patch("mcp_handley_lab.google_maps.tool.get_directions")
-    def test_get_route_alternatives(self, mock_get_directions):
-        """Test getting route alternatives."""
-        mock_result = DirectionsResult(
-            routes=[],
-            status="OK",
-            origin="Origin",
-            destination="Destination",
-            mode="driving",
-        )
-        mock_get_directions.return_value = mock_result
-
-        result = get_route_alternatives("Origin", "Destination", "walking")
-
-        mock_get_directions.assert_called_once_with(
-            origin="Origin",
-            destination="Destination",
-            mode="walking",
-            departure_time="",
-            alternatives=True,
-        )
-        assert result == mock_result
+        with pytest.raises(googlemaps.exceptions.ApiError):
+            get_directions("Origin", "Destination")
 
 
 class TestServerInfo:
@@ -353,6 +245,8 @@ class TestServerInfo:
         assert info.version == "0.4.0"
         assert info.status == "active"
         assert "directions" in info.capabilities
-        assert "travel_time_estimation" in info.capabilities
+        assert "multiple_transport_modes" in info.capabilities
+        assert "waypoint_support" in info.capabilities
+        assert "traffic_aware_routing" in info.capabilities
         assert "alternative_routes" in info.capabilities
         assert "googlemaps" in info.dependencies

@@ -22,11 +22,13 @@ pip install -e .
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_MAPS_API_KEY="AIza..."
 
 # 5. Register tools with Claude
 claude mcp add gemini --scope user mcp-gemini
 claude mcp add openai --scope user mcp-openai
 claude mcp add arxiv --scope user mcp-arxiv
+claude mcp add google-maps --scope user mcp-google-maps
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -59,6 +61,14 @@ Manage your calendar programmatically
   - Find free time slots for meetings
   - _Claude example_: `> when did I last meet with Jiamin Hou?, and when would be a good slot to meet with her again this week?`
   - **Requires**: [OAuth2 setup](docs/google-calendar-setup.md)
+
+### 🗺️ **Google Maps** (`google-maps`)
+Get directions and routing information
+  - Multi-modal directions (driving, walking, cycling, transit)
+  - Real-time traffic awareness with departure times
+  - Alternative routes and waypoint support
+  - _Claude example_: `> what time train do I need to get from Cambridge North to get to Euston in time for 10:30 on Sunday?`
+  - **Requires**: Google Maps API key (`GOOGLE_MAPS_API_KEY`)
 
 ### 🔧 **JSON Manipulation** (`jq`)
 Process JSON data with the power of jq

@@ -272,9 +272,12 @@ class TestDirectionsFunction:
             destination="Destination",
             mode="driving",
             departure_time=None,
+            arrival_time=None,
             avoid=None,
             alternatives=False,
             waypoints=None,
+            transit_mode=None,
+            transit_routing_preference=None,
         )
 
     @patch("mcp_handley_lab.google_maps.tool._get_maps_client")
@@ -291,8 +294,7 @@ class TestDirectionsFunction:
             "Destination",
             mode="transit",
             departure_time=departure_time,
-            avoid_tolls=True,
-            avoid_highways=True,
+            avoid=["tolls", "highways"],
             alternatives=True,
             waypoints=["Waypoint1", "Waypoint2"],
         )
@@ -305,9 +307,12 @@ class TestDirectionsFunction:
             destination="Destination",
             mode="transit",
             departure_time=expected_dt,
+            arrival_time=None,
             avoid=["tolls", "highways"],
             alternatives=True,
             waypoints=["Waypoint1", "Waypoint2"],
+            transit_mode=None,
+            transit_routing_preference=None,
         )
 
     @patch("mcp_handley_lab.google_maps.tool._get_maps_client")

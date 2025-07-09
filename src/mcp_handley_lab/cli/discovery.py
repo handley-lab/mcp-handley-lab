@@ -19,9 +19,9 @@ def get_available_tools() -> dict[str, str]:
         "gemini": "mcp-gemini",
         "openai": "mcp-openai",
         "claude": "mcp-claude",
-        "agent": "mcp-agent",
         "email": "mcp-email",
         "github": "mcp-github",
+        "notes": "mcp-notes",
     }
 
     return scripts

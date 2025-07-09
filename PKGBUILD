@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.3.2
+pkgver=0.3.3
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -9,22 +9,34 @@ url="https://github.com/handley-lab/mcp-handley-lab"
 license=('custom') # TODO: Replace with actual license when specified
 depends=(
     'python'
-    'python-mcp>=1.0.0'
     'python-pydantic>=2.0.0'
     'python-pydantic-settings>=2.0.0'
     'python-google-api-python-client>=2.0.0'
     'python-google-auth-httplib2>=0.1.0'
     'python-google-auth-oauthlib>=0.5.0'
-    'python-google-genai>=1.0.0'
     'python-openai>=1.0.0'
     'python-pillow>=10.0.0'
-    'python-msal>=1.20.0'
+    'python-httpx>=0.25.0'
+    'python-packaging>=21.0'
+    'python-yaml>=6.0.0'
+    'python-ruamel-yaml>=0.17.0'
+    'python-tinydb>=4.8.0'
+    'python-jmespath>=1.0.0'
+    'python-watchdog>=3.0.0'
+    'python-click>=8.0.0'
+    'python-pybase64-git'
 )
 makedepends=(
     'python-build'
     'python-installer'
     'python-setuptools'
     'python-wheel'
+    'python-mcp>=1.0.0'
+    'python-google-genai>=1.0.0'
+    'python-anthropic>=0.21.3'
+    'python-msal>=1.20.0'
+    'python-chromadb>=1.0.0'
+    'python-pyfzf>=0.3.1'
 )
 checkdepends=(
     'python-pytest>=7.0.0'

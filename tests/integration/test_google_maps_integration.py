@@ -121,8 +121,7 @@ class TestGoogleMapsIntegration:
         result = get_directions(
             origin="Times Square, New York, NY",
             destination="Brooklyn Bridge, New York, NY",
-            avoid_tolls=True,
-            avoid_highways=True,
+            avoid=["tolls", "highways"],
             mode="driving",
         )
 

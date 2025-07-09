@@ -268,6 +268,10 @@ print(f"Result: {y}")
 
     def test_notebook_execution_integration(self):
         """Test notebook execution functionality."""
+        pytest.importorskip(
+            "nbclient", reason="nbclient required for notebook execution"
+        )
+
         # Create test Python file with executable content
         test_content = """import math
 print("Hello from executed notebook!")
@@ -290,6 +294,13 @@ result"""
 
             # Execute the notebook
             execution_result = execute_notebook(notebook_file, allow_errors=True)
+
+            # Skip test if Jupyter kernel is not available in CI environment
+            if (
+                not execution_result.success
+                and "kernel" in execution_result.message.lower()
+            ):
+                pytest.skip("Jupyter kernel not available in CI environment")
 
             # Verify execution results
             assert execution_result.success is True

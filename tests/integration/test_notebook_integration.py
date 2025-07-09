@@ -56,13 +56,15 @@ print(f"Std: {np.std(data):.3f}")
             # Convert to notebook
             result = py_to_notebook(python_file)
 
-            # Verify result message
-            assert "Successfully converted" in result
-            assert python_file in result
-            assert ".ipynb" in result
+            # Verify result structure
+            assert result.success is True
+            assert result.input_path == python_file
+            assert result.output_path.endswith(".ipynb")
+            assert "Successfully converted" in result.message
+            assert result.backup_path is not None  # backup enabled by default
 
             # Verify notebook file exists
-            notebook_file = Path(python_file).with_suffix(".ipynb")
+            notebook_file = Path(result.output_path)
             assert notebook_file.exists()
 
             # Verify notebook structure
@@ -154,13 +156,15 @@ print(f"Std: {np.std(data):.3f}")
             # Convert to Python
             result = notebook_to_py(notebook_file)
 
-            # Verify result message
-            assert "Successfully converted" in result
-            assert notebook_file in result
-            assert ".py" in result
+            # Verify result structure
+            assert result.success is True
+            assert result.input_path == notebook_file
+            assert result.output_path.endswith(".py")
+            assert "Successfully converted" in result.message
+            assert result.backup_path is not None  # backup enabled by default
 
             # Verify Python file exists
-            python_file = notebook_file.replace(".ipynb", ".py")
+            python_file = result.output_path
             assert Path(python_file).exists()
 
             # Verify Python file content
@@ -208,15 +212,20 @@ print(f"Std: {np.std(data):.3f}")
         try:
             # Test notebook validation
             result = validate_notebook(notebook_file)
-            assert "✅ Notebook validation passed" in result
+            assert result.valid is True
+            assert result.file_path == notebook_file
+            assert "validation passed" in result.message
 
             # Test Python validation
             result = validate_python(python_file)
-            assert "✅ Python script validation passed" in result
+            assert result.valid is True
+            assert result.file_path == python_file
+            assert "validation passed" in result.message
 
             # Test non-existent file
             result = validate_notebook("/non/existent/file.ipynb")
-            assert "❌ File not found" in result
+            assert result.valid is False
+            assert "File not found" in result.message
 
         finally:
             Path(notebook_file).unlink(missing_ok=True)
@@ -247,9 +256,11 @@ print(f"Result: {y}")
             # Test round-trip conversion
             result = roundtrip_test(python_file)
 
-            # Should detect differences due to formatting changes
-            # (the conversion process may add/remove whitespace)
-            assert "Round-trip" in result
+            # Verify result structure
+            assert result.success is True
+            assert result.input_path == python_file
+            assert "Round-trip" in result.message
+            assert result.temporary_files_cleaned is True
 
         finally:
             Path(python_file).unlink(missing_ok=True)
@@ -258,14 +269,13 @@ print(f"Result: {y}")
         """Test server info function."""
         result = server_info()
 
-        assert "Notebook Conversion Tool Server Status" in result
-        assert "Status: Connected and ready" in result
-        assert "nbformat Version:" in result
-        assert "Available tools:" in result
-        assert "py_to_notebook" in result
-        assert "notebook_to_py" in result
-        assert "Comment Syntax Support:" in result
-        assert "#| or # |" in result
+        assert result.status == "Connected and ready"
+        assert result.nbformat_version is not None
+        assert result.jupyter_info is not None
+        assert "py_to_notebook" in result.available_tools
+        assert "notebook_to_py" in result.available_tools
+        assert "validate_notebook" in result.available_tools
+        assert "#| or # |" in result.comment_syntax
 
     def test_backup_functionality(self):
         """Test backup creation during conversion."""
@@ -281,9 +291,10 @@ print(f"Result: {y}")
             result = py_to_notebook(python_file, backup=True)
 
             # Verify backup was created
-            backup_file = python_file + ".bak"
+            assert result.backup_path is not None
+            backup_file = result.backup_path
             assert Path(backup_file).exists()
-            assert "Backup saved to:" in result
+            assert "Backup saved to:" in result.message
 
             # Verify backup content
             with open(backup_file) as f:
@@ -310,14 +321,14 @@ print(f"Result: {y}")
             result = py_to_notebook(python_file, output_path=custom_notebook)
 
             assert Path(custom_notebook).exists()
-            assert custom_notebook in result
+            assert result.output_path == custom_notebook
 
             # Test custom Python output path
             custom_python = custom_notebook.replace(".ipynb", "_back.py")
             result = notebook_to_py(custom_notebook, output_path=custom_python)
 
             assert Path(custom_python).exists()
-            assert custom_python in result
+            assert result.output_path == custom_python
 
         finally:
             Path(python_file).unlink(missing_ok=True)

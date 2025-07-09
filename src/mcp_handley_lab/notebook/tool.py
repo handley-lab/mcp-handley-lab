@@ -10,28 +10,31 @@ from .converter import (
     validate_notebook_file,
     validate_python_file,
 )
+from .models import ConversionResult, RoundtripResult, ServerInfo, ValidationResult
 
 mcp = FastMCP("Notebook Conversion Tool")
 
 
 @mcp.tool(
-    description="Converts a Python script to a Jupyter notebook. Supports comment syntax for markdown cells (#|), command cells (#!), and cell splits (#-). Returns the path to the created notebook."
+    description="Converts a Python script to a Jupyter notebook. Supports comment syntax for markdown cells (#|), command cells (#!), and cell splits (#-). Returns structured conversion result."
 )
 def py_to_notebook(
     script_path: str,
     output_path: str = "",
     backup: bool = True,
-) -> str:
+) -> ConversionResult:
     """Convert Python script to Jupyter notebook."""
     script_path = Path(script_path)
 
     if not script_path.exists():
         raise FileNotFoundError(f"Script file not found: {script_path}")
 
+    backup_path_str = None
     # Create backup if requested
     if backup:
         backup_path = script_path.with_suffix(script_path.suffix + ".bak")
         backup_path.write_text(script_path.read_text())
+        backup_path_str = str(backup_path)
 
     # Convert to notebook
     notebook_path = python_to_notebook(str(script_path), output_path)
@@ -40,22 +43,28 @@ def py_to_notebook(
     if not validate_notebook_file(notebook_path):
         raise RuntimeError(f"Generated notebook failed validation: {notebook_path}")
 
-    result = f"Successfully converted {script_path} to {notebook_path}"
+    message = f"Successfully converted {script_path} to {notebook_path}"
     if backup:
-        result += f"\nBackup saved to: {backup_path}"
+        message += f"\nBackup saved to: {backup_path_str}"
 
-    return result
+    return ConversionResult(
+        success=True,
+        input_path=str(script_path),
+        output_path=notebook_path,
+        backup_path=backup_path_str,
+        message=message,
+    )
 
 
 @mcp.tool(
-    description="Converts a Jupyter notebook to a Python script. Preserves markdown as #| comments, command cells as #! comments, and adds cell separators. Returns the path to the created script."
+    description="Converts a Jupyter notebook to a Python script. Preserves markdown as #| comments, command cells as #! comments, and adds cell separators. Returns structured conversion result."
 )
 def notebook_to_py(
     notebook_path: str,
     output_path: str = "",
     validate_files: bool = True,
     backup: bool = True,
-) -> str:
+) -> ConversionResult:
     """Convert Jupyter notebook to Python script."""
     notebook_path = Path(notebook_path)
 
@@ -66,10 +75,12 @@ def notebook_to_py(
     if validate_files and not validate_notebook_file(str(notebook_path)):
         raise ValueError(f"Invalid notebook file: {notebook_path}")
 
+    backup_path_str = None
     # Create backup if requested
     if backup:
         backup_path = notebook_path.with_suffix(notebook_path.suffix + ".bak")
         backup_path.write_text(notebook_path.read_text())
+        backup_path_str = str(backup_path)
 
     # Convert to Python script
     script_path = notebook_to_python(str(notebook_path), output_path)
@@ -78,59 +89,111 @@ def notebook_to_py(
     if validate_files and not validate_python_file(script_path):
         raise RuntimeError(f"Generated script failed validation: {script_path}")
 
-    result = f"Successfully converted {notebook_path} to {script_path}"
+    message = f"Successfully converted {notebook_path} to {script_path}"
     if backup:
-        result += f"\nBackup saved to: {backup_path}"
+        message += f"\nBackup saved to: {backup_path_str}"
 
-    return result
+    return ConversionResult(
+        success=True,
+        input_path=str(notebook_path),
+        output_path=script_path,
+        backup_path=backup_path_str,
+        message=message,
+    )
 
 
 @mcp.tool(
-    description="Validates a notebook file structure and syntax. Returns validation status and any error messages found."
+    description="Validates a notebook file structure and syntax. Returns structured validation result with status and error details."
 )
-def validate_notebook(notebook_path: str) -> str:
+def validate_notebook(notebook_path: str) -> ValidationResult:
     """Validate notebook file structure."""
     if not Path(notebook_path).exists():
-        return f"❌ File not found: {notebook_path}"
+        return ValidationResult(
+            valid=False,
+            file_path=notebook_path,
+            message="File not found",
+            error_details=f"File does not exist: {notebook_path}",
+        )
 
     try:
-        if validate_notebook_file(notebook_path):
-            return f"✅ Notebook validation passed: {notebook_path}"
+        is_valid = validate_notebook_file(notebook_path)
+        if is_valid:
+            return ValidationResult(
+                valid=True,
+                file_path=notebook_path,
+                message="Notebook validation passed",
+            )
         else:
-            return f"❌ Notebook validation failed: {notebook_path} - Invalid structure"
+            return ValidationResult(
+                valid=False,
+                file_path=notebook_path,
+                message="Notebook validation failed",
+                error_details="Invalid notebook structure",
+            )
     except Exception as e:
-        return f"❌ Notebook validation failed: {notebook_path} - {str(e)}"
+        return ValidationResult(
+            valid=False,
+            file_path=notebook_path,
+            message="Notebook validation failed",
+            error_details=str(e),
+        )
 
 
 @mcp.tool(
-    description="Validates a Python script file syntax. Returns validation status and any error messages found."
+    description="Validates a Python script file syntax. Returns structured validation result with status and error details."
 )
-def validate_python(script_path: str) -> str:
+def validate_python(script_path: str) -> ValidationResult:
     """Validate Python script file syntax."""
     if not Path(script_path).exists():
-        return f"❌ File not found: {script_path}"
+        return ValidationResult(
+            valid=False,
+            file_path=script_path,
+            message="File not found",
+            error_details=f"File does not exist: {script_path}",
+        )
 
     try:
-        if validate_python_file(script_path):
-            return f"✅ Python script validation passed: {script_path}"
+        is_valid = validate_python_file(script_path)
+        if is_valid:
+            return ValidationResult(
+                valid=True,
+                file_path=script_path,
+                message="Python script validation passed",
+            )
         else:
-            return f"❌ Python script validation failed: {script_path} - Syntax error"
+            return ValidationResult(
+                valid=False,
+                file_path=script_path,
+                message="Python script validation failed",
+                error_details="Python syntax error detected",
+            )
     except Exception as e:
-        return f"❌ Python script validation failed: {script_path} - {str(e)}"
+        return ValidationResult(
+            valid=False,
+            file_path=script_path,
+            message="Python script validation failed",
+            error_details=str(e),
+        )
 
 
 @mcp.tool(
-    description="Performs round-trip conversion testing (py→nb→py) to verify conversion fidelity. Returns comparison results and any differences found."
+    description="Performs round-trip conversion testing (py→nb→py) to verify conversion fidelity. Returns structured comparison results with difference details."
 )
 def test_roundtrip(
     script_path: str,
     cleanup: bool = True,
-) -> str:
+) -> RoundtripResult:
     """Test round-trip conversion fidelity."""
     script_path = Path(script_path)
 
     if not script_path.exists():
-        return f"❌ Script file not found: {script_path}"
+        return RoundtripResult(
+            success=False,
+            input_path=str(script_path),
+            differences_found=False,
+            message="Script file not found",
+            temporary_files_cleaned=True,
+        )
 
     try:
         # Original content
@@ -155,9 +218,10 @@ def test_roundtrip(
             line.rstrip() for line in roundtrip_content.splitlines()
         )
 
-        if original_normalized == roundtrip_normalized:
-            result = f"✅ Round-trip conversion successful: {script_path}"
-        else:
+        differences_found = original_normalized != roundtrip_normalized
+        diff_output = None
+
+        if differences_found:
             # Show differences
             import difflib
 
@@ -170,27 +234,48 @@ def test_roundtrip(
                     lineterm="",
                 )
             )
-
-            result = f"⚠️ Round-trip differences found in {script_path}:\n\n"
-            result += "".join(diff)
+            diff_output = "".join(diff)
 
         # Cleanup temporary files
+        cleaned = True
         if cleanup:
-            if notebook_path.exists():
-                notebook_path.unlink()
-            if roundtrip_path.exists():
-                roundtrip_path.unlink()
+            try:
+                if notebook_path.exists():
+                    notebook_path.unlink()
+                if roundtrip_path.exists():
+                    roundtrip_path.unlink()
+            except Exception:
+                cleaned = False
 
-        return result
+        message = (
+            "Round-trip conversion successful"
+            if not differences_found
+            else "Round-trip differences detected"
+        )
+
+        return RoundtripResult(
+            success=True,
+            input_path=str(script_path),
+            differences_found=differences_found,
+            message=message,
+            diff_output=diff_output,
+            temporary_files_cleaned=cleaned,
+        )
 
     except Exception as e:
-        return f"❌ Round-trip test failed: {script_path} - {str(e)}"
+        return RoundtripResult(
+            success=False,
+            input_path=str(script_path),
+            differences_found=False,
+            message=f"Round-trip test failed: {str(e)}",
+            temporary_files_cleaned=cleanup,
+        )
 
 
 @mcp.tool(
-    description="Checks the status of the Notebook Conversion Tool server and nbformat dependency. Returns version info and available functions."
+    description="Checks the status of the Notebook Conversion Tool server and nbformat dependency. Returns structured server information with versions and capabilities."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and dependency information."""
     try:
         import nbformat
@@ -211,22 +296,26 @@ def server_info() -> str:
     except (FileNotFoundError, subprocess.CalledProcessError):
         jupyter_info = "Not available"
 
-    return f"""Notebook Conversion Tool Server Status
-========================================
-Status: Connected and ready
-nbformat Version: {nbformat_version}
-Jupyter: {jupyter_info}
+    available_tools = [
+        "py_to_notebook",
+        "notebook_to_py",
+        "validate_notebook",
+        "validate_python",
+        "test_roundtrip",
+        "server_info",
+    ]
 
-Available tools:
-- py_to_notebook: Convert Python script to Jupyter notebook
-- notebook_to_py: Convert Jupyter notebook to Python script
-- validate_notebook: Validate notebook file structure
-- validate_python: Validate Python script syntax
-- test_roundtrip: Test round-trip conversion fidelity
-- server_info: Get server status
+    comment_syntax = {
+        "#| or # |": "Markdown cells",
+        "#! or # !": "Command cells (magic commands)",
+        "#- or # -": "Cell separators",
+        "#% or # %": "Command cells (alternative syntax)",
+    }
 
-Comment Syntax Support:
-- #| or # | : Markdown cells
-- #! or # ! : Command cells (magic commands)
-- #- or # - : Cell separators
-- #% or # % : Command cells (alternative syntax)"""
+    return ServerInfo(
+        status="Connected and ready",
+        nbformat_version=nbformat_version,
+        jupyter_info=jupyter_info,
+        available_tools=available_tools,
+        comment_syntax=comment_syntax,
+    )

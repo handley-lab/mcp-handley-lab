@@ -165,18 +165,15 @@ class TestGoogleMapsErrorHandling:
 
     @google_maps_vcr.use_cassette("test_invalid_location.json")
     def test_invalid_location(self, mock_api_key):
-        """Test handling of invalid location."""
-        result = get_directions(
-            origin="Invalid Location That Does Not Exist",
-            destination="Another Invalid Location",
-            mode="driving",
-        )
+        """Test handling of invalid location fails fast."""
+        import googlemaps.exceptions
 
-        # Should handle gracefully - either return empty routes or error status
-        assert isinstance(result, DirectionsResult)
-        assert result.status in ["NO_ROUTES_FOUND", "OK"] or result.status.startswith(
-            "ERROR:"
-        )
+        with pytest.raises(googlemaps.exceptions.ApiError):
+            get_directions(
+                origin="Invalid Location That Does Not Exist",
+                destination="Another Invalid Location",
+                mode="driving",
+            )
 
     @google_maps_vcr.use_cassette("test_unreachable_destination.json")
     def test_unreachable_destination(self, mock_api_key):

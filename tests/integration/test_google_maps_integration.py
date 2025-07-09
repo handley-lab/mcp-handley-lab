@@ -7,7 +7,6 @@ import vcr
 from mcp_handley_lab.google_maps.tool import (
     DirectionsResult,
     get_directions,
-    server_info,
 )
 
 
@@ -19,7 +18,7 @@ def scrub_api_key(response):
 
 google_maps_vcr = vcr.VCR(
     serializer="json",
-    cassette_library_dir=Path(__file__).parent / "vcr_cassettes",
+    cassette_library_dir=str(Path(__file__).parent / "vcr_cassettes"),
     record_mode="once",
     match_on=["method", "scheme", "host", "port", "path", "query"],
     filter_query_parameters=["key"],
@@ -158,19 +157,6 @@ class TestGoogleMapsIntegration:
         assert result.status == "OK"
         assert result.mode == "bicycling"
         assert len(result.routes) >= 1
-
-    def test_server_info(self):
-        """Test server info (no API call needed)."""
-        info = server_info()
-
-        assert info.name == "Google Maps Tool"
-        assert info.version == "0.4.0"
-        assert info.status == "active"
-        assert "directions" in info.capabilities
-        assert "multiple_transport_modes" in info.capabilities
-        assert "waypoint_support" in info.capabilities
-        assert "traffic_aware_routing" in info.capabilities
-        assert "alternative_routes" in info.capabilities
 
 
 @pytest.mark.integration

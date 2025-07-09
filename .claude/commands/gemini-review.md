@@ -1,0 +1,1 @@
+ask gemini to review the code, the tests, and the tool descriptions & typing (no unions, lists OK as mutables), in the spirit of the codebase (elegant code, no defensive programming).

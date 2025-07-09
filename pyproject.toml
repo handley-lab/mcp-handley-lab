@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.3.2"
+version = "0.4.0"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,6 +19,7 @@ dependencies = [
     "google-auth-httplib2>=0.1.0",
     "google-auth-oauthlib>=0.5.0",
     "google-genai>=1.0.0",
+    "googlemaps>=4.0.0",
     "openai>=1.0.0",
     "anthropic>=0.21.3",
     "Pillow>=10.0.0",
@@ -62,6 +63,7 @@ mcp-google-calendar = "mcp_handley_lab.google_calendar.tool:mcp.run"
 mcp-gemini = "mcp_handley_lab.llm.gemini.tool:mcp.run"
 mcp-openai = "mcp_handley_lab.llm.openai.tool:mcp.run"
 mcp-claude = "mcp_handley_lab.llm.claude.tool:mcp.run"
+mcp-google-maps = "mcp_handley_lab.google_maps.tool:mcp.run"
 mcp-email = "mcp_handley_lab.email.tool:mcp.run"
 mcp-mutt-aliases = "mcp_handley_lab.email.mutt_aliases.tool:mcp.run"
 mcp-github = "mcp_handley_lab.github.tool:mcp.run"

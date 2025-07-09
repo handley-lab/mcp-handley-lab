@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = "YOUR_API_KEY_HERE"
     openai_api_key: str = "YOUR_API_KEY_HERE"
     anthropic_api_key: str = "YOUR_API_KEY_HERE"
+    google_maps_api_key: str = "YOUR_API_KEY_HERE"
 
     # Google Calendar
     google_credentials_file: str = "~/.google_calendar_credentials.json"

@@ -1,9 +1,41 @@
 """Notmuch email search and indexing provider."""
 
-from pydantic import BaseModel
+import json
+
+import html2text
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
+
+
+class EmailContent(BaseModel):
+    """Structured representation of a single email's content."""
+
+    id: str = Field(..., description="The unique message ID of the email.")
+    subject: str = Field(..., description="The subject line of the email.")
+    from_address: str = Field(..., description="The sender's email address and name.")
+    to_address: str = Field(
+        ..., description="The primary recipient's email address and name."
+    )
+    date: str = Field(
+        ..., description="The date the email was sent, in a human-readable format."
+    )
+    tags: list[str] = Field(
+        ..., description="A list of notmuch tags associated with the email."
+    )
+    body_markdown: str = Field(
+        ...,
+        description="The body of the email, converted to Markdown for best LLM comprehension. Preserves lists, tables, links, and formatting.",
+    )
+    body_format: str = Field(
+        ...,
+        description="The original format of the body ('html' or 'text'). Indicates if the markdown was converted or is original plain text.",
+    )
+    attachments: list[str] = Field(
+        default_factory=list,
+        description="A list of filenames for any attachments in the email.",
+    )
 
 
 class TagResult(BaseModel):
@@ -29,21 +61,103 @@ def search(query: str, limit: int = 20) -> list[str]:
 
 
 @mcp.tool(
-    description="""Display complete email content by message ID, thread ID, or notmuch query. Supports specific MIME parts for multipart messages."""
+    description="""Display complete email content by message ID or notmuch query. Returns a structured object with headers and a clean, Markdown-formatted body for optimal LLM understanding."""
 )
-def show(query: str, part: str | None = None) -> str:
-    """Show email content using notmuch show."""
-    cmd = ["notmuch", "show"]
-
-    cmd.extend(["--format=text"])
-
-    if part:
-        cmd.extend(["--part", part])
-
-    cmd.append(query)
+def show(query: str) -> list[EmailContent]:
+    """
+    Show email content using notmuch show, parsing the best available body part.
+    It prefers HTML content and converts it to Markdown.
+    """
+    # Use --format=json to get structured data, including MIME parts
+    cmd = ["notmuch", "show", "--format=json", "--include-html", query]
 
     stdout, stderr = run_command(cmd)
-    return stdout.decode().strip()
+    output = stdout.decode().strip()
+
+    if not output:
+        return []
+
+    try:
+        # notmuch can return multiple JSON objects for a multi-message query
+        emails_json = json.loads(output)
+    except json.JSONDecodeError:
+        # Handle cases where output might not be valid JSON
+        return []
+
+    # Ensure emails_json is a list
+    if not isinstance(emails_json, list):
+        emails_json = [emails_json]
+
+    results = []
+    h = html2text.HTML2Text()
+    h.body_width = 0  # Don't wrap lines
+
+    for thread in emails_json:
+        for message_list in thread:
+            for email_data in message_list:
+                # Skip entries that are not dictionaries (e.g., nested lists)
+                if not isinstance(email_data, dict):
+                    continue
+
+                # Skip entries without headers (these are typically metadata)
+                if not email_data.get("headers"):
+                    continue
+
+                # Extract headers
+                headers = email_data.get("headers", {})
+                subject = headers.get("Subject", "No Subject")
+                from_address = headers.get("From", "No Sender")
+                to_address = headers.get("To", "No Recipient")
+                date = headers.get("Date", "No Date")
+                message_id = email_data.get("id", "No ID")
+                tags = email_data.get("tags", [])
+
+                # Find the best body content
+                body_parts = email_data.get("body", [])
+                html_part = None
+                text_part = None
+                attachments = []
+
+                for part in body_parts:
+                    content_type = part.get("content-type", "")
+                    if "text/html" in content_type and not html_part:
+                        html_part = part.get("content", "")
+                    elif "text/plain" in content_type and not text_part:
+                        text_part = part.get("content", "")
+                    else:
+                        # Basic attachment detection
+                        filename = part.get("filename")
+                        if filename:
+                            attachments.append(
+                                f"{filename} ({part.get('content-type')})"
+                            )
+
+                body_markdown = ""
+                body_format = "none"
+
+                if html_part:
+                    body_markdown = h.handle(html_part)
+                    body_format = "html"
+                elif text_part:
+                    body_markdown = text_part
+                    body_format = "text"
+                else:
+                    body_markdown = "[No readable body found in this email]"
+
+                results.append(
+                    EmailContent(
+                        id=message_id,
+                        subject=subject,
+                        from_address=from_address,
+                        to_address=to_address,
+                        date=date,
+                        tags=tags,
+                        body_markdown=body_markdown.strip(),
+                        body_format=body_format,
+                        attachments=attachments,
+                    )
+                )
+    return results
 
 
 @mcp.tool(

@@ -19,6 +19,7 @@ def get_available_tools() -> dict[str, str]:
         "gemini": "mcp-gemini",
         "openai": "mcp-openai",
         "claude": "mcp-claude",
+        "google-maps": "mcp-google-maps",
         "email": "mcp-email",
         "github": "mcp-github",
         "notes": "mcp-notes",

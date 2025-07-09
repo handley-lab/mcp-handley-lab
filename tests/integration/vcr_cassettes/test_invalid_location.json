@@ -1,0 +1,85 @@
+{
+    "version": 1,
+    "interactions": [
+        {
+            "request": {
+                "method": "GET",
+                "uri": "https://maps.googleapis.com/maps/api/directions/json?destination=Another+Invalid+Location&mode=driving&origin=Invalid+Location+That+Does+Not+Exist",
+                "body": null,
+                "headers": {
+                    "User-Agent": [
+                        "GoogleGeoApiClientPython/4.10.0"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ]
+                }
+            },
+            "response": {
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                },
+                "headers": {
+                    "Expires": [
+                        "Fri, 01 Jan 1990 00:00:00 GMT"
+                    ],
+                    "X-Frame-Options": [
+                        "SAMEORIGIN"
+                    ],
+                    "Vary": [
+                        "Accept-Language"
+                    ],
+                    "Content-Type": [
+                        "application/json; charset=UTF-8"
+                    ],
+                    "Content-Security-Policy-Report-Only": [
+                        "script-src 'none'; form-action 'none'; frame-src 'none'; report-uri https://csp.withgoogle.com/csp/scaffolding/msaifddsmnwc:188:0"
+                    ],
+                    "Content-Encoding": [
+                        "gzip"
+                    ],
+                    "Date": [
+                        "Wed, 09 Jul 2025 15:58:00 GMT"
+                    ],
+                    "Transfer-Encoding": [
+                        "chunked"
+                    ],
+                    "Cross-Origin-Opener-Policy-Report-Only": [
+                        "same-origin; report-to=msaifddsmnwc:188:0"
+                    ],
+                    "Report-To": [
+                        "{\"group\":\"msaifddsmnwc:188:0\",\"max_age\":2592000,\"endpoints\":[{\"url\":\"https://csp.withgoogle.com/csp/report-to/scaffolding/msaifddsmnwc:188:0\"}],}"
+                    ],
+                    "Alt-Svc": [
+                        "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+                    ],
+                    "Server": [
+                        "mafe"
+                    ],
+                    "Pragma": [
+                        "no-cache"
+                    ],
+                    "X-XSS-Protection": [
+                        "0"
+                    ],
+                    "Server-Timing": [
+                        "gfet4t7; dur=66"
+                    ],
+                    "Cache-Control": [
+                        "no-cache, must-revalidate"
+                    ]
+                },
+                "body": {
+                    "string": "{\n   \"geocoded_waypoints\" : \n   [\n      {\n         \"geocoder_status\" : \"ZERO_RESULTS\"\n      },\n      {\n         \"geocoder_status\" : \"ZERO_RESULTS\"\n      }\n   ],\n   \"routes\" : [],\n   \"status\" : \"NOT_FOUND\"\n}"
+                }
+            }
+        }
+    ]
+}

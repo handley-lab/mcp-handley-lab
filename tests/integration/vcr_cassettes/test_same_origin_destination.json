@@ -1,0 +1,88 @@
+{
+    "version": 1,
+    "interactions": [
+        {
+            "request": {
+                "method": "GET",
+                "uri": "https://maps.googleapis.com/maps/api/directions/json?destination=Times+Square%2C+New+York%2C+NY&mode=driving&origin=Times+Square%2C+New+York%2C+NY",
+                "body": null,
+                "headers": {
+                    "User-Agent": [
+                        "GoogleGeoApiClientPython/4.10.0"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ]
+                }
+            },
+            "response": {
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                },
+                "headers": {
+                    "X-XSS-Protection": [
+                        "0"
+                    ],
+                    "Expires": [
+                        "Fri, 01 Jan 1990 00:00:00 GMT"
+                    ],
+                    "X-Frame-Options": [
+                        "SAMEORIGIN"
+                    ],
+                    "Vary": [
+                        "Accept-Language"
+                    ],
+                    "Content-Type": [
+                        "application/json; charset=UTF-8"
+                    ],
+                    "Content-Security-Policy-Report-Only": [
+                        "script-src 'none'; form-action 'none'; frame-src 'none'; report-uri https://csp.withgoogle.com/csp/scaffolding/msaifddsmnwc:188:0"
+                    ],
+                    "Content-Encoding": [
+                        "gzip"
+                    ],
+                    "Date": [
+                        "Wed, 09 Jul 2025 15:58:01 GMT"
+                    ],
+                    "Transfer-Encoding": [
+                        "chunked"
+                    ],
+                    "Cross-Origin-Opener-Policy-Report-Only": [
+                        "same-origin; report-to=msaifddsmnwc:188:0"
+                    ],
+                    "Report-To": [
+                        "{\"group\":\"msaifddsmnwc:188:0\",\"max_age\":2592000,\"endpoints\":[{\"url\":\"https://csp.withgoogle.com/csp/report-to/scaffolding/msaifddsmnwc:188:0\"}],}"
+                    ],
+                    "Alt-Svc": [
+                        "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+                    ],
+                    "Server": [
+                        "mafe"
+                    ],
+                    "Pragma": [
+                        "no-cache"
+                    ],
+                    "X-Goog-Maps-Metro-Area": [
+                        "New York, NY"
+                    ],
+                    "Server-Timing": [
+                        "gfet4t7; dur=54"
+                    ],
+                    "Cache-Control": [
+                        "no-cache, must-revalidate"
+                    ]
+                },
+                "body": {
+                    "string": "{\n   \"geocoded_waypoints\" : \n   [\n      {\n         \"geocoder_status\" : \"OK\",\n         \"partial_match\" : true,\n         \"place_id\" : \"ChIJmQJIxlVYwokRLgeuocVOGVU\",\n         \"types\" : \n         [\n            \"establishment\",\n            \"point_of_interest\",\n            \"tourist_attraction\"\n         ]\n      },\n      {\n         \"geocoder_status\" : \"OK\",\n         \"partial_match\" : true,\n         \"place_id\" : \"ChIJmQJIxlVYwokRLgeuocVOGVU\",\n         \"types\" : \n         [\n            \"establishment\",\n            \"point_of_interest\",\n            \"tourist_attraction\"\n         ]\n      }\n   ],\n   \"routes\" : \n   [\n      {\n         \"bounds\" : \n         {\n            \"northeast\" : \n            {\n               \"lat\" : 40.7574503,\n               \"lng\" : -73.9862558\n            },\n            \"southwest\" : \n            {\n               \"lat\" : 40.7574503,\n               \"lng\" : -73.9862558\n            }\n         },\n         \"copyrights\" : \"Powered by Google, \u00a92025 Google\",\n         \"legs\" : \n         [\n            {\n               \"distance\" : \n               {\n                  \"text\" : \"1 ft\",\n                  \"value\" : 0\n               },\n               \"duration\" : \n               {\n                  \"text\" : \"1 min\",\n                  \"value\" : 0\n               },\n               \"end_address\" : \"Manhattan, NY 10036, USA\",\n               \"end_location\" : \n               {\n                  \"lat\" : 40.7574503,\n                  \"lng\" : -73.9862558\n               },\n               \"start_address\" : \"Manhattan, NY 10036, USA\",\n               \"start_location\" : \n               {\n                  \"lat\" : 40.7574503,\n                  \"lng\" : -73.9862558\n               },\n               \"steps\" : \n               [\n                  {\n                     \"distance\" : \n                     {\n                        \"text\" : \"1 ft\",\n                        \"value\" : 0\n                     },\n                     \"duration\" : \n                     {\n                        \"text\" : \"1 min\",\n                        \"value\" : 0\n                     },\n                     \"end_location\" : \n                     {\n                        \"lat\" : 40.7574503,\n                        \"lng\" : -73.9862558\n                     },\n                     \"html_instructions\" : \"Head on \\u003cb\\u003eW 44th St\\u003c/b\\u003e\",\n                     \"polyline\" : \n                     {\n                        \"points\" : \"amwwFbmqbM\"\n                     },\n                     \"start_location\" : \n                     {\n                        \"lat\" : 40.7574503,\n                        \"lng\" : -73.9862558\n                     },\n                     \"travel_mode\" : \"DRIVING\"\n                  }\n               ],\n               \"traffic_speed_entry\" : [],\n               \"via_waypoint\" : []\n            }\n         ],\n         \"overview_polyline\" : \n         {\n            \"points\" : \"amwwFbmqbM\"\n         },\n         \"summary\" : \"W 44th St\",\n         \"warnings\" : [],\n         \"waypoint_order\" : []\n      }\n   ],\n   \"status\" : \"OK\"\n}"
+                }
+            }
+        }
+    ]
+}

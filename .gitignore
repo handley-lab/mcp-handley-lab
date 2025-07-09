@@ -62,3 +62,4 @@ tmp-*
 uv.lock
 claude-code/
 gemini-cli/
+tags

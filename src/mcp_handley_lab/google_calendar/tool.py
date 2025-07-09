@@ -275,24 +275,31 @@ def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
 
 
 @mcp.tool(
-    description="Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, and a `calendar_id`."
+    description="Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, `location`, and a `calendar_id`."
 )
 def create_event(
     summary: str,
     start_datetime: str,
     end_datetime: str,
     description: str = "",
+    location: str = "",
     calendar_id: str = "primary",
-    timezone: str = "UTC",
+    timezone: str = "",
     attendees: list[str] = [],
 ) -> CreatedEventResult:
     """Create a new calendar event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
+    # Auto-detect timezone if not provided
+    if not timezone:
+        # Default to UK timezone - simple and reliable
+        timezone = "Europe/London"
+
     event_body = {
         "summary": summary,
         "description": description or "",
+        "location": location or "",
         "start": {},
         "end": {},
     }
@@ -335,6 +342,7 @@ def update_event(
     start_datetime: str = "",
     end_datetime: str = "",
     description: str = "",
+    location: str = "",
 ) -> str:
     """Update an existing calendar event. Trusts the provided event_id."""
     service = _get_calendar_service()
@@ -345,20 +353,25 @@ def update_event(
         update_body["summary"] = summary
     if description:
         update_body["description"] = description
+    if location:
+        update_body["location"] = location
 
     if start_datetime:
-        update_body["start"] = (
-            {"dateTime": start_datetime, "timeZone": "UTC"}
-            if "T" in start_datetime
-            else {"date": start_datetime}
-        )
+        if "T" in start_datetime:
+            # Use UK timezone for timed events
+            update_body["start"] = {
+                "dateTime": start_datetime,
+                "timeZone": "Europe/London",
+            }
+        else:
+            update_body["start"] = {"date": start_datetime}
 
     if end_datetime:
-        update_body["end"] = (
-            {"dateTime": end_datetime, "timeZone": "UTC"}
-            if "T" in end_datetime
-            else {"date": end_datetime}
-        )
+        if "T" in end_datetime:
+            # Use UK timezone for timed events
+            update_body["end"] = {"dateTime": end_datetime, "timeZone": "Europe/London"}
+        else:
+            update_body["end"] = {"date": end_datetime}
 
     if not update_body:
         return "No updates specified. Nothing to do."

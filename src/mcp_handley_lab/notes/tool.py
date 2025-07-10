@@ -361,7 +361,3 @@ def notes_stats_resource() -> str:
         lines.append(f"- {scope}: {path}")
 
     return "\n".join(lines)
-
-
-if __name__ == "__main__":
-    mcp.run()

@@ -43,12 +43,7 @@ def main():
 
     module_path = f"mcp_handley_lab.{tool_name}.tool"
     tool_module = importlib.import_module(module_path)
-
-    if hasattr(tool_module, "mcp"):
-        tool_module.mcp.run()
-    else:
-        print(f"Error: Tool '{tool_name}' does not have an MCP server instance.")
-        sys.exit(1)
+    tool_module.mcp.run()
 
 
 if __name__ == "__main__":

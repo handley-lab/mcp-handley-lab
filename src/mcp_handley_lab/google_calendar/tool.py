@@ -515,7 +515,7 @@ def search_events(
     search_fields: list[str] = [],
     case_sensitive: bool = False,
     match_all_terms: bool = True,
-) -> str:
+) -> list[CalendarEvent]:
     """Advanced hybrid search for calendar events."""
     service = _get_calendar_service()
 
@@ -535,7 +535,6 @@ def search_events(
             end_date = _parse_datetime_to_utc(end_date)
 
     events_list = []
-    warnings = []
 
     if calendar_id == "all":
         calendar_list = service.calendarList().list().execute()
@@ -587,12 +586,7 @@ def search_events(
         filtered_events = events_list
 
     if not filtered_events:
-        if search_text:
-            return (
-                f"No events found matching '{search_text}' in the specified criteria."
-            )
-        else:
-            return "No events found in the specified date range."
+        return []
 
     filtered_events.sort(
         key=lambda x: x.get("start", {}).get(
@@ -600,49 +594,47 @@ def search_events(
         )
     )
 
-    if search_text:
-        result = f"Found {len(filtered_events)} events matching '{search_text}':\n\n"
-    else:
-        result = f"Found {len(filtered_events)} events:\n\n"
-
+    # Convert filtered events to CalendarEvent objects
+    calendar_events = []
     for event in filtered_events:
-        start = event["start"].get("dateTime", event["start"].get("date"))
-        title = event.get("summary", "No Title")
-        event_id = event["id"]
-
-        result += f"• {title}\n"
-        result += f"  Time: {_format_datetime(start)}\n"
-        result += f"  ID: {event_id}\n"
-
-        if "calendar_name" in event:
-            result += f"  Calendar: {event['calendar_name']}\n"
-
-        if event.get("location"):
-            result += f"  Location: {event['location']}\n"
-
-        if event.get("description"):
-            desc = event["description"]
-            if len(desc) > 100:
-                desc = desc[:97] + "..."
-            result += f"  Description: {desc}\n"
-
-        result += "\n"
-
-    if warnings:
-        result += (
-            "\n⚠️ Warnings:\n" + "\n".join(f"- {warning}" for warning in warnings) + "\n"
+        # Convert start/end to EventDateTime objects
+        start_dt = EventDateTime(
+            dateTime=event["start"].get("dateTime", ""),
+            date=event["start"].get("date", ""),
+            timeZone=event["start"].get("timeZone", ""),
+        )
+        end_dt = EventDateTime(
+            dateTime=event["end"].get("dateTime", ""),
+            date=event["end"].get("date", ""),
+            timeZone=event["end"].get("timeZone", ""),
         )
 
-    if search_text and (search_fields or case_sensitive or not match_all_terms):
-        search_summary = "\nSearch Details:\n"
-        search_summary += f"- Search text: '{search_text}'\n"
-        search_summary += f"- Fields searched: {search_fields or ['summary', 'description', 'location']}\n"
-        search_summary += f"- Match logic: {'All terms must match (AND)' if match_all_terms else 'Any term can match (OR)'}\n"
-        search_summary += f"- Case sensitive: {case_sensitive}\n"
-        search_summary += f"- Date range: {start_date} to {end_date}\n"
-        return result.strip() + search_summary
+        # Convert attendees
+        attendees = []
+        if event.get("attendees"):
+            attendees = [
+                Attendee(
+                    email=att.get("email", "Unknown"),
+                    responseStatus=att.get("responseStatus", "needsAction"),
+                )
+                for att in event["attendees"]
+            ]
 
-    return result.strip()
+        calendar_event = CalendarEvent(
+            id=event["id"],
+            summary=event.get("summary", "No Title"),
+            description=event.get("description", ""),
+            location=event.get("location", ""),
+            start=start_dt,
+            end=end_dt,
+            attendees=attendees,
+            calendar_name=event.get("calendar_name", ""),
+            created=event.get("created", ""),
+            updated=event.get("updated", ""),
+        )
+        calendar_events.append(calendar_event)
+
+    return calendar_events
 
 
 @mcp.tool(
@@ -659,14 +651,14 @@ def server_info() -> ServerInfo:
         version="1.9.4",
         status="active",
         capabilities=[
-            "search_events - Search and list calendar events",
-            "get_event - Get detailed event information",
-            "create_event - Create new calendar events",
-            "update_event - Update existing events",
-            "delete_event - Delete calendar events",
-            "list_calendars - List all accessible calendars",
-            "find_time - Find free time slots",
-            "server_info - Get server status",
+            "search_events",
+            "get_event",
+            "create_event",
+            "update_event",
+            "delete_event",
+            "list_calendars",
+            "find_time",
+            "server_info",
         ],
         dependencies={
             "google_calendar_api": "active",

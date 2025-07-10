@@ -4,7 +4,7 @@ import tempfile
 
 from mcp_handley_lab.common.terminal import launch_interactive
 from mcp_handley_lab.email.common import mcp
-from mcp_handley_lab.shared.models import ServerInfo
+from mcp_handley_lab.shared.models import OperationResult, ServerInfo
 
 
 def _run_command(cmd: list[str], input_text: str = None, cwd: str = None) -> str:
@@ -27,7 +27,7 @@ def compose_email(
     initial_body: str = "",
     attachments: list[str] = None,
     auto_send: bool = False,
-) -> str:
+) -> OperationResult:
     """Compose an email using mutt's interactive interface."""
 
     mutt_cmd = ["mutt"]
@@ -47,10 +47,6 @@ def compose_email(
         mutt_cmd.extend(["-b", bcc])
 
     if attachments:
-        for attachment in attachments:
-            if not os.path.exists(attachment):
-                raise FileNotFoundError(f"Attachment file not found: {attachment}")
-
         mutt_cmd.append("-a")
         mutt_cmd.extend(attachments)
         mutt_cmd.append("--")
@@ -78,11 +74,13 @@ def compose_email(
                     if sig_path.startswith("~"):
                         sig_path = os.path.expanduser(sig_path)
 
-                    if os.path.exists(sig_path):
+                    try:
                         with open(sig_path) as f:
                             signature = f.read().strip()
                         if signature:
                             body_content += f"\n\n{signature}"
+                    except FileNotFoundError:
+                        pass
 
                 mutt_cmd = mutt_cmd_str.split()
                 _run_command(mutt_cmd, input_text=body_content)
@@ -90,7 +88,10 @@ def compose_email(
                 attachment_info = (
                     f" with {len(attachments)} attachment(s)" if attachments else ""
                 )
-                return f"Email sent automatically: {to}{attachment_info}"
+                return OperationResult(
+                    status="success",
+                    message=f"Email sent automatically: {to}{attachment_info}",
+                )
             else:
                 mutt_cmd_str = " ".join(
                     f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
@@ -101,7 +102,10 @@ def compose_email(
                 attachment_info = (
                     f" with {len(attachments)} attachment(s)" if attachments else ""
                 )
-                return f"Email composition completed: {to}{attachment_info}"
+                return OperationResult(
+                    status="success",
+                    message=f"Email composition completed: {to}{attachment_info}",
+                )
     else:
         if auto_send:
             mutt_cmd_str = " ".join(
@@ -115,11 +119,13 @@ def compose_email(
                 if sig_path.startswith("~"):
                     sig_path = os.path.expanduser(sig_path)
 
-                if os.path.exists(sig_path):
+                try:
                     with open(sig_path) as f:
                         signature = f.read().strip()
                     if signature:
                         body_content += f"\n\n{signature}"
+                except FileNotFoundError:
+                    pass
 
             mutt_cmd = mutt_cmd_str.split()
             _run_command(mutt_cmd, input_text=body_content)
@@ -127,7 +133,10 @@ def compose_email(
             attachment_info = (
                 f" with {len(attachments)} attachment(s)" if attachments else ""
             )
-            return f"Email sent automatically: {to}{attachment_info}"
+            return OperationResult(
+                status="success",
+                message=f"Email sent automatically: {to}{attachment_info}",
+            )
         else:
             mutt_cmd_str = " ".join(
                 f"'{arg}'" if " " in arg else arg for arg in mutt_cmd
@@ -138,18 +147,21 @@ def compose_email(
             attachment_info = (
                 f" with {len(attachments)} attachment(s)" if attachments else ""
             )
-            return f"Email composition completed: {to}{attachment_info}"
+            return OperationResult(
+                status="success",
+                message=f"Email composition completed: {to}{attachment_info}",
+            )
 
 
 @mcp.tool(
     description="""Opens Mutt main interface in interactive terminal for reading, searching, and organizing emails. Full access to your complete Mutt configuration and mailboxes."""
 )
-def open_mutt() -> str:
+def open_mutt() -> OperationResult:
     """Open mutt's main interface."""
 
     launch_interactive("mutt", window_title="Mutt", wait=True)
 
-    return "Mutt session completed"
+    return OperationResult(status="success", message="Mutt session completed")
 
 
 @mcp.tool(
@@ -157,7 +169,7 @@ def open_mutt() -> str:
 )
 def reply_to_email(
     message_id: str, reply_all: bool = False, initial_body: str = ""
-) -> str:
+) -> OperationResult:
     """Reply to an email using mutt's reply functionality."""
 
     mutt_cmd = ["mutt"]
@@ -187,20 +199,28 @@ def reply_to_email(
             launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
             reply_type = "Reply to all" if reply_all else "Reply"
-            return f"{reply_type} completed for message: {message_id}"
+            return OperationResult(
+                status="success",
+                message=f"{reply_type} completed for message: {message_id}",
+            )
     else:
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Reply: {message_id[:20]}..."
         launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
         reply_type = "Reply to all" if reply_all else "Reply"
-        return f"{reply_type} completed for message: {message_id}"
+        return OperationResult(
+            status="success",
+            message=f"{reply_type} completed for message: {message_id}",
+        )
 
 
 @mcp.tool(
     description="""Opens Mutt in interactive terminal to forward specific email by message ID. Supports pre-populated recipient and initial commentary. Original message included per your configuration."""
 )
-def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
+def forward_email(
+    message_id: str, to: str = "", initial_body: str = ""
+) -> OperationResult:
     """Forward an email using mutt's forward functionality."""
 
     mutt_cmd = ["mutt"]
@@ -227,13 +247,17 @@ def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
             window_title = f"Mutt Forward: {message_id[:20]}..."
             launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
-            return f"Forward completed for message: {message_id}"
+            return OperationResult(
+                status="success", message=f"Forward completed for message: {message_id}"
+            )
     else:
         mutt_cmd_str = " ".join(f"'{arg}'" if " " in arg else arg for arg in mutt_cmd)
         window_title = f"Mutt Forward: {message_id[:20]}..."
         launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
-        return f"Forward completed for message: {message_id}"
+        return OperationResult(
+            status="success", message=f"Forward completed for message: {message_id}"
+        )
 
 
 @mcp.tool(
@@ -241,7 +265,7 @@ def forward_email(message_id: str, to: str = "", initial_body: str = "") -> str:
 )
 def move_email(
     message_id: str = None, message_ids: list[str] = None, destination: str = "Trash"
-) -> str:
+) -> OperationResult:
     """Move or delete emails by moving them to specified folder."""
 
     if not message_id and not message_ids:
@@ -273,7 +297,9 @@ def move_email(
             "Deleted" if destination.lower() == "trash" else f"Moved to {destination}"
         )
         count = len(messages)
-        return f"{action} {count} message(s) successfully"
+        return OperationResult(
+            status="success", message=f"{action} {count} message(s) successfully"
+        )
 
 
 @mcp.tool(
@@ -296,7 +322,7 @@ def list_folders() -> list[str]:
 @mcp.tool(
     description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox."""
 )
-def open_folder(folder: str) -> str:
+def open_folder(folder: str) -> OperationResult:
     """Open mutt with a specific folder."""
 
     mutt_cmd = ["mutt", "-f", folder]
@@ -305,7 +331,7 @@ def open_folder(folder: str) -> str:
     window_title = f"Mutt: {folder}"
     launch_interactive(mutt_cmd_str, window_title=window_title, wait=True)
 
-    return f"Opened folder: {folder}"
+    return OperationResult(status="success", message=f"Opened folder: {folder}")
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
@@ -320,14 +346,14 @@ def server_info() -> ServerInfo:
         version=version_line,
         status="active",
         capabilities=[
-            "compose_email - Compose and send emails interactively",
-            "open_mutt - Open mutt's main interface",
-            "reply_to_email - Reply to emails with optional reply-all",
-            "forward_email - Forward emails with optional comments",
-            "move_email - Move/delete emails between folders",
-            "list_folders - Show available mailboxes",
-            "open_folder - Open specific mailbox in mutt",
-            "server_info - Get server status",
+            "compose_email",
+            "open_mutt",
+            "reply_to_email",
+            "forward_email",
+            "move_email",
+            "list_folders",
+            "open_folder",
+            "server_info",
         ],
         dependencies={"mutt": version_line},
     )

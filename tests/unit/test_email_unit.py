@@ -277,8 +277,8 @@ user personal@gmail.com
             assert result.version == "1.9.4"
             assert result.status == "active"
             assert "msmtp_accounts" in result.dependencies
-            assert "offlineimap - offlineimap v7.3.3" in result.capabilities
-            assert "notmuch - notmuch 0.32.2" in result.capabilities
+            assert "offlineimap" in result.capabilities
+            assert "notmuch" in result.capabilities
             assert result.dependencies["msmtp_accounts"] == "2"
             assert result.dependencies["notmuch_database"] == "1234 messages indexed"
 

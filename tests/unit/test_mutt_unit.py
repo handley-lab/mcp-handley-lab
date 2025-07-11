@@ -44,7 +44,7 @@ class TestMuttContactManagement:
             "gw_team", "alice@cam.ac.uk,bob@cam.ac.uk", "GW Project Team"
         )
 
-        assert "Added contact: gw_team (GW Project Team)" in result.message.message
+        assert "Added contact: gw_team (GW Project Team)" in result.message
         mock_file().write.assert_called_once_with(
             'alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk>\n'
         )

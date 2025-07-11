@@ -48,9 +48,10 @@ mcp = FastMCP("ArXiv Tool")
 def _get_cached_source(arxiv_id: str) -> bytes | None:
     """Get cached source archive if it exists."""
     cache_file = Path(tempfile.gettempdir()) / f"arxiv_{arxiv_id}.tar"
-    if cache_file.exists():
+    try:
         return cache_file.read_bytes()
-    return None
+    except FileNotFoundError:
+        return None
 
 
 def _cache_source(arxiv_id: str, content: bytes) -> None:
@@ -353,17 +354,10 @@ def server_info() -> ServerInfo:
         name="ArXiv Tool",
         version="1.0.0",
         status="active",
-        capabilities=[
-            "search - Search ArXiv papers using official API with advanced query syntax",
-            "download - Download ArXiv papers in src/pdf/tex format",
-            "list_files - List files in ArXiv source archive",
-            "server_info - Get server information",
-        ],
+        capabilities=["search", "download", "list_files", "server_info"],
         dependencies={
             "httpx": "latest",
             "pydantic": "latest",
             "supported_formats": "src,pdf,tex",
-            "caching": "Source archives cached in /tmp for performance",
-            "tex_format_includes": ".tex,.bib,.bbl",
         },
     )

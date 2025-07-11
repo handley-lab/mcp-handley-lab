@@ -26,7 +26,7 @@ class TestMuttContactManagement:
 
         result = add_contact("john_doe", "john@example.com", "John Doe")
 
-        assert "Added contact: john_doe (John Doe)" in result
+        assert "Added contact: john_doe (John Doe)" in result.message
         mock_file.assert_called_once()
         mock_file().write.assert_called_once_with(
             'alias john_doe "John Doe" <john@example.com>\n'
@@ -44,7 +44,7 @@ class TestMuttContactManagement:
             "gw_team", "alice@cam.ac.uk,bob@cam.ac.uk", "GW Project Team"
         )
 
-        assert "Added contact: gw_team (GW Project Team)" in result
+        assert "Added contact: gw_team (GW Project Team)" in result.message
         mock_file().write.assert_called_once_with(
             'alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk>\n'
         )
@@ -59,7 +59,7 @@ class TestMuttContactManagement:
 
         result = add_contact("simple", "test@example.com")
 
-        assert "Added contact: simple (test@example.com)" in result
+        assert "Added contact: simple (test@example.com)" in result.message
         mock_file().write.assert_called_once_with("alias simple test@example.com\n")
 
     def test_add_contact_validation(self):
@@ -94,7 +94,7 @@ class TestMuttContactManagement:
 
         result = remove_contact("john_doe")
 
-        assert "Removed contact: john_doe" in result
+        assert "Removed contact: john_doe" in result.message
         # Should write back only the gw_team line
         mock_file.return_value.writelines.assert_called_once_with(
             ['alias gw_team "GW Team" <alice@cam.ac.uk>\n']
@@ -124,7 +124,7 @@ class TestMuttContactManagement:
 
         result = remove_contact("nonexistent")
 
-        assert "Contact 'nonexistent' not found" in result
+        assert "Contact 'nonexistent' not found" in result.message
 
     def test_remove_contact_validation(self):
         """Test input validation for remove_contact."""
@@ -218,7 +218,7 @@ class TestMuttContactWorkflows:
             "GW Project Team",
         )
 
-        assert "Added contact: gw_team (GW Project Team)" in result
+        assert "Added contact: gw_team (GW Project Team)" in result.message
 
         # Verify the alias format is correct for mutt
         expected_alias = 'alias gw_team "GW Project Team" <alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk>\n'

@@ -15,20 +15,20 @@ from mcp_handley_lab.vim.tool import server_info as vim_server_info
 class TestJQIntegration:
     def test_jq_query_basic(self, test_json_file):
         result = query(data=test_json_file, filter=".test")
-        assert "test" in result or "data" in result
+        assert "test" in result.message or "data" in result.message
 
     def test_jq_query_array(self, test_json_file):
         result = query(data=test_json_file, filter=".numbers | length")
-        assert "3" in result
+        assert "3" in result.message
 
     def test_jq_read_file(self, test_json_file):
         result = read(file_path=test_json_file)
-        assert "test" in result
-        assert "numbers" in result
+        assert "test" in result.message
+        assert "numbers" in result.message
 
     def test_jq_validate_valid(self, test_json_file):
         result = validate(data=test_json_file)
-        assert "valid" in result.lower()
+        assert "valid" in result.message.lower()
 
     def test_jq_validate_invalid(self):
         with pytest.raises(ValueError):
@@ -36,7 +36,7 @@ class TestJQIntegration:
 
     def test_jq_format(self, test_json_file):
         result = jq_format(data=test_json_file, compact=True)
-        assert '"test":"data"' in result or '"test": "data"' in result
+        assert '"test":"data"' in result.message or '"test": "data"' in result.message
 
     def test_jq_edit_file(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -44,7 +44,10 @@ class TestJQIntegration:
             f.flush()
 
             result = edit(file_path=f.name, filter=".counter = 1")
-            assert "success" in result.lower() or "updated" in result.lower()
+            assert (
+                "success" in result.message.lower()
+                or "updated" in result.message.lower()
+            )
 
             # Verify the edit
             with open(f.name) as edited_file:
@@ -55,8 +58,8 @@ class TestJQIntegration:
 
     def test_jq_server_info(self):
         result = jq_server_info()
-        assert "jq" in result.lower()
-        assert "version" in result.lower()
+        assert "jq" in result.name.lower()
+        assert result.version is not None
 
 
 class TestVimIntegration:
@@ -81,13 +84,13 @@ class TestVimIntegration:
                 )
 
                 # Should return a diff or success message
-                assert isinstance(result, str)
-                assert len(result) > 0
+                assert hasattr(result, "message")
+                assert len(result.message) > 0
 
     def test_vim_server_info(self):
         result = vim_server_info()
-        assert "vim" in result.lower()
-        assert "version" in result.lower() or "available" in result.lower()
+        assert "vim" in result.name.lower()
+        assert result.status == "active"
 
 
 class TestCode2PromptIntegration:

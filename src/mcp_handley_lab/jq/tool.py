@@ -5,6 +5,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from mcp_handley_lab.common.process import run_command
+from mcp_handley_lab.shared.models import OperationResult, ServerInfo
 
 mcp = FastMCP("JQ Tool")
 
@@ -41,7 +42,7 @@ def query(
     filter: str = ".",
     compact: bool = False,
     raw_output: bool = False,
-) -> str:
+) -> OperationResult:
     """Query JSON data using jq filter."""
     flags = [(compact, "-c"), (raw_output, "-r")]
     args = [flag for condition, flag in flags if condition] + [filter]
@@ -52,14 +53,16 @@ def query(
         p = Path(data)
         if p.is_file():
             args.append(str(p))
-            return _run_jq(args)
-    return _run_jq(args, input_text=data_content)
+            result = _run_jq(args)
+            return OperationResult(status="success", message=result)
+    result = _run_jq(args, input_text=data_content)
+    return OperationResult(status="success", message=result)
 
 
 @mcp.tool(
     description="Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this."
 )
-def edit(file_path: str, filter: str, backup: bool = True) -> str:
+def edit(file_path: str, filter: str, backup: bool = True) -> OperationResult:
     """Edit a JSON file in-place."""
 
     path = Path(file_path)
@@ -75,26 +78,27 @@ def edit(file_path: str, filter: str, backup: bool = True) -> str:
     msg = f"Successfully edited {file_path}"
     if backup:
         msg += f" (backup saved to {backup_path})"
-    return msg
+    return OperationResult(status="success", message=msg)
 
 
 @mcp.tool(
     description="Reads and pretty-prints a JSON file with optional jq filtering. Useful for exploring JSON file structure before processing. The `filter` parameter allows extracting specific parts of the file."
 )
-def read(file_path: str, filter: str = ".") -> str:
+def read(file_path: str, filter: str = ".") -> OperationResult:
     """Read and pretty-print a JSON file."""
-    return _run_jq([filter, file_path])
+    result = _run_jq([filter, file_path])
+    return OperationResult(status="success", message=result)
 
 
 @mcp.tool(
     description="Validates JSON syntax for JSON strings or file paths. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors."
 )
-def validate(data: str) -> str:
+def validate(data: str) -> OperationResult:
     """Validate JSON syntax."""
     data_content = _resolve_data(data)
 
     json.loads(data_content)
-    return "JSON is valid"
+    return OperationResult(status="success", message="JSON is valid")
 
 
 @mcp.tool(
@@ -104,33 +108,29 @@ def format(
     data: str,
     compact: bool = False,
     sort_keys: bool = False,
-) -> str:
+) -> OperationResult:
     """Format JSON data."""
     data_content = _resolve_data(data)
     parsed = json.loads(data_content)
 
     if compact:
-        return json.dumps(parsed, separators=(",", ":"), sort_keys=sort_keys)
+        result = json.dumps(parsed, separators=(",", ":"), sort_keys=sort_keys)
     else:
-        return json.dumps(parsed, indent=2, sort_keys=sort_keys)
+        result = json.dumps(parsed, indent=2, sort_keys=sort_keys)
+    return OperationResult(status="success", message=result)
 
 
 @mcp.tool(
     description="Checks the status of the JQ server and jq command availability. Returns version info and available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and jq version."""
     version = _run_jq(["--version"])
 
-    return f"""JQ Tool Server Status
-====================
-Status: Connected and ready
-JQ Version: {version}
-
-Available tools:
-- query: Query JSON data with jq filters
-- edit: Edit JSON files in-place
-- read: Read and pretty-print JSON files
-- validate: Validate JSON syntax
-- format: Format JSON data
-- server_info: Get server status"""
+    return ServerInfo(
+        name="JQ Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=["query", "edit", "read", "validate", "format"],
+        dependencies={"jq": version},
+    )

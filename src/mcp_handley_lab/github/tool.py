@@ -170,16 +170,9 @@ def server_info() -> ServerInfo:
         name="GitHub CI Monitor",
         version=version.split()[0] if version else "Unknown",
         status="active",
-        capabilities=[
-            "monitor_pr_checks - Monitor CI status with live updates",
-            "server_info - Get server status",
-        ],
+        capabilities=["monitor_pr_checks", "server_info"],
         dependencies={
             "gh": version.split()[0] if version else "Unknown",
             "auth_status": first_auth_line,
         },
     )
-
-
-if __name__ == "__main__":
-    mcp.run()

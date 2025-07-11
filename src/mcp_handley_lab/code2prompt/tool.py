@@ -128,9 +128,6 @@ def server_info() -> ServerInfo:
         name="Code2Prompt Tool",
         version=version.strip(),
         status="active",
-        capabilities=[
-            "generate_prompt - Create structured prompts from codebases",
-            "server_info - Get server status",
-        ],
+        capabilities=["generate_prompt", "server_info"],
         dependencies={"code2prompt": version.strip()},
     )

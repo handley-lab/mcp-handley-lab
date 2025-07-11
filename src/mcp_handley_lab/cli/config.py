@@ -22,15 +22,8 @@ def get_config_file() -> Path:
 def load_config() -> dict[str, Any]:
     """Load configuration from file."""
     config_file = get_config_file()
-    if not config_file.exists():
-        return {}
-
-    try:
-        with open(config_file, "rb") as f:
-            return tomllib.load(f)
-    except Exception as e:
-        click.echo(f"Warning: Failed to load config from {config_file}: {e}", err=True)
-        return {}
+    with open(config_file, "rb") as f:
+        return tomllib.load(f)
 
 
 def create_default_config():

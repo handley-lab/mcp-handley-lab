@@ -31,9 +31,8 @@ def test_google_calendar_search_events_basic_listing(google_calendar_test_config
 
     result = search_events(start_date=start_date, end_date=end_date)
 
-    assert isinstance(result, str)
-    assert len(result) > 0
-    # This test may return events or "no events" message - both are valid
+    assert isinstance(result, list)
+    # This test may return events or empty list - both are valid
 
 
 @pytest.mark.vcr
@@ -100,10 +99,9 @@ def test_google_calendar_search_events(google_calendar_test_config):
         match_all_terms=False,  # Use OR logic to increase chances of matches
     )
 
-    # Should not error and should contain search-related text
-    assert isinstance(result, str)
-    assert len(result) > 0
-    # Result should contain either search results or indication of no results
+    # Should not error
+    assert isinstance(result, list)
+    # Result is a list of CalendarEvent objects or empty list
 
 
 @pytest.mark.vcr
@@ -115,9 +113,9 @@ def test_google_calendar_list_events_with_search(google_calendar_test_config):
     # Test search via search_events
     result = search_events(search_text="test", start_date=start_date, end_date=end_date)
 
-    # Should not error and should contain expected response
-    assert isinstance(result, str)
-    assert len(result) > 0
+    # Should not error
+    assert isinstance(result, list)
+    # Result is a list of CalendarEvent objects or empty list
 
 
 @pytest.mark.vcr

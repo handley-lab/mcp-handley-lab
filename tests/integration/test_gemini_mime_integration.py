@@ -200,3 +200,114 @@ def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_file):
     finally:
         # Cleanup
         Path(txt_file_path).unlink(missing_ok=True)
+
+
+@pytest.mark.vcr
+def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_file):
+    """Test that grounding returns all expected metadata fields."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+
+    result = ask(
+        prompt="What were the main AI announcements from Apple WWDC 2024?",
+        output_file=test_output_file,
+        model="gemini-1.5-flash",
+        grounding=True,
+        agent_name="test_grounding_metadata",
+    )
+
+    # Check basic response
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert Path(test_output_file).exists()
+
+    # Check new metadata fields
+    assert result.finish_reason != ""
+    assert result.model_version != ""
+    assert result.generation_time_ms > 0
+    assert isinstance(result.avg_logprobs, float)
+
+    # Check grounding metadata exists
+    assert result.grounding_metadata is not None
+    gm = result.grounding_metadata
+
+    # Check grounding metadata structure
+    assert isinstance(gm.web_search_queries, list)
+    assert len(gm.web_search_queries) > 0
+    assert isinstance(gm.grounding_chunks, list)
+    assert len(gm.grounding_chunks) > 0
+    assert isinstance(gm.grounding_supports, list)
+    assert len(gm.grounding_supports) > 0
+
+    # Check new grounding fields
+    assert isinstance(gm.retrieval_metadata, dict)
+    assert isinstance(gm.search_entry_point, dict)
+
+    # Check grounding chunk structure
+    chunk = gm.grounding_chunks[0]
+    assert "uri" in chunk
+    assert "title" in chunk
+    assert chunk["uri"] != ""
+    assert chunk["title"] != ""
+
+    # Check content mentions Apple/WWDC
+    content = result.content.lower()
+    assert any(term in content for term in ["apple", "wwdc", "intelligence"])
+
+
+@pytest.mark.vcr
+def test_gemini_without_grounding_no_metadata(skip_if_no_api_key, test_output_file):
+    """Test that without grounding, grounding metadata is None but other fields exist."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+
+    result = ask(
+        prompt="What is 2+2?",
+        output_file=test_output_file,
+        model="gemini-1.5-flash",
+        grounding=False,
+        agent_name="test_no_grounding",
+    )
+
+    # Check basic response
+    assert result.content is not None
+    assert "4" in result.content
+
+    # Check metadata fields still exist
+    assert result.finish_reason != ""
+    assert result.model_version != ""
+    assert result.generation_time_ms > 0
+    assert isinstance(result.avg_logprobs, float)
+
+    # Check grounding metadata is None when not using grounding
+    assert result.grounding_metadata is None
+
+
+@pytest.mark.vcr
+def test_gemini_grounding_search_entry_point_structure(
+    skip_if_no_api_key, test_output_file
+):
+    """Test the search entry point contains expected HTML interface."""
+    skip_if_no_api_key("GEMINI_API_KEY")
+
+    result = ask(
+        prompt="Latest developments in quantum computing 2024",
+        output_file=test_output_file,
+        model="gemini-1.5-flash",
+        grounding=True,
+        agent_name="test_search_entry_point",
+    )
+
+    # Check grounding metadata exists
+    assert result.grounding_metadata is not None
+    gm = result.grounding_metadata
+
+    # Check search entry point structure if present
+    if gm.search_entry_point:
+        sep = gm.search_entry_point
+        # Should contain HTML rendering information
+        if "rendered_content" in sep:
+            html_content = sep["rendered_content"]
+            assert isinstance(html_content, str)
+            # Should contain CSS styling and HTML elements
+            assert any(
+                term in html_content for term in ["container", "chip", "css", "style"]
+            )

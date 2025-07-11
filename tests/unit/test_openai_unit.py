@@ -157,13 +157,26 @@ class TestInputValidation:
                             {
                                 "message": type(
                                     "MockMessage", (), {"content": "Mocked response"}
-                                )()
+                                )(),
+                                "finish_reason": "stop",
+                                "logprobs": None,
                             },
                         )()
                     ],
                     "usage": type(
-                        "MockUsage", (), {"prompt_tokens": 10, "completion_tokens": 20}
+                        "MockUsage",
+                        (),
+                        {
+                            "prompt_tokens": 10,
+                            "completion_tokens": 20,
+                            "completion_tokens_details": None,
+                            "prompt_tokens_details": None,
+                        },
                     )(),
+                    "model": "gpt-4o-mini",
+                    "id": "chatcmpl-test",
+                    "system_fingerprint": None,
+                    "service_tier": None,
                 },
             )()
             mock_create.return_value = mock_response

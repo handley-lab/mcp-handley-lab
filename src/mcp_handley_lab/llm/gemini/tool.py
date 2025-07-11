@@ -30,11 +30,16 @@ from mcp_handley_lab.llm.common import (
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
-    format_model_listing,
+    get_structured_model_listing,
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
-from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult, ServerInfo
+from mcp_handley_lab.shared.models import (
+    ImageGenerationResult,
+    LLMResult,
+    ModelListing,
+    ServerInfo,
+)
 
 mcp = FastMCP("Gemini Tool")
 
@@ -61,6 +66,11 @@ def _get_session_id() -> LLMResult:
 def _get_model_config(model: str) -> dict[str, int]:
     """Get token limits for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
+
+
+def require_client(func):
+    """Identity decorator - no longer needed with fail-fast approach."""
+    return func
 
 
 def _resolve_files(
@@ -207,10 +217,59 @@ def _gemini_generation_adapter(
     if not response.text:
         raise RuntimeError("No response text generated")
 
+    # Extract grounding metadata if available
+    grounding_metadata = None
+    response_dict = response.to_json_dict()
+    if "candidates" in response_dict and response_dict["candidates"]:
+        candidate = response_dict["candidates"][0]
+        if "grounding_metadata" in candidate:
+            metadata = candidate["grounding_metadata"]
+            grounding_metadata = {
+                "web_search_queries": metadata.get("web_search_queries", []),
+                "grounding_chunks": [
+                    {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
+                    for chunk in metadata.get("grounding_chunks", [])
+                    if "web" in chunk
+                ],
+                "grounding_supports": metadata.get("grounding_supports", []),
+                "retrieval_metadata": metadata.get("retrieval_metadata", {}),
+                "search_entry_point": metadata.get("search_entry_point", {}),
+            }
+
+    # Extract additional response metadata
+    finish_reason = ""
+    avg_logprobs = 0.0
+    if response.candidates and len(response.candidates) > 0:
+        candidate = response.candidates[0]
+        if hasattr(candidate, "finish_reason") and candidate.finish_reason:
+            finish_reason = str(candidate.finish_reason)
+        if hasattr(candidate, "avg_logprobs") and candidate.avg_logprobs is not None:
+            avg_logprobs = float(candidate.avg_logprobs)
+
+    # Extract generation time from server-timing header
+    generation_time_ms = 0
+    if hasattr(response, "sdk_http_response") and response.sdk_http_response:
+        http_dict = response.sdk_http_response.to_json_dict()
+        headers = http_dict.get("headers", {})
+        server_timing = headers.get("server-timing", "")
+        if "dur=" in server_timing:
+            try:
+                # Extract duration from "gfet4t7; dur=11255" format
+                dur_part = server_timing.split("dur=")[1].split(";")[0].split(",")[0]
+                generation_time_ms = int(float(dur_part))
+            except (ValueError, IndexError):
+                generation_time_ms = 0
+
     return {
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
+        "grounding_metadata": grounding_metadata,
+        "finish_reason": finish_reason,
+        "avg_logprobs": avg_logprobs,
+        "model_version": getattr(response, "model_version", ""),
+        "generation_time_ms": generation_time_ms,
+        "response_id": "",  # Gemini doesn't provide a response ID
     }
 
 
@@ -258,6 +317,11 @@ def _gemini_image_analysis_adapter(
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
+        "finish_reason": "stop",  # Gemini image analysis always stops naturally
+        "avg_logprobs": 0.0,  # Gemini doesn't provide logprobs
+        "model_version": "",  # Not available for image analysis
+        "generation_time_ms": 0,  # Not extracted for image analysis
+        "response_id": "",  # Gemini doesn't provide a response ID
     }
 
 
@@ -318,29 +382,67 @@ def analyze_image(
 
 
 def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """Gemini-specific image generation function."""
-    model_mapping = {
-        "imagen-3": "imagen-3.0-generate-002",
-        "image": "imagen-3.0-generate-002",
-        "image-flash": "imagen-3.0-generate-002",
-    }
-    actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
+    """Gemini-specific image generation function with comprehensive metadata extraction."""
+    actual_model = model
+
+    # Extract config parameters for metadata
+    aspect_ratio = kwargs.get("aspect_ratio", "1:1")
+    config = GenerateImagesConfig(number_of_images=1, aspect_ratio=aspect_ratio)
 
     response = client.models.generate_images(
         model=actual_model,
         prompt=prompt,
-        config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+        config=config,
     )
 
     if not response.generated_images or not response.generated_images[0].image:
         raise RuntimeError("Generated image has no data")
 
+    # Extract response data
+    generated_image = response.generated_images[0]
+    image = generated_image.image
+
     # Estimate tokens for cost calculation
     input_tokens = len(prompt.split()) * 2
 
+    # Extract safety attributes
+    safety_attributes = {}
+    if (
+        hasattr(generated_image, "safety_attributes")
+        and generated_image.safety_attributes
+    ):
+        safety_attributes = {
+            "categories": getattr(
+                generated_image.safety_attributes, "categories", None
+            ),
+            "scores": getattr(generated_image.safety_attributes, "scores", None),
+            "content_type": getattr(
+                generated_image.safety_attributes, "content_type", None
+            ),
+        }
+
+    # Extract provider-specific metadata
+    gemini_metadata = {
+        "positive_prompt_safety_attributes": getattr(
+            response, "positive_prompt_safety_attributes", None
+        ),
+        "actual_model_used": actual_model,
+        "requested_model": model,
+    }
+
     return {
-        "image_bytes": response.generated_images[0].image.image_bytes,
+        "image_bytes": image.image_bytes,
         "input_tokens": input_tokens,
+        "enhanced_prompt": getattr(generated_image, "enhanced_prompt", "") or "",
+        "original_prompt": prompt,
+        "aspect_ratio": aspect_ratio,
+        "requested_format": "png",  # Gemini always returns PNG
+        "mime_type": getattr(image, "mime_type", "image/png") or "image/png",
+        "cloud_uri": getattr(image, "gcs_uri", "") or "",
+        "content_filter_reason": getattr(generated_image, "rai_filtered_reason", "")
+        or "",
+        "safety_attributes": safety_attributes,
+        "gemini_metadata": gemini_metadata,
     }
 
 
@@ -348,7 +450,7 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
 def generate_image(
-    prompt: str, model: str = "imagen-3", agent_name: str = "session"
+    prompt: str, model: str = "imagen-3.0-generate-002", agent_name: str = "session"
 ) -> ImageGenerationResult:
     """Generate images with Google's Imagen 3 model."""
     return process_image_generation(
@@ -364,24 +466,16 @@ def generate_image(
 @mcp.tool(
     description="Lists all available Gemini models with pricing, capabilities, and context windows. Helps compare models for cost, performance, and features to select the best model for specific tasks."
 )
-def list_models() -> LLMResult:
+@require_client
+def list_models() -> ModelListing:
     """List available Gemini models with detailed information."""
 
     # Get models from API
     models_response = client.models.list()
     api_model_names = {model.name.split("/")[-1] for model in models_response}
 
-    # Use YAML-based model listing
-    from mcp_handley_lab.shared.models import LLMResult, UsageStats
-
-    content = format_model_listing("gemini", api_model_names)
-    return LLMResult(
-        content=content,
-        usage=UsageStats(
-            input_tokens=0, output_tokens=0, cost=0.0, model_used="list_models"
-        ),
-        agent_name="",
-    )
+    # Use structured model listing
+    return get_structured_model_listing("gemini", api_model_names)
 
 
 @mcp.tool(

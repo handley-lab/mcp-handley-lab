@@ -297,3 +297,108 @@ def test_llm_error_scenarios(
             model=invalid_value if error_param == "model" else valid_model,
             agent_name=False,
         )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("ask_func,api_key,model,prompt,expected", llm_providers)
+def test_llm_response_metadata_fields(
+    skip_if_no_api_key, test_output_file, ask_func, api_key, model, prompt, expected
+):
+    """Test that all LLM providers return comprehensive metadata fields."""
+    skip_if_no_api_key(api_key)
+
+    # Test OpenAI with logprobs enabled if it's OpenAI
+    kwargs = {}
+    if "openai" in str(ask_func):
+        kwargs.update({"enable_logprobs": True, "top_logprobs": 3})
+
+    result = ask_func(
+        prompt=prompt,
+        output_file=test_output_file,
+        model=model,
+        agent_name="test_metadata",
+        **kwargs,
+    )
+
+    # Check basic response
+    assert result.content is not None
+    assert expected in result.content
+    assert Path(test_output_file).exists()
+
+    # Check common metadata fields
+    assert result.finish_reason != ""
+    assert result.model_version != ""
+    assert isinstance(result.avg_logprobs, float)
+
+    # Check response_id (provider-specific)
+    if "openai" in str(ask_func) or "claude" in str(ask_func):
+        assert result.response_id != ""
+
+    # Check provider-specific fields
+    if "openai" in str(ask_func):
+        # OpenAI-specific fields
+        assert result.system_fingerprint != ""
+        assert result.service_tier != ""
+        assert isinstance(result.completion_tokens_details, dict)
+        assert isinstance(result.prompt_tokens_details, dict)
+
+        # Check logprobs were captured when enabled
+        if kwargs.get("enable_logprobs"):
+            assert result.avg_logprobs != 0.0
+
+        # Check token details structure
+        if result.completion_tokens_details:
+            expected_keys = {
+                "reasoning_tokens",
+                "accepted_prediction_tokens",
+                "rejected_prediction_tokens",
+                "audio_tokens",
+            }
+            assert expected_keys.issubset(result.completion_tokens_details.keys())
+
+    elif "claude" in str(ask_func):
+        # Claude-specific fields
+        assert result.service_tier != ""
+        assert isinstance(result.cache_creation_input_tokens, int)
+        assert isinstance(result.cache_read_input_tokens, int)
+        # stop_sequence can be empty string for normal completion
+        assert isinstance(result.stop_sequence, str)
+
+    elif "gemini" in str(ask_func):
+        # Gemini has generation_time_ms
+        assert result.generation_time_ms > 0
+
+
+@pytest.mark.vcr
+def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_file):
+    """Test OpenAI logprobs configuration options."""
+    skip_if_no_api_key("OPENAI_API_KEY")
+
+    # Test without logprobs (default)
+    result1 = openai_ask(
+        prompt="What is 2+2?",
+        output_file=test_output_file,
+        model="gpt-4o-mini",
+        agent_name="test_no_logprobs",
+        enable_logprobs=False,
+    )
+
+    # Should have basic metadata but no meaningful logprobs
+    assert result1.avg_logprobs == 0.0
+    assert result1.finish_reason != ""
+    assert result1.response_id != ""
+
+    # Test with logprobs enabled
+    result2 = openai_ask(
+        prompt="What is 3+3?",
+        output_file=test_output_file,
+        model="gpt-4o-mini",
+        agent_name="test_with_logprobs",
+        enable_logprobs=True,
+        top_logprobs=5,
+    )
+
+    # Should have meaningful logprobs
+    assert result2.avg_logprobs != 0.0
+    assert result2.finish_reason != ""
+    assert result2.response_id != ""

@@ -14,11 +14,16 @@ from mcp_handley_lab.llm.common import (
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
-    format_model_listing,
+    get_structured_model_listing,
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
-from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult, ServerInfo
+from mcp_handley_lab.shared.models import (
+    ImageGenerationResult,
+    LLMResult,
+    ModelListing,
+    ServerInfo,
+)
 
 mcp = FastMCP("OpenAI Tool")
 
@@ -50,6 +55,8 @@ def _openai_generation_adapter(
     temperature = kwargs.get("temperature", 0.7)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
+    enable_logprobs = kwargs["enable_logprobs"]
+    top_logprobs = kwargs["top_logprobs"]
 
     # Build messages
     messages = []
@@ -81,9 +88,13 @@ def _openai_generation_adapter(
         "messages": messages,
     }
 
-    # Only add temperature for models that support it (reasoning models don't)
-    if not model.startswith(("o1", "o3", "o4")):
-        request_params["temperature"] = temperature
+    # Add logprobs if requested
+    if enable_logprobs:
+        request_params["logprobs"] = True
+        if top_logprobs > 0:
+            request_params["top_logprobs"] = top_logprobs
+
+    request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
     if max_output_tokens > 0:
@@ -97,10 +108,47 @@ def _openai_generation_adapter(
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response generated")
 
+    # Extract additional OpenAI metadata
+    choice = response.choices[0]
+    finish_reason = choice.finish_reason
+
+    # Extract logprobs for confidence assessment
+    avg_logprobs = 0.0
+    if choice.logprobs and choice.logprobs.content:
+        logprobs = [token.logprob for token in choice.logprobs.content]
+        avg_logprobs = sum(logprobs) / len(logprobs)
+
+    # Extract token details
+    completion_tokens_details = {}
+    if response.usage.completion_tokens_details:
+        details = response.usage.completion_tokens_details
+        completion_tokens_details = {
+            "reasoning_tokens": details.reasoning_tokens,
+            "accepted_prediction_tokens": details.accepted_prediction_tokens,
+            "rejected_prediction_tokens": details.rejected_prediction_tokens,
+            "audio_tokens": details.audio_tokens,
+        }
+
+    prompt_tokens_details = {}
+    if response.usage.prompt_tokens_details:
+        details = response.usage.prompt_tokens_details
+        prompt_tokens_details = {
+            "cached_tokens": details.cached_tokens,
+            "audio_tokens": details.audio_tokens,
+        }
+
     return {
         "text": response.choices[0].message.content,
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
+        "finish_reason": finish_reason,
+        "avg_logprobs": avg_logprobs,
+        "model_version": response.model,
+        "response_id": response.id,
+        "system_fingerprint": response.system_fingerprint or "",
+        "service_tier": response.service_tier or "",
+        "completion_tokens_details": completion_tokens_details,
+        "prompt_tokens_details": prompt_tokens_details,
     }
 
 
@@ -186,6 +234,14 @@ def _openai_image_analysis_adapter(
         "text": response.choices[0].message.content,
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
+        "finish_reason": response.choices[0].finish_reason,
+        "avg_logprobs": 0.0,  # Image analysis doesn't use logprobs
+        "model_version": response.model,
+        "response_id": response.id,
+        "system_fingerprint": response.system_fingerprint or "",
+        "service_tier": response.service_tier or "",
+        "completion_tokens_details": {},  # Not available for vision models
+        "prompt_tokens_details": {},  # Not available for vision models
     }
 
 
@@ -200,6 +256,8 @@ def ask(
     temperature: float = 0.7,
     max_output_tokens: int = 0,
     files: list[str] = [],
+    enable_logprobs: bool = False,
+    top_logprobs: int = 0,
 ) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
@@ -213,6 +271,8 @@ def ask(
         temperature=temperature,
         files=files,
         max_output_tokens=max_output_tokens,
+        enable_logprobs=enable_logprobs,
+        top_logprobs=top_logprobs,
     )
 
 
@@ -244,19 +304,43 @@ def analyze_image(
 
 
 def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """OpenAI-specific image generation function."""
-    params = {"model": model, "prompt": prompt, "size": kwargs.get("size"), "n": 1}
+    """OpenAI-specific image generation function with comprehensive metadata extraction."""
+    # Extract parameters for metadata
+    size = kwargs.get("size", "1024x1024")
+    quality = kwargs.get("quality", "standard")
+
+    params = {"model": model, "prompt": prompt, "size": size, "n": 1}
     if model == "dall-e-3":
-        params["quality"] = kwargs.get("quality")
+        params["quality"] = quality
 
     response = client.images.generate(**params)
-    image_url = response.data[0].url
+    image = response.data[0]
 
     # Download the image
     with httpx.Client() as http_client:
-        image_response = http_client.get(image_url)
+        image_response = http_client.get(image.url)
         image_response.raise_for_status()
-        return {"image_bytes": image_response.content}
+        image_bytes = image_response.content
+
+    # Extract comprehensive metadata
+    openai_metadata = {
+        "background": getattr(response, "background", None),
+        "output_format": getattr(response, "output_format", None),
+        "usage": getattr(response, "usage", None),
+    }
+
+    return {
+        "image_bytes": image_bytes,
+        "generation_timestamp": response.created,
+        "enhanced_prompt": image.revised_prompt or "",
+        "original_prompt": prompt,
+        "requested_size": size,
+        "requested_quality": quality,
+        "requested_format": "png",  # OpenAI always returns PNG
+        "mime_type": "image/png",
+        "original_url": image.url,
+        "openai_metadata": openai_metadata,
+    }
 
 
 @mcp.tool(
@@ -285,14 +369,14 @@ def generate_image(
 @mcp.tool(
     description="Retrieves a catalog of available OpenAI models with their capabilities, pricing, and context windows. Use this to select the best model for a task."
 )
-def list_models() -> str:
+def list_models() -> ModelListing:
     """List available OpenAI models with detailed information."""
     # Get models from API for availability checking
     api_models = client.models.list()
     api_model_ids = {m.id for m in api_models.data}
 
-    # Use YAML-based model listing
-    return format_model_listing("openai", api_model_ids)
+    # Use structured model listing
+    return get_structured_model_listing("openai", api_model_ids)
 
 
 @mcp.tool(

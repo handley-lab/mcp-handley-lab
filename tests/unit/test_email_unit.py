@@ -35,12 +35,16 @@ user personal@gmail.com
             assert accounts == ["work", "personal"]
 
     def test_parse_msmtprc_no_file(self):
-        """Test parsing when msmtprc doesn't exist."""
-        with patch("pathlib.Path.home") as mock_home:
+        """Test parsing when msmtprc doesn't exist - should fail fast."""
+        with (
+            patch("pathlib.Path.home") as mock_home,
+            patch("pathlib.Path.exists", return_value=False),
+        ):
             mock_home.return_value = Path("/home/test")
-            with patch("pathlib.Path.exists", return_value=False):
-                accounts = _parse_msmtprc()
-                assert accounts == []
+            with pytest.raises(
+                FileNotFoundError, match="msmtp configuration not found"
+            ):
+                _parse_msmtprc()
 
     def test_send_email_basic(self):
         """Test sending a basic email."""
@@ -211,7 +215,7 @@ user personal@gmail.com
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
-            result = tag("message123", add_tags="important,work")
+            result = tag("message123", add_tags=["important", "work"])
 
             args = mock_run.call_args[0][0]
             assert "notmuch" in args
@@ -230,7 +234,7 @@ user personal@gmail.com
         ) as mock_run:
             mock_run.return_value = (b"", b"")
 
-            result = tag("message123", remove_tags="spam")
+            result = tag("message123", remove_tags=["spam"])
 
             args = mock_run.call_args[0][0]
             assert "-spam" in args
@@ -239,11 +243,19 @@ user personal@gmail.com
             assert result.removed_tags == ["spam"]
 
     def test_tag_no_operation(self):
-        """Test tag with no add or remove."""
-        with pytest.raises(
-            ValueError, match="Must specify either add_tags or remove_tags"
-        ):
-            tag("message123")
+        """Test tag with no add or remove - should fail fast."""
+        # The function should work fine with empty lists according to alpha software philosophy
+        with patch(
+            "mcp_handley_lab.email.notmuch.tool.run_command", new_callable=Mock
+        ) as mock_run:
+            mock_run.return_value = (b"", b"")
+
+            result = tag("message123", add_tags=[], remove_tags=[])
+
+            # Should execute without error - notmuch handles empty tag operations gracefully
+            assert result.message_id == "message123"
+            assert result.added_tags == []
+            assert result.removed_tags == []
 
     def test_server_info(self):
         """Test server info collection."""

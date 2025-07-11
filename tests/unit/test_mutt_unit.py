@@ -18,11 +18,11 @@ class TestMuttContactManagement:
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_add_contact_individual(self, mock_run_command, mock_home, mock_file):
         """Test adding an individual contact."""
         mock_home.return_value = Path("/home/test")
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         result = add_contact("john_doe", "john@example.com", "John Doe")
 
@@ -34,11 +34,11 @@ class TestMuttContactManagement:
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_add_contact_group(self, mock_run_command, mock_home, mock_file):
         """Test adding a group contact."""
         mock_home.return_value = Path("/home/test")
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         result = add_contact(
             "gw_team", "alice@cam.ac.uk,bob@cam.ac.uk", "GW Project Team"
@@ -51,11 +51,11 @@ class TestMuttContactManagement:
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_add_contact_no_name(self, mock_run_command, mock_home, mock_file):
         """Test adding contact without name."""
         mock_home.return_value = Path("/home/test")
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         result = add_contact("simple", "test@example.com")
 
@@ -77,14 +77,14 @@ class TestMuttContactManagement:
     )
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_remove_contact_success(
         self, mock_run_command, mock_home, mock_exists, mock_file
     ):
         """Test successfully removing a contact."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         # Mock readlines and write
         mock_file.return_value.readlines.return_value = [
@@ -108,23 +108,22 @@ class TestMuttContactManagement:
     )
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_remove_contact_not_found(
         self, mock_run_command, mock_home, mock_exists, mock_file, mock_fuzzy
     ):
         """Test removing a contact that doesn't exist."""
         mock_home.return_value = Path("/home/test")
         mock_exists.return_value = True
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         mock_file.return_value.readlines.return_value = [
             'alias gw_team "GW Team" <alice@cam.ac.uk>\n'
         ]
         mock_fuzzy.return_value = []  # No fuzzy matches found
 
-        result = remove_contact("nonexistent")
-
-        assert "Contact 'nonexistent' not found" in result.message
+        with pytest.raises(ValueError, match="Contact 'nonexistent' not found"):
+            remove_contact("nonexistent")
 
     def test_remove_contact_validation(self):
         """Test input validation for remove_contact."""
@@ -135,11 +134,12 @@ class TestMuttContactManagement:
 class TestMuttFolderManagement:
     """Test mutt folder management functions."""
 
-    @patch("mcp_handley_lab.email.mutt.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt.tool.run_command")
     def test_list_folders_success(self, mock_run_command):
         """Test successfully listing folders."""
         mock_run_command.return_value = (
-            'mailboxes="INBOX Sent Archive Trash Projects/GW"'
+            b'mailboxes="INBOX Sent Archive Trash Projects/GW"',
+            b"",
         )
 
         result = list_folders()
@@ -148,7 +148,7 @@ class TestMuttFolderManagement:
         assert "INBOX" in result
         assert "Projects/GW" in result
 
-    @patch("mcp_handley_lab.email.mutt.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt.tool.run_command")
     def test_list_folders_no_config(self, mock_run_command):
         """Test listing folders when no config found."""
         mock_run_command.side_effect = RuntimeError(
@@ -161,10 +161,10 @@ class TestMuttFolderManagement:
         ):
             list_folders()
 
-    @patch("mcp_handley_lab.email.mutt.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt.tool.run_command")
     def test_list_folders_empty(self, mock_run_command):
         """Test listing folders when no mailboxes configured."""
-        mock_run_command.return_value = 'mailboxes=""'
+        mock_run_command.return_value = (b'mailboxes=""', b"")
 
         result = list_folders()
 
@@ -174,11 +174,12 @@ class TestMuttFolderManagement:
 class TestMuttServerInfo:
     """Test mutt server info function."""
 
-    @patch("mcp_handley_lab.email.mutt.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt.tool.run_command")
     def test_server_info_success(self, mock_run_command):
         """Test successful server info retrieval."""
         mock_run_command.return_value = (
-            "Mutt 2.2.14 (516568dc) (2025-02-20)\nOther info..."
+            b"Mutt 2.2.14 (516568dc) (2025-02-20)\nOther info...",
+            b"",
         )
 
         result = server_info()
@@ -191,7 +192,7 @@ class TestMuttServerInfo:
         # add_contact is now in mutt_aliases, not mutt
         assert "server_info" in str(result.capabilities)
 
-    @patch("mcp_handley_lab.email.mutt.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt.tool.run_command")
     def test_server_info_mutt_not_found(self, mock_run_command):
         """Test server info when mutt not installed."""
         mock_run_command.side_effect = FileNotFoundError()
@@ -205,11 +206,11 @@ class TestMuttContactWorkflows:
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("pathlib.Path.home")
-    @patch("mcp_handley_lab.email.mutt_aliases.tool._run_command")
+    @patch("mcp_handley_lab.email.mutt_aliases.tool.run_command")
     def test_gw_project_workflow(self, mock_run_command, mock_home, mock_file):
         """Test adding GW project team contact."""
         mock_home.return_value = Path("/home/test")
-        mock_run_command.return_value = 'alias_file="~/.mutt/addressbook"'
+        mock_run_command.return_value = (b'alias_file="~/.mutt/addressbook"', b"")
 
         # Add GW team
         result = add_contact(

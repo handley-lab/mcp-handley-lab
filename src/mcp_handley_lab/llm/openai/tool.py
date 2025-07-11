@@ -304,19 +304,43 @@ def analyze_image(
 
 
 def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """OpenAI-specific image generation function."""
-    params = {"model": model, "prompt": prompt, "size": kwargs.get("size"), "n": 1}
+    """OpenAI-specific image generation function with comprehensive metadata extraction."""
+    # Extract parameters for metadata
+    size = kwargs.get("size", "1024x1024")
+    quality = kwargs.get("quality", "standard")
+
+    params = {"model": model, "prompt": prompt, "size": size, "n": 1}
     if model == "dall-e-3":
-        params["quality"] = kwargs.get("quality")
+        params["quality"] = quality
 
     response = client.images.generate(**params)
-    image_url = response.data[0].url
+    image = response.data[0]
 
     # Download the image
     with httpx.Client() as http_client:
-        image_response = http_client.get(image_url)
+        image_response = http_client.get(image.url)
         image_response.raise_for_status()
-        return {"image_bytes": image_response.content}
+        image_bytes = image_response.content
+
+    # Extract comprehensive metadata
+    openai_metadata = {
+        "background": response.background,
+        "output_format": response.output_format,
+        "usage": response.usage,
+    }
+
+    return {
+        "image_bytes": image_bytes,
+        "generation_timestamp": response.created,
+        "enhanced_prompt": image.revised_prompt or "",
+        "original_prompt": prompt,
+        "requested_size": size,
+        "requested_quality": quality,
+        "requested_format": "png",  # OpenAI always returns PNG
+        "mime_type": "image/png",
+        "original_url": image.url,
+        "openai_metadata": openai_metadata,
+    }
 
 
 @mcp.tool(

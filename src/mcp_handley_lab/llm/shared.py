@@ -213,4 +213,23 @@ def process_image_generation(
         file_size_bytes=file_size,
         usage=usage_stats,
         agent_name=agent_name if agent_name else "",
+        # Metadata from provider response
+        generation_timestamp=response_data.get("generation_timestamp", 0),
+        enhanced_prompt=response_data.get("enhanced_prompt", ""),
+        original_prompt=response_data.get("original_prompt", prompt),
+        # Request parameters
+        requested_size=response_data.get("requested_size", ""),
+        requested_quality=response_data.get("requested_quality", ""),
+        requested_format=response_data.get("requested_format", ""),
+        aspect_ratio=response_data.get("aspect_ratio", ""),
+        # Safety and filtering
+        safety_attributes=response_data.get("safety_attributes", {}),
+        content_filter_reason=response_data.get("content_filter_reason", ""),
+        # Provider-specific metadata
+        openai_metadata=response_data.get("openai_metadata", {}),
+        gemini_metadata=response_data.get("gemini_metadata", {}),
+        # Technical details
+        mime_type=response_data.get("mime_type", ""),
+        cloud_uri=response_data.get("cloud_uri", ""),
+        original_url=response_data.get("original_url", ""),
     )

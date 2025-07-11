@@ -386,29 +386,64 @@ def analyze_image(
 
 
 def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """Gemini-specific image generation function."""
+    """Gemini-specific image generation function with comprehensive metadata extraction."""
     model_mapping = {
         "imagen-3": "imagen-3.0-generate-002",
+        "imagen-4": "imagen-4.0-generate-002",
+        "imagen-4-ultra": "imagen-4.0-generate-002",
         "image": "imagen-3.0-generate-002",
         "image-flash": "imagen-3.0-generate-002",
     }
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
 
+    # Extract config parameters for metadata
+    aspect_ratio = kwargs.get("aspect_ratio", "1:1")
+    config = GenerateImagesConfig(number_of_images=1, aspect_ratio=aspect_ratio)
+
     response = client.models.generate_images(
         model=actual_model,
         prompt=prompt,
-        config=GenerateImagesConfig(number_of_images=1, aspect_ratio="1:1"),
+        config=config,
     )
 
     if not response.generated_images or not response.generated_images[0].image:
         raise RuntimeError("Generated image has no data")
 
+    # Extract response data
+    generated_image = response.generated_images[0]
+    image = generated_image.image
+
     # Estimate tokens for cost calculation
     input_tokens = len(prompt.split()) * 2
 
+    # Extract safety attributes
+    safety_attributes = {}
+    if generated_image.safety_attributes:
+        safety_attributes = {
+            "categories": generated_image.safety_attributes.categories,
+            "scores": generated_image.safety_attributes.scores,
+            "content_type": generated_image.safety_attributes.content_type,
+        }
+
+    # Extract provider-specific metadata
+    gemini_metadata = {
+        "positive_prompt_safety_attributes": response.positive_prompt_safety_attributes,
+        "actual_model_used": actual_model,
+        "requested_model": model,
+    }
+
     return {
-        "image_bytes": response.generated_images[0].image.image_bytes,
+        "image_bytes": image.image_bytes,
         "input_tokens": input_tokens,
+        "enhanced_prompt": generated_image.enhanced_prompt or "",
+        "original_prompt": prompt,
+        "aspect_ratio": aspect_ratio,
+        "requested_format": "png",  # Gemini always returns PNG
+        "mime_type": image.mime_type or "image/png",
+        "cloud_uri": image.gcs_uri or "",
+        "content_filter_reason": generated_image.rai_filtered_reason or "",
+        "safety_attributes": safety_attributes,
+        "gemini_metadata": gemini_metadata,
     }
 
 

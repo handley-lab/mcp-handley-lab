@@ -56,13 +56,38 @@ class LLMResult(BaseModel):
 
 
 class ImageGenerationResult(BaseModel):
-    """Image generation result structure."""
+    """Comprehensive image generation result structure with full metadata."""
 
+    # Core result fields
     message: str
     file_path: str
     file_size_bytes: int
     usage: UsageStats
     agent_name: str = ""
+
+    # Generation metadata
+    generation_timestamp: int = 0  # Unix timestamp when image was generated
+    enhanced_prompt: str = ""  # AI-enhanced version of original prompt
+    original_prompt: str = ""  # Original user prompt
+
+    # Request parameters (what was requested)
+    requested_size: str = ""  # e.g., "1024x1024"
+    requested_quality: str = ""  # e.g., "standard", "hd"
+    requested_format: str = ""  # e.g., "png", "jpg"
+    aspect_ratio: str = ""  # e.g., "1:1", "16:9"
+
+    # Safety and content filtering
+    safety_attributes: dict[str, Any] = {}  # Safety scores/flags from provider
+    content_filter_reason: str = ""  # Reason if content was filtered
+
+    # Provider-specific metadata
+    openai_metadata: dict[str, Any] = {}  # OpenAI-specific fields
+    gemini_metadata: dict[str, Any] = {}  # Gemini-specific fields
+
+    # Technical details
+    mime_type: str = ""  # e.g., "image/png"
+    cloud_uri: str = ""  # Cloud storage URI if available
+    original_url: str = ""  # Original download URL (OpenAI)
 
 
 class FileResult(BaseModel):

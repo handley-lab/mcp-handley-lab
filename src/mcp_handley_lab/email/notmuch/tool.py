@@ -119,10 +119,10 @@ def show(query: str) -> list[EmailContent]:
         body_format = extracted_data["body_format"]
         attachments = extracted_data["attachments"]
 
-        subject = reconstructed_msg.get("Subject", "No Subject")
-        from_address = reconstructed_msg.get("From", "No Sender")
-        to_address = reconstructed_msg.get("To", "No Recipient")
-        date = reconstructed_msg.get("Date", "No Date")
+        subject = reconstructed_msg["Subject"]
+        from_address = reconstructed_msg["From"]
+        to_address = reconstructed_msg["To"]
+        date = reconstructed_msg["Date"]
         
         tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
         tag_stdout, _ = run_command(tag_cmd)

@@ -6,37 +6,6 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 
-def _parse_offlineimaprc(config_file: str = None) -> dict:
-    """Parse offlineimap config to extract account configurations."""
-    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-    if not config_path.exists():
-        return {}
-
-    config = configparser.ConfigParser()
-    config.read(config_path)
-
-    accounts = {}
-
-    if config.has_section("general") and config.has_option("general", "accounts"):
-        account_names = [
-            name.strip() for name in config.get("general", "accounts").split(",")
-        ]
-
-        for account_name in account_names:
-            account_section = f"Account {account_name}"
-            if config.has_section(account_section):
-                remote_repo = config.get(
-                    account_section, "remoterepository", fallback=None
-                )
-                if remote_repo and config.has_section(f"Repository {remote_repo}"):
-                    accounts[account_name] = {
-                        "remote_repo": remote_repo,
-                        "section": f"Repository {remote_repo}",
-                    }
-
-    return accounts
-
-
 @mcp.tool(
     description="Performs a full, one-time email synchronization for one or all accounts configured in `~/.offlineimaprc`. Downloads new mail, uploads sent items, and syncs flags and folders between local and remote servers. An optional `account` name can be specified to sync only that account."
 )

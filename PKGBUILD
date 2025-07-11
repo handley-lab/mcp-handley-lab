@@ -32,6 +32,8 @@ depends=(
     'python-googlemaps'
     'python-vcrpy'
     'python-html2text'
+    'python-beautifulsoup4'
+    'python-markdownify'
 )
 makedepends=(
     'python-build'

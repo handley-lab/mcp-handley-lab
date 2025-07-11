@@ -45,21 +45,18 @@ discover_and_register_tools()
 )
 def server_info(config_file: str = None) -> ServerInfo:
     """Check the status of email tools and their configurations."""
-    stdout, stderr = run_command(["msmtp", "--version"])
-    msmtp_version = stdout.decode().split("\n")[0]
+    run_command(["msmtp", "--version"])
 
     from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
 
     accounts = _parse_msmtprc()
 
-    stdout, stderr = run_command(["offlineimap", "--version"])
-    offlineimap_version = stdout.decode().split("\n")[0]
+    run_command(["offlineimap", "--version"])
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
         raise RuntimeError(f"offlineimap configuration not found at {config_path}")
 
-    stdout, stderr = run_command(["notmuch", "--version"])
-    notmuch_version = stdout.decode().strip()
+    run_command(["notmuch", "--version"])
 
     stdout, stderr = run_command(["notmuch", "count", "*"])
     db_info = stdout.decode().strip()
@@ -81,13 +78,7 @@ def server_info(config_file: str = None) -> ServerInfo:
         name="Email Tool Server",
         version="1.9.4",
         status="active",
-        capabilities=[
-            f"msmtp - {msmtp_version}",
-            f"offlineimap - {offlineimap_version}",
-            f"notmuch - {notmuch_version}",
-            "mutt - integrated",
-            f"oauth2 - {oauth2_status}",
-        ],
+        capabilities=["msmtp", "offlineimap", "notmuch", "mutt", "oauth2"],
         dependencies={
             "msmtp_accounts": str(len(accounts)),
             "notmuch_database": db_status,
@@ -95,7 +86,3 @@ def server_info(config_file: str = None) -> ServerInfo:
             "oauth2_support": oauth2_status,
         },
     )
-
-
-if __name__ == "__main__":
-    mcp.run()

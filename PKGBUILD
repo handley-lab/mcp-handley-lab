@@ -29,6 +29,9 @@ depends=(
     'python-click>=8.0.0'
     'python-pybase64-git'
     'python-msal>=1.20.0'
+    'python-googlemaps'
+    'python-vcrpy'
+    'python-html2text'
 )
 makedepends=(
     'python-build'

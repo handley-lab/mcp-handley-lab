@@ -50,13 +50,6 @@ client = google_genai.Client(api_key=settings.gemini_api_key)
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 
-# Client initialization decorator is no longer needed with fail-fast approach
-# If we reach this point, the client is guaranteed to be initialized
-def require_client(func):
-    """Identity decorator - no longer needed with fail-fast approach."""
-    return func
-
-
 # Load model configurations from YAML
 MODEL_CONFIGS = build_model_configs_dict("gemini")
 
@@ -73,6 +66,11 @@ def _get_session_id() -> LLMResult:
 def _get_model_config(model: str) -> dict[str, int]:
     """Get token limits for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
+
+
+def require_client(func):
+    """Identity decorator - no longer needed with fail-fast approach."""
+    return func
 
 
 def _resolve_files(
@@ -330,7 +328,6 @@ def _gemini_image_analysis_adapter(
 @mcp.tool(
     description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
-@require_client
 def ask(
     prompt: str,
     output_file: str = "-",
@@ -360,7 +357,6 @@ def ask(
 @mcp.tool(
     description="Analyzes images using a Gemini vision model. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
-@require_client
 def analyze_image(
     prompt: str,
     output_file: str = "-",
@@ -450,7 +446,6 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 @mcp.tool(
     description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
-@require_client
 def generate_image(
     prompt: str, model: str = "imagen-3", agent_name: str = "session"
 ) -> ImageGenerationResult:
@@ -483,7 +478,6 @@ def list_models() -> ModelListing:
 @mcp.tool(
     description="Checks Gemini Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
-@require_client
 def server_info() -> ServerInfo:
     """Get server status and Gemini configuration."""
 

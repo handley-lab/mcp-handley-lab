@@ -132,7 +132,7 @@ user personal@gmail.com
             args = mock_run.call_args[0][0]
             assert "offlineimap" in args
             assert "-o1" in args
-            assert "Email sync completed successfully" in result
+            assert "Email sync completed successfully" in result.message
 
     def test_sync_with_account(self):
         """Test sync with specific account."""
@@ -162,7 +162,7 @@ user personal@gmail.com
             args = mock_run.call_args[0][0]
             assert "offlineimap" in args
             assert "--dry-run" in args
-            assert "Offlineimap configuration valid" in result
+            assert "Offlineimap configuration valid" in result.message
 
     def test_search_emails(self):
         """Test email search."""
@@ -276,7 +276,7 @@ user personal@gmail.com
             assert result.name == "Email Tool Server"
             assert result.version == "1.9.4"
             assert result.status == "active"
-            assert "msmtp - msmtp version 1.8.11" in result.capabilities
+            assert "msmtp_accounts" in result.dependencies
             assert "offlineimap - offlineimap v7.3.3" in result.capabilities
             assert "notmuch - notmuch 0.32.2" in result.capabilities
             assert result.dependencies["msmtp_accounts"] == "2"

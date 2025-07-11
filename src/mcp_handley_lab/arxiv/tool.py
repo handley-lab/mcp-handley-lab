@@ -358,5 +358,6 @@ def server_info() -> ServerInfo:
         dependencies={
             "httpx": "latest",
             "pydantic": "latest",
+            "supported_formats": "src,pdf,tex",
         },
     )

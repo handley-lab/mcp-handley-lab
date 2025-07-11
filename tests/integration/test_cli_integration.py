@@ -147,9 +147,13 @@ class TestCLIIntegration:
         )
 
         assert result.returncode == 0
-        assert "JQ Tool Server Status" in result.stdout
-        assert "Status: Connected and ready" in result.stdout
-        assert "JQ Version:" in result.stdout
+        # Parse the JSON output to check ServerInfo structure
+        output = json.loads(result.stdout)
+        assert "structuredContent" in output
+        server_info = output["structuredContent"]
+        assert server_info["name"] == "JQ Tool"
+        assert server_info["status"] == "active"
+        assert "jq" in server_info["dependencies"]
 
     def test_jq_json_output_integration(self):
         """Test jq with JSON output format integration."""

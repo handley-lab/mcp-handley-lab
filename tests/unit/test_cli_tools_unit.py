@@ -31,7 +31,7 @@ class TestJQUnit:
         mock_run_command.return_value = (expected.encode(), b"")
 
         result = query(data=data, filter=filter)
-        assert expected in result
+        assert expected in result.message
         mock_run_command.assert_called()
 
     def test_edit_validation(self):
@@ -51,7 +51,7 @@ class TestJQUnit:
 
     def test_validate_valid_json(self):
         result = validate(data='{"valid": true}')
-        assert "valid" in result.lower()
+        assert "valid" in result.message.lower()
 
     def test_validate_invalid_json(self):
         with pytest.raises(ValueError):
@@ -59,7 +59,7 @@ class TestJQUnit:
 
     def test_format_compact(self):
         result = jq_format(data='{"compact": true}', compact=True)
-        assert "compact" in result
+        assert "compact" in result.message
 
     @patch("mcp_handley_lab.jq.tool._run_jq")
     def test_edit_success(self, mock_run_jq):
@@ -72,7 +72,10 @@ class TestJQUnit:
 
             try:
                 result = edit(file_path=f.name, filter='.test = "new_value"')
-                assert "success" in result.lower() or "updated" in result.lower()
+                assert (
+                    "success" in result.message.lower()
+                    or "updated" in result.message.lower()
+                )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -82,7 +85,7 @@ class TestJQUnit:
         mock_run_jq.return_value = "value"
 
         result = query('{"test": "value"}', ".test", compact=True, raw_output=True)
-        assert "value" in result
+        assert "value" in result.message
 
         # Verify compact and raw flags were used
         call_args = mock_run_jq.call_args[0][0]
@@ -100,7 +103,7 @@ class TestJQUnit:
 
             try:
                 result = query(f.name, ".test")
-                assert '"value"' in result
+                assert '"value"' in result.message
 
                 # Verify file path was passed to jq
                 call_args = mock_run_jq.call_args[0][0]
@@ -114,7 +117,7 @@ class TestJQUnit:
         mock_run_jq.return_value = '{"formatted": true}'
 
         result = read("/tmp/test.json", ".formatted")
-        assert "formatted" in result
+        assert "formatted" in result.message
 
     @pytest.mark.parametrize(
         "data,filter,error_msg,expected_exception",
@@ -248,7 +251,7 @@ class TestVimUnit:
         result = prompt_user_edit(
             initial_content, file_extension=file_ext, show_diff=show_diff
         )
-        assert expected_in_result in result.lower()
+        assert expected_in_result in result.message.lower()
         mock_run_vim.assert_called_once()
 
     @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
@@ -262,7 +265,7 @@ class TestVimUnit:
         mock_run_vim.return_value = None
 
         result = prompt_user_edit("original content", show_diff=True)
-        assert "Changes made:" in result or "No changes made" in result
+        assert "Changes made:" in result.message or "No changes made" in result.message
 
     @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("builtins.open", new_callable=mock_open, read_data="test content")
@@ -271,7 +274,9 @@ class TestVimUnit:
         result = prompt_user_edit(
             "test content", instructions="Edit this file", file_extension=".py"
         )
-        assert "test content" in result or "no changes" in result.lower()
+        assert (
+            "test content" in result.message or "no changes" in result.message.lower()
+        )
 
     @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
@@ -287,7 +292,8 @@ class TestVimUnit:
             try:
                 result = open_file(f.name, show_diff=False)
                 assert (
-                    "file edited" in result.lower() or "backup saved" in result.lower()
+                    "file edited" in result.message.lower()
+                    or "backup saved" in result.message.lower()
                 )
             finally:
                 Path(f.name).unlink(missing_ok=True)
@@ -297,7 +303,10 @@ class TestVimUnit:
     def test_quick_edit_success(self, mock_file, mock_run_vim):
         mock_run_vim.return_value = None
         result = quick_edit(initial_content="test", file_extension=".txt")
-        assert "quick content" in result or "created successfully" in result.lower()
+        assert (
+            "quick content" in result.message
+            or "created successfully" in result.message.lower()
+        )
 
     @patch("mcp_handley_lab.vim.tool._run_vim", new_callable=Mock)
     @patch("pathlib.Path.read_text")
@@ -312,7 +321,7 @@ class TestVimUnit:
 
             try:
                 result = open_file(f.name, backup=True, show_diff=False)
-                assert "backup saved" in result.lower()
+                assert "backup saved" in result.message.lower()
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -329,7 +338,10 @@ class TestVimUnit:
 
             try:
                 result = open_file(f.name, instructions="Edit this file carefully")
-                assert "file edited" in result.lower() or "no changes" in result.lower()
+                assert (
+                    "file edited" in result.message.lower()
+                    or "no changes" in result.message.lower()
+                )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -347,7 +359,10 @@ class TestVimUnit:
 
             try:
                 result = open_file(f.name, show_diff=True)
-                assert "changes made" in result.lower() or "diff" in result.lower()
+                assert (
+                    "changes made" in result.message.lower()
+                    or "diff" in result.message.lower()
+                )
             finally:
                 Path(f.name).unlink(missing_ok=True)
 
@@ -359,7 +374,7 @@ class TestVimUnit:
         from mcp_handley_lab.vim.tool import server_info
 
         result = server_info()
-        assert "vim" in result.lower() and "status" in result.lower()
+        assert "vim" in result.name.lower() and "status" in result.status.lower()
 
     @patch("os.isatty")
     @patch("subprocess.run")
@@ -427,7 +442,9 @@ more content"""
         result = prompt_user_edit("original content", show_diff=True)
 
         # Should show added/removed line counts
-        assert ("added" in result and "removed" in result) or "Changes made" in result
+        assert (
+            "added" in result.message and "removed" in result.message
+        ) or "Changes made" in result.message
 
     @pytest.mark.parametrize(
         "exception,error_msg,expected_exception",

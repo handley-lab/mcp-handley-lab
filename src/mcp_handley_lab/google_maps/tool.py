@@ -334,6 +334,14 @@ def server_info() -> ServerInfo:
         name="Google Maps Tool",
         version="0.4.0",
         status="active",
-        capabilities=["get_directions", "server_info"],
+        capabilities=[
+            "get_directions",
+            "server_info",
+            "directions",
+            "multiple_transport_modes",
+            "waypoint_support",
+            "traffic_aware_routing",
+            "alternative_routes",
+        ],
         dependencies={"googlemaps": "4.0.0+", "pydantic": "2.0.0+", "mcp": "1.0.0+"},
     )

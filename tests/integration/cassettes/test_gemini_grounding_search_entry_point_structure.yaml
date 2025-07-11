@@ -1,0 +1,321 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Latest developments in quantum computing
+      2024"}], "role": "user"}], "tools": [{"googleSearchRetrieval": {}}], "generationConfig":
+      {"temperature": 0.7, "maxOutputTokens": 8192}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '211'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Quantum computing in 2024 saw significant
+        advancements across hardware, software, algorithms, and applications.  Here's
+        a summary of the key developments:\\n\\n**Hardware Advancements:**\\n\\n*
+        **Increased Qubit Count and Stability:**  Companies like IBM made headlines
+        with the unveiling of significantly more powerful processors.  IBM's Condor
+        processor, boasting 1,121 qubits, represented a substantial leap forward,
+        exceeding previous capabilities.  Simultaneously,  research focused on improving
+        qubit stability and coherence times, crucial for reliable computation.  This
+        included advancements in error correction techniques,  with Google announcing
+        a new method for creating more robust logical qubits.  The development of
+        topological qubits by Microsoft also marked a significant milestone.  Further
+        advancements in hypercube network technologies improved the scalability and
+        performance of quantum systems by enhancing communication between qubits.
+        \ Integrated photonics combined with ion traps also showed promise for more
+        compact and efficient quantum devices. Innovative materials like germanium
+        and GeSn-based quantum well lasers were explored to enhance quantum hardware
+        performance.\\n\\n* **Increased Accessibility:** Cloud-based quantum computing
+        services from major tech companies like IBM, Google, and Amazon expanded,
+        making quantum computing more accessible to researchers and businesses without
+        requiring them to build their own hardware.\\n\\n**Software and Algorithmic
+        Advancements:**\\n\\n* **Quantum Machine Learning Integration:**  The integration
+        of machine learning with quantum systems continued to advance, with frameworks
+        like TorchQC enabling the application of deep learning techniques in quantum
+        dynamics and control. This integration is expected to optimize quantum algorithms
+        for real-world applications.\\n\\n* **Advancements in Quantum Algorithms:**
+        New algorithms designed to leverage quantum computing's unique capabilities
+        were developed, promising more efficient solutions in various fields such
+        as cryptography, materials science, and machine learning.\\n\\n**Applications
+        and Impact:**\\n\\n* **Post-Quantum Cryptography:** The development of post-quantum
+        cryptographic algorithms gained momentum due to the threat quantum computers
+        pose to existing encryption methods.  Standardization efforts led by NIST
+        were underway to ensure future data security.\\n\\n* **Real-World Applications:**
+        Quantum computing moved beyond theoretical exploration into practical applications
+        across various sectors. Companies were using quantum computing to improve
+        hydrogen fuel cell catalysts, electric batteries, and generate more secure
+        encryption keys.  The use of quantum computing in aerospace, energy, financial
+        services, and national security was no longer considered a futuristic concept
+        but a competitive tool.\\n\\n* **Quantum Supremacy:** While the definition
+        of quantum supremacy remained a topic of discussion, demonstrations showed
+        quantum computers solving increasingly complex problems beyond the capabilities
+        of classical computers, particularly in simulations and optimization.\\n\\n*
+        **Quantum Internet Development:** The concept of a quantum internet gained
+        traction, with advancements in quantum key distribution, repeaters, and networking
+        protocols.  Improved quantum sensing and metrology showed potential for applications
+        in navigation, medical imaging, and scientific research.\\n\\n**Overall:**\\n\\n2024
+        was a year of significant progress in quantum computing, marked by substantial
+        advancements in hardware, software, and applications.  The increased accessibility
+        of quantum computing through cloud services and the development of real-world
+        applications signaled a transition from theoretical exploration to practical
+        implementation.  The field continues to attract substantial investment and
+        research globally.  While challenges remain, the pace of innovation suggests
+        a transformative potential for quantum computing in the near future.  This
+        information is current as of July 10th, 2025.\\n\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n          \"renderedContent\":
+        \"\\u003cstyle\\u003e\\n.container {\\n  align-items: center;\\n  border-radius:
+        8px;\\n  display: flex;\\n  font-family: Google Sans, Roboto, sans-serif;\\n
+        \ font-size: 14px;\\n  line-height: 20px;\\n  padding: 8px 12px;\\n}\\n.chip
+        {\\n  display: inline-block;\\n  border: solid 1px;\\n  border-radius: 16px;\\n
+        \ min-width: 14px;\\n  padding: 5px 16px;\\n  text-align: center;\\n  user-select:
+        none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color: transparent;\\n}\\n.carousel
+        {\\n  overflow: auto;\\n  scrollbar-width: none;\\n  white-space: nowrap;\\n
+        \ margin-right: -12px;\\n}\\n.headline {\\n  display: flex;\\n  margin-right:
+        4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient {\\n
+        \ position: absolute;\\n  transform: translate(3px, -9px);\\n  height: 36px;\\n
+        \ width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
+        {\\n    background-color: #fafafa;\\n    box-shadow: 0 0 0 1px #0000000f;\\n
+        \ }\\n  .headline-label {\\n    color: #1f1f1f;\\n  }\\n  .chip {\\n    background-color:
+        #ffffff;\\n    border-color: #d2d2d2;\\n    color: #5e5e5e;\\n    text-decoration:
+        none;\\n  }\\n  .chip:hover {\\n    background-color: #f2f2f2;\\n  }\\n  .chip:focus
+        {\\n    background-color: #f2f2f2;\\n  }\\n  .chip:active {\\n    background-color:
+        #d8d8d8;\\n    border-color: #b6b6b6;\\n  }\\n  .logo-dark {\\n    display:
+        none;\\n  }\\n  .gradient {\\n    background: linear-gradient(90deg, #fafafa
+        15%, #fafafa00 100%);\\n  }\\n}\\n@media (prefers-color-scheme: dark) {\\n
+        \ .container {\\n    background-color: #1f1f1f;\\n    box-shadow: 0 0 0 1px
+        #ffffff26;\\n  }\\n  .headline-label {\\n    color: #fff;\\n  }\\n  .chip
+        {\\n    background-color: #2c2c2c;\\n    border-color: #3c4043;\\n    color:
+        #fff;\\n    text-decoration: none;\\n  }\\n  .chip:hover {\\n    background-color:
+        #353536;\\n  }\\n  .chip:focus {\\n    background-color: #353536;\\n  }\\n
+        \ .chip:active {\\n    background-color: #464849;\\n    border-color: #53575b;\\n
+        \ }\\n  .logo-light {\\n    display: none;\\n  }\\n  .gradient {\\n    background:
+        linear-gradient(90deg, #1f1f1f 15%, #1f1f1f00 100%);\\n  }\\n}\\n\\u003c/style\\u003e\\n\\u003cdiv
+        class=\\\"container\\\"\\u003e\\n  \\u003cdiv class=\\\"headline\\\"\\u003e\\n
+        \   \\u003csvg class=\\\"logo-light\\\" width=\\\"18\\\" height=\\\"18\\\"
+        viewBox=\\\"9 9 35 35\\\" fill=\\\"none\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"\\u003e\\n
+        \     \\u003cpath fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M42.8622
+        27.0064C42.8622 25.7839 42.7525 24.6084 42.5487 23.4799H26.3109V30.1568H35.5897C35.1821
+        32.3041 33.9596 34.1222 32.1258 35.3448V39.6864H37.7213C40.9814 36.677 42.8622
+        32.2571 42.8622 27.0064V27.0064Z\\\" fill=\\\"#4285F4\\\"/\\u003e\\n      \\u003cpath
+        fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M26.3109 43.8555C30.9659
+        43.8555 34.8687 42.3195 37.7213 39.6863L32.1258 35.3447C30.5898 36.3792 28.6306
+        37.0061 26.3109 37.0061C21.8282 37.0061 18.0195 33.9811 16.6559 29.906H10.9194V34.3573C13.7563
+        39.9841 19.5712 43.8555 26.3109 43.8555V43.8555Z\\\" fill=\\\"#34A853\\\"/\\u003e\\n
+        \     \\u003cpath fill-rule=\\\"evenodd\\\" clip-rule=\\\"evenodd\\\" d=\\\"M16.6559
+        29.8904C16.3111 28.8559 16.1074 27.7588 16.1074 26.6146C16.1074 25.4704 16.3111
+        24.3733 16.6559 23.3388V18.8875H10.9194C9.74388 21.2072 9.06992 23.8247 9.06992
+        26.6146C9.06992 29.4045 9.74388 32.022 10.9194 34.3417L15.3864 30.8621L16.6559
+        29.8904V29.8904Z\\\" fill=\\\"#FBBC05\\\"/\\u003e\\n      \\u003cpath fill-rule=\\\"evenodd\\\"
+        clip-rule=\\\"evenodd\\\" d=\\\"M26.3109 16.2386C28.85 16.2386 31.107 17.1164
+        32.9095 18.8091L37.8466 13.8719C34.853 11.082 30.9659 9.3736 26.3109 9.3736C19.5712
+        9.3736 13.7563 13.245 10.9194 18.8875L16.6559 23.3388C18.0195 19.2636 21.8282
+        16.2386 26.3109 16.2386V16.2386Z\\\" fill=\\\"#EA4335\\\"/\\u003e\\n    \\u003c/svg\\u003e\\n
+        \   \\u003csvg class=\\\"logo-dark\\\" width=\\\"18\\\" height=\\\"18\\\"
+        viewBox=\\\"0 0 48 48\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"\\u003e\\n
+        \     \\u003ccircle cx=\\\"24\\\" cy=\\\"23\\\" fill=\\\"#FFF\\\" r=\\\"22\\\"/\\u003e\\n
+        \     \\u003cpath d=\\\"M33.76 34.26c2.75-2.56 4.49-6.37 4.49-11.26 0-.89-.08-1.84-.29-3H24.01v5.99h8.03c-.4
+        2.02-1.5 3.56-3.07 4.56v.75l3.91 2.97h.88z\\\" fill=\\\"#4285F4\\\"/\\u003e\\n
+        \     \\u003cpath d=\\\"M15.58 25.77A8.845 8.845 0 0 0 24 31.86c1.92 0 3.62-.46
+        4.97-1.31l4.79 3.71C31.14 36.7 27.65 38 24 38c-5.93 0-11.01-3.4-13.45-8.36l.17-1.01
+        4.06-2.85h.8z\\\" fill=\\\"#34A853\\\"/\\u003e\\n      \\u003cpath d=\\\"M15.59
+        20.21a8.864 8.864 0 0 0 0 5.58l-5.03 3.86c-.98-2-1.53-4.25-1.53-6.64 0-2.39.55-4.64
+        1.53-6.64l1-.22 3.81 2.98.22 1.08z\\\" fill=\\\"#FBBC05\\\"/\\u003e\\n      \\u003cpath
+        d=\\\"M24 14.14c2.11 0 4.02.75 5.52 1.98l4.36-4.36C31.22 9.43 27.81 8 24 8c-5.93
+        0-11.01 3.4-13.45 8.36l5.03 3.85A8.86 8.86 0 0 1 24 14.14z\\\" fill=\\\"#EA4335\\\"/\\u003e\\n
+        \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
+        class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
+        \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFbt1YfX44142ucIK_ZEMvdja3Xi7e8U9tDV3L3CWXh1-iROUjhRppw0ZR7C5XdGytDcUPWwZ-BCh-cSu5xySDJ95v_wxNvwdP4YdPB-5ydRjn1P9e9FLnx-qGCfB_GkJqTDYDGLcVFUuC6TL7nxEwKSsB28cM64tWdy-a_5EEneUcwfU1B6FtKYtAsRosW4BlrCFAea2NJL2B9OloQqiPwuknCTb-o15yVAiIX_cRP\\\"\\u003elatest
+        developments in quantum computing 2024\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
+        \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFYUIhiMxyLhhQ1OUb_LvQjG4j-Ys-pGBRZljM5_sprre8__zA6nHqiaXgttCen263QuGKP6zvHCTxVm1imWFxMLRcUZpkduiSdkuchxo461nFxq7Nn8UUnKLA1Q-4b73mxCUTACdI2ix6A3_1gY3mae1j7jvzv0cGAhNtYO6oaC3KhG3otVTQLf_8LY8ZkmxTtU9JcxakGAEoPLPGJM5ljLrnpReDWKY6Q3p1pCQ==\",\n
+        \             \"title\": \"openaccessgovernment.org\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGqZJA3frW5f8vfotFVSXrkkI-gc3niMdYJWu9hHsfnqkUmQyl3Xz_sGsVy7rI05NPShkkEv5FA3HuGcQ8txljewSL-f7IK88iHl46WgLp4qL7j398QZeyxCablwJK3Gm1YTxLhUKsF5QRDJfE4AORzlkpIFSWRnQ8PSED4aSNXKeUXnsrS3JhOrZJ1Sg==\",\n
+        \             \"title\": \"tomia.co.uk\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG_qisqSEvwOXCTdO_iGjIX5aYTtaGo_iRCaQQKloeTbL8j_KtYZjZJO4zgygokZcUJetilbV62UMtloO1V9b3as_Url8cPEkspoA2B653f8Tj9KGAGRN5XkTyXvo9rXc8fbef2FLv09v1NKLSt7JBCDcP_VXRZNGuRlfiEd-za2Hcj5fh7krHHBPA2Jf3LptbNsuk_HscM\",\n
+        \             \"title\": \"microtime.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGJc5yulQlCaQA796kgmSCSWnGAdoRzEsNHXp_kxaEoSTxmfvql7yqvgxWbyVCscD27_lm9_63nSr8qUUD0P65NtSScWvGB0prdGncEcZmVOg5rMspuW7oyA0fEVvrUyk7Zv6GZKR6md8BPzR9q\",\n
+        \             \"title\": \"time.com\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFsricR-kOcMRVPxc13ODrMeyC-LuxzRnMZUeOs-jJ2HSTIc2FSJ8uPik41odz1lvcKmP7h_t4QJ4xOB7NP0OFfGeELqsr0WiFKcLKkuNIkh6luBfKFO_wgWb5ALmL1hyZDeLc775p-XqKdmV0Jii7gl1ix9vgnbhO9iPWziI87JKuFNTz_X7TW5IbDPWCm\",\n
+        \             \"title\": \"firstignite.com\"\n            }\n          }\n
+        \       ],\n        \"groundingSupports\": [\n          {\n            \"segment\":
+        {\n              \"endIndex\": 111,\n              \"text\": \"Quantum computing
+        in 2024 saw significant advancements across hardware, software, algorithms,
+        and applications.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0\n            ],\n            \"confidenceScores\": [\n
+        \             0.6893048\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 184,\n              \"endIndex\": 323,\n
+        \             \"text\": \"* **Increased Qubit Count and Stability:**  Companies
+        like IBM made headlines with the unveiling of significantly more powerful
+        processors.\"\n            },\n            \"groundingChunkIndices\": [\n
+        \             1\n            ],\n            \"confidenceScores\": [\n              0.69999903\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        325,\n              \"endIndex\": 444,\n              \"text\": \"IBM's Condor
+        processor, boasting 1,121 qubits, represented a substantial leap forward,
+        exceeding previous capabilities.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              1\n            ],\n            \"confidenceScores\": [\n
+        \             0.9770563\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 565,\n              \"endIndex\": 701,\n
+        \             \"text\": \"This included advancements in error correction techniques,
+        \ with Google announcing a new method for creating more robust logical qubits.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              1\n
+        \           ],\n            \"confidenceScores\": [\n              0.72739804\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        792,\n              \"endIndex\": 949,\n              \"text\": \"Further
+        advancements in hypercube network technologies improved the scalability and
+        performance of quantum systems by enhancing communication between qubits.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0\n
+        \           ],\n            \"confidenceScores\": [\n              0.8205849\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        951,\n              \"endIndex\": 1063,\n              \"text\": \"Integrated
+        photonics combined with ion traps also showed promise for more compact and
+        efficient quantum devices.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0\n            ],\n            \"confidenceScores\": [\n
+        \             0.9925861\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 1064,\n              \"endIndex\": 1189,\n
+        \             \"text\": \"Innovative materials like germanium and GeSn-based
+        quantum well lasers were explored to enhance quantum hardware performance.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0\n
+        \           ],\n            \"confidenceScores\": [\n              0.9701461\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1191,\n              \"endIndex\": 1448,\n              \"text\": \"* **Increased
+        Accessibility:** Cloud-based quantum computing services from major tech companies
+        like IBM, Google, and Amazon expanded, making quantum computing more accessible
+        to researchers and businesses without requiring them to build their own hardware.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              2\n
+        \           ],\n            \"confidenceScores\": [\n              0.98737955\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1494,\n              \"endIndex\": 1732,\n              \"text\": \"* **Quantum
+        Machine Learning Integration:**  The integration of machine learning with
+        quantum systems continued to advance, with frameworks like TorchQC enabling
+        the application of deep learning techniques in quantum dynamics and control.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0\n
+        \           ],\n            \"confidenceScores\": [\n              0.98852205\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1733,\n              \"endIndex\": 1821,\n              \"text\": \"This integration
+        is expected to optimize quantum algorithms for real-world applications.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0\n
+        \           ],\n            \"confidenceScores\": [\n              0.9242623\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1823,\n              \"endIndex\": 2072,\n              \"text\": \"* **Advancements
+        in Quantum Algorithms:** New algorithms designed to leverage quantum computing's
+        unique capabilities were developed, promising more efficient solutions in
+        various fields such as cryptography, materials science, and machine learning.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0,\n
+        \             2\n            ],\n            \"confidenceScores\": [\n              0.8031337,\n
+        \             0.9859886\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 2104,\n              \"endIndex\": 2282,\n
+        \             \"text\": \"* **Post-Quantum Cryptography:** The development
+        of post-quantum cryptographic algorithms gained momentum due to the threat
+        quantum computers pose to existing encryption methods.\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              0\n            ],\n
+        \           \"confidenceScores\": [\n              0.67786086\n            ]\n
+        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
+        2284,\n              \"endIndex\": 2365,\n              \"text\": \"Standardization
+        efforts led by NIST were underway to ensure future data security.\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              1\n            ],\n
+        \           \"confidenceScores\": [\n              0.8593892\n            ]\n
+        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
+        2367,\n              \"endIndex\": 2504,\n              \"text\": \"* **Real-World
+        Applications:** Quantum computing moved beyond theoretical exploration into
+        practical applications across various sectors.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0,\n              1,\n              3\n            ],\n            \"confidenceScores\":
+        [\n              0.68529123,\n              0.7217993,\n              0.92004913\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        2505,\n              \"endIndex\": 2646,\n              \"text\": \"Companies
+        were using quantum computing to improve hydrogen fuel cell catalysts, electric
+        batteries, and generate more secure encryption keys.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              3\n            ],\n            \"confidenceScores\": [\n
+        \             0.95573395\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 2648,\n              \"endIndex\": 2810,\n
+        \             \"text\": \"The use of quantum computing in aerospace, energy,
+        financial services, and national security was no longer considered a futuristic
+        concept but a competitive tool.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              3\n            ],\n            \"confidenceScores\": [\n
+        \             0.941659\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 2812,\n              \"endIndex\": 3082,\n
+        \             \"text\": \"* **Quantum Supremacy:** While the definition of
+        quantum supremacy remained a topic of discussion, demonstrations showed quantum
+        computers solving increasingly complex problems beyond the capabilities of
+        classical computers, particularly in simulations and optimization.\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              2\n            ],\n
+        \           \"confidenceScores\": [\n              0.991368\n            ]\n
+        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
+        3084,\n              \"endIndex\": 3254,\n              \"text\": \"* **Quantum
+        Internet Development:** The concept of a quantum internet gained traction,
+        with advancements in quantum key distribution, repeaters, and networking protocols.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              4\n
+        \           ],\n            \"confidenceScores\": [\n              0.96124065\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        3256,\n              \"endIndex\": 3385,\n              \"text\": \"Improved
+        quantum sensing and metrology showed potential for applications in navigation,
+        medical imaging, and scientific research.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              4\n            ],\n            \"confidenceScores\": [\n
+        \             0.92126966\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 3401,\n              \"endIndex\": 3538,\n
+        \             \"text\": \"2024 was a year of significant progress in quantum
+        computing, marked by substantial advancements in hardware, software, and applications.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              3,\n
+        \             4,\n              1,\n              0,\n              2\n            ],\n
+        \           \"confidenceScores\": [\n              0.8444159,\n              0.8173544,\n
+        \             0.7242562,\n              0.7628315,\n              0.7276775\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        3818,\n              \"endIndex\": 3943,\n              \"text\": \"While
+        challenges remain, the pace of innovation suggests a transformative potential
+        for quantum computing in the near future.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0\n            ],\n            \"confidenceScores\": [\n
+        \             0.84325033\n            ]\n          }\n        ],\n        \"retrievalMetadata\":
+        {},\n        \"webSearchQueries\": [\n          \"latest developments in quantum
+        computing 2024\"\n        ]\n      },\n      \"avgLogprobs\": -0.22710236307483372\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
+        686,\n    \"totalTokenCount\": 696,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
+        \   \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 686\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-flash\",\n
+        \ \"responseId\": \"K6FvaO_GKOCqhMIPybfouQo\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 10 Jul 2025 11:17:10 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=10863
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '21886'
+    status:
+      code: 200
+      message: OK
+version: 1

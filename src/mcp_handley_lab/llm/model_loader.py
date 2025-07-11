@@ -130,6 +130,119 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
     return model_configs
 
 
+def get_structured_model_listing(provider: str, api_model_ids: set | None = None):
+    """Generate structured model listing from YAML configuration.
+
+    Args:
+        provider: Provider name ('openai', 'claude', 'gemini')
+        api_model_ids: Set of model IDs available via API (for availability checking)
+
+    Returns:
+        ModelListing object with structured model information
+    """
+    from mcp_handley_lab.common.pricing import calculate_cost
+    from mcp_handley_lab.shared.models import (
+        ModelCategory,
+        ModelInfo,
+        ModelListing,
+        ModelListingSummary,
+        ModelPricing,
+    )
+
+    config = load_model_config(provider)
+
+    # Build summary
+    summary = ModelListingSummary(
+        provider=provider,
+        total_models=len(config["models"]),
+        total_categories=len(config["display_categories"]),
+        default_model=config["default_model"],
+        api_available_models=len(api_model_ids) if api_model_ids else 0,
+    )
+
+    # Process categories and models
+    categories = []
+    all_models = []
+
+    for category in config["display_categories"]:
+        category_name = category["name"]
+        required_tags = category["tags"]
+        exclude_tags = category.get("exclude_tags", [])
+
+        # Get models for this category
+        category_models = get_models_by_tags(config, required_tags, exclude_tags)
+
+        category_model_objects = []
+
+        for model_id, model_config in category_models.items():
+            # Check API availability
+            available = model_id in api_model_ids if api_model_ids else True
+
+            # Get pricing
+            pricing_type = model_config.get("pricing_type", "token")
+
+            if pricing_type == "per_image":
+                cost_per_image = calculate_cost(
+                    model_id, 1, 0, provider, images_generated=1
+                )
+                pricing = ModelPricing(type="per_image", cost_per_image=cost_per_image)
+            elif pricing_type == "per_second":
+                cost_per_second = calculate_cost(
+                    model_id, 1, 0, provider, seconds_generated=1
+                )
+                pricing = ModelPricing(
+                    type="per_second", cost_per_second=cost_per_second
+                )
+            else:
+                input_cost = calculate_cost(model_id, 1000000, 0, provider)
+                output_cost = calculate_cost(model_id, 0, 1000000, provider)
+                pricing = ModelPricing(
+                    type="per_token",
+                    input_cost_per_1m=input_cost,
+                    output_cost_per_1m=output_cost,
+                )
+
+            # Parse capabilities and best_for from strings to lists
+            capabilities = []
+            if model_config.get("capabilities"):
+                capabilities = [
+                    cap.strip() for cap in model_config["capabilities"].split(",")
+                ]
+
+            best_for = []
+            if model_config.get("best_for"):
+                best_for = [
+                    item.strip() for item in model_config["best_for"].split(",")
+                ]
+
+            model_info = ModelInfo(
+                id=model_id,
+                name=model_id,
+                description=model_config.get("description", ""),
+                available=available,
+                context_window=str(model_config.get("context_window", "")),
+                pricing=pricing,
+                tags=model_config.get("tags", []),
+                capabilities=capabilities,
+                best_for=best_for,
+            )
+
+            category_model_objects.append(model_info)
+            all_models.append(model_info)
+
+        if category_model_objects:  # Only add categories with models
+            categories.append(
+                ModelCategory(name=category_name, models=category_model_objects)
+            )
+
+    return ModelListing(
+        summary=summary,
+        categories=categories,
+        models=all_models,
+        usage_notes=config["usage_notes"],
+    )
+
+
 def format_model_listing(provider: str, api_model_ids: set | None = None) -> str:
     """Generate formatted model listing from YAML configuration.
 

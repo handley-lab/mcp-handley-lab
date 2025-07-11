@@ -10,7 +10,11 @@ from mcp_handley_lab.llm.common import (
     handle_agent_memory,
 )
 from mcp_handley_lab.llm.memory import memory_manager
-from mcp_handley_lab.shared.models import ImageGenerationResult, LLMResult
+from mcp_handley_lab.shared.models import (
+    GroundingMetadata,
+    ImageGenerationResult,
+    LLMResult,
+)
 
 
 def process_llm_request(
@@ -75,6 +79,23 @@ def process_llm_request(
     response_text = response_data["text"]
     input_tokens = response_data["input_tokens"]
     output_tokens = response_data["output_tokens"]
+    grounding_metadata_dict = response_data.get("grounding_metadata")
+    finish_reason = response_data["finish_reason"]
+    avg_logprobs = response_data["avg_logprobs"]
+    model_version = response_data["model_version"]
+    generation_time_ms = response_data.get(
+        "generation_time_ms", 0
+    )  # Only Gemini has this
+    response_id = response_data["response_id"]
+    # OpenAI-specific fields
+    system_fingerprint = response_data.get("system_fingerprint", "")
+    service_tier = response_data.get("service_tier", "")
+    completion_tokens_details = response_data.get("completion_tokens_details", {})
+    prompt_tokens_details = response_data.get("prompt_tokens_details", {})
+    # Claude-specific fields
+    stop_sequence = response_data.get("stop_sequence", "")
+    cache_creation_input_tokens = response_data.get("cache_creation_input_tokens", 0)
+    cache_read_input_tokens = response_data.get("cache_read_input_tokens", 0)
     cost = calculate_cost(model, input_tokens, output_tokens, provider)
 
     # Handle memory
@@ -103,10 +124,28 @@ def process_llm_request(
         model_used=model,
     )
 
+    # Convert grounding metadata dict to GroundingMetadata object
+    grounding_metadata = None
+    if grounding_metadata_dict:
+        grounding_metadata = GroundingMetadata(**grounding_metadata_dict)
+
     return LLMResult(
         content=response_text,
         usage=usage_stats,
         agent_name=actual_agent_name if use_memory else "",
+        grounding_metadata=grounding_metadata,
+        finish_reason=finish_reason,
+        avg_logprobs=avg_logprobs,
+        model_version=model_version,
+        generation_time_ms=generation_time_ms,
+        response_id=response_id,
+        system_fingerprint=system_fingerprint,
+        service_tier=service_tier,
+        completion_tokens_details=completion_tokens_details,
+        prompt_tokens_details=prompt_tokens_details,
+        stop_sequence=stop_sequence,
+        cache_creation_input_tokens=cache_creation_input_tokens,
+        cache_read_input_tokens=cache_read_input_tokens,
     )
 
 

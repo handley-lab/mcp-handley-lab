@@ -2,7 +2,6 @@
 from unittest.mock import patch
 
 import pytest
-
 from mcp_handley_lab.llm.gemini.tool import (
     MODEL_CONFIGS,
     _get_model_config,

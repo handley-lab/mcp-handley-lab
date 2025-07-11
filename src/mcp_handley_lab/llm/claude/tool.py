@@ -15,11 +15,11 @@ from mcp_handley_lab.llm.common import (
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
-    format_model_listing,
+    get_structured_model_listing,
     load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_llm_request
-from mcp_handley_lab.shared.models import LLMResult, ServerInfo
+from mcp_handley_lab.shared.models import LLMResult, ModelListing, ServerInfo
 
 mcp = FastMCP("Claude Tool")
 
@@ -208,10 +208,19 @@ def _claude_generation_adapter(
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
 
+    # Extract additional Claude metadata
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
+        "finish_reason": response.stop_reason,
+        "avg_logprobs": 0.0,  # Claude doesn't provide logprobs
+        "model_version": response.model,
+        "response_id": response.id,
+        "stop_sequence": response.stop_sequence or "",
+        "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
+        "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
+        "service_tier": response.usage.service_tier or "",
     }
 
 
@@ -275,6 +284,14 @@ def _claude_image_analysis_adapter(
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
+        "finish_reason": response.stop_reason,
+        "avg_logprobs": 0.0,  # Claude doesn't provide logprobs
+        "model_version": response.model,
+        "response_id": response.id,
+        "stop_sequence": response.stop_sequence or "",
+        "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
+        "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
+        "service_tier": response.usage.service_tier or "",
     }
 
 
@@ -339,19 +356,10 @@ def analyze_image(
 @mcp.tool(
     description="Retrieves a comprehensive catalog of all available Claude models with pricing, capabilities, and performance information. Helps compare models and select the most suitable one for specific tasks or budget constraints."
 )
-def list_models() -> LLMResult:
+def list_models() -> ModelListing:
     """List available Claude models with detailed information."""
-    # Use YAML-based model listing
-    from mcp_handley_lab.shared.models import LLMResult, UsageStats
-
-    content = format_model_listing("claude")
-    return LLMResult(
-        content=content,
-        usage=UsageStats(
-            input_tokens=0, output_tokens=0, cost=0.0, model_used="list_models"
-        ),
-        agent_name="",
-    )
+    # Use structured model listing
+    return get_structured_model_listing("claude")
 
 
 @mcp.tool(

@@ -1,8 +1,12 @@
 """Notmuch email search and indexing provider."""
 
 import json
+from email import policy
+from email.message import EmailMessage
+from email.parser import BytesParser
 
-import html2text
+from bs4 import BeautifulSoup
+from markdownify import markdownify as md
 from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.process import run_command
@@ -52,111 +56,91 @@ class TagResult(BaseModel):
 def search(query: str, limit: int = 20) -> list[str]:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
-
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
-    if not output:
-        return []
     return [line.strip() for line in output.split("\n") if line.strip()]
+
+
+def _get_message_from_raw_source(message_id: str) -> EmailMessage:
+    """Fetches the raw source of an email from notmuch and parses it into an EmailMessage object."""
+    raw_email_bytes, _ = run_command(
+        ["notmuch", "show", "--format=raw", f"id:{message_id}"]
+    )
+    parser = BytesParser(policy=policy.default)
+    return parser.parsebytes(raw_email_bytes)
+
+
+def parse_email_content(msg: EmailMessage):
+    """Parses an EmailMessage to extract the best text body and attachments."""
+    body = None
+    attachments = []
+    html_part = None
+    
+    body_part = msg.get_body(preferencelist=('html', 'plain'))
+
+    if body_part:
+        content = body_part.get_content()
+
+        if body_part.get_content_type() == 'text/html':
+            html_part = body_part
+            soup = BeautifulSoup(content, 'html.parser')
+            for s in soup(['script', 'style']):
+                s.decompose()
+            body = md(str(soup), heading_style="ATX")
+        else:
+            body = content
+    elif not msg.is_multipart() and not msg.is_attachment():
+        body = msg.get_content()
+
+    for part in msg.walk():
+        if part.get_filename() and part is not body_part:
+            attachment_info = f"{part.get_filename()} ({part.get_content_type()})"
+            attachments.append(attachment_info)
+
+    return {"body": body.strip() if body else "", "attachments": sorted(list(set(attachments))), "body_format": "html" if html_part else "text"}
 
 
 @mcp.tool(
     description="""Display complete email content by message ID or notmuch query. Returns a structured object with headers and a clean, Markdown-formatted body for optimal LLM understanding."""
 )
 def show(query: str) -> list[EmailContent]:
-    """
-    Show email content using notmuch show, parsing the best available body part.
-    It prefers HTML content and converts it to Markdown.
-    """
-    # Use --format=json to get structured data, including MIME parts
-    cmd = ["notmuch", "show", "--format=json", "--include-html", query]
-
+    """Show email content by fetching raw email sources and parsing with Python's email library."""
+    cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
-
-    if not output:
-        return []
-
-    try:
-        # notmuch can return multiple JSON objects for a multi-message query
-        emails_json = json.loads(output)
-    except json.JSONDecodeError:
-        # Handle cases where output might not be valid JSON
-        return []
-
-    # Ensure emails_json is a list
-    if not isinstance(emails_json, list):
-        emails_json = [emails_json]
+    message_ids = json.loads(output)
 
     results = []
-    h = html2text.HTML2Text()
-    h.body_width = 0  # Don't wrap lines
+    for message_id in message_ids:
+        reconstructed_msg = _get_message_from_raw_source(message_id)
 
-    for thread in emails_json:
-        for message_list in thread:
-            for email_data in message_list:
-                # Skip entries that are not dictionaries (e.g., nested lists)
-                if not isinstance(email_data, dict):
-                    continue
+        extracted_data = parse_email_content(reconstructed_msg)
+        body_markdown = extracted_data["body"]
+        body_format = extracted_data["body_format"]
+        attachments = extracted_data["attachments"]
 
-                # Skip entries without headers (these are typically metadata)
-                if not email_data.get("headers"):
-                    continue
+        subject = reconstructed_msg.get("Subject", "No Subject")
+        from_address = reconstructed_msg.get("From", "No Sender")
+        to_address = reconstructed_msg.get("To", "No Recipient")
+        date = reconstructed_msg.get("Date", "No Date")
+        
+        tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
+        tag_stdout, _ = run_command(tag_cmd)
+        tags = [tag.strip() for tag in tag_stdout.decode().strip().split("\n") if tag.strip()]
 
-                # Extract headers
-                headers = email_data.get("headers", {})
-                subject = headers.get("Subject", "No Subject")
-                from_address = headers.get("From", "No Sender")
-                to_address = headers.get("To", "No Recipient")
-                date = headers.get("Date", "No Date")
-                message_id = email_data.get("id", "No ID")
-                tags = email_data.get("tags", [])
-
-                # Find the best body content
-                body_parts = email_data.get("body", [])
-                html_part = None
-                text_part = None
-                attachments = []
-
-                for part in body_parts:
-                    content_type = part.get("content-type", "")
-                    if "text/html" in content_type and not html_part:
-                        html_part = part.get("content", "")
-                    elif "text/plain" in content_type and not text_part:
-                        text_part = part.get("content", "")
-                    else:
-                        # Basic attachment detection
-                        filename = part.get("filename")
-                        if filename:
-                            attachments.append(
-                                f"{filename} ({part.get('content-type')})"
-                            )
-
-                body_markdown = ""
-                body_format = "none"
-
-                if html_part:
-                    body_markdown = h.handle(html_part)
-                    body_format = "html"
-                elif text_part:
-                    body_markdown = text_part
-                    body_format = "text"
-                else:
-                    body_markdown = "[No readable body found in this email]"
-
-                results.append(
-                    EmailContent(
-                        id=message_id,
-                        subject=subject,
-                        from_address=from_address,
-                        to_address=to_address,
-                        date=date,
-                        tags=tags,
-                        body_markdown=body_markdown.strip(),
-                        body_format=body_format,
-                        attachments=attachments,
-                    )
-                )
+        results.append(
+            EmailContent(
+                id=message_id,
+                subject=subject,
+                from_address=from_address,
+                to_address=to_address,
+                date=date,
+                tags=tags,
+                body_markdown=body_markdown.strip(),
+                body_format=body_format,
+                attachments=attachments,
+            )
+        )
     return results
 
 
@@ -177,15 +161,13 @@ def list_tags() -> list[str]:
     """List all tags in the notmuch database."""
     stdout, stderr = run_command(["notmuch", "search", "--output=tags", "*"])
     output = stdout.decode().strip()
-    if not output:
-        return []
     return sorted([tag.strip() for tag in output.split("\n") if tag.strip()])
 
 
 @mcp.tool(
     description="""Retrieve notmuch configuration settings. Shows all settings or specific key. Useful for troubleshooting database path, user info, and tagging rules."""
 )
-def config(key: str | None = None) -> str:
+def config(key: str = "") -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
 
@@ -212,37 +194,23 @@ def count(query: str) -> int:
 
 
 @mcp.tool(
-    description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch. Supports comma-separated tag lists."""
+    description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch."""
 )
 def tag(
-    message_id: str, add_tags: str | None = None, remove_tags: str | None = None
+    message_id: str, add_tags: list[str] = [], remove_tags: list[str] = []
 ) -> TagResult:
     """Add or remove tags from a specific email using notmuch."""
-    if not add_tags and not remove_tags:
-        raise ValueError("Must specify either add_tags or remove_tags")
-
-    cmd = ["notmuch", "tag"]
-
-    if add_tags:
-        for tag in add_tags.split(","):
-            tag = tag.strip()
-            if tag:
-                cmd.append(f"+{tag}")
-
-    if remove_tags:
-        for tag in remove_tags.split(","):
-            tag = tag.strip()
-            if tag:
-                cmd.append(f"-{tag}")
-
-    cmd.append(f"id:{message_id}")
-
-    stdout, stderr = run_command(cmd)
-    added_list = [tag.strip() for tag in add_tags.split(",")] if add_tags else []
-    removed_list = (
-        [tag.strip() for tag in remove_tags.split(",")] if remove_tags else []
+    cmd = (
+        ["notmuch", "tag"]
+        + [f"+{tag}" for tag in add_tags]
+        + [f"-{tag}" for tag in remove_tags]
+        + [f"id:{message_id}"]
     )
 
+    run_command(cmd)
+
     return TagResult(
-        message_id=message_id, added_tags=added_list, removed_tags=removed_list
+        message_id=message_id, 
+        added_tags=add_tags, 
+        removed_tags=remove_tags
     )

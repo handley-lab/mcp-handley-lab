@@ -40,7 +40,7 @@ def _parse_offlineimaprc(config_file: str = None) -> dict:
 @mcp.tool(
     description="Performs a full, one-time email synchronization for one or all accounts configured in `~/.offlineimaprc`. Downloads new mail, uploads sent items, and syncs flags and folders between local and remote servers. An optional `account` name can be specified to sync only that account."
 )
-def sync(account: str | None = None) -> str:
+def sync(account: str = "") -> str:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]
 
@@ -79,7 +79,7 @@ def repo_info(config_file: str = None) -> str:
 @mcp.tool(
     description="Performs a dry-run simulation of email synchronization to show what would be synchronized without actually downloading, uploading, or modifying any emails. Useful for testing configuration changes and understanding sync operations before committing."
 )
-def sync_preview(account: str | None = None) -> str:
+def sync_preview(account: str = "") -> str:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
 
@@ -94,7 +94,7 @@ def sync_preview(account: str | None = None) -> str:
 @mcp.tool(
     description="Performs fast email synchronization focusing on new messages while skipping time-consuming flag updates and folder operations. Downloads new emails quickly but less comprehensive than full sync. Ideal for frequent email checks."
 )
-def quick_sync(account: str | None = None) -> str:
+def quick_sync(account: str = "") -> str:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]
 
@@ -109,7 +109,7 @@ def quick_sync(account: str | None = None) -> str:
 @mcp.tool(
     description="Syncs only specified folders rather than all configured folders. Provide comma-separated folder names to sync selectively. Useful for large mailboxes or focusing on important folders like 'INBOX,Sent,Drafts'. Efficient for managing large email accounts with selective folder needs."
 )
-def sync_folders(folders: str, account: str | None = None) -> str:
+def sync_folders(folders: str, account: str = "") -> str:
     """Sync only specified folders."""
     cmd = ["offlineimap", "-o1", "-f", folders]
 

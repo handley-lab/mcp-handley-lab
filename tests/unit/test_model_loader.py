@@ -3,7 +3,6 @@ from unittest.mock import mock_open, patch
 
 import pytest
 import yaml
-
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,
@@ -28,7 +27,7 @@ class TestLoadModelConfig:
         # Verify some expected models
         assert "gemini-2.5-pro" in config["models"]
         assert "gemini-2.5-flash" in config["models"]
-        assert "imagen-3" in config["models"]
+        assert "imagen-3.0-generate-002" in config["models"]
 
         # Verify default model
         assert config["default_model"] == "gemini-2.5-pro"
@@ -182,8 +181,8 @@ class TestBuildModelConfigsDict:
         assert configs["gemini-2.5-pro"]["output_tokens"] == 65536
 
         # Test image generation model
-        assert "imagen-3" in configs
-        assert configs["imagen-3"]["output_tokens"] is None
+        assert "imagen-3.0-generate-002" in configs
+        assert configs["imagen-3.0-generate-002"]["output_tokens"] is None
 
 
 class TestFormatModelListing:
@@ -205,7 +204,7 @@ class TestFormatModelListing:
 
         # Check specific models
         assert "gemini-2.5-pro" in listing
-        assert "imagen-3" in listing
+        assert "imagen-3.0-generate-002" in listing
 
         # Check pricing information
         assert "$" in listing  # Should have pricing info

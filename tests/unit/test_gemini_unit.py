@@ -38,9 +38,9 @@ class TestModelConfiguration:
             "gemini-1.5-flash",
             "gemini-1.5-flash-8b",
             "gemini-1.5-pro",
-            "imagen-4",
-            "imagen-4-ultra",
-            "imagen-3",
+            "imagen-4.0-generate-preview-06-06",
+            "imagen-4.0-ultra-generate-preview-06-06",
+            "imagen-3.0-generate-002",
             "veo-2",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models

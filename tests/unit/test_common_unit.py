@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from mcp_handley_lab.common.config import Settings
 from mcp_handley_lab.common.pricing import (
     PricingCalculator,
@@ -79,7 +78,7 @@ class TestPricingCalculator:
     # Image model test parameters
     image_model_params = [
         pytest.param("dall-e-3", "openai", 2, 0.080, id="dalle3"),
-        pytest.param("imagen-3", "gemini", 3, 0.090, id="imagen3"),
+        pytest.param("imagen-3.0-generate-002", "gemini", 3, 0.090, id="imagen3"),
     ]
 
     @pytest.mark.parametrize(

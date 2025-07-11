@@ -155,7 +155,7 @@ class TestJQUnit:
 
         # Pass dict directly (FastMCP auto-parses JSON to dict)
         result = query({"name": "Alice"}, ".name")
-        assert '"Alice"' in result
+        assert '"Alice"' in result.message
 
     @patch("mcp_handley_lab.jq.tool._run_jq")
     def test_query_with_list_input(self, mock_run_jq):
@@ -165,7 +165,7 @@ class TestJQUnit:
 
         # Pass list directly (FastMCP auto-parses JSON to list)
         result = query([1, 2, 3], "length")
-        assert "3" in result
+        assert "3" in result.message
 
     @patch("mcp_handley_lab.jq.tool._run_jq")
     def test_query_with_non_string_fallback(self, mock_run_jq):
@@ -175,7 +175,7 @@ class TestJQUnit:
 
         # Pass integer (should convert to string)
         result = query(123, ".")
-        assert "123" in result
+        assert "123" in result.message
 
     @patch("mcp_handley_lab.jq.tool._run_jq")
     def test_jq_command_not_found(self, mock_run_jq):
@@ -191,9 +191,9 @@ class TestJQUnit:
         result = jq_format(data, compact=False, sort_keys=True)
 
         # Should have indentation (non-compact)
-        assert "{\n" in result
-        assert '"a"' in result
-        assert '"b"' in result
+        assert "{\n" in result.message
+        assert '"a"' in result.message
+        assert '"b"' in result.message
 
     @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=Mock)
     def test_server_info_success(self, mock_run_jq):
@@ -204,12 +204,12 @@ class TestJQUnit:
         mock_run_jq.return_value = "jq-1.6"
 
         result = server_info()
-        assert "JQ Tool Server Status" in result
-        assert "jq-1.6" in result
-        assert "Connected and ready" in result
-        assert "query:" in result
-        assert "edit:" in result
-        assert "validate:" in result
+        assert result.name == "JQ Tool"
+        assert "jq-1.6" in result.dependencies["jq"]
+        assert result.status == "active"
+        assert "query" in result.capabilities
+        assert "edit" in result.capabilities
+        assert "validate" in result.capabilities
 
     @patch("mcp_handley_lab.jq.tool._run_jq", new_callable=Mock)
     def test_server_info_error(self, mock_run_jq):
@@ -374,7 +374,7 @@ class TestVimUnit:
         from mcp_handley_lab.vim.tool import server_info
 
         result = server_info()
-        assert "vim" in result.name.lower() and "status" in result.status.lower()
+        assert "vim" in result.name.lower() and result.status == "active"
 
     @patch("os.isatty")
     @patch("subprocess.run")

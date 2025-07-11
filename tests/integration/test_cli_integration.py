@@ -82,7 +82,10 @@ class TestCLIIntegration:
             )
 
             assert result.returncode == 0
-            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
+            # Check that the OperationResult contains the expected value
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            assert '"value"' in result_json["message"]
 
     def test_jq_positional_params_integration(self):
         """Test jq with positional parameters integration."""
@@ -109,7 +112,10 @@ class TestCLIIntegration:
             )
 
             assert result.returncode == 0
-            assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
+            # Check that the OperationResult contains the expected value
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            assert '"value"' in result_json["message"]
 
     def test_jq_validate_integration(self):
         """Test jq validate function integration."""
@@ -149,11 +155,12 @@ class TestCLIIntegration:
         assert result.returncode == 0
         # Parse the JSON output to check ServerInfo structure
         output = json.loads(result.stdout)
-        assert "structuredContent" in output
-        server_info = output["structuredContent"]
-        assert server_info["name"] == "JQ Tool"
-        assert server_info["status"] == "active"
-        assert "jq" in server_info["dependencies"]
+        assert "content" in output
+        assert len(output["content"]) > 0
+        server_info_json = json.loads(output["content"][0]["text"])
+        assert server_info_json["name"] == "JQ Tool"
+        assert server_info_json["status"] == "active"
+        assert "jq" in server_info_json["dependencies"]
 
     def test_jq_json_output_integration(self):
         """Test jq with JSON output format integration."""
@@ -208,7 +215,10 @@ class TestCLIIntegration:
                 )
 
                 assert result.returncode == 0
-                assert '"value"' in result.stdout or '\\"value\\"' in result.stdout
+                # Check that the OperationResult contains the expected value
+                output = json.loads(result.stdout)
+                result_json = json.loads(output["content"][0]["text"])
+                assert '"value"' in result_json["message"]
 
     def test_nonexistent_tool_integration(self):
         """Test error handling for nonexistent tool."""

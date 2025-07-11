@@ -381,29 +381,9 @@ def analyze_image(
     )
 
 
-def _get_available_image_models() -> dict[str, str]:
-    """Get available image generation models from the API."""
-    models = client.models.list()
-    available_models = {}
-    for api_model in models:
-        if "imagen" in api_model.name:
-            # Extract friendly name from API model name
-            model_name = api_model.name.split("/")[-1]
-            if "3.0" in model_name:
-                available_models["imagen-3"] = api_model.name
-                available_models["image"] = api_model.name  # Default alias
-                available_models["image-flash"] = api_model.name
-            elif "4.0-ultra" in model_name:
-                available_models["imagen-4-ultra"] = api_model.name
-            elif "4.0" in model_name:
-                available_models["imagen-4"] = api_model.name
-    return available_models
-
-
 def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     """Gemini-specific image generation function with comprehensive metadata extraction."""
-    model_mapping = _get_available_image_models()
-    actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
+    actual_model = model
 
     # Extract config parameters for metadata
     aspect_ratio = kwargs.get("aspect_ratio", "1:1")
@@ -470,7 +450,7 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
 def generate_image(
-    prompt: str, model: str = "imagen-3", agent_name: str = "session"
+    prompt: str, model: str = "imagen-3.0-generate-002", agent_name: str = "session"
 ) -> ImageGenerationResult:
     """Generate images with Google's Imagen 3 model."""
     return process_image_generation(

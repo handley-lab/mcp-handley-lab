@@ -113,7 +113,7 @@ models:
     input_per_1m: 0.0375
     output_per_1m: 0.15
 
-  imagen-4:
+  imagen-4.0-generate-preview-06-06:
     # Model metadata
     description: "Latest high-quality image generation model"
     capabilities: "🎨 Best for: High-quality image generation"
@@ -129,7 +129,7 @@ models:
     pricing_type: "per_image"
     quality: "standard"
 
-  imagen-4-ultra:
+  imagen-4.0-ultra-generate-preview-06-06:
     # Model metadata
     description: "Ultra-high quality image generation"
     capabilities: "🎨 Best for: Ultra-high quality artistic images"
@@ -145,7 +145,7 @@ models:
     pricing_type: "per_image"
     quality: "ultra"
 
-  imagen-3:
+  imagen-3.0-generate-002:
     # Model metadata
     description: "Previous generation image model"
     capabilities: "🎨 Best for: High-quality image generation"

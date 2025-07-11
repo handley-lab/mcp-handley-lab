@@ -104,7 +104,9 @@ class TestGeminiImageGeneration:
     def test_imagen3_basic_metadata(self):
         """Test Imagen 3 basic metadata extraction."""
         result = gemini_generate_image(
-            prompt="A peaceful garden", model="imagen-3", agent_name="test_imagen3"
+            prompt="A peaceful garden",
+            model="imagen-3.0-generate-002",
+            agent_name="test_imagen3",
         )
 
         # Verify core fields
@@ -118,7 +120,7 @@ class TestGeminiImageGeneration:
         assert result.usage.input_tokens > 0  # Gemini estimates tokens
         assert result.usage.output_tokens == 1
         assert result.usage.cost > 0
-        assert result.usage.model_used == "imagen-3"
+        assert result.usage.model_used == "imagen-3.0-generate-002"
 
         # Verify Gemini-specific metadata
         assert result.original_prompt == "A peaceful garden"
@@ -133,14 +135,14 @@ class TestGeminiImageGeneration:
         # Check provider-specific metadata
         assert "actual_model_used" in result.gemini_metadata
         assert "requested_model" in result.gemini_metadata
-        assert result.gemini_metadata["requested_model"] == "imagen-3"
+        assert result.gemini_metadata["requested_model"] == "imagen-3.0-generate-002"
 
     @pytest.mark.vcr
     def test_imagen3_safety_attributes(self):
         """Test Imagen 3 safety attributes extraction."""
         result = gemini_generate_image(
             prompt="A safe, family-friendly cartoon character",
-            model="imagen-3",
+            model="imagen-3.0-generate-002",
             agent_name="test_safety",
         )
 
@@ -161,13 +163,16 @@ class TestGeminiImageGeneration:
         """Test Imagen 4 model mapping and metadata."""
         result = gemini_generate_image(
             prompt="A modern abstract art piece",
-            model="imagen-4",
+            model="imagen-4.0-generate-preview-06-06",
             agent_name="test_imagen4",
         )
 
         # Verify model mapping is working
-        assert result.usage.model_used == "imagen-4"
-        assert result.gemini_metadata["requested_model"] == "imagen-4"
+        assert result.usage.model_used == "imagen-4.0-generate-preview-06-06"
+        assert (
+            result.gemini_metadata["requested_model"]
+            == "imagen-4.0-generate-preview-06-06"
+        )
         assert "imagen-4" in result.gemini_metadata["actual_model_used"]
 
         # Verify core metadata
@@ -191,7 +196,9 @@ class TestImageGenerationComparison:
         )
 
         gemini_result = gemini_generate_image(
-            prompt=prompt, model="imagen-3", agent_name="consistency_test"
+            prompt=prompt,
+            model="imagen-3.0-generate-002",
+            agent_name="consistency_test",
         )
 
         # Both should have the same core structure
@@ -228,7 +235,9 @@ class TestImageGenerationComparison:
         )
 
         gemini_result = gemini_generate_image(
-            prompt=prompt, model="imagen-3", agent_name="enhancement_test"
+            prompt=prompt,
+            model="imagen-3.0-generate-002",
+            agent_name="enhancement_test",
         )
 
         # Both should preserve original prompt

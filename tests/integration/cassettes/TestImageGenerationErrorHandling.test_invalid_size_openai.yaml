@@ -1,0 +1,83 @@
+interactions:
+- request:
+    body: '{"prompt": "Test", "model": "dall-e-3", "n": 1, "quality": "standard",
+      "size": "100x100"}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '80'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.93.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.93.0
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/images/generations
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"message\": \"Invalid value: '100x100'. Supported
+        values are: '1024x1024', '1024x1792', and '1792x1024'.\",\n    \"type\": \"invalid_request_error\",\n
+        \   \"param\": \"size\",\n    \"code\": \"invalid_value\"\n  }\n}"
+    headers:
+      CF-RAY:
+      - 95d9dd12ac950752-MAN
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '215'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 11 Jul 2025 17:01:34 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=8qJBECki.COLueQm.BcKc0VCJ2zwKeHxY6ca0PSc260-1752253294-1.0.1.1-s.4TCHPFKpzOH64eF3jG_MJld8RiEBBY2NI7xLk_saYGSRz5jw7TyE3TwhDsbBM8nw1cOimYTh6gKNk6M73sey04SjOzfKg3zkTndc6MEzg;
+        path=/; expires=Fri, 11-Jul-25 17:31:34 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=uQrSxXVlCso10LSq8z1OVcvUcmOTOtiT8gvG8J7.jkw-1752253294722-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '20'
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      x-request-id:
+      - req_8b2c475411c564e72de11fabeef5ed08
+    status:
+      code: 400
+      message: Bad Request
+version: 1

@@ -265,6 +265,7 @@ class TestImageGenerationErrorHandling:
         with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
             gemini_generate_image("")
 
+    @pytest.mark.vcr
     def test_invalid_size_openai(self):
         """Test OpenAI with invalid size parameter."""
         with pytest.raises(BadRequestError):  # Should raise API error for invalid size

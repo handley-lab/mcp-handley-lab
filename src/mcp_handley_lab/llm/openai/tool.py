@@ -324,9 +324,9 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
     # Extract comprehensive metadata
     openai_metadata = {
-        "background": response.background,
-        "output_format": response.output_format,
-        "usage": response.usage,
+        "background": getattr(response, "background", None),
+        "output_format": getattr(response, "output_format", None),
+        "usage": getattr(response, "usage", None),
     }
 
     return {

@@ -381,15 +381,28 @@ def analyze_image(
     )
 
 
+def _get_available_image_models() -> dict[str, str]:
+    """Get available image generation models from the API."""
+    models = client.models.list()
+    available_models = {}
+    for api_model in models:
+        if "imagen" in api_model.name:
+            # Extract friendly name from API model name
+            model_name = api_model.name.split("/")[-1]
+            if "3.0" in model_name:
+                available_models["imagen-3"] = api_model.name
+                available_models["image"] = api_model.name  # Default alias
+                available_models["image-flash"] = api_model.name
+            elif "4.0-ultra" in model_name:
+                available_models["imagen-4-ultra"] = api_model.name
+            elif "4.0" in model_name:
+                available_models["imagen-4"] = api_model.name
+    return available_models
+
+
 def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     """Gemini-specific image generation function with comprehensive metadata extraction."""
-    model_mapping = {
-        "imagen-3": "imagen-3.0-generate-002",
-        "imagen-4": "imagen-4.0-generate-002",
-        "imagen-4-ultra": "imagen-4.0-generate-002",
-        "image": "imagen-3.0-generate-002",
-        "image-flash": "imagen-3.0-generate-002",
-    }
+    model_mapping = _get_available_image_models()
     actual_model = model_mapping.get(model, "imagen-3.0-generate-002")
 
     # Extract config parameters for metadata
@@ -414,16 +427,25 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
     # Extract safety attributes
     safety_attributes = {}
-    if generated_image.safety_attributes:
+    if (
+        hasattr(generated_image, "safety_attributes")
+        and generated_image.safety_attributes
+    ):
         safety_attributes = {
-            "categories": generated_image.safety_attributes.categories,
-            "scores": generated_image.safety_attributes.scores,
-            "content_type": generated_image.safety_attributes.content_type,
+            "categories": getattr(
+                generated_image.safety_attributes, "categories", None
+            ),
+            "scores": getattr(generated_image.safety_attributes, "scores", None),
+            "content_type": getattr(
+                generated_image.safety_attributes, "content_type", None
+            ),
         }
 
     # Extract provider-specific metadata
     gemini_metadata = {
-        "positive_prompt_safety_attributes": response.positive_prompt_safety_attributes,
+        "positive_prompt_safety_attributes": getattr(
+            response, "positive_prompt_safety_attributes", None
+        ),
         "actual_model_used": actual_model,
         "requested_model": model,
     }
@@ -431,13 +453,14 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     return {
         "image_bytes": image.image_bytes,
         "input_tokens": input_tokens,
-        "enhanced_prompt": generated_image.enhanced_prompt or "",
+        "enhanced_prompt": getattr(generated_image, "enhanced_prompt", "") or "",
         "original_prompt": prompt,
         "aspect_ratio": aspect_ratio,
         "requested_format": "png",  # Gemini always returns PNG
-        "mime_type": image.mime_type or "image/png",
-        "cloud_uri": image.gcs_uri or "",
-        "content_filter_reason": generated_image.rai_filtered_reason or "",
+        "mime_type": getattr(image, "mime_type", "image/png") or "image/png",
+        "cloud_uri": getattr(image, "gcs_uri", "") or "",
+        "content_filter_reason": getattr(generated_image, "rai_filtered_reason", "")
+        or "",
         "safety_attributes": safety_attributes,
         "gemini_metadata": gemini_metadata,
     }

@@ -6,6 +6,7 @@ import pytest
 from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image
 from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image
 from mcp_handley_lab.shared.models import ImageGenerationResult
+from openai import BadRequestError
 
 
 class TestOpenAIImageGeneration:
@@ -257,9 +258,7 @@ class TestImageGenerationErrorHandling:
 
     def test_invalid_size_openai(self):
         """Test OpenAI with invalid size parameter."""
-        with pytest.raises(
-            (ValueError, RuntimeError)
-        ):  # Should raise API error for invalid size
+        with pytest.raises(BadRequestError):  # Should raise API error for invalid size
             openai_generate_image(
                 prompt="Test",
                 model="dall-e-3",

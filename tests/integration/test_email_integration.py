@@ -577,7 +577,7 @@ Subject: {test_subject}
                 # Step 3: Sync using email tool
                 print("📥 Syncing with email tool...")
                 sync_result = sync()
-                assert "sync" in sync_result.lower()
+                assert "sync" in sync_result.message.lower()
                 print("✅ Sync completed via email tool")
 
                 # Step 4: Search for the email using notmuch (if available)

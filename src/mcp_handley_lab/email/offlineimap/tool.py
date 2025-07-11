@@ -4,12 +4,13 @@ from pathlib import Path
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
+from mcp_handley_lab.shared.models import OperationResult
 
 
 @mcp.tool(
     description="Performs a full, one-time email synchronization for one or all accounts configured in `~/.offlineimaprc`. Downloads new mail, uploads sent items, and syncs flags and folders between local and remote servers. An optional `account` name can be specified to sync only that account."
 )
-def sync(account: str = "") -> str:
+def sync(account: str = "") -> OperationResult:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]
 
@@ -18,13 +19,15 @@ def sync(account: str = "") -> str:
 
     stdout, stderr = run_command(cmd, timeout=300)  # 5 minutes for email sync
     output = stdout.decode().strip()
-    return f"Email sync completed successfully\n{output}"
+    return OperationResult(
+        status="success", message=f"Email sync completed successfully\n{output}"
+    )
 
 
 @mcp.tool(
     description="Validates the `~/.offlineimaprc` configuration by performing a dry run without actually syncing any mail. This is used to check for syntax errors, connection issues, or other setup problems before running a real sync."
 )
-def sync_status(config_file: str = None) -> str:
+def sync_status(config_file: str = None) -> OperationResult:
     """Check offlineimap sync status."""
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
     if not config_path.exists():
@@ -32,23 +35,27 @@ def sync_status(config_file: str = None) -> str:
 
     stdout, stderr = run_command(["offlineimap", "--dry-run", "-o1"])
     output = stdout.decode().strip()
-    return f"Offlineimap configuration valid:\n{output}"
+    return OperationResult(
+        status="success", message=f"Offlineimap configuration valid:\n{output}"
+    )
 
 
 @mcp.tool(
     description="Displays comprehensive information about all configured email accounts, repositories, and their settings from `~/.offlineimaprc`. Shows connection details, authentication methods, and folder mappings. Useful for troubleshooting and understanding your email setup."
 )
-def repo_info(config_file: str = None) -> str:
+def repo_info(config_file: str = None) -> OperationResult:
     """Get information about configured offlineimap repositories."""
     stdout, stderr = run_command(["offlineimap", "--info"])
     output = stdout.decode().strip()
-    return f"Repository information:\n{output}"
+    return OperationResult(
+        status="success", message=f"Repository information:\n{output}"
+    )
 
 
 @mcp.tool(
     description="Performs a dry-run simulation of email synchronization to show what would be synchronized without actually downloading, uploading, or modifying any emails. Useful for testing configuration changes and understanding sync operations before committing."
 )
-def sync_preview(account: str = "") -> str:
+def sync_preview(account: str = "") -> OperationResult:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
 
@@ -57,13 +64,16 @@ def sync_preview(account: str = "") -> str:
 
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
-    return f"Sync preview{' for account ' + account if account else ''}:\n{output}"
+    return OperationResult(
+        status="success",
+        message=f"Sync preview{' for account ' + account if account else ''}:\n{output}",
+    )
 
 
 @mcp.tool(
     description="Performs fast email synchronization focusing on new messages while skipping time-consuming flag updates and folder operations. Downloads new emails quickly but less comprehensive than full sync. Ideal for frequent email checks."
 )
-def quick_sync(account: str = "") -> str:
+def quick_sync(account: str = "") -> OperationResult:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]
 
@@ -72,13 +82,15 @@ def quick_sync(account: str = "") -> str:
 
     stdout, stderr = run_command(cmd, timeout=180)  # 3 minutes for quick sync
     output = stdout.decode().strip()
-    return f"Quick sync completed successfully\n{output}"
+    return OperationResult(
+        status="success", message=f"Quick sync completed successfully\n{output}"
+    )
 
 
 @mcp.tool(
     description="Syncs only specified folders rather than all configured folders. Provide comma-separated folder names to sync selectively. Useful for large mailboxes or focusing on important folders like 'INBOX,Sent,Drafts'. Efficient for managing large email accounts with selective folder needs."
 )
-def sync_folders(folders: str, account: str = "") -> str:
+def sync_folders(folders: str, account: str = "") -> OperationResult:
     """Sync only specified folders."""
     cmd = ["offlineimap", "-o1", "-f", folders]
 
@@ -87,4 +99,6 @@ def sync_folders(folders: str, account: str = "") -> str:
 
     stdout, stderr = run_command(cmd, timeout=180)  # 3 minutes for folder sync
     output = stdout.decode().strip()
-    return f"Folder sync completed for: {folders}\n{output}"
+    return OperationResult(
+        status="success", message=f"Folder sync completed for: {folders}\n{output}"
+    )

@@ -7,6 +7,8 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
+from mcp_handley_lab.shared.models import OperationResult, ServerInfo
+
 mcp = FastMCP("Vim Tool")
 
 
@@ -61,7 +63,7 @@ def prompt_user_edit(
     instructions: str = "",
     show_diff: bool = True,
     keep_file: bool = False,
-) -> str:
+) -> OperationResult:
     """Open vim for editing provided content."""
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
@@ -108,7 +110,7 @@ def prompt_user_edit(
         else:
             result = edited_content
 
-        return result
+        return OperationResult(status="success", message=result)
 
     finally:
         if not keep_file:
@@ -122,7 +124,7 @@ def quick_edit(
     file_extension: str = ".txt",
     instructions: str = "",
     initial_content: str = "",
-) -> str:
+) -> OperationResult:
     """Open vim for creating new content."""
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
     fd, temp_path = tempfile.mkstemp(suffix=suffix, text=True)
@@ -140,7 +142,7 @@ def quick_edit(
 
         content = _strip_instructions(content, instructions, suffix)
 
-        return content
+        return OperationResult(status="success", message=content)
 
     finally:
         os.unlink(temp_path)
@@ -154,7 +156,7 @@ def open_file(
     instructions: str = "",
     show_diff: bool = True,
     backup: bool = True,
-) -> str:
+) -> OperationResult:
     """Open existing file in vim."""
     path = Path(file_path)
 
@@ -218,13 +220,13 @@ def open_file(
         if backup:
             result += f"\nBackup saved to: {backup_path}"
 
-    return result
+    return OperationResult(status="success", message=result)
 
 
 @mcp.tool(
     description="Checks the status of the Vim server and vim command availability. Returns version info and available functions."
 )
-def server_info() -> str:
+def server_info() -> ServerInfo:
     """Get server status and vim version."""
     try:
         result = subprocess.run(
@@ -238,13 +240,10 @@ def server_info() -> str:
 
     version_line = result.stdout.split("\n")[0]
 
-    return f"""Vim Tool Server Status
-=====================
-Status: Connected and ready
-Vim Version: {version_line}
-
-Available tools:
-- prompt_user_edit: Edit provided content in vim
-- quick_edit: Create new content in vim
-- open_file: Edit existing files in vim
-- server_info: Get server status"""
+    return ServerInfo(
+        name="Vim Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=["prompt_user_edit", "quick_edit", "open_file"],
+        dependencies={"vim": version_line},
+    )

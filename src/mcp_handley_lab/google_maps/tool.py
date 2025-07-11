@@ -335,6 +335,8 @@ def server_info() -> ServerInfo:
         version="0.4.0",
         status="active",
         capabilities=[
+            "get_directions",
+            "server_info",
             "directions",
             "multiple_transport_modes",
             "waypoint_support",
@@ -343,7 +345,3 @@ def server_info() -> ServerInfo:
         ],
         dependencies={"googlemaps": "4.0.0+", "pydantic": "2.0.0+", "mcp": "1.0.0+"},
     )
-
-
-if __name__ == "__main__":
-    mcp.run()

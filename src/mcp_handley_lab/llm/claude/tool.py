@@ -34,13 +34,6 @@ _config = load_model_config("claude")
 DEFAULT_MODEL = _config["default_model"]
 
 
-# Client initialization decorator is no longer needed with fail-fast approach
-# If we reach this point, the client is guaranteed to be initialized
-def require_client(func):
-    """Identity decorator - no longer needed with fail-fast approach."""
-    return func
-
-
 def _resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
@@ -205,9 +198,6 @@ def _claude_generation_adapter(
     # Make API call
     response = client.messages.create(**request_params)
 
-    if not response.content or not response.content[0].text:
-        raise RuntimeError("No response text generated")
-
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
@@ -268,9 +258,6 @@ def _claude_image_analysis_adapter(
     # Make API call
     response = client.messages.create(**request_params)
 
-    if not response.content or not response.content[0].text:
-        raise RuntimeError("No response text generated")
-
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
@@ -281,7 +268,6 @@ def _claude_image_analysis_adapter(
 @mcp.tool(
     description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
-@require_client
 def ask(
     prompt: str,
     output_file: str = "-",
@@ -311,7 +297,6 @@ def ask(
 @mcp.tool(
     description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
-@require_client
 def analyze_image(
     prompt: str,
     output_file: str = "-",
@@ -357,7 +342,6 @@ def list_models() -> LLMResult:
 @mcp.tool(
     description="Checks the status of the Claude Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests."
 )
-@require_client
 def server_info() -> ServerInfo:
     """Get server status and Claude configuration."""
     # Test API by making a simple request

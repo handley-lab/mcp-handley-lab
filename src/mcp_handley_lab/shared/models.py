@@ -155,3 +155,19 @@ class ModelListing(BaseModel):
     categories: list[ModelCategory]
     models: list[ModelInfo]
     usage_notes: list[str]
+
+
+class MuttContact(BaseModel):
+    """Mutt address book contact."""
+
+    alias: str
+    email: str
+    name: str = ""
+
+
+class MuttContactSearchResult(BaseModel):
+    """Search result for mutt contacts."""
+
+    query: str
+    matches: list[MuttContact]
+    total_found: int

@@ -21,7 +21,7 @@ def _parse_msmtprc(config_file: str = "") -> list[str]:
     """Parse msmtp config to extract account names."""
     msmtprc_path = Path(config_file) if config_file else Path.home() / ".msmtprc"
     if not msmtprc_path.exists():
-        return []
+        raise FileNotFoundError(f"msmtp configuration not found at {msmtprc_path}")
 
     accounts = []
     with open(msmtprc_path) as f:

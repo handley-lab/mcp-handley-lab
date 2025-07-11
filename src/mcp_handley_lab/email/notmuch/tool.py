@@ -75,16 +75,16 @@ def parse_email_content(msg: EmailMessage):
     body = None
     attachments = []
     html_part = None
-    
-    body_part = msg.get_body(preferencelist=('html', 'plain'))
+
+    body_part = msg.get_body(preferencelist=("html", "plain"))
 
     if body_part:
         content = body_part.get_content()
 
-        if body_part.get_content_type() == 'text/html':
+        if body_part.get_content_type() == "text/html":
             html_part = body_part
-            soup = BeautifulSoup(content, 'html.parser')
-            for s in soup(['script', 'style']):
+            soup = BeautifulSoup(content, "html.parser")
+            for s in soup(["script", "style"]):
                 s.decompose()
             body = md(str(soup), heading_style="ATX")
         else:
@@ -97,7 +97,11 @@ def parse_email_content(msg: EmailMessage):
             attachment_info = f"{part.get_filename()} ({part.get_content_type()})"
             attachments.append(attachment_info)
 
-    return {"body": body.strip() if body else "", "attachments": sorted(list(set(attachments))), "body_format": "html" if html_part else "text"}
+    return {
+        "body": body.strip() if body else "",
+        "attachments": sorted(set(attachments)),
+        "body_format": "html" if html_part else "text",
+    }
 
 
 @mcp.tool(
@@ -123,10 +127,14 @@ def show(query: str) -> list[EmailContent]:
         from_address = reconstructed_msg["From"]
         to_address = reconstructed_msg["To"]
         date = reconstructed_msg["Date"]
-        
+
         tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
         tag_stdout, _ = run_command(tag_cmd)
-        tags = [tag.strip() for tag in tag_stdout.decode().strip().split("\n") if tag.strip()]
+        tags = [
+            tag.strip()
+            for tag in tag_stdout.decode().strip().split("\n")
+            if tag.strip()
+        ]
 
         results.append(
             EmailContent(
@@ -210,7 +218,5 @@ def tag(
     run_command(cmd)
 
     return TagResult(
-        message_id=message_id, 
-        added_tags=add_tags, 
-        removed_tags=remove_tags
+        message_id=message_id, added_tags=add_tags, removed_tags=remove_tags
     )

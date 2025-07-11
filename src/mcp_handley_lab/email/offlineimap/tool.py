@@ -1,5 +1,4 @@
 """OfflineIMAP email synchronization provider."""
-import configparser
 from pathlib import Path
 
 from mcp_handley_lab.common.process import run_command

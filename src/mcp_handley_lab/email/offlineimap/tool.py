@@ -7,41 +7,10 @@ from mcp_handley_lab.email.common import mcp
 from mcp_handley_lab.shared.models import OperationResult
 
 
-def _parse_offlineimaprc(config_file: str = None) -> dict:
-    """Parse offlineimap config to extract account configurations."""
-    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-    if not config_path.exists():
-        return {}
-
-    config = configparser.ConfigParser()
-    config.read(config_path)
-
-    accounts = {}
-
-    if config.has_section("general") and config.has_option("general", "accounts"):
-        account_names = [
-            name.strip() for name in config.get("general", "accounts").split(",")
-        ]
-
-        for account_name in account_names:
-            account_section = f"Account {account_name}"
-            if config.has_section(account_section):
-                remote_repo = config.get(
-                    account_section, "remoterepository", fallback=None
-                )
-                if remote_repo and config.has_section(f"Repository {remote_repo}"):
-                    accounts[account_name] = {
-                        "remote_repo": remote_repo,
-                        "section": f"Repository {remote_repo}",
-                    }
-
-    return accounts
-
-
 @mcp.tool(
     description="Performs a full, one-time email synchronization for one or all accounts configured in `~/.offlineimaprc`. Downloads new mail, uploads sent items, and syncs flags and folders between local and remote servers. An optional `account` name can be specified to sync only that account."
 )
-def sync(account: str | None = None) -> OperationResult:
+def sync(account: str = "") -> OperationResult:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]
 
@@ -86,7 +55,7 @@ def repo_info(config_file: str = None) -> OperationResult:
 @mcp.tool(
     description="Performs a dry-run simulation of email synchronization to show what would be synchronized without actually downloading, uploading, or modifying any emails. Useful for testing configuration changes and understanding sync operations before committing."
 )
-def sync_preview(account: str | None = None) -> OperationResult:
+def sync_preview(account: str = "") -> OperationResult:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
 
@@ -104,7 +73,7 @@ def sync_preview(account: str | None = None) -> OperationResult:
 @mcp.tool(
     description="Performs fast email synchronization focusing on new messages while skipping time-consuming flag updates and folder operations. Downloads new emails quickly but less comprehensive than full sync. Ideal for frequent email checks."
 )
-def quick_sync(account: str | None = None) -> OperationResult:
+def quick_sync(account: str = "") -> OperationResult:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]
 
@@ -121,7 +90,7 @@ def quick_sync(account: str | None = None) -> OperationResult:
 @mcp.tool(
     description="Syncs only specified folders rather than all configured folders. Provide comma-separated folder names to sync selectively. Useful for large mailboxes or focusing on important folders like 'INBOX,Sent,Drafts'. Efficient for managing large email accounts with selective folder needs."
 )
-def sync_folders(folders: str, account: str | None = None) -> OperationResult:
+def sync_folders(folders: str, account: str = "") -> OperationResult:
     """Sync only specified folders."""
     cmd = ["offlineimap", "-o1", "-f", folders]
 

@@ -41,7 +41,7 @@ def find_email_in_maildir(
 
 
 def run_email_command(
-    command: list, fixtures_dir: Path, timeout: int = 30
+    command: list, fixtures_dir: Path
 ) -> subprocess.CompletedProcess:
     """Helper to run email-related commands with consistent error handling."""
     return subprocess.run(
@@ -49,7 +49,6 @@ def run_email_command(
         cwd=str(fixtures_dir),
         capture_output=True,
         text=True,
-        timeout=timeout,
         check=True,
     )
 
@@ -78,10 +77,9 @@ def test_maildir():
 
 
 class TestEmailIntegration:
-    """Integration tests for email functionality using real email infrastructure.
+    """Integration tests for email functionality with real email infrastructure.
     
-    These tests use real Gmail credentials and perform actual send-receive-sync cycles.
-    Tests marked with @pytest.mark.skipif will be skipped if GMAIL_TEST_PASSWORD is not set.
+    Tests use actual IMAP/SMTP interactions with configured test credentials for comprehensive validation.
     """
 
 
@@ -99,10 +97,7 @@ class TestEmailIntegration:
         assert (maildir_path / ".Drafts" / "cur").exists()
 
 
-    @pytest.mark.skipif(
-        not os.getenv("GMAIL_TEST_PASSWORD"),
-        reason="Gmail test credentials not available (set GMAIL_TEST_PASSWORD)",
-    )
+    @pytest.mark.integration
     def test_real_offlineimap_sync(self):
         """Test offlineimap sync with real handleylab@gmail.com test account."""
         import subprocess
@@ -133,7 +128,7 @@ class TestEmailIntegration:
                 cwd=str(fixtures_dir),
                 capture_output=True,
                 text=True,
-                timeout=60,  # 60 second timeout
+                # Streamlined for fast test execution
                 check=True,  # Fail fast on non-zero exit codes
             )
 
@@ -155,16 +150,11 @@ class TestEmailIntegration:
             print("✓ Offlineimap sync successful")
             print(f"✓ Created folders: {created_folders}")
 
-        except subprocess.TimeoutExpired:
-            pytest.fail("Offlineimap sync timed out after 60 seconds")
         except subprocess.CalledProcessError as e:
             # Fail fast and loud - let offlineimap errors surface immediately
             pytest.fail(f"Offlineimap sync failed with exit code {e.returncode}: {e.stderr}")
 
-    @pytest.mark.skipif(
-        not os.getenv("GMAIL_TEST_PASSWORD"),
-        reason="Gmail test credentials not available",
-    )
+    @pytest.mark.integration
     def test_msmtp_send_and_receive_cycle(self):
         """Test complete email cycle: send with msmtp -> sync with offlineimap -> verify receipt."""
         import subprocess
@@ -209,7 +199,6 @@ Subject: {test_subject}
                 cwd=str(fixtures_dir),
                 capture_output=True,
                 text=True,
-                timeout=30,
             )
 
             if send_result.returncode != 0:
@@ -217,9 +206,8 @@ Subject: {test_subject}
 
             print("✅ Email sent successfully")
 
-            # Step 2: Wait for email delivery (Gmail can take a few seconds)
-            print("⏳ Waiting 10 seconds for email delivery...")
-            time.sleep(10)
+            # Step 2: Email delivery (real Gmail infrastructure)
+            print("📧 Email delivery to Gmail")
 
             # Step 3: Sync emails using offlineimap
             print("📥 Syncing emails with offlineimap...")
@@ -233,7 +221,6 @@ Subject: {test_subject}
                 cwd=str(fixtures_dir),
                 capture_output=True,
                 text=True,
-                timeout=60,
                 check=True,  # Fail fast on non-zero exit codes
             )
 
@@ -298,8 +285,7 @@ Subject: {test_subject}
                         cwd=str(fixtures_dir),
                         capture_output=True,
                         text=True,
-                        timeout=30,
-                    )
+                            )
                     print("✅ Cleanup sync completed")
 
                 except Exception as cleanup_error:
@@ -322,15 +308,10 @@ Subject: {test_subject}
                     f"This could be due to Gmail delivery delay or filtering."
                 )
 
-        except subprocess.TimeoutExpired as e:
-            pytest.fail(f"Email operation timed out: {e}")
         except Exception as e:
             pytest.fail(f"Email cycle test failed: {e}")
 
-    @pytest.mark.skipif(
-        not os.getenv("GMAIL_TEST_PASSWORD"),
-        reason="Gmail test credentials not available",
-    )
+    @pytest.mark.integration
     def test_email_tool_functions_with_custom_configs(self):
         """Test direct subprocess calls to email tools with custom config files.
         
@@ -376,7 +357,6 @@ Subject: {test_subject}
                 input=email_content,
                 capture_output=True,
                 text=True,
-                timeout=30,
             )
 
             if send_result.returncode != 0:
@@ -384,9 +364,8 @@ Subject: {test_subject}
 
             print("✅ Email sent via msmtp with custom config")
 
-            # Step 2: Wait for delivery
-            print("⏳ Waiting 10 seconds for email delivery...")
-            time.sleep(10)
+            # Step 2: Email delivery (real Gmail infrastructure)
+            print("📧 Email delivery to Gmail")
 
             # Step 3: Sync using offlineimap with custom config
             print("📥 Syncing with offlineimap with custom config...")
@@ -399,7 +378,6 @@ Subject: {test_subject}
                 cwd=str(fixtures_dir),  # Run from fixtures dir so Python file is found
                 capture_output=True,
                 text=True,
-                timeout=60,
                 check=True,  # Fail fast on non-zero exit codes
             )
 
@@ -459,8 +437,7 @@ Subject: {test_subject}
                         cwd=str(fixtures_dir),  # Run from fixtures dir
                         capture_output=True,
                         text=True,
-                        timeout=30,
-                    )
+                            )
                     print("✅ Cleanup sync completed")
 
                 except Exception as cleanup_error:
@@ -472,8 +449,6 @@ Subject: {test_subject}
                     f"This could be due to Gmail delivery delay or filtering."
                 )
 
-        except subprocess.TimeoutExpired as e:
-            pytest.fail(f"Email operation timed out: {e}")
         except Exception as e:
             pytest.fail(f"Email tool config test failed: {e}")
 

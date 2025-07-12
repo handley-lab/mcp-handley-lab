@@ -45,7 +45,7 @@ checkdepends=(
     'python-pytest>=7.0.0'
     'python-pytest-cov>=4.0.0'
     'python-pytest-asyncio>=0.21.0'
-    'python-pytest-mock>=3.0.0'
+    'python-pytest-vcr>=1.0.0'
 )
 optdepends=(
     'jq: JSON processing'

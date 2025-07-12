@@ -1,12 +1,9 @@
 import os
 import tempfile
-import threading
-import time
 from pathlib import Path
 
 import pytest
 
-from tests.fixtures.mock_imap_server import MockIMAPServer
 
 
 @pytest.fixture(scope="session")
@@ -93,21 +90,3 @@ def google_calendar_test_config():
     settings.google_token_file = original_token
 
 
-@pytest.fixture(scope="function")
-def mock_imap_server():
-    """Fixture that provides a running mock IMAP server for testing."""
-    server = MockIMAPServer()
-
-    # Start server in a separate thread
-    server_thread = threading.Thread(target=server.start)
-    server_thread.daemon = True
-    server_thread.start()
-
-    # Give server time to start
-    time.sleep(0.1)
-
-    yield server
-
-    # Stop server
-    server.stop()
-    time.sleep(0.1)

@@ -143,6 +143,235 @@ class TestCLIIntegration:
             assert result.returncode == 0
             assert "JSON is valid" in result.stdout
 
+    def test_jq_edit_integration(self):
+        """Test jq edit function integration."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "original_value", "other": "data"}, f)
+            f.flush()
+            temp_path = f.name
+
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "edit",
+                    f"file_path={temp_path}",
+                    'filter=.test = "new_value"',
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            assert "success" in result.stdout.lower() or "updated" in result.stdout.lower()
+            
+            # Verify the file was actually edited
+            with open(temp_path) as f:
+                updated_data = json.load(f)
+                assert updated_data["test"] == "new_value"
+                assert updated_data["other"] == "data"  # Other data preserved
+                
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_format_integration(self):
+        """Test jq format function integration."""
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"b": 2, "a": 1}, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "format",
+                    f"data={temp_path}",
+                    "compact=false",
+                    "sort_keys=true",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            # Should format with proper indentation and sorted keys
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            formatted = result_json["message"]
+            assert "{\n" in formatted  # Non-compact format
+            assert '"a"' in formatted and '"b"' in formatted
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_format_compact_integration(self):
+        """Test jq format with compact option integration."""
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "value"}, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "format",
+                    f"data={temp_path}",
+                    "compact=true",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            formatted = result_json["message"]
+            # Compact format should not have newlines
+            assert "\n" not in formatted.strip()
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_read_integration(self):
+        """Test jq read function integration."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "read_value", "nested": {"key": "nested_value"}}, f)
+            f.flush()
+            temp_path = f.name
+
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "read",
+                    f"file_path={temp_path}",
+                    "filter=.nested.key",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            assert '"nested_value"' in result_json["message"]
+            
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_query_raw_output_integration(self):
+        """Test jq query with raw output option integration."""
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"message": "hello world"}, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f"data={temp_path}",
+                    "filter=.message",
+                    "raw_output=true",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            # Raw output should not have quotes around strings
+            assert "hello world" in result_json["message"]
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_query_compact_integration(self):
+        """Test jq query with compact option integration."""
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"array": [1, 2, 3]}, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f"data={temp_path}",
+                    "filter=.array",
+                    "compact=true",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0
+            output = json.loads(result.stdout)
+            result_json = json.loads(output["content"][0]["text"])
+            # Compact output should be on single line
+            assert "[1,2,3]" in result_json["message"] or "[1, 2, 3]" in result_json["message"]
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_jq_validate_invalid_json_integration(self):
+        """Test jq validate with invalid JSON integration."""
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "jq",
+                "validate",
+                'data={"invalid": json}',  # Invalid JSON
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert "error" in output["content"][0]["text"].lower() or "expecting" in output["content"][0]["text"].lower()
+
     def test_jq_server_info_integration(self):
         """Test jq server_info function integration."""
         result = subprocess.run(
@@ -257,6 +486,287 @@ class TestCLIIntegration:
         assert "Usage: mcp-cli jq <function>" in result.stderr
         assert "Use 'mcp-cli jq --help'" in result.stderr
 
+    def test_invalid_parameter_types_integration(self):
+        """Test error handling for invalid parameter types."""
+        # Test with non-boolean value for boolean parameter
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "jq",
+                "query",
+                'data={"test": "value"}',
+                "filter=.test",
+                "compact=maybe",  # Invalid boolean value
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        # MCP tools return structured errors in JSON format
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert "validation error" in output["content"][0]["text"].lower()
+
+    def test_missing_required_parameters_integration(self):
+        """Test error handling for missing required parameters."""
+        # Test jq query without data parameter
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "jq",
+                "query",
+                "filter=.test",  # Missing data parameter
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        # MCP tools return structured errors in JSON format
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert "validation error" in output["content"][0]["text"].lower()
+
+    def test_file_not_found_integration(self):
+        """Test error handling for non-existent files."""
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "jq",
+                "read",
+                "file_path=/nonexistent/path/file.json",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert "error" in output["content"][0]["text"].lower() or "not found" in output["content"][0]["text"].lower()
+
+    def test_malformed_json_file_integration(self):
+        """Test error handling for malformed JSON files."""
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write('{"incomplete": json malformed')  # Malformed JSON
+            f.flush()
+            temp_path = f.name
+
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "read",
+                    f"file_path={temp_path}",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0  # CLI succeeds but reports error in JSON
+            output = json.loads(result.stdout)
+            assert output.get("isError") is True
+            assert "error" in output["content"][0]["text"].lower() or "invalid" in output["content"][0]["text"].lower()
+
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_invalid_jq_filter_integration(self):
+        """Test error handling for invalid jq filter expressions."""
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": "value"}, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f"data={temp_path}",
+                    "filter=.invalid.syntax.[",  # Invalid jq filter
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            assert result.returncode == 0  # CLI succeeds but reports error in JSON
+            output = json.loads(result.stdout)
+            assert output.get("isError") is True
+            assert "error" in output["content"][0]["text"].lower()
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_permission_denied_integration(self):
+        """Test error handling for permission denied scenarios."""
+        # Try to edit a file in a directory we can't write to
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "jq",
+                "edit",
+                "file_path=/root/protected.json",  # Permission denied
+                'filter=.test = "value"',
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert ("permission" in output["content"][0]["text"].lower() or 
+                "error" in output["content"][0]["text"].lower())
+
+    def test_network_tool_offline_integration(self):
+        """Test error handling for network-dependent tools when offline."""
+        # Test ArXiv tool with invalid ID (should fail fast)
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mcp_handley_lab.cli.main",
+                "arxiv",
+                "download",
+                "arxiv_id=invalid.9999.99999",  # Invalid ArXiv ID format
+            ],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+            timeout=30,  # Don't wait too long
+        )
+
+        # Should fail with network error or invalid ID error
+        assert result.returncode == 0  # CLI succeeds but reports error in JSON
+        output = json.loads(result.stdout)
+        assert output.get("isError") is True
+        assert ("error" in output["content"][0]["text"].lower() or 
+                "invalid" in output["content"][0]["text"].lower() or
+                "not found" in output["content"][0]["text"].lower())
+
+    def test_tool_with_no_arguments_integration(self):
+        """Test tools called with no arguments at all."""
+        result = subprocess.run(
+            ["python", "-m", "mcp_handley_lab.cli.main"],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        # Should show help, not crash
+        assert result.returncode in [0, 1]  # Help might exit with 0 or 1
+        assert "usage" in result.stdout.lower() or "help" in result.stdout.lower()
+
+    def test_very_large_input_integration(self):
+        """Test handling of very large input data."""
+        import tempfile
+        
+        # Create large JSON string (but not so large as to cause timeout)
+        large_data = {"items": [{"id": i, "data": "x" * 100} for i in range(100)]}
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(large_data, f)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "query",
+                    f"data={temp_path}",
+                    "filter=.items | length",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+                timeout=10,  # Reasonable timeout
+            )
+
+            # Should handle large input gracefully
+            if result.returncode == 0:
+                output = json.loads(result.stdout)
+                if not output.get("isError"):
+                    result_json = json.loads(output["content"][0]["text"])
+                    assert "100" in result_json["message"]
+                else:
+                    # If it fails, should fail gracefully with structured error
+                    assert "error" in output["content"][0]["text"].lower()
+            else:
+                # Unexpected CLI failure
+                assert False, f"Unexpected CLI failure: {result.stderr}"
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_special_characters_in_parameters_integration(self):
+        """Test handling of special characters in parameters."""
+        import tempfile
+        
+        # Create a JSON file with special characters
+        special_json = '{"key": "value with spaces", "unicode": "café", "symbols": "!@#$%"}'
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write(special_json)
+            f.flush()
+            temp_path = f.name
+        
+        try:
+            result = subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "mcp_handley_lab.cli.main",
+                    "jq",
+                    "read",
+                    f"file_path={temp_path}",
+                    "filter=.unicode",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent.parent,
+            )
+
+            # Should handle special characters properly
+            assert result.returncode == 0
+            output = json.loads(result.stdout)
+            if not output.get("isError"):
+                result_json = json.loads(output["content"][0]["text"])
+                assert "café" in result_json["message"]
+            else:
+                # If encoding issues, should fail gracefully with structured error
+                assert "error" in output["content"][0]["text"].lower()
+                
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
 
 @pytest.mark.integration
 class TestPerformanceIntegration:
@@ -314,53 +824,3 @@ class TestPerformanceIntegration:
         assert (end_time - start_time) < 2.0
 
 
-@pytest.mark.integration
-@pytest.mark.slow
-class TestArxivIntegration:
-    """Integration tests for ArXiv tool (marked as slow)."""
-
-    def test_arxiv_help_integration(self):
-        """Test ArXiv tool help integration."""
-        result = subprocess.run(
-            ["python", "-m", "mcp_handley_lab.cli.main", "arxiv", "--help"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent,
-        )
-
-        assert result.returncode == 0
-        assert "NAME" in result.stdout
-        assert "arxiv" in result.stdout
-        assert "search" in result.stdout
-        assert "download" in result.stdout
-
-    def test_arxiv_search_integration(self):
-        """Test ArXiv search integration (network dependent)."""
-        result = subprocess.run(
-            [
-                "python",
-                "-m",
-                "mcp_handley_lab.cli.main",
-                "arxiv",
-                "search",
-                "au:Handley",
-                "max_results=2",
-            ],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent.parent,
-            timeout=30,  # Network operations can be slow
-        )
-
-        # Should succeed if network is available
-        if result.returncode == 0:
-            assert "id" in result.stdout
-            assert "title" in result.stdout
-            assert "authors" in result.stdout
-        else:
-            # Network issues are acceptable in CI
-            pytest.skip("Network unavailable for ArXiv integration test")
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])

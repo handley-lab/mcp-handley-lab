@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.5.1
+pkgver=0.5.2
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -45,7 +45,7 @@ checkdepends=(
     'python-pytest>=7.0.0'
     'python-pytest-cov>=4.0.0'
     'python-pytest-asyncio>=0.21.0'
-    'python-pytest-mock>=3.0.0'
+    'python-pytest-vcr>=1.0.0'
 )
 optdepends=(
     'jq: JSON processing'

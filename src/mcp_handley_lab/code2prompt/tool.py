@@ -1,5 +1,4 @@
 """Code2Prompt tool for codebase flattening and conversion via MCP."""
-import tempfile
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -32,7 +31,7 @@ def _run_code2prompt(args: list[str]) -> str:
 )
 def generate_prompt(
     path: str,
-    output_file: str = "",
+    output_file: str,
     include: list[str] = [],
     exclude: list[str] = [],
     output_format: str = "markdown",
@@ -55,11 +54,6 @@ def generate_prompt(
     no_ignore: bool = False,
 ) -> GenerationResult:
     """Generate a structured prompt from codebase."""
-    if not output_file:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False
-        ) as temp_file:
-            output_file = temp_file.name
     arg_definitions = [
         {"name": "--output-file", "value": output_file, "type": "value"},
         {"name": "--output-format", "value": output_format, "type": "value"},

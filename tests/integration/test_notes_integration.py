@@ -7,12 +7,38 @@ that represents a research lab's knowledge management system.
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
 from mcp_handley_lab.notes.manager import NotesManager
+from mcp_handley_lab.notes.storage import GlobalLocalYAMLStorage, YAMLNoteStorage
 from tests.fixtures.notes_fixtures import get_fixture_scopes, get_test_notes_data
+
+
+def create_isolated_notes_manager(temp_dir: str) -> NotesManager:
+    """Create a NotesManager with isolated storage directories."""
+    temp_path = Path(temp_dir)
+    global_dir = temp_path / "global"
+    local_dir = temp_path / "local"
+    
+    # Create custom storage that doesn't use Path.home()
+    storage = GlobalLocalYAMLStorage.__new__(GlobalLocalYAMLStorage)
+    storage.global_storage = YAMLNoteStorage(str(global_dir))
+    storage.local_storage = YAMLNoteStorage(str(local_dir))
+    storage._note_scopes = {}
+    storage._load_scope_mappings()
+    
+    # Create manager with custom storage
+    manager = NotesManager.__new__(NotesManager)
+    manager.storage = storage
+    from tinydb import TinyDB
+    from tinydb.storages import MemoryStorage
+    manager.db = TinyDB(storage=MemoryStorage)
+    manager._semantic_search = None
+    manager._semantic_storage_dir = str(local_dir) + "/notes"
+    manager._load_notes_to_db()
+    
+    return manager
 
 
 class TestNotesIntegrationWithMockData:
@@ -21,11 +47,8 @@ class TestNotesIntegrationWithMockData:
     @pytest.fixture
     def populated_manager(self):
         """Create a notes manager populated with realistic test data."""
-        with tempfile.TemporaryDirectory() as temp_dir, patch(
-            "pathlib.Path.home", return_value=Path(temp_dir)
-        ):
-            # Create fresh manager with isolated storage
-            manager = NotesManager(temp_dir + "/local")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            manager = create_isolated_notes_manager(temp_dir)
 
             # Load test data
             notes = get_test_notes_data()
@@ -372,9 +395,8 @@ class TestNotesIntegrationWithMockData:
         original_notes = populated_manager.list_notes()
         original_note_id = original_notes[0].id
 
-        # Create new manager instance with the same storage directory and home patch
-        with patch("pathlib.Path.home", return_value=storage_dir):
-            new_manager = NotesManager(str(storage_dir) + "/local")
+        # Create new manager instance with the same storage directories
+        new_manager = create_isolated_notes_manager(str(storage_dir))
 
         # Verify data persisted
         new_stats = new_manager.get_stats()

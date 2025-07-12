@@ -1,7 +1,6 @@
 """Comprehensive tests for the notes management system."""
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -241,11 +240,19 @@ class TestGlobalLocalYAMLStorage:
     @pytest.fixture
     def temp_storage(self):
         """Create a temporary storage system."""
-        with (
-            tempfile.TemporaryDirectory() as temp_dir,
-            patch("pathlib.Path.home", return_value=Path(temp_dir) / "home"),
-        ):
-            yield GlobalLocalYAMLStorage(temp_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create isolated storage that doesn't use Path.home()
+            temp_path = Path(temp_dir)
+            global_dir = temp_path / "global"
+            local_dir = temp_path / "local"
+            
+            storage = GlobalLocalYAMLStorage.__new__(GlobalLocalYAMLStorage)
+            storage.global_storage = YAMLNoteStorage(str(global_dir))
+            storage.local_storage = YAMLNoteStorage(str(local_dir))
+            storage._note_scopes = {}
+            storage._load_scope_mappings()
+            
+            yield storage
 
     def test_global_local_separation(self, temp_storage):
         """Test that global and local notes are stored separately."""
@@ -307,11 +314,28 @@ class TestNotesManager:
     @pytest.fixture
     def temp_manager(self):
         """Create a manager with temporary storage."""
-        with (
-            tempfile.TemporaryDirectory() as temp_dir,
-            patch("pathlib.Path.home", return_value=Path(temp_dir) / "home"),
-        ):
-            yield NotesManager(temp_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create isolated manager that doesn't use Path.home()
+            temp_path = Path(temp_dir)
+            global_dir = temp_path / "global"
+            local_dir = temp_path / "local"
+            
+            storage = GlobalLocalYAMLStorage.__new__(GlobalLocalYAMLStorage)
+            storage.global_storage = YAMLNoteStorage(str(global_dir))
+            storage.local_storage = YAMLNoteStorage(str(local_dir))
+            storage._note_scopes = {}
+            storage._load_scope_mappings()
+            
+            manager = NotesManager.__new__(NotesManager)
+            manager.storage = storage
+            from tinydb import TinyDB
+            from tinydb.storages import MemoryStorage
+            manager.db = TinyDB(storage=MemoryStorage)
+            manager._semantic_search = None
+            manager._semantic_storage_dir = str(local_dir) + "/notes"
+            manager._load_notes_to_db()
+            
+            yield manager
 
     def test_hierarchical_note_creation(self, temp_manager):
         """Test creating notes in deep hierarchical structures."""

@@ -7,10 +7,11 @@ when called directly (as Claude Code would call them).
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
+from mcp_handley_lab.notes.manager import NotesManager
+from mcp_handley_lab.notes.storage import GlobalLocalYAMLStorage, YAMLNoteStorage
 from mcp_handley_lab.notes.tool import (
     create_note,
     delete_note,
@@ -27,20 +28,51 @@ from mcp_handley_lab.notes.tool import (
 )
 
 
+def create_isolated_notes_manager_for_mcp(temp_dir: str) -> NotesManager:
+    """Create a NotesManager with isolated storage for MCP testing."""
+    temp_path = Path(temp_dir)
+    global_dir = temp_path / "global"
+    local_dir = temp_path / "local"
+    
+    # Create custom storage that doesn't use Path.home()
+    storage = GlobalLocalYAMLStorage.__new__(GlobalLocalYAMLStorage)
+    storage.global_storage = YAMLNoteStorage(str(global_dir))
+    storage.local_storage = YAMLNoteStorage(str(local_dir))
+    storage._note_scopes = {}
+    storage._load_scope_mappings()
+    
+    # Create manager with custom storage
+    manager = NotesManager.__new__(NotesManager)
+    manager.storage = storage
+    from tinydb import TinyDB
+    from tinydb.storages import MemoryStorage
+    manager.db = TinyDB(storage=MemoryStorage)
+    manager._semantic_search = None
+    manager._semantic_storage_dir = str(local_dir) + "/notes"
+    manager._load_notes_to_db()
+    
+    return manager
+
+
 class TestNotesMcpIntegration:
     """Test notes MCP tool functions with isolated storage."""
 
     @pytest.fixture
     def isolated_notes_storage(self):
         """Create isolated storage for notes testing."""
-        with tempfile.TemporaryDirectory() as temp_dir, patch(
-            "pathlib.Path.home", return_value=Path(temp_dir)
-        ), patch("mcp_handley_lab.notes.tool.get_manager") as mock_get_manager:
-            from mcp_handley_lab.notes.manager import NotesManager
-
-            manager = NotesManager(temp_dir + "/local")
-            mock_get_manager.return_value = manager
-            yield temp_dir
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create isolated manager and patch the tool's get_manager function
+            import mcp_handley_lab.notes.tool as notes_tool
+            original_get_manager = notes_tool.get_manager
+            
+            manager = create_isolated_notes_manager_for_mcp(temp_dir)
+            notes_tool.get_manager = lambda: manager
+            
+            try:
+                yield temp_dir
+            finally:
+                # Restore original function
+                notes_tool.get_manager = original_get_manager
 
     def test_note_lifecycle_mcp(self, isolated_notes_storage):
         """Test complete note lifecycle through MCP tool functions."""

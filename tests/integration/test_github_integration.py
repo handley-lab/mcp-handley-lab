@@ -1,5 +1,6 @@
 """Integration tests for GitHub tool using real gh CLI."""
 
+import os
 import subprocess
 
 import pytest
@@ -9,6 +10,10 @@ from mcp_handley_lab.github.tool import monitor_pr_checks, server_info
 class TestGitHubIntegration:
     """Test GitHub tool with real gh CLI subprocess calls."""
 
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Skipping GitHub tests in CI (no gh authentication)"
+    )
     def test_server_info_real_gh(self):
         """Test server_info with real gh CLI."""
         try:
@@ -23,6 +28,10 @@ class TestGitHubIntegration:
         except subprocess.CalledProcessError:
             pytest.skip("gh CLI not authenticated or configured")
 
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Skipping GitHub tests in CI (no gh authentication)"
+    )
     def test_server_info_version_parsing(self):
         """Test that server_info correctly parses gh version output."""
         try:
@@ -33,6 +42,10 @@ class TestGitHubIntegration:
         except (FileNotFoundError, subprocess.CalledProcessError):
             pytest.skip("gh CLI not available or configured")
 
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Skipping GitHub tests in CI (no gh authentication)"
+    )
     def test_server_info_auth_status(self):
         """Test that server_info checks authentication status."""
         try:

@@ -211,7 +211,7 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### ArXiv Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/arxiv/`
 - **Functions**: `download`, `list_files`, `server_info`
-- **Features**: Multi-format ArXiv download (src/pdf/tex), file listing, output control ('-' for stdout), caching in /tmp
+- **Features**: Multi-format ArXiv download (src/pdf/tex), file listing, caching in /tmp
 - **Formats**: 'src' (full source), 'pdf' (PDF file), 'tex' (LaTeX files: .tex/.bib/.bbl only)
 - **Tests**: 16 test cases covering all formats, caching, error handling, and integration tests
 - **Status**: Production ready with comprehensive caching and output control
@@ -549,7 +549,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
     "arguments": {
       "arxiv_id": "2301.07041",
       "format": "tex",
-      "output_path": "-"
+      "output_path": "/tmp/result.txt"
     }
   }
 }
@@ -605,7 +605,7 @@ Always verify pricing and model specifications from official sources before upda
 
 ### Usage Recommendations
 
-1. **Use stdout for quick queries**: LLM tools default to `output_file="-"` for immediate responses
+1. **Use file output for responses**: LLM tools save responses to specified output files
 2. **ESC interruption is safe**: Connection remains stable after cancellation
 3. **Long operations can be cancelled**: Users can safely interrupt incorrect tool calls
 

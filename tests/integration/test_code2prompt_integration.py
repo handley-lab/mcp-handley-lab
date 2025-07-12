@@ -1,5 +1,6 @@
 """Integration tests for code2prompt tool using real CLI subprocess calls."""
 
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -203,22 +204,6 @@ def format_output(text):
         content = output_file.read_text()
         assert len(content) > 100  # Should have substantial content
 
-    def test_generate_prompt_stdout_output(self, sample_project):
-        """Test code2prompt handling of stdout output (output_file='-')."""
-        # The behavior of stdout output may vary based on code2prompt version
-        # Test that it either works or fails gracefully
-        try:
-            result = generate_prompt(
-                path=str(sample_project),
-                include=["*.py"],
-                output_file="-"
-            )
-            # If it succeeds, verify we get a reasonable result
-            assert result.output_file == "-"
-            assert "success" in result.message.lower() or "stdout" in result.message.lower()
-        except FileNotFoundError:
-            # This is expected behavior in some versions that don't support stdout
-            pass
 
     def test_generate_prompt_file_size_reporting(self, sample_project):
         """Test that file size is reported correctly."""

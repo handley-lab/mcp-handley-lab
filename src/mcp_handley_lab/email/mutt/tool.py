@@ -1,5 +1,6 @@
 """Mutt tool for interactive email composition via MCP."""
 import os
+import shlex
 import tempfile
 
 from mcp_handley_lab.common.process import run_command
@@ -101,7 +102,8 @@ def _execute_mutt_interactive_or_auto(
     if auto_send:
         _execute_mutt_command(mutt_cmd, input_text=body_content)
     else:
-        launch_interactive(mutt_cmd, window_title=window_title, wait=True)
+        command_str = shlex.join(mutt_cmd)
+        launch_interactive(command_str, window_title=window_title, wait=True)
 
 
 @mcp.tool(
@@ -177,7 +179,7 @@ def compose_email(
 )
 def open_mutt() -> OperationResult:
     """Open mutt's main interface."""
-    launch_interactive(["mutt"], window_title="Mutt", wait=True)
+    launch_interactive("mutt", window_title="Mutt", wait=True)
     return OperationResult(status="success", message="Mutt session completed")
 
 

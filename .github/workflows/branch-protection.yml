@@ -1,0 +1,30 @@
+name: Enforce Branch Protection
+
+on:
+  push:
+    branches: [master, main]
+
+jobs:
+  block-direct-push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')
+    steps:
+      - name: Block direct push to protected branch
+        run: |
+          echo "❌ ERROR: Direct pushes to master/main branch are not allowed!"
+          echo ""
+          echo "Please follow the proper workflow:"
+          echo "1. Create a feature branch: git checkout -b feature/your-feature"
+          echo "2. Make your changes and commit"
+          echo "3. Push the branch: git push origin feature/your-feature"
+          echo "4. Create a Pull Request on GitHub"
+          echo ""
+          echo "To fix this push:"
+          echo "1. Create a branch from this commit"
+          echo "2. Reset master to the previous commit"
+          echo "3. Force push to fix master"
+          echo "4. Create a PR from your branch"
+          echo ""
+          echo "Commit that triggered this: ${{ github.event.head_commit.id }}"
+          echo "Branch: ${{ github.ref_name }}"
+          exit 1

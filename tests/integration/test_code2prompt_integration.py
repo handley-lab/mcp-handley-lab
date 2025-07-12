@@ -161,7 +161,7 @@ def format_output(text):
     def test_generate_prompt_nonexistent_path(self):
         """Test code2prompt with nonexistent path - should fail fast."""
         with pytest.raises(RuntimeError, match="Command failed|not found|doesn't exist"):
-            generate_prompt(path="/nonexistent/path/123456")
+            generate_prompt(path="/nonexistent/path/123456", output_file="/tmp/test_output.md")
 
     def test_generate_prompt_invalid_template(self, sample_project):
         """Test code2prompt with invalid template path - should fail fast."""

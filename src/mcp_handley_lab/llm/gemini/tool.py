@@ -148,7 +148,7 @@ def _gemini_generation_adapter(
 ) -> dict[str, Any]:
     """Gemini-specific text generation function for the shared processor."""
     # Extract Gemini-specific parameters
-    temperature = kwargs.get("temperature", 0.7)
+    temperature = kwargs.get("temperature", 1.0)
     grounding = kwargs.get("grounding", False)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
@@ -299,7 +299,7 @@ def _gemini_image_analysis_adapter(
     content = [prompt] + image_list
 
     # Prepare the config
-    config_params = {"max_output_tokens": output_tokens, "temperature": 0.7}
+    config_params = {"max_output_tokens": output_tokens, "temperature": 1.0}
     if system_instruction:
         config_params["system_instruction"] = system_instruction
 
@@ -333,7 +333,7 @@ def ask(
     output_file: str = "-",
     agent_name: str = "session",
     model: str = DEFAULT_MODEL,
-    temperature: float = 0.7,
+    temperature: float = 1.0,
     grounding: bool = False,
     files: list[str] = [],
     max_output_tokens: int = 0,

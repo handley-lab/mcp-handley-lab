@@ -52,7 +52,7 @@ def _openai_generation_adapter(
 ) -> dict[str, Any]:
     """OpenAI-specific text generation function for the shared processor."""
     # Extract OpenAI-specific parameters
-    temperature = kwargs.get("temperature", 0.7)
+    temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
     enable_logprobs = kwargs["enable_logprobs"]
@@ -216,7 +216,7 @@ def _openai_image_analysis_adapter(
 
     # Only add temperature for models that support it (reasoning models don't)
     if not model.startswith(("o1", "o3", "o4")):
-        request_params["temperature"] = 0.7
+        request_params["temperature"] = 1.0
 
     # Add max tokens with correct parameter name
     if max_output_tokens > 0:
@@ -253,7 +253,7 @@ def ask(
     output_file: str = "-",
     agent_name: str = "session",
     model: str = DEFAULT_MODEL,
-    temperature: float = 0.7,
+    temperature: float = 1.0,
     max_output_tokens: int = 0,
     files: list[str] = [],
     enable_logprobs: bool = False,

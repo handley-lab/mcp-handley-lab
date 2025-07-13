@@ -156,7 +156,7 @@ def _claude_generation_adapter(
 ) -> dict[str, Any]:
     """Claude-specific text generation function for the shared processor."""
     # Extract Claude-specific parameters
-    temperature = kwargs.get("temperature", 0.7)
+    temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
 
@@ -259,7 +259,7 @@ def _claude_image_analysis_adapter(
         "model": resolved_model,
         "messages": claude_history,
         "max_tokens": output_tokens,
-        "temperature": 0.7,
+        "temperature": 1.0,
         "timeout": 599,
     }
 
@@ -293,7 +293,7 @@ def ask(
     output_file: str = "-",
     agent_name: str = "session",
     model: str = DEFAULT_MODEL,
-    temperature: float = 0.7,
+    temperature: float = 1.0,
     files: list[str] = [],
     max_output_tokens: int = 0,
 ) -> LLMResult:

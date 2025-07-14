@@ -22,6 +22,8 @@ mimetypes.add_type("text/x-perl", ".pl")
 mimetypes.add_type("text/x-shellscript", ".sh")
 
 # Documentation and markup
+mimetypes.add_type("text/markdown", ".md")
+mimetypes.add_type("text/markdown", ".markdown")
 mimetypes.add_type("application/x-tex", ".tex")
 mimetypes.add_type("text/x-diff", ".diff")
 mimetypes.add_type("text/x-patch", ".patch")

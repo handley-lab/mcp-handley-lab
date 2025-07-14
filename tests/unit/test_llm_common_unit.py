@@ -7,9 +7,11 @@ import pytest
 
 from mcp_handley_lab.llm.common import (
     determine_mime_type,
+    get_gemini_safe_mime_type,
     get_session_id,
     handle_agent_memory,
     handle_output,
+    is_gemini_supported_mime_type,
     is_text_file,
     read_file_smart,
     resolve_file_content,
@@ -50,6 +52,7 @@ class TestDetermineMimeType:
         [
             ("test.txt", "text/plain"),
             ("test.md", "text/markdown"),
+            ("test.markdown", "text/markdown"),
             ("test.py", "text/x-python"),
             ("test.js", "text/javascript"),
             ("test.html", "text/html"),
@@ -63,6 +66,26 @@ class TestDetermineMimeType:
             ("test.jpeg", "image/jpeg"),
             ("test.gif", "image/gif"),
             ("test.webp", "image/webp"),
+            # Enhanced MIME types from common.py
+            ("test.c", "text/x-c"),
+            ("test.cpp", "text/x-c++src"),
+            ("test.java", "text/x-java-source"),
+            ("test.php", "application/x-php"),
+            ("test.sql", "application/sql"),
+            ("test.rs", "text/x-rustsrc"),
+            ("test.go", "text/x-go"),
+            ("test.rb", "text/x-ruby"),
+            ("test.pl", "text/x-perl"),
+            ("test.sh", "text/x-shellscript"),
+            ("test.tex", "application/x-tex"),
+            ("test.diff", "text/x-diff"),
+            ("test.patch", "text/x-patch"),
+            ("test.yaml", "text/x-yaml"),
+            ("test.yml", "text/x-yaml"),
+            ("test.toml", "application/toml"),
+            ("test.ini", "text/plain"),
+            ("test.conf", "text/plain"),
+            ("test.log", "text/plain"),
         ],
     )
     def test_determine_mime_type_known_extensions(self, file_path, expected_mime):
@@ -89,6 +112,7 @@ class TestIsTextFile:
         [
             ("test.txt", True),
             ("test.md", True),
+            ("test.markdown", True),
             ("test.py", True),
             ("test.js", True),
             ("test.html", True),
@@ -102,6 +126,21 @@ class TestIsTextFile:
             ("test.ini", True),
             ("test.conf", True),
             ("test.log", True),
+            # Additional enhanced MIME types
+            ("test.c", True),
+            ("test.cpp", True),
+            ("test.java", True),
+            ("test.php", True),
+            ("test.sql", True),
+            ("test.rs", True),
+            ("test.go", True),
+            ("test.rb", True),
+            ("test.pl", True),
+            ("test.sh", True),
+            ("test.tex", True),
+            ("test.diff", True),
+            ("test.patch", True),
+            # Binary files
             ("test.png", False),
             ("test.jpg", False),
             ("test.pdf", False),
@@ -118,6 +157,97 @@ class TestIsTextFile:
         """Test text file detection is case insensitive."""
         assert is_text_file(Path("test.TXT")) is True
         assert is_text_file(Path("test.PNG")) is False
+
+
+class TestGeminiMimeTypeSupport:
+    """Test Gemini MIME type support functions."""
+
+    @pytest.mark.parametrize(
+        "mime_type,expected",
+        [
+            # Supported document types
+            ("application/pdf", True),
+            ("text/plain", True),
+            # Supported image types
+            ("image/png", True),
+            ("image/jpeg", True),
+            ("image/webp", True),
+            # Supported audio types
+            ("audio/x-aac", True),
+            ("audio/flac", True),
+            ("audio/mp3", True),
+            ("audio/mpeg", True),
+            ("audio/m4a", True),
+            ("audio/opus", True),
+            ("audio/pcm", True),
+            ("audio/wav", True),
+            ("audio/webm", True),
+            # Supported video types
+            ("video/mp4", True),
+            ("video/mpeg", True),
+            ("video/quicktime", True),
+            ("video/mov", True),
+            ("video/avi", True),
+            ("video/x-flv", True),
+            ("video/mpg", True),
+            ("video/webm", True),
+            ("video/wmv", True),
+            ("video/3gpp", True),
+            # Unsupported types
+            ("text/markdown", False),
+            ("application/json", False),
+            ("text/html", False),
+            ("application/octet-stream", False),
+            ("text/x-python", False),
+        ],
+    )
+    def test_is_gemini_supported_mime_type(self, mime_type, expected):
+        """Test Gemini MIME type support detection."""
+        result = is_gemini_supported_mime_type(mime_type)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "file_path,expected_mime",
+        [
+            # Already supported types should remain unchanged
+            ("test.pdf", "application/pdf"),
+            ("test.txt", "text/plain"),
+            ("test.png", "image/png"),
+            ("test.jpg", "image/jpeg"),
+            ("test.mp4", "video/mp4"),
+            ("test.mp3", "audio/mpeg"),
+            # Text files should be converted to text/plain
+            ("test.md", "text/plain"),
+            ("test.html", "text/plain"),
+            ("test.py", "text/plain"),
+            ("test.js", "text/plain"),
+            ("test.json", "text/plain"),
+            ("test.xml", "text/plain"),
+            ("test.yaml", "text/plain"),
+            ("test.cpp", "text/plain"),
+            ("test.java", "text/plain"),
+            ("test.rs", "text/plain"),
+            ("test.go", "text/plain"),
+            ("test.rb", "text/plain"),
+            ("test.sh", "text/plain"),
+            ("test.sql", "text/plain"),
+            ("test.php", "text/plain"),
+            ("test.tex", "text/plain"),
+            ("test.diff", "text/plain"),
+            ("test.patch", "text/plain"),
+            ("test.toml", "text/plain"),
+            ("test.ini", "text/plain"),
+            ("test.conf", "text/plain"),
+            ("test.log", "text/plain"),
+            # Binary files should keep original MIME type
+            ("test.exe", "application/x-msdownload"),
+            ("test.unknown", "application/octet-stream"),
+        ],
+    )
+    def test_get_gemini_safe_mime_type(self, file_path, expected_mime):
+        """Test Gemini safe MIME type conversion."""
+        result = get_gemini_safe_mime_type(Path(file_path))
+        assert result == expected_mime
 
 
 class TestResolveFileContent:

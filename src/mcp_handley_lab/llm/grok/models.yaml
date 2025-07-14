@@ -104,8 +104,8 @@ display_categories:
     tags: ["legacy"]
     description: "Previous generation Grok models"
 
-# Default model (cost-effective reasoning model)
-default_model: "grok-3-mini"
+# Default model (most capable reasoning model)
+default_model: "grok-4"
 
 # Usage notes
 usage_notes:

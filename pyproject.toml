@@ -115,3 +115,8 @@ omit = [
     "tests/*",
     "venv/*",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]

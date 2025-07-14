@@ -33,11 +33,11 @@ models:
     input_per_1m: 3.00
     output_per_1m: 15.00
 
-  claude-sonnet-3.7:
+  claude-3-7-sonnet-20250219:
     # Model metadata
-    description: "Enhanced Claude 3.7 with improved capabilities"
-    capabilities: "⚖️ Best for: General tasks, enhanced reasoning, coding"
-    tags: ["claude-3", "sonnet", "general", "enhanced"]
+    description: "Enhanced Claude 3.7 with improved reasoning capabilities"
+    capabilities: "⚖️ Best for: General tasks, enhanced reasoning, coding, step-by-step thinking"
+    tags: ["claude-3.7", "sonnet", "general", "latest"]
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 64000
@@ -187,7 +187,7 @@ display_categories:
     description: "Original Claude 3 models for established workflows"
 
 # Default model
-default_model: "claude-sonnet-3.7"
+default_model: "claude-3-7-sonnet-20250219"
 
 # Usage notes
 usage_notes:

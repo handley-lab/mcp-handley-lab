@@ -1,5 +1,6 @@
 """Google Calendar tool for calendar management via MCP."""
 import pickle
+import zoneinfo
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -11,6 +12,9 @@ from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.shared.models import ServerInfo
+
+# Application-level default timezone as final fallback
+DEFAULT_TIMEZONE = "Europe/London"
 
 
 class Attendee(BaseModel):
@@ -116,6 +120,102 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
             return calendar["id"]
 
     return calendar_id
+
+
+def _get_effective_timezone(
+    service, calendar_id: str = "primary", user_specified_timezone: str = ""
+) -> str:
+    """
+    Determines the effective timezone using a robust fallback chain.
+
+    Fallback Order:
+    1. User-specified timezone (if valid)
+    2. Target calendar's configured timezone
+    3. Local system's timezone
+    4. Application-level default (DEFAULT_TIMEZONE)
+    """
+    # 1. User-specified timezone always wins if valid
+    if user_specified_timezone:
+        try:
+            zoneinfo.ZoneInfo(user_specified_timezone)  # Validate it's a real timezone
+            return user_specified_timezone
+        except zoneinfo.ZoneInfoNotFoundError:
+            print(
+                f"⚠️  Warning: Invalid timezone '{user_specified_timezone}' provided. Falling back..."
+            )
+
+    # 2. Get the calendar's default timezone from the API
+    try:
+        calendar_list_entry = (
+            service.calendarList().get(calendarId=calendar_id).execute()
+        )
+        calendar_timezone = calendar_list_entry.get("timeZone")
+        if calendar_timezone:
+            return calendar_timezone
+    except Exception:
+        # Fails silently if permissions are missing or calendar not in list
+        pass
+
+    # 3. Get the local system's timezone
+    try:
+        import time
+
+        system_timezone = time.tzname[time.daylight]
+        # Convert system timezone name to IANA format if needed
+        # This is basic - more robust implementations would use tzlocal
+        if system_timezone in ["GMT", "BST"]:
+            return "Europe/London"
+        elif system_timezone in ["EST", "EDT"]:
+            return "America/New_York"
+        elif system_timezone in ["PST", "PDT"]:
+            return "America/Los_Angeles"
+        # Add more mappings as needed
+    except Exception:
+        pass
+
+    # 4. Fallback to the hardcoded application default
+    return DEFAULT_TIMEZONE
+
+
+def _convert_utc_to_local_time(utc_time_str: str, target_timezone: str) -> str:
+    """Convert UTC time string to local time in specified timezone."""
+    if not utc_time_str or not utc_time_str.endswith("Z"):
+        return utc_time_str  # Not UTC, return as-is
+
+    try:
+        # Parse UTC time
+        utc_dt = datetime.fromisoformat(utc_time_str.replace("Z", "+00:00"))
+
+        # Convert to target timezone
+        if target_timezone:
+            local_tz = zoneinfo.ZoneInfo(target_timezone)
+            local_dt = utc_dt.astimezone(local_tz)
+            return local_dt.strftime("%Y-%m-%dT%H:%M:%S")
+        else:
+            # No timezone specified, return as local time without Z
+            return utc_time_str.rstrip("Z")
+    except Exception:
+        # If conversion fails, return original
+        return utc_time_str
+
+
+def _has_timezone_inconsistency(event_data: dict) -> bool:
+    """Check if an event has conflicting UTC time and timezone label."""
+    start = event_data.get("start", {})
+
+    # Check if this is a timed event (not all-day)
+    if "dateTime" not in start:
+        return False
+
+    start_dt = start.get("dateTime", "")
+    timezone = start.get("timeZone", "")
+
+    # The inconsistency exists if dateTime ends in 'Z' (UTC) AND
+    # a specific, non-UTC timezone is also defined
+    has_utc_suffix = start_dt.endswith("Z")
+    has_specific_timezone = timezone and timezone.lower() != "utc"
+
+    return has_utc_suffix and has_specific_timezone
 
 
 def _parse_datetime_to_utc(dt_str: str) -> str:
@@ -229,7 +329,7 @@ def _client_side_filter(
 
 
 @mcp.tool(
-    description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps."
+    description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps. Automatically detects timezone inconsistencies."
 )
 def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
     """Get detailed information about a specific event."""
@@ -238,16 +338,35 @@ def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
 
     event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
 
-    # Convert start/end to EventDateTime objects
+    # Check for timezone inconsistency and warn user
+    if _has_timezone_inconsistency(event):
+        print(
+            f"⚠️  Timezone inconsistency detected in event '{event.get('summary', 'Unknown')}'"
+        )
+        print(
+            "   Event has UTC time but local timezone label, which can cause confusion."
+        )
+        print(
+            f"   To normalize: update_event(event_id='{event_id}', calendar_id='{calendar_id}', normalize_timezone=True)"
+        )
+
+    # Convert start/end to EventDateTime objects with automatic UTC conversion
+    start_raw = event["start"]
+    end_raw = event["end"]
+
     start_dt = EventDateTime(
-        dateTime=event["start"].get("dateTime", ""),
-        date=event["start"].get("date", ""),
-        timeZone=event["start"].get("timeZone", ""),
+        dateTime=_convert_utc_to_local_time(
+            start_raw.get("dateTime", ""), start_raw.get("timeZone", "")
+        ),
+        date=start_raw.get("date", ""),
+        timeZone=start_raw.get("timeZone", ""),
     )
     end_dt = EventDateTime(
-        dateTime=event["end"].get("dateTime", ""),
-        date=event["end"].get("date", ""),
-        timeZone=event["end"].get("timeZone", ""),
+        dateTime=_convert_utc_to_local_time(
+            end_raw.get("dateTime", ""), end_raw.get("timeZone", "")
+        ),
+        date=end_raw.get("date", ""),
+        timeZone=end_raw.get("timeZone", ""),
     )
 
     # Convert attendees
@@ -291,10 +410,10 @@ def create_event(
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # Auto-detect timezone if not provided
-    if not timezone:
-        # Default to UK timezone - simple and reliable
-        timezone = "Europe/London"
+    # Use the centralized timezone helper
+    effective_timezone = _get_effective_timezone(
+        service, calendar_id=resolved_id, user_specified_timezone=timezone
+    )
 
     event_body = {
         "summary": summary,
@@ -306,9 +425,9 @@ def create_event(
 
     if "T" in start_datetime:
         event_body["start"]["dateTime"] = start_datetime
-        event_body["start"]["timeZone"] = timezone
+        event_body["start"]["timeZone"] = effective_timezone
         event_body["end"]["dateTime"] = end_datetime
-        event_body["end"]["timeZone"] = timezone
+        event_body["end"]["timeZone"] = effective_timezone
     else:
         event_body["start"]["date"] = start_datetime
         event_body["end"]["date"] = end_datetime
@@ -333,7 +452,7 @@ def create_event(
 
 
 @mcp.tool(
-    description="Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Returns confirmation of the update."
+    description="Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Set normalize_timezone=True to fix UTC/timezone inconsistencies on recurring events."
 )
 def update_event(
     event_id: str,
@@ -343,10 +462,23 @@ def update_event(
     end_datetime: str = "",
     description: str = "",
     location: str = "",
+    normalize_timezone: bool = False,
 ) -> str:
-    """Update an existing calendar event. Trusts the provided event_id."""
+    """Update an existing calendar event. Can normalize timezone inconsistencies."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
+
+    # Get current event for timezone normalization check
+    if normalize_timezone:
+        try:
+            current_event = (
+                service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+            )
+        except Exception as e:
+            return f"Error retrieving event for timezone check: {str(e)}"
+
+    # Use the centralized timezone helper for any datetime updates
+    effective_timezone = _get_effective_timezone(service, calendar_id=resolved_id)
 
     update_body = {}
     if summary:
@@ -358,20 +490,53 @@ def update_event(
 
     if start_datetime:
         if "T" in start_datetime:
-            # Use UK timezone for timed events
             update_body["start"] = {
                 "dateTime": start_datetime,
-                "timeZone": "Europe/London",
+                "timeZone": effective_timezone,
             }
         else:
             update_body["start"] = {"date": start_datetime}
 
     if end_datetime:
         if "T" in end_datetime:
-            # Use UK timezone for timed events
-            update_body["end"] = {"dateTime": end_datetime, "timeZone": "Europe/London"}
+            update_body["end"] = {
+                "dateTime": end_datetime,
+                "timeZone": effective_timezone,
+            }
         else:
             update_body["end"] = {"date": end_datetime}
+
+    # Handle timezone normalization if requested
+    if normalize_timezone and _has_timezone_inconsistency(current_event):
+        start = current_event.get("start", {})
+        end = current_event.get("end", {})
+
+        # Use the timezone from the event itself if available, otherwise fall back
+        norm_tz = start.get("timeZone") or effective_timezone
+
+        # Convert UTC times to local timezone format
+        if "dateTime" in start:
+            # Parse UTC time and convert to local timezone
+            utc_dt = datetime.fromisoformat(start["dateTime"].replace("Z", "+00:00"))
+            local_tz = zoneinfo.ZoneInfo(norm_tz)
+            local_dt = utc_dt.astimezone(local_tz)
+            local_time_str = local_dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+            update_body["start"] = {
+                "dateTime": local_time_str,
+                "timeZone": norm_tz,
+            }
+        if "dateTime" in end:
+            # Parse UTC time and convert to local timezone
+            utc_dt = datetime.fromisoformat(end["dateTime"].replace("Z", "+00:00"))
+            local_tz = zoneinfo.ZoneInfo(norm_tz)
+            local_dt = utc_dt.astimezone(local_tz)
+            local_time_str = local_dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+            update_body["end"] = {
+                "dateTime": local_time_str,
+                "timeZone": norm_tz,
+            }
 
     if not update_body:
         return "No updates specified. Nothing to do."
@@ -381,7 +546,11 @@ def update_event(
         .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
         .execute()
     )
-    return f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
+
+    result_msg = f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
+    if normalize_timezone and "start" in update_body:
+        result_msg += " (timezone inconsistency normalized)"
+    return result_msg
 
 
 @mcp.tool(
@@ -597,16 +766,23 @@ def search_events(
     # Convert filtered events to CalendarEvent objects
     calendar_events = []
     for event in filtered_events:
-        # Convert start/end to EventDateTime objects
+        # Convert start/end to EventDateTime objects with automatic UTC conversion
+        start_raw = event["start"]
+        end_raw = event["end"]
+
         start_dt = EventDateTime(
-            dateTime=event["start"].get("dateTime", ""),
-            date=event["start"].get("date", ""),
-            timeZone=event["start"].get("timeZone", ""),
+            dateTime=_convert_utc_to_local_time(
+                start_raw.get("dateTime", ""), start_raw.get("timeZone", "")
+            ),
+            date=start_raw.get("date", ""),
+            timeZone=start_raw.get("timeZone", ""),
         )
         end_dt = EventDateTime(
-            dateTime=event["end"].get("dateTime", ""),
-            date=event["end"].get("date", ""),
-            timeZone=event["end"].get("timeZone", ""),
+            dateTime=_convert_utc_to_local_time(
+                end_raw.get("dateTime", ""), end_raw.get("timeZone", "")
+            ),
+            date=end_raw.get("date", ""),
+            timeZone=end_raw.get("timeZone", ""),
         )
 
         # Convert attendees

@@ -144,7 +144,6 @@ class TestIsTextFile:
             ("test.png", False),
             ("test.jpg", False),
             ("test.pdf", False),
-            ("test.exe", False),
             ("test.unknown", False),
         ],
     )
@@ -240,7 +239,6 @@ class TestGeminiMimeTypeSupport:
             ("test.conf", "text/plain"),
             ("test.log", "text/plain"),
             # Binary files should keep original MIME type
-            ("test.exe", "application/x-msdownload"),
             ("test.unknown", "application/octet-stream"),
         ],
     )

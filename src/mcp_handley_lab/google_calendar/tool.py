@@ -17,15 +17,15 @@ class Attendee(BaseModel):
     """Calendar event attendee."""
 
     email: str
-    status: str = Field(alias="responseStatus", default="needsAction")
+    responseStatus: str = "needsAction"
 
 
 class EventDateTime(BaseModel):
     """Event date/time information."""
 
-    date_time: str = Field("", alias="dateTime")
+    dateTime: str = ""
     date: str = ""
-    time_zone: str = Field("", alias="timeZone")
+    timeZone: str = ""
 
 
 class CalendarEvent(BaseModel):
@@ -58,9 +58,9 @@ class CalendarInfo(BaseModel):
     """Calendar information."""
 
     id: str
-    name: str = Field(alias="summary")
-    access_role: str = Field(alias="accessRole")
-    color_id: str = Field(alias="colorId")
+    summary: str
+    accessRole: str
+    colorId: str
 
 
 class FreeTimeSlot(BaseModel):

@@ -1,6 +1,4 @@
 """Grok LLM tool for AI interactions via MCP."""
-import base64
-from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -8,13 +6,13 @@ from xai_sdk import Client
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
+    build_server_info,
+    load_provider_models,
     resolve_files_for_llm,
 )
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
-    build_model_configs_dict,
     get_structured_model_listing,
-    load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 from mcp_handley_lab.shared.models import (
@@ -29,17 +27,8 @@ mcp = FastMCP("Grok Tool")
 # Configure Grok client
 client = Client(api_key=settings.xai_api_key)
 
-# Load model configurations from YAML
-MODEL_CONFIGS = build_model_configs_dict("grok")
-
-# Load default model from YAML
-_config = load_model_config("grok")
-DEFAULT_MODEL = _config["default_model"]
-
-
-def _get_model_config(model: str) -> dict[str, Any]:
-    """Get token limits and parameter name for a specific model."""
-    return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
+# Load model configurations using shared loader
+MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("grok")
 
 
 def _grok_generation_adapter(
@@ -154,25 +143,14 @@ def _grok_image_analysis_adapter(
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
 
-    # Load images
-    from mcp_handley_lab.llm.common import resolve_image_data
-
-    image_urls = []
-    for image_path in images:
-        image_bytes = resolve_image_data(image_path)
-        encoded = base64.b64encode(image_bytes).decode()
-
-        from mcp_handley_lab.llm.common import determine_mime_type
-
-        if image_path.startswith("data:image"):
-            image_urls.append(image_path)
-        else:
-            mime_type = determine_mime_type(Path(image_path))
-            image_urls.append(f"data:{mime_type};base64,{encoded}")
+    # Use standardized image processing
+    from mcp_handley_lab.llm.common import resolve_images_for_multimodal_prompt
 
     # Enhance prompt based on focus
     if focus != "general":
         prompt = f"Focus on {focus} aspects. {prompt}"
+
+    prompt_text, image_blocks = resolve_images_for_multimodal_prompt(prompt, images)
 
     # Build messages using xai-sdk helpers
     messages = []
@@ -189,8 +167,9 @@ def _grok_image_analysis_adapter(
             messages.append(chat.assistant(msg["content"]))
 
     # Build message content with text and images
-    content_parts = [chat.text(prompt)]
-    for image_url in image_urls:
+    content_parts = [chat.text(prompt_text)]
+    for image_block in image_blocks:
+        image_url = f"data:{image_block['mime_type']};base64,{image_block['data']}"
         content_parts.append(chat.image(image_url))
 
     # Add current message with images
@@ -385,26 +364,10 @@ def server_info() -> ServerInfo:
     image_models = client.models.list_image_generation_models()
     available_models.extend([m.name for m in image_models if "grok" in m.name.lower()])
 
-    # Get agent count
-    agent_count = len(memory_manager.list_agents())
-
-    return ServerInfo(
-        name="Grok Tool",
-        version="1.0.0",
-        status="active",
-        capabilities=[
-            "ask - Chat with Grok models (persistent memory enabled by default)",
-            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
-            "generate_image - Generate images with Grok",
-            "list_models - List available Grok models with detailed information",
-            "server_info - Get server status",
-        ],
-        dependencies={
-            "api_key": "configured",
-            "available_models": f"{len(available_models)} models",
-            "active_agents": str(agent_count),
-            "memory_storage": str(memory_manager.storage_dir),
-            "vision_support": "true",
-            "image_generation": "true",
-        },
+    return build_server_info(
+        provider_name="Grok",
+        available_models=available_models,
+        memory_manager=memory_manager,
+        vision_support=True,
+        image_generation=True,
     )

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 from mcp_handley_lab.llm.memory import memory_manager
+from mcp_handley_lab.shared.models import ServerInfo
 
 # Enhance mimetypes with common text file types that might not be in the default database
 # This runs once when the module is imported
@@ -313,11 +314,47 @@ def resolve_multimodal_content(
             {
                 "type": "image",
                 "mime_type": mime_type,
-                "data": base64.b64encode(image_bytes),
+                "data": base64.b64encode(image_bytes).decode("utf-8"),
             }
         )
 
     return content_blocks
+
+
+def resolve_images_for_multimodal_prompt(
+    prompt: str, images: list[str]
+) -> tuple[str, list[dict]]:
+    """
+    Standardized image processing for multimodal prompts.
+
+    Returns:
+        tuple: (prompt_text, list of image content blocks)
+        Each image block has: {"type": "image", "mime_type": str, "data": str}
+    """
+    if not images:
+        return prompt, []
+
+    image_blocks = []
+    for image_path in images:
+        image_bytes = resolve_image_data(image_path)
+
+        # Determine mime type
+        if isinstance(image_path, str) and image_path.startswith("data:image"):
+            mime_type = image_path.split(";")[0].split(":")[1]
+        else:
+            mime_type = determine_mime_type(Path(image_path))
+            if not mime_type.startswith("image/"):
+                mime_type = "image/jpeg"
+
+        image_blocks.append(
+            {
+                "type": "image",
+                "mime_type": mime_type,
+                "data": base64.b64encode(image_bytes).decode("utf-8"),
+            }
+        )
+
+    return prompt, image_blocks
 
 
 def resolve_files_for_llm(
@@ -361,28 +398,85 @@ def resolve_files_for_llm(
     return inline_content
 
 
-def format_server_info(
+def build_server_info(
     provider_name: str,
-    api_key_configured: bool,
-    model_count: int,
-    model_examples: list[str],
-    agent_count: int,
-    storage_dir: str,
-    available_tools: list[str],
-) -> str:
-    """Generates a standardized server info string."""
-    status_str = f"{provider_name} Tool Server Status\n"
-    status_str += "=" * (len(provider_name) + 20) + "\n"
-    status_str += "Status: Connected and ready\n"
-    status_str += (
-        f"API Key: {'Configured ✓' if api_key_configured else 'Not Configured ✗'}\n"
+    available_models: list[str],
+    memory_manager,
+    vision_support: bool = False,
+    image_generation: bool = False,
+) -> ServerInfo:
+    """Build standardized ServerInfo object for LLM providers."""
+
+    # Get agent count
+    agent_count = len(memory_manager.list_agents())
+
+    # Build capabilities list
+    capabilities = [
+        f"ask - Chat with {provider_name} models (persistent memory enabled by default)",
+        "list_models - List available models with detailed information",
+        "server_info - Get server status",
+    ]
+
+    if vision_support:
+        capabilities.insert(
+            1,
+            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
+        )
+
+    if image_generation:
+        if vision_support:
+            capabilities.insert(
+                2, f"generate_image - Generate images with {provider_name}"
+            )
+        else:
+            capabilities.insert(
+                1, f"generate_image - Generate images with {provider_name}"
+            )
+
+    # Build dependencies dict
+    dependencies = {
+        "api_key": "configured",
+        "available_models": f"{len(available_models)} models",
+        "active_agents": str(agent_count),
+        "memory_storage": str(memory_manager.storage_dir),
+    }
+
+    if vision_support:
+        dependencies["vision_support"] = "true"
+
+    if image_generation:
+        dependencies["image_generation"] = "true"
+
+    return ServerInfo(
+        name=f"{provider_name} Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=capabilities,
+        dependencies=dependencies,
     )
-    status_str += f"Available Models: {model_count} models\n"
-    status_str += f"- {', '.join(model_examples)}{'...' if len(model_examples) < model_count else ''}\n\n"
-    status_str += "Agent Management:\n"
-    status_str += f"- Active Agents: {agent_count}\n"
-    status_str += f"- Memory Storage: {storage_dir}\n\n"
-    status_str += "Available tools:\n" + "\n".join(
-        f"- {tool}" for tool in available_tools
+
+
+def load_provider_models(provider: str) -> tuple[dict, str, callable]:
+    """Load model configurations and return configs, default model, and config getter.
+
+    Returns:
+        tuple: (MODEL_CONFIGS dict, DEFAULT_MODEL str, _get_model_config function)
+    """
+    from mcp_handley_lab.llm.model_loader import (
+        build_model_configs_dict,
+        load_model_config,
     )
-    return status_str
+
+    # Load model configurations from YAML
+    model_configs = build_model_configs_dict(provider)
+
+    # Load default model from YAML
+    config = load_model_config(provider)
+    default_model = config["default_model"]
+
+    # Return a closure for getting model config with fallback
+    def get_model_config(model: str) -> dict:
+        """Get model configuration with fallback to default."""
+        return model_configs.get(model, model_configs[default_model])
+
+    return model_configs, default_model, get_model_config

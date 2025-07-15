@@ -22,16 +22,16 @@ from PIL import Image
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
+    build_server_info,
     get_gemini_safe_mime_type,
     get_session_id,
     is_text_file,
+    load_provider_models,
     resolve_image_data,
 )
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
-    build_model_configs_dict,
     get_structured_model_listing,
-    load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 from mcp_handley_lab.shared.models import (
@@ -50,12 +50,8 @@ client = google_genai.Client(api_key=settings.gemini_api_key)
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 
-# Load model configurations from YAML
-MODEL_CONFIGS = build_model_configs_dict("gemini")
-
-# Load default model from YAML
-_config = load_model_config("gemini")
-DEFAULT_MODEL = _config["default_model"]
+# Load model configurations using shared loader
+MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("gemini")
 
 
 def _get_session_id() -> LLMResult:
@@ -66,11 +62,6 @@ def _get_session_id() -> LLMResult:
 def _get_model_config(model: str) -> dict[str, int]:
     """Get token limits for a specific model."""
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
-
-
-def require_client(func):
-    """Identity decorator - no longer needed with fail-fast approach."""
-    return func
 
 
 def _resolve_files(
@@ -466,7 +457,6 @@ def generate_image(
 @mcp.tool(
     description="Lists all available Gemini models with pricing, capabilities, and context windows. Helps compare models for cost, performance, and features to select the best model for specific tasks."
 )
-@require_client
 def list_models() -> ModelListing:
     """List available Gemini models with detailed information."""
 
@@ -491,24 +481,10 @@ def server_info() -> ServerInfo:
         if "gemini" in model.name:
             available_models.append(model.name.split("/")[-1])
 
-    # Get agent count
-    agent_count = len(memory_manager.list_agents())
-
-    return ServerInfo(
-        name="Gemini Tool",
-        version="1.0.0",
-        status="active",
-        capabilities=[
-            "ask - Chat with Gemini models (persistent memory enabled by default)",
-            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
-            "generate_image - Generate images with Imagen 3 (persistent memory enabled by default)",
-            "list_models - List available Gemini models with detailed information",
-            "server_info - Get server status",
-        ],
-        dependencies={
-            "api_key": "configured",
-            "available_models": f"{len(available_models)} models",
-            "active_agents": str(agent_count),
-            "memory_storage": str(memory_manager.storage_dir),
-        },
+    return build_server_info(
+        provider_name="Gemini",
+        available_models=available_models,
+        memory_manager=memory_manager,
+        vision_support=True,
+        image_generation=True,
     )

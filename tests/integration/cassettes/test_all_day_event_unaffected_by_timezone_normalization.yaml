@@ -1,0 +1,311 @@
+interactions:
+- request:
+    body: '{"summary": "All Day Event", "description": "All day event test", "location":
+      "", "start": {"date": "2025-07-16"}, "end": {"date": "2025-07-17"}}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '145'
+      content-type:
+      - application/json
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: POST
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505119488261982\\\"\",\n
+        \"id\": \"u3coja13qd827pcjdogtg8n22g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=dTNjb2phMTNxZDgyN3BjamRvZ3RnOG4yMmcgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-15T06:09:03.000Z\",\n \"updated\": \"2025-07-15T06:09:04.130Z\",\n
+        \"summary\": \"All Day Event\",\n \"description\": \"All day event test\",\n
+        \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
+        true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"date\": \"2025-07-16\"\n },\n \"end\":
+        {\n  \"date\": \"2025-07-17\"\n },\n \"iCalUID\": \"u3coja13qd827pcjdogtg8n22g@google.com\",\n
+        \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": false,\n  \"overrides\":
+        [\n   {\n    \"method\": \"popup\",\n    \"minutes\": 30\n   }\n  ]\n },\n
+        \"eventType\": \"default\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 15 Jul 2025 06:09:04 GMT
+      ETag:
+      - '"3505119488261982"'
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '855'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/u3coja13qd827pcjdogtg8n22g?alt=json
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505119488261982\\\"\",\n
+        \"id\": \"u3coja13qd827pcjdogtg8n22g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=dTNjb2phMTNxZDgyN3BjamRvZ3RnOG4yMmcgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-15T06:09:03.000Z\",\n \"updated\": \"2025-07-15T06:09:04.130Z\",\n
+        \"summary\": \"All Day Event\",\n \"description\": \"All day event test\",\n
+        \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
+        true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"date\": \"2025-07-16\"\n },\n \"end\":
+        {\n  \"date\": \"2025-07-17\"\n },\n \"iCalUID\": \"u3coja13qd827pcjdogtg8n22g@google.com\",\n
+        \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": false,\n  \"overrides\":
+        [\n   {\n    \"method\": \"popup\",\n    \"minutes\": 30\n   }\n  ]\n },\n
+        \"eventType\": \"default\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - private, max-age=0, must-revalidate, no-transform
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 15 Jul 2025 06:09:04 GMT
+      ETag:
+      - '"3505119488261982"'
+      Expires:
+      - Tue, 15 Jul 2025 06:09:04 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '855'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"description": "All day with normalization attempt"}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '53'
+      content-type:
+      - application/json
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: PATCH
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/u3coja13qd827pcjdogtg8n22g?alt=json
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505119490243550\\\"\",\n
+        \"id\": \"u3coja13qd827pcjdogtg8n22g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=dTNjb2phMTNxZDgyN3BjamRvZ3RnOG4yMmcgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-15T06:09:03.000Z\",\n \"updated\": \"2025-07-15T06:09:05.121Z\",\n
+        \"summary\": \"All Day Event\",\n \"description\": \"All day with normalization
+        attempt\",\n \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"date\": \"2025-07-16\"\n },\n \"end\":
+        {\n  \"date\": \"2025-07-17\"\n },\n \"iCalUID\": \"u3coja13qd827pcjdogtg8n22g@google.com\",\n
+        \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": false,\n  \"overrides\":
+        [\n   {\n    \"method\": \"popup\",\n    \"minutes\": 30\n   }\n  ]\n },\n
+        \"eventType\": \"default\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 15 Jul 2025 06:09:05 GMT
+      ETag:
+      - '"3505119490243550"'
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,X-Origin,Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '871'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/u3coja13qd827pcjdogtg8n22g?alt=json
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505119490243550\\\"\",\n
+        \"id\": \"u3coja13qd827pcjdogtg8n22g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=dTNjb2phMTNxZDgyN3BjamRvZ3RnOG4yMmcgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-07-15T06:09:03.000Z\",\n \"updated\": \"2025-07-15T06:09:05.121Z\",\n
+        \"summary\": \"All Day Event\",\n \"description\": \"All day with normalization
+        attempt\",\n \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"date\": \"2025-07-16\"\n },\n \"end\":
+        {\n  \"date\": \"2025-07-17\"\n },\n \"iCalUID\": \"u3coja13qd827pcjdogtg8n22g@google.com\",\n
+        \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": false,\n  \"overrides\":
+        [\n   {\n    \"method\": \"popup\",\n    \"minutes\": 30\n   }\n  ]\n },\n
+        \"eventType\": \"default\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - private, max-age=0, must-revalidate, no-transform
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 15 Jul 2025 06:09:05 GMT
+      ETag:
+      - '"3505119490243550"'
+      Expires:
+      - Tue, 15 Jul 2025 06:09:05 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '871'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: DELETE
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/u3coja13qd827pcjdogtg8n22g
+  response:
+    body:
+      string: ''
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Length:
+      - '0'
+      Content-Type:
+      - text/html
+      Date:
+      - Tue, 15 Jul 2025 06:09:05 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - ESF
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 204
+      message: No Content
+version: 1

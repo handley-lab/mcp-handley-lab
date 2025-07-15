@@ -196,7 +196,7 @@ def _has_timezone_inconsistency(event_data: dict) -> bool:
     # The inconsistency exists if dateTime ends in 'Z' (UTC) AND
     # a specific, non-UTC timezone is also defined
     has_utc_suffix = start_dt.endswith("Z")
-    has_specific_timezone = timezone and timezone.lower() != "utc"
+    has_specific_timezone = bool(timezone and timezone.lower() != "utc")
 
     return has_utc_suffix and has_specific_timezone
 
@@ -342,9 +342,10 @@ def create_event(
     if "T" in start_datetime:
         event_body["start"] = {"dateTime": start_datetime}
         event_body["end"] = {"dateTime": end_datetime}
-        if timezone:  # Only add timezone if user specified it
-            event_body["start"]["timeZone"] = timezone
-            event_body["end"]["timeZone"] = timezone
+        # API requires timezone for timed events - use provided or default
+        tz = timezone or DEFAULT_TIMEZONE
+        event_body["start"]["timeZone"] = tz
+        event_body["end"]["timeZone"] = tz
     else:
         event_body["start"] = {"date": start_datetime}
         event_body["end"] = {"date": end_datetime}
@@ -401,17 +402,21 @@ def update_event(
         update_body["location"] = location
 
     if start_datetime:
-        update_body["start"] = (
-            {"date": start_datetime}
-            if "T" not in start_datetime
-            else {"dateTime": start_datetime}
-        )
+        if "T" not in start_datetime:
+            update_body["start"] = {"date": start_datetime}
+        else:
+            update_body["start"] = {
+                "dateTime": start_datetime,
+                "timeZone": DEFAULT_TIMEZONE,
+            }
     if end_datetime:
-        update_body["end"] = (
-            {"date": end_datetime}
-            if "T" not in end_datetime
-            else {"dateTime": end_datetime}
-        )
+        if "T" not in end_datetime:
+            update_body["end"] = {"date": end_datetime}
+        else:
+            update_body["end"] = {
+                "dateTime": end_datetime,
+                "timeZone": DEFAULT_TIMEZONE,
+            }
 
     if not update_body:
         return "No updates specified. Nothing to do."

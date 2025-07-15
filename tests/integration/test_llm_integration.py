@@ -49,6 +49,9 @@ llm_providers = [
         "7+1",
         "8",
         id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
     ),
 ]
 
@@ -76,6 +79,9 @@ image_providers = [
         "XAI_API_KEY",
         "grok-2-vision-1212",
         id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
     ),
 ]
 
@@ -83,7 +89,14 @@ server_info_providers = [
     pytest.param(claude_server_info, "ANTHROPIC_API_KEY", id="claude"),
     pytest.param(gemini_server_info, "GEMINI_API_KEY", id="gemini"),
     pytest.param(openai_server_info, "OPENAI_API_KEY", id="openai"),
-    pytest.param(grok_server_info, "XAI_API_KEY", id="grok"),
+    pytest.param(
+        grok_server_info,
+        "XAI_API_KEY",
+        id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
+    ),
 ]
 
 
@@ -295,6 +308,9 @@ error_scenarios = [
         "invalid-model-name-that-does-not-exist",
         "model",
         id="grok-invalid-model",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
     ),
 ]
 

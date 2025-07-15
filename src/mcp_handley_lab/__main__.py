@@ -1,4 +1,5 @@
 """Unified entry point for all MCP tools."""
+
 import importlib
 import sys
 from pathlib import Path

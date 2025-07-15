@@ -1,4 +1,5 @@
 """Tool discovery for MCP CLI."""
+
 import json
 from typing import Any
 

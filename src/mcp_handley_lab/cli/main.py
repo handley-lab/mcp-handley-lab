@@ -1,4 +1,5 @@
 """Main CLI implementation using Click framework."""
+
 import atexit
 import json
 import sys

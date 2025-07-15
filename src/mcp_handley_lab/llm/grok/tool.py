@@ -1,4 +1,5 @@
 """Grok LLM tool for AI interactions via MCP."""
+
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP

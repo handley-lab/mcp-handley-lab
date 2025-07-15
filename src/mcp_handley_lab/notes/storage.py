@@ -1,4 +1,5 @@
 """YAML-based note storage with file-per-note pattern."""
+
 import json
 from datetime import datetime
 from pathlib import Path

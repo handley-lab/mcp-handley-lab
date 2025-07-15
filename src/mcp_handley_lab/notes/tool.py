@@ -1,4 +1,5 @@
 """Generic MCP tools for notes management."""
+
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP

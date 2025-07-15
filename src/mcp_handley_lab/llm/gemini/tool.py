@@ -1,4 +1,5 @@
 """Gemini LLM tool for AI interactions via MCP."""
+
 import base64
 import io
 import json

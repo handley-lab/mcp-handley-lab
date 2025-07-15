@@ -1,4 +1,5 @@
 """Configuration management for MCP Framework."""
+
 from pathlib import Path
 
 from pydantic import ConfigDict

@@ -1,4 +1,5 @@
 """Generic note models for the notes management system."""
+
 from datetime import datetime
 from typing import Any
 from uuid import uuid4

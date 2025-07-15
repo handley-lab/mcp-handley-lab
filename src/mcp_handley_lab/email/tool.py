@@ -1,4 +1,5 @@
 """Unified email client MCP tool integrating all email providers."""
+
 import importlib
 from pathlib import Path
 

@@ -1,4 +1,5 @@
 """OAuth2 authentication provider for email services."""
+
 from mcp_handley_lab.email.common import mcp
 
 

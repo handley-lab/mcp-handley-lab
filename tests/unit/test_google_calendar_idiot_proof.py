@@ -1,6 +1,5 @@
 """Unit tests for idiot-proof timezone handling in Google Calendar tool."""
 
-import zoneinfo
 
 import pytest
 from mcp_handley_lab.google_calendar.tool import _prepare_event_datetime
@@ -177,18 +176,18 @@ class TestErrorHandling:
 
     def test_invalid_timezone_handling(self):
         """Test that invalid timezones are rejected."""
-        with pytest.raises(zoneinfo.ZoneInfoNotFoundError):
+        with pytest.raises(ValueError, match="Could not parse datetime string"):
             _prepare_event_datetime("2024-07-15T14:00:00", "Invalid/Timezone")
 
-        with pytest.raises(zoneinfo.ZoneInfoNotFoundError):
+        with pytest.raises(ValueError, match="Could not parse datetime string"):
             _prepare_event_datetime("2024-07-15T14:00:00", "Not/A/Real/Timezone")
 
     def test_unparseable_text_handling(self):
         """Test that random text is rejected for dates."""
-        with pytest.raises(ValueError, match="Could not parse date string"):
+        with pytest.raises(ValueError, match="Could not parse datetime string"):
             _prepare_event_datetime("not a date", "Europe/London")
 
-        with pytest.raises(ValueError, match="Could not parse date string"):
+        with pytest.raises(ValueError, match="Could not parse datetime string"):
             _prepare_event_datetime("random text", "Europe/London")
 
     def test_partial_datetime_handling(self):

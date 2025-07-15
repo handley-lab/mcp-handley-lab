@@ -4,7 +4,8 @@ import zoneinfo
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import dateutil.parser
+import dateparser
+import pendulum
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -133,54 +134,119 @@ def _get_calendar_timezone(service: Any, calendar_id: str) -> str:
         return DEFAULT_TIMEZONE
 
 
-def _prepare_event_datetime(dt_str: str, event_tz: str) -> dict[str, str]:
+def _parse_user_datetime(dt_str: str, default_tz: str = None) -> pendulum.DateTime:
     """
-    Parses a datetime string and prepares the correct Google Calendar API format.
-    This prevents timezone inconsistencies by creating a canonical representation.
+    Parses a datetime string using advanced natural language processing.
 
     Args:
-        dt_str: The input datetime string from the user.
-                Can be with offset ('...-07:00'), with 'Z', or naive ('...').
-        event_tz: The target IANA timezone for the event (e.g., 'America/Los_Angeles').
+        dt_str: The input datetime string (can be natural language)
+        default_tz: Default timezone for naive datetimes (fallback context)
+
+    Returns:
+        A timezone-aware pendulum.DateTime object
+    """
+    if not dt_str.strip():
+        raise ValueError("Datetime string cannot be empty")
+
+    # Try dateparser first (best for natural language)
+    settings = {
+        "PREFER_DATES_FROM": "future",  # Good for event creation
+        "RETURN_AS_TIMEZONE_AWARE": True,
+    }
+
+    if default_tz:
+        settings["TIMEZONE"] = default_tz
+
+    parsed_dt = dateparser.parse(dt_str, settings=settings)
+
+    if parsed_dt:
+        # Convert to pendulum for better timezone handling
+        try:
+            return pendulum.instance(parsed_dt)
+        except Exception:
+            # Handle StaticTzInfo conversion issues
+            return pendulum.parse(parsed_dt.isoformat())
+
+    # Fallback to pendulum for structured formats
+    try:
+        parsed_dt = pendulum.parse(dt_str)
+        # If no timezone and we have a default, apply it
+        if parsed_dt.timezone is None and default_tz:
+            parsed_dt = parsed_dt.in_timezone(default_tz)
+        return parsed_dt
+    except Exception:
+        pass
+
+    raise ValueError(f"Could not parse datetime string: '{dt_str}'")
+
+
+def _prepare_event_datetime(dt_str: str, target_tz: str = None) -> dict[str, str]:
+    """
+    Parses a datetime string and prepares the correct Google Calendar API format.
+    Supports natural language, flexible formats, and mixed timezones.
+
+    Args:
+        dt_str: The input datetime string (supports natural language)
+        target_tz: Target timezone (if None, preserves input timezone)
 
     Returns:
         A dictionary like {'dateTime': 'YYYY-MM-DDTHH:MM:SS', 'timeZone': '...'} for
         timed events, or {'date': 'YYYY-MM-DD'} for all-day events.
     """
-    # Handle empty string
     if not dt_str.strip():
         raise ValueError("Datetime string cannot be empty")
 
-    # Handle all-day events - check for date-only patterns
-    if "T" not in dt_str and ":" not in dt_str:
+    # Check for date-only patterns (all-day events)
+    # Only treat as date-only if it's clearly a date format without time
+    looks_like_date_only = (
+        len(dt_str.strip().split()) == 1  # Single token
+        and "-" in dt_str  # Has date separators
+        and dt_str.count("-") == 2  # YYYY-MM-DD format
+        and not any(char.isalpha() for char in dt_str)  # No letters
+        and "T" not in dt_str
+        and ":" not in dt_str  # No time components
+    )
+
+    if looks_like_date_only:
         try:
-            # Validate it's a valid date
-            date_only = dateutil.parser.parse(dt_str).strftime("%Y-%m-%d")
-            return {"date": date_only}
-        except dateutil.parser.ParserError as e:
-            # If parsing fails, raise error for fail-fast behavior
+            # Use dateparser for flexible date parsing
+            parsed_dt = dateparser.parse(
+                dt_str, settings={"PREFER_DATES_FROM": "future"}
+            )
+            if parsed_dt:
+                return {"date": parsed_dt.strftime("%Y-%m-%d")}
+        except Exception:
+            pass
+
+        # Fallback to pendulum for date parsing
+        try:
+            parsed_dt = pendulum.parse(dt_str)
+            return {"date": parsed_dt.format("YYYY-MM-DD")}
+        except Exception as e:
             raise ValueError(f"Could not parse date string: {dt_str}") from e
 
-    # Handle timed events
+    # Handle timed events with advanced parsing
     try:
-        parsed_dt = dateutil.parser.parse(dt_str)
-    except dateutil.parser.ParserError as e:
+        parsed_dt = _parse_user_datetime(dt_str, target_tz)
+    except Exception as e:
         raise ValueError(f"Could not parse datetime string: {dt_str}") from e
 
-    target_zone = zoneinfo.ZoneInfo(event_tz)
-
-    if parsed_dt.tzinfo:
-        # The input time is absolute. Convert it to the target event timezone.
-        local_dt = parsed_dt.astimezone(target_zone)
+    # Convert to target timezone if specified, otherwise preserve input timezone
+    if target_tz and target_tz != str(parsed_dt.timezone):
+        final_dt = parsed_dt.in_timezone(target_tz)
     else:
-        # The input time is naive. Assume it's already in the target timezone.
-        local_dt = parsed_dt.replace(tzinfo=target_zone)
+        final_dt = parsed_dt
 
-    # Return the format Google Calendar prefers: a local time string
-    # plus a separate timezone identifier. This avoids all ambiguity.
+    # Return the format Google Calendar prefers
+    # Handle timezone string conversion properly
+    timezone_str = str(final_dt.timezone)
+    if timezone_str.startswith("FixedTimezone("):
+        # For fixed offsets, convert to standard format
+        timezone_str = final_dt.timezone.name
+
     return {
-        "dateTime": local_dt.strftime("%Y-%m-%dT%H:%M:%S"),
-        "timeZone": event_tz,
+        "dateTime": final_dt.format("YYYY-MM-DDTHH:mm:ss"),
+        "timeZone": timezone_str,
     }
 
 
@@ -379,7 +445,7 @@ def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
 
 
 @mcp.tool(
-    description="Creates a new event in a Google Calendar. It automatically handles timezones. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00-07:00' or '2024-10-26'). If a time is given without a timezone, it will be interpreted in the calendar's local time."
+    description="Creates a new event in a Google Calendar with NATURAL LANGUAGE support! You can use human-friendly time expressions like 'tomorrow at 2pm', 'next Monday at 10am', 'in 3 hours', 'Friday afternoon'. Also supports ISO 8601 formats and mixed timezones for start/end times (perfect for flights: LAX departure time + JFK arrival time)."
 )
 def create_event(
     summary: str,
@@ -388,21 +454,40 @@ def create_event(
     description: str = "",
     location: str = "",
     calendar_id: str = "primary",
-    timezone: str = "",
+    start_timezone: str = "",
+    end_timezone: str = "",
     attendees: list[str] = [],
 ) -> CreatedEventResult:
-    """Create a new calendar event with automatic, robust timezone handling."""
+    """Create a new calendar event with intelligent datetime parsing and flexible timezone handling.
+
+    Examples:
+    - Natural language: start_datetime="tomorrow at 2pm", end_datetime="tomorrow at 3pm"
+    - Mixed timezones: start_datetime="10:00am", start_timezone="America/Los_Angeles",
+                      end_datetime="6:30pm", end_timezone="America/New_York"
+    - ISO format: start_datetime="2024-07-15T14:00:00-08:00" (preserves timezone)
+    - Relative time: start_datetime="in 2 hours", end_datetime="in 3 hours"
+    """
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    # 1. Determine the target timezone for the event.
-    #    - Use the provided timezone if available.
-    #    - Otherwise, fetch the timezone of the target calendar for a smart default.
-    event_tz = timezone or _get_calendar_timezone(service, resolved_id)
+    # Get calendar's default timezone as fallback context
+    calendar_tz = _get_calendar_timezone(service, resolved_id)
 
-    # 2. Prepare start and end datetimes using the new robust helper.
-    start_body = _prepare_event_datetime(start_datetime, event_tz)
-    end_body = _prepare_event_datetime(end_datetime, event_tz)
+    # Prepare start datetime with smart timezone handling
+    if start_timezone:
+        # Use explicit timezone for start time
+        start_body = _prepare_event_datetime(start_datetime, start_timezone)
+    else:
+        # Use calendar timezone as context for naive datetimes
+        start_body = _prepare_event_datetime(start_datetime, calendar_tz)
+
+    # Prepare end datetime with smart timezone handling
+    if end_timezone:
+        # Use explicit timezone for end time
+        end_body = _prepare_event_datetime(end_datetime, end_timezone)
+    else:
+        # Use calendar timezone as context for naive datetimes
+        end_body = _prepare_event_datetime(end_datetime, calendar_tz)
 
     event_body = {
         "summary": summary,
@@ -435,7 +520,7 @@ def create_event(
 
 
 @mcp.tool(
-    description="Updates an existing calendar event. Only provided parameters are changed. Timezone handling is automatic. Set normalize_timezone=True to fix inconsistencies on existing events created by other tools."
+    description="Updates an existing calendar event with NATURAL LANGUAGE support! You can reschedule using human-friendly expressions like 'tomorrow at 3pm', 'next week at 9am', 'in 2 hours'. Supports mixed timezones for start/end times. Set normalize_timezone=True to fix timezone inconsistencies on existing events."
 )
 def update_event(
     event_id: str,
@@ -445,9 +530,18 @@ def update_event(
     end_datetime: str = "",
     description: str = "",
     location: str = "",
+    start_timezone: str = "",
+    end_timezone: str = "",
     normalize_timezone: bool = False,
 ) -> str:
-    """Update an existing event, with automatic timezone handling for new times."""
+    """Update an existing event, with automatic timezone handling for new times.
+
+    Examples:
+    - Natural language: start_datetime="tomorrow at 3pm", end_datetime="tomorrow at 4pm"
+    - Reschedule with timezone: start_datetime="10am", start_timezone="Europe/London"
+    - Relative time: start_datetime="in 1 hour" (keeps existing end time)
+    - Mixed timezones: start_timezone="America/Los_Angeles", end_timezone="America/New_York"
+    """
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
     update_body = {}
@@ -469,17 +563,24 @@ def update_event(
     if location is not None:  # Allow clearing the location
         update_body["location"] = location
 
-    # If start or end times are being updated, use the robust preparation logic
+    # If start or end times are being updated, use intelligent preparation logic
     if start_datetime or end_datetime:
-        # Use the existing event's timezone as context, or fetch the calendar's tz
-        event_tz = current_event.get("start", {}).get(
-            "timeZone"
-        ) or _get_calendar_timezone(service, resolved_id)
+        # Get fallback timezone context
+        calendar_tz = _get_calendar_timezone(service, resolved_id)
+        existing_start_tz = (
+            current_event.get("start", {}).get("timeZone") or calendar_tz
+        )
+        existing_end_tz = current_event.get("end", {}).get("timeZone") or calendar_tz
 
         if start_datetime:
-            update_body["start"] = _prepare_event_datetime(start_datetime, event_tz)
+            # Use explicit timezone or preserve existing event's start timezone
+            target_tz = start_timezone or existing_start_tz
+            update_body["start"] = _prepare_event_datetime(start_datetime, target_tz)
+
         if end_datetime:
-            update_body["end"] = _prepare_event_datetime(end_datetime, event_tz)
+            # Use explicit timezone or preserve existing event's end timezone
+            target_tz = end_timezone or existing_end_tz
+            update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)
 
     if not update_body:
         return "No updates specified. Nothing to do."

@@ -125,6 +125,20 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                         f"Missing 'output_tokens' for Gemini model {model_id}"
                     )
                 model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
+        elif provider == "grok":
+            # Grok format - similar to Gemini but different pricing types
+            if model_info.get("pricing_type") == "per_image":
+                # Image generation models don't need output_tokens
+                model_configs[model_id] = {
+                    "output_tokens": None  # N/A for image generation
+                }
+            else:
+                # Text generation models require explicit values in YAML
+                if "output_tokens" not in model_info:
+                    raise ValueError(
+                        f"Missing 'output_tokens' for Grok model {model_id}"
+                    )
+                model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
         # Other providers can be added here as needed
 
     return model_configs

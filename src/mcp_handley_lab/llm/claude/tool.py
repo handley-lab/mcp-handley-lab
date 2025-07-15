@@ -1,6 +1,4 @@
 """Claude LLM tool for AI interactions via MCP."""
-import base64
-from pathlib import Path
 from typing import Any
 
 from anthropic import Anthropic
@@ -8,15 +6,14 @@ from mcp.server.fastmcp import FastMCP
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
-    determine_mime_type,
+    build_server_info,
+    load_provider_models,
     resolve_files_for_llm,
-    resolve_image_data,
+    resolve_images_for_multimodal_prompt,
 )
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.model_loader import (
-    build_model_configs_dict,
     get_structured_model_listing,
-    load_model_config,
 )
 from mcp_handley_lab.llm.shared import process_llm_request
 from mcp_handley_lab.shared.models import LLMResult, ModelListing, ServerInfo
@@ -26,12 +23,8 @@ mcp = FastMCP("Claude Tool")
 # Configure Claude client - fail fast if API key is invalid/missing
 client = Anthropic(api_key=settings.anthropic_api_key)
 
-# Load model configurations from YAML
-MODEL_CONFIGS = build_model_configs_dict("claude")
-
-# Load default model from YAML
-_config = load_model_config("claude")
-DEFAULT_MODEL = _config["default_model"]
+# Load model configurations using shared loader
+MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("claude")
 
 
 def _resolve_model_alias(model: str) -> str:
@@ -42,12 +35,6 @@ def _resolve_model_alias(model: str) -> str:
         "haiku": "claude-3-5-haiku-20241022",
     }
     return aliases.get(model, model)
-
-
-def _get_model_config(model: str) -> dict[str, int]:
-    """Get token limits for a specific model."""
-    resolved_model = _resolve_model_alias(model)
-    return MODEL_CONFIGS.get(resolved_model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
 def _convert_history_to_claude_format(
@@ -109,42 +96,24 @@ def _resolve_images_to_content_blocks(
     images: list[str] = [],
 ) -> list[dict[str, Any]]:
     """Resolve image inputs to Claude content blocks."""
-    image_blocks = []
+    # Use standardized image processing
+    _, image_blocks = resolve_images_for_multimodal_prompt("", images)
 
-    # Handle images array
-    if images:
-        for image_item in images:
-            image_bytes = resolve_image_data(image_item)
+    # Convert to Claude's specific format
+    claude_image_blocks = []
+    for image_block in image_blocks:
+        claude_image_blocks.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": image_block["mime_type"],
+                    "data": image_block["data"],
+                },
+            }
+        )
 
-            # Determine media type
-            if isinstance(image_item, str):
-                if image_item.startswith("data:image"):
-                    media_type = image_item.split(";")[0].split(":")[1]
-                else:
-                    # File path - use determine_mime_type for consistency
-                    media_type = determine_mime_type(Path(image_item))
-                    if not media_type.startswith("image/"):
-                        media_type = "image/jpeg"
-            elif isinstance(image_item, dict) and "path" in image_item:
-                media_type = determine_mime_type(Path(image_item["path"]))
-                if not media_type.startswith("image/"):
-                    media_type = "image/jpeg"
-            else:
-                media_type = "image/jpeg"
-
-            encoded_data = base64.b64encode(image_bytes).decode("utf-8")
-            image_blocks.append(
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": media_type,
-                        "data": encoded_data,
-                    },
-                }
-            )
-
-    return image_blocks
+    return claude_image_blocks
 
 
 def _claude_generation_adapter(
@@ -161,7 +130,8 @@ def _claude_generation_adapter(
     max_output_tokens = kwargs.get("max_output_tokens")
 
     # Get model configuration
-    model_config = _get_model_config(model)
+    resolved_model = _resolve_model_alias(model)
+    model_config = _get_model_config(resolved_model)
     max_output = model_config["output_tokens"]
     output_tokens = (
         min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
@@ -235,7 +205,8 @@ def _claude_image_analysis_adapter(
         prompt = f"Focus on {focus} aspects. {prompt}"
 
     # Get model configuration
-    model_config = _get_model_config(model)
+    resolved_model = _resolve_model_alias(model)
+    model_config = _get_model_config(resolved_model)
     max_output = model_config["output_tokens"]
     output_tokens = (
         min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
@@ -362,27 +333,12 @@ def server_info() -> ServerInfo:
         max_tokens=10,
     )
 
-    # Get agent count
-    agent_count = len(memory_manager.list_agents())
-
     available_models = list(MODEL_CONFIGS.keys())
 
-    return ServerInfo(
-        name="Claude Tool",
-        version="1.0.0",
-        status="active",
-        capabilities=[
-            "ask - Chat with Claude models (persistent memory enabled by default)",
-            "analyze_image - Image analysis with vision models (persistent memory enabled by default)",
-            "list_models - List available Claude models with detailed information",
-            "server_info - Get server status",
-        ],
-        dependencies={
-            "api_key": "configured",
-            "available_models": f"{len(available_models)} models",
-            "active_agents": str(agent_count),
-            "memory_storage": str(memory_manager.storage_dir),
-            "vision_support": "true",
-            "image_generation": "false",
-        },
+    return build_server_info(
+        provider_name="Claude",
+        available_models=available_models,
+        memory_manager=memory_manager,
+        vision_support=True,
+        image_generation=False,
     )

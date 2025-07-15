@@ -69,10 +69,8 @@ def _build_mutt_command(
     if bcc:
         mutt_cmd.extend(["-b", bcc])
 
-    if attachments:
-        mutt_cmd.append("-a")
-        mutt_cmd.extend(attachments)
-        mutt_cmd.append("--")
+    if temp_file_path:
+        mutt_cmd.extend(["-i", temp_file_path])
 
     if message_id:
         if is_forward:
@@ -83,8 +81,10 @@ def _build_mutt_command(
     if folder:
         mutt_cmd.extend(["-f", folder])
 
-    if temp_file_path:
-        mutt_cmd.extend(["-i", temp_file_path])
+    if attachments:
+        mutt_cmd.append("-a")
+        mutt_cmd.extend(attachments)
+        mutt_cmd.append("--")
 
     if to:
         mutt_cmd.append(to)

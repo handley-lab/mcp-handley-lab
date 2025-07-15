@@ -76,53 +76,100 @@ def main():
         print("Please make them consistent before committing.", file=sys.stderr)
         return 1
 
-    # 3. Fetch and compare with origin/master
-    print("Fetching latest from origin/master...")
-    result = subprocess.run(["git", "fetch", "origin", "master"], capture_output=True)
-    if result.returncode != 0:
-        print(
-            "❌ Error: Could not fetch from origin. Network or git issue detected.",
-            file=sys.stderr,
-        )
-        print(f"Git fetch failed with exit code {result.returncode}", file=sys.stderr)
-        if result.stderr:
-            print(f"Error details: {result.stderr.decode()}", file=sys.stderr)
-        print("Please fix the git/network issue and try again.", file=sys.stderr)
-        return 1
-
-    master_content = get_git_file_content("origin/master", "pyproject.toml")
-    if not master_content:
-        print("✅ Master version not found or not available - proceeding")
-        return 0
-
-    master_version = get_pyproject_version(master_content)
-    print(f"Current version: {local_version}")
-    print(f"Master version:  {master_version}")
-
-    # 4. The core check
-    if local_version == master_version and master_version:
-        print("\n❌ VERSION BUMP REQUIRED\n", file=sys.stderr)
-        print(
-            f"Current version ({local_version}) matches origin/master.", file=sys.stderr
-        )
-        print(
-            "Please bump the version in both files based on your changes:\n",
-            file=sys.stderr,
-        )
-
-        # Show intelligent suggestions
-        suggestions = suggest_next_version(local_version)
-        for suggestion in suggestions:
-            print(f"  {suggestion}", file=sys.stderr)
-
-        print("\nUpdate both files:", file=sys.stderr)
-        print('  - pyproject.toml (version = "X.Y.ZaN")', file=sys.stderr)
-        print("  - PKGBUILD (pkgver=X.Y.ZaN)", file=sys.stderr)
-        return 1
-
-    print(
-        f"✅ Version ({local_version}) differs from master or master not available - proceeding"
+    # 3. Determine if this is a push to master or a PR
+    # Check if we're on master and if HEAD^ exists (meaning this is a push to master)
+    current_branch_result = subprocess.run(
+        ["git", "branch", "--show-current"], capture_output=True, text=True
     )
+    current_branch = current_branch_result.stdout.strip()
+
+    # Check if HEAD^ exists (meaning we have a previous commit)
+    head_parent_result = subprocess.run(
+        ["git", "rev-parse", "--verify", "HEAD^"], capture_output=True
+    )
+    has_parent = head_parent_result.returncode == 0
+
+    if current_branch == "master" and has_parent:
+        # This is a push to master - compare with previous commit (HEAD^)
+        print("Detected push to master - comparing with previous commit...")
+        prev_content = get_git_file_content("HEAD^", "pyproject.toml")
+        if not prev_content:
+            print("✅ Previous version not found - assuming first commit")
+            return 0
+        prev_version = get_pyproject_version(prev_content)
+        print(f"Current version: {local_version}")
+        print(f"Previous version: {prev_version}")
+
+        if local_version == prev_version and prev_version:
+            print("\n❌ VERSION BUMP REQUIRED\n", file=sys.stderr)
+            print(
+                f"Current version ({local_version}) matches previous commit.",
+                file=sys.stderr,
+            )
+            print(
+                "Please bump the version in both files based on your changes:\n",
+                file=sys.stderr,
+            )
+
+            # Show intelligent suggestions
+            suggestions = suggest_next_version(local_version)
+            for suggestion in suggestions:
+                print(f"  {suggestion}", file=sys.stderr)
+
+            print("\nUpdate both files:", file=sys.stderr)
+            print('  - pyproject.toml (version = "X.Y.ZaN")', file=sys.stderr)
+            print("  - PKGBUILD (pkgver=X.Y.ZaN)", file=sys.stderr)
+            return 1
+    else:
+        # This is a PR or initial commit - compare with origin/master
+        print("Fetching latest from origin/master...")
+        result = subprocess.run(
+            ["git", "fetch", "origin", "master"], capture_output=True
+        )
+        if result.returncode != 0:
+            print(
+                "❌ Error: Could not fetch from origin. Network or git issue detected.",
+                file=sys.stderr,
+            )
+            print(
+                f"Git fetch failed with exit code {result.returncode}", file=sys.stderr
+            )
+            if result.stderr:
+                print(f"Error details: {result.stderr.decode()}", file=sys.stderr)
+            print("Please fix the git/network issue and try again.", file=sys.stderr)
+            return 1
+
+        master_content = get_git_file_content("origin/master", "pyproject.toml")
+        if not master_content:
+            print("✅ Master version not found or not available - proceeding")
+            return 0
+
+        master_version = get_pyproject_version(master_content)
+        print(f"Current version: {local_version}")
+        print(f"Master version:  {master_version}")
+
+        if local_version == master_version and master_version:
+            print("\n❌ VERSION BUMP REQUIRED\n", file=sys.stderr)
+            print(
+                f"Current version ({local_version}) matches origin/master.",
+                file=sys.stderr,
+            )
+            print(
+                "Please bump the version in both files based on your changes:\n",
+                file=sys.stderr,
+            )
+
+            # Show intelligent suggestions
+            suggestions = suggest_next_version(local_version)
+            for suggestion in suggestions:
+                print(f"  {suggestion}", file=sys.stderr)
+
+            print("\nUpdate both files:", file=sys.stderr)
+            print('  - pyproject.toml (version = "X.Y.ZaN")', file=sys.stderr)
+            print("  - PKGBUILD (pkgver=X.Y.ZaN)", file=sys.stderr)
+            return 1
+
+    print(f"✅ Version ({local_version}) properly bumped - proceeding")
     return 0
 
 

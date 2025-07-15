@@ -1,4 +1,5 @@
 """Configuration management for MCP CLI."""
+
 import os
 from pathlib import Path
 from typing import Any

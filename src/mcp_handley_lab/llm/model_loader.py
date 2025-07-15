@@ -1,4 +1,5 @@
 """Utility for loading model configurations from YAML files."""
+
 from pathlib import Path
 from typing import Any
 
@@ -281,7 +282,7 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
 {"=" * (len(provider) + 20)}
 • Total Models: {total_models}
 • Model Categories: {total_categories}
-• Default Model: {config['default_model']}
+• Default Model: {config["default_model"]}
 """
 
     # Add provider-specific info

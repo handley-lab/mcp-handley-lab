@@ -171,3 +171,37 @@ class MuttContactSearchResult(BaseModel):
     query: str
     matches: list[MuttContact]
     total_found: int
+
+
+class EmbeddingResult(BaseModel):
+    """Result of an embedding request for a single piece of content."""
+
+    embedding: list[float]
+
+
+class DocumentIndex(BaseModel):
+    """A single indexed document containing its path and embedding vector."""
+
+    path: str
+    embedding: list[float]
+
+
+class IndexResult(BaseModel):
+    """Result of an indexing operation."""
+
+    index_path: str
+    files_indexed: int
+    message: str
+
+
+class SearchResult(BaseModel):
+    """A single result from a semantic search."""
+
+    path: str
+    similarity_score: float
+
+
+class SimilarityResult(BaseModel):
+    """Result of a similarity calculation between two texts."""
+
+    similarity: float

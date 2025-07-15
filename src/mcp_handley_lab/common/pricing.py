@@ -1,4 +1,5 @@
 """Cost tracking and pricing utilities for LLM usage."""
+
 from pathlib import Path
 from typing import Any
 

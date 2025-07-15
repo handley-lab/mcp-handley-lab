@@ -1,7 +1,11 @@
 """OpenAI LLM tool for AI interactions via MCP."""
+
+import json
+from pathlib import Path
 from typing import Any
 
 import httpx
+import numpy as np
 from mcp.server.fastmcp import FastMCP
 from openai import OpenAI
 
@@ -17,13 +21,22 @@ from mcp_handley_lab.llm.model_loader import (
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 from mcp_handley_lab.shared.models import (
+    DocumentIndex,
+    EmbeddingResult,
     ImageGenerationResult,
+    IndexResult,
     LLMResult,
     ModelListing,
+    SearchResult,
     ServerInfo,
+    SimilarityResult,
 )
 
 mcp = FastMCP("OpenAI Tool")
+
+# Constants for embedding configuration
+DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_BATCH_SIZE = 100
 
 # Configure OpenAI client
 client = OpenAI(api_key=settings.openai_api_key)
@@ -351,6 +364,151 @@ def generate_image(
     )
 
 
+def _calculate_cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+    """Calculate cosine similarity between two embedding vectors."""
+    vec1_np = np.array(vec1)
+    vec2_np = np.array(vec2)
+    dot_product = np.dot(vec1_np, vec2_np)
+    norm_product = np.linalg.norm(vec1_np) * np.linalg.norm(vec2_np)
+    return dot_product / norm_product
+
+
+@mcp.tool(
+    description="Generates embedding vectors for a given list of text strings using an OpenAI model. Supports the new text-embedding-3 models with optional dimensions parameter."
+)
+def get_embeddings(
+    contents: str | list[str],
+    model: str = DEFAULT_EMBEDDING_MODEL,
+    dimensions: int = 0,
+) -> list[EmbeddingResult]:
+    """Generates embeddings for one or more text strings."""
+    if isinstance(contents, str):
+        contents = [contents]
+
+    if not contents:
+        raise ValueError("Contents list cannot be empty.")
+
+    params = {"model": model, "input": contents}
+
+    # Only add dimensions parameter for v3 models
+    if dimensions > 0 and "3" in model:
+        params["dimensions"] = dimensions
+
+    # Direct, fail-fast API call
+    response = client.embeddings.create(**params)
+
+    # Direct access - trust the response structure
+    return [EmbeddingResult(embedding=item.embedding) for item in response.data]
+
+
+@mcp.tool(
+    description="Calculates the semantic similarity score (cosine similarity) between two text strings. Returns a score between -1.0 and 1.0, where 1.0 is identical."
+)
+def calculate_similarity(
+    text1: str, text2: str, model: str = DEFAULT_EMBEDDING_MODEL
+) -> SimilarityResult:
+    """Calculates the cosine similarity between two texts."""
+    if not text1 or not text2:
+        raise ValueError("Both text1 and text2 must be provided.")
+
+    embeddings = get_embeddings(contents=[text1, text2], model=model)
+
+    if len(embeddings) != 2:
+        raise RuntimeError("Failed to generate embeddings for both texts.")
+
+    similarity = _calculate_cosine_similarity(
+        embeddings[0].embedding, embeddings[1].embedding
+    )
+
+    return SimilarityResult(similarity=similarity)
+
+
+@mcp.tool(
+    description="Creates a searchable semantic index from a list of document file paths. It reads the files, generates embeddings for them, and saves the index as a JSON file."
+)
+def index_documents(
+    document_paths: list[str],
+    output_index_path: str,
+    model: str = DEFAULT_EMBEDDING_MODEL,
+) -> IndexResult:
+    """Creates a semantic index from document files."""
+    indexed_data = []
+    batch_size = EMBEDDING_BATCH_SIZE
+
+    for i in range(0, len(document_paths), batch_size):
+        batch_paths = document_paths[i : i + batch_size]
+        batch_contents = []
+        valid_paths = []
+
+        for doc_path_str in batch_paths:
+            doc_path = Path(doc_path_str)
+            # If path is not a file, .read_text() will raise an error. This is desired.
+            batch_contents.append(doc_path.read_text(encoding="utf-8"))
+            valid_paths.append(doc_path_str)
+
+        if not batch_contents:
+            continue
+
+        embedding_results = get_embeddings(contents=batch_contents, model=model)
+
+        for path, emb_result in zip(valid_paths, embedding_results, strict=False):
+            indexed_data.append(
+                DocumentIndex(path=path, embedding=emb_result.embedding)
+            )
+
+    # Save the index to a file
+    index_file = Path(output_index_path)
+    index_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(index_file, "w") as f:
+        json.dump([item.model_dump() for item in indexed_data], f, indent=2)
+
+    return IndexResult(
+        index_path=str(index_file),
+        files_indexed=len(indexed_data),
+        message=f"Successfully indexed {len(indexed_data)} files to {index_file}.",
+    )
+
+
+@mcp.tool(
+    description="Performs a semantic search for a query against a pre-built document index file. Returns a ranked list of the most relevant documents based on similarity."
+)
+def search_documents(
+    query: str,
+    index_path: str,
+    top_k: int = 5,
+    model: str = DEFAULT_EMBEDDING_MODEL,
+) -> list[SearchResult]:
+    """Searches a document index for the most relevant documents to a query."""
+    index_file = Path(index_path)
+    # open() will raise FileNotFoundError. This is the correct behavior.
+    with open(index_file) as f:
+        indexed_data = json.load(f)
+
+    if not indexed_data:
+        return []
+
+    # Get embedding for the query
+    query_embedding_result = get_embeddings(contents=query, model=model)
+    query_embedding = query_embedding_result[0].embedding
+
+    # Calculate similarities
+    similarities = []
+    for item in indexed_data:
+        doc_embedding = item["embedding"]
+        score = _calculate_cosine_similarity(query_embedding, doc_embedding)
+        similarities.append({"path": item["path"], "score": score})
+
+    # Sort by similarity and return top_k
+    similarities.sort(key=lambda x: x["score"], reverse=True)
+
+    results = [
+        SearchResult(path=item["path"], similarity_score=item["score"])
+        for item in similarities[:top_k]
+    ]
+
+    return results
+
+
 @mcp.tool(
     description="Retrieves a catalog of available OpenAI models with their capabilities, pricing, and context windows. Use this to select the best model for a task."
 )
@@ -375,10 +533,22 @@ def server_info() -> ServerInfo:
         m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
     ]
 
-    return build_server_info(
+    # Add embedding capabilities to the server info
+    info = build_server_info(
         provider_name="OpenAI",
         available_models=available_models,
         memory_manager=memory_manager,
         vision_support=True,
         image_generation=True,
     )
+
+    # Manually add embedding capabilities to the server info
+    embedding_capabilities = [
+        "get_embeddings - Generate embedding vectors for text.",
+        "calculate_similarity - Compare two texts for semantic similarity.",
+        "index_documents - Create a searchable index from files.",
+        "search_documents - Search an index for a query.",
+    ]
+    info.capabilities.extend(embedding_capabilities)
+
+    return info

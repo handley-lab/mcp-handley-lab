@@ -1,4 +1,5 @@
 """Code2Prompt tool for codebase flattening and conversion via MCP."""
+
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP

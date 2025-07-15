@@ -80,13 +80,11 @@ def process_llm_request(
     input_tokens = response_data["input_tokens"]
     output_tokens = response_data["output_tokens"]
     grounding_metadata_dict = response_data.get("grounding_metadata")
-    finish_reason = response_data["finish_reason"]
-    avg_logprobs = response_data["avg_logprobs"]
-    model_version = response_data["model_version"]
-    generation_time_ms = response_data.get(
-        "generation_time_ms", 0
-    )  # Only Gemini has this
-    response_id = response_data["response_id"]
+    finish_reason = response_data.get("finish_reason", "")
+    avg_logprobs = response_data.get("avg_logprobs", 0.0)
+    model_version = response_data.get("model_version", "")
+    generation_time_ms = response_data.get("generation_time_ms", 0)
+    response_id = response_data.get("response_id", "")
     # OpenAI-specific fields
     system_fingerprint = response_data.get("system_fingerprint", "")
     service_tier = response_data.get("service_tier", "")

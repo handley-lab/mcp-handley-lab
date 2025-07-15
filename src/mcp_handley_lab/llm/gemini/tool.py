@@ -1,14 +1,17 @@
 """Gemini LLM tool for AI interactions via MCP."""
 import base64
 import io
+import json
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
+import numpy as np
 from google import genai as google_genai
 from google.genai.types import (
     Blob,
+    EmbedContentConfig,
     FileData,
     GenerateContentConfig,
     GenerateImagesConfig,
@@ -35,13 +38,32 @@ from mcp_handley_lab.llm.model_loader import (
 )
 from mcp_handley_lab.llm.shared import process_image_generation, process_llm_request
 from mcp_handley_lab.shared.models import (
+    DocumentIndex,
+    EmbeddingResult,
     ImageGenerationResult,
+    IndexResult,
     LLMResult,
     ModelListing,
+    SearchResult,
     ServerInfo,
+    SimilarityResult,
 )
 
 mcp = FastMCP("Gemini Tool")
+
+# Constants for configuration
+GEMINI_INLINE_FILE_LIMIT_BYTES = 20 * 1024 * 1024  # 20MB
+EMBEDDING_BATCH_SIZE = 100
+
+# Type definitions
+EmbeddingTaskType = Literal[
+    "TASK_TYPE_UNSPECIFIED",
+    "RETRIEVAL_QUERY",
+    "RETRIEVAL_DOCUMENT",
+    "SEMANTIC_SIMILARITY",
+    "CLASSIFICATION",
+    "CLUSTERING",
+]
 
 # Configure Gemini client - fail fast if API key is invalid/missing
 client = google_genai.Client(api_key=settings.gemini_api_key)
@@ -52,6 +74,15 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 # Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("gemini")
+
+
+def _calculate_cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+    """Calculate cosine similarity between two embedding vectors."""
+    vec1_np = np.array(vec1)
+    vec2_np = np.array(vec2)
+    dot_product = np.dot(vec1_np, vec2_np)
+    norm_product = np.linalg.norm(vec1_np) * np.linalg.norm(vec2_np)
+    return dot_product / norm_product
 
 
 def _get_session_id() -> LLMResult:
@@ -72,9 +103,6 @@ def _resolve_files(
     Uses inlineData for files <20MB and Files API for larger files.
     Returns list of Part objects that can be included in contents.
     """
-    if not files:
-        return []
-
     parts = []
     for file_item in files:
         # Handle unified format: strings or {"path": "..."} dicts
@@ -83,10 +111,10 @@ def _resolve_files(
         elif isinstance(file_item, dict) and "path" in file_item:
             file_path = Path(file_item["path"])
         else:
-            continue  # Skip invalid items
+            raise ValueError(f"Invalid file item format: {file_item}")
         file_size = file_path.stat().st_size
 
-        if file_size > 20 * 1024 * 1024:  # 20MB threshold
+        if file_size > GEMINI_INLINE_FILE_LIMIT_BYTES:
             # Large file - use Files API
             uploaded_file = client.files.upload(
                 file=str(file_path),
@@ -122,10 +150,9 @@ def _resolve_images(
     image_list = []
 
     # Handle images array
-    if images:
-        for image_item in images:
-            image_bytes = resolve_image_data(image_item)
-            image_list.append(Image.open(io.BytesIO(image_bytes)))
+    for image_item in images:
+        image_bytes = resolve_image_data(image_item)
+        image_list.append(Image.open(io.BytesIO(image_bytes)))
 
     return image_list
 
@@ -208,7 +235,7 @@ def _gemini_generation_adapter(
     if not response.text:
         raise RuntimeError("No response text generated")
 
-    # Extract grounding metadata if available
+    # Extract grounding metadata - direct access, fail fast
     grounding_metadata = None
     response_dict = response.to_json_dict()
     if "candidates" in response_dict and response_dict["candidates"]:
@@ -216,40 +243,37 @@ def _gemini_generation_adapter(
         if "grounding_metadata" in candidate:
             metadata = candidate["grounding_metadata"]
             grounding_metadata = {
-                "web_search_queries": metadata.get("web_search_queries", []),
+                "web_search_queries": metadata["web_search_queries"],
                 "grounding_chunks": [
                     {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
-                    for chunk in metadata.get("grounding_chunks", [])
+                    for chunk in metadata["grounding_chunks"]
                     if "web" in chunk
                 ],
-                "grounding_supports": metadata.get("grounding_supports", []),
-                "retrieval_metadata": metadata.get("retrieval_metadata", {}),
-                "search_entry_point": metadata.get("search_entry_point", {}),
+                "grounding_supports": metadata["grounding_supports"],
+                "retrieval_metadata": metadata["retrieval_metadata"],
+                "search_entry_point": metadata["search_entry_point"],
             }
 
-    # Extract additional response metadata
+    # Extract additional response metadata - direct access
     finish_reason = ""
     avg_logprobs = 0.0
     if response.candidates and len(response.candidates) > 0:
         candidate = response.candidates[0]
-        if hasattr(candidate, "finish_reason") and candidate.finish_reason:
+        if candidate.finish_reason:
             finish_reason = str(candidate.finish_reason)
-        if hasattr(candidate, "avg_logprobs") and candidate.avg_logprobs is not None:
+        if candidate.avg_logprobs is not None:
             avg_logprobs = float(candidate.avg_logprobs)
 
-    # Extract generation time from server-timing header
+    # Extract generation time from server-timing header - fail fast on format changes
     generation_time_ms = 0
-    if hasattr(response, "sdk_http_response") and response.sdk_http_response:
+    if response.sdk_http_response:
         http_dict = response.sdk_http_response.to_json_dict()
-        headers = http_dict.get("headers", {})
-        server_timing = headers.get("server-timing", "")
+        headers = http_dict["headers"]
+        server_timing = headers["server-timing"]
         if "dur=" in server_timing:
-            try:
-                # Extract duration from "gfet4t7; dur=11255" format
-                dur_part = server_timing.split("dur=")[1].split(";")[0].split(",")[0]
-                generation_time_ms = int(float(dur_part))
-            except (ValueError, IndexError):
-                generation_time_ms = 0
+            # Extract duration from "gfet4t7; dur=11255" format. Fails loudly if format changes.
+            dur_part = server_timing.split("dur=")[1].split(";")[0].split(",")[0]
+            generation_time_ms = int(float(dur_part))
 
     return {
         "text": response.text,
@@ -258,7 +282,7 @@ def _gemini_generation_adapter(
         "grounding_metadata": grounding_metadata,
         "finish_reason": finish_reason,
         "avg_logprobs": avg_logprobs,
-        "model_version": getattr(response, "model_version", ""),
+        "model_version": response.model_version,
         "generation_time_ms": generation_time_ms,
         "response_id": "",  # Gemini doesn't provide a response ID
     }
@@ -308,11 +332,6 @@ def _gemini_image_analysis_adapter(
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
-        "finish_reason": "stop",  # Gemini image analysis always stops naturally
-        "avg_logprobs": 0.0,  # Gemini doesn't provide logprobs
-        "model_version": "",  # Not available for image analysis
-        "generation_time_ms": 0,  # Not extracted for image analysis
-        "response_id": "",  # Gemini doesn't provide a response ID
     }
 
 
@@ -393,30 +412,24 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     generated_image = response.generated_images[0]
     image = generated_image.image
 
-    # Estimate tokens for cost calculation
-    input_tokens = len(prompt.split()) * 2
+    # Get the prompt token count. No fallback. If this fails, the request fails.
+    count_response = client.models.count_tokens(
+        model="gemini-1.5-flash-latest", contents=prompt
+    )
+    input_tokens = count_response.total_tokens
 
-    # Extract safety attributes
+    # Extract safety attributes - direct access
     safety_attributes = {}
-    if (
-        hasattr(generated_image, "safety_attributes")
-        and generated_image.safety_attributes
-    ):
+    if generated_image.safety_attributes:
         safety_attributes = {
-            "categories": getattr(
-                generated_image.safety_attributes, "categories", None
-            ),
-            "scores": getattr(generated_image.safety_attributes, "scores", None),
-            "content_type": getattr(
-                generated_image.safety_attributes, "content_type", None
-            ),
+            "categories": generated_image.safety_attributes.categories,
+            "scores": generated_image.safety_attributes.scores,
+            "content_type": generated_image.safety_attributes.content_type,
         }
 
-    # Extract provider-specific metadata
+    # Extract provider-specific metadata - direct access
     gemini_metadata = {
-        "positive_prompt_safety_attributes": getattr(
-            response, "positive_prompt_safety_attributes", None
-        ),
+        "positive_prompt_safety_attributes": response.positive_prompt_safety_attributes,
         "actual_model_used": actual_model,
         "requested_model": model,
     }
@@ -424,14 +437,13 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     return {
         "image_bytes": image.image_bytes,
         "input_tokens": input_tokens,
-        "enhanced_prompt": getattr(generated_image, "enhanced_prompt", "") or "",
+        "enhanced_prompt": generated_image.enhanced_prompt or "",
         "original_prompt": prompt,
         "aspect_ratio": aspect_ratio,
         "requested_format": "png",  # Gemini always returns PNG
-        "mime_type": getattr(image, "mime_type", "image/png") or "image/png",
-        "cloud_uri": getattr(image, "gcs_uri", "") or "",
-        "content_filter_reason": getattr(generated_image, "rai_filtered_reason", "")
-        or "",
+        "mime_type": image.mime_type or "image/png",
+        "cloud_uri": image.gcs_uri or "",
+        "content_filter_reason": generated_image.rai_filtered_reason or "",
         "safety_attributes": safety_attributes,
         "gemini_metadata": gemini_metadata,
     }
@@ -452,6 +464,149 @@ def generate_image(
         generation_func=_gemini_image_generation_adapter,
         mcp_instance=mcp,
     )
+
+
+@mcp.tool(
+    description="Generates embedding vectors for a given list of text strings using a specified model. Supports task-specific embeddings like 'SEMANTIC_SIMILARITY' or 'RETRIEVAL_DOCUMENT'."
+)
+def get_embeddings(
+    contents: str | list[str],
+    model: str = "gemini-embedding-001",
+    task_type: EmbeddingTaskType = "SEMANTIC_SIMILARITY",
+    output_dimensionality: int = 0,
+) -> list[EmbeddingResult]:
+    """Generates embeddings for one or more text strings."""
+    if isinstance(contents, str):
+        contents = [contents]
+
+    if not contents:
+        raise ValueError("Contents list cannot be empty.")
+
+    config_params = {"task_type": task_type.upper()}
+    if output_dimensionality > 0:
+        config_params["output_dimensionality"] = output_dimensionality
+
+    config = EmbedContentConfig(**config_params)
+
+    response = client.models.embed_content(
+        model=model, contents=contents, config=config
+    )
+
+    # Direct, elegant, and trusts the response structure. Let it fail.
+    return [EmbeddingResult(embedding=e.values) for e in response.embeddings]
+
+
+@mcp.tool(
+    description="Calculates the semantic similarity score (cosine similarity) between two text strings. Returns a score between -1.0 and 1.0, where 1.0 is identical."
+)
+def calculate_similarity(
+    text1: str, text2: str, model: str = "gemini-embedding-001"
+) -> SimilarityResult:
+    """Calculates the cosine similarity between two texts."""
+    if not text1 or not text2:
+        raise ValueError("Both text1 and text2 must be provided.")
+
+    embeddings = get_embeddings(contents=[text1, text2], model=model)
+
+    if len(embeddings) != 2:
+        raise RuntimeError("Failed to generate embeddings for both texts.")
+
+    similarity = _calculate_cosine_similarity(
+        embeddings[0].embedding, embeddings[1].embedding
+    )
+
+    return SimilarityResult(similarity=similarity)
+
+
+@mcp.tool(
+    description="Creates a searchable semantic index from a list of document file paths. It reads the files, generates embeddings for them, and saves the index as a JSON file."
+)
+def index_documents(
+    document_paths: list[str],
+    output_index_path: str,
+    model: str = "gemini-embedding-001",
+) -> IndexResult:
+    """Creates a semantic index from document files."""
+    indexed_data = []
+    batch_size = EMBEDDING_BATCH_SIZE  # Process documents in batches
+
+    for i in range(0, len(document_paths), batch_size):
+        batch_paths = document_paths[i : i + batch_size]
+        batch_contents = []
+        valid_paths = []
+
+        for doc_path_str in batch_paths:
+            doc_path = Path(doc_path_str)
+            # If path is not a file, .read_text() will raise an error. This is desired.
+            batch_contents.append(doc_path.read_text(encoding="utf-8"))
+            valid_paths.append(doc_path_str)
+
+        if not batch_contents:
+            continue
+
+        embedding_results = get_embeddings(
+            contents=batch_contents, model=model, task_type="RETRIEVAL_DOCUMENT"
+        )
+
+        for path, emb_result in zip(valid_paths, embedding_results, strict=False):
+            indexed_data.append(
+                DocumentIndex(path=path, embedding=emb_result.embedding)
+            )
+
+    # Save the index to a file
+    index_file = Path(output_index_path)
+    index_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(index_file, "w") as f:
+        # Pydantic's model_dump is used here to serialize our list of models
+        json.dump([item.model_dump() for item in indexed_data], f, indent=2)
+
+    return IndexResult(
+        index_path=str(index_file),
+        files_indexed=len(indexed_data),
+        message=f"Successfully indexed {len(indexed_data)} files to {index_file}.",
+    )
+
+
+@mcp.tool(
+    description="Performs a semantic search for a query against a pre-built document index file. Returns a ranked list of the most relevant documents based on similarity."
+)
+def search_documents(
+    query: str,
+    index_path: str,
+    top_k: int = 5,
+    model: str = "gemini-embedding-001",
+) -> list[SearchResult]:
+    """Searches a document index for the most relevant documents to a query."""
+    index_file = Path(index_path)
+    # open() will raise FileNotFoundError. This is the correct behavior.
+    with open(index_file) as f:
+        indexed_data = json.load(f)
+
+    if not indexed_data:
+        return []
+
+    # Get embedding for the query
+    query_embedding_result = get_embeddings(
+        contents=query, model=model, task_type="RETRIEVAL_QUERY"
+    )
+    query_embedding = query_embedding_result[0].embedding
+
+    # Calculate similarities
+    similarities = []
+    for item in indexed_data:
+        doc_embedding = item["embedding"]
+        score = _calculate_cosine_similarity(query_embedding, doc_embedding)
+        similarities.append({"path": item["path"], "score": score})
+
+    # Sort by similarity and return top_k
+    similarities.sort(key=lambda x: x["score"], reverse=True)
+
+    results = [
+        SearchResult(path=item["path"], similarity_score=item["score"])
+        for item in similarities[:top_k]
+    ]
+
+    return results
 
 
 @mcp.tool(
@@ -478,13 +633,26 @@ def server_info() -> ServerInfo:
     models_response = client.models.list()
     available_models = []
     for model in models_response:
-        if "gemini" in model.name:
+        # Filter for models that can be used with the generateContent and embedContent methods
+        if "gemini" in model.name or "embedding" in model.name:
             available_models.append(model.name.split("/")[-1])
 
-    return build_server_info(
+    # Add our new functions to the capabilities list
+    info = build_server_info(
         provider_name="Gemini",
         available_models=available_models,
         memory_manager=memory_manager,
         vision_support=True,
         image_generation=True,
     )
+
+    # Manually add embedding capabilities to the server info
+    embedding_capabilities = [
+        "get_embeddings - Generate embedding vectors for text.",
+        "calculate_similarity - Compare two texts for semantic similarity.",
+        "index_documents - Create a searchable index from files.",
+        "search_documents - Search an index for a query.",
+    ]
+    info.capabilities.extend(embedding_capabilities)
+
+    return info

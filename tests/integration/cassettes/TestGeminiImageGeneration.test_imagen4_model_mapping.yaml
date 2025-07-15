@@ -579,4 +579,58 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: '{"contents": [{"parts": [{"text": "A modern abstract art piece"}], "role":
+      "user"}]}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '84'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.24.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:countTokens
+  response:
+    body:
+      string: "{\n  \"totalTokens\": 6,\n  \"promptTokensDetails\": [\n    {\n      \"modality\":
+        \"TEXT\",\n      \"tokenCount\": 6\n    }\n  ]\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 15 Jul 2025 15:44:26 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=44
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '115'
+    status:
+      code: 200
+      message: OK
 version: 1

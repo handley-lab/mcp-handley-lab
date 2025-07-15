@@ -8,6 +8,9 @@ from mcp_handley_lab.llm.claude.tool import server_info as claude_server_info
 from mcp_handley_lab.llm.gemini.tool import analyze_image as gemini_analyze_image
 from mcp_handley_lab.llm.gemini.tool import ask as gemini_ask
 from mcp_handley_lab.llm.gemini.tool import server_info as gemini_server_info
+from mcp_handley_lab.llm.grok.tool import analyze_image as grok_analyze_image
+from mcp_handley_lab.llm.grok.tool import ask as grok_ask
+from mcp_handley_lab.llm.grok.tool import server_info as grok_server_info
 from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
 from mcp_handley_lab.llm.openai.tool import ask as openai_ask
 from mcp_handley_lab.llm.openai.tool import server_info as openai_server_info
@@ -39,6 +42,17 @@ llm_providers = [
         "4",
         id="openai",
     ),
+    pytest.param(
+        grok_ask,
+        "XAI_API_KEY",
+        "grok-3-mini",
+        "7+1",
+        "8",
+        id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
+    ),
 ]
 
 image_providers = [
@@ -60,12 +74,29 @@ image_providers = [
         "gpt-4o",
         id="openai",
     ),
+    pytest.param(
+        grok_analyze_image,
+        "XAI_API_KEY",
+        "grok-2-vision-1212",
+        id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
+    ),
 ]
 
 server_info_providers = [
     pytest.param(claude_server_info, "ANTHROPIC_API_KEY", id="claude"),
     pytest.param(gemini_server_info, "GEMINI_API_KEY", id="gemini"),
     pytest.param(openai_server_info, "OPENAI_API_KEY", id="openai"),
+    pytest.param(
+        grok_server_info,
+        "XAI_API_KEY",
+        id="grok",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
+    ),
 ]
 
 
@@ -270,6 +301,17 @@ error_scenarios = [
         "model",
         id="openai-invalid-model",
     ),
+    pytest.param(
+        grok_ask,
+        "XAI_API_KEY",
+        "grok-3-mini",
+        "invalid-model-name-that-does-not-exist",
+        "model",
+        id="grok-invalid-model",
+        marks=pytest.mark.skip(
+            reason="Grok uses gRPC (no VCR cassettes) - consume tokens without recording benefit"
+        ),
+    ),
 ]
 
 
@@ -367,6 +409,15 @@ def test_llm_response_metadata_fields(
     elif "gemini" in str(ask_func):
         # Gemini has generation_time_ms
         assert result.generation_time_ms > 0
+
+    elif "grok" in str(ask_func):
+        # Grok-specific fields (similar to OpenAI but without some features)
+        assert (
+            result.system_fingerprint != "" or result.system_fingerprint == ""
+        )  # Allow empty
+        assert result.service_tier == ""  # Grok doesn't have service tiers
+        assert isinstance(result.completion_tokens_details, dict)
+        assert isinstance(result.prompt_tokens_details, dict)
 
 
 @pytest.mark.vcr

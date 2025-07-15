@@ -4,6 +4,7 @@ import zoneinfo
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import dateutil.parser
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -120,6 +121,67 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
             return calendar["id"]
 
     return calendar_id
+
+
+def _get_calendar_timezone(service: Any, calendar_id: str) -> str:
+    """Gets the timezone of a specific calendar, falling back to the default."""
+    try:
+        calendar = service.calendars().get(calendarId=calendar_id).execute()
+        return calendar.get("timeZone", DEFAULT_TIMEZONE)
+    except Exception:
+        # Fallback if the calendar isn't found or another error occurs
+        return DEFAULT_TIMEZONE
+
+
+def _prepare_event_datetime(dt_str: str, event_tz: str) -> dict[str, str]:
+    """
+    Parses a datetime string and prepares the correct Google Calendar API format.
+    This prevents timezone inconsistencies by creating a canonical representation.
+
+    Args:
+        dt_str: The input datetime string from the user.
+                Can be with offset ('...-07:00'), with 'Z', or naive ('...').
+        event_tz: The target IANA timezone for the event (e.g., 'America/Los_Angeles').
+
+    Returns:
+        A dictionary like {'dateTime': 'YYYY-MM-DDTHH:MM:SS', 'timeZone': '...'} for
+        timed events, or {'date': 'YYYY-MM-DD'} for all-day events.
+    """
+    # Handle empty string
+    if not dt_str.strip():
+        raise ValueError("Datetime string cannot be empty")
+
+    # Handle all-day events - check for date-only patterns
+    if "T" not in dt_str and ":" not in dt_str:
+        try:
+            # Validate it's a valid date
+            date_only = dateutil.parser.parse(dt_str).strftime("%Y-%m-%d")
+            return {"date": date_only}
+        except dateutil.parser.ParserError as e:
+            # If parsing fails, raise error for fail-fast behavior
+            raise ValueError(f"Could not parse date string: {dt_str}") from e
+
+    # Handle timed events
+    try:
+        parsed_dt = dateutil.parser.parse(dt_str)
+    except dateutil.parser.ParserError as e:
+        raise ValueError(f"Could not parse datetime string: {dt_str}") from e
+
+    target_zone = zoneinfo.ZoneInfo(event_tz)
+
+    if parsed_dt.tzinfo:
+        # The input time is absolute. Convert it to the target event timezone.
+        local_dt = parsed_dt.astimezone(target_zone)
+    else:
+        # The input time is naive. Assume it's already in the target timezone.
+        local_dt = parsed_dt.replace(tzinfo=target_zone)
+
+    # Return the format Google Calendar prefers: a local time string
+    # plus a separate timezone identifier. This avoids all ambiguity.
+    return {
+        "dateTime": local_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+        "timeZone": event_tz,
+    }
 
 
 def _build_event_model(event_data: dict) -> CalendarEvent:
@@ -317,7 +379,7 @@ def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
 
 
 @mcp.tool(
-    description="Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, `location`, and a `calendar_id`."
+    description="Creates a new event in a Google Calendar. It automatically handles timezones. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00-07:00' or '2024-10-26'). If a time is given without a timezone, it will be interpreted in the calendar's local time."
 )
 def create_event(
     summary: str,
@@ -329,26 +391,26 @@ def create_event(
     timezone: str = "",
     attendees: list[str] = [],
 ) -> CreatedEventResult:
-    """Create a new calendar event."""
+    """Create a new calendar event with automatic, robust timezone handling."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
+
+    # 1. Determine the target timezone for the event.
+    #    - Use the provided timezone if available.
+    #    - Otherwise, fetch the timezone of the target calendar for a smart default.
+    event_tz = timezone or _get_calendar_timezone(service, resolved_id)
+
+    # 2. Prepare start and end datetimes using the new robust helper.
+    start_body = _prepare_event_datetime(start_datetime, event_tz)
+    end_body = _prepare_event_datetime(end_datetime, event_tz)
 
     event_body = {
         "summary": summary,
         "description": description or "",
         "location": location or "",
+        "start": start_body,
+        "end": end_body,
     }
-
-    if "T" in start_datetime:
-        event_body["start"] = {"dateTime": start_datetime}
-        event_body["end"] = {"dateTime": end_datetime}
-        # API requires timezone for timed events - use provided or default
-        tz = timezone or DEFAULT_TIMEZONE
-        event_body["start"]["timeZone"] = tz
-        event_body["end"]["timeZone"] = tz
-    else:
-        event_body["start"] = {"date": start_datetime}
-        event_body["end"] = {"date": end_datetime}
 
     if attendees:
         event_body["attendees"] = [{"email": email} for email in attendees]
@@ -357,20 +419,23 @@ def create_event(
         service.events().insert(calendarId=resolved_id, body=event_body).execute()
     )
 
-    start = created_event["start"].get("dateTime", created_event["start"].get("date"))
+    start = created_event.get("start", {})
+    time_str = start.get("dateTime", start.get("date", "N/A"))
+    tz_str = start.get("timeZone")
+    display_time = f"{time_str} ({tz_str})" if tz_str else time_str
 
     return CreatedEventResult(
         status="Event created successfully!",
         event_id=created_event["id"],
         title=created_event["summary"],
-        time=start,  # Return raw API data
+        time=display_time,
         calendar=calendar_id,
-        attendees=attendees or [],
+        attendees=[att.get("email") for att in created_event.get("attendees", [])],
     )
 
 
 @mcp.tool(
-    description="Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Set normalize_timezone=True to fix UTC/timezone inconsistencies on recurring events."
+    description="Updates an existing calendar event. Only provided parameters are changed. Timezone handling is automatic. Set normalize_timezone=True to fix inconsistencies on existing events created by other tools."
 )
 def update_event(
     event_id: str,
@@ -382,41 +447,39 @@ def update_event(
     location: str = "",
     normalize_timezone: bool = False,
 ) -> str:
-    """Update an existing calendar event. Can normalize timezone inconsistencies."""
+    """Update an existing event, with automatic timezone handling for new times."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
     update_body = {}
 
-    if normalize_timezone:
+    current_event = None
+    if normalize_timezone or start_datetime or end_datetime:
         current_event = (
             service.events().get(calendarId=resolved_id, eventId=event_id).execute()
         )
+
+    if normalize_timezone and current_event:
         update_body.update(_get_normalization_patch(current_event))
 
     # Build update from provided arguments
     if summary:
         update_body["summary"] = summary
-    if description:
+    if description is not None:  # Allow clearing the description
         update_body["description"] = description
-    if location:
+    if location is not None:  # Allow clearing the location
         update_body["location"] = location
 
-    if start_datetime:
-        if "T" not in start_datetime:
-            update_body["start"] = {"date": start_datetime}
-        else:
-            update_body["start"] = {
-                "dateTime": start_datetime,
-                "timeZone": DEFAULT_TIMEZONE,
-            }
-    if end_datetime:
-        if "T" not in end_datetime:
-            update_body["end"] = {"date": end_datetime}
-        else:
-            update_body["end"] = {
-                "dateTime": end_datetime,
-                "timeZone": DEFAULT_TIMEZONE,
-            }
+    # If start or end times are being updated, use the robust preparation logic
+    if start_datetime or end_datetime:
+        # Use the existing event's timezone as context, or fetch the calendar's tz
+        event_tz = current_event.get("start", {}).get(
+            "timeZone"
+        ) or _get_calendar_timezone(service, resolved_id)
+
+        if start_datetime:
+            update_body["start"] = _prepare_event_datetime(start_datetime, event_tz)
+        if end_datetime:
+            update_body["end"] = _prepare_event_datetime(end_datetime, event_tz)
 
     if not update_body:
         return "No updates specified. Nothing to do."
@@ -428,7 +491,7 @@ def update_event(
     )
 
     result_msg = f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
-    if normalize_timezone and "start" in update_body:
+    if normalize_timezone and ("start" in update_body or "end" in update_body):
         result_msg += " (timezone inconsistency normalized)"
     return result_msg
 

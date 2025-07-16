@@ -34,6 +34,10 @@ depends=(
     'python-html2text'
     'python-beautifulsoup4'
     'python-markdownify'
+    'python-pendulum'
+    'python-xai-sdk'
+    'jupyter-nbformat'
+    'python-dateparser'
 )
 makedepends=(
     'python-build'

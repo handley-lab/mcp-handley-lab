@@ -88,48 +88,48 @@ class TestMixedTimezoneScenarios:
         departure = _prepare_event_datetime(
             "2024-07-15T10:00:00", "America/Los_Angeles"
         )
-        assert departure["dateTime"] == "2024-07-15T10:00:00"
+        assert departure["dateTime"] == "2024-07-15T10:00:00-07:00"
         assert departure["timeZone"] == "America/Los_Angeles"
 
         # Arrival at JFK
         arrival = _prepare_event_datetime("2024-07-15T18:30:00", "America/New_York")
-        assert arrival["dateTime"] == "2024-07-15T18:30:00"
+        assert arrival["dateTime"] == "2024-07-15T18:30:00-04:00"
         assert arrival["timeZone"] == "America/New_York"
 
     def test_cross_timezone_meeting(self):
         """Test meeting that spans multiple timezones."""
         # Meeting starts in London
         start = _prepare_event_datetime("2024-07-15T09:00:00", "Europe/London")
-        assert start["dateTime"] == "2024-07-15T09:00:00"
+        assert start["dateTime"] == "2024-07-15T09:00:00+01:00"
         assert start["timeZone"] == "Europe/London"
 
         # Meeting ends in New York
         end = _prepare_event_datetime("2024-07-15T17:00:00", "America/New_York")
-        assert end["dateTime"] == "2024-07-15T17:00:00"
+        assert end["dateTime"] == "2024-07-15T17:00:00-04:00"
         assert end["timeZone"] == "America/New_York"
 
     def test_timezone_preservation(self):
         """Test that input timezones are preserved when no target timezone specified."""
         # Should preserve the -08:00 timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00-08:00", None)
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00-08:00"
         assert result["timeZone"] == "-08:00"
 
         # Should preserve the +01:00 timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00+01:00", None)
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00+01:00"
         assert result["timeZone"] == "+01:00"
 
     def test_naive_datetime_with_context(self):
         """Test naive datetimes get context timezone applied."""
         # Naive datetime should get the provided timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
         # Same naive datetime, different timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00", "America/New_York")
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00-04:00"
         assert result["timeZone"] == "America/New_York"
 
 
@@ -140,12 +140,12 @@ class TestAdvancedDatetimeScenarios:
         """Test handling of seasonal timezone changes."""
         # Winter time (standard time)
         winter_result = _prepare_event_datetime("2024-01-15T14:00:00-05:00", None)
-        assert winter_result["dateTime"] == "2024-01-15T14:00:00"
+        assert winter_result["dateTime"] == "2024-01-15T14:00:00-05:00"
         assert winter_result["timeZone"] == "-05:00"
 
         # Summer time (daylight time)
         summer_result = _prepare_event_datetime("2024-07-15T14:00:00-04:00", None)
-        assert summer_result["dateTime"] == "2024-07-15T14:00:00"
+        assert summer_result["dateTime"] == "2024-07-15T14:00:00-04:00"
         assert summer_result["timeZone"] == "-04:00"
 
     def test_all_day_event_detection(self):

@@ -12,36 +12,36 @@ class TestIdiotProofTimezoneHandling:
         """Test datetime formats commonly found on US websites."""
         # US East Coast (EDT/EST)
         result = _prepare_event_datetime("2024-07-15T14:00:00-04:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T19:00:00"
+        assert result["dateTime"] == "2024-07-15T19:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
         # US West Coast (PDT/PST)
         result = _prepare_event_datetime("2024-07-15T14:00:00-07:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T22:00:00"
+        assert result["dateTime"] == "2024-07-15T22:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
         # US Central Time (CDT/CST)
         result = _prepare_event_datetime("2024-07-15T14:00:00-05:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T20:00:00"
+        assert result["dateTime"] == "2024-07-15T20:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
     def test_international_website_formats(self):
         """Test datetime formats from international websites."""
         # UTC format (common on international sites)
         result = _prepare_event_datetime("2024-07-15T14:00:00Z", "America/New_York")
-        assert result["dateTime"] == "2024-07-15T10:00:00"
+        assert result["dateTime"] == "2024-07-15T10:00:00-04:00"
         assert result["timeZone"] == "America/New_York"
 
         # European timezone (CET/CEST)
         result = _prepare_event_datetime(
             "2024-07-15T14:00:00+01:00", "America/Los_Angeles"
         )
-        assert result["dateTime"] == "2024-07-15T06:00:00"
+        assert result["dateTime"] == "2024-07-15T06:00:00-07:00"
         assert result["timeZone"] == "America/Los_Angeles"
 
         # Asian timezone (JST)
         result = _prepare_event_datetime("2024-07-15T14:00:00+09:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T06:00:00"
+        assert result["dateTime"] == "2024-07-15T06:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
     def test_seasonal_timezone_changes(self):
@@ -50,33 +50,33 @@ class TestIdiotProofTimezoneHandling:
         winter_result = _prepare_event_datetime(
             "2024-01-15T14:00:00-05:00", "Europe/London"
         )
-        assert winter_result["dateTime"] == "2024-01-15T19:00:00"
+        assert winter_result["dateTime"] == "2024-01-15T19:00:00+00:00"
         assert winter_result["timeZone"] == "Europe/London"
 
         # Summer time (EDT vs EST)
         summer_result = _prepare_event_datetime(
             "2024-07-15T14:00:00-04:00", "Europe/London"
         )
-        assert summer_result["dateTime"] == "2024-07-15T19:00:00"
+        assert summer_result["dateTime"] == "2024-07-15T19:00:00+01:00"
         assert summer_result["timeZone"] == "Europe/London"
 
         # UK summer time (BST)
         uk_summer = _prepare_event_datetime(
             "2024-07-15T14:00:00+01:00", "America/New_York"
         )
-        assert uk_summer["dateTime"] == "2024-07-15T09:00:00"
+        assert uk_summer["dateTime"] == "2024-07-15T09:00:00-04:00"
         assert uk_summer["timeZone"] == "America/New_York"
 
     def test_naive_datetime_handling(self):
         """Test that naive datetime strings are interpreted in calendar timezone."""
         # Should be treated as local time in target timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
         # Same input, different target timezone
         result = _prepare_event_datetime("2024-07-15T14:00:00", "America/New_York")
-        assert result["dateTime"] == "2024-07-15T14:00:00"
+        assert result["dateTime"] == "2024-07-15T14:00:00-04:00"
         assert result["timeZone"] == "America/New_York"
 
     def test_all_day_event_handling(self):
@@ -92,7 +92,9 @@ class TestIdiotProofTimezoneHandling:
     def test_microsecond_handling(self):
         """Test that microseconds are handled gracefully."""
         result = _prepare_event_datetime("2024-07-15T14:00:00.123456Z", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T15:00:00"  # Microseconds stripped
+        assert (
+            result["dateTime"] == "2024-07-15T15:00:00.123456+01:00"
+        )  # Microseconds preserved
         assert result["timeZone"] == "Europe/London"
 
     def test_cross_timezone_conversions(self):
@@ -102,22 +104,22 @@ class TestIdiotProofTimezoneHandling:
             (
                 "2024-07-15T14:00:00-08:00",
                 "Europe/London",
-                "2024-07-15T23:00:00",
+                "2024-07-15T23:00:00+01:00",
             ),  # PDT→BST (summer)
             (
                 "2024-07-15T14:00:00Z",
                 "America/New_York",
-                "2024-07-15T10:00:00",
+                "2024-07-15T10:00:00-04:00",
             ),  # UTC→EDT
             (
                 "2024-07-15T14:00:00+01:00",
                 "America/Los_Angeles",
-                "2024-07-15T06:00:00",
+                "2024-07-15T06:00:00-07:00",
             ),  # CET→PDT (summer)
             (
                 "2024-01-15T14:00:00+08:00",
                 "Europe/London",
-                "2024-01-15T06:00:00",
+                "2024-01-15T06:00:00+00:00",
             ),  # JST→GMT (winter)
         ]
 
@@ -130,19 +132,19 @@ class TestIdiotProofTimezoneHandling:
         """Test datetime handling around year boundaries."""
         # New Year's Eve UTC → EST (crosses year boundary)
         result = _prepare_event_datetime("2024-12-31T23:59:59Z", "America/New_York")
-        assert result["dateTime"] == "2024-12-31T18:59:59"
+        assert result["dateTime"] == "2024-12-31T18:59:59-05:00"
         assert result["timeZone"] == "America/New_York"
 
         # New Year's Day EST → JST (crosses year boundary forward)
         result = _prepare_event_datetime("2024-01-01T02:00:00-05:00", "Asia/Tokyo")
-        assert result["dateTime"] == "2024-01-01T16:00:00"
+        assert result["dateTime"] == "2024-01-01T16:00:00+09:00"
         assert result["timeZone"] == "Asia/Tokyo"
 
     def test_leap_year_handling(self):
         """Test leap year date handling."""
         # Leap day in 2024
         result = _prepare_event_datetime("2024-02-29T14:00:00", "Europe/London")
-        assert result["dateTime"] == "2024-02-29T14:00:00"
+        assert result["dateTime"] == "2024-02-29T14:00:00+00:00"
         assert result["timeZone"] == "Europe/London"
 
         # Leap day as all-day event
@@ -194,7 +196,7 @@ class TestErrorHandling:
         """Test that partial datetime strings are handled appropriately."""
         # This should work - dateutil.parser is quite flexible
         result = _prepare_event_datetime("2024-07-15T", "Europe/London")
-        assert result["dateTime"] == "2024-07-15T00:00:00"
+        assert result["dateTime"] == "2024-07-15T00:00:00+01:00"
         assert result["timeZone"] == "Europe/London"
 
 
@@ -203,17 +205,22 @@ class TestDatetimeFormats:
 
     def test_iso_format_variations(self):
         """Test various ISO 8601 format variations."""
-        variations = [
+        # Test variations that should produce the same output
+        base_variations = [
             "2024-07-15T14:00:00",
             "2024-07-15T14:00:00.000",
-            "2024-07-15T14:00:00.123456",
             "2024-07-15 14:00:00",  # Space instead of T
         ]
 
-        for dt_str in variations:
+        for dt_str in base_variations:
             result = _prepare_event_datetime(dt_str, "Europe/London")
-            assert result["dateTime"] == "2024-07-15T14:00:00"
+            assert result["dateTime"] == "2024-07-15T14:00:00+01:00"
             assert result["timeZone"] == "Europe/London"
+
+        # Test microseconds are preserved
+        result = _prepare_event_datetime("2024-07-15T14:00:00.123456", "Europe/London")
+        assert result["dateTime"] == "2024-07-15T14:00:00.123456+01:00"
+        assert result["timeZone"] == "Europe/London"
 
     def test_human_readable_formats(self):
         """Test that some human-readable formats work."""
@@ -253,7 +260,7 @@ class TestRealWorldScenarios:
         result = _prepare_event_datetime("2024-12-25T14:00:00-08:00", "Europe/London")
 
         # Should convert PST to GMT (14:00 PST = 22:00 GMT)
-        assert result["dateTime"] == "2024-12-25T22:00:00"
+        assert result["dateTime"] == "2024-12-25T22:00:00+00:00"
         assert result["timeZone"] == "Europe/London"
 
     def test_international_webinar_scenario(self):
@@ -262,7 +269,7 @@ class TestRealWorldScenarios:
         result = _prepare_event_datetime("2024-12-25T14:00:00Z", "America/New_York")
 
         # Should convert UTC to EST (14:00 UTC = 09:00 EST)
-        assert result["dateTime"] == "2024-12-25T09:00:00"
+        assert result["dateTime"] == "2024-12-25T09:00:00-05:00"
         assert result["timeZone"] == "America/New_York"
 
     def test_local_meeting_entry_scenario(self):
@@ -271,7 +278,7 @@ class TestRealWorldScenarios:
         result = _prepare_event_datetime("2024-12-25T14:00:00", "Europe/London")
 
         # Should treat as local time (14:00 stays 14:00 in London)
-        assert result["dateTime"] == "2024-12-25T14:00:00"
+        assert result["dateTime"] == "2024-12-25T14:00:00+00:00"
         assert result["timeZone"] == "Europe/London"
 
     def test_email_invitation_scenario(self):
@@ -282,7 +289,7 @@ class TestRealWorldScenarios:
         )
 
         # Should convert CET to PST (14:00 CET = 05:00 PST)
-        assert result["dateTime"] == "2024-12-25T05:00:00"
+        assert result["dateTime"] == "2024-12-25T05:00:00-08:00"
         assert result["timeZone"] == "America/Los_Angeles"
 
     def test_holiday_event_scenario(self):

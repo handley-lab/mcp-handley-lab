@@ -47,6 +47,8 @@ def _build_mutt_command(
     is_forward: bool = False,
     folder: str = None,
     temp_file_path: str = None,
+    in_reply_to: str = None,
+    references: str = None,
 ) -> list[str]:
     """Build mutt command with proper arguments."""
     mutt_cmd = ["mutt"]
@@ -87,6 +89,12 @@ def _build_mutt_command(
         mutt_cmd.extend(attachments)
         mutt_cmd.append("--")
 
+    if in_reply_to:
+        mutt_cmd.extend(["-e", f"my_hdr In-Reply-To: {in_reply_to}"])
+
+    if references:
+        mutt_cmd.extend(["-e", f"my_hdr References: {references}"])
+
     if to:
         mutt_cmd.append(to)
 
@@ -118,6 +126,8 @@ def compose_email(
     initial_body: str = "",
     attachments: list[str] = None,
     auto_send: bool = False,
+    in_reply_to: str = None,
+    references: str = None,
 ) -> OperationResult:
     """Compose an email using mutt's interactive interface."""
 
@@ -137,6 +147,8 @@ def compose_email(
                 attachments=attachments,
                 auto_send=auto_send,
                 temp_file_path=temp_file_path,
+                in_reply_to=in_reply_to,
+                references=references,
             )
 
             body_content = (
@@ -157,6 +169,8 @@ def compose_email(
             bcc=bcc,
             attachments=attachments,
             auto_send=auto_send,
+            in_reply_to=in_reply_to,
+            references=references,
         )
 
         body_content = _prepare_body_with_signature() if auto_send else ""
@@ -190,35 +204,66 @@ def open_mutt() -> OperationResult:
 def reply_to_email(
     message_id: str, reply_all: bool = False, initial_body: str = ""
 ) -> OperationResult:
-    """Reply to an email using mutt's reply functionality."""
+    """Reply to an email using compose_email with extracted reply data."""
 
-    if initial_body:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as temp_f:
-            temp_f.write(initial_body)
-            temp_file_path = temp_f.name
+    # Import notmuch show to get original message data
+    from mcp_handley_lab.email.notmuch.tool import _get_message_from_raw_source, show
 
-        try:
-            mutt_cmd = _build_mutt_command(
-                message_id=message_id,
-                reply_all=reply_all,
-                temp_file_path=temp_file_path,
-            )
-            window_title = f"Mutt Reply: {message_id[:20]}..."
-            _execute_mutt_interactive_or_auto(mutt_cmd, window_title=window_title)
-        finally:
-            os.unlink(temp_file_path)
-    else:
-        mutt_cmd = _build_mutt_command(message_id=message_id, reply_all=reply_all)
-        window_title = f"Mutt Reply: {message_id[:20]}..."
-        _execute_mutt_interactive_or_auto(mutt_cmd, window_title=window_title)
+    # Get original message data
+    try:
+        result = show(f"id:{message_id}")
+        if not result:
+            raise ValueError(f"Message not found: {message_id}")
 
-    reply_type = "Reply to all" if reply_all else "Reply"
-    return OperationResult(
-        status="success",
-        message=f"{reply_type} completed for message: {message_id}",
-    )
+        original_msg = result[0]
+        raw_msg = _get_message_from_raw_source(message_id)
+
+        # Extract reply data
+        reply_to = original_msg.from_address
+        reply_cc = original_msg.to_address if reply_all else None
+
+        # Build subject with Re: prefix
+        original_subject = original_msg.subject
+        if original_subject.startswith("Re: "):
+            reply_subject = original_subject
+        else:
+            reply_subject = f"Re: {original_subject}"
+
+        # Build threading headers
+        in_reply_to = raw_msg.get("Message-ID")
+        existing_references = raw_msg.get("References")
+        if existing_references:
+            references = f"{existing_references} {in_reply_to}"
+        else:
+            references = in_reply_to
+
+        # Build reply body
+        reply_separator = f"On {original_msg.date}, {original_msg.from_address} wrote:"
+        quoted_body_lines = []
+        for line in original_msg.body_markdown.split("\n"):
+            quoted_body_lines.append(f"> {line}")
+        quoted_body = "\n".join(quoted_body_lines)
+
+        # Combine user's body + separator + quoted original
+        if initial_body:
+            complete_reply_body = f"{initial_body}\n\n{reply_separator}\n{quoted_body}"
+        else:
+            complete_reply_body = f"{reply_separator}\n{quoted_body}"
+
+        # Use compose_email with extracted data
+        return compose_email(
+            to=reply_to,
+            cc=reply_cc,
+            subject=reply_subject,
+            initial_body=complete_reply_body,
+            in_reply_to=in_reply_to,
+            references=references,
+        )
+
+    except Exception as e:
+        return OperationResult(
+            status="error", message=f"Failed to reply to message {message_id}: {str(e)}"
+        )
 
 
 @mcp.tool(
@@ -227,34 +272,72 @@ def reply_to_email(
 def forward_email(
     message_id: str, to: str = "", initial_body: str = ""
 ) -> OperationResult:
-    """Forward an email using mutt's forward functionality."""
+    """Forward an email using compose_email with extracted forward data."""
 
-    if initial_body:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False
-        ) as temp_f:
-            temp_f.write(initial_body)
-            temp_file_path = temp_f.name
+    # Import notmuch show to get original message data
+    import re
 
+    from mcp_handley_lab.email.notmuch.tool import show
+
+    # Get original message data
+    try:
+        result = show(f"id:{message_id}")
+        if not result:
+            raise ValueError(f"Message not found: {message_id}")
+
+        original_msg = result[0]
+
+        # Build forward subject with Fwd: prefix
+        original_subject = original_msg.subject
+        if original_subject.startswith("Fwd: "):
+            forward_subject = original_subject
+        else:
+            forward_subject = f"Fwd: {original_subject}"
+
+        # Strip signature from forwarded content to prevent duplication
+        forwarded_content = original_msg.body_markdown
+
+        # Read user's signature file to strip it from forwarded content
         try:
-            mutt_cmd = _build_mutt_command(
-                to=to,
-                message_id=message_id,
-                is_forward=True,
-                temp_file_path=temp_file_path,
-            )
-            window_title = f"Mutt Forward: {message_id[:20]}..."
-            _execute_mutt_interactive_or_auto(mutt_cmd, window_title=window_title)
-        finally:
-            os.unlink(temp_file_path)
-    else:
-        mutt_cmd = _build_mutt_command(to=to, message_id=message_id, is_forward=True)
-        window_title = f"Mutt Forward: {message_id[:20]}..."
-        _execute_mutt_interactive_or_auto(mutt_cmd, window_title=window_title)
+            import os
 
-    return OperationResult(
-        status="success", message=f"Forward completed for message: {message_id}"
-    )
+            sig_path = os.path.expanduser("~/.mutt/hermes_signature")
+            with open(sig_path) as f:
+                signature = f.read().strip()
+
+            # Remove signature if it appears at the end of the forwarded content
+            signature_pattern = f"--\\s*\\n{re.escape(signature)}"
+            forwarded_content = re.sub(
+                signature_pattern + r"\s*$", "", forwarded_content, flags=re.MULTILINE
+            )
+
+        except (OSError, FileNotFoundError):
+            # If signature file not found, continue without stripping
+            pass
+
+        # Build forward body using mutt's configured format
+        forward_intro = (
+            f"----- Forwarded message from {original_msg.from_address} -----"
+        )
+        forward_trailer = "----- End forwarded message -----"
+
+        # Combine user's body + intro + original message + trailer
+        if initial_body:
+            complete_forward_body = f"{initial_body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+        else:
+            complete_forward_body = (
+                f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+            )
+
+        # Use compose_email with extracted data (no threading headers for forwards)
+        return compose_email(
+            to=to, subject=forward_subject, initial_body=complete_forward_body
+        )
+
+    except Exception as e:
+        return OperationResult(
+            status="error", message=f"Failed to forward message {message_id}: {str(e)}"
+        )
 
 
 @mcp.tool(

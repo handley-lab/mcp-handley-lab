@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.6.2
+pkgver=0.6.3
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -34,6 +34,10 @@ depends=(
     'python-html2text'
     'python-beautifulsoup4'
     'python-markdownify'
+    'python-pendulum'
+    'python-xai-sdk'
+    'jupyter-nbformat'
+    'python-dateparser'
 )
 makedepends=(
     'python-build'

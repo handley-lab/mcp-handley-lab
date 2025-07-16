@@ -245,9 +245,44 @@ def _prepare_event_datetime(dt_str: str, target_tz: str = None) -> dict[str, str
         timezone_str = final_dt.timezone.name
 
     return {
-        "dateTime": final_dt.format("YYYY-MM-DDTHH:mm:ss"),
+        "dateTime": final_dt.isoformat(),
         "timeZone": timezone_str,
     }
+
+
+def _normalize_datetime_for_output(dt_info: dict) -> dict:
+    """Convert timezone-inconsistent datetime to unambiguous format for LLMs.
+
+    Converts formats like:
+    {"dateTime": "14:30:00Z", "timeZone": "Europe/London"}
+    to:
+    {"dateTime": "15:30:00+01:00", "timeZone": "Europe/London"}
+
+    This eliminates LLM confusion between GMT/BST interpretation.
+    """
+    if not dt_info.get("dateTime") or not dt_info.get("timeZone"):
+        return dt_info
+
+    dt_str = dt_info["dateTime"]
+    tz_str = dt_info["timeZone"]
+
+    # Only process if we have a Z suffix with a specific timezone
+    if not dt_str.endswith("Z") or tz_str.lower() == "utc":
+        return dt_info
+
+    try:
+        # Parse UTC datetime
+        utc_dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+
+        # Convert to target timezone
+        target_tz = zoneinfo.ZoneInfo(tz_str)
+        local_dt = utc_dt.astimezone(target_tz)
+
+        # Return with explicit offset format
+        return {"dateTime": local_dt.isoformat(), "timeZone": tz_str}
+    except Exception:
+        # If conversion fails, return original
+        return dt_info
 
 
 def _build_event_model(event_data: dict) -> CalendarEvent:
@@ -255,8 +290,12 @@ def _build_event_model(event_data: dict) -> CalendarEvent:
     start_raw = event_data.get("start", {})
     end_raw = event_data.get("end", {})
 
-    start_dt = EventDateTime(**start_raw)
-    end_dt = EventDateTime(**end_raw)
+    # Normalize datetime formats for unambiguous LLM interpretation
+    start_normalized = _normalize_datetime_for_output(start_raw)
+    end_normalized = _normalize_datetime_for_output(end_raw)
+
+    start_dt = EventDateTime(**start_normalized)
+    end_dt = EventDateTime(**end_normalized)
 
     attendees = [
         Attendee(
@@ -610,6 +649,33 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
 
 
 @mcp.tool(
+    description="Moves a calendar event from one calendar to another. This is the proper way to transfer events between calendars, preserving event metadata and attendee information."
+)
+def move_event(
+    event_id: str,
+    source_calendar_id: str = "primary",
+    destination_calendar_id: str = "primary",
+) -> str:
+    """Move an event from one calendar to another using the Google Calendar API move endpoint."""
+    service = _get_calendar_service()
+    source_resolved_id = _resolve_calendar_id(source_calendar_id, service)
+    dest_resolved_id = _resolve_calendar_id(destination_calendar_id, service)
+
+    # Use the Google Calendar API's move endpoint
+    moved_event = (
+        service.events()
+        .move(
+            calendarId=source_resolved_id,
+            eventId=event_id,
+            destination=dest_resolved_id,
+        )
+        .execute()
+    )
+
+    return f"Event (ID: {moved_event['id']}) moved successfully from '{source_calendar_id}' to '{destination_calendar_id}'."
+
+
+@mcp.tool(
     description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools."
 )
 def list_calendars() -> list[CalendarInfo]:
@@ -830,6 +896,7 @@ def server_info() -> ServerInfo:
             "create_event",
             "update_event",
             "delete_event",
+            "move_event",
             "list_calendars",
             "find_time",
             "server_info",

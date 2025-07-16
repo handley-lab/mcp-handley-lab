@@ -22,7 +22,8 @@ def test_normalize_timezone_integration(google_calendar_test_config):
         summary="Timezone Test Event",
         start_datetime=f"{tomorrow.strftime('%Y-%m-%d')}T10:00:00Z",  # UTC time
         end_datetime=f"{tomorrow.strftime('%Y-%m-%d')}T11:00:00Z",
-        timezone="Europe/London",  # But with timezone label
+        start_timezone="Europe/London",  # But with timezone label
+        end_timezone="Europe/London",
         description="Testing timezone normalization",
     )
 
@@ -61,7 +62,8 @@ def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
         summary="Normal Timezone Event",
         start_datetime=f"{tomorrow.strftime('%Y-%m-%d')}T14:00:00",  # Local time
         end_datetime=f"{tomorrow.strftime('%Y-%m-%d')}T15:00:00",
-        timezone="Europe/London",
+        start_timezone="Europe/London",
+        end_timezone="Europe/London",
         description="No timezone issues",
     )
 

@@ -1,4 +1,5 @@
 """Shell completion support for MCP CLI."""
+
 from pathlib import Path
 
 import click

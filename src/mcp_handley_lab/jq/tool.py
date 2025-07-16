@@ -1,4 +1,5 @@
 """JQ tool for JSON manipulation via MCP."""
+
 import json
 from pathlib import Path
 

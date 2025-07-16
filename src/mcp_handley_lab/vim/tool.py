@@ -1,4 +1,5 @@
 """Vim tool for interactive text editing via MCP."""
+
 import difflib
 import os
 import subprocess
@@ -36,7 +37,7 @@ def _handle_instructions_and_content(
         if instructions:
             for line in instructions.strip().split("\n"):
                 f.write(f"{comment_char} {line}\n")
-            f.write(f"{comment_char} {'='*60}\n\n")
+            f.write(f"{comment_char} {'=' * 60}\n\n")
         f.write(initial_content)
 
 

@@ -1,4 +1,5 @@
 """Mutt aliases tool for managing email address book via MCP."""
+
 import re
 from pathlib import Path
 

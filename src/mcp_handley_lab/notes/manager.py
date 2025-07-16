@@ -1,4 +1,5 @@
 """Generic notes manager with YAML storage and TinyDB queries."""
+
 import re
 from datetime import datetime
 from typing import Any

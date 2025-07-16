@@ -1,4 +1,5 @@
 """Mutt tool for interactive email composition via MCP."""
+
 import os
 import shlex
 import tempfile

@@ -1,6 +1,9 @@
 """Notmuch email search and indexing provider."""
 
 import json
+import os
+import re
+from pathlib import Path
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
@@ -48,6 +51,17 @@ class TagResult(BaseModel):
     message_id: str
     added_tags: list[str]
     removed_tags: list[str]
+
+
+class AttachmentExtractionResult(BaseModel):
+    """Result of a successful attachment extraction operation."""
+
+    message_id: str
+    saved_files: list[str] = Field(
+        ...,
+        description="A list of absolute paths to the saved attachment files."
+    )
+    message: str
 
 
 @mcp.tool(
@@ -205,9 +219,12 @@ def count(query: str) -> int:
     description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch."""
 )
 def tag(
-    message_id: str, add_tags: list[str] = [], remove_tags: list[str] = []
+    message_id: str, add_tags: list[str] = None, remove_tags: list[str] = None
 ) -> TagResult:
     """Add or remove tags from a specific email using notmuch."""
+    add_tags = add_tags or []
+    remove_tags = remove_tags or []
+    
     cmd = (
         ["notmuch", "tag"]
         + [f"+{tag}" for tag in add_tags]
@@ -219,4 +236,64 @@ def tag(
 
     return TagResult(
         message_id=message_id, added_tags=add_tags, removed_tags=remove_tags
+    )
+
+
+@mcp.tool(
+    description="Extracts and saves one or all attachments from a specific email. If 'filename' is provided, only that attachment is saved. Files are saved to 'output_dir', which defaults to '~/Downloads/email_attachments'. Returns a result object with a list of absolute paths to the saved files."
+)
+def extract_attachments(
+    message_id: str,
+    output_dir: str = "",
+    filename: str = "",
+) -> AttachmentExtractionResult:
+    """
+    Extracts attachments from an email, failing loudly if the email or attachment isn't found.
+    """
+    msg = _get_message_from_raw_source(message_id)
+
+    if filename:
+        if match := re.match(r"(.+?)\s+\(.+\)", filename):
+            filename = match.group(1)
+
+    save_path = Path(output_dir or '~/Downloads/email_attachments').expanduser()
+    save_path.mkdir(parents=True, exist_ok=True)
+
+    saved_files = []
+    found_attachments = []
+    
+    for part in msg.walk():
+        if part_filename := part.get_filename():
+            if not filename or part_filename == filename:
+                found_attachments.append(part)
+
+    if filename and not found_attachments:
+        raise FileNotFoundError(f"Attachment '{filename}' not found in email id:{message_id}.")
+        
+    if not found_attachments:
+        return AttachmentExtractionResult(
+            message_id=message_id,
+            saved_files=[],
+            message="No attachments found in the email."
+        )
+
+    for part in found_attachments:
+        part_filename = part.get_filename()
+        clean_filename = re.sub(r'[\\/*?:"<>|]', "_", Path(part_filename).name)
+        file_path = save_path / clean_filename
+        
+        counter = 1
+        stem, suffix = file_path.stem, file_path.suffix
+        while file_path.exists():
+            file_path = save_path / f"{stem}_{counter}{suffix}"
+            counter += 1
+            
+        if payload := part.get_payload(decode=True):
+            file_path.write_bytes(payload)
+            saved_files.append(str(file_path))
+
+    return AttachmentExtractionResult(
+        message_id=message_id,
+        saved_files=saved_files,
+        message=f"Successfully saved {len(saved_files)} attachment(s) to {save_path}.",
     )

@@ -160,7 +160,7 @@ class ModelListing(BaseModel):
 class MuttContact(BaseModel):
     """Mutt address book contact."""
 
-    alias: str = Field(..., description="Short alias or nickname for the contact.")
+    alias: str = Field(..., description="Short alias or nickname for the contact. Defaults to firstname-surname format in lowercase when adding contacts.")
     email: str = Field(..., description="Email address of the contact.")
     name: str = Field(default="", description="Full name of the contact.")
 

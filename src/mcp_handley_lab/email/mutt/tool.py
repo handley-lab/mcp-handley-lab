@@ -42,9 +42,7 @@ def _build_mutt_command(
     bcc: str = None,
     attachments: list[str] = None,
     auto_send: bool = False,
-    message_id: str = None,
     reply_all: bool = False,
-    is_forward: bool = False,
     folder: str = None,
     temp_file_path: str = None,
     in_reply_to: str = None,
@@ -58,8 +56,6 @@ def _build_mutt_command(
 
     if reply_all:
         mutt_cmd.extend(["-e", "set reply_to_all=yes"])
-    elif message_id and not is_forward:
-        mutt_cmd.extend(["-e", "set reply_to_all=no"])
 
     if subject:
         mutt_cmd.extend(["-s", subject])
@@ -73,11 +69,6 @@ def _build_mutt_command(
     if temp_file_path:
         mutt_cmd.extend(["-H", temp_file_path])
 
-    if message_id:
-        if is_forward:
-            mutt_cmd.extend(["-f", f"id:{message_id}"])
-        else:
-            mutt_cmd.extend(["-H", f"id:{message_id}"])
 
     if folder:
         mutt_cmd.extend(["-f", folder])

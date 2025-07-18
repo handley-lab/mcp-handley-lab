@@ -188,8 +188,7 @@ class TestMuttServerInfo:
         assert result.name == "Mutt Tool"
         assert "Mutt 2.2.14" in result.version
         assert result.status == "active"
-        assert "compose_email" in str(result.capabilities)
-        assert "compose_email" in str(result.capabilities)
+        assert "compose" in str(result.capabilities)
         # add_contact is now in mutt_aliases, not mutt
         assert "server_info" in str(result.capabilities)
 
@@ -242,15 +241,15 @@ class TestMuttCommandConstruction:
         )
 
         # Find the positions of key elements
-        dash_i_pos = cmd.index("-i")
+        dash_h_pos = cmd.index("-H")
         temp_file_pos = cmd.index("/tmp/body.txt")
         dash_a_pos = cmd.index("-a")
         attachment_pos = cmd.index("/path/to/file.pdf")
         separator_pos = cmd.index("--")
         recipient_pos = cmd.index("test@example.com")
 
-        # Verify correct ordering: -i comes before -a, and -- comes before recipient
-        assert dash_i_pos < dash_a_pos, "'-i' flag should come before '-a' flag"
+        # Verify correct ordering: -H comes before -a, and -- comes before recipient
+        assert dash_h_pos < dash_a_pos, "'-H' flag should come before '-a' flag"
         assert (
             temp_file_pos < dash_a_pos
         ), "temp file path should come before attachments"
@@ -273,7 +272,7 @@ class TestMuttCommandConstruction:
         # Should not contain attachment-related flags
         assert "-a" not in cmd
         assert "--" not in cmd
-        assert "-i" in cmd
+        assert "-H" in cmd
         assert "/tmp/body.txt" in cmd
         assert "test@example.com" in cmd
 

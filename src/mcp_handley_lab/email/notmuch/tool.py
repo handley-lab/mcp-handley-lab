@@ -64,6 +64,23 @@ class AttachmentExtractionResult(BaseModel):
     message: str
 
 
+class MoveResult(BaseModel):
+    """Result of a successful email move operation."""
+
+    message_ids: list[str] = Field(
+        ..., description="The list of message IDs that were targeted for moving."
+    )
+    destination_folder: str = Field(
+        ..., description="The maildir folder the emails were moved to."
+    )
+    moved_files_count: int = Field(
+        ..., description="The number of email files successfully moved."
+    )
+    status: str = Field(
+        ..., description="A summary of the move operation."
+    )
+
+
 @mcp.tool(
     description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 )
@@ -296,4 +313,62 @@ def extract_attachments(
         message_id=message_id,
         saved_files=saved_files,
         message=f"Successfully saved {len(saved_files)} attachment(s) to {save_path}.",
+    )
+
+
+@mcp.tool(
+    description="Moves emails to a different maildir folder (e.g., 'Trash', 'Archive'). This physically moves the email files on disk and updates the notmuch index. The destination folder will be created if it doesn't exist."
+)
+def move(message_ids: list[str], destination_folder: str) -> MoveResult:
+    """
+    Moves emails to a specified maildir folder.
+
+    This function performs three main steps:
+    1. Finds the filesystem paths of the emails using their message IDs.
+    2. Moves the email files to the destination maildir folder (into its 'new' subdirectory).
+    3. Updates the notmuch database to reflect the changes.
+    """
+    if not message_ids:
+        raise ValueError("At least one message_id must be provided.")
+
+    query = " or ".join([f"id:{mid}" for mid in message_ids])
+    search_cmd = ["notmuch", "search", "--output=files", query]
+    stdout, _ = run_command(search_cmd)
+    
+    source_files = [line.strip() for line in stdout.decode().strip().split("\n") if line.strip()]
+
+    if not source_files:
+        raise FileNotFoundError(f"No email files found for the given message IDs: {message_ids}")
+
+    # Get maildir root and move files
+    db_path_str, _ = run_command(["notmuch", "config", "get", "database.path"])
+    maildir_root = Path(db_path_str.decode().strip())
+    # Per maildir standard, new mail is placed in the 'new' subfolder
+    destination_dir = maildir_root / destination_folder / "new"
+
+    for file_path in source_files:
+        source_path = Path(file_path)
+        destination_path = destination_dir / source_path.name
+        
+        # os.renames robustly moves the file and creates intermediate
+        # directories (like 'Trash' and 'Trash/new') if they don't exist.
+        try:
+            os.renames(source_path, destination_path)
+        except OSError as e:
+            raise OSError(f"Failed to move {source_path} to {destination_path}: {e}") from e
+
+    # Update the notmuch index to discover the moved files
+    new()
+
+    # Construct and return a structured result
+    moved_count = len(source_files)
+    status_message = f"Successfully moved {moved_count} email(s) to '{destination_folder}' and updated the index."
+    if moved_count < len(message_ids):
+        status_message += f" Note: {len(message_ids) - moved_count} of the requested message IDs could not be found."
+
+    return MoveResult(
+        message_ids=message_ids,
+        destination_folder=destination_folder,
+        moved_files_count=moved_count,
+        status=status_message,
     )

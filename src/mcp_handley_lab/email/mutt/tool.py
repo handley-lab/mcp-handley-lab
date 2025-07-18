@@ -73,7 +73,7 @@ def _build_mutt_command(
         mutt_cmd.extend(["-b", bcc])
 
     if temp_file_path:
-        mutt_cmd.extend(["-i", temp_file_path])
+        mutt_cmd.extend(["-H", temp_file_path])
 
     if message_id:
         if is_forward:
@@ -106,13 +106,16 @@ def _execute_mutt_interactive_or_auto(
     auto_send: bool = False,
     body_content: str = "",
     window_title: str = "Mutt",
-) -> None:
+) -> str:
     """Execute mutt command either interactively or automatically."""
+    debug_cmd = shlex.join(mutt_cmd)
+    print(f"DEBUG: Executing mutt command: {debug_cmd}")
     if auto_send:
         _execute_mutt_command(mutt_cmd, input_text=body_content)
     else:
         command_str = shlex.join(mutt_cmd)
         launch_interactive(command_str, window_title=window_title, wait=True)
+    return debug_cmd
 
 
 @mcp.tool(
@@ -135,31 +138,47 @@ def compose_email(
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False
         ) as temp_f:
+            # Create RFC822 email draft with headers
+            temp_f.write(f"To: {to}\n")
+            if subject:
+                temp_f.write(f"Subject: {subject}\n")
+            if cc:
+                temp_f.write(f"Cc: {cc}\n")
+            if bcc:
+                temp_f.write(f"Bcc: {bcc}\n")
+            if in_reply_to:
+                temp_f.write(f"In-Reply-To: {in_reply_to}\n")
+            if references:
+                temp_f.write(f"References: {references}\n")
+            temp_f.write("\n")  # Empty line separates headers from body
             temp_f.write(initial_body)
+            if not initial_body.endswith('\n'):
+                temp_f.write('\n')  # Ensure proper line ending
             temp_file_path = temp_f.name
 
-        try:
-            mutt_cmd = _build_mutt_command(
-                to=to,
-                subject=subject,
-                cc=cc,
-                bcc=bcc,
-                attachments=attachments,
-                auto_send=auto_send,
-                temp_file_path=temp_file_path,
-                in_reply_to=in_reply_to,
-                references=references,
-            )
+        mutt_cmd = _build_mutt_command(
+            to=None,  # Already in draft file
+            subject=None,  # Already in draft file
+            cc=None,  # Already in draft file
+            bcc=None,  # Already in draft file
+            attachments=attachments,
+            auto_send=auto_send,
+            temp_file_path=temp_file_path,
+            in_reply_to=None,  # Already in draft file
+            references=None,  # Already in draft file
+        )
 
-            body_content = (
-                _prepare_body_with_signature(initial_body) if auto_send else ""
-            )
-            window_title = f"Mutt: {subject or 'New Email'}"
+        body_content = (
+            _prepare_body_with_signature(initial_body) if auto_send else ""
+        )
+        window_title = f"Mutt: {subject or 'New Email'}"
 
-            _execute_mutt_interactive_or_auto(
-                mutt_cmd, auto_send, body_content, window_title
-            )
-        finally:
+        debug_cmd = _execute_mutt_interactive_or_auto(
+            mutt_cmd, auto_send, body_content, window_title
+        )
+        
+        # Only delete temp file if auto_send (mutt finished using it)
+        if auto_send:
             os.unlink(temp_file_path)
     else:
         mutt_cmd = _build_mutt_command(
@@ -176,7 +195,7 @@ def compose_email(
         body_content = _prepare_body_with_signature() if auto_send else ""
         window_title = f"Mutt: {subject or 'New Email'}"
 
-        _execute_mutt_interactive_or_auto(
+        debug_cmd = _execute_mutt_interactive_or_auto(
             mutt_cmd, auto_send, body_content, window_title
         )
 
@@ -185,7 +204,7 @@ def compose_email(
 
     return OperationResult(
         status="success",
-        message=f"Email {action}: {to}{attachment_info}",
+        message=f"Email {action}: {to}{attachment_info}. DEBUG: Command executed: {debug_cmd}",
     )
 
 

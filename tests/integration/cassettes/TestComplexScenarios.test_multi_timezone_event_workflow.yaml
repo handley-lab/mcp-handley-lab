@@ -1170,8 +1170,6 @@ interactions:
       - Tue, 15 Jul 2025 23:23:17 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -1222,8 +1220,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -1236,6 +1232,160 @@ interactions:
       - '0'
       content-length:
       - '381'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
+        invalid authentication credentials. Expected OAuth 2 access token, login cookie
+        or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n
+        \   \"errors\": [\n      {\n        \"message\": \"Invalid Credentials\",\n
+        \       \"domain\": \"global\",\n        \"reason\": \"authError\",\n        \"location\":
+        \"Authorization\",\n        \"locationType\": \"header\"\n      }\n    ],\n
+        \   \"status\": \"UNAUTHENTICATED\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 18 Jul 2025 20:18:12 GMT
+      Server:
+      - ESF
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      WWW-Authenticate:
+      - Bearer realm="https://accounts.google.com/", error="invalid_token"
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '507'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
+        invalid authentication credentials. Expected OAuth 2 access token, login cookie
+        or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n
+        \   \"errors\": [\n      {\n        \"message\": \"Invalid Credentials\",\n
+        \       \"domain\": \"global\",\n        \"reason\": \"authError\",\n        \"location\":
+        \"Authorization\",\n        \"locationType\": \"header\"\n      }\n    ],\n
+        \   \"status\": \"UNAUTHENTICATED\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 18 Jul 2025 20:18:12 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      WWW-Authenticate:
+      - Bearer realm="https://accounts.google.com/", error="invalid_token"
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '507'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"ya29.A0AS3H6Nx3CoPpQxnDhPkUX-dnocGaLFssZJJyitGkaCBGLxGM7Zl08aJ5qnAV1YJdnfPBGlta0n7uRpPZCdDl5t9ZVzLsNpsJI59OVnhqXbl-pMRaCohxYLX8cHrUxcc3HNY2S6u875zcxjDhwIBkEyGHzL3dDKemi1yxvxR6IPWaUdxkNj67g7Nt-aivCKTcaNV2YrmsFQaCgYKAUESARESFQHGX2MiFXJHjBPh0tBCO5OvNEpHHg0209\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 18 Jul 2025 20:18:12 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
     status:
       code: 200
       message: OK

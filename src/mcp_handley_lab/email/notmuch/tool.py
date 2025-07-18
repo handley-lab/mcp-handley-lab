@@ -48,20 +48,20 @@ class EmailContent(BaseModel):
 class TagResult(BaseModel):
     """Result of tag operation."""
 
-    message_id: str
-    added_tags: list[str]
-    removed_tags: list[str]
+    message_id: str = Field(..., description="The notmuch message ID that was tagged.")
+    added_tags: list[str] = Field(..., description="A list of tags that were added to the message.")
+    removed_tags: list[str] = Field(..., description="A list of tags that were removed from the message.")
 
 
 class AttachmentExtractionResult(BaseModel):
     """Result of a successful attachment extraction operation."""
 
-    message_id: str
+    message_id: str = Field(..., description="The notmuch message ID from which attachments were extracted.")
     saved_files: list[str] = Field(
         ...,
         description="A list of absolute paths to the saved attachment files."
     )
-    message: str
+    message: str = Field(..., description="Status message describing the extraction result.")
 
 
 class MoveResult(BaseModel):

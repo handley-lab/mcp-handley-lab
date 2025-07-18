@@ -14,58 +14,58 @@ from mcp_handley_lab.shared.models import ServerInfo
 class TransitDetails(BaseModel):
     """Transit-specific information for a step."""
 
-    departure_time: datetime
-    arrival_time: datetime
-    line_name: str
-    line_short_name: str = ""
-    vehicle_type: str
-    headsign: str = ""
-    num_stops: int
+    departure_time: datetime = Field(..., description="The scheduled departure time for this transit step.")
+    arrival_time: datetime = Field(..., description="The scheduled arrival time for this transit step.")
+    line_name: str = Field(..., description="The full name of the transit line (e.g., 'Red Line', 'Route 101').")
+    line_short_name: str = Field(default="", description="The short name or number of the transit line.")
+    vehicle_type: str = Field(..., description="The type of transit vehicle (e.g., 'BUS', 'SUBWAY', 'TRAIN').")
+    headsign: str = Field(default="", description="The destination sign displayed on the transit vehicle.")
+    num_stops: int = Field(..., description="The number of stops between boarding and alighting.")
 
 
 class DirectionStep(BaseModel):
     """A single step in a route."""
 
-    instruction: str
-    distance: str
-    duration: str
-    start_location: dict[str, float]
-    end_location: dict[str, float]
-    travel_mode: str = ""
-    transit_details: TransitDetails | None = None
+    instruction: str = Field(..., description="Human-readable navigation instruction for this step.")
+    distance: str = Field(..., description="The distance for this step (e.g., '0.5 km', '500 ft').")
+    duration: str = Field(..., description="The estimated time for this step (e.g., '5 mins', '2 hours').")
+    start_location: dict[str, float] = Field(..., description="The latitude and longitude coordinates where this step begins.")
+    end_location: dict[str, float] = Field(..., description="The latitude and longitude coordinates where this step ends.")
+    travel_mode: str = Field(default="", description="The mode of transport for this step (e.g., 'WALKING', 'DRIVING', 'TRANSIT').")
+    transit_details: TransitDetails | None = Field(default=None, description="Additional details if this step involves public transit.")
 
 
 class DirectionLeg(BaseModel):
     """A leg of a route (origin to destination or waypoint)."""
 
-    distance: str
-    duration: str
-    start_address: str
-    end_address: str
-    steps: list[DirectionStep]
+    distance: str = Field(..., description="The total distance for this leg of the journey.")
+    duration: str = Field(..., description="The estimated total time for this leg of the journey.")
+    start_address: str = Field(..., description="The human-readable address where this leg begins.")
+    end_address: str = Field(..., description="The human-readable address where this leg ends.")
+    steps: list[DirectionStep] = Field(..., description="The individual navigation steps that make up this leg.")
 
 
 class DirectionRoute(BaseModel):
     """A complete route with all legs and steps."""
 
-    summary: str
-    legs: list[DirectionLeg]
-    distance: str
-    duration: str
-    polyline: str
-    warnings: list[str] = Field(default_factory=list)
+    summary: str = Field(..., description="A short textual description of the route (e.g., 'via I-95 N').")
+    legs: list[DirectionLeg] = Field(..., description="The individual legs that make up this complete route.")
+    distance: str = Field(..., description="The total distance for the entire route.")
+    duration: str = Field(..., description="The estimated total time for the entire route.")
+    polyline: str = Field(..., description="An encoded polyline representation of the route path.")
+    warnings: list[str] = Field(default_factory=list, description="Any warnings about the route (e.g., tolls, traffic).")
 
 
 class DirectionsResult(BaseModel):
     """Result of a directions request."""
 
-    routes: list[DirectionRoute]
-    status: str
-    origin: str
-    destination: str
-    mode: str
-    departure_time: str = ""
-    maps_url: str = ""
+    routes: list[DirectionRoute] = Field(..., description="A list of possible routes from origin to destination.")
+    status: str = Field(..., description="The status of the API request (e.g., 'OK', 'ZERO_RESULTS').")
+    origin: str = Field(..., description="The address or coordinates of the starting point.")
+    destination: str = Field(..., description="The address or coordinates of the ending point.")
+    mode: str = Field(..., description="The travel mode used for the directions (e.g., 'driving', 'transit').")
+    departure_time: str = Field(default="", description="The requested departure time as an ISO 8601 string, if provided.")
+    maps_url: str = Field(default="", description="A direct URL to Google Maps with the requested route.")
 
 
 mcp = FastMCP("Google Maps Tool")

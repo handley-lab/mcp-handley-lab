@@ -23,59 +23,59 @@ DEFAULT_TIMEZONE = "Europe/London"
 class Attendee(BaseModel):
     """Calendar event attendee."""
 
-    email: str
-    responseStatus: str = "needsAction"
+    email: str = Field(..., description="The email address of the attendee.")
+    responseStatus: str = Field(default="needsAction", description="The attendee's response status (e.g., 'accepted', 'declined', 'needsAction').")
 
 
 class EventDateTime(BaseModel):
     """Event date/time information."""
 
-    dateTime: str = ""
-    date: str = ""
-    timeZone: str = ""
+    dateTime: str = Field(default="", description="The timestamp for timed events in RFC3339 format (e.g., '2023-12-25T10:00:00Z').")
+    date: str = Field(default="", description="The date for all-day events in YYYY-MM-DD format (e.g., '2023-12-25').")
+    timeZone: str = Field(default="", description="The timezone identifier (e.g., 'America/New_York', 'Europe/London').")
 
 
 class CalendarEvent(BaseModel):
     """Calendar event details."""
 
-    id: str
-    summary: str
-    description: str = ""
-    location: str = ""
-    start: EventDateTime
-    end: EventDateTime
-    attendees: list[Attendee] = Field(default_factory=list)
-    calendar_name: str = ""
-    created: str = ""
-    updated: str = ""
+    id: str = Field(..., description="The unique identifier for the event.")
+    summary: str = Field(..., description="The title or summary of the event.")
+    description: str = Field(default="", description="A detailed description or notes for the event.")
+    location: str = Field(default="", description="The physical location or meeting link for the event.")
+    start: EventDateTime = Field(..., description="The start time of the event, including timezone.")
+    end: EventDateTime = Field(..., description="The end time of the event, including timezone.")
+    attendees: list[Attendee] = Field(default_factory=list, description="A list of people attending the event.")
+    calendar_name: str = Field(default="", description="The name of the calendar this event belongs to.")
+    created: str = Field(default="", description="The creation time of the event as an ISO 8601 string.")
+    updated: str = Field(default="", description="The last modification time of the event as an ISO 8601 string.")
 
 
 class CreatedEventResult(BaseModel):
     """Result of creating a calendar event."""
 
-    status: str
-    event_id: str
-    title: str
-    time: str
-    calendar: str
-    attendees: list[str]
+    status: str = Field(..., description="The status of the event creation (e.g., 'confirmed', 'tentative').")
+    event_id: str = Field(..., description="The unique identifier assigned to the newly created event.")
+    title: str = Field(..., description="The title of the created event.")
+    time: str = Field(..., description="A human-readable summary of when the event occurs.")
+    calendar: str = Field(..., description="The name or ID of the calendar where the event was created.")
+    attendees: list[str] = Field(..., description="A list of attendee email addresses for the event.")
 
 
 class CalendarInfo(BaseModel):
     """Calendar information."""
 
-    id: str
-    summary: str
-    accessRole: str
-    colorId: str
+    id: str = Field(..., description="The unique identifier of the calendar.")
+    summary: str = Field(..., description="The title or name of the calendar.")
+    accessRole: str = Field(..., description="The user's access level to the calendar (e.g., 'owner', 'reader', 'writer').")
+    colorId: str = Field(..., description="The color identifier used to display the calendar.")
 
 
 class FreeTimeSlot(BaseModel):
     """Available time slot."""
 
-    start: str
-    end: str
-    duration_minutes: int
+    start: str = Field(..., description="The start time of the free slot in ISO 8601 format.")
+    end: str = Field(..., description="The end time of the free slot in ISO 8601 format.")
+    duration_minutes: int = Field(..., description="The duration of the free time slot in minutes.")
 
 
 mcp = FastMCP("Google Calendar Tool")

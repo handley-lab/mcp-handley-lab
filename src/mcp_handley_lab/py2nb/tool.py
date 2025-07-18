@@ -16,9 +16,9 @@ from .models import (
     ConversionResult,
     ExecutionResult,
     RoundtripResult,
-    ServerInfo,
     ValidationResult,
 )
+from mcp_handley_lab.shared.models import ServerInfo
 
 mcp = FastMCP("py2nb Conversion Tool")
 

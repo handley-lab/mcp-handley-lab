@@ -21,25 +21,25 @@ from mcp_handley_lab.shared.models import ServerInfo
 class DownloadResult(BaseModel):
     """Result of downloading an ArXiv paper."""
 
-    message: str
-    arxiv_id: str
-    format: str
-    output_path: str
-    size_bytes: int
-    files: list[str] = Field(default_factory=list)
+    message: str = Field(..., description="A summary message describing the result of the download operation.")
+    arxiv_id: str = Field(..., description="The ArXiv ID of the paper that was downloaded.")
+    format: str = Field(..., description="The format of the downloaded content (e.g., 'src', 'pdf', 'tex').")
+    output_path: str = Field(..., description="The path where the content was saved, or '-' if printed to stdout.")
+    size_bytes: int = Field(..., description="The total size of the downloaded content in bytes.")
+    files: list[str] = Field(default_factory=list, description="A list of file names included in the downloaded archive.")
 
 
 class ArxivPaper(BaseModel):
     """ArXiv paper metadata."""
 
-    id: str
-    title: str
-    authors: list[str]
-    summary: str
-    published: str
-    categories: list[str]
-    pdf_url: str
-    abs_url: str
+    id: str = Field(..., description="The ArXiv ID of the paper (e.g., '2301.07041').")
+    title: str = Field(..., description="The title of the paper.")
+    authors: list[str] = Field(..., description="List of authors' names.")
+    summary: str = Field(..., description="Abstract or summary of the paper.")
+    published: str = Field(..., description="Publication date in YYYY-MM-DD format.")
+    categories: list[str] = Field(..., description="ArXiv subject categories (e.g., ['cs.AI', 'cs.LG']).")
+    pdf_url: str = Field(..., description="Direct URL to download the PDF version.")
+    abs_url: str = Field(..., description="URL to the ArXiv abstract page.")
 
 
 mcp = FastMCP("ArXiv Tool")

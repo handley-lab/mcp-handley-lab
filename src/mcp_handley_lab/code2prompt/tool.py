@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.shared.models import ServerInfo
@@ -12,9 +12,9 @@ from mcp_handley_lab.shared.models import ServerInfo
 class GenerationResult(BaseModel):
     """Result of code2prompt generation."""
 
-    message: str
-    output_file_path: str
-    file_size_bytes: int
+    message: str = Field(..., description="A confirmation message indicating the result of the generation.")
+    output_file_path: str = Field(..., description="The absolute path to the generated prompt summary file.")
+    file_size_bytes: int = Field(..., description="The size of the generated file in bytes.")
 
 
 mcp = FastMCP("Code2Prompt Tool")

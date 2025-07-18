@@ -53,8 +53,6 @@ def _build_mutt_command(
     """Build mutt command with proper arguments."""
     mutt_cmd = ["mutt"]
 
-    mutt_cmd.extend(["-e", "set autoedit"])
-
     if auto_send:
         mutt_cmd.extend(["-e", "set postpone=no"])
 
@@ -313,26 +311,8 @@ def forward_email(
         else:
             forward_subject = f"Fwd: {original_subject}"
 
-        # Strip signature from forwarded content to prevent duplication
+        # Use original message content as-is
         forwarded_content = original_msg.body_markdown
-
-        # Read user's signature file to strip it from forwarded content
-        try:
-            import os
-
-            sig_path = os.path.expanduser("~/.mutt/hermes_signature")
-            with open(sig_path) as f:
-                signature = f.read().strip()
-
-            # Remove signature if it appears at the end of the forwarded content
-            signature_pattern = f"--\\s*\\n{re.escape(signature)}"
-            forwarded_content = re.sub(
-                signature_pattern + r"\s*$", "", forwarded_content, flags=re.MULTILINE
-            )
-
-        except (OSError, FileNotFoundError):
-            # If signature file not found, continue without stripping
-            pass
 
         # Build forward body using mutt's configured format
         forward_intro = (

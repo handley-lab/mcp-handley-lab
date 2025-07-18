@@ -194,7 +194,7 @@ def compose(
     description="""Opens Mutt in interactive terminal to reply to specific email by message ID. Supports reply-all mode and initial body text. Headers auto-populated from original message."""
 )
 def reply(
-    message_id: str, reply_all: bool = False, initial_body: str = ""
+    message_id: str, reply_all: bool = False, initial_body: str = "", auto_send: bool = False
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
 
@@ -235,6 +235,7 @@ def reply(
         initial_body=complete_reply_body,
         in_reply_to=in_reply_to,
         references=references,
+        auto_send=auto_send,
     )
 
 
@@ -242,7 +243,7 @@ def reply(
     description="""Opens Mutt in interactive terminal to forward specific email by message ID. Supports pre-populated recipient and initial commentary. Original message included per your configuration."""
 )
 def forward(
-    message_id: str, to: str = "", initial_body: str = ""
+    message_id: str, to: str = "", initial_body: str = "", auto_send: bool = False
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
 
@@ -271,47 +272,10 @@ def forward(
 
     # Use compose with extracted data (no threading headers for forwards)
     return compose(
-        to=to, subject=forward_subject, initial_body=complete_forward_body
+        to=to, subject=forward_subject, initial_body=complete_forward_body, auto_send=auto_send
     )
 
 
-@mcp.tool(
-    description="""Moves emails between folders using Mutt scripting. Supports single message or batch operations by message ID(s). Default destination is Trash for deletion."""
-)
-def move(
-    message_id: str = None, message_ids: list[str] = None, destination: str = "Trash"
-) -> OperationResult:
-    """Move or delete emails by moving them to specified folder."""
-    messages = [message_id] if message_id else message_ids
-
-    script_commands = []
-    for msg_id in messages:
-        script_commands.extend(
-            [
-                f"<search>id:{msg_id}<enter>",
-                "<tag-message>",
-                f"<tag-prefix><save-message>={destination}<enter>",
-                "<untag-pattern>.*<enter>",
-            ]
-        )
-
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".muttrc", delete=False
-    ) as temp_f:
-        temp_f.write("".join(f'push "{cmd}"\n' for cmd in script_commands))
-        temp_f.write('push "<quit>"\n')
-        temp_file_path = temp_f.name
-
-    try:
-        _execute_mutt_command(["mutt", "-F", temp_file_path])
-    finally:
-        os.unlink(temp_file_path)
-
-    action = "Deleted" if destination.lower() == "trash" else f"Moved to {destination}"
-    count = len(messages)
-    return OperationResult(
-        status="success", message=f"{action} {count} message(s) successfully"
-    )
 
 
 @mcp.tool(

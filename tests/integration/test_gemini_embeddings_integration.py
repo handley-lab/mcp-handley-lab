@@ -194,7 +194,7 @@ class TestGeminiEmbeddings:
                 "model": "gemini-embedding-001"
             })
             assert "error" not in search_response, search_response.get("error")
-            search_results = search_response["results"]
+            search_results = search_response["result"]
 
             assert len(search_results) <= 2
             # First result should be the Python document (most relevant)
@@ -209,7 +209,7 @@ class TestGeminiEmbeddings:
                 "model": "gemini-embedding-001"
             })
             assert "error" not in search_response2, search_response2.get("error")
-            search_results2 = search_response2["results"]
+            search_results2 = search_response2["result"]
 
             assert len(search_results2) == 1
             # Should find the cats document
@@ -255,7 +255,7 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         from mcp.server.fastmcp.exceptions import ToolError
-        with pytest.raises(ToolError, match="FileNotFoundError"):
+        with pytest.raises(ToolError, match="No such file or directory"):
             await mcp.call_tool("search_documents", {
                 "query": "test",
                 "index_path": "/nonexistent/path/index.json",
@@ -273,7 +273,7 @@ class TestGeminiEmbeddings:
 
             # This should fail fast when trying to read the non-existent file
             from mcp.server.fastmcp.exceptions import ToolError
-            with pytest.raises(ToolError, match="FileNotFoundError"):
+            with pytest.raises(ToolError, match="No such file or directory"):
                 await mcp.call_tool("index_documents", {
                     "document_paths": ["/nonexistent/file.txt"],
                     "output_index_path": str(index_path),

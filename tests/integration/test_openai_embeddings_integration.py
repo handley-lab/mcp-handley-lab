@@ -122,7 +122,7 @@ class TestOpenAIEmbeddings:
             "model": "text-embedding-3-small"
         })
         assert "error" not in response, response.get("error")
-        result = response["result"]
+        result = response
 
         # Identical texts should have similarity very close to 1.0
         assert 0.99 <= result["similarity"] <= 1.0
@@ -140,7 +140,7 @@ class TestOpenAIEmbeddings:
             "model": "text-embedding-3-small"
         })
         assert "error" not in response, response.get("error")
-        result = response["result"]
+        result = response
 
         # Different texts should have lower similarity
         assert -1.0 <= result["similarity"] <= 1.0
@@ -159,7 +159,7 @@ class TestOpenAIEmbeddings:
             "model": "text-embedding-3-small"
         })
         assert "error" not in response, response.get("error")
-        result = response["result"]
+        result = response
 
         # Related texts should have higher similarity
         assert result["similarity"] > 0.5
@@ -190,7 +190,7 @@ class TestOpenAIEmbeddings:
                 "model": "text-embedding-3-small"
             })
             assert "error" not in index_response, index_response.get("error")
-            index_result = index_response["result"]
+            index_result = index_response
 
             # Verify index creation
             assert index_result["files_indexed"] == 3
@@ -214,7 +214,7 @@ class TestOpenAIEmbeddings:
                 "model": "text-embedding-3-small"
             })
             assert "error" not in search_response, search_response.get("error")
-            search_results = search_response["result"]["results"]
+            search_results = search_response["result"]
 
             assert len(search_results) <= 2
             # First result should be the Python document (most relevant)
@@ -229,7 +229,7 @@ class TestOpenAIEmbeddings:
                 "model": "text-embedding-3-small"
             })
             assert "error" not in search_response2, search_response2.get("error")
-            search_results2 = search_response2["result"]["results"]
+            search_results2 = search_response2["result"]
 
             assert len(search_results2) == 1
             # Should find the cats document
@@ -274,7 +274,7 @@ class TestOpenAIEmbeddings:
         skip_if_no_openai_key()
 
         from mcp.server.fastmcp.exceptions import ToolError
-        with pytest.raises(ToolError, match="FileNotFoundError"):
+        with pytest.raises(ToolError, match="No such file or directory"):
             await mcp.call_tool("search_documents", {
                 "query": "test",
                 "index_path": "/nonexistent/path/index.json",
@@ -292,7 +292,7 @@ class TestOpenAIEmbeddings:
 
             # This should fail fast when trying to read the non-existent file
             from mcp.server.fastmcp.exceptions import ToolError
-            with pytest.raises(ToolError, match="FileNotFoundError"):
+            with pytest.raises(ToolError, match="No such file or directory"):
                 await mcp.call_tool("index_documents", {
                     "document_paths": ["/nonexistent/file.txt"],
                     "output_index_path": str(index_path),

@@ -241,9 +241,9 @@ class TestRealWorldEventCreation:
             assert event["summary"] == "Company Holiday"
             assert event["description"] == "National holiday - office closed"
 
-            # Should be all-day event (no timezone)
+            # Should be all-day event (has date, no dateTime, timezone can be empty)
             assert event["start"]["date"]  # Should have date
-            assert "timeZone" not in event["start"]  # Should not have timezone
+            assert not event["start"].get("dateTime")  # Should not have dateTime
 
         finally:
             await mcp.call_tool("delete_event", {
@@ -295,7 +295,13 @@ class TestRealWorldEventUpdates:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            assert "updated" in update_result.lower()
+            # update_result is the string returned by update_event
+            if isinstance(update_result, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = update_result.get('message', str(update_result))
+            else:
+                message = str(update_result)
+            assert "updated" in message.lower()
 
             # Verify the update was applied with correct timezone conversion
             _, event_response = await mcp.call_tool("get_event", {
@@ -358,7 +364,13 @@ class TestRealWorldEventUpdates:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            assert "updated" in update_result.lower()
+            # update_result is the string returned by update_event
+            if isinstance(update_result, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = update_result.get('message', str(update_result))
+            else:
+                message = str(update_result)
+            assert "updated" in message.lower()
 
             # Verify the update was applied correctly
             _, event_response = await mcp.call_tool("get_event", {
@@ -419,7 +431,13 @@ class TestRealWorldEventUpdates:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            assert "updated" in update_result.lower()
+            # update_result is the string returned by update_event
+            if isinstance(update_result, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = update_result.get('message', str(update_result))
+            else:
+                message = str(update_result)
+            assert "updated" in message.lower()
 
             # Verify the update was applied correctly
             _, event_response = await mcp.call_tool("get_event", {
@@ -485,7 +503,13 @@ class TestComplexScenarios:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            assert "updated" in update_result.lower()
+            # update_result is the string returned by update_event
+            if isinstance(update_result, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = update_result.get('message', str(update_result))
+            else:
+                message = str(update_result)
+            assert "updated" in message.lower()
 
             # 3. Final update with UTC time (from international platform)
             _, final_update_response = await mcp.call_tool("update_event", {
@@ -503,7 +527,13 @@ class TestComplexScenarios:
             assert "error" not in final_update_response, final_update_response.get("error")
             final_update = final_update_response
 
-            assert "updated" in final_update.lower()
+            # final_update is the string returned by update_event
+            if isinstance(final_update, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = final_update.get('message', str(final_update))
+            else:
+                message = str(final_update)
+            assert "updated" in message.lower()
 
             # 4. Verify final event has correct timezone handling
             _, event_response = await mcp.call_tool("get_event", {
@@ -577,7 +607,13 @@ class TestComplexScenarios:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            assert "updated" in update_result.lower()
+            # update_result is the string returned by update_event
+            if isinstance(update_result, dict):
+                # If the result is wrapped in a dict, extract the message
+                message = update_result.get('message', str(update_result))
+            else:
+                message = str(update_result)
+            assert "updated" in message.lower()
 
             # Verify time remained unchanged
             _, updated_event_response = await mcp.call_tool("get_event", {

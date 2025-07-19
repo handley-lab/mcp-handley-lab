@@ -593,7 +593,7 @@ def update_event(
     update_body = {}
 
     current_event = None
-    if normalize_timezone or start_datetime or end_datetime:
+    if normalize_timezone or start_datetime.strip() or end_datetime.strip():
         current_event = (
             service.events().get(calendarId=resolved_id, eventId=event_id).execute()
         )
@@ -610,7 +610,7 @@ def update_event(
         update_body["location"] = location
 
     # If start or end times are being updated, use intelligent preparation logic
-    if start_datetime or end_datetime:
+    if start_datetime.strip() or end_datetime.strip():
         # Get fallback timezone context
         calendar_tz = _get_calendar_timezone(service, resolved_id)
         existing_start_tz = (
@@ -618,12 +618,12 @@ def update_event(
         )
         existing_end_tz = current_event.get("end", {}).get("timeZone") or calendar_tz
 
-        if start_datetime:
+        if start_datetime.strip():
             # Use explicit timezone or preserve existing event's start timezone
             target_tz = start_timezone or existing_start_tz
             update_body["start"] = _prepare_event_datetime(start_datetime, target_tz)
 
-        if end_datetime:
+        if end_datetime.strip():
             # Use explicit timezone or preserve existing event's end timezone
             target_tz = end_timezone or existing_end_tz
             update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)

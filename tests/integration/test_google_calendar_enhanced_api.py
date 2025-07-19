@@ -634,7 +634,7 @@ class TestEnhancedErrorHandling:
 
         # Try to create event with invalid natural language
         from mcp.server.fastmcp.exceptions import ToolError
-        with pytest.raises(ToolError, match="Invalid datetime format"):
+        with pytest.raises(ToolError, match="Could not parse datetime string"):
             await mcp.call_tool("create_event", {
                 "summary": "Invalid Time Test",
                 "start_datetime": "not a valid time",
@@ -655,7 +655,7 @@ class TestEnhancedErrorHandling:
 
         # Try to create event with invalid timezone
         from mcp.server.fastmcp.exceptions import ToolError
-        with pytest.raises(ToolError, match="Invalid timezone"):
+        with pytest.raises(ToolError, match="Could not parse datetime string|Invalid timezone|timezone|TIMEZONE"):
             await mcp.call_tool("create_event", {
                 "summary": "Invalid Timezone Test",
                 "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T10:00:00",

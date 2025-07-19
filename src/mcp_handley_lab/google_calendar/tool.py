@@ -398,7 +398,7 @@ def _parse_datetime_to_utc(dt_str: str) -> str:
 def _client_side_filter(
     events: list[dict[str, Any]],
     search_text: str = "",
-    search_fields: list[str] = [],
+    search_fields: list[str] | None = None,
     case_sensitive: bool = False,
     match_all_terms: bool = True,
 ) -> list[dict[str, Any]]:
@@ -416,7 +416,7 @@ def _client_side_filter(
     if not search_text:
         return events
 
-    if not search_fields:
+    if search_fields is None:
         search_fields = ["summary", "description", "location"]
 
     search_terms = search_text.split()
@@ -469,7 +469,13 @@ def _client_side_filter(
 @mcp.tool(
     description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps. Automatically detects timezone inconsistencies."
 )
-def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
+def get_event(
+    event_id: str = Field(..., description="The unique identifier of the event to retrieve."),
+    calendar_id: str = Field(
+        "primary",
+        description="The ID or name of the calendar containing the event. Defaults to the user's primary calendar.",
+    ),
+) -> CalendarEvent:
     """Get detailed information about a specific event."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
@@ -488,15 +494,15 @@ def get_event(event_id: str, calendar_id: str = "primary") -> CalendarEvent:
     description="Creates a new event in a Google Calendar with NATURAL LANGUAGE support! You can use human-friendly time expressions like 'tomorrow at 2pm', 'next Monday at 10am', 'in 3 hours', 'Friday afternoon'. Also supports ISO 8601 formats and mixed timezones for start/end times (perfect for flights: LAX departure time + JFK arrival time)."
 )
 def create_event(
-    summary: str,
-    start_datetime: str,
-    end_datetime: str,
-    description: str = "",
-    location: str = "",
-    calendar_id: str = "primary",
-    start_timezone: str = "",
-    end_timezone: str = "",
-    attendees: list[str] = [],
+    summary: str = Field(..., description="The title or summary for the new event."),
+    start_datetime: str = Field(..., description="The start time of the event. Supports natural language (e.g., 'tomorrow at 2pm')."),
+    end_datetime: str = Field(..., description="The end time of the event. Supports natural language (e.g., 'in 3 hours')."),
+    description: str = Field("", description="A detailed description or notes for the event."),
+    location: str = Field("", description="The physical location or meeting link for the event."),
+    calendar_id: str = Field("primary", description="The ID or name of the calendar to add the event to. Defaults to the primary calendar."),
+    start_timezone: str = Field("", description="Explicit IANA timezone for the start time (e.g., 'America/Los_Angeles'). Overrides calendar's default."),
+    end_timezone: str = Field("", description="Explicit IANA timezone for the end time. Essential for events spanning timezones, like flights."),
+    attendees: list[str] = Field(default_factory=list, description="A list of attendee email addresses to invite to the event."),
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing and flexible timezone handling.
 
@@ -563,16 +569,16 @@ def create_event(
     description="Updates an existing calendar event with NATURAL LANGUAGE support! You can reschedule using human-friendly expressions like 'tomorrow at 3pm', 'next week at 9am', 'in 2 hours'. Supports mixed timezones for start/end times. Set normalize_timezone=True to fix timezone inconsistencies on existing events."
 )
 def update_event(
-    event_id: str,
-    calendar_id: str = "primary",
-    summary: str = "",
-    start_datetime: str = "",
-    end_datetime: str = "",
-    description: str = "",
-    location: str = "",
-    start_timezone: str = "",
-    end_timezone: str = "",
-    normalize_timezone: bool = False,
+    event_id: str = Field(..., description="The unique identifier of the event to update."),
+    calendar_id: str = Field("primary", description="The calendar where the event is located. Defaults to the primary calendar."),
+    summary: str = Field("", description="New title for the event. If empty, the summary is not changed."),
+    start_datetime: str = Field("", description="New start time for the event. Supports natural language. If empty, not changed."),
+    end_datetime: str = Field("", description="New end time for the event. Supports natural language. If empty, not changed."),
+    description: str = Field("", description="New description for the event. If empty, not changed."),
+    location: str = Field("", description="New location for the event. If empty, not changed."),
+    start_timezone: str = Field("", description="New IANA timezone for the start time. If empty, preserves existing timezone."),
+    end_timezone: str = Field("", description="New IANA timezone for the end time. If empty, preserves existing timezone."),
+    normalize_timezone: bool = Field(False, description="Set to True to fix timezone inconsistencies (e.g., UTC time with a non-UTC timezone label) on the event."),
 ) -> str:
     """Update an existing event, with automatic timezone handling for new times.
 
@@ -640,7 +646,10 @@ def update_event(
 @mcp.tool(
     description="Deletes a calendar event permanently by event ID. WARNING: This action is irreversible. Returns confirmation of deletion."
 )
-def delete_event(event_id: str, calendar_id: str = "primary") -> str:
+def delete_event(
+    event_id: str = Field(..., description="The unique identifier of the event to be permanently deleted."),
+    calendar_id: str = Field("primary", description="The calendar where the event is located. Defaults to the primary calendar."),
+) -> str:
     """Delete a calendar event. Trusts the provided event_id."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
@@ -653,9 +662,9 @@ def delete_event(event_id: str, calendar_id: str = "primary") -> str:
     description="Moves a calendar event from one calendar to another. This is the proper way to transfer events between calendars, preserving event metadata and attendee information."
 )
 def move_event(
-    event_id: str,
-    source_calendar_id: str = "primary",
-    destination_calendar_id: str = "primary",
+    event_id: str = Field(..., description="The unique identifier of the event to move."),
+    source_calendar_id: str = Field("primary", description="The ID or name of the calendar the event is currently in. Defaults to primary."),
+    destination_calendar_id: str = Field("primary", description="The ID or name of the calendar to move the event to. Defaults to primary."),
 ) -> str:
     """Move an event from one calendar to another using the Google Calendar API move endpoint."""
     service = _get_calendar_service()
@@ -701,11 +710,11 @@ def list_calendars() -> list[CalendarInfo]:
     description="Finds available free time slots within a calendar for scheduling meetings. Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes. Set `work_hours_only=False` to include evenings/weekends."
 )
 def find_time(
-    calendar_id: str = "primary",
-    start_date: str = "",
-    end_date: str = "",
-    duration_minutes: int = 60,
-    work_hours_only: bool = True,
+    calendar_id: str = Field("primary", description="The ID or name of the calendar to search for free time. Defaults to primary."),
+    start_date: str = Field("", description="The start date (YYYY-MM-DD) for the search. Defaults to now."),
+    end_date: str = Field("", description="The end date (YYYY-MM-DD) for the search. Defaults to 7 days from the start date."),
+    duration_minutes: int = Field(60, description="The desired duration of the free time slot in minutes."),
+    work_hours_only: bool = Field(True, description="If True, only searches for slots between 9 AM and 5 PM."),
 ) -> list[FreeTimeSlot]:
     """Find free time slots in a calendar."""
     service = _get_calendar_service()
@@ -787,14 +796,14 @@ def find_time(
     description="Searches for events across one or all calendars within a specified date range. Provide a `search_text` to find events with matching text in the title, description, or location. If no search text is given, it lists all events. Supports advanced client-side filtering by `search_fields` and `case_sensitive` options."
 )
 def search_events(
-    search_text: str = "",
-    calendar_id: str = "all",
-    start_date: str = "",
-    end_date: str = "",
-    max_results: int = 100,
-    search_fields: list[str] = [],
-    case_sensitive: bool = False,
-    match_all_terms: bool = True,
+    search_text: str = Field("", description="Text to search for. If empty, lists all events in the date range. Can be a simple string or use Google Calendar's advanced search operators."),
+    calendar_id: str = Field("all", description="ID or name of the calendar to search. Use 'all' to search every accessible calendar."),
+    start_date: str = Field("", description="The start date (YYYY-MM-DD) for the search range. Defaults to today."),
+    end_date: str = Field("", description="The end date (YYYY-MM-DD) for the search range. Defaults to 7 days from start (or 365 if search_text is provided)."),
+    max_results: int = Field(100, description="The maximum number of events to return per calendar."),
+    search_fields: list[str] = Field(default_factory=list, description="Client-side filter: specific fields to search within (e.g., 'summary', 'description', 'attendees'). If empty, defaults to API search."),
+    case_sensitive: bool = Field(False, description="Client-side filter: If True, the search_text match will be case-sensitive."),
+    match_all_terms: bool = Field(True, description="Client-side filter: If True (AND logic), all words in search_text must match. If False (OR logic), any can match."),
 ) -> list[CalendarEvent]:
     """Advanced hybrid search for calendar events."""
     service = _get_calendar_service()

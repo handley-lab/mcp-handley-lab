@@ -84,7 +84,17 @@ class MoveResult(BaseModel):
 @mcp.tool(
     description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 )
-def search(query: str, limit: int = 20) -> list[str]:
+def search(
+    query: str = Field(
+        ...,
+        description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'.",
+    ),
+    limit: int = Field(
+        default=20,
+        description="The maximum number of message IDs to return.",
+        gt=0,
+    ),
+) -> list[str]:
     """Search emails using notmuch query syntax."""
     cmd = ["notmuch", "search", "--limit", str(limit), query]
     stdout, stderr = run_command(cmd)
@@ -138,7 +148,12 @@ def parse_email_content(msg: EmailMessage):
 @mcp.tool(
     description="""Display complete email content by message ID or notmuch query. Returns a structured object with headers and a clean, Markdown-formatted body for optimal LLM understanding."""
 )
-def show(query: str) -> list[EmailContent]:
+def show(
+    query: str = Field(
+        ...,
+        description="A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
+    )
+) -> list[EmailContent]:
     """Show email content by fetching raw email sources and parsing with Python's email library."""
     cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
     stdout, stderr = run_command(cmd)
@@ -206,7 +221,12 @@ def list_tags() -> list[str]:
 @mcp.tool(
     description="""Retrieve notmuch configuration settings. Shows all settings or specific key. Useful for troubleshooting database path, user info, and tagging rules."""
 )
-def config(key: str = "") -> str:
+def config(
+    key: str = Field(
+        default="",
+        description="An optional specific configuration key to retrieve (e.g., 'database.path'). If omitted, all configurations are listed.",
+    )
+) -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
 
@@ -223,7 +243,12 @@ def config(key: str = "") -> str:
 @mcp.tool(
     description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes."""
 )
-def count(query: str) -> int:
+def count(
+    query: str = Field(
+        ...,
+        description="A valid notmuch search query to count matching emails. Example: 'tag:unread'.",
+    )
+) -> int:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
 
@@ -236,7 +261,15 @@ def count(query: str) -> int:
     description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch."""
 )
 def tag(
-    message_id: str, add_tags: list[str] = None, remove_tags: list[str] = None
+    message_id: str = Field(
+        ..., description="The notmuch message ID of the email to modify."
+    ),
+    add_tags: list[str] = Field(
+        default=None, description="A list of tags to add to the email."
+    ),
+    remove_tags: list[str] = Field(
+        default=None, description="A list of tags to remove from the email."
+    ),
 ) -> TagResult:
     """Add or remove tags from a specific email using notmuch."""
     add_tags = add_tags or []
@@ -260,9 +293,17 @@ def tag(
     description="Extracts and saves one or all attachments from a specific email. If 'filename' is provided, only that attachment is saved. Files are saved to 'output_dir', which defaults to '~/Downloads/email_attachments'. Returns a result object with a list of absolute paths to the saved files."
 )
 def extract_attachments(
-    message_id: str,
-    output_dir: str = "",
-    filename: str = "",
+    message_id: str = Field(
+        ..., description="The notmuch message ID of the email containing the attachments."
+    ),
+    output_dir: str = Field(
+        default="",
+        description="The directory to save attachments to. Defaults to '~/Downloads/email_attachments'.",
+    ),
+    filename: str = Field(
+        default="",
+        description="The specific filename of the attachment to extract. If omitted, all attachments are extracted.",
+    ),
 ) -> AttachmentExtractionResult:
     """
     Extracts attachments from an email, failing loudly if the email or attachment isn't found.
@@ -319,7 +360,17 @@ def extract_attachments(
 @mcp.tool(
     description="Moves emails to a different maildir folder (e.g., 'Trash', 'Archive'). This physically moves the email files on disk and updates the notmuch index. The destination folder will be created if it doesn't exist."
 )
-def move(message_ids: list[str], destination_folder: str) -> MoveResult:
+def move(
+    message_ids: list[str] = Field(
+        ...,
+        description="A list of notmuch message IDs for the emails to be moved.",
+        min_length=1,
+    ),
+    destination_folder: str = Field(
+        ...,
+        description="The destination maildir folder name (e.g., 'Trash', 'Archive'). The folder will be created if it doesn't exist.",
+    ),
+) -> MoveResult:
     """
     Moves emails to a specified maildir folder.
 

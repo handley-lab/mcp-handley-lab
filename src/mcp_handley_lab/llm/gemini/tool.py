@@ -22,6 +22,7 @@ from google.genai.types import (
     Tool,
 )
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 from PIL import Image
 
 from mcp_handley_lab.common.config import settings
@@ -145,9 +146,11 @@ def _resolve_files(
 
 
 def _resolve_images(
-    images: list[str] = [],
+    images: list[str] | None = None,
 ) -> list[Image.Image]:
     """Resolve image inputs to PIL Image objects."""
+    if images is None:
+        images = []
     image_list = []
 
     # Handle images array
@@ -340,14 +343,14 @@ def _gemini_image_analysis_adapter(
     description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
 def ask(
-    prompt: str,
-    output_file: str = "-",
-    agent_name: str = "session",
-    model: str = DEFAULT_MODEL,
-    temperature: float = 1.0,
-    grounding: bool = False,
-    files: list[str] = [],
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The main question or instruction for the AI model."),
+    output_file: str = Field(default="-", description="File path to save the output. Use '-' for standard output."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    model: str = Field(default=DEFAULT_MODEL, description="The Gemini model to use for the request (e.g., 'gemini-1.5-pro-latest')."),
+    temperature: float = Field(default=1.0, description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic."),
+    grounding: bool = Field(default=False, description="If True, enables Google Search grounding to provide more factual, up-to-date responses."),
+    files: list[str] = Field(default_factory=list, description="A list of file paths to provide as context to the model."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum."),
 ) -> LLMResult:
     """Ask Gemini a question with optional persistent memory."""
     return process_llm_request(
@@ -369,13 +372,13 @@ def ask(
     description="Analyzes images using a Gemini vision model. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
-    prompt: str,
-    output_file: str = "-",
-    files: list[str] = [],
-    focus: str = "general",
-    model: str = DEFAULT_MODEL,
-    agent_name: str = "session",
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The question or instruction related to the images."),
+    output_file: str = Field(default="-", description="File path to save the analysis output. Use '-' for standard output."),
+    files: list[str] = Field(default_factory=list, description="A list of image file paths or base64 encoded strings to be analyzed."),
+    focus: str = Field(default="general", description="The area of focus for the analysis (e.g., 'ocr', 'objects'). Note: This is a placeholder parameter in the current implementation."),
+    model: str = Field(default=DEFAULT_MODEL, description="The Gemini vision model to use (e.g., 'gemini-1.5-pro-latest')."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum."),
 ) -> LLMResult:
     """Analyze images with Gemini vision model."""
     return process_llm_request(
@@ -454,7 +457,9 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
 )
 def generate_image(
-    prompt: str, model: str = "imagen-3.0-generate-002", agent_name: str = "session"
+    prompt: str = Field(..., description="A detailed, creative description of the image to generate."),
+    model: str = Field(default="imagen-3.0-generate-002", description="The Imagen model to use for image generation."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory to store prompt history."),
 ) -> ImageGenerationResult:
     """Generate images with Google's Imagen 3 model."""
     return process_image_generation(
@@ -471,10 +476,10 @@ def generate_image(
     description="Generates embedding vectors for a given list of text strings using a specified model. Supports task-specific embeddings like 'SEMANTIC_SIMILARITY' or 'RETRIEVAL_DOCUMENT'."
 )
 def get_embeddings(
-    contents: str | list[str],
-    model: str = "gemini-embedding-001",
-    task_type: EmbeddingTaskType = "SEMANTIC_SIMILARITY",
-    output_dimensionality: int = 0,
+    contents: str | list[str] = Field(..., description="The text string or list of text strings to be converted into embedding vectors."),
+    model: str = Field(default="gemini-embedding-001", description="The embedding model to use."),
+    task_type: EmbeddingTaskType = Field(default="SEMANTIC_SIMILARITY", description="The intended use for the embedding. Affects how the embedding is generated. Options: 'RETRIEVAL_QUERY', 'RETRIEVAL_DOCUMENT', 'SEMANTIC_SIMILARITY', 'CLASSIFICATION', 'CLUSTERING'."),
+    output_dimensionality: int = Field(default=0, description="The desired size of the output embedding vector. If 0, the model's default dimensionality is used."),
 ) -> list[EmbeddingResult]:
     """Generates embeddings for one or more text strings."""
     if isinstance(contents, str):
@@ -501,7 +506,9 @@ def get_embeddings(
     description="Calculates the semantic similarity score (cosine similarity) between two text strings. Returns a score between -1.0 and 1.0, where 1.0 is identical."
 )
 def calculate_similarity(
-    text1: str, text2: str, model: str = "gemini-embedding-001"
+    text1: str = Field(..., description="The first text string for comparison."),
+    text2: str = Field(..., description="The second text string for comparison."),
+    model: str = Field(default="gemini-embedding-001", description="The embedding model to use for generating vectors for similarity calculation."),
 ) -> SimilarityResult:
     """Calculates the cosine similarity between two texts."""
     if not text1 or not text2:
@@ -523,9 +530,9 @@ def calculate_similarity(
     description="Creates a searchable semantic index from a list of document file paths. It reads the files, generates embeddings for them, and saves the index as a JSON file."
 )
 def index_documents(
-    document_paths: list[str],
-    output_index_path: str,
-    model: str = "gemini-embedding-001",
+    document_paths: list[str] = Field(..., description="A list of file paths to the text documents that need to be indexed."),
+    output_index_path: str = Field(..., description="The file path where the resulting JSON index will be saved."),
+    model: str = Field(default="gemini-embedding-001", description="The embedding model to use for creating the document index."),
 ) -> IndexResult:
     """Creates a semantic index from document files."""
     indexed_data = []
@@ -549,7 +556,7 @@ def index_documents(
             contents=batch_contents, model=model, task_type="RETRIEVAL_DOCUMENT"
         )
 
-        for path, emb_result in zip(valid_paths, embedding_results, strict=False):
+        for path, emb_result in zip(valid_paths, embedding_results, strict=True):
             indexed_data.append(
                 DocumentIndex(path=path, embedding=emb_result.embedding)
             )
@@ -572,10 +579,10 @@ def index_documents(
     description="Performs a semantic search for a query against a pre-built document index file. Returns a ranked list of the most relevant documents based on similarity."
 )
 def search_documents(
-    query: str,
-    index_path: str,
-    top_k: int = 5,
-    model: str = "gemini-embedding-001",
+    query: str = Field(..., description="The search query to find relevant documents."),
+    index_path: str = Field(..., description="The file path of the pre-computed JSON document index to search against."),
+    top_k: int = Field(default=5, description="The number of top matching documents to return."),
+    model: str = Field(default="gemini-embedding-001", description="The embedding model to use for the query. Should match the model used to create the index."),
 ) -> list[SearchResult]:
     """Searches a document index for the most relevant documents to a query."""
     index_file = Path(index_path)

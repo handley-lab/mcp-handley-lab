@@ -188,7 +188,15 @@ def _handle_tar_archive_structured(
     description="Downloads an ArXiv paper by its ID in 'src', 'pdf', or 'tex' format. Saves content to `output_path` or lists file info to stdout if `output_path` is '-'. Returns a status message."
 )
 def download(
-    arxiv_id: str, format: str = "src", output_path: str = ""
+    arxiv_id: str = Field(..., description="The unique ArXiv identifier for the paper (e.g., '2301.07041')."),
+    format: str = Field(
+        "src",
+        description="The format of the paper to download. Valid options are 'src', 'pdf', or 'tex'.",
+    ),
+    output_path: str = Field(
+        "",
+        description="File path to save the content. If empty, defaults to '<arxiv_id>.pdf' for pdf format or '<arxiv_id>' for source formats. Use '-' to list file info to stdout instead of saving.",
+    ),
 ) -> DownloadResult:
     if format not in ["src", "pdf", "tex"]:
         raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
@@ -234,7 +242,9 @@ def download(
 @mcp.tool(
     description="Lists the file names within an ArXiv paper's source archive. Use this to inspect contents before downloading. Returns a list of file paths."
 )
-def list_files(arxiv_id: str) -> list[str]:
+def list_files(
+    arxiv_id: str = Field(..., description="The unique ArXiv identifier for the paper (e.g., '2301.07041') whose files should be listed."),
+) -> list[str]:
     content = _get_source_archive(arxiv_id)
 
     try:
@@ -304,11 +314,25 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
     description="Searches ArXiv for papers matching a query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton', 'ti:attention') and boolean operators ('AND', 'OR'). Results can be sorted by relevance or date. Returns a list of papers, each containing metadata like title, authors, and summary."
 )
 def search(
-    query: str,
-    max_results: int = 10,
-    start: int = 0,
-    sort_by: str = "relevance",
-    sort_order: str = "descending",
+    query: str = Field(
+        ...,
+        description="The search query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton') and boolean operators.",
+    ),
+    max_results: int = Field(
+        10,
+        description="The maximum number of results to return. The API caps this at 100.",
+    ),
+    start: int = Field(
+        0, description="The starting index for the search results, used for pagination."
+    ),
+    sort_by: str = Field(
+        "relevance",
+        description="The sorting criteria for the results. Valid options are 'relevance', 'lastUpdatedDate', 'submittedDate'.",
+    ),
+    sort_order: str = Field(
+        "descending",
+        description="The sorting order for the results. Valid options are 'ascending' or 'descending'.",
+    ),
 ) -> list[ArxivPaper]:
     if max_results > 100:
         max_results = 100

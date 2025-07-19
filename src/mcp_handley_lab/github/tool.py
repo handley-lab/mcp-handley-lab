@@ -37,9 +37,9 @@ mcp = FastMCP("GitHub CI Monitor")
     description="Continuously monitors the CI checks for a GitHub pull request, providing live updates. Specify the `pr_number` to watch. The tool reports the status of each check and automatically exits when all checks pass, any check fails, or the `timeout_minutes` is reached. Returns a log of the monitoring session."
 )
 def monitor_pr_checks(
-    pr_number: int,
-    timeout_minutes: int = 30,
-    check_interval_seconds: int = 30,
+    pr_number: int = Field(..., description="The pull request number to monitor for CI check status."),
+    timeout_minutes: int = Field(default=30, description="Maximum time to monitor checks before timing out.", gt=0),
+    check_interval_seconds: int = Field(default=30, description="Seconds to wait between status checks.", gt=0),
 ) -> MonitorResult:
     """Monitor CI checks for a PR with live status updates."""
     if timeout_minutes <= 0 or check_interval_seconds <= 0:

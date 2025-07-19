@@ -4,6 +4,7 @@ from typing import Any
 
 from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -94,9 +95,11 @@ def _resolve_files(files: list[str]) -> LLMResult:
 
 
 def _resolve_images_to_content_blocks(
-    images: list[str] = [],
+    images: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Resolve image inputs to Claude content blocks."""
+    if images is None:
+        images = []
     # Use standardized image processing
     _, image_blocks = resolve_images_for_multimodal_prompt("", images)
 
@@ -261,13 +264,30 @@ def _claude_image_analysis_adapter(
     description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
 )
 def ask(
-    prompt: str,
-    output_file: str = "-",
-    agent_name: str = "session",
-    model: str = DEFAULT_MODEL,
-    temperature: float = 1.0,
-    files: list[str] = [],
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The main text prompt or question to send to the Claude model."),
+    output_file: str = Field(
+        "-", description="Path to save the response. Use '-' to stream the output directly to stdout."
+    ),
+    agent_name: str = Field(
+        "session",
+        description="Name for the conversational agent to enable memory. Use a unique name for a separate conversation. Set to an empty string to disable memory.",
+    ),
+    model: str = Field(
+        DEFAULT_MODEL,
+        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'.",
+    ),
+    temperature: float = Field(
+        1.0,
+        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic.",
+    ),
+    files: list[str] = Field(
+        default_factory=list,
+        description="A list of file paths to be read and included as context in the prompt.",
+    ),
+    max_output_tokens: int = Field(
+        0,
+        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
+    ),
 ) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
     # Resolve model alias to full model name for consistent pricing
@@ -290,13 +310,30 @@ def ask(
     description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
-    prompt: str,
-    output_file: str = "-",
-    files: list[str] = [],
-    focus: str = "general",
-    model: str = "claude-3-5-sonnet-20240620",
-    agent_name: str = "session",
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The question or instruction regarding the images to be analyzed."),
+    output_file: str = Field(
+        "-", description="Path to save the response. Use '-' to stream the output directly to stdout."
+    ),
+    files: list[str] = Field(
+        default_factory=list,
+        description="A list of image file paths to be analyzed along with the prompt.",
+    ),
+    focus: str = Field(
+        "general",
+        description="Specifies the focus of the analysis (e.g., 'text' to transcribe, 'objects' to identify).",
+    ),
+    model: str = Field(
+        "claude-3-5-sonnet-20240620",
+        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
+    ),
+    agent_name: str = Field(
+        "session",
+        description="Name for the conversational agent to enable memory. Use a unique name for a separate conversation. Set to an empty string to disable memory.",
+    ),
+    max_output_tokens: int = Field(
+        0,
+        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
+    ),
 ) -> LLMResult:
     """Analyze images with Claude vision model."""
     return process_llm_request(

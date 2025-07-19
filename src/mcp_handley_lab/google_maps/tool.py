@@ -251,16 +251,16 @@ def _parse_route(route: dict[str, Any]) -> DirectionRoute:
     description="Gets directions between an origin and destination, supporting multiple travel modes, waypoints, and route preferences. For transit, supports specific transport modes and routing preferences."
 )
 def get_directions(
-    origin: str,
-    destination: str,
-    mode: Literal["driving", "walking", "bicycling", "transit"] = "driving",
-    departure_time: str = "",
-    arrival_time: str = "",
-    avoid: list[Literal["tolls", "highways", "ferries"]] = [],
-    alternatives: bool = False,
-    waypoints: list[str] = [],
-    transit_mode: list[Literal["bus", "subway", "train", "tram", "rail"]] = [],
-    transit_routing_preference: Literal["", "less_walking", "fewer_transfers"] = "",
+    origin: str = Field(..., description="The starting address, place name, or coordinates (e.g., '1600 Amphitheatre Parkway, Mountain View, CA')."),
+    destination: str = Field(..., description="The ending address, place name, or coordinates (e.g., 'San Francisco, CA')."),
+    mode: Literal["driving", "walking", "bicycling", "transit"] = Field("driving", description="The mode of transport to use for the directions."),
+    departure_time: str = Field("", description="The desired departure time as an ISO 8601 UTC string (e.g., '2024-08-15T09:00:00Z'). Cannot be used with arrival_time."),
+    arrival_time: str = Field("", description="The desired arrival time as an ISO 8601 UTC string (e.g., '2024-08-15T17:00:00Z'). Cannot be used with departure_time."),
+    avoid: list[Literal["tolls", "highways", "ferries"]] = Field(default_factory=list, description="A list of route features to avoid (e.g., 'tolls', 'highways'). Only for 'driving' mode."),
+    alternatives: bool = Field(False, description="If True, requests that alternative routes be provided in the response."),
+    waypoints: list[str] = Field(default_factory=list, description="A list of addresses or coordinates to route through between the origin and destination."),
+    transit_mode: list[Literal["bus", "subway", "train", "tram", "rail"]] = Field(default_factory=list, description="Preferred modes of public transit. Only for 'transit' mode."),
+    transit_routing_preference: Literal["", "less_walking", "fewer_transfers"] = Field("", description="Specifies preferences for transit routes, such as fewer transfers or less walking. Only for 'transit' mode."),
 ) -> DirectionsResult:
     gmaps = _get_maps_client()
 

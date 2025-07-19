@@ -4,6 +4,8 @@ import os
 import shlex
 import tempfile
 
+from pydantic import Field
+
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.common.terminal import launch_interactive
 from mcp_handley_lab.email.common import mcp
@@ -104,15 +106,34 @@ def _execute_mutt_interactive_or_auto(
     description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments, pre-filled body, and an `auto_send` option that bypasses interactive review."
 )
 def compose(
-    to: str,
-    subject: str = "",
-    cc: str = None,
-    bcc: str = None,
-    initial_body: str = "",
-    attachments: list[str] = None,
-    auto_send: bool = False,
-    in_reply_to: str = None,
-    references: str = None,
+    to: str = Field(
+        ..., description="The primary recipient's email address (e.g., 'user@example.com')."
+    ),
+    subject: str = Field(default="", description="The subject line of the email."),
+    cc: str = Field(
+        default=None, description="Email address for the 'Cc' (carbon copy) field."
+    ),
+    bcc: str = Field(
+        default=None, description="Email address for the 'Bcc' (blind carbon copy) field."
+    ),
+    initial_body: str = Field(
+        default="", description="Text to pre-populate in the email body."
+    ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
+    ),
+    auto_send: bool = Field(
+        default=False,
+        description="If True, sends the email automatically without opening the interactive Mutt editor. A signature will be appended if configured.",
+    ),
+    in_reply_to: str = Field(
+        default=None,
+        description="The Message-ID of the email being replied to, for proper threading. Used by 'reply' tool.",
+    ),
+    references: str = Field(
+        default=None,
+        description="A space-separated list of Message-IDs for threading context. Used by 'reply' tool.",
+    ),
 ) -> OperationResult:
     """Compose an email using mutt's interactive interface."""
 
@@ -194,7 +215,21 @@ def compose(
     description="""Opens Mutt in interactive terminal to reply to specific email by message ID. Supports reply-all mode and initial body text. Headers auto-populated from original message."""
 )
 def reply(
-    message_id: str, reply_all: bool = False, initial_body: str = "", auto_send: bool = False
+    message_id: str = Field(
+        ..., description="The notmuch message ID of the email to reply to."
+    ),
+    reply_all: bool = Field(
+        default=False,
+        description="If True, reply to all recipients (To and Cc) of the original message.",
+    ),
+    initial_body: str = Field(
+        default="",
+        description="Text to add to the top of the reply, above the quoted original message.",
+    ),
+    auto_send: bool = Field(
+        default=False,
+        description="If True, sends the reply automatically without opening the interactive Mutt editor.",
+    ),
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
 
@@ -243,7 +278,21 @@ def reply(
     description="""Opens Mutt in interactive terminal to forward specific email by message ID. Supports pre-populated recipient and initial commentary. Original message included per your configuration."""
 )
 def forward(
-    message_id: str, to: str = "", initial_body: str = "", auto_send: bool = False
+    message_id: str = Field(
+        ..., description="The notmuch message ID of the email to forward."
+    ),
+    to: str = Field(
+        default="",
+        description="The recipient's email address for the forwarded message. If empty, Mutt will prompt for it.",
+    ),
+    initial_body: str = Field(
+        default="",
+        description="Commentary to add to the top of the email, above the forwarded message.",
+    ),
+    auto_send: bool = Field(
+        default=False,
+        description="If True, sends the forward automatically without opening the interactive Mutt editor.",
+    ),
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
 
@@ -297,7 +346,12 @@ def list_folders() -> list[str]:
 @mcp.tool(
     description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox."""
 )
-def open_folder(folder: str) -> OperationResult:
+def open_folder(
+    folder: str = Field(
+        ...,
+        description="The name of the mail folder to open (e.g., '=INBOX'). Use 'list_folders' to see available options.",
+    )
+) -> OperationResult:
     """Open mutt with a specific folder."""
     mutt_cmd = _build_mutt_command(folder=folder)
     window_title = f"Mutt: {folder}"

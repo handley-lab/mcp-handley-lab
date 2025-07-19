@@ -20,7 +20,7 @@ def temp_mutt_config(tmp_path, monkeypatch):
     addressbook.write_text("")
     
     # Mock the mutt config to point to our temp addressbook
-    def mock_run_command(cmd, timeout=None):
+    def mock_run_command(cmd, timeout=None, input_data=None):
         if "mutt -Q alias_file" in " ".join(cmd):
             return (f'alias_file="{addressbook}"'.encode(), b"")
         elif "mutt -v" in " ".join(cmd):
@@ -137,7 +137,7 @@ class TestMuttFolderManagement:
         """Test successfully listing folders."""
         _, response = await mutt_mcp.call_tool("list_folders", {})
         assert "error" not in response, response.get("error")
-        result = response
+        result = response["result"]
         
         # Should return the mocked folder list
         assert isinstance(result, list)

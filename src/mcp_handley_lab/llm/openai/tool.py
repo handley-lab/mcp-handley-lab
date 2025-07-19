@@ -414,7 +414,7 @@ def calculate_similarity(
     if not text1 or not text2:
         raise ValueError("Both text1 and text2 must be provided.")
 
-    embeddings = get_embeddings(contents=[text1, text2], model=model)
+    embeddings = get_embeddings(contents=[text1, text2], model=model, dimensions=0)
 
     if len(embeddings) != 2:
         raise RuntimeError("Failed to generate embeddings for both texts.")
@@ -452,7 +452,7 @@ def index_documents(
         if not batch_contents:
             continue
 
-        embedding_results = get_embeddings(contents=batch_contents, model=model)
+        embedding_results = get_embeddings(contents=batch_contents, model=model, dimensions=0)
 
         for path, emb_result in zip(valid_paths, embedding_results, strict=True):
             indexed_data.append(
@@ -491,7 +491,7 @@ def search_documents(
         return []
 
     # Get embedding for the query
-    query_embedding_result = get_embeddings(contents=query, model=model)
+    query_embedding_result = get_embeddings(contents=query, model=model, dimensions=0)
     query_embedding = query_embedding_result[0].embedding
 
     # Calculate similarities

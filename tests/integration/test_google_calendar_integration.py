@@ -1,42 +1,43 @@
 from datetime import datetime, timedelta
 
 import pytest
-from mcp_handley_lab.google_calendar.tool import (
-    create_event,
-    delete_event,
-    find_time,
-    get_event,
-    list_calendars,
-    search_events,
-    server_info,
-    update_event,
-)
+from mcp_handley_lab.google_calendar.tool import mcp
 
 
 @pytest.mark.vcr
-def test_google_calendar_list_calendars(google_calendar_test_config):
-    result = list_calendars()
+@pytest.mark.asyncio
+async def test_google_calendar_list_calendars(google_calendar_test_config):
+    _, response = await mcp.call_tool("list_calendars", {})
+    assert "error" not in response, response.get("error")
+    result = response["result"]
 
     assert isinstance(result, list)
     assert len(result) > 0
     # Check if we have at least one calendar
-    assert any("primary" in cal.id or "gmail.com" in cal.id for cal in result)
+    assert any("primary" in cal["id"] or "gmail.com" in cal["id"] for cal in result)
 
 
 @pytest.mark.vcr
-def test_google_calendar_search_events_basic_listing(google_calendar_test_config):
+@pytest.mark.asyncio
+async def test_google_calendar_search_events_basic_listing(google_calendar_test_config):
     # Use fixed dates to avoid VCR timestamp mismatches
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
 
-    result = search_events(start_date=start_date, end_date=end_date)
+    _, response = await mcp.call_tool("search_events", {
+        "start_date": start_date, 
+        "end_date": end_date
+    })
+    assert "error" not in response, response.get("error")
+    result = response["result"]
 
     assert isinstance(result, list)
     # This test may return events or empty list - both are valid
 
 
 @pytest.mark.vcr
-def test_google_calendar_event_lifecycle(google_calendar_test_config):
+@pytest.mark.asyncio
+async def test_google_calendar_event_lifecycle(google_calendar_test_config):
     # Create event
     tomorrow = datetime.now() + timedelta(days=1)
     start_time = tomorrow.replace(hour=14, minute=0, second=0, microsecond=0)
@@ -44,60 +45,74 @@ def test_google_calendar_event_lifecycle(google_calendar_test_config):
 
     event_title = "VCR Test Event"
 
-    create_result = create_event(
-        summary=event_title,
-        start_datetime=start_time.isoformat() + "Z",
-        end_datetime=end_time.isoformat() + "Z",
-        description="Test event for VCR testing",
-    )
+    _, create_response = await mcp.call_tool("create_event", {
+        "summary": event_title,
+        "start_datetime": start_time.isoformat() + "Z",
+        "end_datetime": end_time.isoformat() + "Z",
+        "description": "Test event for VCR testing",
+    })
+    assert "error" not in create_response, create_response.get("error")
+    create_result = create_response
 
-    assert create_result.status == "Event created successfully!"
-    assert create_result.title == event_title
-    event_id = create_result.event_id
+    assert create_result["status"] == "Event created successfully!"
+    assert create_result["title"] == event_title
+    event_id = create_result["event_id"]
 
     # Event ID is now directly available from the structured response
 
     # Get event
-    get_result = get_event(event_id=event_id)
-    assert event_title in get_result.summary
+    _, get_response = await mcp.call_tool("get_event", {"event_id": event_id})
+    assert "error" not in get_response, get_response.get("error")
+    get_result = get_response
+    assert event_title in get_result["summary"]
 
     # Update event
-    update_result = update_event(
-        event_id=event_id,
-        summary=event_title,
-        description="Updated description for VCR test",
-    )
+    _, update_response = await mcp.call_tool("update_event", {
+        "event_id": event_id,
+        "summary": event_title,
+        "description": "Updated description for VCR test",
+    })
+    assert "error" not in update_response, update_response.get("error")
+    update_result = update_response["result"]
     assert "updated" in update_result.lower()
 
     # Delete event
-    delete_result = delete_event(event_id=event_id)
+    _, delete_response = await mcp.call_tool("delete_event", {"event_id": event_id})
+    assert "error" not in delete_response, delete_response.get("error")
+    delete_result = delete_response["result"]
     assert "deleted" in delete_result.lower()
 
 
 @pytest.mark.vcr
-def test_google_calendar_find_time(google_calendar_test_config):
-    result = find_time(duration_minutes=30, work_hours_only=True)
+@pytest.mark.asyncio
+async def test_google_calendar_find_time(google_calendar_test_config):
+    _, response = await mcp.call_tool("find_time", {
+        "duration_minutes": 30, 
+        "work_hours_only": True
+    })
+    assert "error" not in response, response.get("error")
+    result = response["result"]
 
     assert isinstance(result, list)
     # May return 0 or more time slots - both are valid
 
 
 @pytest.mark.vcr
-def test_google_calendar_search_events(google_calendar_test_config):
-    # Import the search function
-    from mcp_handley_lab.google_calendar.tool import search_events
-
+@pytest.mark.asyncio
+async def test_google_calendar_search_events(google_calendar_test_config):
     # Use fixed dates to avoid VCR timestamp mismatches
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
 
     # Test basic search functionality
-    result = search_events(
-        search_text="meeting",
-        start_date=start_date,
-        end_date=end_date,
-        match_all_terms=False,  # Use OR logic to increase chances of matches
-    )
+    _, response = await mcp.call_tool("search_events", {
+        "search_text": "meeting",
+        "start_date": start_date,
+        "end_date": end_date,
+        "match_all_terms": False,  # Use OR logic to increase chances of matches
+    })
+    assert "error" not in response, response.get("error")
+    result = response["result"]
 
     # Should not error
     assert isinstance(result, list)
@@ -105,13 +120,20 @@ def test_google_calendar_search_events(google_calendar_test_config):
 
 
 @pytest.mark.vcr
-def test_google_calendar_list_events_with_search(google_calendar_test_config):
+@pytest.mark.asyncio
+async def test_google_calendar_list_events_with_search(google_calendar_test_config):
     # Test the search_text parameter in search_events
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
 
     # Test search via search_events
-    result = search_events(search_text="test", start_date=start_date, end_date=end_date)
+    _, response = await mcp.call_tool("search_events", {
+        "search_text": "test", 
+        "start_date": start_date, 
+        "end_date": end_date
+    })
+    assert "error" not in response, response.get("error")
+    result = response["result"]
 
     # Should not error
     assert isinstance(result, list)
@@ -119,9 +141,12 @@ def test_google_calendar_list_events_with_search(google_calendar_test_config):
 
 
 @pytest.mark.vcr
-def test_google_calendar_server_info(google_calendar_test_config):
-    result = server_info()
+@pytest.mark.asyncio
+async def test_google_calendar_server_info(google_calendar_test_config):
+    _, response = await mcp.call_tool("server_info", {})
+    assert "error" not in response, response.get("error")
+    result = response
 
-    assert result.name == "Google Calendar Tool"
-    assert result.status == "active"
-    assert "search_events" in str(result.capabilities)
+    assert result["name"] == "Google Calendar Tool"
+    assert result["status"] == "active"
+    assert "search_events" in str(result["capabilities"])

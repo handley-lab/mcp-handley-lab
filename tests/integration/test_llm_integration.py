@@ -2,24 +2,17 @@
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
-from mcp_handley_lab.llm.claude.tool import ask as claude_ask
-from mcp_handley_lab.llm.claude.tool import server_info as claude_server_info
-from mcp_handley_lab.llm.gemini.tool import analyze_image as gemini_analyze_image
-from mcp_handley_lab.llm.gemini.tool import ask as gemini_ask
-from mcp_handley_lab.llm.gemini.tool import server_info as gemini_server_info
-from mcp_handley_lab.llm.grok.tool import analyze_image as grok_analyze_image
-from mcp_handley_lab.llm.grok.tool import ask as grok_ask
-from mcp_handley_lab.llm.grok.tool import server_info as grok_server_info
-from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
-from mcp_handley_lab.llm.openai.tool import ask as openai_ask
-from mcp_handley_lab.llm.openai.tool import server_info as openai_server_info
+from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
+from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
+from mcp_handley_lab.llm.grok.tool import mcp as grok_mcp
+from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 from PIL import Image
 
 # Define provider-specific parameters
 llm_providers = [
     pytest.param(
-        claude_ask,
+        claude_mcp,
+        "ask",
         "ANTHROPIC_API_KEY",
         "claude-3-5-haiku-20241022",
         "5+5",
@@ -27,7 +20,8 @@ llm_providers = [
         id="claude",
     ),
     pytest.param(
-        gemini_ask,
+        gemini_mcp,
+        "ask",
         "GEMINI_API_KEY",
         "gemini-2.5-flash",
         "3+3",
@@ -35,7 +29,8 @@ llm_providers = [
         id="gemini",
     ),
     pytest.param(
-        openai_ask,
+        openai_mcp,
+        "ask",
         "OPENAI_API_KEY",
         "gpt-4o-mini",
         "2+2",
@@ -43,7 +38,8 @@ llm_providers = [
         id="openai",
     ),
     pytest.param(
-        grok_ask,
+        grok_mcp,
+        "ask",
         "XAI_API_KEY",
         "grok-3-mini",
         "7+1",
@@ -57,25 +53,29 @@ llm_providers = [
 
 image_providers = [
     pytest.param(
-        claude_analyze_image,
+        claude_mcp,
+        "analyze_image",
         "ANTHROPIC_API_KEY",
         "claude-3-5-sonnet-20240620",
         id="claude",
     ),
     pytest.param(
-        gemini_analyze_image,
+        gemini_mcp,
+        "analyze_image",
         "GEMINI_API_KEY",
         "gemini-2.5-pro",
         id="gemini",
     ),
     pytest.param(
-        openai_analyze_image,
+        openai_mcp,
+        "analyze_image",
         "OPENAI_API_KEY",
         "gpt-4o",
         id="openai",
     ),
     pytest.param(
-        grok_analyze_image,
+        grok_mcp,
+        "analyze_image",
         "XAI_API_KEY",
         "grok-2-vision-1212",
         id="grok",
@@ -86,11 +86,12 @@ image_providers = [
 ]
 
 server_info_providers = [
-    pytest.param(claude_server_info, "ANTHROPIC_API_KEY", id="claude"),
-    pytest.param(gemini_server_info, "GEMINI_API_KEY", id="gemini"),
-    pytest.param(openai_server_info, "OPENAI_API_KEY", id="openai"),
+    pytest.param(claude_mcp, "server_info", "ANTHROPIC_API_KEY", id="claude"),
+    pytest.param(gemini_mcp, "server_info", "GEMINI_API_KEY", id="gemini"),
+    pytest.param(openai_mcp, "server_info", "OPENAI_API_KEY", id="openai"),
     pytest.param(
-        grok_server_info,
+        grok_mcp,
+        "server_info",
         "XAI_API_KEY",
         id="grok",
         marks=pytest.mark.skip(
@@ -114,36 +115,41 @@ def create_test_image(tmp_path):
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_ask_basic(
-    skip_if_no_api_key, test_output_file, ask_func, api_key, model, question, answer
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+async def test_llm_ask_basic(
+    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
 ):
     """Test basic text generation for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    result = ask_func(
-        prompt=f"What is {question}? Answer with just the number.",
-        output_file=test_output_file,
-        model=model,
-        temperature=0.0,
-        agent_name=False,
-    )
+    _, response = await mcp_instance.call_tool(tool_name, {
+        "prompt": f"What is {question}? Answer with just the number.",
+        "output_file": test_output_file,
+        "model": model,
+        "temperature": 0.0,
+        "agent_name": "",
+    })
+    assert "error" not in response, response.get("error")
+    result = response
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert result["content"] is not None
+    assert len(result["content"]) > 0
+    assert result["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_ask_with_files(
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+async def test_llm_ask_with_files(
     skip_if_no_api_key,
     test_output_file,
     tmp_path,
-    ask_func,
+    mcp_instance,
+    tool_name,
     api_key,
     model,
     question,
@@ -156,29 +162,33 @@ def test_llm_ask_with_files(
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello World\nThis is a test file.")
 
-    result = ask_func(
-        prompt="What is in this file?",
-        output_file=test_output_file,
-        files=[str(test_file)],
-        model=model,
-        agent_name=False,
-    )
+    _, response = await mcp_instance.call_tool(tool_name, {
+        "prompt": "What is in this file?",
+        "output_file": test_output_file,
+        "files": [str(test_file)],
+        "model": model,
+        "agent_name": "",
+    })
+    assert "error" not in response, response.get("error")
+    result = response
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert result["content"] is not None
+    assert len(result["content"]) > 0
+    assert result["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert any(word in content.lower() for word in ["hello", "world", "test"])
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("analyze_func, api_key, model", image_providers)
-def test_llm_analyze_image(
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model", image_providers)
+async def test_llm_analyze_image(
     skip_if_no_api_key,
     test_output_file,
     create_test_image,
-    analyze_func,
+    mcp_instance,
+    tool_name,
     api_key,
     model,
 ):
@@ -188,97 +198,123 @@ def test_llm_analyze_image(
     # Create test image
     image_path = create_test_image("test_red.png", color="red")
 
-    result = analyze_func(
-        prompt="What color is this image?",
-        output_file=test_output_file,
-        files=[str(image_path)],
-        model=model,
-        agent_name=False,  # Disable memory for clean test
-    )
+    _, response = await mcp_instance.call_tool(tool_name, {
+        "prompt": "What color is this image?",
+        "output_file": test_output_file,
+        "files": [str(image_path)],
+        "model": model,
+        "agent_name": "",  # Disable memory for clean test
+    })
+    assert "error" not in response, response.get("error")
+    result = response
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert result["content"] is not None
+    assert len(result["content"]) > 0
+    assert result["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert "red" in content.lower()
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_memory_disabled(
-    skip_if_no_api_key, test_output_file, ask_func, api_key, model, question, answer
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+async def test_llm_memory_disabled(
+    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
 ):
     """Test that memory is properly disabled when agent_name=False."""
     skip_if_no_api_key(api_key)
 
-    result = ask_func(
-        prompt=f"Remember this number: {answer}. What is {question}?",
-        output_file=test_output_file,
-        model=model,
-        temperature=0.0,
-        agent_name=False,
-    )
+    _, response = await mcp_instance.call_tool(tool_name, {
+        "prompt": f"Remember this number: {answer}. What is {question}?",
+        "output_file": test_output_file,
+        "model": model,
+        "temperature": 0.0,
+        "agent_name": "",
+    })
+    assert "error" not in response, response.get("error")
+    result = response
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert result["content"] is not None
+    assert len(result["content"]) > 0
+    assert result["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("server_info_func, api_key", server_info_providers)
-def test_llm_server_info(skip_if_no_api_key, server_info_func, api_key):
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key", server_info_providers)
+async def test_llm_server_info(skip_if_no_api_key, mcp_instance, tool_name, api_key):
     """Test server info for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    result = server_info_func()
+    _, response = await mcp_instance.call_tool(tool_name, {})
+    assert "error" not in response, response.get("error")
+    result = response
 
     # Handle both string and ServerInfo object returns
-    if hasattr(result, "name"):
-        # ServerInfo object
-        assert "server" in result.name.lower() or "tool" in result.name.lower()
-        assert result.status == "active"
-        assert result.dependencies
+    if "name" in result and isinstance(result.get("name"), str):
+        # Dictionary/object with name field
+        assert "server" in result["name"].lower() or "tool" in result["name"].lower()
+        assert result["status"] == "active"
+        assert result["dependencies"]
     else:
-        # String return
-        assert result.status == "active"
-        assert "Tool" in result.name
+        # String return or other format
+        assert result["status"] == "active"
+        assert "Tool" in result["name"]
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_input_validation(
-    skip_if_no_api_key, test_output_file, ask_func, api_key, model, question, answer
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+async def test_llm_input_validation(
+    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
 ):
     """Test input validation for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    # Test empty prompt should raise ValueError
-    with pytest.raises(ValueError, match="prompt.*required|empty"):
-        ask_func(
-            prompt="",
-            output_file=test_output_file,
-            model=model,
-            agent_name=False,
-        )
+    # Test empty prompt should raise error
+    try:
+        _, response = await mcp_instance.call_tool(tool_name, {
+            "prompt": "",
+            "output_file": test_output_file,
+            "model": model,
+            "agent_name": "",
+        })
+        # If no exception, check for error in response
+        if "error" in response:
+            assert "prompt" in response["error"].lower() or "empty" in response["error"].lower()
+        else:
+            pytest.fail("Expected error for empty prompt")
+    except Exception as e:
+        # MCP wraps errors in ToolError
+        assert "prompt" in str(e).lower() or "empty" in str(e).lower()
 
-    # Test missing output_file should raise ValueError
-    with pytest.raises(ValueError, match="Output file.*required"):
-        ask_func(
-            prompt="Test prompt",
-            output_file="",
-            model=model,
-            agent_name=False,
-        )
+    # Test missing output_file should raise error
+    try:
+        _, response = await mcp_instance.call_tool(tool_name, {
+            "prompt": "Test prompt",
+            "output_file": "",
+            "model": model,
+            "agent_name": "",
+        })
+        # If no exception, check for error in response
+        if "error" in response:
+            assert "output" in response["error"].lower() or "file" in response["error"].lower()
+        else:
+            pytest.fail("Expected error for missing output file")
+    except Exception as e:
+        # MCP wraps errors in ToolError
+        assert "output" in str(e).lower() or "file" in str(e).lower()
 
 
 # Error scenario test parameters
 error_scenarios = [
     pytest.param(
-        claude_ask,
+        claude_mcp,
+        "ask",
         "ANTHROPIC_API_KEY",
         "claude-3-5-haiku-20241022",
         "invalid-model-name-that-does-not-exist",
@@ -286,7 +322,8 @@ error_scenarios = [
         id="claude-invalid-model",
     ),
     pytest.param(
-        gemini_ask,
+        gemini_mcp,
+        "ask",
         "GEMINI_API_KEY",
         "gemini-2.5-flash",
         "invalid-model-name-that-does-not-exist",
@@ -294,7 +331,8 @@ error_scenarios = [
         id="gemini-invalid-model",
     ),
     pytest.param(
-        openai_ask,
+        openai_mcp,
+        "ask",
         "OPENAI_API_KEY",
         "gpt-4o-mini",
         "invalid-model-name-that-does-not-exist",
@@ -302,7 +340,8 @@ error_scenarios = [
         id="openai-invalid-model",
     ),
     pytest.param(
-        grok_ask,
+        grok_mcp,
+        "ask",
         "XAI_API_KEY",
         "grok-3-mini",
         "invalid-model-name-that-does-not-exist",
@@ -316,13 +355,15 @@ error_scenarios = [
 
 
 @pytest.mark.vcr
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "ask_func, api_key, valid_model, invalid_value, error_param", error_scenarios
+    "mcp_instance, tool_name, api_key, valid_model, invalid_value, error_param", error_scenarios
 )
-def test_llm_error_scenarios(
+async def test_llm_error_scenarios(
     skip_if_no_api_key,
     test_output_file,
-    ask_func,
+    mcp_instance,
+    tool_name,
     api_key,
     valid_model,
     invalid_value,
@@ -333,123 +374,134 @@ def test_llm_error_scenarios(
 
     # Test invalid model name should raise error (various exception types possible)
     with pytest.raises((ValueError, RuntimeError, Exception)):
-        ask_func(
-            prompt="Test prompt",
-            output_file=test_output_file,
-            model=invalid_value if error_param == "model" else valid_model,
-            agent_name=False,
-        )
+        _, response = await mcp_instance.call_tool(tool_name, {
+            "prompt": "Test prompt",
+            "output_file": test_output_file,
+            "model": invalid_value if error_param == "model" else valid_model,
+            "agent_name": "",
+        })
+        # If no exception is raised, check for error in response
+        if "error" in response:
+            raise RuntimeError(response["error"])
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func,api_key,model,prompt,expected", llm_providers)
-def test_llm_response_metadata_fields(
-    skip_if_no_api_key, test_output_file, ask_func, api_key, model, prompt, expected
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp_instance,tool_name,api_key,model,prompt,expected", llm_providers)
+async def test_llm_response_metadata_fields(
+    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, prompt, expected
 ):
     """Test that all LLM providers return comprehensive metadata fields."""
     skip_if_no_api_key(api_key)
 
     # Test OpenAI with logprobs enabled if it's OpenAI
     kwargs = {}
-    if "openai" in str(ask_func):
+    if "openai" in str(mcp_instance):
         kwargs.update({"enable_logprobs": True, "top_logprobs": 3})
 
-    result = ask_func(
-        prompt=prompt,
-        output_file=test_output_file,
-        model=model,
-        agent_name="test_metadata",
+    _, response = await mcp_instance.call_tool(tool_name, {
+        "prompt": prompt,
+        "output_file": test_output_file,
+        "model": model,
+        "agent_name": "test_metadata",
         **kwargs,
-    )
+    })
+    assert "error" not in response, response.get("error")
+    result = response
 
     # Check basic response
-    assert result.content is not None
-    assert expected in result.content
+    assert result["content"] is not None
+    assert expected in result["content"]
     assert Path(test_output_file).exists()
 
     # Check common metadata fields
-    assert result.finish_reason != ""
-    assert result.model_version != ""
-    assert isinstance(result.avg_logprobs, float)
+    assert result["finish_reason"] != ""
+    assert result["model_version"] != ""
+    assert isinstance(result["avg_logprobs"], float)
 
     # Check response_id (provider-specific)
-    if "openai" in str(ask_func) or "claude" in str(ask_func):
-        assert result.response_id != ""
+    if "openai" in str(mcp_instance) or "claude" in str(mcp_instance):
+        assert result["response_id"] != ""
 
     # Check provider-specific fields
-    if "openai" in str(ask_func):
+    if "openai" in str(mcp_instance):
         # OpenAI-specific fields
-        assert result.system_fingerprint != ""
-        assert result.service_tier != ""
-        assert isinstance(result.completion_tokens_details, dict)
-        assert isinstance(result.prompt_tokens_details, dict)
+        assert result["system_fingerprint"] != ""
+        assert result["service_tier"] != ""
+        assert isinstance(result["completion_tokens_details"], dict)
+        assert isinstance(result["prompt_tokens_details"], dict)
 
         # Check logprobs were captured when enabled
         if kwargs.get("enable_logprobs"):
-            assert result.avg_logprobs != 0.0
+            assert result["avg_logprobs"] != 0.0
 
         # Check token details structure
-        if result.completion_tokens_details:
+        if result["completion_tokens_details"]:
             expected_keys = {
                 "reasoning_tokens",
                 "accepted_prediction_tokens",
                 "rejected_prediction_tokens",
                 "audio_tokens",
             }
-            assert expected_keys.issubset(result.completion_tokens_details.keys())
+            assert expected_keys.issubset(result["completion_tokens_details"].keys())
 
-    elif "claude" in str(ask_func):
+    elif "claude" in str(mcp_instance):
         # Claude-specific fields
-        assert result.service_tier != ""
-        assert isinstance(result.cache_creation_input_tokens, int)
-        assert isinstance(result.cache_read_input_tokens, int)
+        assert result["service_tier"] != ""
+        assert isinstance(result["cache_creation_input_tokens"], int)
+        assert isinstance(result["cache_read_input_tokens"], int)
         # stop_sequence can be empty string for normal completion
-        assert isinstance(result.stop_sequence, str)
+        assert isinstance(result["stop_sequence"], str)
 
-    elif "gemini" in str(ask_func):
+    elif "gemini" in str(mcp_instance):
         # Gemini has generation_time_ms
-        assert result.generation_time_ms > 0
+        assert result["generation_time_ms"] > 0
 
-    elif "grok" in str(ask_func):
+    elif "grok" in str(mcp_instance):
         # Grok-specific fields (similar to OpenAI but without some features)
         assert (
-            result.system_fingerprint != "" or result.system_fingerprint == ""
+            result["system_fingerprint"] != "" or result["system_fingerprint"] == ""
         )  # Allow empty
-        assert result.service_tier == ""  # Grok doesn't have service tiers
-        assert isinstance(result.completion_tokens_details, dict)
-        assert isinstance(result.prompt_tokens_details, dict)
+        assert result["service_tier"] == ""  # Grok doesn't have service tiers
+        assert isinstance(result["completion_tokens_details"], dict)
+        assert isinstance(result["prompt_tokens_details"], dict)
 
 
 @pytest.mark.vcr
-def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_file):
+@pytest.mark.asyncio
+async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_file):
     """Test OpenAI logprobs configuration options."""
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test without logprobs (default)
-    result1 = openai_ask(
-        prompt="What is 2+2?",
-        output_file=test_output_file,
-        model="gpt-4o-mini",
-        agent_name="test_no_logprobs",
-        enable_logprobs=False,
-    )
+    _, response1 = await openai_mcp.call_tool("ask", {
+        "prompt": "What is 2+2?",
+        "output_file": test_output_file,
+        "model": "gpt-4o-mini",
+        "agent_name": "test_no_logprobs",
+        "enable_logprobs": False,
+    })
+    assert "error" not in response1, response1.get("error")
+    result1 = response1
 
     # Should have basic metadata but no meaningful logprobs
-    assert result1.avg_logprobs == 0.0
-    assert result1.finish_reason != ""
-    assert result1.response_id != ""
+    assert result1["avg_logprobs"] == 0.0
+    assert result1["finish_reason"] != ""
+    assert result1["response_id"] != ""
 
     # Test with logprobs enabled
-    result2 = openai_ask(
-        prompt="What is 3+3?",
-        output_file=test_output_file,
-        model="gpt-4o-mini",
-        agent_name="test_with_logprobs",
-        enable_logprobs=True,
-        top_logprobs=5,
-    )
+    _, response2 = await openai_mcp.call_tool("ask", {
+        "prompt": "What is 3+3?",
+        "output_file": test_output_file,
+        "model": "gpt-4o-mini",
+        "agent_name": "test_with_logprobs",
+        "enable_logprobs": True,
+        "top_logprobs": 5,
+    })
+    assert "error" not in response2, response2.get("error")
+    result2 = response2
 
     # Should have meaningful logprobs
-    assert result2.avg_logprobs != 0.0
-    assert result2.finish_reason != ""
-    assert result2.response_id != ""
+    assert result2["avg_logprobs"] != 0.0
+    assert result2["finish_reason"] != ""
+    assert result2["response_id"] != ""

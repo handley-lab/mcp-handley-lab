@@ -195,7 +195,7 @@ def download(
     ),
     output_path: str = Field(
         "",
-        description="File path to save the content. If empty, defaults to '<arxiv_id>.pdf' for pdf format or '<arxiv_id>' for source formats. Use '-' to list file info to stdout instead of saving.",
+        description="Path to save the content. For 'pdf' format: saves as a single file. For 'src' and 'tex' formats: creates a directory with this name and extracts files into it. If empty, defaults to '<arxiv_id>.pdf' for pdf or '<arxiv_id>' for source formats. Use '-' to list file info to stdout instead of saving.",
     ),
 ) -> DownloadResult:
     if format not in ["src", "pdf", "tex"]:

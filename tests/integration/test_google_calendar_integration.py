@@ -151,21 +151,17 @@ async def test_google_calendar_move_event(google_calendar_test_config):
     assert "error" not in calendars_response, calendars_response.get("error")
     calendars = calendars_response["result"]
     
-    # Find primary and at least one other calendar
-    primary_calendar = None
-    other_calendar = None
+    # Find two calendars with write access
+    writable_calendars = [
+        cal for cal in calendars 
+        if cal.get("accessRole") in ["owner", "writer"]
+    ]
     
-    for cal in calendars:
-        if cal["id"] == "primary" or "gmail.com" in cal["id"]:
-            primary_calendar = cal["id"]
-        elif cal["accessRole"] in ["owner", "writer"] and cal["id"] != primary_calendar:
-            other_calendar = cal["id"]
-            break
+    if len(writable_calendars) < 2:
+        pytest.skip("Need at least 2 writable calendars for move_event test")
     
-    assert primary_calendar is not None, "Primary calendar not found"
-    
-    if other_calendar is None:
-        pytest.skip("No writable secondary calendar available for move_event test")
+    primary_calendar = writable_calendars[0]["id"] 
+    other_calendar = writable_calendars[1]["id"]
     
     # Create event in primary calendar
     tomorrow = datetime.now() + timedelta(days=1)

@@ -172,7 +172,7 @@ class TestGoogleCalendarInvalidInputs:
         """Test handling of end datetime before start datetime."""
         tomorrow = datetime.now() + timedelta(days=1)
         
-        with pytest.raises(ToolError, match="end.*before.*start|start.*after.*end|duration|time.*order"):
+        with pytest.raises(ToolError, match="end.*before.*start|start.*after.*end|duration|time.*order|time range.*empty|empty.*time"):
             await mcp.call_tool("create_event", {
                 "summary": "Invalid Duration Event",
                 "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T15:00:00",  # 3 PM

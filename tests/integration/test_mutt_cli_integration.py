@@ -55,12 +55,12 @@ class TestMuttCLICommands:
     def test_mutt_config_query_basic(self, minimal_mutt_config):
         """Test basic mutt configuration queries."""
         # Test querying a basic configuration variable
-        cmd = ["mutt", "-F", str(minimal_mutt_config), "-Q", "version"]
+        cmd = ["mutt", "-F", str(minimal_mutt_config), "-Q", "folder"]
         stdout, stderr = run_command(cmd, timeout=30)
         
-        # Should return version information
+        # Should return folder setting (empty in our test config)
         output = stdout.decode().strip()
-        assert len(output) > 0
+        assert "folder" in output
 
     def test_mutt_config_query_alias_file(self, minimal_mutt_config):
         """Test querying alias_file configuration."""
@@ -84,7 +84,7 @@ class TestMuttCLICommands:
     def test_mutt_batch_mode_execution(self, minimal_mutt_config):
         """Test mutt execution in batch mode."""
         # Test that mutt can be invoked in batch mode
-        cmd = ["mutt", "-F", str(minimal_mutt_config), "-Q", "version"]
+        cmd = ["mutt", "-F", str(minimal_mutt_config), "-Q", "alias_file"]
         stdout, stderr = run_command(cmd, timeout=30)
         
         # Should complete without hanging in interactive mode

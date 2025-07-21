@@ -32,8 +32,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:54 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -86,8 +84,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -139,8 +135,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:54 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -209,8 +203,6 @@ interactions:
       - no-cache
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -263,8 +255,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:55 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -317,8 +307,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -382,8 +370,6 @@ interactions:
       - no-cache
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin,X-Origin,Referer
       X-Content-Type-Options:
@@ -432,8 +418,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:56 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -486,8 +470,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -547,8 +529,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:56 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -599,8 +579,6 @@ interactions:
       - Sat, 19 Jul 2025 17:41:56 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -653,8 +631,6 @@ interactions:
       - no-cache
       Server:
       - scaffolding on HTTPServer2
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -720,4 +696,54 @@ interactions:
     status:
       code: 204
       message: No Content
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"ya29.A0AS3H6Nx4o-CibWE1OOdVy7RjEW0vEyW1Sg86q6uieC_UidyVxxoR2mduRSqshhfvlgHjzvhWOfaJ6rL3CjoV9JN24ZuHFynojrSjyD-zsohqKu4FNcGJWCh-JXzXxSh-4SP6o5p7HzxwzyrNcq6DdkkDnRXuNKyBR4z9422O1yjyktaGpH26bLjyVvGCsqpVYkuIEWhhYgaCgYKARkSARISFQHGX2Midm-vJFDUmsn4alZ54f3Fxg0209\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 21 Jul 2025 13:46:54 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
+    status:
+      code: 200
+      message: OK
 version: 1

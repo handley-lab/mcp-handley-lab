@@ -44,8 +44,8 @@ async def test_normalize_timezone_integration(google_calendar_test_config):
         })
         assert "error" not in update_response, update_response.get("error")
         
-        result_text = update_response["result"]
-        assert "updated" in result_text.lower()
+        update_result = update_response
+        assert "updated" in update_result["message"].lower()
 
         # Verify the event was updated
         _, updated_response = await mcp.call_tool("get_event", {
@@ -92,9 +92,9 @@ async def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
         })
         assert "error" not in update_response, update_response.get("error")
         
-        result_text = update_response["result"]
+        update_result = update_response
         # Should still update successfully
-        assert "updated" in result_text.lower()
+        assert "updated" in update_result["message"].lower()
 
         # Verify the event was updated
         _, updated_response = await mcp.call_tool("get_event", {
@@ -183,8 +183,8 @@ async def test_update_event_datetime_without_timezone(google_calendar_test_confi
         })
         assert "error" not in update_response, update_response.get("error")
         
-        result_text = update_response["result"]
-        assert "updated" in result_text.lower()
+        update_result = update_response
+        assert "updated" in update_result["message"].lower()
 
         # Verify times were updated
         _, updated_response = await mcp.call_tool("get_event", {
@@ -236,8 +236,8 @@ async def test_all_day_event_unaffected_by_timezone_normalization(
         })
         assert "error" not in update_response, update_response.get("error")
         
-        result_text = update_response["result"]
-        assert "updated" in result_text.lower()
+        update_result = update_response
+        assert "updated" in update_result["message"].lower()
 
         # Verify event was updated but remains all-day
         _, updated_response = await mcp.call_tool("get_event", {

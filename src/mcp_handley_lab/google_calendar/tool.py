@@ -61,6 +61,15 @@ class CreatedEventResult(BaseModel):
     attendees: list[str] = Field(..., description="A list of attendee email addresses for the event.")
 
 
+class UpdateEventResult(BaseModel):
+    """Result of a successful event update operation."""
+
+    event_id: str = Field(..., description="The unique identifier of the updated event.")
+    html_link: str = Field(..., description="A direct link to the event in the Google Calendar UI.")
+    updated_fields: list[str] = Field(..., description="A list of the fields that were modified in this update operation.")
+    message: str = Field(..., description="A human-readable confirmation message.")
+
+
 class CalendarInfo(BaseModel):
     """Calendar information."""
 
@@ -579,7 +588,7 @@ def update_event(
     start_timezone: str = Field("", description="New IANA timezone for the start time. If empty, preserves existing timezone."),
     end_timezone: str = Field("", description="New IANA timezone for the end time. If empty, preserves existing timezone."),
     normalize_timezone: bool = Field(False, description="Set to True to fix timezone inconsistencies (e.g., UTC time with a non-UTC timezone label) on the event."),
-) -> str:
+) -> UpdateEventResult:
     """Update an existing event, with automatic timezone handling for new times.
 
     Examples:
@@ -591,6 +600,7 @@ def update_event(
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
     update_body = {}
+    updated_fields = []
 
     current_event = None
     if normalize_timezone or start_datetime.strip() or end_datetime.strip():
@@ -599,15 +609,21 @@ def update_event(
         )
 
     if normalize_timezone and current_event:
-        update_body.update(_get_normalization_patch(current_event))
+        normalization_patch = _get_normalization_patch(current_event)
+        update_body.update(normalization_patch)
+        if normalization_patch:
+            updated_fields.append("timezone_normalization")
 
     # Build update from provided arguments
-    if summary:
+    if summary.strip():
         update_body["summary"] = summary
+        updated_fields.append("summary")
     if description is not None:  # Allow clearing the description
         update_body["description"] = description
+        updated_fields.append("description")
     if location is not None:  # Allow clearing the location
         update_body["location"] = location
+        updated_fields.append("location")
 
     # If start or end times are being updated, use intelligent preparation logic
     if start_datetime.strip() or end_datetime.strip():
@@ -622,14 +638,22 @@ def update_event(
             # Use explicit timezone or preserve existing event's start timezone
             target_tz = start_timezone or existing_start_tz
             update_body["start"] = _prepare_event_datetime(start_datetime, target_tz)
+            updated_fields.append("start_datetime")
 
         if end_datetime.strip():
             # Use explicit timezone or preserve existing event's end timezone
             target_tz = end_timezone or existing_end_tz
             update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)
+            updated_fields.append("end_datetime")
 
     if not update_body:
-        return "No updates specified. Nothing to do."
+        # Return a minimal result for no updates case
+        return UpdateEventResult(
+            event_id=event_id,
+            html_link="",
+            updated_fields=[],
+            message="No updates specified. Nothing to do."
+        )
 
     updated_event = (
         service.events()
@@ -637,10 +661,18 @@ def update_event(
         .execute()
     )
 
-    result_msg = f"Event (ID: {updated_event['id']}) updated successfully. Fields changed: {', '.join(update_body.keys())}"
+    result_msg = f"Event (ID: {updated_event['id']}) updated successfully."
+    if updated_fields:
+        result_msg += f" Modified fields: {', '.join(updated_fields)}"
     if normalize_timezone and ("start" in update_body or "end" in update_body):
         result_msg += " (timezone inconsistency normalized)"
-    return result_msg
+
+    return UpdateEventResult(
+        event_id=updated_event["id"],
+        html_link=updated_event.get("htmlLink", ""),
+        updated_fields=updated_fields,
+        message=result_msg
+    )
 
 
 @mcp.tool(

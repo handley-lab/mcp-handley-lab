@@ -386,13 +386,10 @@ class TestEnhancedUpdateEvent:
             assert "error" not in update_response, update_response.get("error")
             update_result = update_response
 
-            # update_result is the string returned by update_event
-            if isinstance(update_result, dict):
-                # If the result is wrapped in a dict, extract the message
-                message = update_result.get('message', str(update_result))
-            else:
-                message = str(update_result)
-            assert "updated" in message.lower()
+            # update_result is now a structured UpdateEventResult
+            assert update_result["event_id"] == event_id
+            assert "description" in update_result["updated_fields"]
+            assert "updated" in update_result["message"].lower()
 
             # Verify the update was applied
             _, event_response = await mcp.call_tool("get_event", {

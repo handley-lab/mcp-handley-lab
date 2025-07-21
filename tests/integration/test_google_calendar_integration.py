@@ -73,8 +73,10 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
         "description": "Updated description for VCR test",
     })
     assert "error" not in update_response, update_response.get("error")
-    update_result = update_response["result"]
-    assert "updated" in update_result.lower()
+    update_result = update_response
+    assert update_result["event_id"] == event_id
+    assert "description" in update_result["updated_fields"]
+    assert "updated" in update_result["message"].lower()
 
     # Delete event
     _, delete_response = await mcp.call_tool("delete_event", {"event_id": event_id})

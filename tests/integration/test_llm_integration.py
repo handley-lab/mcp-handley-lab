@@ -505,3 +505,82 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
     assert result2["avg_logprobs"] != 0.0
     assert result2["finish_reason"] != ""
     assert result2["response_id"] != ""
+
+
+class TestLLMMemory:
+    """Test LLM conversational memory functionality."""
+
+    @pytest.mark.vcr
+    @pytest.mark.asyncio
+    async def test_memory_enabled_with_agent_name(self, skip_if_no_api_key, test_output_file):
+        """Test that conversational context is maintained across two calls with the same agent_name."""
+        skip_if_no_api_key("OPENAI_API_KEY")
+        
+        import uuid
+        agent_name = f"test_memory_agent_{uuid.uuid4()}"  # Unique name per test run
+
+        # Call 1: Provide a piece of information
+        _, response1 = await openai_mcp.call_tool("ask", {
+            "prompt": "My user ID is 789. Remember this important number.",
+            "output_file": test_output_file,
+            "model": "gpt-4o-mini", 
+            "agent_name": agent_name,
+            "temperature": 0.1,
+        })
+        assert "error" not in response1, response1.get("error")
+        result1 = response1
+        assert result1["content"] is not None
+
+        # Call 2: Ask a question that relies on the information from Call 1
+        test_output_file2 = test_output_file.replace('.txt', '_2.txt')
+        _, response2 = await openai_mcp.call_tool("ask", {
+            "prompt": "What was my user ID that I told you?",
+            "output_file": test_output_file2,
+            "model": "gpt-4o-mini",
+            "agent_name": agent_name,
+            "temperature": 0.1,
+        })
+        assert "error" not in response2, response2.get("error")
+        result2 = response2
+        
+        # Verify memory worked - the model should remember the user ID
+        assert result2["content"] is not None
+        content2 = Path(test_output_file2).read_text()
+        assert "789" in content2, f"Expected '789' in response: {content2}"
+
+    @pytest.mark.vcr
+    @pytest.mark.asyncio
+    async def test_memory_isolation_different_agents(self, skip_if_no_api_key, test_output_file):
+        """Test that different agent names have isolated memory contexts."""
+        skip_if_no_api_key("OPENAI_API_KEY")
+        
+        import uuid
+        agent_name1 = f"agent_1_{uuid.uuid4()}"
+        agent_name2 = f"agent_2_{uuid.uuid4()}"
+
+        # Agent 1: Remember number 123
+        _, response1 = await openai_mcp.call_tool("ask", {
+            "prompt": "My favorite number is 123. Remember this.",
+            "output_file": test_output_file,
+            "model": "gpt-4o-mini",
+            "agent_name": agent_name1,
+            "temperature": 0.1,
+        })
+        assert "error" not in response1, response1.get("error")
+
+        # Agent 2: Ask about the number (should NOT know it)
+        test_output_file2 = test_output_file.replace('.txt', '_agent2.txt')
+        _, response2 = await openai_mcp.call_tool("ask", {
+            "prompt": "What is my favorite number?",
+            "output_file": test_output_file2,
+            "model": "gpt-4o-mini", 
+            "agent_name": agent_name2,
+            "temperature": 0.1,
+        })
+        assert "error" not in response2, response2.get("error")
+        
+        # Verify isolation - Agent 2 should not know Agent 1's information
+        content2 = Path(test_output_file2).read_text().lower()
+        assert "123" not in content2, f"Agent 2 should not know Agent 1's number: {content2}"
+        assert any(phrase in content2 for phrase in ["don't know", "not provided", "haven't told", "no information", "don't have access"]), \
+            f"Agent 2 should indicate it doesn't know: {content2}"

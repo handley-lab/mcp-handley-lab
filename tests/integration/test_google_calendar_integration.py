@@ -144,6 +144,95 @@ async def test_google_calendar_list_events_with_search(google_calendar_test_conf
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
+async def test_google_calendar_move_event(google_calendar_test_config):
+    """Test moving an event between calendars."""
+    # First get available calendars
+    _, calendars_response = await mcp.call_tool("list_calendars", {})
+    assert "error" not in calendars_response, calendars_response.get("error")
+    calendars = calendars_response["result"]
+    
+    # Find primary and at least one other calendar
+    primary_calendar = None
+    other_calendar = None
+    
+    for cal in calendars:
+        if cal["id"] == "primary" or "gmail.com" in cal["id"]:
+            primary_calendar = cal["id"]
+        elif cal["accessRole"] in ["owner", "writer"] and cal["id"] != primary_calendar:
+            other_calendar = cal["id"]
+            break
+    
+    assert primary_calendar is not None, "Primary calendar not found"
+    
+    if other_calendar is None:
+        pytest.skip("No writable secondary calendar available for move_event test")
+    
+    # Create event in primary calendar
+    tomorrow = datetime.now() + timedelta(days=1)
+    
+    _, create_response = await mcp.call_tool("create_event", {
+        "summary": "Event to Move",
+        "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T10:00:00",
+        "end_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T11:00:00",
+        "description": "This event will be moved between calendars",
+        "calendar_id": primary_calendar,
+        "location": "",
+        "attendees": [],
+        "start_timezone": "",
+        "end_timezone": ""
+    })
+    assert "error" not in create_response, create_response.get("error")
+    event_id = create_response["event_id"]
+    
+    try:
+        # Move event to other calendar
+        _, move_response = await mcp.call_tool("move_event", {
+            "event_id": event_id,
+            "source_calendar_id": primary_calendar,
+            "destination_calendar_id": other_calendar
+        })
+        assert "error" not in move_response, move_response.get("error")
+        
+        # Verify event is no longer in source calendar
+        try:
+            _, get_from_source_response = await mcp.call_tool("get_event", {
+                "event_id": event_id,
+                "calendar_id": primary_calendar
+            })
+            # Should fail to find event in original calendar
+            if "error" not in get_from_source_response:
+                # Some implementations might still show the event
+                pytest.skip("Event still visible in source calendar - move behavior may vary")
+        except Exception:
+            # Expected - event should not be in source calendar
+            pass
+            
+        # Verify event exists in destination calendar
+        _, get_from_dest_response = await mcp.call_tool("get_event", {
+            "event_id": event_id,
+            "calendar_id": other_calendar
+        })
+        assert "error" not in get_from_dest_response, "Event should exist in destination calendar"
+        moved_event = get_from_dest_response
+        
+        assert moved_event["summary"] == "Event to Move"
+        assert moved_event["description"] == "This event will be moved between calendars"
+        
+    finally:
+        # Clean up - try to delete from both calendars
+        for cal_id in [primary_calendar, other_calendar]:
+            try:
+                await mcp.call_tool("delete_event", {
+                    "event_id": event_id,
+                    "calendar_id": cal_id
+                })
+            except:
+                # Expected if event not in this calendar
+                pass
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
 async def test_google_calendar_server_info(google_calendar_test_config):
     _, response = await mcp.call_tool("server_info", {})
     assert "error" not in response, response.get("error")

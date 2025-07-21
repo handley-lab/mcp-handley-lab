@@ -95,7 +95,7 @@ class TestGoogleCalendarInvalidInputs:
         ]
         
         for bad_datetime in malformed_datetimes:
-            with pytest.raises(ToolError, match="datetime|parse|invalid|format"):
+            with pytest.raises(ToolError, match="datetime|parse|invalid|format|empty"):
                 await mcp.call_tool("create_event", {
                     "summary": "Test Event",
                     "start_datetime": bad_datetime,

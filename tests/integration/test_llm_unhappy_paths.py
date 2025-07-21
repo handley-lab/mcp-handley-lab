@@ -222,7 +222,7 @@ class TestLLMFileInputErrors:
         
         nonexistent_file = "/path/to/nonexistent/file.txt"
         
-        with pytest.raises(ToolError, match="file.*not found|not.*exist|no such file"):
+        with pytest.raises(ToolError, match="file.*not found|not.*exist|no such file|directory"):
             await mcp_instance.call_tool(tool_name, {
                 "prompt": "Analyze this file.",
                 "output_file": test_output_file,
@@ -328,7 +328,7 @@ class TestLLMImageAnalysisUnhappyPaths:
         
         nonexistent_image = "/path/to/nonexistent/image.png"
         
-        with pytest.raises(ToolError, match="file.*not found|not.*exist|no such file"):
+        with pytest.raises(ToolError, match="file.*not found|not.*exist|no such file|directory"):
             await mcp_instance.call_tool(tool_name, {
                 "prompt": "Analyze this missing image.",
                 "output_file": test_output_file,

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 
@@ -12,15 +12,15 @@ class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     # API Keys
-    gemini_api_key: str = "YOUR_API_KEY_HERE"
-    openai_api_key: str = "YOUR_API_KEY_HERE"
-    anthropic_api_key: str = "YOUR_API_KEY_HERE"
-    xai_api_key: str = "YOUR_API_KEY_HERE"
-    google_maps_api_key: str = "YOUR_API_KEY_HERE"
+    gemini_api_key: str = Field(default="YOUR_API_KEY_HERE", description="API key for Google Gemini services.")
+    openai_api_key: str = Field(default="YOUR_API_KEY_HERE", description="API key for OpenAI services.")
+    anthropic_api_key: str = Field(default="YOUR_API_KEY_HERE", description="API key for Anthropic Claude services.")
+    xai_api_key: str = Field(default="YOUR_API_KEY_HERE", description="API key for xAI Grok services.")
+    google_maps_api_key: str = Field(default="YOUR_API_KEY_HERE", description="API key for Google Maps services.")
 
     # Google Calendar
-    google_credentials_file: str = "~/.google_calendar_credentials.json"
-    google_token_file: str = "~/.google_calendar_token.json"
+    google_credentials_file: str = Field(default="~/.google_calendar_credentials.json", description="Path to Google Calendar OAuth2 credentials file.")
+    google_token_file: str = Field(default="~/.google_calendar_token.json", description="Path to Google Calendar OAuth2 token cache file.")
 
     @property
     def google_credentials_path(self) -> Path:

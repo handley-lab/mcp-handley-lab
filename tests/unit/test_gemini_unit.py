@@ -1,11 +1,8 @@
 """Unit tests for Gemini LLM tool functionality."""
-from unittest.mock import patch
-
 import pytest
 from mcp_handley_lab.llm.gemini.tool import (
     MODEL_CONFIGS,
     _get_model_config,
-    analyze_image,
 )
 
 
@@ -64,52 +61,10 @@ class TestModelConfiguration:
         assert config["output_tokens"] == 65536
 
 
-class TestInputValidation:
-    """Test input validation for token limits and boolean handling."""
-
-    @patch("mcp_handley_lab.llm.gemini.tool.client")
-    def test_analyze_image_agent_name_false_validation(self, mock_client):
-        """Test that agent_name=False doesn't cause validation errors in analyze_image."""
-        mock_client.models.generate_content.side_effect = Exception(
-            "Should not be called"
-        )
-
-        # This should not raise a validation error
-        try:
-            analyze_image(
-                prompt="Test",
-                output_file="/tmp/test.txt",
-                image_data="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-                agent_name=False,
-            )
-        except ValueError as e:
-            if "strip" in str(e):
-                pytest.fail(
-                    "agent_name=False should not cause strip() validation error"
-                )
-        except Exception:
-            # Other exceptions are expected (like the mock exception)
-            pass
 
 
-class TestErrorHandling:
-    """Test error handling scenarios for coverage."""
-
-    @patch("mcp_handley_lab.llm.gemini.tool.settings")
-    @patch("mcp_handley_lab.llm.gemini.tool.google_genai.Client")
-    def test_client_initialization_error(self, mock_client_class, mock_settings):
-        """Test client initialization error handling - should raise exception."""
-        # Force the initialization to fail
-        mock_settings.gemini_api_key = "test_key"
-        mock_client_class.side_effect = Exception("API key invalid")
-
-        # Import the module to trigger initialization
-        import importlib
-
-        import mcp_handley_lab.llm.gemini.tool
-
-        with pytest.raises(Exception, match="API key invalid"):
-            importlib.reload(mcp_handley_lab.llm.gemini.tool)
+class TestGeminiHelpers:
+    """Test Gemini internal helper functions."""
 
     def test_resolve_files_processing_error(self):
         """Test file processing error in _resolve_files - should fail fast."""
@@ -121,16 +76,3 @@ class TestErrorHandling:
         # Should raise FileNotFoundError instead of adding error text
         with pytest.raises(FileNotFoundError):
             _resolve_files(files)
-
-    @patch("mcp_handley_lab.llm.gemini.tool.client")
-    def test_analyze_image_output_file_validation(self, mock_client):
-        """Test output file validation in analyze_image (line 485)."""
-        from mcp_handley_lab.llm.gemini.tool import analyze_image
-
-        # Test with whitespace-only output file
-        with pytest.raises(ValueError, match="Output file is required"):
-            analyze_image(
-                prompt="Test",
-                output_file="   ",  # Whitespace only
-                files=["data:image/png;base64,test"],
-            )

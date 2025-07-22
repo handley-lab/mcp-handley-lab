@@ -3,6 +3,8 @@
 import importlib
 from pathlib import Path
 
+from pydantic import Field
+
 from mcp_handley_lab.common.process import run_command
 
 # Import the shared mcp instance
@@ -44,7 +46,12 @@ discover_and_register_tools()
 @mcp.tool(
     description="Checks status of all email tools (msmtp, offlineimap, notmuch) and their configurations."
 )
-def server_info(config_file: str = None) -> ServerInfo:
+def server_info(
+    config_file: str = Field(
+        default=None,
+        description="Optional path to the offlineimap configuration file (e.g., ~/.offlineimaprc). If not provided, the default location will be used.",
+    )
+) -> ServerInfo:
     """Check the status of email tools and their configurations."""
     run_command(["msmtp", "--version"])
 

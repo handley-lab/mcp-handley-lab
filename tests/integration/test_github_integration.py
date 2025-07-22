@@ -4,7 +4,7 @@ import os
 import subprocess
 
 import pytest
-from mcp_handley_lab.github.tool import monitor_pr_checks, server_info
+from mcp_handley_lab.github.tool import monitor_pr_checks, server_info, mcp
 
 
 class TestGitHubIntegration:
@@ -60,27 +60,41 @@ class TestGitHubIntegration:
         except FileNotFoundError:
             pytest.skip("gh CLI not installed")
 
-    def test_monitor_pr_checks_parameter_validation(self):
+    @pytest.mark.asyncio
+    async def test_monitor_pr_checks_parameter_validation(self):
         """Test parameter validation in monitor_pr_checks."""
+        from mcp.server.fastmcp.exceptions import ToolError
+        
         # Test negative timeout
-        with pytest.raises(ValueError, match="timeout_minutes.*must be positive"):
-            monitor_pr_checks(1, timeout_minutes=-1)
+        with pytest.raises(ToolError, match="Input should be greater than 0"):
+            await mcp.call_tool("monitor_pr_checks", {"pr_number": 1, "timeout_minutes": -1})
         
         # Test negative check interval
-        with pytest.raises(ValueError, match="check_interval_seconds.*must be positive"):
-            monitor_pr_checks(1, check_interval_seconds=-1)
+        with pytest.raises(ToolError, match="Input should be greater than 0"):
+            await mcp.call_tool("monitor_pr_checks", {"pr_number": 1, "check_interval_seconds": -1})
 
-    def test_monitor_pr_checks_basic_functionality(self):
+    @pytest.mark.asyncio
+    async def test_monitor_pr_checks_basic_functionality(self):
         """Test basic monitor_pr_checks functionality with real gh CLI."""
         try:
             # Test with very short timeout to avoid long test runs
-            result = monitor_pr_checks(1, timeout_minutes=0.1, check_interval_seconds=1)
+            _, response = await mcp.call_tool(
+                "monitor_pr_checks", 
+                {
+                    "pr_number": 1, 
+                    "timeout_minutes": 1,  # Use 1 minute instead of 0.1
+                    "check_interval_seconds": 1
+                }
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response
             
             # Should complete without error (either success, failure, or timeout)
-            assert result.final_status in ["success", "failure", "timeout"]
-            assert result.total_checks >= 0
-            assert result.log  # Should have monitoring log
-            assert "PR #1" in result.log
+            assert result["final_status"] in ["success", "failure", "timeout"]
+            assert result["total_checks"] >= 0
+            assert result["log"]  # Should have monitoring log
+            assert "PR #1" in result["log"]
             
         except subprocess.CalledProcessError as e:
             if "not found" in str(e) or "authentication" in str(e).lower():

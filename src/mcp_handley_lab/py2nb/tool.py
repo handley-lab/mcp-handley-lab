@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from .converter import (
     notebook_to_python,
@@ -16,9 +17,9 @@ from .models import (
     ConversionResult,
     ExecutionResult,
     RoundtripResult,
-    ServerInfo,
     ValidationResult,
 )
+from mcp_handley_lab.shared.models import ServerInfo
 
 mcp = FastMCP("py2nb Conversion Tool")
 
@@ -27,9 +28,9 @@ mcp = FastMCP("py2nb Conversion Tool")
     description="Converts a Python script to a Jupyter notebook. Supports comment syntax for markdown cells (#|), command cells (#!), and cell splits (#-). Returns structured conversion result."
 )
 def py_to_notebook(
-    script_path: str,
-    output_path: str = "",
-    backup: bool = True,
+    script_path: str = Field(..., description="Path to the Python script file to convert to a Jupyter notebook."),
+    output_path: str = Field(default="", description="Path for the output notebook file. If empty, uses script name with .ipynb extension."),
+    backup: bool = Field(default=True, description="If True, creates a backup of the original script file with .bak extension."),
 ) -> ConversionResult:
     """Convert Python script to Jupyter notebook."""
     script_path = Path(script_path)
@@ -68,10 +69,10 @@ def py_to_notebook(
     description="Converts a Jupyter notebook to a Python script. Preserves markdown as #| comments, command cells as #! comments, and adds cell separators. Returns structured conversion result."
 )
 def notebook_to_py(
-    notebook_path: str,
-    output_path: str = "",
-    validate_files: bool = True,
-    backup: bool = True,
+    notebook_path: str = Field(..., description="Path to the Jupyter notebook file to convert to Python script."),
+    output_path: str = Field(default="", description="Path for the output Python script. If empty, uses notebook name with .py extension."),
+    validate_files: bool = Field(default=True, description="If True, validates the input notebook and output script for correct syntax."),
+    backup: bool = Field(default=True, description="If True, creates a backup of the original notebook file with .bak extension."),
 ) -> ConversionResult:
     """Convert Jupyter notebook to Python script."""
     notebook_path = Path(notebook_path)
@@ -113,7 +114,9 @@ def notebook_to_py(
 @mcp.tool(
     description="Validates a notebook file structure and syntax. Returns structured validation result with status and error details."
 )
-def validate_notebook(notebook_path: str) -> ValidationResult:
+def validate_notebook(
+    notebook_path: str = Field(..., description="Path to the Jupyter notebook file to validate for correct structure and syntax.")
+) -> ValidationResult:
     """Validate notebook file structure."""
     if not Path(notebook_path).exists():
         return ValidationResult(
@@ -150,7 +153,9 @@ def validate_notebook(notebook_path: str) -> ValidationResult:
 @mcp.tool(
     description="Validates a Python script file syntax. Returns structured validation result with status and error details."
 )
-def validate_python(script_path: str) -> ValidationResult:
+def validate_python(
+    script_path: str = Field(..., description="Path to the Python script file to validate for correct syntax.")
+) -> ValidationResult:
     """Validate Python script file syntax."""
     if not Path(script_path).exists():
         return ValidationResult(
@@ -188,8 +193,8 @@ def validate_python(script_path: str) -> ValidationResult:
     description="Performs round-trip conversion testing (py→nb→py) to verify conversion fidelity. Returns structured comparison results with difference details."
 )
 def test_roundtrip(
-    script_path: str,
-    cleanup: bool = True,
+    script_path: str = Field(..., description="Path to the Python script to test for round-trip conversion fidelity (py→nb→py)."),
+    cleanup: bool = Field(default=True, description="If True, removes temporary files created during the round-trip test."),
 ) -> RoundtripResult:
     """Test round-trip conversion fidelity."""
     script_path = Path(script_path)
@@ -322,11 +327,15 @@ def server_info() -> ServerInfo:
     }
 
     return ServerInfo(
-        status="Connected and ready",
-        nbformat_version=nbformat_version,
-        jupyter_info=jupyter_info,
-        available_tools=available_tools,
-        comment_syntax=comment_syntax,
+        name="py2nb Conversion Tool",
+        version="1.0.0",
+        status="active",
+        capabilities=available_tools,
+        dependencies={
+            "nbformat": nbformat_version,
+            "jupyter": jupyter_info,
+            "comment_syntax": str(comment_syntax),
+        },
     )
 
 
@@ -334,10 +343,10 @@ def server_info() -> ServerInfo:
     description="Executes all cells in a Jupyter notebook and populates outputs as if a user ran every cell. Returns structured execution results with cell counts and timing."
 )
 def execute_notebook(
-    notebook_path: str,
-    allow_errors: bool = False,
-    timeout: int = 600,
-    kernel_name: str = "python3",
+    notebook_path: str = Field(..., description="Path to the Jupyter notebook file to execute all cells."),
+    allow_errors: bool = Field(default=False, description="If True, continues execution even when cells raise exceptions."),
+    timeout: int = Field(default=600, description="Maximum time in seconds to wait for each cell to execute.", gt=0),
+    kernel_name: str = Field(default="python3", description="Name of the Jupyter kernel to use for execution (e.g., 'python3', 'python')."),
 ) -> ExecutionResult:
     """Execute all cells in a notebook and populate outputs."""
     notebook_path = Path(notebook_path)

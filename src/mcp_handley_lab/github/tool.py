@@ -5,7 +5,7 @@ import time
 from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.shared.models import ServerInfo
@@ -14,20 +14,20 @@ from mcp_handley_lab.shared.models import ServerInfo
 class CheckStatus(BaseModel):
     """Individual check status."""
 
-    name: str
-    state: str
+    name: str = Field(..., description="Name of the CI check (e.g., 'build', 'test').")
+    state: str = Field(..., description="Current state of the check (e.g., 'success', 'failure', 'pending').")
 
 
 class MonitorResult(BaseModel):
     """Result of monitoring PR checks."""
 
-    final_status: Literal["success", "failure", "timeout"]
-    passed_checks: int
-    failed_checks: int
-    pending_checks: int
-    total_checks: int
-    log: str
-    check_details: list[CheckStatus]
+    final_status: Literal["success", "failure", "timeout"] = Field(..., description="Overall result of the monitoring session.")
+    passed_checks: int = Field(..., description="Number of checks that passed.")
+    failed_checks: int = Field(..., description="Number of checks that failed.")
+    pending_checks: int = Field(..., description="Number of checks still running or pending.")
+    total_checks: int = Field(..., description="Total number of checks found.")
+    log: str = Field(..., description="Detailed log of the monitoring session with timestamps.")
+    check_details: list[CheckStatus] = Field(..., description="Final status of all individual checks.")
 
 
 mcp = FastMCP("GitHub CI Monitor")
@@ -37,9 +37,9 @@ mcp = FastMCP("GitHub CI Monitor")
     description="Continuously monitors the CI checks for a GitHub pull request, providing live updates. Specify the `pr_number` to watch. The tool reports the status of each check and automatically exits when all checks pass, any check fails, or the `timeout_minutes` is reached. Returns a log of the monitoring session."
 )
 def monitor_pr_checks(
-    pr_number: int,
-    timeout_minutes: int = 30,
-    check_interval_seconds: int = 30,
+    pr_number: int = Field(..., description="The pull request number to monitor for CI check status."),
+    timeout_minutes: int = Field(default=30, description="Maximum time to monitor checks before timing out.", gt=0),
+    check_interval_seconds: int = Field(default=30, description="Seconds to wait between status checks.", gt=0),
 ) -> MonitorResult:
     """Monitor CI checks for a PR with live status updates."""
     if timeout_minutes <= 0 or check_interval_seconds <= 0:

@@ -2,7 +2,7 @@ import os
 import tempfile
 
 import pytest
-from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info
+from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info, mcp
 
 
 class TestArxivIntegration:
@@ -74,34 +74,39 @@ class TestArxivIntegration:
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    def test_real_arxiv_search(self):
+    @pytest.mark.asyncio
+    async def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
-        # Search for a specific topic
-        results = search("machine learning", max_results=5)
-
+        # Search for a specific topic using MCP call_tool
+        content_blocks, response = await mcp.call_tool(
+            "search", 
+            {"query": "machine learning", "max_results": 5}
+        )
+        
+        results = response["result"]
         assert isinstance(results, list)
         assert len(results) <= 5
 
         if len(results) > 0:
             # Check first result structure
             result = results[0]
-            assert hasattr(result, "id")
-            assert hasattr(result, "title")
-            assert hasattr(result, "authors")
-            assert hasattr(result, "summary")
-            assert hasattr(result, "published")
-            assert hasattr(result, "categories")
-            assert hasattr(result, "pdf_url")
-            assert hasattr(result, "abs_url")
+            assert "id" in result
+            assert "title" in result
+            assert "authors" in result
+            assert "summary" in result
+            assert "published" in result
+            assert "categories" in result
+            assert "pdf_url" in result
+            assert "abs_url" in result
 
             # Check data types
-            assert isinstance(result.id, str)
-            assert isinstance(result.title, str)
-            assert isinstance(result.authors, list)
-            assert isinstance(result.summary, str)
-            assert isinstance(result.categories, list)
-            assert result.pdf_url.startswith("http")
-            assert result.abs_url.startswith("http")
+            assert isinstance(result["id"], str)
+            assert isinstance(result["title"], str)
+            assert isinstance(result["authors"], list)
+            assert isinstance(result["summary"], str)
+            assert isinstance(result["categories"], list)
+            assert result["pdf_url"].startswith("http")
+            assert result["abs_url"].startswith("http")
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration

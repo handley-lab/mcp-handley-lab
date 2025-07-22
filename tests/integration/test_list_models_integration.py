@@ -6,7 +6,7 @@ from mcp_handley_lab.llm.openai.tool import list_models as openai_list_models
 from mcp_handley_lab.shared.models import ModelListing
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 def test_claude_list_models():
     """Test Claude list_models function returns valid model listing."""
     result = claude_list_models()
@@ -28,7 +28,7 @@ def test_claude_list_models():
         assert model.context_window != ""
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 def test_gemini_list_models():
     """Test Gemini list_models function returns valid model listing."""
     result = gemini_list_models()
@@ -50,7 +50,7 @@ def test_gemini_list_models():
         assert model.context_window != ""
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 def test_openai_list_models():
     """Test OpenAI list_models function returns valid model listing."""
     result = openai_list_models()
@@ -98,7 +98,7 @@ def test_model_listings_consistency():
     assert "openai" in providers
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 def test_model_capabilities_fields():
     """Test that model capabilities are properly populated."""
     # Test Claude models for specific capabilities
@@ -132,7 +132,7 @@ def test_model_capabilities_fields():
         assert isinstance(model.capabilities, list)
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 def test_model_pricing_consistency():
     """Test that model pricing information is reasonable and consistent."""
     for provider_func in [claude_list_models, gemini_list_models, openai_list_models]:

@@ -254,7 +254,6 @@ def _gemini_generation_adapter(
                     if "web" in chunk
                 ],
                 "grounding_supports": metadata["grounding_supports"],
-                "retrieval_metadata": metadata["retrieval_metadata"],
                 "search_entry_point": metadata["search_entry_point"],
             }
 
@@ -340,7 +339,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
+    description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to `output_file` ('-' for stdout)."
 )
 def ask(
     prompt: str = Field(..., description="The main question or instruction for the AI model."),

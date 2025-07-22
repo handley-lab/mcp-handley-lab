@@ -261,7 +261,7 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to `output_file` ('-' for stdout)."
+    description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to `output_file` ('-' for stdout)."
 )
 def ask(
     prompt: str = Field(..., description="The main text prompt or question to send to the Claude model."),

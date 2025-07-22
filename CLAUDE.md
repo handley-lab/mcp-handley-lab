@@ -640,6 +640,95 @@ Always test your implementations before marking tasks as complete.
 - **Integration tests**: Call real external tools/APIs to validate actual contracts
 - **Both are essential**: Unit tests provide breadth, integration tests provide real-world validation
 
+### Modern Testing Philosophy: MCP Protocol First
+
+**CRITICAL**: All integration tests must use MCP protocol (`call_tool()`) instead of direct function calls.
+
+**Why MCP Protocol is Required**:
+- Pydantic `Field()` descriptors only work through MCP interface
+- Direct function calls pass `FieldInfo` objects instead of actual values  
+- MCP converts `Field()` descriptors to proper Python types
+- FastMCP handles validation and type coercion automatically
+- Claude Code uses MCP protocol exclusively - direct calls don't match real usage
+
+**✅ Correct Integration Test Pattern**:
+```python
+@pytest.mark.asyncio
+async def test_tool_function():
+    # Use MCP protocol - matches real usage
+    _, response = await mcp.call_tool("function_name", {
+        "param": "value"
+    })
+    assert "error" not in response
+    result = response  # Properly converted response
+```
+
+**❌ NEVER Do This in Integration Tests**:
+```python  
+def test_tool_function():
+    # Direct call - bypasses MCP conversion
+    result = function_name(param="value")  # WRONG!
+```
+
+### Test Categories and Separation of Concerns
+
+Following architectural best practices, tests are organized by concern:
+
+#### **Pure Unit Tests** (Filesystem, Logic, Parsing)
+- Mock all external dependencies (APIs, CLIs, file I/O)
+- Test business logic in isolation
+- Fast execution, no network calls
+- Example: `test_mutt_filesystem_operations.py`
+
+#### **CLI Integration Tests** (Command Execution)
+- Real CLI commands with mocked filesystem
+- Focus on process execution and command construction
+- Test CLI interface compatibility
+- Example: `test_mutt_cli_integration.py`
+
+#### **API Integration Tests** (Service Integration)  
+- Real API calls with VCR cassettes for consistency
+- Test service integration and response handling
+- Validate API contract compliance
+- Example: `test_google_calendar_integration.py`
+
+#### **Unhappy Path Tests** (Error Scenarios)
+- Systematic error scenario testing
+- Authentication failures, invalid inputs, zero results
+- Rate limiting, network errors, boundary conditions
+- Example: `test_google_calendar_unhappy_paths.py`
+
+#### **Workflow Tests** (End-to-End Scenarios)
+- Complete workflows combining multiple components
+- Real-world usage scenarios and cross-component integration
+- Example: `test_mutt_workflows.py`
+
+### Factory Fixtures for Complex Setup
+
+Use factory fixtures to eliminate test boilerplate:
+
+```python
+@pytest.fixture
+async def event_creator() -> AsyncGenerator[Callable, None]:
+    created_event_ids = []
+    
+    async def _event_factory(params: Dict[str, Any]) -> str:
+        # Create with defaults + user params
+        full_params = {**defaults, **params}
+        _, response = await mcp.call_tool("create_event", full_params)
+        event_id = response["event_id"] 
+        created_event_ids.append(event_id)
+        return event_id
+    
+    yield _event_factory
+    
+    # Automatic cleanup
+    for event_id in created_event_ids:
+        await mcp.call_tool("delete_event", {"event_id": event_id})
+```
+
+**Benefits**: Eliminates 15+ lines of boilerplate per test, guaranteed cleanup, focus on test logic.
+
 ### Critical Importance of Integration Tests
 Integration tests are **essential** for tools that interact with external CLIs or APIs:
 

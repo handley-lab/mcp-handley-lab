@@ -124,7 +124,7 @@ def compose(
     ),
     auto_send: bool = Field(
         default=False,
-        description="If True, sends the email automatically without opening the interactive Mutt editor. A signature will be appended if configured.",
+        description="If True, sends the email automatically without opening the interactive Mutt editor. A signature will be appended if configured. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
     in_reply_to: str = Field(
         default=None,
@@ -228,7 +228,7 @@ def reply(
     ),
     auto_send: bool = Field(
         default=False,
-        description="If True, sends the reply automatically without opening the interactive Mutt editor.",
+        description="If True, sends the reply automatically without opening the interactive Mutt editor. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
@@ -256,7 +256,7 @@ def reply(
 
     # Build reply body
     reply_separator = f"On {original_msg.date}, {original_msg.from_address} wrote:"
-    quoted_body_lines = [f"> {line}" for line in original_msg.body_markdown.split("\n")]
+    quoted_body_lines = [f"> {line}" for line in original_msg.body_markdown.splitlines()]
     quoted_body = "\n".join(quoted_body_lines)
 
     # Combine user's body + separator + quoted original
@@ -291,7 +291,7 @@ def forward(
     ),
     auto_send: bool = Field(
         default=False,
-        description="If True, sends the forward automatically without opening the interactive Mutt editor.",
+        description="If True, sends the forward automatically without opening the interactive Mutt editor. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
@@ -309,8 +309,8 @@ def forward(
     original_subject = original_msg.subject
     forward_subject = f"Fwd: {original_subject}" if not original_subject.startswith("Fwd: ") else original_subject
 
-    # Use original message content as-is
-    forwarded_content = original_msg.body_markdown
+    # Use original message content with normalized line endings
+    forwarded_content = "\n".join(original_msg.body_markdown.splitlines())
 
     # Build forward body using mutt's configured format
     forward_intro = f"----- Forwarded message from {original_msg.from_address} -----"

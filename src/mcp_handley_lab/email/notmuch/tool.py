@@ -3,10 +3,10 @@
 import json
 import os
 import re
-from pathlib import Path
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
@@ -49,19 +49,26 @@ class TagResult(BaseModel):
     """Result of tag operation."""
 
     message_id: str = Field(..., description="The notmuch message ID that was tagged.")
-    added_tags: list[str] = Field(..., description="A list of tags that were added to the message.")
-    removed_tags: list[str] = Field(..., description="A list of tags that were removed from the message.")
+    added_tags: list[str] = Field(
+        ..., description="A list of tags that were added to the message."
+    )
+    removed_tags: list[str] = Field(
+        ..., description="A list of tags that were removed from the message."
+    )
 
 
 class AttachmentExtractionResult(BaseModel):
     """Result of a successful attachment extraction operation."""
 
-    message_id: str = Field(..., description="The notmuch message ID from which attachments were extracted.")
-    saved_files: list[str] = Field(
-        ...,
-        description="A list of absolute paths to the saved attachment files."
+    message_id: str = Field(
+        ..., description="The notmuch message ID from which attachments were extracted."
     )
-    message: str = Field(..., description="Status message describing the extraction result.")
+    saved_files: list[str] = Field(
+        ..., description="A list of absolute paths to the saved attachment files."
+    )
+    message: str = Field(
+        ..., description="Status message describing the extraction result."
+    )
 
 
 class MoveResult(BaseModel):
@@ -76,9 +83,7 @@ class MoveResult(BaseModel):
     moved_files_count: int = Field(
         ..., description="The number of email files successfully moved."
     )
-    status: str = Field(
-        ..., description="A summary of the move operation."
-    )
+    status: str = Field(..., description="A summary of the move operation.")
 
 
 @mcp.tool(
@@ -90,7 +95,7 @@ def search(
         description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'.",
     ),
     limit: int = Field(
-        default=20,
+        default=100,
         description="The maximum number of message IDs to return.",
         gt=0,
     ),
@@ -152,7 +157,7 @@ def show(
     query: str = Field(
         ...,
         description="A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
-    )
+    ),
 ) -> list[EmailContent]:
     """Show email content by fetching raw email sources and parsing with Python's email library."""
     cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
@@ -225,7 +230,7 @@ def config(
     key: str = Field(
         default="",
         description="An optional specific configuration key to retrieve (e.g., 'database.path'). If omitted, all configurations are listed.",
-    )
+    ),
 ) -> str:
     """Get notmuch configuration values."""
     cmd = ["notmuch", "config", "list"]
@@ -247,7 +252,7 @@ def count(
     query: str = Field(
         ...,
         description="A valid notmuch search query to count matching emails. Example: 'tag:unread'.",
-    )
+    ),
 ) -> int:
     """Count emails matching a notmuch query."""
     cmd = ["notmuch", "count", query]
@@ -274,7 +279,7 @@ def tag(
     """Add or remove tags from a specific email using notmuch."""
     add_tags = add_tags or []
     remove_tags = remove_tags or []
-    
+
     cmd = (
         ["notmuch", "tag"]
         + [f"+{tag}" for tag in add_tags]
@@ -294,7 +299,8 @@ def tag(
 )
 def extract_attachments(
     message_id: str = Field(
-        ..., description="The notmuch message ID of the email containing the attachments."
+        ...,
+        description="The notmuch message ID of the email containing the attachments.",
     ),
     output_dir: str = Field(
         default="",
@@ -310,42 +316,44 @@ def extract_attachments(
     """
     msg = _get_message_from_raw_source(message_id)
 
-    if filename:
-        if match := re.match(r"(.+?)\s+\(.+\)", filename):
-            filename = match.group(1)
+    if filename and (match := re.match(r"(.+?)\s+\(.+\)", filename)):
+        filename = match.group(1)
 
-    save_path = Path(output_dir or '~/Downloads/email_attachments').expanduser()
+    save_path = Path(output_dir or "~/Downloads/email_attachments").expanduser()
     save_path.mkdir(parents=True, exist_ok=True)
 
     saved_files = []
     found_attachments = []
-    
+
     for part in msg.walk():
-        if part_filename := part.get_filename():
-            if not filename or part_filename == filename:
-                found_attachments.append(part)
+        if (part_filename := part.get_filename()) and (
+            not filename or part_filename == filename
+        ):
+            found_attachments.append(part)
 
     if filename and not found_attachments:
-        raise FileNotFoundError(f"Attachment '{filename}' not found in email id:{message_id}.")
-        
+        raise FileNotFoundError(
+            f"Attachment '{filename}' not found in email id:{message_id}."
+        )
+
     if not found_attachments:
         return AttachmentExtractionResult(
             message_id=message_id,
             saved_files=[],
-            message="No attachments found in the email."
+            message="No attachments found in the email.",
         )
 
     for part in found_attachments:
         part_filename = part.get_filename()
         clean_filename = re.sub(r'[\\/*?:"<>|]', "_", Path(part_filename).name)
         file_path = save_path / clean_filename
-        
+
         counter = 1
         stem, suffix = file_path.stem, file_path.suffix
         while file_path.exists():
             file_path = save_path / f"{stem}_{counter}{suffix}"
             counter += 1
-            
+
         if payload := part.get_payload(decode=True):
             file_path.write_bytes(payload)
             saved_files.append(str(file_path))
@@ -385,11 +393,15 @@ def move(
     query = " or ".join([f"id:{mid}" for mid in message_ids])
     search_cmd = ["notmuch", "search", "--output=files", query]
     stdout, _ = run_command(search_cmd)
-    
-    source_files = [line.strip() for line in stdout.decode().strip().split("\n") if line.strip()]
+
+    source_files = [
+        line.strip() for line in stdout.decode().strip().split("\n") if line.strip()
+    ]
 
     if not source_files:
-        raise FileNotFoundError(f"No email files found for the given message IDs: {message_ids}")
+        raise FileNotFoundError(
+            f"No email files found for the given message IDs: {message_ids}"
+        )
 
     # Get maildir root and move files
     db_path_str, _ = run_command(["notmuch", "config", "get", "database.path"])
@@ -400,13 +412,15 @@ def move(
     for file_path in source_files:
         source_path = Path(file_path)
         destination_path = destination_dir / source_path.name
-        
+
         # os.renames robustly moves the file and creates intermediate
         # directories (like 'Trash' and 'Trash/new') if they don't exist.
         try:
             os.renames(source_path, destination_path)
         except OSError as e:
-            raise OSError(f"Failed to move {source_path} to {destination_path}: {e}") from e
+            raise OSError(
+                f"Failed to move {source_path} to {destination_path}: {e}"
+            ) from e
 
     # Update the notmuch index to discover the moved files
     new()

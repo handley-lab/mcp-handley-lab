@@ -2,7 +2,7 @@ import os
 import tempfile
 
 import pytest
-from mcp_handley_lab.arxiv.tool import download, list_files, search, server_info, mcp
+from mcp_handley_lab.arxiv.tool import download, mcp, server_info
 
 
 class TestArxivIntegration:
@@ -15,11 +15,11 @@ class TestArxivIntegration:
         # Use a very small ArXiv paper (8KB source) - single gzipped file
         arxiv_id = "0704.0005"  # Small paper with minimal source
 
-        # Test listing files
-        files = list_files(arxiv_id)
-        assert isinstance(files, list)
-        assert len(files) == 1
-        assert f"{arxiv_id}.tex" in files
+        # Test listing files via download with output_path="-"
+        result = download(arxiv_id, format="src", output_path="-")
+        assert isinstance(result.files, list)
+        assert len(result.files) == 1
+        assert f"{arxiv_id}.tex" in result.files
 
         # Test downloading source with stdout
         result = download(arxiv_id, format="src", output_path="-")
@@ -36,10 +36,10 @@ class TestArxivIntegration:
         # Use the first ArXiv paper - it's a tar archive with multiple files
         arxiv_id = "0704.0001"  # First paper on ArXiv (tar archive)
 
-        # Test listing files
-        files = list_files(arxiv_id)
-        assert isinstance(files, list)
-        assert len(files) > 1  # Multiple files in tar archive
+        # Test listing files via download with output_path="-"
+        result = download(arxiv_id, format="src", output_path="-")
+        assert isinstance(result.files, list)
+        assert len(result.files) > 1  # Multiple files in tar archive
 
         # Test downloading source with stdout
         result = download(arxiv_id, format="src", output_path="-")
@@ -70,7 +70,7 @@ class TestArxivIntegration:
         import httpx
 
         with pytest.raises(httpx.HTTPStatusError):
-            list_files("invalid-id-99999999")
+            download("invalid-id-99999999", format="src", output_path="-")
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
@@ -79,10 +79,9 @@ class TestArxivIntegration:
         """Test real ArXiv search functionality."""
         # Search for a specific topic using MCP call_tool
         content_blocks, response = await mcp.call_tool(
-            "search", 
-            {"query": "machine learning", "max_results": 5}
+            "search", {"query": "machine learning", "max_results": 5}
         )
-        
+
         results = response["result"]
         assert isinstance(results, list)
         assert len(results) <= 5
@@ -107,6 +106,92 @@ class TestArxivIntegration:
             assert isinstance(result["categories"], list)
             assert result["pdf_url"].startswith("http")
             assert result["abs_url"].startswith("http")
+
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_arxiv_search_field_filtering(self):
+        """Test include_fields functionality for context window management."""
+        # Test minimal fields (just id and title)
+        content_blocks, response = await mcp.call_tool(
+            "search",
+            {
+                "query": "machine learning",
+                "max_results": 2,
+                "include_fields": ["title"],
+            },
+        )
+
+        results = response["result"]
+        assert len(results) <= 2
+        if results:
+            result = results[0]
+            assert "id" in result and result["id"]  # Always included
+            assert "title" in result and result["title"]
+            # Other fields should be null
+            assert result.get("authors") is None
+            assert result.get("summary") is None
+            assert result.get("published") is None
+
+        # Test summary fields
+        content_blocks, response = await mcp.call_tool(
+            "search",
+            {
+                "query": "machine learning",
+                "max_results": 2,
+                "include_fields": ["title", "authors", "published"],
+            },
+        )
+
+        results = response["result"]
+        assert len(results) <= 2
+        if results:
+            result = results[0]
+            assert "id" in result and result["id"]  # Always included
+            assert "title" in result and result["title"]
+            assert "authors" in result
+            assert "published" in result
+            # These should be null (not requested)
+            assert result.get("summary") is None
+            assert result.get("categories") is None
+            assert result.get("pdf_url") is None
+
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_arxiv_search_truncation(self):
+        """Test author and summary truncation features."""
+        # Test summary truncation
+        content_blocks, response = await mcp.call_tool(
+            "search",
+            {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
+        )
+
+        results = response["result"]
+        if results and results[0]["summary"]:
+            summary = results[0]["summary"]
+            assert len(summary) <= 103  # 100 + "..."
+            if len(summary) > 100:
+                assert summary.endswith("...")
+
+        # Test author truncation - need a paper with many authors
+        content_blocks, response = await mcp.call_tool(
+            "search",
+            {
+                "query": "deep learning collaboration",
+                "max_results": 5,
+                "max_authors": 3,
+            },
+        )
+
+        results = response["result"]
+        for result in results:
+            if result["authors"] and len(result["authors"]) > 3:
+                # Check if truncation message is present
+                last_author = result["authors"][-1]
+                assert "... and" in last_author and "more" in last_author
+                # Total should be max_authors + 1 (for the "... and X more" entry)
+                assert len(result["authors"]) == 4
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
@@ -149,7 +234,6 @@ class TestArxivIntegration:
         assert info.status == "active"
         assert "search" in str(info.capabilities)
         assert "download" in str(info.capabilities)
-        assert "list_files" in str(info.capabilities)
         assert "server_info" in str(info.capabilities)
         assert "src,pdf,tex" in info.dependencies["supported_formats"]
         assert "pdf" in info.dependencies["supported_formats"]

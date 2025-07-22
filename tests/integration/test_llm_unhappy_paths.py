@@ -134,6 +134,7 @@ class TestLLMLargeInputHandling:
                 "context", "length", "limit", "token", "size", "too large", "maximum"
             ])
 
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mcp_instance, tool_name, api_key, model", llm_unhappy_providers) 
     async def test_large_file_input_handling(
@@ -167,6 +168,7 @@ class TestLLMLargeInputHandling:
                 "file", "size", "limit", "large", "token", "context"
             ])
 
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mcp_instance, tool_name, api_key, model", llm_unhappy_providers)
     async def test_problematic_characters_handling(

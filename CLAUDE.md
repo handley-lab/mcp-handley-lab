@@ -29,9 +29,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **AI Model Integration**: Managing interactions with Google Gemini and OpenAI models
 - **Productivity & Scheduling**: Google Calendar management
 - **Academic Research**: ArXiv paper source code retrieval and analysis
-- **Data Manipulation**: JSON querying and editing via `jq`
 - **Interactive Editing**: Programmatic `vim` invocation
-- **Workflow Automation**: Tool chaining for multi-step automated tasks
 - **Persistent Memory**: Agent management with conversational memory for LLMs
 
 ## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
@@ -86,7 +84,7 @@ git commit --no-verify -m "bypass hooks"
 ## Critical Development Guidelines
 
 ### Environment Assumptions
-- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, jq, vim, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
+- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, vim, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
 - **NEVER use --break-system-packages**: Use virtual environments instead for package installations
 - Work within a Python virtual environment for all package installations: `python -m venv venv && source venv/bin/activate`
 - This is a local toolset, not for wider distribution - failures in practice guide improvements
@@ -156,9 +154,9 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**
-2. **Phase 2**: Simple CLI-based tools (jq, vim) ✓ **COMPLETE**
+2. **Phase 2**: Simple CLI-based tools (vim) ✓ **COMPLETE**
 3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
-4. **Phase 4**: Complex tools (code2prompt, tool_chainer) ✓ **COMPLETE**
+4. **Phase 4**: Complex tools (code2prompt) ✓ **COMPLETE**
 5. **Phase 5**: Comprehensive testing and documentation ✓ **COMPLETE**
 
 ## Completed Implementations
@@ -201,12 +199,6 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Tests**: 6 integration tests covering all functionality and API compatibility
 - **Status**: Production ready with full OpenAI integration
 
-### Tool Chainer Tool ✓ **100% Test Coverage**
-- **Location**: `src/mcp_handley_lab/tool_chainer/`
-- **Functions**: `discover_tools`, `register_tool`, `chain_tools`, `execute_chain`, `show_history`, `clear_cache`, `server_info`
-- **Features**: Tool discovery, registration, chaining, conditional execution, variable substitution
-- **Tests**: 6 integration tests covering all functionality
-- **Status**: Production ready
 
 ### ArXiv Tool ✓ **100% Test Coverage**
 - **Location**: `src/mcp_handley_lab/arxiv/`
@@ -232,25 +224,28 @@ pip install -e .[dev]
 
 # Use unified entry point
 python -m mcp_handley_lab --help                # Show available tools
-python -m mcp_handley_lab jq                    # Run JQ tool
 python -m mcp_handley_lab vim                   # Run Vim tool
 python -m mcp_handley_lab code2prompt           # Run Code2Prompt tool
 python -m mcp_handley_lab llm.gemini            # Run Gemini LLM tool
 python -m mcp_handley_lab llm.openai          # Run OpenAI LLM tool
 python -m mcp_handley_lab google_calendar       # Run Google Calendar tool
-python -m mcp_handley_lab tool_chainer        # Run Tool Chainer tool
 python -m mcp_handley_lab arxiv                 # Run ArXiv tool
 
 # Or use direct script entries
 mcp-handley-lab --help                          # Unified entry point
-mcp-jq                                          # Direct JQ tool
 mcp-vim                                         # Direct Vim tool
 mcp-code2prompt                                 # Direct Code2Prompt tool
-mcp-gemini                                      # Direct Gemini tool
-mcp-openai                                    # Direct OpenAI tool
-mcp-google-calendar                             # Direct Google Calendar tool
-mcp-tool-chainer                              # Direct Tool Chainer tool
 mcp-arxiv                                       # Direct ArXiv tool
+mcp-google-calendar                             # Direct Google Calendar tool
+mcp-gemini                                      # Direct Gemini tool
+mcp-openai                                      # Direct OpenAI tool
+mcp-claude                                      # Direct Claude tool
+mcp-grok                                        # Direct Grok tool
+mcp-google-maps                                 # Direct Google Maps tool
+mcp-email                                       # Direct Email tool
+mcp-mutt-aliases                                # Direct Mutt Aliases tool
+mcp-py2nb                                       # Direct Notebook Converter tool
+mcp-cli                                         # Direct CLI tool
 ```
 
 ### JSON-RPC MCP Server Usage
@@ -516,7 +511,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 {
   "method": "tools/call", 
   "params": {
-    "name": "list_events",
+    "name": "search_events",
     "arguments": {
       "start_date": "2024-06-25",
       "end_date": "2024-06-26"
@@ -640,6 +635,95 @@ Always test your implementations before marking tasks as complete.
 - **Integration tests**: Call real external tools/APIs to validate actual contracts
 - **Both are essential**: Unit tests provide breadth, integration tests provide real-world validation
 
+### Modern Testing Philosophy: MCP Protocol First
+
+**CRITICAL**: All integration tests must use MCP protocol (`call_tool()`) instead of direct function calls.
+
+**Why MCP Protocol is Required**:
+- Pydantic `Field()` descriptors only work through MCP interface
+- Direct function calls pass `FieldInfo` objects instead of actual values  
+- MCP converts `Field()` descriptors to proper Python types
+- FastMCP handles validation and type coercion automatically
+- Claude Code uses MCP protocol exclusively - direct calls don't match real usage
+
+**✅ Correct Integration Test Pattern**:
+```python
+@pytest.mark.asyncio
+async def test_tool_function():
+    # Use MCP protocol - matches real usage
+    _, response = await mcp.call_tool("function_name", {
+        "param": "value"
+    })
+    assert "error" not in response
+    result = response  # Properly converted response
+```
+
+**❌ NEVER Do This in Integration Tests**:
+```python  
+def test_tool_function():
+    # Direct call - bypasses MCP conversion
+    result = function_name(param="value")  # WRONG!
+```
+
+### Test Categories and Separation of Concerns
+
+Following architectural best practices, tests are organized by concern:
+
+#### **Pure Unit Tests** (Filesystem, Logic, Parsing)
+- Mock all external dependencies (APIs, CLIs, file I/O)
+- Test business logic in isolation
+- Fast execution, no network calls
+- Example: `test_mutt_filesystem_operations.py`
+
+#### **CLI Integration Tests** (Command Execution)
+- Real CLI commands with mocked filesystem
+- Focus on process execution and command construction
+- Test CLI interface compatibility
+- Example: `test_mutt_cli_integration.py`
+
+#### **API Integration Tests** (Service Integration)  
+- Real API calls with VCR cassettes for consistency
+- Test service integration and response handling
+- Validate API contract compliance
+- Example: `test_google_calendar_integration.py`
+
+#### **Unhappy Path Tests** (Error Scenarios)
+- Systematic error scenario testing
+- Authentication failures, invalid inputs, zero results
+- Rate limiting, network errors, boundary conditions
+- Example: `test_google_calendar_unhappy_paths.py`
+
+#### **Workflow Tests** (End-to-End Scenarios)
+- Complete workflows combining multiple components
+- Real-world usage scenarios and cross-component integration
+- Example: `test_mutt_workflows.py`
+
+### Factory Fixtures for Complex Setup
+
+Use factory fixtures to eliminate test boilerplate:
+
+```python
+@pytest.fixture
+async def event_creator() -> AsyncGenerator[Callable, None]:
+    created_event_ids = []
+    
+    async def _event_factory(params: Dict[str, Any]) -> str:
+        # Create with defaults + user params
+        full_params = {**defaults, **params}
+        _, response = await mcp.call_tool("create_event", full_params)
+        event_id = response["event_id"] 
+        created_event_ids.append(event_id)
+        return event_id
+    
+    yield _event_factory
+    
+    # Automatic cleanup
+    for event_id in created_event_ids:
+        await mcp.call_tool("delete_event", {"event_id": event_id})
+```
+
+**Benefits**: Eliminates 15+ lines of boilerplate per test, guaranteed cleanup, focus on test logic.
+
 ### Critical Importance of Integration Tests
 Integration tests are **essential** for tools that interact with external CLIs or APIs:
 
@@ -663,9 +747,9 @@ Integration tests are **essential** for tools that interact with external CLIs o
 
 ### Testing Commands
 - **All tests**: `python -m pytest tests/ --cov=mcp_handley_lab --cov-report=term-missing`
-- **Integration tests only**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py -v`
+- **Integration tests only**: `python -m pytest tests/test_openai_integration.py -v`
 - **Unit tests only**: `python -m pytest tests/ -k "not integration" --cov=mcp_handley_lab --cov-report=term-missing`
-- **Fast integration check**: `python -m pytest tests/test_tool_chainer_integration.py tests/test_openai_integration.py tests/integration/test_jq_integration.py`
+- **Fast integration check**: `python -m pytest tests/test_openai_integration.py`
 - **Slow tests excluded**: `python -m pytest tests/ -m "not slow" --cov=mcp_handley_lab --cov-report=term-missing`
 - **Email integration tests**: `RUN_SLOW_TESTS=1 python -m pytest tests/integration/test_email_integration.py -v`
 - **Target**: 100% test coverage to identify refactoring opportunities

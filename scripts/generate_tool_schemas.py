@@ -53,17 +53,17 @@ async def generate_schemas():
 
     # Map tool names to their module paths
     tool_modules = {
-        "jq": "mcp_handley_lab.jq.tool",
         "vim": "mcp_handley_lab.vim.tool",
         "code2prompt": "mcp_handley_lab.code2prompt.tool",
         "arxiv": "mcp_handley_lab.arxiv.tool",
         "google-calendar": "mcp_handley_lab.google_calendar.tool",
+        "google-maps": "mcp_handley_lab.google_maps.tool",
         "gemini": "mcp_handley_lab.llm.gemini.tool",
         "openai": "mcp_handley_lab.llm.openai.tool",
         "claude": "mcp_handley_lab.llm.claude.tool",
-        "agent": "mcp_handley_lab.llm.agent.tool",
+        "grok": "mcp_handley_lab.llm.grok.tool",
         "email": "mcp_handley_lab.email.tool",
-        "github": "mcp_handley_lab.github.tool",
+        "py2nb": "mcp_handley_lab.py2nb.tool",
     }
 
     schema_data = {

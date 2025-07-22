@@ -29,7 +29,7 @@ def show_help():
         print(f"  - {tool}")
 
     print("\nExamples:")
-    print("  python -m mcp_handley_lab jq")
+    print("  python -m mcp_handley_lab vim")
     print("  python -m mcp_handley_lab llm.gemini")
     print("  python -m mcp_handley_lab google_calendar")
 

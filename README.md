@@ -36,10 +36,11 @@ claude mcp add google-maps --scope user mcp-google-maps
 
 ## Available Tools
 
-### 🤖 **AI Integration** (`gemini`, `openai`)
+### 🤖 **AI Integration** (`gemini`, `openai`, `claude`, `grok`)
 Connect with major AI providers
   - Persistent conversations with memory
-  - Image analysis and generation
+  - Image analysis and generation  
+  - Claude, Gemini, OpenAI, and Grok support
   - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 📚 **ArXiv** (`arxiv`)
@@ -77,17 +78,7 @@ Get directions and routing information
   - **Requires**: Google Maps API key (`GOOGLE_MAPS_API_KEY`)
 
 
-### 🔧 **JSON Manipulation** (`jq`)
-Process JSON data with the power of jq
-  - Query, transform, and validate JSON
-  - Edit files in-place with transformations
-  - _Claude example_: `> use jq to extract the value of the "name" key from the json file at /tmp/data.json`
 
-### 🔗 **Workflow Automation** (`tool-chainer`)
-Chain tools together for multi-step tasks
-  - Create multi-step workflows with conditions
-  - Automate repetitive development tasks
-  - _Claude example_: `> use tool-chainer to create a workflow that first analyzes my codebase with code2prompt, then asks gemini to review it`
 
 ### ✏️ **Interactive Editing** (`vim`)
 Open vim for user input when needed
@@ -95,16 +86,22 @@ Open vim for user input when needed
   - Useful for drafting emails or documentation
   - _Claude example_: `> use vim to open a draft of a relevant email`
 
-### 📝 **Notes Management** (`notes`)
-Persistent, searchable note-taking system
-  - Human-readable YAML files with automatic tagging
-  - Real-time file watching and fast search
-  - Automatic server startup for millisecond response times
-  - _Claude example_: `> create a note about this conversation in the testing folder`
+### 📧 **Email Management** (`email`)
+Comprehensive email workflow integration
+  - Send emails with msmtp
+  - Compose, reply, and forward with Mutt
+  - Search and manage emails with Notmuch
+  - Contact management and OAuth2 setup
+  - _Claude example_: `> compose an email to the team about the project update`
 
-## Notes System Setup
+### 📓 **Notebook Conversion** (`py2nb`)
+Convert between Python scripts and Jupyter notebooks
+  - Bidirectional conversion with metadata preservation
+  - Support for markdown cells and cell separators
+  - Validation and execution capabilities
+  - _Claude example_: `> convert my analysis.py script to a jupyter notebook`
 
-The notes system automatically starts a background server for optimal performance when first accessed. No additional setup required.
+
 
 ## Using AI Tools Together
 

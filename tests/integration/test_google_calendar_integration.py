@@ -4,7 +4,7 @@ import pytest
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_list_calendars(google_calendar_test_config):
     _, response = await mcp.call_tool("list_calendars", {})
@@ -227,7 +227,7 @@ async def test_google_calendar_move_event(google_calendar_test_config):
                 pass
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_server_info(google_calendar_test_config):
     _, response = await mcp.call_tool("server_info", {})

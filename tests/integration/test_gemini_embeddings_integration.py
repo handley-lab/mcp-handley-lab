@@ -19,6 +19,7 @@ def skip_if_no_gemini_key():
 class TestGeminiEmbeddings:
     """Test Gemini embedding functionality."""
 
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_get_embeddings_single_text(self):
         """Test getting embeddings for a single text."""
@@ -59,6 +60,7 @@ class TestGeminiEmbeddings:
             assert len(embedding_result["embedding"]) > 0
             assert all(isinstance(x, float) for x in embedding_result["embedding"])
 
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_get_embeddings_different_task_types(self):
         """Test embeddings with different task types."""

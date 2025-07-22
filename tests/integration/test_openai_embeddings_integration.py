@@ -19,6 +19,7 @@ def skip_if_no_openai_key():
 class TestOpenAIEmbeddings:
     """Test OpenAI embedding functionality."""
 
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_get_embeddings_single_text(self):
         """Test getting embeddings for a single text."""
@@ -299,6 +300,7 @@ class TestOpenAIEmbeddings:
                     "model": "text-embedding-3-small"
                 })
 
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_different_models_compatibility(self):
         """Test that different embedding models work correctly."""

@@ -12,7 +12,7 @@ from openai import BadRequestError
 class TestOpenAIImageGeneration:
     """Test OpenAI image generation with comprehensive metadata extraction."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_dalle2_basic_metadata(self):
         """Test DALL-E 2 basic metadata extraction."""
@@ -52,7 +52,7 @@ class TestOpenAIImageGeneration:
         # DALL-E 2 doesn't enhance prompts
         assert result["enhanced_prompt"] == ""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     def test_dalle3_enhanced_metadata(self):
         """Test DALL-E 3 enhanced metadata extraction including revised prompts."""
         result = openai_generate_image(

@@ -67,7 +67,7 @@ image_unhappy_providers = [
 class TestLLMRateLimitingErrors:
     """Test rate limiting and quota scenarios."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mcp_instance, tool_name, api_key, model", llm_unhappy_providers)
     async def test_rapid_sequential_requests(

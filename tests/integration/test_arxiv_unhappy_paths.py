@@ -85,7 +85,7 @@ class TestArxivInvalidInputs:
 class TestArxivNetworkAndServiceErrors:
     """Test network connectivity and ArXiv service error scenarios."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_nonexistent_arxiv_paper(self):
         """Test handling of ArXiv papers that don't exist."""

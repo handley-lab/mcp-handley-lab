@@ -385,7 +385,7 @@ async def test_llm_error_scenarios(
             raise RuntimeError(response["error"])
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 @pytest.mark.parametrize("mcp_instance,tool_name,api_key,model,prompt,expected", llm_providers)
 async def test_llm_response_metadata_fields(
@@ -467,7 +467,7 @@ async def test_llm_response_metadata_fields(
         assert isinstance(result["prompt_tokens_details"], dict)
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_file):
     """Test OpenAI logprobs configuration options."""

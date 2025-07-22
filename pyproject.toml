@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.7.2"
+version = "0.7.3"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -63,7 +63,6 @@ semantic = [
 ]
 
 [project.scripts]
-mcp-jq = "mcp_handley_lab.jq.tool:mcp.run"
 mcp-vim = "mcp_handley_lab.vim.tool:mcp.run"
 mcp-code2prompt = "mcp_handley_lab.code2prompt.tool:mcp.run"
 mcp-arxiv = "mcp_handley_lab.arxiv.tool:mcp.run"
@@ -75,8 +74,6 @@ mcp-grok = "mcp_handley_lab.llm.grok.tool:mcp.run"
 mcp-google-maps = "mcp_handley_lab.google_maps.tool:mcp.run"
 mcp-email = "mcp_handley_lab.email.tool:mcp.run"
 mcp-mutt-aliases = "mcp_handley_lab.email.mutt_aliases.tool:mcp.run"
-mcp-github = "mcp_handley_lab.github.tool:mcp.run"
-mcp-knowledge = "mcp_handley_lab.knowledge.generic_tools:mcp.run"
 mcp-py2nb = "mcp_handley_lab.py2nb.tool:mcp.run"
 mcp-handley-lab = "mcp_handley_lab.__main__:main"
 mcp-cli = "mcp_handley_lab.cli.main:cli"

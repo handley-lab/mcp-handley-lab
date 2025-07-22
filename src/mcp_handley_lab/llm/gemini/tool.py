@@ -99,13 +99,14 @@ def _get_model_config(model: str) -> dict[str, int]:
 
 def _resolve_files(
     files: list[str],
-) -> list[Part]:
+) -> tuple[list[Part], bool]:
     """Resolve file inputs to structured content parts for google-genai API.
 
     Uses inlineData for files <20MB and Files API for larger files.
-    Returns list of Part objects that can be included in contents.
+    Returns tuple of (Part objects list, Files API used flag).
     """
     parts = []
+    used_files_api = False
     for file_item in files:
         # Handle unified format: strings or {"path": "..."} dicts
         if isinstance(file_item, str):
@@ -118,6 +119,7 @@ def _resolve_files(
 
         if file_size > GEMINI_INLINE_FILE_LIMIT_BYTES:
             # Large file - use Files API
+            used_files_api = True
             uploaded_file = client.files.upload(
                 file=str(file_path),
                 mime_type=get_gemini_safe_mime_type(file_path),
@@ -142,7 +144,7 @@ def _resolve_files(
                     )
                 )
 
-    return parts
+    return parts, used_files_api
 
 
 def _resolve_images(
@@ -184,7 +186,7 @@ def _gemini_generation_adapter(
             tools.append(Tool(google_search=GoogleSearch()))
 
     # Resolve file contents
-    file_parts = _resolve_files(files)
+    file_parts, used_files_api = _resolve_files(files)
 
     # Get model configuration and token limits
     model_config = _get_model_config(model)
@@ -268,8 +270,9 @@ def _gemini_generation_adapter(
             avg_logprobs = float(candidate.avg_logprobs)
 
     # Extract generation time from server-timing header - fail fast on format changes
+    # Files API responses don't include timing headers, only inline responses do
     generation_time_ms = 0
-    if response.sdk_http_response:
+    if not used_files_api and response.sdk_http_response:
         http_dict = response.sdk_http_response.to_json_dict()
         headers = http_dict["headers"]
         server_timing = headers["server-timing"]

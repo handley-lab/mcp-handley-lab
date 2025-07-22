@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from mcp_handley_lab.common.process import run_command
 from pydantic import Field
 
+from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 from mcp_handley_lab.shared.models import OperationResult
 
@@ -16,7 +16,7 @@ def sync(
     account: str = Field(
         default="",
         description="Optional name of a specific account to sync from `~/.offlineimaprc`. If omitted, all accounts are synced.",
-    )
+    ),
 ) -> OperationResult:
     """Run offlineimap to synchronize emails."""
     cmd = ["offlineimap", "-o1"]
@@ -38,7 +38,7 @@ def sync_status(
     config_file: str = Field(
         default=None,
         description="Optional path to the offlineimap configuration file. Defaults to `~/.offlineimaprc`.",
-    )
+    ),
 ) -> OperationResult:
     """Check offlineimap sync status."""
     config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
@@ -59,7 +59,7 @@ def repo_info(
     config_file: str = Field(
         default=None,
         description="Optional path to the offlineimap configuration file. Defaults to `~/.offlineimaprc`.",
-    )
+    ),
 ) -> OperationResult:
     """Get information about configured offlineimap repositories."""
     stdout, stderr = run_command(["offlineimap", "--info"])
@@ -76,7 +76,7 @@ def sync_preview(
     account: str = Field(
         default="",
         description="Optional name of a specific account to preview syncing. If omitted, all accounts are previewed.",
-    )
+    ),
 ) -> OperationResult:
     """Preview email sync operations without making changes."""
     cmd = ["offlineimap", "--dry-run", "-o1"]
@@ -99,7 +99,7 @@ def quick_sync(
     account: str = Field(
         default="",
         description="Optional name of a specific account for a quick sync. If omitted, all accounts are quick-synced.",
-    )
+    ),
 ) -> OperationResult:
     """Perform quick email sync without updating flags."""
     cmd = ["offlineimap", "-q", "-o1"]

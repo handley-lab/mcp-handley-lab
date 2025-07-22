@@ -29,7 +29,7 @@ def _prepare_body_with_signature(initial_body: str = "") -> str:
 
     with open(sig_path) as f:
         signature = f.read().strip()
-    
+
     return body_content + f"\n\n{signature}" if signature else body_content
 
 
@@ -66,7 +66,6 @@ def _build_mutt_command(
 
     if temp_file_path:
         mutt_cmd.extend(["-H", temp_file_path])
-
 
     if folder:
         mutt_cmd.extend(["-f", folder])
@@ -107,14 +106,16 @@ def _execute_mutt_interactive_or_auto(
 )
 def compose(
     to: str = Field(
-        ..., description="The primary recipient's email address (e.g., 'user@example.com')."
+        ...,
+        description="The primary recipient's email address (e.g., 'user@example.com').",
     ),
     subject: str = Field(default="", description="The subject line of the email."),
     cc: str = Field(
         default=None, description="Email address for the 'Cc' (carbon copy) field."
     ),
     bcc: str = Field(
-        default=None, description="Email address for the 'Bcc' (blind carbon copy) field."
+        default=None,
+        description="Email address for the 'Bcc' (blind carbon copy) field.",
     ),
     initial_body: str = Field(
         default="", description="Text to pre-populate in the email body."
@@ -155,8 +156,8 @@ def compose(
                 temp_f.write(f"References: {references}\n")
             temp_f.write("\n")  # Empty line separates headers from body
             temp_f.write(initial_body)
-            if not initial_body.endswith('\n'):
-                temp_f.write('\n')  # Ensure proper line ending
+            if not initial_body.endswith("\n"):
+                temp_f.write("\n")  # Ensure proper line ending
             temp_file_path = temp_f.name
 
         mutt_cmd = _build_mutt_command(
@@ -171,15 +172,13 @@ def compose(
             references=None,  # Already in draft file
         )
 
-        body_content = (
-            _prepare_body_with_signature(initial_body) if auto_send else ""
-        )
+        body_content = _prepare_body_with_signature(initial_body) if auto_send else ""
         window_title = f"Mutt: {subject or 'New Email'}"
 
         _execute_mutt_interactive_or_auto(
             mutt_cmd, auto_send, body_content, window_title
         )
-        
+
         # Only delete temp file if auto_send (mutt finished using it)
         if auto_send:
             os.unlink(temp_file_path)
@@ -247,20 +246,32 @@ def reply(
 
     # Build subject with Re: prefix
     original_subject = original_msg.subject
-    reply_subject = f"Re: {original_subject}" if not original_subject.startswith("Re: ") else original_subject
+    reply_subject = (
+        f"Re: {original_subject}"
+        if not original_subject.startswith("Re: ")
+        else original_subject
+    )
 
     # Build threading headers
     in_reply_to = raw_msg.get("Message-ID")
     existing_references = raw_msg.get("References")
-    references = f"{existing_references} {in_reply_to}" if existing_references else in_reply_to
+    references = (
+        f"{existing_references} {in_reply_to}" if existing_references else in_reply_to
+    )
 
     # Build reply body
     reply_separator = f"On {original_msg.date}, {original_msg.from_address} wrote:"
-    quoted_body_lines = [f"> {line}" for line in original_msg.body_markdown.splitlines()]
+    quoted_body_lines = [
+        f"> {line}" for line in original_msg.body_markdown.splitlines()
+    ]
     quoted_body = "\n".join(quoted_body_lines)
 
     # Combine user's body + separator + quoted original
-    complete_reply_body = f"{initial_body}\n\n{reply_separator}\n{quoted_body}" if initial_body else f"{reply_separator}\n{quoted_body}"
+    complete_reply_body = (
+        f"{initial_body}\n\n{reply_separator}\n{quoted_body}"
+        if initial_body
+        else f"{reply_separator}\n{quoted_body}"
+    )
 
     # Use compose with extracted data
     return compose(
@@ -297,7 +308,6 @@ def forward(
     """Forward an email using compose with extracted forward data."""
 
     # Import notmuch show to get original message data
-    import re
 
     from mcp_handley_lab.email.notmuch.tool import show
 
@@ -307,7 +317,11 @@ def forward(
 
     # Build forward subject with Fwd: prefix
     original_subject = original_msg.subject
-    forward_subject = f"Fwd: {original_subject}" if not original_subject.startswith("Fwd: ") else original_subject
+    forward_subject = (
+        f"Fwd: {original_subject}"
+        if not original_subject.startswith("Fwd: ")
+        else original_subject
+    )
 
     # Use original message content with normalized line endings
     forwarded_content = "\n".join(original_msg.body_markdown.splitlines())
@@ -317,14 +331,19 @@ def forward(
     forward_trailer = "----- End forwarded message -----"
 
     # Combine user's body + intro + original message + trailer
-    complete_forward_body = f"{initial_body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}" if initial_body else f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+    complete_forward_body = (
+        f"{initial_body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+        if initial_body
+        else f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+    )
 
     # Use compose with extracted data (no threading headers for forwards)
     return compose(
-        to=to, subject=forward_subject, initial_body=complete_forward_body, auto_send=auto_send
+        to=to,
+        subject=forward_subject,
+        initial_body=complete_forward_body,
+        auto_send=auto_send,
     )
-
-
 
 
 @mcp.tool(
@@ -350,7 +369,7 @@ def open_folder(
     folder: str = Field(
         ...,
         description="The name of the mail folder to open (e.g., '=INBOX'). Use 'list_folders' to see available options.",
-    )
+    ),
 ) -> OperationResult:
     """Open mutt with a specific folder."""
     mutt_cmd = _build_mutt_command(folder=folder)

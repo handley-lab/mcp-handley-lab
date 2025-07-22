@@ -7,8 +7,7 @@ import tempfile
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Any
-from urllib.parse import quote_plus
+from typing import Any, Literal
 from xml.etree import ElementTree
 
 import httpx
@@ -21,25 +20,56 @@ from mcp_handley_lab.shared.models import ServerInfo
 class DownloadResult(BaseModel):
     """Result of downloading an ArXiv paper."""
 
-    message: str = Field(..., description="A summary message describing the result of the download operation.")
-    arxiv_id: str = Field(..., description="The ArXiv ID of the paper that was downloaded.")
-    format: str = Field(..., description="The format of the downloaded content (e.g., 'src', 'pdf', 'tex').")
-    output_path: str = Field(..., description="The path where the content was saved, or '-' if printed to stdout.")
-    size_bytes: int = Field(..., description="The total size of the downloaded content in bytes.")
-    files: list[str] = Field(default_factory=list, description="A list of file names included in the downloaded archive.")
+    message: str = Field(
+        ...,
+        description="A summary message describing the result of the download operation.",
+    )
+    arxiv_id: str = Field(
+        ..., description="The ArXiv ID of the paper that was downloaded."
+    )
+    format: str = Field(
+        ...,
+        description="The format of the downloaded content (e.g., 'src', 'pdf', 'tex').",
+    )
+    output_path: str = Field(
+        ...,
+        description="The path where the content was saved, or '-' if printed to stdout.",
+    )
+    size_bytes: int = Field(
+        ..., description="The total size of the downloaded content in bytes."
+    )
+    files: list[str] = Field(
+        default_factory=list,
+        description="A list of file names included in the downloaded archive.",
+    )
 
 
 class ArxivPaper(BaseModel):
-    """ArXiv paper metadata."""
+    """
+    ArXiv paper metadata.
+    Fields may be omitted or truncated depending on the parameters used in the search tool.
+    """
 
     id: str = Field(..., description="The ArXiv ID of the paper (e.g., '2301.07041').")
-    title: str = Field(..., description="The title of the paper.")
-    authors: list[str] = Field(..., description="List of authors' names.")
-    summary: str = Field(..., description="Abstract or summary of the paper.")
-    published: str = Field(..., description="Publication date in YYYY-MM-DD format.")
-    categories: list[str] = Field(..., description="ArXiv subject categories (e.g., ['cs.AI', 'cs.LG']).")
-    pdf_url: str = Field(..., description="Direct URL to download the PDF version.")
-    abs_url: str = Field(..., description="URL to the ArXiv abstract page.")
+    title: str | None = Field(default=None, description="The title of the paper.")
+    authors: list[str] | None = Field(
+        default=None, description="List of authors' names. May be truncated."
+    )
+    summary: str | None = Field(
+        default=None, description="Abstract or summary of the paper. May be truncated."
+    )
+    published: str | None = Field(
+        default=None, description="Publication date in YYYY-MM-DD format."
+    )
+    categories: list[str] | None = Field(
+        default=None, description="ArXiv subject categories (e.g., ['cs.AI', 'cs.LG'])."
+    )
+    pdf_url: str | None = Field(
+        default=None, description="Direct URL to download the PDF version."
+    )
+    abs_url: str | None = Field(
+        default=None, description="URL to the ArXiv abstract page."
+    )
 
 
 mcp = FastMCP("ArXiv Tool")
@@ -185,10 +215,13 @@ def _handle_tar_archive_structured(
 
 
 @mcp.tool(
-    description="Downloads an ArXiv paper by its ID in 'src', 'pdf', or 'tex' format. Saves content to `output_path` or lists file info to stdout if `output_path` is '-'. Returns a status message."
+    description="Downloads an ArXiv paper by its ID or lists its source files. Formats: 'src' (all source), 'pdf', 'tex' (LaTeX files only). To list source files without saving, set format to 'src' and output_path to '-'. Returns structured operation result."
 )
 def download(
-    arxiv_id: str = Field(..., description="The unique ArXiv identifier for the paper (e.g., '2301.07041')."),
+    arxiv_id: str = Field(
+        ...,
+        description="The unique ArXiv identifier for the paper (e.g., '2301.07041').",
+    ),
     format: str = Field(
         "src",
         description="The format of the paper to download. Valid options are 'src', 'pdf', or 'tex'.",
@@ -239,28 +272,6 @@ def download(
         return _handle_source_content_structured(arxiv_id, content, format, output_path)
 
 
-@mcp.tool(
-    description="Lists the file names within an ArXiv paper's source archive. Use this to inspect contents before downloading. Returns a list of file paths."
-)
-def list_files(
-    arxiv_id: str = Field(..., description="The unique ArXiv identifier for the paper (e.g., '2301.07041') whose files should be listed."),
-) -> list[str]:
-    content = _get_source_archive(arxiv_id)
-
-    try:
-        tar_stream = BytesIO(content)
-        filenames = []
-        with tarfile.open(fileobj=tar_stream, mode="r:*") as tar:
-            for member in tar.getmembers():
-                if member.isfile():
-                    filenames.append(member.name)
-        return filenames
-    except tarfile.TarError:
-        # Not a valid tar, so try to handle as a single gzipped file
-        gzip.decompress(content)
-        return [f"{arxiv_id}.tex"]
-
-
 def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
     """Parse a single ArXiv entry from the Atom feed."""
     ns = {
@@ -270,7 +281,11 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
     def find_text(path, default=""):
         elem = entry.find(path, ns)
-        return elem.text.strip() if elem is not None and elem.text else default
+        return (
+            elem.text.strip().replace("\n", " ")
+            if elem is not None and elem.text
+            else default
+        )
 
     title = find_text("atom:title")
     summary = find_text("atom:summary")
@@ -310,62 +325,134 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
     }
 
 
+def _apply_field_filtering(
+    paper_dict: dict[str, Any],
+    include_fields: list[str] | None,
+) -> dict[str, Any]:
+    """
+    Apply field filtering to a paper dictionary.
+
+    If include_fields is None, returns all fields.
+    If include_fields is provided, returns only those fields (plus 'id' which is always included).
+    """
+    if include_fields is None:
+        # Return all fields
+        return paper_dict
+
+    # Use specified fields, ensuring 'id' is always included
+    included_fields = set(include_fields)
+    included_fields.add("id")
+
+    # Filter the paper dictionary
+    return {k: v for k, v in paper_dict.items() if k in included_fields}
+
+
 @mcp.tool(
-    description="Searches ArXiv for papers matching a query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton', 'ti:attention') and boolean operators ('AND', 'OR'). Results can be sorted by relevance or date. Returns a list of papers, each containing metadata like title, authors, and summary."
+    description="Searches ArXiv for papers. Supports advanced syntax (e.g., 'au:Hinton', 'ti:attention'). Use include_fields to limit output for context window management."
 )
 def search(
     query: str = Field(
         ...,
-        description="The search query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton') and boolean operators.",
+        description="The search query. Supports field prefixes (au, ti, abs, co) and boolean operators (AND, OR, ANDNOT).",
     ),
     max_results: int = Field(
-        10,
-        description="The maximum number of results to return. The API caps this at 100.",
+        50,
+        description="The maximum number of results to return.",
     ),
     start: int = Field(
         0, description="The starting index for the search results, used for pagination."
     ),
-    sort_by: str = Field(
+    sort_by: Literal["relevance", "lastUpdatedDate", "submittedDate"] = Field(
         "relevance",
-        description="The sorting criteria for the results. Valid options are 'relevance', 'lastUpdatedDate', 'submittedDate'.",
+        description="Sorting criteria. Options: 'relevance', 'lastUpdatedDate', 'submittedDate'.",
     ),
-    sort_order: str = Field(
+    sort_order: Literal["ascending", "descending"] = Field(
         "descending",
-        description="The sorting order for the results. Valid options are 'ascending' or 'descending'.",
+        description="Sorting order. Options: 'ascending' or 'descending'.",
+    ),
+    include_fields: list[
+        Literal[
+            "id",
+            "title",
+            "authors",
+            "summary",
+            "published",
+            "categories",
+            "pdf_url",
+            "abs_url",
+        ]
+    ]
+    | None = Field(
+        None,
+        description="Specific fields to include in results. If not provided, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
+    ),
+    max_authors: int | None = Field(
+        5,
+        ge=1,
+        description="Max authors to return per paper. If more, a summary is added. Set to null for no limit.",
+    ),
+    max_summary_len: int | None = Field(
+        1000,
+        ge=1,
+        description="Max summary length (characters). Truncates with '...'. Set to null for no limit.",
     ),
 ) -> list[ArxivPaper]:
-    if max_results > 100:
-        max_results = 100
-
+    """
+    Searches ArXiv and returns a list of papers with configurable output limiting.
+    """
     base_url = "http://export.arxiv.org/api/query"
-    encoded_query = quote_plus(query)
 
     params = {
-        "search_query": encoded_query,
+        "search_query": query,  # httpx handles encoding
         "start": start,
         "max_results": max_results,
         "sortBy": sort_by,
         "sortOrder": sort_order,
     }
 
-    param_str = "&".join([f"{k}={v}" for k, v in params.items()])
-    url = f"{base_url}?{param_str}"
-
-    with httpx.Client(follow_redirects=True) as client:
-        response = client.get(url)
-        response.raise_for_status()
-
-    root = ElementTree.fromstring(response.content)
-
-    ns = {
-        "atom": "http://www.w3.org/2005/Atom",
-        "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
-    }
+    try:
+        with httpx.Client(follow_redirects=True) as client:
+            response = client.get(base_url, params=params)
+            response.raise_for_status()
+        root = ElementTree.fromstring(response.content)
+    except ElementTree.ParseError:
+        raise ValueError(
+            "Failed to parse response from ArXiv API. The service may be down or returning invalid data."
+        ) from None
+    except httpx.HTTPStatusError as e:
+        raise ConnectionError(
+            f"ArXiv API error: {e.response.status_code} - {e.response.text}"
+        ) from e
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
 
     results = []
     for entry in root.findall("atom:entry", ns):
         paper_dict = _parse_arxiv_entry(entry)
-        results.append(ArxivPaper(**paper_dict))
+
+        # Apply field-specific limits (truncation)
+        if (
+            paper_dict["authors"]
+            and max_authors is not None
+            and len(paper_dict["authors"]) > max_authors
+        ):
+            num_remaining = len(paper_dict["authors"]) - max_authors
+            paper_dict["authors"] = paper_dict["authors"][:max_authors]
+            paper_dict["authors"].append(f"... and {num_remaining} more")
+
+        if (
+            paper_dict["summary"]
+            and max_summary_len is not None
+            and len(paper_dict["summary"]) > max_summary_len
+        ):
+            end = paper_dict["summary"].rfind(" ", 0, max_summary_len)
+            paper_dict["summary"] = (
+                paper_dict["summary"][: end if end != -1 else max_summary_len] + "..."
+            )
+
+        # Apply field filtering
+        final_paper_dict = _apply_field_filtering(paper_dict, include_fields)
+
+        results.append(ArxivPaper(**final_paper_dict))
 
     return results
 
@@ -378,7 +465,7 @@ def server_info() -> ServerInfo:
         name="ArXiv Tool",
         version="1.0.0",
         status="active",
-        capabilities=["search", "download", "list_files", "server_info"],
+        capabilities=["search", "download", "server_info"],
         dependencies={
             "httpx": "latest",
             "pydantic": "latest",

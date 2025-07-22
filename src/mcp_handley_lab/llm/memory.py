@@ -4,28 +4,28 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Message(BaseModel):
     """A single message in a conversation."""
 
-    role: str  # "user" or "assistant"
-    content: str
-    timestamp: datetime
-    tokens: int | None = None
-    cost: float | None = None
+    role: str = Field(..., description="The role of the message sender ('user' or 'assistant').")
+    content: str = Field(..., description="The text content of the message.")
+    timestamp: datetime = Field(..., description="When the message was created.")
+    tokens: int | None = Field(default=None, description="Number of tokens in this message, if available.")
+    cost: float | None = Field(default=None, description="Cost associated with this message, if available.")
 
 
 class AgentMemory(BaseModel):
     """Persistent memory for a named agent."""
 
-    name: str
-    personality: str | None = None
-    created_at: datetime
-    messages: list[Message] = []
-    total_tokens: int = 0
-    total_cost: float = 0.0
+    name: str = Field(..., description="The unique name of the agent.")
+    personality: str | None = Field(default=None, description="The system instruction or personality for the agent.")
+    created_at: datetime = Field(..., description="The timestamp when the agent was created.")
+    messages: list[Message] = Field(default_factory=list, description="The list of conversation messages.")
+    total_tokens: int = Field(default=0, description="The cumulative token count for this agent.")
+    total_cost: float = Field(default=0.0, description="The cumulative cost for this agent's conversations.")
 
     def add_message(self, role: str, content: str, tokens: int = 0, cost: float = 0.0):
         """Add a message to the agent's memory."""

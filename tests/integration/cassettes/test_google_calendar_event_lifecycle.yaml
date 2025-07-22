@@ -1154,8 +1154,6 @@ interactions:
       - Tue, 15 Jul 2025 10:41:48 GMT
       Server:
       - ESF
-      Transfer-Encoding:
-      - chunked
       Vary:
       - Origin
       - X-Origin
@@ -1175,4 +1173,54 @@ interactions:
     status:
       code: 401
       message: Unauthorized
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"ya29.A0AS3H6NzzgIJ9I0RySy3myLcWV3c-SmhjG2G142ysHEjbeEOYW_iMp_d_D8RFJsjeBWXE9AXFeNcuL9-NbHh1Wutu7-h25NOZ-iQOuD7-GArDn0fE2x4ez2pbjnb_0y7f9O9ux0xKva4FTCLaPgmMrbTaXX9ffCyME6OgnIIf9jRFlUFfKl5B-ph4ItcBJ29YiD2s5RhomgaCgYKAcYSARISFQHGX2MiSemDig1WgplG_qeuRT65SQ0209\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 22 Jul 2025 06:52:33 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
+    status:
+      code: 200
+      message: OK
 version: 1

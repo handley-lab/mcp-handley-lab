@@ -13,6 +13,7 @@ from mcp_handley_lab.py2nb.tool import (
     server_info,
     validate_notebook,
     validate_python,
+    mcp,
 )
 from mcp_handley_lab.py2nb.tool import (
     test_roundtrip as roundtrip_test,
@@ -22,7 +23,8 @@ from mcp_handley_lab.py2nb.tool import (
 class TestPy2nbToolIntegration:
     """Integration tests for py2nb conversion tool."""
 
-    def test_py_to_notebook_integration(self):
+    @pytest.mark.asyncio
+    async def test_py_to_notebook_integration(self):
         """Test full Python to notebook conversion."""
         # Create test Python file
         test_content = """#| # Data Analysis Example
@@ -54,18 +56,24 @@ print(f"Std: {np.std(data):.3f}")
             python_file = f.name
 
         try:
-            # Convert to notebook
-            result = py_to_notebook(python_file)
+            # Convert to notebook using MCP call_tool
+            _, response = await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": python_file}
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response  # response IS the result
 
             # Verify result structure
-            assert result.success is True
-            assert result.input_path == python_file
-            assert result.output_path.endswith(".ipynb")
-            assert "Successfully converted" in result.message
-            assert result.backup_path is not None  # backup enabled by default
+            assert result["success"] is True
+            assert result["input_path"] == python_file
+            assert result["output_path"].endswith(".ipynb")
+            assert "Successfully converted" in result["message"]
+            assert result["backup_path"] is not None  # backup enabled by default
 
             # Verify notebook file exists
-            notebook_file = Path(result.output_path)
+            notebook_file = Path(result["output_path"])
             assert notebook_file.exists()
 
             # Verify notebook structure
@@ -103,7 +111,8 @@ print(f"Std: {np.std(data):.3f}")
             Path(python_file).unlink(missing_ok=True)
             notebook_file.unlink(missing_ok=True)
 
-    def test_notebook_to_py_integration(self):
+    @pytest.mark.asyncio
+    async def test_notebook_to_py_integration(self):
         """Test full notebook to Python conversion."""
         # Create test notebook
         notebook_data = {
@@ -154,18 +163,24 @@ print(f"Std: {np.std(data):.3f}")
             notebook_file = f.name
 
         try:
-            # Convert to Python
-            result = notebook_to_py(notebook_file)
+            # Convert to Python using MCP call_tool
+            _, response = await mcp.call_tool(
+                "notebook_to_py", 
+                {"notebook_path": notebook_file}
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response
 
             # Verify result structure
-            assert result.success is True
-            assert result.input_path == notebook_file
-            assert result.output_path.endswith(".py")
-            assert "Successfully converted" in result.message
-            assert result.backup_path is not None  # backup enabled by default
+            assert result["success"] is True
+            assert result["input_path"] == notebook_file
+            assert result["output_path"].endswith(".py")
+            assert "Successfully converted" in result["message"]
+            assert result["backup_path"] is not None  # backup enabled by default
 
             # Verify Python file exists
-            python_file = result.output_path
+            python_file = result["output_path"]
             assert Path(python_file).exists()
 
             # Verify Python file content
@@ -184,7 +199,8 @@ print(f"Std: {np.std(data):.3f}")
             Path(notebook_file).unlink(missing_ok=True)
             Path(python_file).unlink(missing_ok=True)
 
-    def test_validation_integration(self):
+    @pytest.mark.asyncio
+    async def test_validation_integration(self):
         """Test validation functions with real files."""
         # Valid notebook
         notebook_data = {
@@ -211,28 +227,44 @@ print(f"Std: {np.std(data):.3f}")
             python_file = f.name
 
         try:
-            # Test notebook validation
-            result = validate_notebook(notebook_file)
-            assert result.valid is True
-            assert result.file_path == notebook_file
-            assert "validation passed" in result.message
+            # Test notebook validation using MCP call_tool
+            _, response = await mcp.call_tool(
+                "validate_notebook", 
+                {"notebook_path": notebook_file}
+            )
+            assert "error" not in response, response.get("error")
+            result = response
+            assert result["valid"] is True
+            assert result["file_path"] == notebook_file
+            assert "validation passed" in result["message"]
 
-            # Test Python validation
-            result = validate_python(python_file)
-            assert result.valid is True
-            assert result.file_path == python_file
-            assert "validation passed" in result.message
+            # Test Python validation using MCP call_tool
+            _, response = await mcp.call_tool(
+                "validate_python", 
+                {"script_path": python_file}
+            )
+            assert "error" not in response, response.get("error")
+            result = response
+            assert result["valid"] is True
+            assert result["file_path"] == python_file
+            assert "validation passed" in result["message"]
 
-            # Test non-existent file
-            result = validate_notebook("/non/existent/file.ipynb")
-            assert result.valid is False
-            assert "File not found" in result.message
+            # Test non-existent file using MCP call_tool
+            _, response = await mcp.call_tool(
+                "validate_notebook", 
+                {"notebook_path": "/non/existent/file.ipynb"}
+            )
+            assert "error" not in response, response.get("error")
+            result = response
+            assert result["valid"] is False
+            assert "File not found" in result["message"]
 
         finally:
             Path(notebook_file).unlink(missing_ok=True)
             Path(python_file).unlink(missing_ok=True)
 
-    def test_roundtrip_integration(self):
+    @pytest.mark.asyncio
+    async def test_roundtrip_integration(self):
         """Test round-trip conversion integration."""
         # Create Python file with various comment types
         test_content = """#| # Test Document
@@ -254,20 +286,27 @@ print(f"Result: {y}")
             python_file = f.name
 
         try:
-            # Test round-trip conversion
-            result = roundtrip_test(python_file)
+            # Test round-trip conversion using MCP call_tool
+            _, response = await mcp.call_tool(
+                "test_roundtrip", 
+                {"script_path": python_file}
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response
 
             # Verify result structure
-            assert result.success is True
-            assert result.input_path == python_file
-            assert "Round-trip" in result.message
-            assert result.temporary_files_cleaned is True
+            assert result["success"] is True
+            assert result["input_path"] == python_file
+            assert "Round-trip" in result["message"]
+            assert result["temporary_files_cleaned"] is True
 
         finally:
             Path(python_file).unlink(missing_ok=True)
 
     @pytest.mark.skip(reason="Notebook execution requires Jupyter kernel setup in CI")
-    def test_notebook_execution_integration(self):
+    @pytest.mark.asyncio
+    async def test_notebook_execution_integration(self):
         """Test notebook execution functionality."""
         pytest.importorskip(
             "nbclient", reason="nbclient required for notebook execution"
@@ -289,28 +328,38 @@ result"""
             python_file = f.name
 
         try:
-            # Convert to notebook first
-            conversion_result = py_to_notebook(python_file)
-            notebook_file = conversion_result.output_path
+            # Convert to notebook first using MCP call_tool
+            _, response = await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": python_file}
+            )
+            assert "error" not in response, response.get("error")
+            conversion_result = response
+            notebook_file = conversion_result["output_path"]
 
-            # Execute the notebook
-            execution_result = execute_notebook(notebook_file, allow_errors=True)
+            # Execute the notebook using MCP call_tool
+            _, response = await mcp.call_tool(
+                "execute_notebook", 
+                {"notebook_path": notebook_file, "allow_errors": True}
+            )
+            assert "error" not in response, response.get("error")
+            execution_result = response
 
             # Skip test if Jupyter kernel is not available in CI environment
             if (
-                not execution_result.success
-                and "kernel" in execution_result.message.lower()
+                not execution_result["success"]
+                and "kernel" in execution_result["message"].lower()
             ):
                 pytest.skip("Jupyter kernel not available in CI environment")
 
             # Verify execution results
-            assert execution_result.success is True
-            assert execution_result.notebook_path == notebook_file
-            assert execution_result.cells_executed >= 1
-            assert execution_result.cells_with_errors == 0
-            assert execution_result.execution_time_seconds > 0
-            assert "Successfully executed" in execution_result.message
-            assert execution_result.kernel_name == "python3"
+            assert execution_result["success"] is True
+            assert execution_result["notebook_path"] == notebook_file
+            assert execution_result["cells_executed"] >= 1
+            assert execution_result["cells_with_errors"] == 0
+            assert execution_result["execution_time_seconds"] > 0
+            assert "Successfully executed" in execution_result["message"]
+            assert execution_result["kernel_name"] == "python3"
 
             # Verify the notebook file was updated with outputs
             import json
@@ -337,22 +386,27 @@ result"""
         finally:
             Path(python_file).unlink(missing_ok=True)
             Path(notebook_file).unlink(missing_ok=True)
-            if conversion_result.backup_path:
-                Path(conversion_result.backup_path).unlink(missing_ok=True)
+            if conversion_result["backup_path"]:
+                Path(conversion_result["backup_path"]).unlink(missing_ok=True)
 
-    def test_server_info_integration(self):
+    @pytest.mark.asyncio
+    async def test_server_info_integration(self):
         """Test server info function."""
-        result = server_info()
+        _, response = await mcp.call_tool("server_info", {})
+        
+        assert "error" not in response, response.get("error")
+        result = response
 
-        assert result.status == "Connected and ready"
-        assert result.nbformat_version is not None
-        assert result.jupyter_info is not None
-        assert "py_to_notebook" in result.available_tools
-        assert "notebook_to_py" in result.available_tools
-        assert "validate_notebook" in result.available_tools
-        assert "#| or # |" in result.comment_syntax
+        assert result["status"] == "active"
+        assert "nbformat" in result["dependencies"]
+        assert "jupyter" in result["dependencies"]
+        assert "py_to_notebook" in result["capabilities"]
+        assert "notebook_to_py" in result["capabilities"]
+        assert "validate_notebook" in result["capabilities"]
+        assert "comment_syntax" in result["dependencies"]
 
-    def test_backup_functionality(self):
+    @pytest.mark.asyncio
+    async def test_backup_functionality(self):
         """Test backup creation during conversion."""
         # Create test Python file
         test_content = "print('test')\n"
@@ -362,14 +416,20 @@ result"""
             python_file = f.name
 
         try:
-            # Convert with backup enabled
-            result = py_to_notebook(python_file, backup=True)
+            # Convert with backup enabled using MCP call_tool
+            _, response = await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": python_file, "backup": True}
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response
 
             # Verify backup was created
-            assert result.backup_path is not None
-            backup_file = result.backup_path
+            assert result["backup_path"] is not None
+            backup_file = result["backup_path"]
             assert Path(backup_file).exists()
-            assert "Backup saved to:" in result.message
+            assert "Backup saved to:" in result["message"]
 
             # Verify backup content
             with open(backup_file) as f:
@@ -381,7 +441,8 @@ result"""
             Path(backup_file).unlink(missing_ok=True)
             Path(python_file.replace(".py", ".ipynb")).unlink(missing_ok=True)
 
-    def test_custom_output_paths(self):
+    @pytest.mark.asyncio
+    async def test_custom_output_paths(self):
         """Test custom output path specification."""
         # Create test files
         test_content = "print('test')\n"
@@ -391,33 +452,52 @@ result"""
             python_file = f.name
 
         try:
-            # Test custom notebook output path
+            # Test custom notebook output path using MCP call_tool
             custom_notebook = python_file.replace(".py", "_custom.ipynb")
-            result = py_to_notebook(python_file, output_path=custom_notebook)
+            _, response = await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": python_file, "output_path": custom_notebook}
+            )
+            assert "error" not in response, response.get("error")
+            result = response
 
             assert Path(custom_notebook).exists()
-            assert result.output_path == custom_notebook
+            assert result["output_path"] == custom_notebook
 
-            # Test custom Python output path
+            # Test custom Python output path using MCP call_tool
             custom_python = custom_notebook.replace(".ipynb", "_back.py")
-            result = notebook_to_py(custom_notebook, output_path=custom_python)
+            _, response = await mcp.call_tool(
+                "notebook_to_py", 
+                {"notebook_path": custom_notebook, "output_path": custom_python}
+            )
+            assert "error" not in response, response.get("error")
+            result = response
 
             assert Path(custom_python).exists()
-            assert result.output_path == custom_python
+            assert result["output_path"] == custom_python
 
         finally:
             Path(python_file).unlink(missing_ok=True)
             Path(custom_notebook).unlink(missing_ok=True)
             Path(custom_python).unlink(missing_ok=True)
 
-    def test_error_handling(self):
+    @pytest.mark.asyncio
+    async def test_error_handling(self):
         """Test error handling in integration scenarios."""
-        # Test non-existent file
-        with pytest.raises(FileNotFoundError):
-            py_to_notebook("/non/existent/file.py")
+        from mcp.server.fastmcp.exceptions import ToolError
+        
+        # Test non-existent file - MCP should raise ToolError
+        with pytest.raises(ToolError, match="Script file not found"):
+            await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": "/non/existent/file.py"}
+            )
 
-        with pytest.raises(FileNotFoundError):
-            notebook_to_py("/non/existent/file.ipynb")
+        with pytest.raises(ToolError, match="Notebook file not found"):
+            await mcp.call_tool(
+                "notebook_to_py", 
+                {"notebook_path": "/non/existent/file.ipynb"}
+            )
 
         # Test invalid notebook file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".ipynb", delete=False) as f:
@@ -425,12 +505,16 @@ result"""
             invalid_notebook = f.name
 
         try:
-            with pytest.raises(ValueError):
-                notebook_to_py(invalid_notebook)
+            with pytest.raises(ToolError, match="Invalid notebook file"):
+                await mcp.call_tool(
+                    "notebook_to_py", 
+                    {"notebook_path": invalid_notebook}
+                )
         finally:
             Path(invalid_notebook).unlink(missing_ok=True)
 
-    def test_complex_notebook_structure(self):
+    @pytest.mark.asyncio
+    async def test_complex_notebook_structure(self):
         """Test conversion of complex notebook structures."""
         # Create notebook with mixed cell types and metadata
         notebook_data = {
@@ -491,9 +575,15 @@ result"""
             notebook_file = f.name
 
         try:
-            # Convert to Python
-            notebook_to_py(notebook_file)
-            python_file = notebook_file.replace(".ipynb", ".py")
+            # Convert to Python using MCP call_tool
+            _, response = await mcp.call_tool(
+                "notebook_to_py", 
+                {"notebook_path": notebook_file}
+            )
+            
+            assert "error" not in response, response.get("error")
+            result = response
+            python_file = result["output_path"]
 
             # Verify Python content
             with open(python_file) as f:
@@ -508,9 +598,15 @@ result"""
             # In this case, we have markdown -> code -> command -> markdown -> code
             # so no separator is expected
 
-            # Convert back to notebook
-            py_to_notebook(python_file)
-            notebook_file2 = python_file.replace(".py", ".ipynb")
+            # Convert back to notebook using MCP call_tool
+            _, response2 = await mcp.call_tool(
+                "py_to_notebook", 
+                {"script_path": python_file}
+            )
+            
+            assert "error" not in response2, response2.get("error")
+            result2 = response2
+            notebook_file2 = result2["output_path"]
 
             # Verify round-trip notebook
             with open(notebook_file2) as f:

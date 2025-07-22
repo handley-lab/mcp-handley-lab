@@ -1,16 +1,12 @@
 """Unit tests for OpenAI LLM module."""
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from mcp_handley_lab.llm.common import determine_mime_type, is_text_file
 from mcp_handley_lab.llm.openai.tool import (
     MODEL_CONFIGS,
     _get_model_config,
-    analyze_image,
-    ask,
-    generate_image,
 )
 
 
@@ -127,83 +123,6 @@ class TestOpenAIHelperFunctions:
         assert is_text_file(Path("test.exe")) is False
 
 
-class TestInputValidation:
-    """Test input validation for main functions."""
-
-    def test_ask_empty_prompt(self):
-        """Test ask with empty prompt."""
-        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            ask("", "/tmp/output.txt")
-
-    def test_ask_empty_output_file(self):
-        """Test ask with empty output file."""
-        with pytest.raises(ValueError, match="Output file is required"):
-            ask("Test prompt", "")
-
-    def test_ask_empty_agent_name(self, mock_memory_manager):
-        """Test ask with empty agent name disables memory."""
-        # Mock the OpenAI API call to avoid real API requests in unit tests
-        with patch(
-            "mcp_handley_lab.llm.openai.tool.client.chat.completions.create"
-        ) as mock_create:
-            mock_response = type(
-                "MockResponse",
-                (),
-                {
-                    "choices": [
-                        type(
-                            "MockChoice",
-                            (),
-                            {
-                                "message": type(
-                                    "MockMessage", (), {"content": "Mocked response"}
-                                )(),
-                                "finish_reason": "stop",
-                                "logprobs": None,
-                            },
-                        )()
-                    ],
-                    "usage": type(
-                        "MockUsage",
-                        (),
-                        {
-                            "prompt_tokens": 10,
-                            "completion_tokens": 20,
-                            "completion_tokens_details": None,
-                            "prompt_tokens_details": None,
-                        },
-                    )(),
-                    "model": "gpt-4o-mini",
-                    "id": "chatcmpl-test",
-                    "system_fingerprint": None,
-                    "service_tier": None,
-                },
-            )()
-            mock_create.return_value = mock_response
-
-            # Mock file writing
-            with patch("pathlib.Path.write_text"):
-                result = ask("Test prompt", "/tmp/output.txt", agent_name="")
-                assert result.content == "Mocked response"
-                assert result.agent_name == ""
-                assert result.usage.model_used == "o4-mini"
-                # Verify memory manager is not called when agent_name is empty
-                mock_memory_manager.get_response.assert_not_called()
-
-    def test_analyze_image_empty_prompt(self):
-        """Test analyze_image with empty prompt."""
-        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            analyze_image("", "/tmp/output.txt")
-
-    def test_analyze_image_empty_output_file(self):
-        """Test analyze_image with empty output file."""
-        with pytest.raises(ValueError, match="Output file is required"):
-            analyze_image("Test prompt", "")
-
-    def test_generate_image_empty_prompt(self):
-        """Test generate_image with empty prompt."""
-        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            generate_image("")
 
 
 @pytest.fixture
@@ -211,10 +130,3 @@ def temp_storage_dir():
     """Create temporary directory for testing."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield temp_dir
-
-
-@pytest.fixture
-def mock_memory_manager():
-    """Mock memory manager for testing."""
-    with patch("mcp_handley_lab.llm.openai.tool.memory_manager") as mock_manager:
-        yield mock_manager

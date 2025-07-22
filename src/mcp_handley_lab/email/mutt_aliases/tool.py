@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+from pydantic import Field
+
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 from mcp_handley_lab.shared.models import (
@@ -95,7 +97,21 @@ def get_mutt_alias_file(config_file: str = None) -> Path:
     description="""Adds contact or group to Mutt address book. Creates nickname shortcuts for email addresses. Supports individual contacts and groups with comma-separated emails or space-separated aliases."""
 )
 def add_contact(
-    alias: str, email: str, name: str = "", config_file: str = None
+    alias: str = Field(
+        ..., description="A short, unique nickname for the contact (e.g., 'jdoe')."
+    ),
+    email: str = Field(
+        ...,
+        description="The full email address for an individual, or a list of aliases for a group.",
+    ),
+    name: str = Field(
+        default="",
+        description="The contact's full name (e.g., 'John Doe'). Recommended for clarity.",
+    ),
+    config_file: str = Field(
+        default=None,
+        description="Optional path to the mutt config file. Used to locate the alias file.",
+    ),
 ) -> OperationResult:
     """Add a contact to mutt's address book."""
 
@@ -116,6 +132,9 @@ def add_contact(
         else:
             alias_line = f"alias {clean_alias} {email}\n"
 
+    # Ensure the directory exists
+    alias_file.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(alias_file, "a") as f:
         f.write(alias_line)
 
@@ -128,7 +147,16 @@ def add_contact(
     description="""Searches Mutt address book with fuzzy matching. Finds contacts by partial alias, name, or email using fzf-style algorithm."""
 )
 def find_contact(
-    query: str, max_results: int = 10, config_file: str = None
+    query: str = Field(
+        ..., description="The search term to find a contact by alias, name, or email."
+    ),
+    max_results: int = Field(
+        default=10, description="The maximum number of contacts to return.", gt=0
+    ),
+    config_file: str = Field(
+        default=None,
+        description="Optional path to the mutt config file. Used to locate the alias file.",
+    ),
 ) -> MuttContactSearchResult:
     """Find contacts using fuzzy matching."""
 
@@ -145,7 +173,16 @@ def find_contact(
 @mcp.tool(
     description="""Removes contact from Mutt address book with fuzzy matching. Tries exact match first, then fuzzy. Prevents accidental deletion with multiple matches."""
 )
-def remove_contact(alias: str, config_file: str = None) -> OperationResult:
+def remove_contact(
+    alias: str = Field(
+        ...,
+        description="The alias of the contact to remove. Tries an exact match first, then a fuzzy search.",
+    ),
+    config_file: str = Field(
+        default=None,
+        description="Optional path to the mutt config file. Used to locate the alias file.",
+    ),
+) -> OperationResult:
     """Remove a contact from mutt's address book."""
 
     if not alias:
@@ -161,7 +198,7 @@ def remove_contact(alias: str, config_file: str = None) -> OperationResult:
         lines = f.readlines()
 
     target_line = f"alias {clean_alias} "
-    filtered_lines = [line for line in lines if not line.startswith(target_line)]
+    filtered_lines = [line for line in lines if not line.strip().startswith(target_line)]
 
     if len(filtered_lines) == len(lines):
         fuzzy_matches = _find_contact_fuzzy(
@@ -173,7 +210,7 @@ def remove_contact(alias: str, config_file: str = None) -> OperationResult:
             fuzzy_alias = fuzzy_matches[0].alias
             target_line = f"alias {fuzzy_alias} "
             filtered_lines = [
-                line for line in lines if not line.startswith(target_line)
+                line for line in lines if not line.strip().startswith(target_line)
             ]
             clean_alias = fuzzy_alias
         else:

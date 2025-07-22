@@ -95,12 +95,14 @@ jobs:
       run: |
         code2prompt --version
         
-    - name: Test with pytest
+    - name: Test with pytest (VCR-backed tests only)
       env:
         GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         GMAIL_TEST_PASSWORD: ${{ secrets.GMAIL_TEST_PASSWORD }}
+        GH_TOKEN: ${{ github.token }}
       run: |
-        python -m pytest tests/ --cov=mcp_handley_lab --cov-report=xml --cov-report=term-missing -v
+        echo "Running fast VCR-backed tests (excluding live API contract validation)"
+        python -m pytest tests/ -m "not live" --cov=mcp_handley_lab --cov-report=xml --cov-report=term-missing -v
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

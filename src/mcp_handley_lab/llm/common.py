@@ -265,12 +265,16 @@ def handle_agent_memory(
 
 
 def resolve_multimodal_content(
-    files: list[str] = [], images: list[str] = []
+    files: list[str] | None = None, images: list[str] | None = None
 ) -> list[dict]:
     """
     Resolves file paths and image data into a standardized list of content blocks.
     Each block is a dict with 'type', 'mime_type', and 'data' (or 'text').
     """
+    if files is None:
+        files = []
+    if images is None:
+        images = []
     content_blocks = []
 
     # Process text/binary files

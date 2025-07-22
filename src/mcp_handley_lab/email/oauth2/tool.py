@@ -1,5 +1,7 @@
 """OAuth2 authentication provider for email services."""
 
+from pydantic import Field
+
 from mcp_handley_lab.email.common import mcp
 
 
@@ -8,8 +10,14 @@ from mcp_handley_lab.email.common import mcp
     description="""Start Microsoft 365 OAuth2 authentication - Step 1 of 2. Generates authorization URL for browser login using secure authorization code flow.""",
 )
 def setup_m365_oauth2(
-    client_id: str = "08162f7c-0fd2-4200-a84a-f25a4db0b584",
-    client_secret: str = "TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82",
+    client_id: str = Field(
+        default="08162f7c-0fd2-4200-a84a-f25a4db0b584",
+        description="The Microsoft 365 application client ID. Defaults to the one used by Thunderbird.",
+    ),
+    client_secret: str = Field(
+        default="TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82",
+        description="The Microsoft 365 application client secret. Defaults to the one used by Thunderbird.",
+    ),
 ) -> str:
     """Start Microsoft 365 OAuth2 setup using authorization code flow.
 
@@ -37,9 +45,18 @@ After you complete the login process, you will be redirected to a page showing "
     description="""Complete Microsoft 365 OAuth2 authentication - Step 2 of 2. Exchanges authorization code for tokens and provides ready-to-use offlineimap configuration.""",
 )
 def complete_m365_oauth2(
-    redirect_url: str,
-    client_id: str = "08162f7c-0fd2-4200-a84a-f25a4db0b584",
-    client_secret: str = "TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82",
+    redirect_url: str = Field(
+        ...,
+        description="The full URL from the browser's address bar after completing the login, which contains the authorization code.",
+    ),
+    client_id: str = Field(
+        default="08162f7c-0fd2-4200-a84a-f25a4db0b584",
+        description="The Microsoft 365 application client ID. Must match the one used in the setup step.",
+    ),
+    client_secret: str = Field(
+        default="TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82",
+        description="The Microsoft 365 application client secret. Must match the one used in the setup step.",
+    ),
 ) -> str:
     """Complete Microsoft 365 OAuth2 setup using the redirect URL from browser.
 

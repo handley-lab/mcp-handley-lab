@@ -3,6 +3,7 @@
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 from xai_sdk import Client
 
 from mcp_handley_lab.common.config import settings
@@ -229,16 +230,16 @@ def _grok_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to a Grok model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to the required `output_file` ('-' for stdout)."
+    description="Sends a prompt to a Grok model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to the required `output_file` ('-' for stdout)."
 )
 def ask(
-    prompt: str,
-    output_file: str = "-",
-    agent_name: str = "session",
-    model: str = DEFAULT_MODEL,
-    temperature: float = 1.0,
-    max_output_tokens: int = 0,
-    files: list[str] = [],
+    prompt: str = Field(..., description="The main question or instruction for the Grok model."),
+    output_file: str = Field(default="-", description="File path to save the output. Use '-' for standard output."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    model: str = Field(default=DEFAULT_MODEL, description="The Grok model to use for the request (e.g., 'grok-1')."),
+    temperature: float = Field(default=1.0, description="Controls randomness. Higher values (e.g., 1.0) are more creative, lower values are more deterministic."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate. 0 means use the model's default maximum."),
+    files: list[str] = Field(default_factory=list, description="A list of file paths to provide as text context to the model."),
 ) -> LLMResult:
     """Ask Grok a question with optional persistent memory."""
     return process_llm_request(
@@ -259,13 +260,13 @@ def ask(
     description="Analyzes images using a Grok vision model (grok-2-vision-1212). Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
-    prompt: str,
-    output_file: str = "-",
-    files: list[str] = [],
-    focus: str = "general",
-    model: str = "grok-2-vision-1212",
-    agent_name: str = "session",
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The question or instruction related to the images."),
+    output_file: str = Field(default="-", description="File path to save the analysis output. Use '-' for standard output."),
+    files: list[str] = Field(default_factory=list, description="A list of image file paths or base64 encoded strings to be analyzed."),
+    focus: str = Field(default="general", description="The area of focus for the analysis (e.g., 'ocr', 'objects'). This enhances the prompt to guide the model."),
+    model: str = Field(default="grok-2-vision-1212", description="The Grok vision model to use. Must be a vision-capable model."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum."),
 ) -> LLMResult:
     """Analyze images with Grok vision model."""
     return process_llm_request(
@@ -320,9 +321,9 @@ def _grok_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     description="Generates an image using Grok's image generation model (grok-2-image-1212) from a text prompt. Returns the file path of the saved image."
 )
 def generate_image(
-    prompt: str,
-    model: str = "grok-2-image-1212",
-    agent_name: str = "session",
+    prompt: str = Field(..., description="A detailed, creative description of the image to generate."),
+    model: str = Field(default="grok-2-image-1212", description="The Grok model to use for image generation."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory to store prompt history."),
 ) -> ImageGenerationResult:
     """Generate images with Grok."""
     return process_image_generation(

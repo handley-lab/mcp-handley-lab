@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
@@ -11,11 +11,11 @@ from mcp_handley_lab.email.common import mcp
 class SendResult(BaseModel):
     """Result of sending an email."""
 
-    status: str = "success"
-    recipient: str
-    account_used: str = ""
-    cc_recipients: list[str] = []
-    bcc_recipients: list[str] = []
+    status: str = Field(default="success", description="The status of the send operation, typically 'success'.")
+    recipient: str = Field(..., description="The primary recipient's email address (the 'To' field).")
+    account_used: str = Field(default="", description="The msmtp account used for sending, if specified.")
+    cc_recipients: list[str] = Field(default_factory=list, description="A list of email addresses in the 'Cc' field.")
+    bcc_recipients: list[str] = Field(default_factory=list, description="A list of email addresses in the 'Bcc' field.")
 
 
 def _parse_msmtprc(config_file: str = "") -> list[str]:
@@ -39,12 +39,23 @@ def _parse_msmtprc(config_file: str = "") -> list[str]:
     description="Send email using msmtp with configured accounts from ~/.msmtprc. Non-interactive automated sending with support for CC/BCC recipients."
 )
 def send(
-    to: str,
-    subject: str,
-    body: str,
-    account: str = "",
-    cc: str = "",
-    bcc: str = "",
+    to: str = Field(
+        ..., description="The primary recipient's email address."
+    ),
+    subject: str = Field(..., description="The subject line of the email."),
+    body: str = Field(..., description="The main content (body) of the email."),
+    account: str = Field(
+        default="",
+        description="The msmtp account to send from. If empty, the default account is used. Use 'list_accounts' to see options.",
+    ),
+    cc: str = Field(
+        default="",
+        description="Comma-separated list of email addresses for CC recipients.",
+    ),
+    bcc: str = Field(
+        default="",
+        description="Comma-separated list of email addresses for BCC recipients.",
+    ),
 ) -> SendResult:
     """Send an email using msmtp with existing ~/.msmtprc configuration."""
     email_content = f"To: {to}\n"
@@ -87,7 +98,12 @@ def send(
 @mcp.tool(
     description="List available msmtp accounts from ~/.msmtprc configuration. Use to discover valid account names for the send tool."
 )
-def list_accounts(config_file: str = "") -> list[str]:
+def list_accounts(
+    config_file: str = Field(
+        default="",
+        description="Optional path to the msmtp configuration file. Defaults to `~/.msmtprc`.",
+    )
+) -> list[str]:
     """List available msmtp accounts by parsing msmtp config."""
     accounts = _parse_msmtprc(config_file)
 

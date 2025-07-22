@@ -8,6 +8,7 @@ import httpx
 import numpy as np
 from mcp.server.fastmcp import FastMCP
 from openai import OpenAI
+from pydantic import Field
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -244,18 +245,18 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to an OpenAI GPT model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. Response is saved to the required `output_file` ('-' for stdout)."
+    description="Sends a prompt to an OpenAI GPT model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to the required `output_file` ('-' for stdout)."
 )
 def ask(
-    prompt: str,
-    output_file: str = "-",
-    agent_name: str = "session",
-    model: str = DEFAULT_MODEL,
-    temperature: float = 1.0,
-    max_output_tokens: int = 0,
-    files: list[str] = [],
-    enable_logprobs: bool = False,
-    top_logprobs: int = 0,
+    prompt: str = Field(..., description="The main question or instruction for the AI model."),
+    output_file: str = Field(default="-", description="File path to save the output. Use '-' for standard output."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    model: str = Field(default=DEFAULT_MODEL, description="The OpenAI GPT model to use for the request (e.g., 'gpt-4o')."),
+    temperature: float = Field(default=1.0, description="Controls randomness. Higher values (e.g., 1.0) are more creative, lower values are more deterministic."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate. 0 means use the model's default maximum."),
+    files: list[str] = Field(default_factory=list, description="A list of file paths to provide as context to the model for analysis (e.g., for Retrieval Augmented Generation)."),
+    enable_logprobs: bool = Field(default=False, description="If True, returns the log probabilities of output tokens. Useful for confidence scoring."),
+    top_logprobs: int = Field(default=0, description="An integer between 0 and 5 specifying how many of the most likely tokens to return at each position. Requires `enable_logprobs=True`."),
 ) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
@@ -278,13 +279,13 @@ def ask(
     description="Analyzes images using an OpenAI vision model (GPT-4o series). Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
-    prompt: str,
-    output_file: str = "-",
-    files: list[str] = [],
-    focus: str = "general",
-    model: str = "gpt-4o",
-    agent_name: str = "session",
-    max_output_tokens: int = 0,
+    prompt: str = Field(..., description="The question or instruction related to the images."),
+    output_file: str = Field(default="-", description="File path to save the analysis output. Use '-' for standard output."),
+    files: list[str] = Field(default_factory=list, description="A list of image file paths or base64 encoded strings to be analyzed."),
+    focus: str = Field(default="general", description="The area of focus for the analysis (e.g., 'ocr', 'objects'). This enhances the prompt to guide the model."),
+    model: str = Field(default="gpt-4o", description="The OpenAI vision model to use (e.g., 'gpt-4o')."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory. Allows for persistent, stateful interactions."),
+    max_output_tokens: int = Field(default=0, description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum."),
 ) -> LLMResult:
     """Analyze images with OpenAI vision model."""
     return process_llm_request(
@@ -345,11 +346,11 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     description="Generates an image using OpenAI's DALL-E models from a text prompt. Supports different quality and size options. Returns the file path of the saved image."
 )
 def generate_image(
-    prompt: str,
-    model: str = "dall-e-3",
-    quality: str = "standard",
-    size: str = "1024x1024",
-    agent_name: str = "session",
+    prompt: str = Field(..., description="A detailed, creative description of the image to generate."),
+    model: str = Field(default="dall-e-3", description="The DALL-E model to use for image generation (e.g., 'dall-e-3', 'dall-e-2')."),
+    quality: str = Field(default="standard", description="The quality of the generated image. 'hd' for higher detail, 'standard' for faster generation. Only applies to dall-e-3."),
+    size: str = Field(default="1024x1024", description="The dimensions of the image. Options vary by model: '1024x1024', '1792x1024', '1024x1792' for DALL-E 3."),
+    agent_name: str = Field(default="session", description="Identifier for the conversation memory to store prompt history."),
 ) -> ImageGenerationResult:
     """Generate images with DALL-E."""
     return process_image_generation(
@@ -377,9 +378,9 @@ def _calculate_cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
     description="Generates embedding vectors for a given list of text strings using an OpenAI model. Supports the new text-embedding-3 models with optional dimensions parameter."
 )
 def get_embeddings(
-    contents: str | list[str],
-    model: str = DEFAULT_EMBEDDING_MODEL,
-    dimensions: int = 0,
+    contents: str | list[str] = Field(..., description="A single text string or a list of text strings to be converted into embedding vectors."),
+    model: str = Field(default=DEFAULT_EMBEDDING_MODEL, description="The embedding model to use (e.g., 'text-embedding-3-small')."),
+    dimensions: int = Field(default=0, description="The desired size of the output embedding vector. If 0, the model's default is used. Only for v3 embedding models."),
 ) -> list[EmbeddingResult]:
     """Generates embeddings for one or more text strings."""
     if isinstance(contents, str):
@@ -405,13 +406,15 @@ def get_embeddings(
     description="Calculates the semantic similarity score (cosine similarity) between two text strings. Returns a score between -1.0 and 1.0, where 1.0 is identical."
 )
 def calculate_similarity(
-    text1: str, text2: str, model: str = DEFAULT_EMBEDDING_MODEL
+    text1: str = Field(..., description="The first text string for comparison."),
+    text2: str = Field(..., description="The second text string for comparison."),
+    model: str = Field(default=DEFAULT_EMBEDDING_MODEL, description="The embedding model to use for generating vectors for similarity calculation."),
 ) -> SimilarityResult:
     """Calculates the cosine similarity between two texts."""
     if not text1 or not text2:
         raise ValueError("Both text1 and text2 must be provided.")
 
-    embeddings = get_embeddings(contents=[text1, text2], model=model)
+    embeddings = get_embeddings(contents=[text1, text2], model=model, dimensions=0)
 
     if len(embeddings) != 2:
         raise RuntimeError("Failed to generate embeddings for both texts.")
@@ -427,9 +430,9 @@ def calculate_similarity(
     description="Creates a searchable semantic index from a list of document file paths. It reads the files, generates embeddings for them, and saves the index as a JSON file."
 )
 def index_documents(
-    document_paths: list[str],
-    output_index_path: str,
-    model: str = DEFAULT_EMBEDDING_MODEL,
+    document_paths: list[str] = Field(..., description="A list of file paths to the text documents that need to be indexed."),
+    output_index_path: str = Field(..., description="The file path where the resulting JSON index will be saved."),
+    model: str = Field(default=DEFAULT_EMBEDDING_MODEL, description="The embedding model to use for creating the document index."),
 ) -> IndexResult:
     """Creates a semantic index from document files."""
     indexed_data = []
@@ -449,9 +452,9 @@ def index_documents(
         if not batch_contents:
             continue
 
-        embedding_results = get_embeddings(contents=batch_contents, model=model)
+        embedding_results = get_embeddings(contents=batch_contents, model=model, dimensions=0)
 
-        for path, emb_result in zip(valid_paths, embedding_results, strict=False):
+        for path, emb_result in zip(valid_paths, embedding_results, strict=True):
             indexed_data.append(
                 DocumentIndex(path=path, embedding=emb_result.embedding)
             )
@@ -473,10 +476,10 @@ def index_documents(
     description="Performs a semantic search for a query against a pre-built document index file. Returns a ranked list of the most relevant documents based on similarity."
 )
 def search_documents(
-    query: str,
-    index_path: str,
-    top_k: int = 5,
-    model: str = DEFAULT_EMBEDDING_MODEL,
+    query: str = Field(..., description="The search query to find relevant documents."),
+    index_path: str = Field(..., description="The file path of the pre-computed JSON document index to search against."),
+    top_k: int = Field(default=5, description="The number of top matching documents to return."),
+    model: str = Field(default=DEFAULT_EMBEDDING_MODEL, description="The embedding model to use for the query. Should match the model used to create the index."),
 ) -> list[SearchResult]:
     """Searches a document index for the most relevant documents to a query."""
     index_file = Path(index_path)
@@ -488,7 +491,7 @@ def search_documents(
         return []
 
     # Get embedding for the query
-    query_embedding_result = get_embeddings(contents=query, model=model)
+    query_embedding_result = get_embeddings(contents=query, model=model, dimensions=0)
     query_embedding = query_embedding_result[0].embedding
 
     # Calculate similarities

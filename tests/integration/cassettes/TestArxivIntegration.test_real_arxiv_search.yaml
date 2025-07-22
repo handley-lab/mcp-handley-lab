@@ -192,4 +192,120 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - export.arxiv.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=5&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22The+sorting+criteria+for+the+results.+Valid+options+are+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22The+sorting+order+for+the+results.+Valid+options+are+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Sat, 19 Jul 2025 10:54:25 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=annotation=NoneType%20required=False%20default=0%20description='The%20starting%20index%20for%20the%20search%20results,%20used%20for%20pagination.'&max_results=5&sortBy=annotation=NoneType%20required=False%20default='relevance'%20description=%22The%20sorting%20criteria%20for%20the%20results.%20Valid%20options%20are%20'relevance',%20'lastUpdatedDate',%20'submittedDate'.%22&sortOrder=annotation=NoneType%20required=False%20default='descending'%20description=%22The%20sorting%20order%20for%20the%20results.%20Valid%20options%20are%20'ascending'%20or%20'descending'.%22
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lon420109-LON
+      X-Timer:
+      - S1752922466.929406,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - export.arxiv.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=5&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22The+sorting+criteria+for+the+results.+Valid+options+are+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22The+sorting+order+for+the+results.+Valid+options+are+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <link href=\"http://arxiv.org/api/query?search_query%3Dmachine%20learning%26id_list%3D%26start%3Dannotation%3DNoneType%20required%3DFalse%20default%3D0%20description%3D%27The%20starting%20index%20for%20the%20search%20results%2C%20used%20for%20pagination.%27%26max_results%3D5%26sortBy%3Dannotation%3DNoneType%20required%3DFalse%20default%3D%27relevance%27%20description%3D%22The%20sorting%20criteria%20for%20the%20results.%20Valid%20options%20are%20%27relevance%27%2C%20%27lastUpdatedDate%27%2C%20%27submittedDate%27.%22%26sortOrder%3Dannotation%3DNoneType%20required%3DFalse%20default%3D%27descending%27%20description%3D%22The%20sorting%20order%20for%20the%20results.%20Valid%20options%20are%20%27ascending%27%20or%20%27descending%27.%22\"
+        rel=\"self\" type=\"application/atom+xml\"/>\n  <title type=\"html\">ArXiv
+        Query: search_query=machine learning&amp;id_list=&amp;start=annotation=NoneType
+        required=False default=0 description='The starting index for the search results,
+        used for pagination.'&amp;max_results=5&amp;sortBy=annotation=NoneType required=False
+        default='relevance' description=\"The sorting criteria for the results. Valid
+        options are 'relevance', 'lastUpdatedDate', 'submittedDate'.\"&amp;sortOrder=annotation=NoneType
+        required=False default='descending' description=\"The sorting order for the
+        results. Valid options are 'ascending' or 'descending'.\"</title>\n  <id>http://arxiv.org/api/L14VMUM3O8POWvpr+I83Wx+x9Wo</id>\n
+        \ <updated>2025-07-19T00:00:00-04:00</updated>\n  <opensearch:totalResults
+        xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\">1</opensearch:totalResults>\n
+        \ <opensearch:startIndex xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\">0</opensearch:startIndex>\n
+        \ <opensearch:itemsPerPage xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\">1</opensearch:itemsPerPage>\n
+        \ <entry>\n    <id>http://arxiv.org/api/errors#start_must_be_an_integer</id>\n
+        \   <title>Error</title>\n    <summary>start must be an integer</summary>\n
+        \   <updated>2025-07-19T00:00:00-04:00</updated>\n    <link href=\"http://arxiv.org/api/errors#start_must_be_an_integer\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <author>\n      <name>arXiv api
+        core</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Connection:
+      - keep-alive
+      Date:
+      - Sat, 19 Jul 2025 10:54:26 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      Vary:
+      - Accept-Encoding
+      X-Cache:
+      - MISS, MISS, MISS
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21967-LGA, cache-lga21958-LGA, cache-lon420093-LON
+      X-Timer:
+      - S1752922466.991547,VS0,VE196
+      accept-ranges:
+      - bytes
+      access-control-allow-origin:
+      - '*'
+      content-length:
+      - '2270'
+      content-type:
+      - application/atom+xml; charset=UTF-8
+      server:
+      - Apache
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+    status:
+      code: 400
+      message: Bad Request
 version: 1

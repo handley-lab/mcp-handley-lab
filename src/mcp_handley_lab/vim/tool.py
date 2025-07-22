@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from mcp_handley_lab.shared.models import OperationResult, ServerInfo
 
@@ -59,11 +60,26 @@ def _strip_instructions(content: str, instructions: str, suffix: str) -> str:
     description="Opens Vim to edit content in a temporary file. Provide initial `content` and optional `instructions`. Set `file_extension` for syntax highlighting. Returns a diff of changes by default or full content if `show_diff=False`."
 )
 def prompt_user_edit(
-    content: str,
-    file_extension: str = ".txt",
-    instructions: str = "",
-    show_diff: bool = True,
-    keep_file: bool = False,
+    content: str = Field(
+        ...,
+        description="The initial text content to be edited. This is a required field.",
+    ),
+    file_extension: str = Field(
+        ".txt",
+        description="The file extension to use for the temporary file (e.g., '.py', '.md'). Determines syntax highlighting in Vim.",
+    ),
+    instructions: str = Field(
+        "",
+        description="Optional instructions to display as comments at the top of the file for the user.",
+    ),
+    show_diff: bool = Field(
+        True,
+        description="If True, return a diff of the changes. If False, return the full edited content.",
+    ),
+    keep_file: bool = Field(
+        False,
+        description="If True, the temporary file will not be deleted after editing. Useful for debugging.",
+    ),
 ) -> OperationResult:
     """Open vim for editing provided content."""
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
@@ -122,9 +138,18 @@ def prompt_user_edit(
     description="Opens Vim to create new content from scratch with optional `initial_content` and `instructions`. Creates a temporary file, opens Vim for editing, then returns the final content. Instructions are shown as comments and automatically stripped."
 )
 def quick_edit(
-    file_extension: str = ".txt",
-    instructions: str = "",
-    initial_content: str = "",
+    file_extension: str = Field(
+        ".txt",
+        description="The file extension for the new file (e.g., '.py', '.sh'). Determines syntax highlighting.",
+    ),
+    instructions: str = Field(
+        "",
+        description="Optional instructions to display as comments at the top of the file for the user to follow.",
+    ),
+    initial_content: str = Field(
+        "",
+        description="Optional initial content to populate the file with before editing begins.",
+    ),
 ) -> OperationResult:
     """Open vim for creating new content."""
     suffix = file_extension if file_extension.startswith(".") else f".{file_extension}"
@@ -153,10 +178,22 @@ def quick_edit(
     description="Opens an existing file in Vim for interactive editing. If `instructions` are provided, the user must first view them in a read-only buffer before proceeding. Creates a backup (.bak) by default. Returns a diff of the changes."
 )
 def open_file(
-    file_path: str,
-    instructions: str = "",
-    show_diff: bool = True,
-    backup: bool = True,
+    file_path: str = Field(
+        ...,
+        description="The absolute or relative path to the existing file to be opened for editing.",
+    ),
+    instructions: str = Field(
+        "",
+        description="Optional instructions shown to the user in a read-only buffer before they can edit the file.",
+    ),
+    show_diff: bool = Field(
+        True,
+        description="If True, return a diff of the changes. If False, just return a confirmation message.",
+    ),
+    backup: bool = Field(
+        True,
+        description="If True, create a backup of the original file with a '.bak' extension before editing.",
+    ),
 ) -> OperationResult:
     """Open existing file in vim."""
     path = Path(file_path)

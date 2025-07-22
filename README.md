@@ -163,3 +163,4 @@ This modular structure makes it easy to use **Claude Code itself** to write new 
     ```
 *   **Dependencies**: Project dependencies are managed in `pyproject.toml`.
 *   **Entry Points**: Command-line scripts for new tools should be added to the `[project.scripts]` section of `pyproject.toml`.
+# Testing CI trigger

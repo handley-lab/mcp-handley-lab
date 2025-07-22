@@ -34,6 +34,9 @@ def process_llm_request(
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file.strip():
         raise ValueError("Output file is required and cannot be empty")
+    # Extract system_prompt parameter
+    system_prompt = kwargs.pop("system_prompt", None)
+
     # Store original prompt for memory
     user_prompt = prompt
     history = []
@@ -48,10 +51,19 @@ def process_llm_request(
         else:
             actual_agent_name = agent_name
 
+        # Get or create agent
         agent = memory_manager.get_agent(actual_agent_name)
-        if agent:
-            history = agent.get_history()
-            system_instruction = agent.personality
+        if not agent:
+            # Create agent with provided system_prompt
+            agent = memory_manager.create_agent(actual_agent_name, system_prompt)
+        elif system_prompt is not None:
+            # Update agent's system_prompt if provided
+            agent.system_prompt = system_prompt
+            memory_manager._save_agent(agent)
+
+        # Get conversation history and current system_prompt
+        history = agent.get_history()
+        system_instruction = agent.system_prompt
 
     # Handle image analysis specific prompt modification
     if "image_data" in kwargs or "images" in kwargs:

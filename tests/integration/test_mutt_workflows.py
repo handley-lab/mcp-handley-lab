@@ -108,7 +108,7 @@ class TestMuttContactWorkflows:
             "query": "gw"
         })
         assert "error" not in search_response, search_response.get("error")
-        results = search_response["contacts"]
+        results = search_response["matches"]
         
         # Should find all GW-related contacts
         found_aliases = [contact["alias"] for contact in results]
@@ -142,7 +142,7 @@ class TestMuttContactWorkflows:
             "query": "company"
         })
         assert "error" not in search_response, search_response.get("error")
-        results = search_response["contacts"]
+        results = search_response["matches"]
         
         # Should find all company contacts
         assert len(results) >= 3
@@ -311,7 +311,7 @@ class TestMuttErrorRecoveryWorkflows:
             "query": "dept"
         })
         assert "error" not in search_response, search_response.get("error")
-        results = search_response["contacts"]
+        results = search_response["matches"]
         
         # Should find all department contacts
         found_aliases = [contact["alias"] for contact in results]
@@ -433,7 +433,7 @@ class TestMuttCrossComponentWorkflows:
             "query": "critical"
         })
         assert "error" not in search_response, search_response.get("error")
-        results = search_response["contacts"]
+        results = search_response["matches"]
         
         critical_aliases = [contact["alias"] for contact in results]
         assert "critical1" in critical_aliases

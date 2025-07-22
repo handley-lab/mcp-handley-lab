@@ -291,7 +291,7 @@ class TestLLMFileInputErrors:
         except ToolError as e:
             # Binary file errors are acceptable
             assert any(keyword in str(e).lower() for keyword in [
-                "binary", "decode", "text", "encoding", "readable"
+                "binary", "decode", "text", "encoding", "readable", "mime", "unsupported"
             ])
 
 

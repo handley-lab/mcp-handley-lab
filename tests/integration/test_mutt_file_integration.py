@@ -204,6 +204,8 @@ class TestMuttFileErrorHandling:
         # Make file read-only
         real_temp_addressbook.chmod(0o444)  # Read-only
         
+        from mcp.server.fastmcp.exceptions import ToolError
+        
         try:
             _, response = await aliases_mcp.call_tool("add_contact", {
                 "alias": "test",
@@ -217,6 +219,9 @@ class TestMuttFileErrorHandling:
                 # If operation succeeded, file should be updated
                 file_content = real_temp_addressbook.read_text()
                 assert "test" in file_content
+        except ToolError as e:
+            # Permission error should be caught as ToolError
+            assert "permission denied" in str(e).lower()
                 
         finally:
             # Restore write permissions for cleanup

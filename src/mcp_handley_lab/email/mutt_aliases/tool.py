@@ -132,6 +132,9 @@ def add_contact(
         else:
             alias_line = f"alias {clean_alias} {email}\n"
 
+    # Ensure the directory exists
+    alias_file.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(alias_file, "a") as f:
         f.write(alias_line)
 
@@ -195,7 +198,7 @@ def remove_contact(
         lines = f.readlines()
 
     target_line = f"alias {clean_alias} "
-    filtered_lines = [line for line in lines if not line.startswith(target_line)]
+    filtered_lines = [line for line in lines if not line.strip().startswith(target_line)]
 
     if len(filtered_lines) == len(lines):
         fuzzy_matches = _find_contact_fuzzy(
@@ -207,7 +210,7 @@ def remove_contact(
             fuzzy_alias = fuzzy_matches[0].alias
             target_line = f"alias {fuzzy_alias} "
             filtered_lines = [
-                line for line in lines if not line.startswith(target_line)
+                line for line in lines if not line.strip().startswith(target_line)
             ]
             clean_alias = fuzzy_alias
         else:

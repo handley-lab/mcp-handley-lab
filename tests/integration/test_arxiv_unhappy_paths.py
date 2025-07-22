@@ -216,9 +216,11 @@ class TestArxivCorruptedDataHandling:
                     "output_path": "-"
                 })
                 
-                # If successful, should have valid response
+                # If successful, should have valid response structure
                 if "error" not in response:
-                    assert "status" in response
+                    assert "arxiv_id" in response
+                    assert "format" in response
+                    assert "message" in response
                     
             except ToolError as e:
                 # Some formats might not be available for old papers

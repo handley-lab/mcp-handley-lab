@@ -295,7 +295,7 @@ def tag(
 
 
 @mcp.tool(
-    description="Extracts and saves one or all attachments from a specific email. If 'filename' is provided, only that attachment is saved. Files are saved to 'output_dir', which defaults to '~/Downloads/email_attachments'. Returns a result object with a list of absolute paths to the saved files."
+    description="Extracts and saves one or all attachments from a specific email. If 'filename' is provided, only that attachment is saved. Files are saved to 'output_dir', which defaults to the current directory. Returns a result object with a list of absolute paths to the saved files."
 )
 def extract_attachments(
     message_id: str = Field(
@@ -304,7 +304,7 @@ def extract_attachments(
     ),
     output_dir: str = Field(
         default="",
-        description="The directory to save attachments to. Defaults to '~/Downloads/email_attachments'.",
+        description="The directory to save attachments to. Defaults to the current directory.",
     ),
     filename: str = Field(
         default="",
@@ -319,7 +319,7 @@ def extract_attachments(
     if filename and (match := re.match(r"(.+?)\s+\(.+\)", filename)):
         filename = match.group(1)
 
-    save_path = Path(output_dir or "~/Downloads/email_attachments").expanduser()
+    save_path = Path(output_dir or ".").expanduser()
     save_path.mkdir(parents=True, exist_ok=True)
 
     saved_files = []

@@ -1,4 +1,5 @@
 """Integration tests for system_prompt functionality across all LLM providers."""
+import os
 import tempfile
 from pathlib import Path
 
@@ -10,6 +11,12 @@ from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 from PIL import Image
 
+# Skip all API-requiring tests if API keys not available
+gemini_available = bool(os.getenv("GEMINI_API_KEY"))
+openai_available = bool(os.getenv("OPENAI_API_KEY"))
+claude_available = bool(os.getenv("ANTHROPIC_API_KEY"))
+grok_available = bool(os.getenv("XAI_API_KEY"))
+
 # Provider configurations for testing
 system_prompt_providers = [
     pytest.param(
@@ -18,6 +25,9 @@ system_prompt_providers = [
         "GEMINI_API_KEY",
         "gemini-2.5-flash",
         id="gemini",
+        marks=pytest.mark.skipif(
+            not gemini_available, reason="GEMINI_API_KEY not available"
+        ),
     ),
     pytest.param(
         openai_mcp,
@@ -25,6 +35,9 @@ system_prompt_providers = [
         "OPENAI_API_KEY",
         "gpt-4o-mini",
         id="openai",
+        marks=pytest.mark.skipif(
+            not openai_available, reason="OPENAI_API_KEY not available"
+        ),
     ),
     pytest.param(
         claude_mcp,
@@ -32,6 +45,9 @@ system_prompt_providers = [
         "ANTHROPIC_API_KEY",
         "claude-3-5-haiku-20241022",
         id="claude",
+        marks=pytest.mark.skipif(
+            not claude_available, reason="ANTHROPIC_API_KEY not available"
+        ),
     ),
     pytest.param(
         grok_mcp,
@@ -50,6 +66,9 @@ image_analysis_providers = [
         "GEMINI_API_KEY",
         "gemini-2.5-pro",
         id="gemini",
+        marks=pytest.mark.skipif(
+            not gemini_available, reason="GEMINI_API_KEY not available"
+        ),
     ),
     pytest.param(
         openai_mcp,
@@ -57,6 +76,9 @@ image_analysis_providers = [
         "OPENAI_API_KEY",
         "gpt-4o",
         id="openai",
+        marks=pytest.mark.skipif(
+            not openai_available, reason="OPENAI_API_KEY not available"
+        ),
     ),
     pytest.param(
         claude_mcp,
@@ -64,6 +86,9 @@ image_analysis_providers = [
         "ANTHROPIC_API_KEY",
         "claude-3-5-sonnet-20240620",
         id="claude",
+        marks=pytest.mark.skipif(
+            not claude_available, reason="ANTHROPIC_API_KEY not available"
+        ),
     ),
     pytest.param(
         grok_mcp,

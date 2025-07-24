@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-
 from mcp_handley_lab.llm.memory import AgentMemory, MemoryManager, Message
 
 
@@ -42,19 +41,19 @@ class TestAgentMemory:
         """Test basic agent creation."""
         agent = AgentMemory(name="test_agent", created_at=datetime.now())
         assert agent.name == "test_agent"
-        assert agent.personality is None
+        assert agent.system_prompt is None
         assert len(agent.messages) == 0
         assert agent.total_tokens == 0
         assert agent.total_cost == 0.0
 
-    def test_agent_with_personality(self):
-        """Test agent with personality."""
+    def test_agent_with_system_prompt(self):
+        """Test agent with system prompt."""
         agent = AgentMemory(
             name="helpful_agent",
-            personality="You are helpful",
+            system_prompt="You are helpful",
             created_at=datetime.now(),
         )
-        assert agent.personality == "You are helpful"
+        assert agent.system_prompt == "You are helpful"
 
     def test_add_message(self):
         """Test adding messages to agent."""
@@ -107,7 +106,7 @@ class TestAgentMemory:
         """Test getting agent statistics."""
         created_time = datetime.now()
         agent = AgentMemory(
-            name="test_agent", personality="helpful", created_at=created_time
+            name="test_agent", system_prompt="helpful", created_at=created_time
         )
         agent.add_message("user", "Hello", tokens=5, cost=0.001)
 
@@ -118,7 +117,7 @@ class TestAgentMemory:
         assert stats["message_count"] == 1
         assert stats["total_tokens"] == 5
         assert stats["total_cost"] == 0.001
-        assert stats["personality"] == "helpful"
+        assert stats["system_prompt"] == "helpful"
 
     def test_get_response_valid_index(self):
         """Test getting response by valid index."""
@@ -179,10 +178,10 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             manager = MemoryManager(temp_dir)
 
-            agent = manager.create_agent("test_agent", "helpful personality")
+            agent = manager.create_agent("test_agent", "helpful system prompt")
 
             assert agent.name == "test_agent"
-            assert agent.personality == "helpful personality"
+            assert agent.system_prompt == "helpful system prompt"
             assert "test_agent" in manager._agents
 
             # Check file was created
@@ -326,7 +325,7 @@ class TestMemoryManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create manager and agent
             manager1 = MemoryManager(temp_dir)
-            manager1.create_agent("persistent_agent", "persistent personality")
+            manager1.create_agent("persistent_agent", "persistent system prompt")
             manager1.add_message("persistent_agent", "user", "Hello")
 
             # Create new manager instance (simulates restart)
@@ -336,7 +335,7 @@ class TestMemoryManager:
             loaded_agent = manager2.get_agent("persistent_agent")
             assert loaded_agent is not None
             assert loaded_agent.name == "persistent_agent"
-            assert loaded_agent.personality == "persistent personality"
+            assert loaded_agent.system_prompt == "persistent system prompt"
             assert len(loaded_agent.messages) == 1
             assert loaded_agent.messages[0].content == "Hello"
 

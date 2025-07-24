@@ -376,6 +376,10 @@ def ask(
         default=0,
         description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
+    system_prompt: str | None = Field(
+        default=None,
+        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+    ),
 ) -> LLMResult:
     """Ask Gemini a question with optional persistent memory."""
     return process_llm_request(
@@ -390,6 +394,7 @@ def ask(
         grounding=grounding,
         files=files,
         max_output_tokens=max_output_tokens,
+        system_prompt=system_prompt,
     )
 
 
@@ -424,6 +429,10 @@ def analyze_image(
         default=0,
         description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
+    system_prompt: str | None = Field(
+        default=None,
+        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+    ),
 ) -> LLMResult:
     """Analyze images with Gemini vision model."""
     return process_llm_request(
@@ -437,6 +446,7 @@ def analyze_image(
         images=files,
         focus=focus,
         max_output_tokens=max_output_tokens,
+        system_prompt=system_prompt,
     )
 
 

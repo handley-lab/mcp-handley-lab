@@ -3,11 +3,13 @@
 from mcp_handley_lab.llm.memory import memory_manager
 
 
-def create_agent(agent_name: str, personality: str = "") -> str:
-    """Create a new agent with optional personality."""
-    memory_manager.create_agent(agent_name, personality)
-    personality_info = f" with personality: {personality}" if personality else ""
-    return f"✅ Agent '{agent_name}' created successfully{personality_info}!"
+def create_agent(agent_name: str, system_prompt: str = "") -> str:
+    """Create a new agent with optional system prompt."""
+    memory_manager.create_agent(agent_name, system_prompt)
+    system_prompt_info = (
+        f" with system prompt: {system_prompt}" if system_prompt else ""
+    )
+    return f"✅ Agent '{agent_name}' created successfully{system_prompt_info}!"
 
 
 def list_agents() -> str:
@@ -25,8 +27,8 @@ def list_agents() -> str:
         result += f"- Messages: {stats['message_count']}\n"
         result += f"- Tokens: {stats['total_tokens']:,}\n"
         result += f"- Cost: ${stats['total_cost']:.4f}\n"
-        if stats["personality"]:
-            result += f"- Personality: {stats['personality']}\n"
+        if stats["system_prompt"]:
+            result += f"- System Prompt: {stats['system_prompt']}\n"
         result += "\n"
 
     return result
@@ -47,8 +49,8 @@ def agent_stats(agent_name: str) -> str:
     result += f"- Total Tokens: {stats['total_tokens']:,}\n"
     result += f"- Total Cost: ${stats['total_cost']:.4f}\n"
 
-    if stats["personality"]:
-        result += f"- Personality: {stats['personality']}\n"
+    if stats["system_prompt"]:
+        result += f"- System Prompt: {stats['system_prompt']}\n"
 
     # Recent message history (last 5)
     if agent.messages:

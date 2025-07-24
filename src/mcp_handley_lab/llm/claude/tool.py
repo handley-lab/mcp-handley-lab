@@ -264,9 +264,12 @@ def _claude_image_analysis_adapter(
     description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to `output_file` ('-' for stdout)."
 )
 def ask(
-    prompt: str = Field(..., description="The main text prompt or question to send to the Claude model."),
+    prompt: str = Field(
+        ..., description="The main text prompt or question to send to the Claude model."
+    ),
     output_file: str = Field(
-        "-", description="Path to save the response. Use '-' to stream the output directly to stdout."
+        "-",
+        description="Path to save the response. Use '-' to stream the output directly to stdout.",
     ),
     agent_name: str = Field(
         "session",
@@ -288,6 +291,10 @@ def ask(
         0,
         description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
     ),
+    system_prompt: str | None = Field(
+        default=None,
+        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+    ),
 ) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
     # Resolve model alias to full model name for consistent pricing
@@ -303,6 +310,7 @@ def ask(
         temperature=temperature,
         files=files,
         max_output_tokens=max_output_tokens,
+        system_prompt=system_prompt,
     )
 
 
@@ -310,9 +318,13 @@ def ask(
     description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
 )
 def analyze_image(
-    prompt: str = Field(..., description="The question or instruction regarding the images to be analyzed."),
+    prompt: str = Field(
+        ...,
+        description="The question or instruction regarding the images to be analyzed.",
+    ),
     output_file: str = Field(
-        "-", description="Path to save the response. Use '-' to stream the output directly to stdout."
+        "-",
+        description="Path to save the response. Use '-' to stream the output directly to stdout.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -334,6 +346,10 @@ def analyze_image(
         0,
         description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
     ),
+    system_prompt: str | None = Field(
+        default=None,
+        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+    ),
 ) -> LLMResult:
     """Analyze images with Claude vision model."""
     return process_llm_request(
@@ -347,6 +363,7 @@ def analyze_image(
         images=files,
         focus=focus,
         max_output_tokens=max_output_tokens,
+        system_prompt=system_prompt,
     )
 
 

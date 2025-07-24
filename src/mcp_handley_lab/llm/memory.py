@@ -10,22 +10,39 @@ from pydantic import BaseModel, Field
 class Message(BaseModel):
     """A single message in a conversation."""
 
-    role: str = Field(..., description="The role of the message sender ('user' or 'assistant').")
+    role: str = Field(
+        ..., description="The role of the message sender ('user' or 'assistant')."
+    )
     content: str = Field(..., description="The text content of the message.")
     timestamp: datetime = Field(..., description="When the message was created.")
-    tokens: int | None = Field(default=None, description="Number of tokens in this message, if available.")
-    cost: float | None = Field(default=None, description="Cost associated with this message, if available.")
+    tokens: int | None = Field(
+        default=None, description="Number of tokens in this message, if available."
+    )
+    cost: float | None = Field(
+        default=None, description="Cost associated with this message, if available."
+    )
 
 
 class AgentMemory(BaseModel):
     """Persistent memory for a named agent."""
 
     name: str = Field(..., description="The unique name of the agent.")
-    personality: str | None = Field(default=None, description="The system instruction or personality for the agent.")
-    created_at: datetime = Field(..., description="The timestamp when the agent was created.")
-    messages: list[Message] = Field(default_factory=list, description="The list of conversation messages.")
-    total_tokens: int = Field(default=0, description="The cumulative token count for this agent.")
-    total_cost: float = Field(default=0.0, description="The cumulative cost for this agent's conversations.")
+    system_prompt: str | None = Field(
+        default=None,
+        description="The system prompt for the agent. Remembered and re-sent with every message until changed.",
+    )
+    created_at: datetime = Field(
+        ..., description="The timestamp when the agent was created."
+    )
+    messages: list[Message] = Field(
+        default_factory=list, description="The list of conversation messages."
+    )
+    total_tokens: int = Field(
+        default=0, description="The cumulative token count for this agent."
+    )
+    total_cost: float = Field(
+        default=0.0, description="The cumulative cost for this agent's conversations."
+    )
 
     def add_message(self, role: str, content: str, tokens: int = 0, cost: float = 0.0):
         """Add a message to the agent's memory."""
@@ -61,7 +78,7 @@ class AgentMemory(BaseModel):
             "message_count": len(self.messages),
             "total_tokens": self.total_tokens,
             "total_cost": self.total_cost,
-            "personality": self.personality,
+            "system_prompt": self.system_prompt,
         }
 
     def get_response(self, index: int = -1) -> str:
@@ -99,13 +116,13 @@ class MemoryManager:
         agent_file = self._get_agent_file(agent.name)
         agent_file.write_text(agent.model_dump_json(indent=2))
 
-    def create_agent(self, name: str, personality: str | None = None) -> AgentMemory:
+    def create_agent(self, name: str, system_prompt: str | None = None) -> AgentMemory:
         """Create a new agent."""
         if name in self._agents:
             raise ValueError(f"Agent '{name}' already exists")
 
         agent = AgentMemory(
-            name=name, personality=personality, created_at=datetime.now()
+            name=name, system_prompt=system_prompt, created_at=datetime.now()
         )
         self._agents[name] = agent
         self._save_agent(agent)

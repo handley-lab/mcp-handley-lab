@@ -245,7 +245,7 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to an OpenAI GPT model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to the required `output_file` ('-' for stdout)."
+    description="Sends a prompt to an OpenAI model for conversational response. Use `agent_name` for persistent memory and `files` for context. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
@@ -257,7 +257,7 @@ def ask(
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory. Allows for persistent, stateful interactions.",
+        description="Enables persistent conversation memory.",
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
@@ -265,27 +265,27 @@ def ask(
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness. Higher values (e.g., 1.0) are more creative, lower values are more deterministic.",
+        description="Controls response randomness (0.0-2.0). Higher is more creative.",
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate. 0 means use the model's default maximum.",
+        description="Max response tokens. 0 for model's default max.",
     ),
     files: list[str] = Field(
         default_factory=list,
-        description="A list of file paths to provide as context to the model for analysis (e.g., for Retrieval Augmented Generation).",
+        description="List of file paths to include as context.",
     ),
     enable_logprobs: bool = Field(
         default=False,
-        description="If True, returns the log probabilities of output tokens. Useful for confidence scoring.",
+        description="Return log probabilities for output tokens for confidence scoring.",
     ),
     top_logprobs: int = Field(
         default=0,
-        description="An integer between 0 and 5 specifying how many of the most likely tokens to return at each position. Requires `enable_logprobs=True`.",
+        description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="Persistent system instruction for the agent's behavior.",
     ),
 ) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
@@ -307,7 +307,7 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using an OpenAI vision model (GPT-4o series). Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
+    description="Analyzes images with an OpenAI vision model. Supports persistent memory."
 )
 def analyze_image(
     prompt: str = Field(
@@ -330,7 +330,7 @@ def analyze_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory. Allows for persistent, stateful interactions.",
+        description="Enables persistent conversation memory.",
     ),
     max_output_tokens: int = Field(
         default=0,
@@ -338,7 +338,7 @@ def analyze_image(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="Persistent system instruction for the agent's behavior.",
     ),
 ) -> LLMResult:
     """Analyze images with OpenAI vision model."""
@@ -398,7 +398,7 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
 
 @mcp.tool(
-    description="Generates an image using OpenAI's DALL-E models from a text prompt. Supports different quality and size options. Returns the file path of the saved image."
+    description="Generates images using DALL-E models from text prompts. Supports quality and size options."
 )
 def generate_image(
     prompt: str = Field(
@@ -444,7 +444,7 @@ def _calculate_cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
 
 
 @mcp.tool(
-    description="Generates embedding vectors for a given list of text strings using an OpenAI model. Supports the new text-embedding-3 models with optional dimensions parameter."
+    description="Generates embedding vectors for text. Supports v3 model 'dimensions' param."
 )
 def get_embeddings(
     contents: str | list[str] = Field(
@@ -481,7 +481,7 @@ def get_embeddings(
 
 
 @mcp.tool(
-    description="Calculates the semantic similarity score (cosine similarity) between two text strings. Returns a score between -1.0 and 1.0, where 1.0 is identical."
+    description="Calculates cosine similarity between two texts. Returns score from -1.0 to 1.0."
 )
 def calculate_similarity(
     text1: str = Field(..., description="The first text string for comparison."),
@@ -508,7 +508,7 @@ def calculate_similarity(
 
 
 @mcp.tool(
-    description="Creates a searchable semantic index from a list of document file paths. It reads the files, generates embeddings for them, and saves the index as a JSON file."
+    description="Creates a semantic index from document files by generating and saving embeddings."
 )
 def index_documents(
     document_paths: list[str] = Field(
@@ -564,7 +564,7 @@ def index_documents(
 
 
 @mcp.tool(
-    description="Performs a semantic search for a query against a pre-built document index file. Returns a ranked list of the most relevant documents based on similarity."
+    description="Searches a document index with a query. Returns a ranked list of docs by similarity."
 )
 def search_documents(
     query: str = Field(..., description="The search query to find relevant documents."),

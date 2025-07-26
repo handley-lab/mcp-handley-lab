@@ -12,9 +12,16 @@ from mcp_handley_lab.shared.models import ServerInfo
 class GenerationResult(BaseModel):
     """Result of code2prompt generation."""
 
-    message: str = Field(..., description="A confirmation message indicating the result of the generation.")
-    output_file_path: str = Field(..., description="The absolute path to the generated prompt summary file.")
-    file_size_bytes: int = Field(..., description="The size of the generated file in bytes.")
+    message: str = Field(
+        ...,
+        description="A confirmation message indicating the result of the generation.",
+    )
+    output_file_path: str = Field(
+        ..., description="The absolute path to the generated prompt summary file."
+    )
+    file_size_bytes: int = Field(
+        ..., description="The size of the generated file in bytes."
+    )
 
 
 mcp = FastMCP("Code2Prompt Tool")
@@ -28,31 +35,81 @@ def _run_code2prompt(args: list[str]) -> str:
 
 
 @mcp.tool(
-    description="Generates a structured, token-counted summary of a source code directory, saving it to a file. Supports include/exclude patterns and git diffs. Returns the path to the generated summary."
+    description="Generates a structured, token-counted summary of a codebase. Supports include/exclude, git diffs, and formatting options."
 )
 def generate_prompt(
     path: str = Field(..., description="The source directory or file path to analyze."),
-    output_file: str = Field(..., description="The path where the generated summary file will be saved."),
-    include: list[str] = Field(default_factory=list, description="A list of glob patterns to explicitly include files (e.g., '*.py', 'src/**/*')."),
-    exclude: list[str] = Field(default_factory=list, description="A list of glob patterns to exclude files (e.g., '*_test.py', 'dist/*')."),
-    output_format: str = Field("markdown", description="The output format for the summary. Valid options include 'markdown', 'json'."),
-    line_numbers: bool = Field(False, description="If True, include line numbers in the output code blocks."),
-    full_directory_tree: bool = Field(False, description="If True, display the full directory tree, including empty directories."),
-    follow_symlinks: bool = Field(False, description="If True, follow symbolic links when scanning the directory."),
-    hidden: bool = Field(False, description="If True, include hidden files and directories (those starting with a dot)."),
-    no_codeblock: bool = Field(False, description="If True, omit the markdown code block fences around file content."),
-    absolute_paths: bool = Field(False, description="If True, use absolute paths for files in the output instead of relative paths."),
-    encoding: str = Field("cl100k", description="The name of the tiktoken encoding to use for token counting (e.g., 'cl100k', 'p50k_base')."),
-    tokens: str = Field("format", description="Determines how token counts are displayed. Valid options are 'format', 'only', 'none'."),
-    sort: str = Field("name_asc", description="The sorting order for files. Options: 'name_asc', 'name_desc', 'tokens_asc', 'tokens_desc'."),
-    include_priority: bool = Field(False, description="If True, 'include' patterns will take priority over '.gitignore' rules."),
-    template: str = Field("", description="Path to a custom Jinja2 template file to format the output."),
-    include_git_diff: bool = Field(False, description="If True, generate the prompt content based on a git diff instead of the full directory."),
-    git_diff_branch1: str = Field("", description="The first branch or commit for git diff comparison. Requires git_diff_branch2."),
-    git_diff_branch2: str = Field("", description="The second branch or commit for git diff comparison. Requires git_diff_branch1."),
-    git_log_branch1: str = Field("", description="The first branch or commit for git log comparison. Requires git_log_branch2."),
-    git_log_branch2: str = Field("", description="The second branch or commit for git log comparison. Requires git_log_branch1."),
-    no_ignore: bool = Field(False, description="If True, disable all .gitignore and .c2pignore file processing."),
+    output_file: str = Field(
+        ..., description="The path where the generated summary file will be saved."
+    ),
+    include: list[str] = Field(
+        default_factory=list,
+        description="A list of glob patterns to explicitly include files (e.g., '*.py', 'src/**/*').",
+    ),
+    exclude: list[str] = Field(
+        default_factory=list,
+        description="A list of glob patterns to exclude files (e.g., '*_test.py', 'dist/*').",
+    ),
+    output_format: str = Field(
+        "markdown",
+        description="The output format for the summary. Valid options include 'markdown', 'json'.",
+    ),
+    line_numbers: bool = Field(
+        False, description="Include line numbers in code blocks."
+    ),
+    full_directory_tree: bool = Field(
+        False, description="Display full directory tree including empty directories."
+    ),
+    follow_symlinks: bool = Field(
+        False, description="Follow symbolic links when scanning."
+    ),
+    hidden: bool = Field(False, description="Include hidden files and directories."),
+    no_codeblock: bool = Field(
+        False, description="Omit markdown code block fences around file content."
+    ),
+    absolute_paths: bool = Field(
+        False, description="Use absolute paths instead of relative paths."
+    ),
+    encoding: str = Field(
+        "cl100k",
+        description="The name of the tiktoken encoding to use for token counting (e.g., 'cl100k', 'p50k_base').",
+    ),
+    tokens: str = Field(
+        "format",
+        description="Determines how token counts are displayed. Valid options are 'format', 'only', 'none'.",
+    ),
+    sort: str = Field(
+        "name_asc",
+        description="The sorting order for files. Options: 'name_asc', 'name_desc', 'tokens_asc', 'tokens_desc'.",
+    ),
+    include_priority: bool = Field(
+        False, description="'include' patterns take priority over .gitignore rules."
+    ),
+    template: str = Field(
+        "", description="Path to a custom Jinja2 template file to format the output."
+    ),
+    include_git_diff: bool = Field(
+        False, description="Generate content from git diff instead of full directory."
+    ),
+    git_diff_branch1: str = Field(
+        "",
+        description="The first branch or commit for git diff comparison. Requires git_diff_branch2.",
+    ),
+    git_diff_branch2: str = Field(
+        "",
+        description="The second branch or commit for git diff comparison. Requires git_diff_branch1.",
+    ),
+    git_log_branch1: str = Field(
+        "",
+        description="The first branch or commit for git log comparison. Requires git_log_branch2.",
+    ),
+    git_log_branch2: str = Field(
+        "",
+        description="The second branch or commit for git log comparison. Requires git_log_branch1.",
+    ),
+    no_ignore: bool = Field(
+        False, description="Disable .gitignore and .c2pignore file processing."
+    ),
 ) -> GenerationResult:
     """Generate a structured prompt from codebase."""
     arg_definitions = [

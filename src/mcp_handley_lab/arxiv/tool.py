@@ -215,7 +215,7 @@ def _handle_tar_archive_structured(
 
 
 @mcp.tool(
-    description="Downloads an ArXiv paper by its ID or lists its source files. Formats: 'src' (all source), 'pdf', 'tex' (LaTeX files only). To list source files without saving, set format to 'src' and output_path to '-'. Returns structured operation result."
+    description="Downloads an ArXiv paper by ID in various formats ('src', 'pdf', 'tex') or lists its source files."
 )
 def download(
     arxiv_id: str = Field(

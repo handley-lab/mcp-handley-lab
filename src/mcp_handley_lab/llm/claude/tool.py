@@ -261,19 +261,20 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to a Claude model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to `output_file` ('-' for stdout)."
+    description="Delegates a user query to external Anthropic Claude AI service on behalf of the human user. Returns Claude's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Claude. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ..., description="The main text prompt or question to send to the Claude model."
+        ...,
+        description="The user's question to delegate to external Claude AI service.",
     ),
     output_file: str = Field(
         "-",
-        description="Path to save the response. Use '-' to stream the output directly to stdout.",
+        description="Path to save Claude's response. Use '-' to stream the output directly to stdout.",
     ),
     agent_name: str = Field(
         "session",
-        description="Name for the conversational agent to enable memory. Use a unique name for a separate conversation. Set to an empty string to disable memory.",
+        description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
     ),
     model: str = Field(
         DEFAULT_MODEL,
@@ -293,7 +294,7 @@ def ask(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="System instructions to send to external Claude AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
@@ -315,16 +316,16 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using Claude's vision capabilities. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
+    description="Delegates image analysis to external Claude vision AI service on behalf of the user. Returns Claude's verbatim visual analysis to assist the user."
 )
 def analyze_image(
     prompt: str = Field(
         ...,
-        description="The question or instruction regarding the images to be analyzed.",
+        description="The user's question about the images to delegate to external Claude vision AI service.",
     ),
     output_file: str = Field(
         "-",
-        description="Path to save the response. Use '-' to stream the output directly to stdout.",
+        description="Path to save Claude's visual analysis. Use '-' to stream the output directly to stdout.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -340,7 +341,7 @@ def analyze_image(
     ),
     agent_name: str = Field(
         "session",
-        description="Name for the conversational agent to enable memory. Use a unique name for a separate conversation. Set to an empty string to disable memory.",
+        description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
     ),
     max_output_tokens: int = Field(
         0,
@@ -348,7 +349,7 @@ def analyze_image(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="System instructions to send to external Claude AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Analyze images with Claude vision model."""

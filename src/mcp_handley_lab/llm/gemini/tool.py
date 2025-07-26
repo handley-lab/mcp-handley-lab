@@ -342,19 +342,20 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to a Gemini model for a conversational response. Use `agent_name` for persistent memory and `files` to provide context. For code reviews, use code2prompt to generate file summaries first. Response is saved to `output_file` ('-' for stdout)."
+    description="Delegates a user query to external Google Gemini AI service on behalf of the human user. Returns Gemini's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Gemini. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ..., description="The main question or instruction for the AI model."
+        ...,
+        description="The user's question to delegate to external Gemini AI service.",
     ),
     output_file: str = Field(
         default="-",
-        description="File path to save the output. Use '-' for standard output.",
+        description="File path to save Gemini's response. Use '-' for standard output.",
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory. Allows for persistent, stateful interactions.",
+        description="Separate conversation thread with Gemini AI service (distinct from your conversation with the user).",
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
@@ -378,7 +379,7 @@ def ask(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="System instructions to send to external Gemini AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Ask Gemini a question with optional persistent memory."""
@@ -399,15 +400,16 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images using a Gemini vision model. Provide a prompt and a list of image file paths. Use `agent_name` for persistent memory. Response is saved to `output_file` ('-' for stdout)."
+    description="Delegates image analysis to external Gemini vision AI service on behalf of the user. Returns Gemini's verbatim visual analysis to assist the user."
 )
 def analyze_image(
     prompt: str = Field(
-        ..., description="The question or instruction related to the images."
+        ...,
+        description="The user's question about the images to delegate to external Gemini vision AI service.",
     ),
     output_file: str = Field(
         default="-",
-        description="File path to save the analysis output. Use '-' for standard output.",
+        description="File path to save Gemini's visual analysis. Use '-' for standard output.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -423,7 +425,7 @@ def analyze_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory. Allows for persistent, stateful interactions.",
+        description="Separate conversation thread with Gemini AI service (distinct from your conversation with the user).",
     ),
     max_output_tokens: int = Field(
         default=0,
@@ -431,7 +433,7 @@ def analyze_image(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="System prompt for the agent. Remembered and re-sent with every message until changed.",
+        description="System instructions to send to external Gemini AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Analyze images with Gemini vision model."""
@@ -509,11 +511,12 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
 
 @mcp.tool(
-    description="Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations."
+    description="Delegates image generation to external Google Imagen 3 AI service on behalf of the user. Returns the generated image file path to assist the user. Generated images are saved as PNG files."
 )
 def generate_image(
     prompt: str = Field(
-        ..., description="A detailed, creative description of the image to generate."
+        ...,
+        description="The user's detailed description to send to external Imagen 3 AI service for image generation.",
     ),
     model: str = Field(
         default="imagen-3.0-generate-002",
@@ -521,7 +524,7 @@ def generate_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory to store prompt history.",
+        description="Separate conversation thread with image generation AI service (for prompt history tracking).",
     ),
 ) -> ImageGenerationResult:
     """Generate images with Google's Imagen 3 model."""

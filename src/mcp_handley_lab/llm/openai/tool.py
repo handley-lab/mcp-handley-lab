@@ -245,19 +245,20 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Sends a prompt to an OpenAI model for conversational response. Use `agent_name` for persistent memory and `files` for context. For code reviews, use code2prompt first."
+    description="Delegates a user query to external OpenAI GPT service on behalf of the human user. Returns OpenAI's verbatim response to assist the user. Use `agent_name` for separate conversation thread with OpenAI. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ..., description="The main question or instruction for the AI model."
+        ...,
+        description="The user's question to delegate to external OpenAI AI service.",
     ),
     output_file: str = Field(
         default="-",
-        description="File path to save the output. Use '-' for standard output.",
+        description="File path to save OpenAI's response. Use '-' for standard output.",
     ),
     agent_name: str = Field(
         default="session",
-        description="Enables persistent conversation memory.",
+        description="Separate conversation thread with OpenAI AI service (distinct from your conversation with the user).",
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
@@ -285,7 +286,7 @@ def ask(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="Persistent system instruction for the agent's behavior.",
+        description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
@@ -307,15 +308,16 @@ def ask(
 
 
 @mcp.tool(
-    description="Analyzes images with an OpenAI vision model. Supports persistent memory."
+    description="Delegates image analysis to external OpenAI vision AI service on behalf of the user. Returns OpenAI's verbatim visual analysis to assist the user."
 )
 def analyze_image(
     prompt: str = Field(
-        ..., description="The question or instruction related to the images."
+        ...,
+        description="The user's question about the images to delegate to external OpenAI vision AI service.",
     ),
     output_file: str = Field(
         default="-",
-        description="File path to save the analysis output. Use '-' for standard output.",
+        description="File path to save OpenAI's visual analysis. Use '-' for standard output.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -330,7 +332,7 @@ def analyze_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Enables persistent conversation memory.",
+        description="Separate conversation thread with OpenAI AI service (distinct from your conversation with the user).",
     ),
     max_output_tokens: int = Field(
         default=0,
@@ -338,7 +340,7 @@ def analyze_image(
     ),
     system_prompt: str | None = Field(
         default=None,
-        description="Persistent system instruction for the agent's behavior.",
+        description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
     ),
 ) -> LLMResult:
     """Analyze images with OpenAI vision model."""
@@ -398,11 +400,12 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
 
 @mcp.tool(
-    description="Generates images using DALL-E models from text prompts. Supports quality and size options."
+    description="Delegates image generation to external OpenAI DALL-E service on behalf of the user. Returns the generated image file path to assist the user."
 )
 def generate_image(
     prompt: str = Field(
-        ..., description="A detailed, creative description of the image to generate."
+        ...,
+        description="The user's detailed description to send to external DALL-E AI service for image generation.",
     ),
     model: str = Field(
         default="dall-e-3",
@@ -418,7 +421,7 @@ def generate_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Identifier for the conversation memory to store prompt history.",
+        description="Separate conversation thread with image generation AI service (for prompt history tracking).",
     ),
 ) -> ImageGenerationResult:
     """Generate images with DALL-E."""

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.8.0b2"
+version = "0.8.1"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ dependencies = [
     "google-api-python-client>=2.0.0",
     "google-auth-httplib2>=0.1.0",
     "google-auth-oauthlib>=0.5.0",
-    "google-genai>=1.0.0",
+    "google-genai>=1.24.0",
     "googlemaps>=4.0.0",
     "openai>=1.0.0",
     "anthropic>=0.21.3",

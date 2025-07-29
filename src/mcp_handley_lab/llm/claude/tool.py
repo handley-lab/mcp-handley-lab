@@ -261,7 +261,7 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Anthropic Claude AI service on behalf of the human user. Returns Claude's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Claude. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Anthropic Claude AI service on behalf of the human user. Returns Claude's verbatim response to assist the user. Use `agent_name` for separate conversation thread. For reviewing documents/code: provide context via `files` parameter or use code2prompt first."
 )
 def ask(
     prompt: str = Field(

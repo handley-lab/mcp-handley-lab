@@ -342,7 +342,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Google Gemini AI service on behalf of the human user. Returns Gemini's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Gemini. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Gemini AI service on behalf of the human user. Returns Gemini's verbatim response to assist the user. Use `agent_name` for separate conversation thread. For reviewing documents/code: provide context via `files` parameter or use code2prompt first."
 )
 def ask(
     prompt: str = Field(

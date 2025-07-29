@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.8.3"
+version = "0.8.4"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,6 +43,7 @@ dependencies = [
     "python-dateutil>=2.8.0",
     "dateparser>=1.2.0",
     "pendulum>=3.0.0",
+    "wolframclient>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -78,6 +79,7 @@ mcp-mutt-aliases = "mcp_handley_lab.email.mutt_aliases.tool:mcp.run"
 mcp-github = "mcp_handley_lab.github.tool:mcp.run"
 mcp-knowledge = "mcp_handley_lab.knowledge.generic_tools:mcp.run"
 mcp-py2nb = "mcp_handley_lab.py2nb.tool:mcp.run"
+mcp-mathematica = "mcp_handley_lab.mathematica.cli:main"
 mcp-handley-lab = "mcp_handley_lab.__main__:main"
 mcp-cli = "mcp_handley_lab.cli.main:cli"
 

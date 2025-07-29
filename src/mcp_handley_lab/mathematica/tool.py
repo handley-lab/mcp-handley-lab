@@ -1,0 +1,504 @@
+"""
+Mathematica MCP Tool - Production Version
+
+Provides MCP tools for interacting with Wolfram Mathematica through a persistent kernel session.
+Enables LLM-driven mathematical workflows with true REPL behavior and variable persistence.
+"""
+
+import logging
+import threading
+from typing import Optional, Dict, Any, List
+from pathlib import Path
+
+from mcp.server.fastmcp import FastMCP
+from pydantic import Field, BaseModel
+from wolframclient.evaluation import WolframLanguageSession
+from wolframclient.language import wlexpr
+
+from mcp_handley_lab.shared.models import OperationResult, ServerInfo
+
+logger = logging.getLogger(__name__)
+
+# Initialize FastMCP server
+mcp = FastMCP("Mathematica Tool")
+
+# Global session management with thread safety
+_session: Optional[WolframLanguageSession] = None
+_evaluation_count = 0
+_session_lock = threading.RLock()
+_kernel_path = '/usr/bin/WolframKernel'
+
+
+class MathematicaResult(BaseModel):
+    """Result of a Mathematica evaluation."""
+    result: str = Field(description="The formatted result of the evaluation")
+    raw_result: str = Field(description="The raw Wolfram Language result")
+    success: bool = Field(description="Whether the evaluation succeeded")
+    evaluation_count: int = Field(description="Number of evaluations in this session")
+    expression: str = Field(description="The original expression that was evaluated")
+    format_used: str = Field(description="The output format that was used")
+    error: Optional[str] = Field(None, description="Error message if evaluation failed")
+
+
+class SessionInfo(BaseModel):
+    """Information about the current Mathematica session."""
+    active: bool = Field(description="Whether the kernel session is active")
+    evaluation_count: int = Field(description="Number of evaluations performed")
+    version: Optional[str] = Field(None, description="Wolfram kernel version")
+    memory_used: Optional[str] = Field(None, description="Memory currently in use")
+    kernel_id: Optional[str] = Field(None, description="Kernel process ID")
+    kernel_path: str = Field(description="Path to the Wolfram kernel")
+    uptime_seconds: Optional[float] = Field(None, description="Session uptime in seconds")
+    last_evaluation: Optional[str] = Field(None, description="Last expression evaluated")
+
+
+def _get_session() -> WolframLanguageSession:
+    """Get or create the global Wolfram session with thread safety."""
+    global _session, _evaluation_count
+    
+    with _session_lock:
+        if _session is None:
+            try:
+                logger.info("Starting Wolfram kernel session...")
+                _session = WolframLanguageSession(_kernel_path)
+                _evaluation_count = 0
+                
+                # Initialize session settings for better REPL behavior
+                _session.evaluate(wlexpr('$HistoryLength = 100'))
+                _session.evaluate(wlexpr('SetOptions[$Output, PageWidth -> Infinity]'))
+                
+                logger.info("✅ Wolfram session started successfully")
+                
+            except Exception as e:
+                logger.error(f"❌ Failed to start Wolfram session: {e}")
+                _session = None
+                raise RuntimeError(f"Could not start Wolfram session: {e}")
+    
+    return _session
+
+
+def _ensure_session_active() -> bool:
+    """Ensure the session is active and responsive."""
+    global _session
+    
+    with _session_lock:
+        if _session is None:
+            return False
+        
+        try:
+            # Test session responsiveness with a simple evaluation
+            _session.evaluate(wlexpr('1'))
+            return True
+        except Exception as e:
+            logger.warning(f"Session unresponsive, will restart: {e}")
+            _session = None
+            return False
+
+
+@mcp.tool()
+def evaluate(
+    expression: str = Field(description="Wolfram Language expression to evaluate"),
+    output_format: str = Field(
+        default="Raw", 
+        description="Output format: 'Raw' (internal form), 'InputForm' (Wolfram syntax), 'OutputForm' (human-readable), or 'TeXForm' (LaTeX)"
+    ),
+    store_context: Optional[str] = Field(
+        None,
+        description="Optional key to store this result for later reference"
+    )
+) -> MathematicaResult:
+    """
+    Evaluate a Wolfram Language expression in the persistent session.
+    
+    This is the main tool for LLM-driven mathematical workflows. The session persists
+    across multiple tool calls, allowing for true REPL behavior where variables,
+    functions, and results are maintained between evaluations.
+    
+    Examples:
+    - Basic math: "2 + 2"
+    - Define variables: "x = 5; y = x^2"
+    - Mathematical operations: "Factor[x^4 - 1]"
+    - Solve equations: "Solve[x^2 + 3*x + 2 == 0, x]"
+    - Integration: "Integrate[x^2 + 3*x + 1, x]"
+    - Use persistent variables: "Expand[myExpression]"
+    
+    The session maintains all variables and definitions across calls, enabling
+    complex mathematical workflows where LLMs can build on previous calculations.
+    """
+    global _evaluation_count
+    
+    with _session_lock:
+        try:
+            # Ensure session is active
+            if not _ensure_session_active():
+                session = _get_session()
+            else:
+                session = _session
+            
+            logger.debug(f"Evaluating: {expression}")
+            
+            # Evaluate the expression
+            raw_result = session.evaluate(wlexpr(expression))
+            _evaluation_count += 1
+            
+            # Format the result based on requested format
+            if output_format == "Raw":
+                formatted_result = str(raw_result)
+            elif output_format == "InputForm":
+                try:
+                    # Use InputForm for clean Wolfram syntax
+                    formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, InputForm]')))
+                except Exception as e:
+                    logger.warning(f"InputForm formatting failed: {e}")
+                    formatted_result = str(raw_result)
+            elif output_format == "OutputForm":
+                try:
+                    # Use OutputForm for human-readable output
+                    formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, OutputForm]')))
+                except Exception as e:
+                    logger.warning(f"OutputForm formatting failed: {e}")
+                    formatted_result = str(raw_result)
+            elif output_format == "TeXForm":
+                try:
+                    # Use TeXForm for LaTeX output
+                    formatted_result = str(session.evaluate(wlexpr(f'ToString[TeXForm[{raw_result}]]')))
+                except Exception as e:
+                    logger.warning(f"TeXForm formatting failed: {e}")
+                    formatted_result = str(raw_result)
+            else:
+                formatted_result = str(raw_result)
+            
+            logger.debug(f"✅ Evaluation successful: {formatted_result}")
+            
+            return MathematicaResult(
+                result=formatted_result,
+                raw_result=str(raw_result),
+                success=True,
+                evaluation_count=_evaluation_count,
+                expression=expression,
+                format_used=output_format
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ Evaluation failed: {e}")
+            return MathematicaResult(
+                result=f"Error: {str(e)}",
+                raw_result="",
+                success=False,
+                evaluation_count=_evaluation_count,
+                expression=expression,
+                format_used=output_format,
+                error=str(e)
+            )
+
+
+@mcp.tool()
+def session_info() -> SessionInfo:
+    """
+    Get comprehensive information about the current Mathematica session.
+    
+    Returns details about the active session including version, memory usage,
+    evaluation count, and session health. Useful for monitoring session state
+    and debugging mathematical workflows.
+    """
+    global _evaluation_count
+    
+    with _session_lock:
+        try:
+            if _session is None:
+                return SessionInfo(
+                    active=False,
+                    evaluation_count=_evaluation_count,
+                    kernel_path=_kernel_path
+                )
+            
+            # Get session details from Wolfram
+            version = str(_session.evaluate(wlexpr('$Version')))
+            memory_used = str(_session.evaluate(wlexpr('MemoryInUse[]')))
+            kernel_id = str(_session.evaluate(wlexpr('$ProcessID')))
+            session_id = str(_session.evaluate(wlexpr('$SessionID')))
+            
+            return SessionInfo(
+                active=True,
+                evaluation_count=_evaluation_count,
+                version=version,
+                memory_used=memory_used,
+                kernel_id=kernel_id,
+                kernel_path=_kernel_path
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to get session info: {e}")
+            return SessionInfo(
+                active=False,
+                evaluation_count=_evaluation_count,
+                kernel_path=_kernel_path
+            )
+
+
+@mcp.tool()
+def clear_session(
+    keep_builtin: bool = Field(
+        True,
+        description="If True, preserve built-in Wolfram functions. If False, clear everything."
+    )
+) -> OperationResult:
+    """
+    Clear user-defined variables and symbols from the session.
+    
+    This resets the mathematical workspace while keeping the kernel running
+    and preserving built-in Wolfram functions. Useful for starting fresh
+    calculations or clearing memory when the session becomes cluttered.
+    
+    Args:
+        keep_builtin: If True (default), only clears user-defined symbols.
+                     If False, performs a more complete reset.
+    
+    Returns:
+        Operation result with success status and session information.
+    """
+    global _evaluation_count
+    
+    with _session_lock:
+        try:
+            if not _ensure_session_active():
+                session = _get_session()
+            else:
+                session = _session
+            
+            if keep_builtin:
+                # Clear only user-defined symbols in Global context
+                session.evaluate(wlexpr('ClearAll[Evaluate[Names["Global`*"]]]'))
+                message = "Cleared user-defined variables"
+            else:
+                # More aggressive clearing
+                session.evaluate(wlexpr('ClearAll["Global`*"]'))
+                session.evaluate(wlexpr('$HistoryLength = 100'))
+                message = "Cleared all symbols and reset session"
+            
+            logger.info(f"✅ {message}")
+            
+            return OperationResult(
+                status="success",
+                message=message,
+                data={"evaluation_count": _evaluation_count}
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to clear session: {e}")
+            return OperationResult(
+                status="error",
+                message=f"Failed to clear session: {str(e)}",
+                data={"error": str(e)}
+            )
+
+
+@mcp.tool()
+def restart_kernel() -> OperationResult:
+    """
+    Completely restart the Mathematica kernel.
+    
+    This terminates the current kernel process and starts a fresh one.
+    All variables, functions, and session state will be lost. Use this
+    when the kernel becomes unresponsive or when you need a completely
+    clean mathematical environment.
+    
+    Returns:
+        Operation result with success status and new session information.
+    """
+    global _session, _evaluation_count
+    
+    with _session_lock:
+        try:
+            # Terminate existing session
+            if _session:
+                try:
+                    _session.terminate()
+                    logger.info("Previous session terminated")
+                except Exception as e:
+                    logger.warning(f"Error terminating previous session: {e}")
+            
+            # Reset state
+            _session = None
+            _evaluation_count = 0
+            
+            # Start new session
+            new_session = _get_session()
+            
+            return OperationResult(
+                status="success",
+                message="Kernel restarted successfully",
+                data={
+                    "evaluation_count": _evaluation_count,
+                    "kernel_path": _kernel_path
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to restart kernel: {e}")
+            return OperationResult(
+                status="error",
+                message=f"Failed to restart kernel: {str(e)}",
+                data={"error": str(e)}
+            )
+
+
+@mcp.tool()
+def convert_latex(
+    latex_expression: str = Field(description="LaTeX mathematical expression to convert"),
+    output_format: str = Field(
+        default="OutputForm", 
+        description="Format for the converted result: 'Raw', 'InputForm', 'OutputForm', or 'TeXForm'"
+    )
+) -> MathematicaResult:
+    """
+    Convert LaTeX mathematical expressions to Wolfram Language and evaluate them.
+    
+    This tool attempts to parse LaTeX mathematical notation (common in ArXiv papers)
+    and convert it to executable Wolfram Language expressions. Useful for processing
+    mathematical content from academic papers and integrating them into workflows.
+    
+    Examples:
+    - Simple: "x^2 + 3x + 1"
+    - Fractions: "\\frac{x^2}{2} + \\frac{3x}{4}"
+    - Integrals: "\\int x^2 dx"
+    - Sums: "\\sum_{i=1}^{n} i^2"
+    - Limits: "\\lim_{x \\to 0} \\frac{\\sin x}{x}"
+    
+    Note: LaTeX parsing has limitations. Complex expressions may need manual conversion.
+    """
+    global _evaluation_count
+    
+    with _session_lock:
+        try:
+            if not _ensure_session_active():
+                session = _get_session()
+            else:
+                session = _session
+            
+            # Attempt to convert LaTeX to Wolfram Language
+            try:
+                # First try direct ToExpression with TeXForm
+                conversion_expr = f'ToExpression["{latex_expression}", TeXForm]'
+                raw_result = session.evaluate(wlexpr(conversion_expr))
+                _evaluation_count += 1
+                
+                logger.debug(f"✅ LaTeX conversion successful: {raw_result}")
+                
+            except Exception as e:
+                logger.info(f"Direct LaTeX parsing failed, trying manual conversion: {e}")
+                
+                # Try manual preprocessing for common LaTeX patterns
+                manual_expr = (latex_expression
+                              .replace(r'\frac{', 'Divide[')
+                              .replace(r'}{', ',')
+                              .replace(r'}', ']')
+                              .replace(r'\int', 'Integrate')
+                              .replace(r'\sum', 'Sum')
+                              .replace(r'\lim', 'Limit')
+                              .replace(r'\sin', 'Sin')
+                              .replace(r'\cos', 'Cos')
+                              .replace(r'\tan', 'Tan')
+                              .replace(r'\log', 'Log')
+                              .replace(r'\exp', 'Exp'))
+                
+                raw_result = session.evaluate(wlexpr(f'ToExpression["{manual_expr}"]'))
+                _evaluation_count += 1
+                
+                logger.debug(f"✅ Manual LaTeX conversion successful: {raw_result}")
+            
+            # Format the result
+            if output_format == "Raw":
+                formatted_result = str(raw_result)
+            elif output_format == "InputForm":
+                formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, InputForm]')))
+            elif output_format == "OutputForm":
+                formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, OutputForm]')))
+            elif output_format == "TeXForm":
+                formatted_result = str(session.evaluate(wlexpr(f'ToString[TeXForm[{raw_result}]]')))
+            else:
+                formatted_result = str(raw_result)
+            
+            return MathematicaResult(
+                result=formatted_result,
+                raw_result=str(raw_result),
+                success=True,
+                evaluation_count=_evaluation_count,
+                expression=f"LaTeX: {latex_expression}",
+                format_used=output_format
+            )
+            
+        except Exception as e:
+            logger.error(f"LaTeX conversion failed: {e}")
+            return MathematicaResult(
+                result=f"Error converting LaTeX: {str(e)}",
+                raw_result="",
+                success=False,
+                evaluation_count=_evaluation_count,
+                expression=latex_expression,
+                format_used=output_format,
+                error=str(e)
+            )
+
+
+@mcp.tool()
+def server_info() -> ServerInfo:
+    """
+    Get comprehensive information about the Mathematica MCP server.
+    
+    Returns server status, capabilities, version information, and dependency status.
+    Useful for debugging and verifying server health.
+    """
+    try:
+        # Check if Wolfram kernel is available
+        kernel_available = Path(_kernel_path).exists()
+        
+        # Get session status
+        session_active = _session is not None and _ensure_session_active()
+        
+        dependencies = {
+            "wolframclient": "available",
+            "wolfram_kernel": "available" if kernel_available else "not found",
+            "session_active": "yes" if session_active else "no"
+        }
+        
+        status = "active" if kernel_available and session_active else "degraded"
+        
+        capabilities = [
+            "evaluate - Evaluate Wolfram Language expressions with persistent session",
+            "session_info - Get detailed session information and statistics", 
+            "clear_session - Clear user-defined variables while keeping kernel alive",
+            "restart_kernel - Completely restart the Wolfram kernel process",
+            "convert_latex - Convert LaTeX mathematical expressions to Wolfram Language",
+            "server_info - Get server status and capability information"
+        ]
+        
+        return ServerInfo(
+            name="Mathematica Tool",
+            version="1.0.0",
+            status=status,
+            capabilities=capabilities,
+            dependencies=dependencies
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get server info: {e}")
+        return ServerInfo(
+            name="Mathematica Tool",
+            version="1.0.0", 
+            status="error",
+            capabilities=[],
+            dependencies={"error": str(e)}
+        )
+
+
+# Initialize session when module loads (like the working simple_server.py)
+try:
+    _get_session()
+    logger.info("✅ Mathematica MCP tool initialized successfully")
+except Exception as e:
+    logger.warning(f"Could not initialize Mathematica session on startup: {e}")
+
+
+if __name__ == "__main__":
+    mcp.run()

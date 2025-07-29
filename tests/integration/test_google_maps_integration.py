@@ -46,15 +46,18 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_directions_basic(self, mock_api_key):
         """Test basic directions request."""
-        _, response = await mcp.call_tool(
-            "get_directions", 
+        import json
+
+        result = await mcp.call_tool(
+            "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Brooklyn Bridge, New York, NY",
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -79,15 +82,18 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_directions_transit(self, mock_api_key):
         """Test transit directions request."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Grand Central Terminal, New York, NY",
                 "destination": "JFK Airport, New York, NY",
                 "mode": "transit",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -99,16 +105,19 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_directions_with_waypoints(self, mock_api_key):
         """Test directions with waypoints."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Brooklyn Bridge, New York, NY",
                 "waypoints": ["Central Park, New York, NY"],
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -119,16 +128,19 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_directions_alternatives(self, mock_api_key):
         """Test directions with alternatives."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Brooklyn Bridge, New York, NY",
                 "alternatives": True,
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -140,16 +152,19 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_directions_avoid_options(self, mock_api_key):
         """Test directions with avoid options."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Brooklyn Bridge, New York, NY",
                 "avoid": ["tolls", "highways"],
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -160,15 +175,18 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_walking_directions(self, mock_api_key):
         """Test walking directions."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Central Park, New York, NY",
                 "mode": "walking",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -180,15 +198,18 @@ class TestGoogleMapsIntegration:
     @pytest.mark.asyncio
     async def test_bicycling_directions(self, mock_api_key):
         """Test bicycling directions."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Central Park, New York, NY",
                 "mode": "bicycling",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -214,30 +235,29 @@ class TestGoogleMapsErrorHandling:
                     "origin": "Invalid Location That Does Not Exist",
                     "destination": "Another Invalid Location",
                     "mode": "driving",
-                }
+                },
             )
 
     @google_maps_vcr.use_cassette("test_unreachable_destination.json")
     @pytest.mark.asyncio
     async def test_unreachable_destination(self, mock_api_key):
         """Test handling of unreachable destination."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
-            {
-                "origin": "New York, NY",
-                "destination": "Hawaii",
-                "mode": "driving"
-            }
+            {"origin": "New York, NY", "destination": "Hawaii", "mode": "driving"},
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
         # Should handle gracefully
         # May return no routes or a specific error
-        assert result["status"] in ["NO_ROUTES_FOUND", "OK"] or result["status"].startswith(
-            "ERROR:"
-        )
+        assert result["status"] in ["NO_ROUTES_FOUND", "OK"] or result[
+            "status"
+        ].startswith("ERROR:")
 
 
 @pytest.mark.integration
@@ -248,36 +268,42 @@ class TestGoogleMapsSpecialCases:
     @pytest.mark.asyncio
     async def test_same_origin_destination(self, mock_api_key):
         """Test directions with same origin and destination."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Times Square, New York, NY",
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
         # Should handle gracefully
-        assert result["status"] in ["OK", "NO_ROUTES_FOUND"] or result["status"].startswith(
-            "ERROR:"
-        )
+        assert result["status"] in ["OK", "NO_ROUTES_FOUND"] or result[
+            "status"
+        ].startswith("ERROR:")
 
     @google_maps_vcr.use_cassette("test_coordinates_input.json")
     @pytest.mark.asyncio
     async def test_coordinates_input(self, mock_api_key):
         """Test directions with coordinate inputs."""
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "get_directions",
             {
                 "origin": "40.7128,-74.0060",  # NYC coordinates
                 "destination": "40.7580,-73.9855",  # Times Square coordinates
                 "mode": "driving",
-            }
+            },
         )
-        
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 

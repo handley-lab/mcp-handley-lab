@@ -116,20 +116,32 @@ def create_test_image(tmp_path):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp_instance, tool_name, api_key, model, question, answer", llm_providers
+)
 async def test_llm_ask_basic(
-    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
+    skip_if_no_api_key,
+    test_output_file,
+    mcp_instance,
+    tool_name,
+    api_key,
+    model,
+    question,
+    answer,
 ):
     """Test basic text generation for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    _, response = await mcp_instance.call_tool(tool_name, {
-        "prompt": f"What is {question}? Answer with just the number.",
-        "output_file": test_output_file,
-        "model": model,
-        "temperature": 0.0,
-        "agent_name": "",
-    })
+    _, response = await mcp_instance.call_tool(
+        tool_name,
+        {
+            "prompt": f"What is {question}? Answer with just the number.",
+            "output_file": test_output_file,
+            "model": model,
+            "temperature": 0.0,
+            "agent_name": "",
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -143,7 +155,9 @@ async def test_llm_ask_basic(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp_instance, tool_name, api_key, model, question, answer", llm_providers
+)
 async def test_llm_ask_with_files(
     skip_if_no_api_key,
     test_output_file,
@@ -162,13 +176,16 @@ async def test_llm_ask_with_files(
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello World\nThis is a test file.")
 
-    _, response = await mcp_instance.call_tool(tool_name, {
-        "prompt": "What is in this file?",
-        "output_file": test_output_file,
-        "files": [str(test_file)],
-        "model": model,
-        "agent_name": "",
-    })
+    _, response = await mcp_instance.call_tool(
+        tool_name,
+        {
+            "prompt": "What is in this file?",
+            "output_file": test_output_file,
+            "files": [str(test_file)],
+            "model": model,
+            "agent_name": "",
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -198,13 +215,16 @@ async def test_llm_analyze_image(
     # Create test image
     image_path = create_test_image("test_red.png", color="red")
 
-    _, response = await mcp_instance.call_tool(tool_name, {
-        "prompt": "What color is this image?",
-        "output_file": test_output_file,
-        "files": [str(image_path)],
-        "model": model,
-        "agent_name": "",  # Disable memory for clean test
-    })
+    _, response = await mcp_instance.call_tool(
+        tool_name,
+        {
+            "prompt": "What color is this image?",
+            "output_file": test_output_file,
+            "files": [str(image_path)],
+            "model": model,
+            "agent_name": "",  # Disable memory for clean test
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -218,20 +238,32 @@ async def test_llm_analyze_image(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp_instance, tool_name, api_key, model, question, answer", llm_providers
+)
 async def test_llm_memory_disabled(
-    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
+    skip_if_no_api_key,
+    test_output_file,
+    mcp_instance,
+    tool_name,
+    api_key,
+    model,
+    question,
+    answer,
 ):
     """Test that memory is properly disabled when agent_name=False."""
     skip_if_no_api_key(api_key)
 
-    _, response = await mcp_instance.call_tool(tool_name, {
-        "prompt": f"Remember this number: {answer}. What is {question}?",
-        "output_file": test_output_file,
-        "model": model,
-        "temperature": 0.0,
-        "agent_name": "",
-    })
+    _, response = await mcp_instance.call_tool(
+        tool_name,
+        {
+            "prompt": f"Remember this number: {answer}. What is {question}?",
+            "output_file": test_output_file,
+            "model": model,
+            "temperature": 0.0,
+            "agent_name": "",
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -268,24 +300,39 @@ async def test_llm_server_info(skip_if_no_api_key, mcp_instance, tool_name, api_
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp_instance, tool_name, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp_instance, tool_name, api_key, model, question, answer", llm_providers
+)
 async def test_llm_input_validation(
-    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, question, answer
+    skip_if_no_api_key,
+    test_output_file,
+    mcp_instance,
+    tool_name,
+    api_key,
+    model,
+    question,
+    answer,
 ):
     """Test input validation for all LLM providers."""
     skip_if_no_api_key(api_key)
 
     # Test empty prompt should raise error
     try:
-        _, response = await mcp_instance.call_tool(tool_name, {
-            "prompt": "",
-            "output_file": test_output_file,
-            "model": model,
-            "agent_name": "",
-        })
+        _, response = await mcp_instance.call_tool(
+            tool_name,
+            {
+                "prompt": "",
+                "output_file": test_output_file,
+                "model": model,
+                "agent_name": "",
+            },
+        )
         # If no exception, check for error in response
         if "error" in response:
-            assert "prompt" in response["error"].lower() or "empty" in response["error"].lower()
+            assert (
+                "prompt" in response["error"].lower()
+                or "empty" in response["error"].lower()
+            )
         else:
             pytest.fail("Expected error for empty prompt")
     except Exception as e:
@@ -294,15 +341,21 @@ async def test_llm_input_validation(
 
     # Test missing output_file should raise error
     try:
-        _, response = await mcp_instance.call_tool(tool_name, {
-            "prompt": "Test prompt",
-            "output_file": "",
-            "model": model,
-            "agent_name": "",
-        })
+        _, response = await mcp_instance.call_tool(
+            tool_name,
+            {
+                "prompt": "Test prompt",
+                "output_file": "",
+                "model": model,
+                "agent_name": "",
+            },
+        )
         # If no exception, check for error in response
         if "error" in response:
-            assert "output" in response["error"].lower() or "file" in response["error"].lower()
+            assert (
+                "output" in response["error"].lower()
+                or "file" in response["error"].lower()
+            )
         else:
             pytest.fail("Expected error for missing output file")
     except Exception as e:
@@ -357,7 +410,8 @@ error_scenarios = [
 @pytest.mark.vcr
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "mcp_instance, tool_name, api_key, valid_model, invalid_value, error_param", error_scenarios
+    "mcp_instance, tool_name, api_key, valid_model, invalid_value, error_param",
+    error_scenarios,
 )
 async def test_llm_error_scenarios(
     skip_if_no_api_key,
@@ -374,12 +428,15 @@ async def test_llm_error_scenarios(
 
     # Test invalid model name should raise error (various exception types possible)
     with pytest.raises((ValueError, RuntimeError, Exception)):
-        _, response = await mcp_instance.call_tool(tool_name, {
-            "prompt": "Test prompt",
-            "output_file": test_output_file,
-            "model": invalid_value if error_param == "model" else valid_model,
-            "agent_name": "",
-        })
+        _, response = await mcp_instance.call_tool(
+            tool_name,
+            {
+                "prompt": "Test prompt",
+                "output_file": test_output_file,
+                "model": invalid_value if error_param == "model" else valid_model,
+                "agent_name": "",
+            },
+        )
         # If no exception is raised, check for error in response
         if "error" in response:
             raise RuntimeError(response["error"])
@@ -387,9 +444,18 @@ async def test_llm_error_scenarios(
 
 @pytest.mark.live
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp_instance,tool_name,api_key,model,prompt,expected", llm_providers)
+@pytest.mark.parametrize(
+    "mcp_instance,tool_name,api_key,model,prompt,expected", llm_providers
+)
 async def test_llm_response_metadata_fields(
-    skip_if_no_api_key, test_output_file, mcp_instance, tool_name, api_key, model, prompt, expected
+    skip_if_no_api_key,
+    test_output_file,
+    mcp_instance,
+    tool_name,
+    api_key,
+    model,
+    prompt,
+    expected,
 ):
     """Test that all LLM providers return comprehensive metadata fields."""
     skip_if_no_api_key(api_key)
@@ -399,13 +465,16 @@ async def test_llm_response_metadata_fields(
     if "openai" in str(mcp_instance):
         kwargs.update({"enable_logprobs": True, "top_logprobs": 3})
 
-    _, response = await mcp_instance.call_tool(tool_name, {
-        "prompt": prompt,
-        "output_file": test_output_file,
-        "model": model,
-        "agent_name": "test_metadata",
-        **kwargs,
-    })
+    _, response = await mcp_instance.call_tool(
+        tool_name,
+        {
+            "prompt": prompt,
+            "output_file": test_output_file,
+            "model": model,
+            "agent_name": "test_metadata",
+            **kwargs,
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -474,13 +543,16 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test without logprobs (default)
-    _, response1 = await openai_mcp.call_tool("ask", {
-        "prompt": "What is 2+2?",
-        "output_file": test_output_file,
-        "model": "gpt-4o-mini",
-        "agent_name": "test_no_logprobs",
-        "enable_logprobs": False,
-    })
+    _, response1 = await openai_mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What is 2+2?",
+            "output_file": test_output_file,
+            "model": "gpt-4o-mini",
+            "agent_name": "test_no_logprobs",
+            "enable_logprobs": False,
+        },
+    )
     assert "error" not in response1, response1.get("error")
     result1 = response1
 
@@ -490,14 +562,17 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
     assert result1["response_id"] != ""
 
     # Test with logprobs enabled
-    _, response2 = await openai_mcp.call_tool("ask", {
-        "prompt": "What is 3+3?",
-        "output_file": test_output_file,
-        "model": "gpt-4o-mini",
-        "agent_name": "test_with_logprobs",
-        "enable_logprobs": True,
-        "top_logprobs": 5,
-    })
+    _, response2 = await openai_mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What is 3+3?",
+            "output_file": test_output_file,
+            "model": "gpt-4o-mini",
+            "agent_name": "test_with_logprobs",
+            "enable_logprobs": True,
+            "top_logprobs": 5,
+        },
+    )
     assert "error" not in response2, response2.get("error")
     result2 = response2
 
@@ -512,37 +587,46 @@ class TestLLMMemory:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_memory_enabled_with_agent_name(self, skip_if_no_api_key, test_output_file):
+    async def test_memory_enabled_with_agent_name(
+        self, skip_if_no_api_key, test_output_file
+    ):
         """Test that conversational context is maintained across two calls with the same agent_name."""
         skip_if_no_api_key("OPENAI_API_KEY")
-        
+
         import uuid
+
         agent_name = f"test_memory_agent_{uuid.uuid4()}"  # Unique name per test run
 
         # Call 1: Provide a piece of information
-        _, response1 = await openai_mcp.call_tool("ask", {
-            "prompt": "My user ID is 789. Remember this important number.",
-            "output_file": test_output_file,
-            "model": "gpt-4o-mini", 
-            "agent_name": agent_name,
-            "temperature": 0.1,
-        })
+        _, response1 = await openai_mcp.call_tool(
+            "ask",
+            {
+                "prompt": "My user ID is 789. Remember this important number.",
+                "output_file": test_output_file,
+                "model": "gpt-4o-mini",
+                "agent_name": agent_name,
+                "temperature": 0.1,
+            },
+        )
         assert "error" not in response1, response1.get("error")
         result1 = response1
         assert result1["content"] is not None
 
         # Call 2: Ask a question that relies on the information from Call 1
-        test_output_file2 = test_output_file.replace('.txt', '_2.txt')
-        _, response2 = await openai_mcp.call_tool("ask", {
-            "prompt": "What was my user ID that I told you?",
-            "output_file": test_output_file2,
-            "model": "gpt-4o-mini",
-            "agent_name": agent_name,
-            "temperature": 0.1,
-        })
+        test_output_file2 = test_output_file.replace(".txt", "_2.txt")
+        _, response2 = await openai_mcp.call_tool(
+            "ask",
+            {
+                "prompt": "What was my user ID that I told you?",
+                "output_file": test_output_file2,
+                "model": "gpt-4o-mini",
+                "agent_name": agent_name,
+                "temperature": 0.1,
+            },
+        )
         assert "error" not in response2, response2.get("error")
         result2 = response2
-        
+
         # Verify memory worked - the model should remember the user ID
         assert result2["content"] is not None
         content2 = Path(test_output_file2).read_text()
@@ -550,37 +634,56 @@ class TestLLMMemory:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_memory_isolation_different_agents(self, skip_if_no_api_key, test_output_file):
+    async def test_memory_isolation_different_agents(
+        self, skip_if_no_api_key, test_output_file
+    ):
         """Test that different agent names have isolated memory contexts."""
         skip_if_no_api_key("OPENAI_API_KEY")
-        
+
         import uuid
+
         agent_name1 = f"agent_1_{uuid.uuid4()}"
         agent_name2 = f"agent_2_{uuid.uuid4()}"
 
         # Agent 1: Remember number 123
-        _, response1 = await openai_mcp.call_tool("ask", {
-            "prompt": "My favorite number is 123. Remember this.",
-            "output_file": test_output_file,
-            "model": "gpt-4o-mini",
-            "agent_name": agent_name1,
-            "temperature": 0.1,
-        })
+        _, response1 = await openai_mcp.call_tool(
+            "ask",
+            {
+                "prompt": "My favorite number is 123. Remember this.",
+                "output_file": test_output_file,
+                "model": "gpt-4o-mini",
+                "agent_name": agent_name1,
+                "temperature": 0.1,
+            },
+        )
         assert "error" not in response1, response1.get("error")
 
         # Agent 2: Ask about the number (should NOT know it)
-        test_output_file2 = test_output_file.replace('.txt', '_agent2.txt')
-        _, response2 = await openai_mcp.call_tool("ask", {
-            "prompt": "What is my favorite number?",
-            "output_file": test_output_file2,
-            "model": "gpt-4o-mini", 
-            "agent_name": agent_name2,
-            "temperature": 0.1,
-        })
+        test_output_file2 = test_output_file.replace(".txt", "_agent2.txt")
+        _, response2 = await openai_mcp.call_tool(
+            "ask",
+            {
+                "prompt": "What is my favorite number?",
+                "output_file": test_output_file2,
+                "model": "gpt-4o-mini",
+                "agent_name": agent_name2,
+                "temperature": 0.1,
+            },
+        )
         assert "error" not in response2, response2.get("error")
-        
+
         # Verify isolation - Agent 2 should not know Agent 1's information
         content2 = Path(test_output_file2).read_text().lower()
-        assert "123" not in content2, f"Agent 2 should not know Agent 1's number: {content2}"
-        assert any(phrase in content2 for phrase in ["don't know", "not provided", "haven't told", "no information", "don't have access"]), \
-            f"Agent 2 should indicate it doesn't know: {content2}"
+        assert (
+            "123" not in content2
+        ), f"Agent 2 should not know Agent 1's number: {content2}"
+        assert any(
+            phrase in content2
+            for phrase in [
+                "don't know",
+                "not provided",
+                "haven't told",
+                "no information",
+                "don't have access",
+            ]
+        ), f"Agent 2 should indicate it doesn't know: {content2}"

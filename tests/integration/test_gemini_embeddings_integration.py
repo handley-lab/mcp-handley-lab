@@ -1,6 +1,5 @@
 """Integration tests for Gemini embedding functionality."""
 
-import json
 import os
 import tempfile
 from pathlib import Path
@@ -25,12 +24,18 @@ class TestGeminiEmbeddings:
         """Test getting embeddings for a single text."""
         skip_if_no_gemini_key()
 
-        _, response = await mcp.call_tool("get_embeddings", {
-            "contents": "Hello, world!",
-            "model": "gemini-embedding-001",
-            "task_type": "SEMANTIC_SIMILARITY",
-            "output_dimensionality": 0
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "get_embeddings",
+            {
+                "contents": "Hello, world!",
+                "model": "gemini-embedding-001",
+                "task_type": "SEMANTIC_SIMILARITY",
+                "output_dimensionality": 0,
+            },
+        )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
         result = response["result"]
 
@@ -46,12 +51,18 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         texts = ["Hello, world!", "Goodbye, world!", "Python programming"]
-        _, response = await mcp.call_tool("get_embeddings", {
-            "contents": texts,
-            "model": "gemini-embedding-001",
-            "task_type": "SEMANTIC_SIMILARITY",
-            "output_dimensionality": 0
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "get_embeddings",
+            {
+                "contents": texts,
+                "model": "gemini-embedding-001",
+                "task_type": "SEMANTIC_SIMILARITY",
+                "output_dimensionality": 0,
+            },
+        )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
         result = response["result"]
 
@@ -69,21 +80,33 @@ class TestGeminiEmbeddings:
         text = "Machine learning is fascinating"
 
         # Test different task types
-        _, similarity_response = await mcp.call_tool("get_embeddings", {
-            "contents": text,
-            "model": "gemini-embedding-001",
-            "task_type": "SEMANTIC_SIMILARITY",
-            "output_dimensionality": 0
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "get_embeddings",
+            {
+                "contents": text,
+                "model": "gemini-embedding-001",
+                "task_type": "SEMANTIC_SIMILARITY",
+                "output_dimensionality": 0,
+            },
+        )
+        similarity_response = json.loads(result[0].text)
         assert "error" not in similarity_response, similarity_response.get("error")
         similarity_result = similarity_response["result"]
-        
-        _, retrieval_response = await mcp.call_tool("get_embeddings", {
-            "contents": text,
-            "model": "gemini-embedding-001",
-            "task_type": "RETRIEVAL_DOCUMENT",
-            "output_dimensionality": 0
-        })
+
+        import json
+
+        result = await mcp.call_tool(
+            "get_embeddings",
+            {
+                "contents": text,
+                "model": "gemini-embedding-001",
+                "task_type": "RETRIEVAL_DOCUMENT",
+                "output_dimensionality": 0,
+            },
+        )
+        retrieval_response = json.loads(result[0].text)
         assert "error" not in retrieval_response, retrieval_response.get("error")
         retrieval_result = retrieval_response["result"]
 
@@ -98,11 +121,13 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         text = "This is a test sentence."
-        _, response = await mcp.call_tool("calculate_similarity", {
-            "text1": text,
-            "text2": text,
-            "model": "gemini-embedding-001"
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text, "text2": text, "model": "gemini-embedding-001"},
+        )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
         result = response
 
@@ -116,11 +141,13 @@ class TestGeminiEmbeddings:
 
         text1 = "I love programming in Python."
         text2 = "Cats are wonderful pets."
-        _, response = await mcp.call_tool("calculate_similarity", {
-            "text1": text1,
-            "text2": text2,
-            "model": "gemini-embedding-001"
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text1, "text2": text2, "model": "gemini-embedding-001"},
+        )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
         result = response
 
@@ -135,11 +162,13 @@ class TestGeminiEmbeddings:
 
         text1 = "Machine learning is a subset of artificial intelligence."
         text2 = "AI and machine learning are closely related fields."
-        _, response = await mcp.call_tool("calculate_similarity", {
-            "text1": text1,
-            "text2": text2,
-            "model": "gemini-embedding-001"
-        })
+        import json
+
+        result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text1, "text2": text2, "model": "gemini-embedding-001"},
+        )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
         result = response
 
@@ -166,11 +195,17 @@ class TestGeminiEmbeddings:
 
             # Create index
             index_path = temp_path / "test_index.json"
-            _, index_response = await mcp.call_tool("index_documents", {
-                "document_paths": [str(doc1_path), str(doc2_path), str(doc3_path)],
-                "output_index_path": str(index_path),
-                "model": "gemini-embedding-001"
-            })
+            import json
+
+            result = await mcp.call_tool(
+                "index_documents",
+                {
+                    "document_paths": [str(doc1_path), str(doc2_path), str(doc3_path)],
+                    "output_index_path": str(index_path),
+                    "model": "gemini-embedding-001",
+                },
+            )
+            index_response = json.loads(result[0].text)
             assert "error" not in index_response, index_response.get("error")
             index_result = index_response
 
@@ -189,12 +224,18 @@ class TestGeminiEmbeddings:
                 assert len(item["embedding"]) > 0
 
             # Test search functionality
-            _, search_response = await mcp.call_tool("search_documents", {
-                "query": "programming language",
-                "index_path": str(index_path),
-                "top_k": 2,
-                "model": "gemini-embedding-001"
-            })
+            import json
+
+            result = await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "programming language",
+                    "index_path": str(index_path),
+                    "top_k": 2,
+                    "model": "gemini-embedding-001",
+                },
+            )
+            search_response = json.loads(result[0].text)
             assert "error" not in search_response, search_response.get("error")
             search_results = search_response["result"]
 
@@ -204,12 +245,18 @@ class TestGeminiEmbeddings:
             assert search_results[0]["similarity_score"] > 0.0
 
             # Search for different topic
-            _, search_response2 = await mcp.call_tool("search_documents", {
-                "query": "animals pets",
-                "index_path": str(index_path),
-                "top_k": 1,
-                "model": "gemini-embedding-001"
-            })
+            import json
+
+            result = await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "animals pets",
+                    "index_path": str(index_path),
+                    "top_k": 1,
+                    "model": "gemini-embedding-001",
+                },
+            )
+            search_response2 = json.loads(result[0].text)
             assert "error" not in search_response2, search_response2.get("error")
             search_results2 = search_response2["result"]
 
@@ -223,13 +270,17 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         from mcp.server.fastmcp.exceptions import ToolError
+
         with pytest.raises(ToolError, match="Contents list cannot be empty"):
-            await mcp.call_tool("get_embeddings", {
-                "contents": [],
-                "model": "gemini-embedding-001",
-                "task_type": "SEMANTIC_SIMILARITY",
-                "output_dimensionality": 0
-            })
+            await mcp.call_tool(
+                "get_embeddings",
+                {
+                    "contents": [],
+                    "model": "gemini-embedding-001",
+                    "task_type": "SEMANTIC_SIMILARITY",
+                    "output_dimensionality": 0,
+                },
+            )
 
     @pytest.mark.asyncio
     async def test_calculate_similarity_empty_text_error(self):
@@ -237,19 +288,18 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         from mcp.server.fastmcp.exceptions import ToolError
-        with pytest.raises(ToolError, match="Both text1 and text2 must be provided"):
-            await mcp.call_tool("calculate_similarity", {
-                "text1": "",
-                "text2": "test",
-                "model": "gemini-embedding-001"
-            })
 
         with pytest.raises(ToolError, match="Both text1 and text2 must be provided"):
-            await mcp.call_tool("calculate_similarity", {
-                "text1": "test",
-                "text2": "",
-                "model": "gemini-embedding-001"
-            })
+            await mcp.call_tool(
+                "calculate_similarity",
+                {"text1": "", "text2": "test", "model": "gemini-embedding-001"},
+            )
+
+        with pytest.raises(ToolError, match="Both text1 and text2 must be provided"):
+            await mcp.call_tool(
+                "calculate_similarity",
+                {"text1": "test", "text2": "", "model": "gemini-embedding-001"},
+            )
 
     @pytest.mark.asyncio
     async def test_search_documents_nonexistent_index_error(self):
@@ -257,13 +307,17 @@ class TestGeminiEmbeddings:
         skip_if_no_gemini_key()
 
         from mcp.server.fastmcp.exceptions import ToolError
+
         with pytest.raises(ToolError, match="No such file or directory"):
-            await mcp.call_tool("search_documents", {
-                "query": "test",
-                "index_path": "/nonexistent/path/index.json",
-                "top_k": 5,
-                "model": "gemini-embedding-001"
-            })
+            await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "test",
+                    "index_path": "/nonexistent/path/index.json",
+                    "top_k": 5,
+                    "model": "gemini-embedding-001",
+                },
+            )
 
     @pytest.mark.asyncio
     async def test_index_documents_nonexistent_file_error(self):
@@ -275,9 +329,13 @@ class TestGeminiEmbeddings:
 
             # This should fail fast when trying to read the non-existent file
             from mcp.server.fastmcp.exceptions import ToolError
+
             with pytest.raises(ToolError, match="No such file or directory"):
-                await mcp.call_tool("index_documents", {
-                    "document_paths": ["/nonexistent/file.txt"],
-                    "output_index_path": str(index_path),
-                    "model": "gemini-embedding-001"
-                })
+                await mcp.call_tool(
+                    "index_documents",
+                    {
+                        "document_paths": ["/nonexistent/file.txt"],
+                        "output_index_path": str(index_path),
+                        "model": "gemini-embedding-001",
+                    },
+                )

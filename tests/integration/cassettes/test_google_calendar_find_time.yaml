@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"timeMin": "2025-07-06T21:03:57.929390Z", "timeMax": "2025-07-13T21:03:57.929390Z",
+    body: '{"timeMin": "2025-07-29T23:21:00.304232Z", "timeMax": "2025-08-05T23:21:00.304232Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -14,7 +14,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.174.0 gl-python/3.13.5 cred-type/u
     method: POST
     uri: https://www.googleapis.com/calendar/v3/freeBusy?alt=json
   response:
@@ -32,7 +32,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:58 GMT
+      - Tue, 29 Jul 2025 22:21:00 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -66,12 +66,12 @@ interactions:
       user-agent:
       - Python-httplib2/0.22.0 (gzip)
       x-goog-api-client:
-      - gl-python/3.13.3 auth/2.40.3 cred-type/u
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
     method: POST
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6NzYl5G9P4bqq9zJMSyL9rQvuHfSzprWY3JWfqvDkRXJ-cFWambQ92hkAX_9OcqepSMH0k8O4XIv3qAnZSmcgUtF7v9UTLmV7vqSIomZY7zmBbGWsLp4IkT-OawZ57YFpHzQQc864Cl-nToRB0Wit_ukz7ddCuPN9zF_7gaCgYKAVYSARcSFQHGX2MixECx3Jzh15UMeFrSqXQV0A0177\",\n
+      string: "{\n  \"access_token\": \"ya29.A0AS3H6NzUWL3NB2udNYsj5l1ZhGOBJpk4hYWqRZAE9Qe1Xoqxq1jbTfF4z71HgDdWaZFn1nRmA0mgNPLanylr3o8uuijXY8jpw5pQrYuoavAHjHbAiPnFWPXEjOUvbLiCS0pY9ODtoF2E1gDa4co2OWEnxbOAYXjsT3XDIOiu1Wkg2PY2U0xk064LpAKr4oj0gPLhTapbDQaCgYKAdsSARcSFQHGX2Mi-zZ_CNVBuaga5ryzuJBaxg0209\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -82,7 +82,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 20:03:58 GMT
+      - Tue, 29 Jul 2025 22:21:00 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -102,12 +102,12 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '351'
+      - '383'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"timeMin": "2025-07-06T21:03:57.929390Z", "timeMax": "2025-07-13T21:03:57.929390Z",
+    body: '{"timeMin": "2025-07-29T23:21:00.304232Z", "timeMax": "2025-08-05T23:21:00.304232Z",
       "items": [{"id": "primary"}]}'
     headers:
       accept:
@@ -121,14 +121,16 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.174.0 gl-python/3.13.5 cred-type/u
     method: POST
     uri: https://www.googleapis.com/calendar/v3/freeBusy?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-07-06T21:03:57.929Z\",\n
-        \"timeMax\": \"2025-07-13T21:03:57.929Z\",\n \"calendars\": {\n  \"primary\":
-        {\n   \"busy\": []\n  }\n }\n}\n"
+      string: "{\n \"kind\": \"calendar#freeBusy\",\n \"timeMin\": \"2025-07-29T23:21:00.304Z\",\n
+        \"timeMax\": \"2025-08-05T23:21:00.304Z\",\n \"calendars\": {\n  \"primary\":
+        {\n   \"busy\": [\n    {\n     \"start\": \"2025-07-30T09:00:00Z\",\n     \"end\":
+        \"2025-07-30T10:00:00Z\"\n    },\n    {\n     \"start\": \"2025-07-30T14:00:00Z\",\n
+        \    \"end\": \"2025-07-30T15:00:00Z\"\n    }\n   ]\n  }\n }\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
@@ -137,7 +139,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:58 GMT
+      - Tue, 29 Jul 2025 22:21:00 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -157,7 +159,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '166'
+      - '341'
       x-l2-request-path:
       - l2-managed-14
     status:

@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 
 
-
 @pytest.fixture(scope="session")
 def vcr_config():
     return {
@@ -88,5 +87,3 @@ def google_calendar_test_config():
     # Restore original settings
     settings.google_credentials_file = original_creds
     settings.google_token_file = original_token
-
-

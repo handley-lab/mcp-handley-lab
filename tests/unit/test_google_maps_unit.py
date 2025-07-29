@@ -217,8 +217,6 @@ class TestDataParsing:
         assert len(route.legs) == 1
 
 
-
-
 class TestServerInfo:
     """Test server information functionality."""
 

@@ -61,8 +61,6 @@ class TestModelConfiguration:
         assert config["output_tokens"] == 65536
 
 
-
-
 class TestGeminiHelpers:
     """Test Gemini internal helper functions."""
 

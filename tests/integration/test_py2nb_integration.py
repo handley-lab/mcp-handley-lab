@@ -7,16 +7,7 @@ from pathlib import Path
 
 import pytest
 from mcp_handley_lab.py2nb.tool import (
-    execute_notebook,
-    notebook_to_py,
-    py_to_notebook,
-    server_info,
-    validate_notebook,
-    validate_python,
     mcp,
-)
-from mcp_handley_lab.py2nb.tool import (
-    test_roundtrip as roundtrip_test,
 )
 
 
@@ -57,11 +48,9 @@ print(f"Std: {np.std(data):.3f}")
 
         try:
             # Convert to notebook using MCP call_tool
-            _, response = await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": python_file}
-            )
-            
+            result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
+            response = json.loads(result[0].text)
+
             assert "error" not in response, response.get("error")
             result = response  # response IS the result
 
@@ -164,11 +153,12 @@ print(f"Std: {np.std(data):.3f}")
 
         try:
             # Convert to Python using MCP call_tool
-            _, response = await mcp.call_tool(
-                "notebook_to_py", 
-                {"notebook_path": notebook_file}
+
+            result = await mcp.call_tool(
+                "notebook_to_py", {"notebook_path": notebook_file}
             )
-            
+            response = json.loads(result[0].text)
+
             assert "error" not in response, response.get("error")
             result = response
 
@@ -228,10 +218,10 @@ print(f"Std: {np.std(data):.3f}")
 
         try:
             # Test notebook validation using MCP call_tool
-            _, response = await mcp.call_tool(
-                "validate_notebook", 
-                {"notebook_path": notebook_file}
+            result = await mcp.call_tool(
+                "validate_notebook", {"notebook_path": notebook_file}
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is True
@@ -239,10 +229,10 @@ print(f"Std: {np.std(data):.3f}")
             assert "validation passed" in result["message"]
 
             # Test Python validation using MCP call_tool
-            _, response = await mcp.call_tool(
-                "validate_python", 
-                {"script_path": python_file}
+            result = await mcp.call_tool(
+                "validate_python", {"script_path": python_file}
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is True
@@ -250,10 +240,10 @@ print(f"Std: {np.std(data):.3f}")
             assert "validation passed" in result["message"]
 
             # Test non-existent file using MCP call_tool
-            _, response = await mcp.call_tool(
-                "validate_notebook", 
-                {"notebook_path": "/non/existent/file.ipynb"}
+            result = await mcp.call_tool(
+                "validate_notebook", {"notebook_path": "/non/existent/file.ipynb"}
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is False
@@ -287,11 +277,9 @@ print(f"Result: {y}")
 
         try:
             # Test round-trip conversion using MCP call_tool
-            _, response = await mcp.call_tool(
-                "test_roundtrip", 
-                {"script_path": python_file}
-            )
-            
+            result = await mcp.call_tool("test_roundtrip", {"script_path": python_file})
+            response = json.loads(result[0].text)
+
             assert "error" not in response, response.get("error")
             result = response
 
@@ -329,19 +317,18 @@ result"""
 
         try:
             # Convert to notebook first using MCP call_tool
-            _, response = await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": python_file}
-            )
+            result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             conversion_result = response
             notebook_file = conversion_result["output_path"]
 
             # Execute the notebook using MCP call_tool
-            _, response = await mcp.call_tool(
-                "execute_notebook", 
-                {"notebook_path": notebook_file, "allow_errors": True}
+            result = await mcp.call_tool(
+                "execute_notebook",
+                {"notebook_path": notebook_file, "allow_errors": True},
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             execution_result = response
 
@@ -362,7 +349,6 @@ result"""
             assert execution_result["kernel_name"] == "python3"
 
             # Verify the notebook file was updated with outputs
-            import json
 
             with open(notebook_file) as f:
                 executed_nb = json.load(f)
@@ -392,8 +378,9 @@ result"""
     @pytest.mark.asyncio
     async def test_server_info_integration(self):
         """Test server info function."""
-        _, response = await mcp.call_tool("server_info", {})
-        
+        result = await mcp.call_tool("server_info", {})
+        response = json.loads(result[0].text)
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -417,11 +404,11 @@ result"""
 
         try:
             # Convert with backup enabled using MCP call_tool
-            _, response = await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": python_file, "backup": True}
+            result = await mcp.call_tool(
+                "py_to_notebook", {"script_path": python_file, "backup": True}
             )
-            
+            response = json.loads(result[0].text)
+
             assert "error" not in response, response.get("error")
             result = response
 
@@ -454,10 +441,11 @@ result"""
         try:
             # Test custom notebook output path using MCP call_tool
             custom_notebook = python_file.replace(".py", "_custom.ipynb")
-            _, response = await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": python_file, "output_path": custom_notebook}
+            result = await mcp.call_tool(
+                "py_to_notebook",
+                {"script_path": python_file, "output_path": custom_notebook},
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             result = response
 
@@ -466,10 +454,11 @@ result"""
 
             # Test custom Python output path using MCP call_tool
             custom_python = custom_notebook.replace(".ipynb", "_back.py")
-            _, response = await mcp.call_tool(
-                "notebook_to_py", 
-                {"notebook_path": custom_notebook, "output_path": custom_python}
+            result = await mcp.call_tool(
+                "notebook_to_py",
+                {"notebook_path": custom_notebook, "output_path": custom_python},
             )
+            response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             result = response
 
@@ -485,18 +474,16 @@ result"""
     async def test_error_handling(self):
         """Test error handling in integration scenarios."""
         from mcp.server.fastmcp.exceptions import ToolError
-        
+
         # Test non-existent file - MCP should raise ToolError
         with pytest.raises(ToolError, match="Script file not found"):
             await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": "/non/existent/file.py"}
+                "py_to_notebook", {"script_path": "/non/existent/file.py"}
             )
 
         with pytest.raises(ToolError, match="Notebook file not found"):
             await mcp.call_tool(
-                "notebook_to_py", 
-                {"notebook_path": "/non/existent/file.ipynb"}
+                "notebook_to_py", {"notebook_path": "/non/existent/file.ipynb"}
             )
 
         # Test invalid notebook file
@@ -507,8 +494,7 @@ result"""
         try:
             with pytest.raises(ToolError, match="Invalid notebook file"):
                 await mcp.call_tool(
-                    "notebook_to_py", 
-                    {"notebook_path": invalid_notebook}
+                    "notebook_to_py", {"notebook_path": invalid_notebook}
                 )
         finally:
             Path(invalid_notebook).unlink(missing_ok=True)
@@ -576,11 +562,12 @@ result"""
 
         try:
             # Convert to Python using MCP call_tool
-            _, response = await mcp.call_tool(
-                "notebook_to_py", 
-                {"notebook_path": notebook_file}
+
+            result = await mcp.call_tool(
+                "notebook_to_py", {"notebook_path": notebook_file}
             )
-            
+            response = json.loads(result[0].text)
+
             assert "error" not in response, response.get("error")
             result = response
             python_file = result["output_path"]
@@ -599,11 +586,9 @@ result"""
             # so no separator is expected
 
             # Convert back to notebook using MCP call_tool
-            _, response2 = await mcp.call_tool(
-                "py_to_notebook", 
-                {"script_path": python_file}
-            )
-            
+            result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
+            response2 = json.loads(result[0].text)
+
             assert "error" not in response2, response2.get("error")
             result2 = response2
             notebook_file2 = result2["output_path"]

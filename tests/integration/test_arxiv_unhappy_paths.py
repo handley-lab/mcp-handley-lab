@@ -4,6 +4,7 @@ Tests error scenarios including service downtime, corrupted downloads,
 network failures, and edge cases not covered by basic integration tests.
 """
 
+
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 from mcp_handley_lab.arxiv.tool import mcp
@@ -71,9 +72,12 @@ class TestArxivInvalidInputs:
         valid_arxiv_id = "2301.07041"
 
         # Empty output path - should use default behavior
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
         )
+        response = json.loads(result[0].text)
 
         # Should handle empty path gracefully (use default)
         assert "error" not in response, response.get("error")
@@ -134,7 +138,9 @@ class TestArxivNetworkAndServiceErrors:
 
         # Should either create directory or provide clear error
         try:
-            _, response = await mcp.call_tool(
+            import json
+
+            result = await mcp.call_tool(
                 "download",
                 {
                     "arxiv_id": valid_arxiv_id,
@@ -142,6 +148,7 @@ class TestArxivNetworkAndServiceErrors:
                     "output_path": str(nested_path),
                 },
             )
+            response = json.loads(result[0].text)
 
             # If successful, file should exist
             if "error" not in response:
@@ -171,7 +178,9 @@ class TestArxivNetworkAndServiceErrors:
             # Try to create a large file to simulate disk pressure
             large_dummy_file.write_bytes(b"0" * (1024 * 1024))  # 1MB
 
-            _, response = await mcp.call_tool(
+            import json
+
+            result = await mcp.call_tool(
                 "download",
                 {
                     "arxiv_id": valid_arxiv_id,
@@ -179,6 +188,7 @@ class TestArxivNetworkAndServiceErrors:
                     "output_path": str(output_file),
                 },
             )
+            response = json.loads(result[0].text)
 
             # Should succeed in normal circumstances
             if "error" not in response:
@@ -223,7 +233,9 @@ class TestArxivCorruptedDataHandling:
         # Test each format - some might not be available
         for format_type in ["src", "pdf", "tex"]:
             try:
-                _, response = await mcp.call_tool(
+                import json
+
+                result = await mcp.call_tool(
                     "download",
                     {
                         "arxiv_id": old_arxiv_id,
@@ -231,6 +243,7 @@ class TestArxivCorruptedDataHandling:
                         "output_path": "-",
                     },
                 )
+                response = json.loads(result[0].text)
 
                 # If successful, should have valid response structure
                 if "error" not in response:
@@ -289,10 +302,13 @@ class TestArxivEdgeCases:
 
         for versioned_id in version_tests:
             try:
-                _, response = await mcp.call_tool(
+                import json
+
+                result = await mcp.call_tool(
                     "download",
                     {"arxiv_id": versioned_id, "format": "src", "output_path": "-"},
                 )
+                response = json.loads(result[0].text)
 
                 # If successful, should handle version correctly
                 if "error" not in response:
@@ -321,7 +337,9 @@ class TestArxivEdgeCases:
 
         async def download_paper(format_type, output_suffix):
             try:
-                _, response = await mcp.call_tool(
+                import json
+
+                result = await mcp.call_tool(
                     "download",
                     {
                         "arxiv_id": valid_arxiv_id,
@@ -329,6 +347,7 @@ class TestArxivEdgeCases:
                         "output_path": f"/tmp/arxiv_test_{output_suffix}.dat",
                     },
                 )
+                response = json.loads(result[0].text)
                 return response
             except Exception as e:
                 return {"error": str(e)}
@@ -399,16 +418,22 @@ class TestArxivEdgeCases:
         valid_arxiv_id = "2301.07041"
 
         # Test stdout output (should work)
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "download",
             {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": "-"},
         )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
 
         # Test empty output path (should use default)
-        _, response = await mcp.call_tool(
+        import json
+
+        result = await mcp.call_tool(
             "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
         )
+        response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
 
 
@@ -423,7 +448,10 @@ class TestArxivServerInfoErrors:
         responses = []
 
         for _ in range(3):
-            _, response = await mcp.call_tool("server_info", {})
+            import json
+
+            result = await mcp.call_tool("server_info", {})
+            response = json.loads(result[0].text)
             responses.append(response)
             assert "error" not in response, response.get("error")
 

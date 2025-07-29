@@ -3,10 +3,11 @@ import os
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image, mcp as gemini_mcp
-from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image, mcp as openai_mcp
+from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image
+from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
+from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image
+from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 from mcp_handley_lab.shared.models import ImageGenerationResult
-from openai import BadRequestError
 
 
 class TestOpenAIImageGeneration:
@@ -17,15 +18,15 @@ class TestOpenAIImageGeneration:
     async def test_dalle2_basic_metadata(self):
         """Test DALL-E 2 basic metadata extraction."""
         _, response = await openai_mcp.call_tool(
-            "generate_image", 
+            "generate_image",
             {
                 "prompt": "A simple red circle",
                 "model": "dall-e-2",
                 "size": "512x512",
                 "agent_name": "test_dalle2",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -196,24 +197,24 @@ class TestImageGenerationComparison:
         prompt = "A simple test image"
 
         _, openai_response = await openai_mcp.call_tool(
-            "generate_image", 
+            "generate_image",
             {
                 "prompt": prompt,
                 "model": "dall-e-2",
                 "size": "512x512",
                 "agent_name": "consistency_test",
-            }
+            },
         )
         assert "error" not in openai_response, openai_response.get("error")
         openai_result = openai_response
 
         _, gemini_response = await gemini_mcp.call_tool(
-            "generate_image", 
+            "generate_image",
             {
                 "prompt": prompt,
                 "model": "imagen-3.0-generate-002",
                 "agent_name": "consistency_test",
-            }
+            },
         )
         assert "error" not in gemini_response, gemini_response.get("error")
         gemini_result = gemini_response
@@ -245,24 +246,24 @@ class TestImageGenerationComparison:
         prompt = "A cat wearing a hat"
 
         _, openai_response = await openai_mcp.call_tool(
-            "generate_image", 
+            "generate_image",
             {
                 "prompt": prompt,
                 "model": "dall-e-3",  # DALL-E 3 enhances prompts
                 "size": "1024x1024",
                 "agent_name": "enhancement_test",
-            }
+            },
         )
         assert "error" not in openai_response, openai_response.get("error")
         openai_result = openai_response
 
         _, gemini_response = await gemini_mcp.call_tool(
-            "generate_image", 
+            "generate_image",
             {
                 "prompt": prompt,
                 "model": "imagen-3.0-generate-002",
                 "agent_name": "enhancement_test",
-            }
+            },
         )
         assert "error" not in gemini_response, gemini_response.get("error")
         gemini_result = gemini_response
@@ -286,7 +287,7 @@ class TestImageGenerationErrorHandling:
     async def test_empty_prompt_openai(self):
         """Test OpenAI image generation with empty prompt."""
         from mcp.server.fastmcp.exceptions import ToolError
-        
+
         with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
             await openai_mcp.call_tool("generate_image", {"prompt": ""})
 
@@ -294,7 +295,7 @@ class TestImageGenerationErrorHandling:
     async def test_empty_prompt_gemini(self):
         """Test Gemini image generation with empty prompt."""
         from mcp.server.fastmcp.exceptions import ToolError
-        
+
         with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
             await gemini_mcp.call_tool("generate_image", {"prompt": ""})
 
@@ -303,16 +304,16 @@ class TestImageGenerationErrorHandling:
     async def test_invalid_size_openai(self):
         """Test OpenAI with invalid size parameter."""
         from mcp.server.fastmcp.exceptions import ToolError
-        
+
         with pytest.raises(ToolError):  # MCP wraps API errors in ToolError
             await openai_mcp.call_tool(
-                "generate_image", 
+                "generate_image",
                 {
                     "prompt": "Test",
                     "model": "dall-e-3",
                     "size": "100x100",  # Invalid size
                     "agent_name": "error_test",
-                }
+                },
             )
 
 

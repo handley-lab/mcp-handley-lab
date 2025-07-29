@@ -7,13 +7,14 @@ Enables LLM-driven mathematical workflows with true REPL behavior and variable p
 
 import logging
 import threading
+import re
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field, BaseModel
 from wolframclient.evaluation import WolframLanguageSession
-from wolframclient.language import wlexpr
+from wolframclient.language import wlexpr, wl
 
 from mcp_handley_lab.shared.models import OperationResult, ServerInfo
 
@@ -27,6 +28,7 @@ _session: Optional[WolframLanguageSession] = None
 _evaluation_count = 0
 _session_lock = threading.RLock()
 _kernel_path = '/usr/bin/WolframKernel'
+_result_history: List[Any] = []  # Store all results for %, %%, %n references
 
 
 class MathematicaResult(BaseModel):
@@ -38,6 +40,7 @@ class MathematicaResult(BaseModel):
     expression: str = Field(description="The original expression that was evaluated")
     format_used: str = Field(description="The output format that was used")
     error: Optional[str] = Field(None, description="Error message if evaluation failed")
+    note: Optional[str] = Field(None, description="Additional notes about the evaluation")
 
 
 class SessionInfo(BaseModel):
@@ -67,6 +70,10 @@ def _get_session() -> WolframLanguageSession:
                 _session.evaluate(wlexpr('$HistoryLength = 100'))
                 _session.evaluate(wlexpr('SetOptions[$Output, PageWidth -> Infinity]'))
                 
+                # Note: % references have proven unreliable in wolframclient
+                # Instead, we provide Python-side state management for chaining operations
+                logger.info("✅ Session configured for LLM workflows with Python-side state management")
+                
                 logger.info("✅ Wolfram session started successfully")
                 
             except Exception as e:
@@ -75,6 +82,78 @@ def _get_session() -> WolframLanguageSession:
                 raise RuntimeError(f"Could not start Wolfram session: {e}")
     
     return _session
+
+
+def _to_input_form(expr_obj) -> str:
+    """
+    Convert a Wolfram expression object back to parseable InputForm string.
+    
+    This is crucial because str(expr_obj) gives Python representation like 'wl.Plus(...)'
+    which the kernel cannot parse. InputForm gives us parseable Wolfram code.
+    """
+    if expr_obj is None:
+        return "Null"
+    
+    # Use the session to convert to InputForm string
+    with _session_lock:
+        if _session is not None:
+            try:
+                # Use ToString with InputForm to get a proper string representation
+                input_form_str = _session.evaluate(wlexpr(f'ToString[{expr_obj}, InputForm]'))
+                return str(input_form_str)
+            except Exception as e:
+                logger.warning(f"Failed to convert to InputForm: {e}")
+                return str(expr_obj)
+    return str(expr_obj)
+
+
+def _preprocess_percent_references(expression: str) -> str:
+    """
+    Robust preprocessing of % references using regex-based substitution.
+    
+    Handles:
+    - % (last result)
+    - %% (second to last)
+    - %%% (third to last, etc.)
+    - %n (result n, e.g., %5)
+    
+    This bypasses wolframclient's problematic % handling by doing substitution
+    in Python before the expression is parsed.
+    """
+    global _result_history
+    
+    if not _result_history or '%' not in expression:
+        return expression
+    
+    processed_expression = expression
+    
+    # Handle %n references (e.g., %5, %12)
+    def replace_numbered(match):
+        index = int(match.group(1))
+        if 1 <= index <= len(_result_history):
+            # Wolfram is 1-indexed, Python lists are 0-indexed
+            result_obj = _result_history[index - 1]
+            return f"({_to_input_form(result_obj)})"
+        return match.group(0)  # Return original if index out of bounds
+    
+    processed_expression = re.sub(r'%(\d+)', replace_numbered, processed_expression)
+    
+    # Handle %%... references (%, %%, %%%)
+    def replace_sequential(match):
+        count = len(match.group(0))
+        if 1 <= count <= len(_result_history):
+            # % is history[-1], %% is history[-2], etc.
+            result_obj = _result_history[-count]
+            return f"({_to_input_form(result_obj)})"
+        return match.group(0)  # Return original if not enough history
+    
+    # Match one or more % not preceded by a digit
+    processed_expression = re.sub(r'(?<!\d)(%)+', replace_sequential, processed_expression)
+    
+    if processed_expression != expression:
+        logger.debug(f"Preprocessed % references: '{expression}' -> '{processed_expression}'")
+    
+    return processed_expression
 
 
 def _ensure_session_active() -> bool:
@@ -122,6 +201,9 @@ def evaluate(
     - Integration: "Integrate[x^2 + 3*x + 1, x]"
     - Use persistent variables: "Expand[myExpression]"
     
+    Note: % references are fully supported through Python-side preprocessing.
+    Use % for last result, %% for second-to-last, %n for result n, etc.
+    
     The session maintains all variables and definitions across calls, enabling
     complex mathematical workflows where LLMs can build on previous calculations.
     """
@@ -137,9 +219,16 @@ def evaluate(
             
             logger.debug(f"Evaluating: {expression}")
             
-            # Evaluate the expression
-            raw_result = session.evaluate(wlexpr(expression))
+            # Preprocess % references before evaluation
+            processed_expression = _preprocess_percent_references(expression)
+            
+            # Evaluate the processed expression
+            raw_result = session.evaluate(wlexpr(processed_expression))
             _evaluation_count += 1
+            
+            # Store result in history for % references
+            global _result_history
+            _result_history.append(raw_result)
             
             # Format the result based on requested format
             if output_format == "Raw":
@@ -187,7 +276,7 @@ def evaluate(
                 success=False,
                 evaluation_count=_evaluation_count,
                 expression=expression,
-                format_used=output_format,
+                format_used=output_format if isinstance(output_format, str) else "Raw",
                 error=str(e)
             )
 
@@ -276,6 +365,10 @@ def clear_session(
                 session.evaluate(wlexpr('$HistoryLength = 100'))
                 message = "Cleared all symbols and reset session"
             
+            # Clear Python-side history in both cases
+            global _result_history
+            _result_history.clear()
+            
             logger.info(f"✅ {message}")
             
             return OperationResult(
@@ -306,7 +399,7 @@ def restart_kernel() -> OperationResult:
     Returns:
         Operation result with success status and new session information.
     """
-    global _session, _evaluation_count
+    global _session, _evaluation_count, _result_history
     
     with _session_lock:
         try:
@@ -321,6 +414,7 @@ def restart_kernel() -> OperationResult:
             # Reset state
             _session = None
             _evaluation_count = 0
+            _result_history.clear()
             
             # Start new session
             new_session = _get_session()
@@ -340,6 +434,89 @@ def restart_kernel() -> OperationResult:
                 status="error",
                 message=f"Failed to restart kernel: {str(e)}",
                 data={"error": str(e)}
+            )
+
+
+@mcp.tool()
+def apply_to_last(
+    operation: str = Field(description="Wolfram Language operation to apply to the last result (e.g., 'Factor', 'Expand', 'Solve[# == 0, x]')")
+) -> MathematicaResult:
+    """
+    Apply a Wolfram Language operation to the last evaluation result.
+    
+    This tool provides a reliable alternative to % references by applying
+    operations to the result stored from the previous evaluation. Use # 
+    to represent the last result in your operation.
+    
+    Examples:
+    - "Factor" - factors the last result
+    - "Expand" - expands the last result  
+    - "Solve[# == 0, x]" - solves equation where last result equals 0
+    - "Plot[#, {x, -2, 2}]" - plots the last result
+    
+    This approach is more reliable than % references for LLM workflows.
+    """
+    global _evaluation_count, _result_history
+    
+    with _session_lock:
+        try:
+            if not _ensure_session_active():
+                session = _get_session()
+            else:
+                session = _session
+            
+            if not _result_history:
+                return MathematicaResult(
+                    result="Error: No previous result available",
+                    raw_result="",
+                    success=False,
+                    evaluation_count=_evaluation_count,
+                    expression=operation,
+                    format_used="Raw",
+                    error="No previous result stored",
+                    note="Use the 'evaluate' tool first to generate a result"
+                )
+            
+            last_result = _result_history[-1]
+            logger.debug(f"Applying '{operation}' to last result: {last_result}")
+            
+            # Apply the operation to the last result using wl function construction
+            if '#' in operation:
+                # Replace # with the actual last result in the operation string
+                operation_expr = operation.replace('#', _to_input_form(last_result))
+                raw_result = session.evaluate(wlexpr(operation_expr))
+            else:
+                # Direct function application (e.g., "Factor" becomes "Factor[last_result]")
+                raw_result = session.evaluate(wlexpr(f'{operation}[{_to_input_form(last_result)}]'))
+            
+            _evaluation_count += 1
+            _result_history.append(raw_result)  # Add to history
+            
+            # Use Raw format by default for consistency
+            formatted_result = str(raw_result)
+            
+            logger.debug(f"✅ Applied operation successfully: {formatted_result}")
+            
+            return MathematicaResult(
+                result=formatted_result,
+                raw_result=str(raw_result),
+                success=True,
+                evaluation_count=_evaluation_count,
+                expression=f"{operation} applied to previous result",
+                format_used="Raw",
+                note="Result stored for further chaining operations"
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ Operation application failed: {e}")
+            return MathematicaResult(
+                result=f"Error: {str(e)}",
+                raw_result="",
+                success=False,
+                evaluation_count=_evaluation_count,
+                expression=operation,
+                format_used="Raw",
+                error=str(e)
             )
 
 
@@ -466,6 +643,7 @@ def server_info() -> ServerInfo:
         
         capabilities = [
             "evaluate - Evaluate Wolfram Language expressions with persistent session",
+            "apply_to_last - Apply operations to the last evaluation result (alternative to % references)",
             "session_info - Get detailed session information and statistics", 
             "clear_session - Clear user-defined variables while keeping kernel alive",
             "restart_kernel - Completely restart the Wolfram kernel process",

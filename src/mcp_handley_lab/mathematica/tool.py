@@ -107,6 +107,26 @@ def _to_input_form(expr_obj) -> str:
     return str(expr_obj)
 
 
+def _format_result(session: WolframLanguageSession, raw_result: Any, output_format: str) -> str:
+    """Format a raw Wolfram result into a string based on the desired format."""
+    if output_format == "Raw":
+        return str(raw_result)
+    
+    # For other formats, ask the kernel to convert to string
+    format_func = {
+        "InputForm": "InputForm",
+        "OutputForm": "OutputForm", 
+        "TeXForm": "TeXForm"
+    }.get(output_format)
+    
+    if format_func:
+        if format_func == "TeXForm":
+            return str(session.evaluate(wlexpr(f'ToString[TeXForm[{raw_result}]]')))
+        return str(session.evaluate(wlexpr(f'ToString[{raw_result}, {format_func}]')))
+    
+    return str(raw_result)
+
+
 def _preprocess_percent_references(expression: str) -> str:
     """
     Robust preprocessing of % references using regex-based substitution.
@@ -179,7 +199,13 @@ def evaluate(
     expression: str = Field(description="Wolfram Language expression to evaluate"),
     output_format: str = Field(
         default="Raw", 
-        description="Output format: 'Raw' (internal form), 'InputForm' (Wolfram syntax), 'OutputForm' (human-readable), or 'TeXForm' (LaTeX)"
+        description=(
+            "Output format for the result. "
+            "'Raw': Python's string representation of the result object. "
+            "'InputForm': A string of valid Wolfram Language code. "
+            "'OutputForm': Standard human-readable formatted output. "
+            "'TeXForm': LaTeX representation for documents."
+        )
     ),
     store_context: Optional[str] = Field(
         None,
@@ -231,31 +257,7 @@ def evaluate(
             _result_history.append(raw_result)
             
             # Format the result based on requested format
-            if output_format == "Raw":
-                formatted_result = str(raw_result)
-            elif output_format == "InputForm":
-                try:
-                    # Use InputForm for clean Wolfram syntax
-                    formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, InputForm]')))
-                except Exception as e:
-                    logger.warning(f"InputForm formatting failed: {e}")
-                    formatted_result = str(raw_result)
-            elif output_format == "OutputForm":
-                try:
-                    # Use OutputForm for human-readable output
-                    formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, OutputForm]')))
-                except Exception as e:
-                    logger.warning(f"OutputForm formatting failed: {e}")
-                    formatted_result = str(raw_result)
-            elif output_format == "TeXForm":
-                try:
-                    # Use TeXForm for LaTeX output
-                    formatted_result = str(session.evaluate(wlexpr(f'ToString[TeXForm[{raw_result}]]')))
-                except Exception as e:
-                    logger.warning(f"TeXForm formatting failed: {e}")
-                    formatted_result = str(raw_result)
-            else:
-                formatted_result = str(raw_result)
+            formatted_result = _format_result(session, raw_result, output_format)
             
             logger.debug(f"✅ Evaluation successful: {formatted_result}")
             
@@ -444,17 +446,17 @@ def apply_to_last(
     """
     Apply a Wolfram Language operation to the last evaluation result.
     
-    This tool provides a reliable alternative to % references by applying
-    operations to the result stored from the previous evaluation. Use # 
-    to represent the last result in your operation.
+    This tool provides a reliable way to chain operations. Use '#' as a placeholder
+    for the last result within the operation string. For simple function names like
+    'Factor', the '#' is not needed.
     
     Examples:
     - "Factor" - factors the last result
     - "Expand" - expands the last result  
-    - "Solve[# == 0, x]" - solves equation where last result equals 0
+    - "Solve[# == 0, x]" - solves equation where last result equals 0 (recommended pattern)
     - "Plot[#, {x, -2, 2}]" - plots the last result
     
-    This approach is more reliable than % references for LLM workflows.
+    Alternative to % references for operation chaining.
     """
     global _evaluation_count, _result_history
     
@@ -480,15 +482,15 @@ def apply_to_last(
             last_result = _result_history[-1]
             logger.debug(f"Applying '{operation}' to last result: {last_result}")
             
-            # Apply the operation to the last result using wl function construction
-            if '#' in operation:
-                # Replace # with the actual last result in the operation string
-                operation_expr = operation.replace('#', _to_input_form(last_result))
-                raw_result = session.evaluate(wlexpr(operation_expr))
-            else:
-                # Direct function application (e.g., "Factor" becomes "Factor[last_result]")
-                raw_result = session.evaluate(wlexpr(f'{operation}[{_to_input_form(last_result)}]'))
+            # Apply the operation to the last result
+            last_result_str = _to_input_form(last_result)
             
+            if '#' in operation:
+                operation_expr = operation.replace('#', last_result_str)
+            else:
+                operation_expr = f'{operation}[{last_result_str}]'
+            
+            raw_result = session.evaluate(wlexpr(operation_expr))
             _evaluation_count += 1
             _result_history.append(raw_result)  # Add to history
             
@@ -525,7 +527,13 @@ def convert_latex(
     latex_expression: str = Field(description="LaTeX mathematical expression to convert"),
     output_format: str = Field(
         default="OutputForm", 
-        description="Format for the converted result: 'Raw', 'InputForm', 'OutputForm', or 'TeXForm'"
+        description=(
+            "Output format for the converted result. "
+            "'Raw': Python's string representation of the result object. "
+            "'InputForm': A string of valid Wolfram Language code. "
+            "'OutputForm': Standard human-readable formatted output. "
+            "'TeXForm': LaTeX representation for documents."
+        )
     )
 ) -> MathematicaResult:
     """
@@ -542,7 +550,8 @@ def convert_latex(
     - Sums: "\\sum_{i=1}^{n} i^2"
     - Limits: "\\lim_{x \\to 0} \\frac{\\sin x}{x}"
     
-    Note: LaTeX parsing has limitations. Complex expressions may need manual conversion.
+    Note: Works best for standard mathematical notation. LaTeX parsing has limitations
+    and may struggle with complex layouts or custom macros. Complex expressions may need manual conversion.
     """
     global _evaluation_count
     
@@ -585,16 +594,7 @@ def convert_latex(
                 logger.debug(f"✅ Manual LaTeX conversion successful: {raw_result}")
             
             # Format the result
-            if output_format == "Raw":
-                formatted_result = str(raw_result)
-            elif output_format == "InputForm":
-                formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, InputForm]')))
-            elif output_format == "OutputForm":
-                formatted_result = str(session.evaluate(wlexpr(f'ToString[{raw_result}, OutputForm]')))
-            elif output_format == "TeXForm":
-                formatted_result = str(session.evaluate(wlexpr(f'ToString[TeXForm[{raw_result}]]')))
-            else:
-                formatted_result = str(raw_result)
+            formatted_result = _format_result(session, raw_result, output_format)
             
             return MathematicaResult(
                 result=formatted_result,

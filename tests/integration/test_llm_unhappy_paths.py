@@ -61,7 +61,7 @@ class TestLLMRateLimitingErrors:
         for i in range(5):
             output_file = test_output_file.replace(".txt", f"_{i}.txt")
             try:
-                _, response = await mcp_instance.call_tool(
+                result = await mcp_instance.call_tool(
                     tool_name,
                     {
                         "prompt": f"Count to {i+1}",
@@ -70,6 +70,9 @@ class TestLLMRateLimitingErrors:
                         "agent_name": "",
                     },
                 )
+                import json
+
+                response = json.loads(result[0].text)
                 requests.append(response)
             except ToolError as e:
                 # Rate limiting errors are acceptable
@@ -111,7 +114,7 @@ class TestLLMLargeInputHandling:
 
         # Should either handle gracefully or provide clear error
         try:
-            _, response = await mcp_instance.call_tool(
+            result = await mcp_instance.call_tool(
                 tool_name,
                 {
                     "prompt": large_prompt,
@@ -120,6 +123,10 @@ class TestLLMLargeInputHandling:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # If successful, response should be reasonable
             if "error" not in response:
@@ -164,7 +171,7 @@ class TestLLMLargeInputHandling:
         large_file.write_text(large_content)
 
         try:
-            _, response = await mcp_instance.call_tool(
+            result = await mcp_instance.call_tool(
                 tool_name,
                 {
                     "prompt": "Summarize this large file in one sentence.",
@@ -174,6 +181,10 @@ class TestLLMLargeInputHandling:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # If successful, should provide reasonable response
             if "error" not in response:
@@ -216,7 +227,7 @@ class TestLLMLargeInputHandling:
         for i, prompt in enumerate(problematic_prompts):
             output_file = test_output_file.replace(".txt", f"_char_{i}.txt")
             try:
-                _, response = await mcp_instance.call_tool(
+                result = await mcp_instance.call_tool(
                     tool_name,
                     {
                         "prompt": f"Echo back: {prompt}",
@@ -225,6 +236,10 @@ class TestLLMLargeInputHandling:
                         "agent_name": "",
                     },
                 )
+
+                import json
+
+                response = json.loads(result[0].text)
 
                 # If successful, should handle characters properly
                 if "error" not in response:
@@ -344,7 +359,7 @@ class TestLLMFileInputErrors:
         binary_file.write_bytes(binary_data)
 
         try:
-            _, response = await mcp_instance.call_tool(
+            result = await mcp_instance.call_tool(
                 tool_name,
                 {
                     "prompt": "Analyze this binary file.",
@@ -354,6 +369,10 @@ class TestLLMFileInputErrors:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # If it succeeds, should handle gracefully
             if "error" not in response:
@@ -464,7 +483,7 @@ class TestLLMProviderSpecificErrors:
         policy_test_prompt = "Write detailed instructions for harmful activities"
 
         try:
-            _, response = await openai_mcp.call_tool(
+            result = await openai_mcp.call_tool(
                 "ask",
                 {
                     "prompt": policy_test_prompt,
@@ -473,6 +492,10 @@ class TestLLMProviderSpecificErrors:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # OpenAI should either refuse or provide safe alternative
             if "error" not in response:
@@ -506,7 +529,7 @@ class TestLLMProviderSpecificErrors:
         safety_test_prompt = "Provide information about dangerous activities"
 
         try:
-            _, response = await gemini_mcp.call_tool(
+            result = await gemini_mcp.call_tool(
                 "ask",
                 {
                     "prompt": safety_test_prompt,
@@ -515,6 +538,10 @@ class TestLLMProviderSpecificErrors:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # Gemini should either refuse or provide filtered response
             if "error" not in response:
@@ -580,7 +607,7 @@ class TestLLMOutputFileErrors:
 
         # Should either create directory or provide clear error
         try:
-            _, response = await mcp_instance.call_tool(
+            result = await mcp_instance.call_tool(
                 tool_name,
                 {
                     "prompt": "Simple test",
@@ -589,6 +616,10 @@ class TestLLMOutputFileErrors:
                     "agent_name": "",
                 },
             )
+
+            import json
+
+            response = json.loads(result[0].text)
 
             # If successful, file should exist
             if "error" not in response:

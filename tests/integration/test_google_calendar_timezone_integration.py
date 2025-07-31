@@ -72,11 +72,11 @@ async def test_normalize_timezone_integration(google_calendar_test_config):
 
     finally:
         # Clean up
-        import json
-
         result = await mcp.call_tool("delete_event", {"event_id": event_id})
-        delete_response = json.loads(result[0].text)
-        assert "error" not in delete_response, delete_response.get("error")
+        delete_response = result[0].text
+        assert (
+            "deleted" in delete_response.lower()
+        ), f"Deletion failed: {delete_response}"
 
 
 @pytest.mark.vcr
@@ -138,8 +138,10 @@ async def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
         import json
 
         result = await mcp.call_tool("delete_event", {"event_id": event_id})
-        delete_response = json.loads(result[0].text)
-        assert "error" not in delete_response, delete_response.get("error")
+        delete_response = result[0].text
+        assert (
+            "deleted" in delete_response.lower()
+        ), f"Deletion failed: {delete_response}"
 
 
 @pytest.mark.vcr
@@ -187,8 +189,10 @@ async def test_create_event_without_timezone_uses_api_defaults(
         import json
 
         result = await mcp.call_tool("delete_event", {"event_id": event_id})
-        delete_response = json.loads(result[0].text)
-        assert "error" not in delete_response, delete_response.get("error")
+        delete_response = result[0].text
+        assert (
+            "deleted" in delete_response.lower()
+        ), f"Deletion failed: {delete_response}"
 
 
 @pytest.mark.vcr
@@ -259,8 +263,10 @@ async def test_update_event_datetime_without_timezone(google_calendar_test_confi
         import json
 
         result = await mcp.call_tool("delete_event", {"event_id": event_id})
-        delete_response = json.loads(result[0].text)
-        assert "error" not in delete_response, delete_response.get("error")
+        delete_response = result[0].text
+        assert (
+            "deleted" in delete_response.lower()
+        ), f"Deletion failed: {delete_response}"
 
 
 @pytest.mark.vcr
@@ -327,5 +333,7 @@ async def test_all_day_event_unaffected_by_timezone_normalization(
         import json
 
         result = await mcp.call_tool("delete_event", {"event_id": event_id})
-        delete_response = json.loads(result[0].text)
-        assert "error" not in delete_response, delete_response.get("error")
+        delete_response = result[0].text
+        assert (
+            "deleted" in delete_response.lower()
+        ), f"Deletion failed: {delete_response}"

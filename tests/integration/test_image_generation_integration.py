@@ -17,7 +17,7 @@ class TestOpenAIImageGeneration:
     @pytest.mark.asyncio
     async def test_dalle2_basic_metadata(self):
         """Test DALL-E 2 basic metadata extraction."""
-        _, response = await openai_mcp.call_tool(
+        raw_result = await openai_mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A simple red circle",
@@ -27,6 +27,9 @@ class TestOpenAIImageGeneration:
             },
         )
 
+        import json
+
+        response = json.loads(raw_result[0].text)
         assert "error" not in response, response.get("error")
         result = response
 
@@ -196,7 +199,7 @@ class TestImageGenerationComparison:
         """Test that both providers return consistent metadata structure."""
         prompt = "A simple test image"
 
-        _, openai_response = await openai_mcp.call_tool(
+        openai_raw_result = await openai_mcp.call_tool(
             "generate_image",
             {
                 "prompt": prompt,
@@ -205,10 +208,13 @@ class TestImageGenerationComparison:
                 "agent_name": "consistency_test",
             },
         )
+        import json
+
+        openai_response = json.loads(openai_raw_result[0].text)
         assert "error" not in openai_response, openai_response.get("error")
         openai_result = openai_response
 
-        _, gemini_response = await gemini_mcp.call_tool(
+        gemini_raw_result = await gemini_mcp.call_tool(
             "generate_image",
             {
                 "prompt": prompt,
@@ -216,6 +222,7 @@ class TestImageGenerationComparison:
                 "agent_name": "consistency_test",
             },
         )
+        gemini_response = json.loads(gemini_raw_result[0].text)
         assert "error" not in gemini_response, gemini_response.get("error")
         gemini_result = gemini_response
 
@@ -245,7 +252,7 @@ class TestImageGenerationComparison:
         """Test how different providers handle prompt enhancement."""
         prompt = "A cat wearing a hat"
 
-        _, openai_response = await openai_mcp.call_tool(
+        openai_raw_result = await openai_mcp.call_tool(
             "generate_image",
             {
                 "prompt": prompt,
@@ -254,10 +261,13 @@ class TestImageGenerationComparison:
                 "agent_name": "enhancement_test",
             },
         )
+        import json
+
+        openai_response = json.loads(openai_raw_result[0].text)
         assert "error" not in openai_response, openai_response.get("error")
         openai_result = openai_response
 
-        _, gemini_response = await gemini_mcp.call_tool(
+        gemini_raw_result = await gemini_mcp.call_tool(
             "generate_image",
             {
                 "prompt": prompt,
@@ -265,6 +275,7 @@ class TestImageGenerationComparison:
                 "agent_name": "enhancement_test",
             },
         )
+        gemini_response = json.loads(gemini_raw_result[0].text)
         assert "error" not in gemini_response, gemini_response.get("error")
         gemini_result = gemini_response
 

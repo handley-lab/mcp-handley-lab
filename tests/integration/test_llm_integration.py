@@ -132,7 +132,7 @@ async def test_llm_ask_basic(
     """Test basic text generation for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    _, response = await mcp_instance.call_tool(
+    result = await mcp_instance.call_tool(
         tool_name,
         {
             "prompt": f"What is {question}? Answer with just the number.",
@@ -142,6 +142,9 @@ async def test_llm_ask_basic(
             "agent_name": "",
         },
     )
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -176,7 +179,7 @@ async def test_llm_ask_with_files(
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello World\nThis is a test file.")
 
-    _, response = await mcp_instance.call_tool(
+    result = await mcp_instance.call_tool(
         tool_name,
         {
             "prompt": "What is in this file?",
@@ -186,6 +189,9 @@ async def test_llm_ask_with_files(
             "agent_name": "",
         },
     )
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -215,7 +221,7 @@ async def test_llm_analyze_image(
     # Create test image
     image_path = create_test_image("test_red.png", color="red")
 
-    _, response = await mcp_instance.call_tool(
+    result = await mcp_instance.call_tool(
         tool_name,
         {
             "prompt": "What color is this image?",
@@ -225,6 +231,9 @@ async def test_llm_analyze_image(
             "agent_name": "",  # Disable memory for clean test
         },
     )
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -254,7 +263,7 @@ async def test_llm_memory_disabled(
     """Test that memory is properly disabled when agent_name=False."""
     skip_if_no_api_key(api_key)
 
-    _, response = await mcp_instance.call_tool(
+    result = await mcp_instance.call_tool(
         tool_name,
         {
             "prompt": f"Remember this number: {answer}. What is {question}?",
@@ -264,6 +273,9 @@ async def test_llm_memory_disabled(
             "agent_name": "",
         },
     )
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -282,7 +294,10 @@ async def test_llm_server_info(skip_if_no_api_key, mcp_instance, tool_name, api_
     """Test server info for all LLM providers."""
     skip_if_no_api_key(api_key)
 
-    _, response = await mcp_instance.call_tool(tool_name, {})
+    result = await mcp_instance.call_tool(tool_name, {})
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -318,7 +333,7 @@ async def test_llm_input_validation(
 
     # Test empty prompt should raise error
     try:
-        _, response = await mcp_instance.call_tool(
+        result = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "",
@@ -327,6 +342,9 @@ async def test_llm_input_validation(
                 "agent_name": "",
             },
         )
+        import json
+
+        response = json.loads(result[0].text)
         # If no exception, check for error in response
         if "error" in response:
             assert (
@@ -341,7 +359,7 @@ async def test_llm_input_validation(
 
     # Test missing output_file should raise error
     try:
-        _, response = await mcp_instance.call_tool(
+        result = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "Test prompt",
@@ -350,6 +368,9 @@ async def test_llm_input_validation(
                 "agent_name": "",
             },
         )
+        import json
+
+        response = json.loads(result[0].text)
         # If no exception, check for error in response
         if "error" in response:
             assert (
@@ -428,7 +449,7 @@ async def test_llm_error_scenarios(
 
     # Test invalid model name should raise error (various exception types possible)
     with pytest.raises((ValueError, RuntimeError, Exception)):
-        _, response = await mcp_instance.call_tool(
+        result = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "Test prompt",
@@ -437,6 +458,9 @@ async def test_llm_error_scenarios(
                 "agent_name": "",
             },
         )
+        import json
+
+        response = json.loads(result[0].text)
         # If no exception is raised, check for error in response
         if "error" in response:
             raise RuntimeError(response["error"])
@@ -465,7 +489,7 @@ async def test_llm_response_metadata_fields(
     if "openai" in str(mcp_instance):
         kwargs.update({"enable_logprobs": True, "top_logprobs": 3})
 
-    _, response = await mcp_instance.call_tool(
+    result = await mcp_instance.call_tool(
         tool_name,
         {
             "prompt": prompt,
@@ -475,6 +499,9 @@ async def test_llm_response_metadata_fields(
             **kwargs,
         },
     )
+    import json
+
+    response = json.loads(result[0].text)
     assert "error" not in response, response.get("error")
     result = response
 
@@ -543,7 +570,7 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
     skip_if_no_api_key("OPENAI_API_KEY")
 
     # Test without logprobs (default)
-    _, response1 = await openai_mcp.call_tool(
+    result1 = await openai_mcp.call_tool(
         "ask",
         {
             "prompt": "What is 2+2?",
@@ -553,6 +580,9 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
             "enable_logprobs": False,
         },
     )
+    import json
+
+    response1 = json.loads(result1[0].text)
     assert "error" not in response1, response1.get("error")
     result1 = response1
 
@@ -562,7 +592,7 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
     assert result1["response_id"] != ""
 
     # Test with logprobs enabled
-    _, response2 = await openai_mcp.call_tool(
+    result2 = await openai_mcp.call_tool(
         "ask",
         {
             "prompt": "What is 3+3?",
@@ -573,6 +603,7 @@ async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_fil
             "top_logprobs": 5,
         },
     )
+    response2 = json.loads(result2[0].text)
     assert "error" not in response2, response2.get("error")
     result2 = response2
 
@@ -593,12 +624,13 @@ class TestLLMMemory:
         """Test that conversational context is maintained across two calls with the same agent_name."""
         skip_if_no_api_key("OPENAI_API_KEY")
 
+        import json
         import uuid
 
         agent_name = f"test_memory_agent_{uuid.uuid4()}"  # Unique name per test run
 
         # Call 1: Provide a piece of information
-        _, response1 = await openai_mcp.call_tool(
+        result1 = await openai_mcp.call_tool(
             "ask",
             {
                 "prompt": "My user ID is 789. Remember this important number.",
@@ -608,13 +640,14 @@ class TestLLMMemory:
                 "temperature": 0.1,
             },
         )
+        response1 = json.loads(result1[0].text)
         assert "error" not in response1, response1.get("error")
         result1 = response1
         assert result1["content"] is not None
 
         # Call 2: Ask a question that relies on the information from Call 1
         test_output_file2 = test_output_file.replace(".txt", "_2.txt")
-        _, response2 = await openai_mcp.call_tool(
+        result2 = await openai_mcp.call_tool(
             "ask",
             {
                 "prompt": "What was my user ID that I told you?",
@@ -624,6 +657,7 @@ class TestLLMMemory:
                 "temperature": 0.1,
             },
         )
+        response2 = json.loads(result2[0].text)
         assert "error" not in response2, response2.get("error")
         result2 = response2
 
@@ -640,13 +674,14 @@ class TestLLMMemory:
         """Test that different agent names have isolated memory contexts."""
         skip_if_no_api_key("OPENAI_API_KEY")
 
+        import json
         import uuid
 
         agent_name1 = f"agent_1_{uuid.uuid4()}"
         agent_name2 = f"agent_2_{uuid.uuid4()}"
 
         # Agent 1: Remember number 123
-        _, response1 = await openai_mcp.call_tool(
+        result1 = await openai_mcp.call_tool(
             "ask",
             {
                 "prompt": "My favorite number is 123. Remember this.",
@@ -656,11 +691,12 @@ class TestLLMMemory:
                 "temperature": 0.1,
             },
         )
+        response1 = json.loads(result1[0].text)
         assert "error" not in response1, response1.get("error")
 
         # Agent 2: Ask about the number (should NOT know it)
         test_output_file2 = test_output_file.replace(".txt", "_agent2.txt")
-        _, response2 = await openai_mcp.call_tool(
+        result2 = await openai_mcp.call_tool(
             "ask",
             {
                 "prompt": "What is my favorite number?",
@@ -670,6 +706,7 @@ class TestLLMMemory:
                 "temperature": 0.1,
             },
         )
+        response2 = json.loads(result2[0].text)
         assert "error" not in response2, response2.get("error")
 
         # Verify isolation - Agent 2 should not know Agent 1's information

@@ -264,8 +264,6 @@ class TestGoogleCalendarZeroResultsScenarios:
         # Use a very unique search term that won't match existing events
         unique_query = f"unique_search_term_{datetime.now().timestamp()}"
 
-        import json
-
         result = await mcp.call_tool(
             "search_events",
             {
@@ -275,14 +273,11 @@ class TestGoogleCalendarZeroResultsScenarios:
                 "calendar_id": "primary",
             },
         )
-        response = json.loads(result[0].text)
 
-        assert "error" not in response, response.get("error")
-
-        # Should return empty list, not error
-        events = response.get("events", [])
-        assert isinstance(events, list)
-        assert len(events) == 0
+        # When search_events returns empty list[CalendarEvent], MCP tool result will be empty
+        assert (
+            len(result) == 0
+        ), f"Expected empty result for no matches, got {len(result)} items"
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
@@ -327,8 +322,6 @@ class TestGoogleCalendarZeroResultsScenarios:
         )  # ~10 years
         far_future_end = (datetime.now() + timedelta(days=3651)).strftime("%Y-%m-%d")
 
-        import json
-
         result = await mcp.call_tool(
             "search_events",
             {
@@ -338,13 +331,11 @@ class TestGoogleCalendarZeroResultsScenarios:
                 "search_text": "",
             },
         )
-        response = json.loads(result[0].text)
 
-        assert "error" not in response, response.get("error")
-
-        events = response.get("events", [])
-        assert isinstance(events, list)
-        assert len(events) == 0
+        # When search_events returns empty list[CalendarEvent], MCP tool result will be empty
+        assert (
+            len(result) == 0
+        ), f"Expected empty result for no events in empty date range, got {len(result)} items"
 
 
 @pytest.mark.integration

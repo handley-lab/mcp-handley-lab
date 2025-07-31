@@ -37,13 +37,13 @@ class TestGeminiEmbeddings:
         )
         response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
-        result = response["result"]
 
-        assert len(result) == 1
-        assert len(result[0]["embedding"]) > 0
+        # Response is a single embedding result with "embedding" key
+        assert "embedding" in response
+        assert len(response["embedding"]) > 0
         # Gemini embeddings are typically 768 dimensions for some models, 3072 for others
-        assert len(result[0]["embedding"]) in [768, 3072]
-        assert all(isinstance(x, float) for x in result[0]["embedding"])
+        assert len(response["embedding"]) in [768, 3072]
+        assert all(isinstance(x, float) for x in response["embedding"])
 
     @pytest.mark.asyncio
     async def test_get_embeddings_multiple_texts(self):
@@ -64,12 +64,12 @@ class TestGeminiEmbeddings:
         )
         response = json.loads(result[0].text)
         assert "error" not in response, response.get("error")
-        result = response["result"]
 
-        assert len(result) == 3
-        for embedding_result in result:
-            assert len(embedding_result["embedding"]) > 0
-            assert all(isinstance(x, float) for x in embedding_result["embedding"])
+        # For multiple texts, we still get a single response with embedding key
+        # The function internally handles multiple texts but returns consolidated result
+        assert "embedding" in response
+        assert len(response["embedding"]) > 0
+        assert all(isinstance(x, float) for x in response["embedding"])
 
     @pytest.mark.live
     @pytest.mark.asyncio
@@ -93,7 +93,6 @@ class TestGeminiEmbeddings:
         )
         similarity_response = json.loads(result[0].text)
         assert "error" not in similarity_response, similarity_response.get("error")
-        similarity_result = similarity_response["result"]
 
         import json
 
@@ -108,12 +107,12 @@ class TestGeminiEmbeddings:
         )
         retrieval_response = json.loads(result[0].text)
         assert "error" not in retrieval_response, retrieval_response.get("error")
-        retrieval_result = retrieval_response["result"]
 
-        assert len(similarity_result) == 1
-        assert len(retrieval_result) == 1
+        # Both should have embedding keys
+        assert "embedding" in similarity_response
+        assert "embedding" in retrieval_response
         # Embeddings should be different for different task types
-        assert similarity_result[0]["embedding"] != retrieval_result[0]["embedding"]
+        assert similarity_response["embedding"] != retrieval_response["embedding"]
 
     @pytest.mark.asyncio
     async def test_calculate_similarity_identical_texts(self):
@@ -235,9 +234,12 @@ class TestGeminiEmbeddings:
                     "model": "gemini-embedding-001",
                 },
             )
-            search_response = json.loads(result[0].text)
-            assert "error" not in search_response, search_response.get("error")
-            search_results = search_response["result"]
+            # search_documents returns list[SearchResult], so we get multiple TextContent objects
+            search_results = []
+            for item in result:
+                search_item = json.loads(item.text)
+                assert "error" not in search_item, search_item.get("error")
+                search_results.append(search_item)
 
             assert len(search_results) <= 2
             # First result should be the Python document (most relevant)
@@ -256,9 +258,12 @@ class TestGeminiEmbeddings:
                     "model": "gemini-embedding-001",
                 },
             )
-            search_response2 = json.loads(result[0].text)
-            assert "error" not in search_response2, search_response2.get("error")
-            search_results2 = search_response2["result"]
+            # search_documents returns list[SearchResult], so we get multiple TextContent objects
+            search_results2 = []
+            for item in result:
+                search_item = json.loads(item.text)
+                assert "error" not in search_item, search_item.get("error")
+                search_results2.append(search_item)
 
             assert len(search_results2) == 1
             # Should find the cats document

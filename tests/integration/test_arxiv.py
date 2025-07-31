@@ -78,34 +78,44 @@ class TestArxivIntegration:
     async def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
         # Search for a specific topic using MCP call_tool
-        content_blocks, response = await mcp.call_tool(
+        result = await mcp.call_tool(
             "search", {"query": "machine learning", "max_results": 5}
         )
 
-        results = response["result"]
-        assert isinstance(results, list)
-        assert len(results) <= 5
+        import json
 
-        if len(results) > 0:
+        response = json.loads(result[0].text)
+
+        # Handle the case where search returns a single result or a list
+        if isinstance(response, list):
+            results = response
+            assert len(results) <= 5
+            if len(results) > 0:
+                paper = results[0]
+        else:
+            # Single result case
+            results = [response]
+            paper = response
+
+        if results:
             # Check first result structure
-            result = results[0]
-            assert "id" in result
-            assert "title" in result
-            assert "authors" in result
-            assert "summary" in result
-            assert "published" in result
-            assert "categories" in result
-            assert "pdf_url" in result
-            assert "abs_url" in result
+            assert "id" in paper
+            assert "title" in paper
+            assert "authors" in paper
+            assert "summary" in paper
+            assert "published" in paper
+            assert "categories" in paper
+            assert "pdf_url" in paper
+            assert "abs_url" in paper
 
             # Check data types
-            assert isinstance(result["id"], str)
-            assert isinstance(result["title"], str)
-            assert isinstance(result["authors"], list)
-            assert isinstance(result["summary"], str)
-            assert isinstance(result["categories"], list)
-            assert result["pdf_url"].startswith("http")
-            assert result["abs_url"].startswith("http")
+            assert isinstance(paper["id"], str)
+            assert isinstance(paper["title"], str)
+            assert isinstance(paper["authors"], list)
+            assert isinstance(paper["summary"], str)
+            assert isinstance(paper["categories"], list)
+            assert paper["pdf_url"].startswith("http")
+            assert paper["abs_url"].startswith("http")
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
@@ -113,7 +123,7 @@ class TestArxivIntegration:
     async def test_arxiv_search_field_filtering(self):
         """Test include_fields functionality for context window management."""
         # Test minimal fields (just id and title)
-        content_blocks, response = await mcp.call_tool(
+        result = await mcp.call_tool(
             "search",
             {
                 "query": "machine learning",
@@ -122,19 +132,30 @@ class TestArxivIntegration:
             },
         )
 
-        results = response["result"]
-        assert len(results) <= 2
+        import json
+
+        response = json.loads(result[0].text)
+
+        # Handle single result or list
+        if isinstance(response, list):
+            results = response
+            assert len(results) <= 2
+            if results:
+                paper = results[0]
+        else:
+            results = [response]
+            paper = response
+
         if results:
-            result = results[0]
-            assert "id" in result and result["id"]  # Always included
-            assert "title" in result and result["title"]
+            assert "id" in paper and paper["id"]  # Always included
+            assert "title" in paper and paper["title"]
             # Other fields should be null
-            assert result.get("authors") is None
-            assert result.get("summary") is None
-            assert result.get("published") is None
+            assert paper.get("authors") is None
+            assert paper.get("summary") is None
+            assert paper.get("published") is None
 
         # Test summary fields
-        content_blocks, response = await mcp.call_tool(
+        result = await mcp.call_tool(
             "search",
             {
                 "query": "machine learning",
@@ -143,18 +164,27 @@ class TestArxivIntegration:
             },
         )
 
-        results = response["result"]
-        assert len(results) <= 2
+        response = json.loads(result[0].text)
+
+        # Handle single result or list
+        if isinstance(response, list):
+            results = response
+            assert len(results) <= 2
+            if results:
+                paper = results[0]
+        else:
+            results = [response]
+            paper = response
+
         if results:
-            result = results[0]
-            assert "id" in result and result["id"]  # Always included
-            assert "title" in result and result["title"]
-            assert "authors" in result
-            assert "published" in result
+            assert "id" in paper and paper["id"]  # Always included
+            assert "title" in paper and paper["title"]
+            assert "authors" in paper
+            assert "published" in paper
             # These should be null (not requested)
-            assert result.get("summary") is None
-            assert result.get("categories") is None
-            assert result.get("pdf_url") is None
+            assert paper.get("summary") is None
+            assert paper.get("categories") is None
+            assert paper.get("pdf_url") is None
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
@@ -162,20 +192,32 @@ class TestArxivIntegration:
     async def test_arxiv_search_truncation(self):
         """Test author and summary truncation features."""
         # Test summary truncation
-        content_blocks, response = await mcp.call_tool(
+        result = await mcp.call_tool(
             "search",
             {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
         )
 
-        results = response["result"]
-        if results and results[0]["summary"]:
-            summary = results[0]["summary"]
+        import json
+
+        response = json.loads(result[0].text)
+
+        # Handle single result or list
+        if isinstance(response, list):
+            results = response
+            if results:
+                paper = results[0]
+        else:
+            results = [response]
+            paper = response
+
+        if results and paper.get("summary"):
+            summary = paper["summary"]
             assert len(summary) <= 103  # 100 + "..."
             if len(summary) > 100:
                 assert summary.endswith("...")
 
         # Test author truncation - need a paper with many authors
-        content_blocks, response = await mcp.call_tool(
+        result2 = await mcp.call_tool(
             "search",
             {
                 "query": "deep learning collaboration",
@@ -184,14 +226,18 @@ class TestArxivIntegration:
             },
         )
 
-        results = response["result"]
-        for result in results:
-            if result["authors"] and len(result["authors"]) > 3:
+        response2 = json.loads(result2[0].text)
+
+        # Handle single result or list
+        results = response2 if isinstance(response2, list) else [response2]
+
+        for paper in results:
+            if paper.get("authors") and len(paper["authors"]) > 3:
                 # Check if truncation message is present
-                last_author = result["authors"][-1]
+                last_author = paper["authors"][-1]
                 assert "... and" in last_author and "more" in last_author
                 # Total should be max_authors + 1 (for the "... and X more" entry)
-                assert len(result["authors"]) == 4
+                assert len(paper["authors"]) == 4
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration

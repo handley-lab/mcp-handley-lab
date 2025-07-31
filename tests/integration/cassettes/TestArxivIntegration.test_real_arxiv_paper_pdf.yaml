@@ -38,13 +38,13 @@ interactions:
       Content-Length:
       - '247'
       Date:
-      - Sun, 06 Jul 2025 20:04:28 GMT
+      - Tue, 29 Jul 2025 22:59:00 GMT
       X-Cache:
       - MISS, MISS
       X-Served-By:
-      - cache-lga21931-LGA, cache-lcy-egml8630072-LCY
+      - cache-lga21931-LGA, cache-lcy-egml8630043-LCY
       X-Timer:
-      - S1751832269.549426,VS0,VE264
+      - S1753829941.680066,VS0,VE251
       content-type:
       - text/html; charset=utf-8
       location:
@@ -54,7 +54,7 @@ interactions:
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish
       x-cloud-trace-context:
-      - fda79a72b90dc93d355fa817adddbbab
+      - 3e7af04f60f11ed3f4113973a0e45284
     status:
       code: 301
       message: Moved Permanently
@@ -28981,19 +28981,19 @@ interactions:
       Accept-Ranges:
       - bytes
       Age:
-      - '112383'
+      - '19981'
       Connection:
       - keep-alive
       Content-Length:
       - '1647343'
       Date:
-      - Sun, 06 Jul 2025 20:04:29 GMT
+      - Tue, 29 Jul 2025 22:59:01 GMT
       X-Cache:
       - HIT, MISS
       X-Served-By:
-      - cache-lga21984-LGA, cache-lcy-egml8630076-LCY
+      - cache-lga21984-LGA, cache-lon420116-LON
       X-Timer:
-      - S1751832269.870867,VS0,VE301
+      - S1753829941.973812,VS0,VE473
       access-control-allow-origin:
       - '*'
       content-disposition:
@@ -29011,7 +29011,7 @@ interactions:
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish
       x-cloud-trace-context:
-      - d99264f25ac3b661f21b159dcaee1db3
+      - 479a8f8363499b92b7226a8a2ea62f0b
     status:
       code: 200
       message: OK

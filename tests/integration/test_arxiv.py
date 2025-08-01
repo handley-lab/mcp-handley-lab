@@ -82,13 +82,7 @@ class TestArxivIntegration:
             "search", {"query": "machine learning", "max_results": 5}
         )
 
-        import json
-
-        # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
-            response = json.loads(result[0].text)
-        else:
-            response = result[0]
+        response = result
 
         # Handle the case where search returns a single result or a list
         if isinstance(response, list):
@@ -136,13 +130,7 @@ class TestArxivIntegration:
             },
         )
 
-        import json
-
-        # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
-            response = json.loads(result[0].text)
-        else:
-            response = result[0]
+        response = result
 
         # Handle single result or list
         if isinstance(response, list):
@@ -172,13 +160,7 @@ class TestArxivIntegration:
             },
         )
 
-        import json
-
-        # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
-            response = json.loads(result[0].text)
-        else:
-            response = result[0]
+        response = result
 
         # Handle single result or list
         if isinstance(response, list):
@@ -211,13 +193,7 @@ class TestArxivIntegration:
             {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
         )
 
-        import json
-
-        # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
-            response = json.loads(result[0].text)
-        else:
-            response = result[0]
+        response = result
 
         # Handle single result or list
         if isinstance(response, list):
@@ -244,10 +220,7 @@ class TestArxivIntegration:
             },
         )
 
-        if hasattr(result2[0], "text"):
-            response2 = json.loads(result2[0].text)
-        else:
-            response2 = result2[0]
+        response2 = result2
 
         # Handle single result or list
         results = response2 if isinstance(response2, list) else [response2]

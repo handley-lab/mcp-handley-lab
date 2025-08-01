@@ -481,9 +481,9 @@ Subject: {test_subject}
 
         # Test server_info function using MCP call_tool
         try:
+            result = await mcp.call_tool("server_info", {})
             import json
 
-            result = await mcp.call_tool("server_info", {})
             response = json.loads(result[0].text)
             assert "error" not in response, response.get("error")
             info = response

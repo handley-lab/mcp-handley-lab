@@ -82,7 +82,11 @@ def format_output(text):
             "generate_prompt",
             {"path": str(sample_project), "output_file": str(output_file)},
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -114,7 +118,11 @@ def format_output(text):
                 "output_file": str(output_file),
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -142,7 +150,11 @@ def format_output(text):
                 "output_file": str(output_file),
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -170,7 +182,11 @@ def format_output(text):
                 "output_file": str(output_file),
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -196,7 +212,11 @@ def format_output(text):
                 "output_file": str(output_file),
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -245,7 +265,11 @@ def format_output(text):
             import json
 
             result = await mcp.call_tool("server_info", {})
-            response = json.loads(result[0].text)
+            # Handle both old and new MCP call_tool formats
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
 
@@ -274,7 +298,11 @@ def format_output(text):
                 "output_file": str(output_file),
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 
@@ -295,7 +323,11 @@ def format_output(text):
             "generate_prompt",
             {"path": str(sample_project), "output_file": str(output_file)},
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
         assert "error" not in response, response.get("error")
         result = response
 

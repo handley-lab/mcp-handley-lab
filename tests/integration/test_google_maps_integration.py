@@ -56,7 +56,11 @@ class TestGoogleMapsIntegration:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -92,7 +96,11 @@ class TestGoogleMapsIntegration:
                 "mode": "transit",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -116,7 +124,11 @@ class TestGoogleMapsIntegration:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -139,7 +151,11 @@ class TestGoogleMapsIntegration:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -163,7 +179,11 @@ class TestGoogleMapsIntegration:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -185,7 +205,11 @@ class TestGoogleMapsIntegration:
                 "mode": "walking",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -208,7 +232,11 @@ class TestGoogleMapsIntegration:
                 "mode": "bicycling",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -248,7 +276,11 @@ class TestGoogleMapsErrorHandling:
             "get_directions",
             {"origin": "New York, NY", "destination": "Hawaii", "mode": "driving"},
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -278,7 +310,11 @@ class TestGoogleMapsSpecialCases:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -302,7 +338,11 @@ class TestGoogleMapsSpecialCases:
                 "mode": "driving",
             },
         )
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response

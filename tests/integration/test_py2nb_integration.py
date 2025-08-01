@@ -49,7 +49,10 @@ print(f"Std: {np.std(data):.3f}")
         try:
             # Convert to notebook using MCP call_tool
             result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
 
             assert "error" not in response, response.get("error")
             result = response  # response IS the result
@@ -157,7 +160,10 @@ print(f"Std: {np.std(data):.3f}")
             result = await mcp.call_tool(
                 "notebook_to_py", {"notebook_path": notebook_file}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
 
             assert "error" not in response, response.get("error")
             result = response
@@ -221,7 +227,10 @@ print(f"Std: {np.std(data):.3f}")
             result = await mcp.call_tool(
                 "validate_notebook", {"notebook_path": notebook_file}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is True
@@ -232,7 +241,10 @@ print(f"Std: {np.std(data):.3f}")
             result = await mcp.call_tool(
                 "validate_python", {"script_path": python_file}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is True
@@ -243,7 +255,10 @@ print(f"Std: {np.std(data):.3f}")
             result = await mcp.call_tool(
                 "validate_notebook", {"notebook_path": "/non/existent/file.ipynb"}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is False
@@ -278,7 +293,10 @@ print(f"Result: {y}")
         try:
             # Test round-trip conversion using MCP call_tool
             result = await mcp.call_tool("test_roundtrip", {"script_path": python_file})
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
 
             assert "error" not in response, response.get("error")
             result = response
@@ -318,7 +336,10 @@ result"""
         try:
             # Convert to notebook first using MCP call_tool
             result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             conversion_result = response
             notebook_file = conversion_result["output_path"]
@@ -328,7 +349,10 @@ result"""
                 "execute_notebook",
                 {"notebook_path": notebook_file, "allow_errors": True},
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             execution_result = response
 
@@ -379,7 +403,10 @@ result"""
     async def test_server_info_integration(self):
         """Test server info function."""
         result = await mcp.call_tool("server_info", {})
-        response = json.loads(result[0].text)
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         assert "error" not in response, response.get("error")
         result = response
@@ -407,7 +434,10 @@ result"""
             result = await mcp.call_tool(
                 "py_to_notebook", {"script_path": python_file, "backup": True}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
 
             assert "error" not in response, response.get("error")
             result = response
@@ -445,7 +475,10 @@ result"""
                 "py_to_notebook",
                 {"script_path": python_file, "output_path": custom_notebook},
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
 
@@ -458,7 +491,10 @@ result"""
                 "notebook_to_py",
                 {"notebook_path": custom_notebook, "output_path": custom_python},
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
             assert "error" not in response, response.get("error")
             result = response
 
@@ -566,7 +602,10 @@ result"""
             result = await mcp.call_tool(
                 "notebook_to_py", {"notebook_path": notebook_file}
             )
-            response = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response = json.loads(result[0].text)
+            else:
+                response = result[0]
 
             assert "error" not in response, response.get("error")
             result = response
@@ -587,7 +626,10 @@ result"""
 
             # Convert back to notebook using MCP call_tool
             result = await mcp.call_tool("py_to_notebook", {"script_path": python_file})
-            response2 = json.loads(result[0].text)
+            if hasattr(result[0], "text"):
+                response2 = json.loads(result[0].text)
+            else:
+                response2 = result[0]
 
             assert "error" not in response2, response2.get("error")
             result2 = response2

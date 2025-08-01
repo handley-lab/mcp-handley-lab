@@ -84,7 +84,11 @@ class TestArxivIntegration:
 
         import json
 
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         # Handle the case where search returns a single result or a list
         if isinstance(response, list):
@@ -134,7 +138,11 @@ class TestArxivIntegration:
 
         import json
 
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         # Handle single result or list
         if isinstance(response, list):
@@ -164,7 +172,13 @@ class TestArxivIntegration:
             },
         )
 
-        response = json.loads(result[0].text)
+        import json
+
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         # Handle single result or list
         if isinstance(response, list):
@@ -199,7 +213,11 @@ class TestArxivIntegration:
 
         import json
 
-        response = json.loads(result[0].text)
+        # Handle both old and new MCP call_tool formats
+        if hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        else:
+            response = result[0]
 
         # Handle single result or list
         if isinstance(response, list):
@@ -226,7 +244,10 @@ class TestArxivIntegration:
             },
         )
 
-        response2 = json.loads(result2[0].text)
+        if hasattr(result2[0], "text"):
+            response2 = json.loads(result2[0].text)
+        else:
+            response2 = result2[0]
 
         # Handle single result or list
         results = response2 if isinstance(response2, list) else [response2]

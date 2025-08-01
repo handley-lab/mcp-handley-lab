@@ -8,6 +8,7 @@ Enables LLM-driven mathematical workflows with true REPL behavior and variable p
 import logging
 import threading
 import re
+from datetime import datetime
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
@@ -29,6 +30,7 @@ _evaluation_count = 0
 _session_lock = threading.RLock()
 _kernel_path = '/usr/bin/WolframKernel'
 _result_history: List[Any] = []  # Store all results for %, %%, %n references
+_input_history: List[str] = []   # Store input expressions for notebook reconstruction
 
 
 class MathematicaResult(BaseModel):
@@ -253,8 +255,9 @@ def evaluate(
             _evaluation_count += 1
             
             # Store result in history for % references
-            global _result_history
+            global _result_history, _input_history
             _result_history.append(raw_result)
+            _input_history.append(expression)  # Store input for notebook reconstruction
             
             # Format the result based on requested format
             formatted_result = _format_result(session, raw_result, output_format)
@@ -368,8 +371,9 @@ def clear_session(
                 message = "Cleared all symbols and reset session"
             
             # Clear Python-side history in both cases
-            global _result_history
+            global _result_history, _input_history
             _result_history.clear()
+            _input_history.clear()
             
             logger.info(f"✅ {message}")
             
@@ -417,6 +421,7 @@ def restart_kernel() -> OperationResult:
             _session = None
             _evaluation_count = 0
             _result_history.clear()
+            _input_history.clear()
             
             # Start new session
             new_session = _get_session()
@@ -493,6 +498,8 @@ def apply_to_last(
             raw_result = session.evaluate(wlexpr(operation_expr))
             _evaluation_count += 1
             _result_history.append(raw_result)  # Add to history
+            global _input_history
+            _input_history.append(f"{operation} applied to previous result")  # Store operation for notebook
             
             # Use Raw format by default for consistency
             formatted_result = str(raw_result)
@@ -616,6 +623,159 @@ def convert_latex(
                 format_used=output_format,
                 error=str(e)
             )
+
+
+@mcp.tool()
+def save_notebook(
+    filepath: str = Field(description="Path where to save the notebook file"),
+    format: str = Field("md", description="Output format: 'md' (markdown), 'wl' (wolfram script), 'wls' (wolfram script with outputs)"),
+    title: str = Field("Mathematica Session", description="Title for the saved notebook")
+) -> OperationResult:
+    """
+    Save the current session with complete input/output history in human-readable format.
+    
+    Preserves all evaluations, results, and session state for restoration after Claude restarts.
+    The saved notebook contains both the input expressions and their corresponding outputs.
+    
+    Supported formats:
+    - 'md': GitHub-friendly markdown with In/Out blocks (most readable)
+    - 'wl': Executable Wolfram Language script (for restoration) 
+    - 'wls': Wolfram script with output comments (readable + executable)
+    """
+    try:
+        # Generate timestamp
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Choose format handler
+        if format == "md":
+            result = _save_as_markdown(filepath, title, timestamp)
+        elif format == "wl":
+            result = _save_as_wolfram_script(filepath, title, timestamp)
+        elif format == "wls":
+            result = _save_as_wolfram_script_with_outputs(filepath, title, timestamp)
+        else:
+            return OperationResult(
+                status="error",
+                message=f"Unsupported format: {format}. Use 'md', 'wl', or 'wls'.",
+                data={"supported_formats": ["md", "wl", "wls"]}
+            )
+        
+        return OperationResult(
+            status="success",
+            message=f"Notebook saved to {filepath} in {format} format",
+            data={
+                "filepath": filepath,
+                "format": format,
+                "evaluations": len(_input_history),
+                "timestamp": timestamp
+            }
+        )
+        
+    except Exception as e:
+        return OperationResult(
+            status="error",
+            message=f"Failed to save notebook: {str(e)}",
+            data={"filepath": filepath, "format": format}
+        )
+
+
+def _save_as_markdown(filepath: str, title: str, timestamp: str) -> dict:
+    """Save session as GitHub-friendly markdown with In/Out blocks."""
+    global _input_history, _result_history, _evaluation_count
+    
+    content = f"""# {title}
+*Generated: {timestamp}*  
+*Kernel: Mathematica 14.2.1*  
+*Evaluations: {_evaluation_count}*
+
+"""
+    
+    # Generate In/Out pairs from our tracked history
+    for i in range(len(_input_history)):
+        input_expr = _input_history[i]
+        if i < len(_result_history):
+            output_result = _format_result(_get_session(), _result_history[i], "OutputForm")
+        else:
+            output_result = "No output"
+        
+        content += f"""## Evaluation {i+1}
+```mathematica
+In[{i+1}]:= {input_expr}
+Out[{i+1}]= {output_result}
+```
+
+"""
+    
+    # Add session information
+    content += """## Session State
+Current variables and functions are preserved in this session.
+Use `Names["Global`*"]` in Mathematica to see all defined symbols.
+
+## Restoration
+To restore this session, copy and paste the input lines into a new Mathematica notebook.
+"""
+    
+    # Write to file
+    Path(filepath).write_text(content)
+    return {"format": "markdown"}
+
+
+def _save_as_wolfram_script(filepath: str, title: str, timestamp: str) -> dict:
+    """Save session as executable Wolfram Language script."""
+    global _input_history, _evaluation_count
+    
+    content = f"""(* {title} *)
+(* Generated: {timestamp} *)
+(* Evaluations: {_evaluation_count} *)
+
+"""
+    
+    # Add all input expressions as executable code
+    for i, input_expr in enumerate(_input_history):
+        content += f"""(* Evaluation {i+1} *)
+{input_expr};
+
+"""
+    
+    content += """(* End of session *)
+Print["Session restored successfully! Variables: ", Length[Names["Global`*"]]];
+"""
+    
+    Path(filepath).write_text(content)
+    return {"format": "wolfram_language"}
+
+
+def _save_as_wolfram_script_with_outputs(filepath: str, title: str, timestamp: str) -> dict:
+    """Save session as Wolfram script with output comments."""
+    global _input_history, _result_history, _evaluation_count
+    
+    content = f"""(* {title} *)
+(* Generated: {timestamp} *)
+(* Evaluations: {_evaluation_count} *)
+
+"""
+    
+    # Add input/output pairs with comments
+    for i in range(len(_input_history)):
+        input_expr = _input_history[i]
+        if i < len(_result_history):
+            output_result = str(_result_history[i])
+        else:
+            output_result = "No output"
+        
+        content += f"""(* Evaluation {i+1} *)
+{input_expr};
+(* Result: {output_result} *)
+
+"""
+    
+    content += """(* End of session *)
+Print["Session restored with outputs preserved in comments"];
+Print["Variables available: ", Names["Global`*"]];
+"""
+    
+    Path(filepath).write_text(content)
+    return {"format": "wolfram_language_with_outputs"}
 
 
 @mcp.tool()

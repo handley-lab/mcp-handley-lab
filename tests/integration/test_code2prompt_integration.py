@@ -83,10 +83,12 @@ def format_output(text):
             {"path": str(sample_project), "output_file": str(output_file)},
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -119,10 +121,12 @@ def format_output(text):
             },
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -151,10 +155,12 @@ def format_output(text):
             },
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -183,10 +189,12 @@ def format_output(text):
             },
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -213,10 +221,12 @@ def format_output(text):
             },
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -266,10 +276,16 @@ def format_output(text):
 
             result = await mcp.call_tool("server_info", {})
             # Handle both old and new MCP call_tool formats
-            if hasattr(result[0], "text"):
+            if (
+                isinstance(result, list)
+                and len(result) > 0
+                and hasattr(result[0], "text")
+            ):
                 response = json.loads(result[0].text)
-            else:
+            elif isinstance(result, list):
                 response = result[0]
+            else:
+                response = result
             assert "error" not in response, response.get("error")
             result = response
 
@@ -299,10 +315,12 @@ def format_output(text):
             },
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 
@@ -324,10 +342,12 @@ def format_output(text):
             {"path": str(sample_project), "output_file": str(output_file)},
         )
         # Handle both old and new MCP call_tool formats
-        if hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             response = json.loads(result[0].text)
-        else:
+        elif isinstance(result, list):
             response = result[0]
+        else:
+            response = result
         assert "error" not in response, response.get("error")
         result = response
 

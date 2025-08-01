@@ -85,11 +85,11 @@ class TestArxivIntegration:
         # ArXiv search returns list of TextContent objects containing JSON
         import json
 
-        if isinstance(result, list) and hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
-            results = result
+            results = result if isinstance(result, list) else [result]
 
         assert len(results) <= 5
         if len(results) > 0:
@@ -133,11 +133,11 @@ class TestArxivIntegration:
         # ArXiv search returns list of TextContent objects containing JSON
         import json
 
-        if isinstance(result, list) and hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
-            results = result
+            results = result if isinstance(result, list) else [result]
 
         assert len(results) <= 2
         if results:
@@ -164,11 +164,11 @@ class TestArxivIntegration:
         # ArXiv search returns list of TextContent objects containing JSON
         import json
 
-        if isinstance(result, list) and hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
-            results = result
+            results = result if isinstance(result, list) else [result]
 
         assert len(results) <= 2
         if results:
@@ -198,11 +198,11 @@ class TestArxivIntegration:
         # ArXiv search returns list of TextContent objects containing JSON
         import json
 
-        if isinstance(result, list) and hasattr(result[0], "text"):
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
-            results = result
+            results = result if isinstance(result, list) else [result]
 
         if results:
             paper = results[0]
@@ -224,7 +224,11 @@ class TestArxivIntegration:
         )
 
         # ArXiv search returns list of TextContent objects containing JSON
-        if isinstance(result2, list) and hasattr(result2[0], "text"):
+        if (
+            isinstance(result2, list)
+            and len(result2) > 0
+            and hasattr(result2[0], "text")
+        ):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result2]
         else:

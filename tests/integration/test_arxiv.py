@@ -82,18 +82,18 @@ class TestArxivIntegration:
             "search", {"query": "machine learning", "max_results": 5}
         )
 
-        response = result
+        # ArXiv search returns list of TextContent objects containing JSON
+        import json
 
-        # Handle the case where search returns a single result or a list
-        if isinstance(response, list):
-            results = response
-            assert len(results) <= 5
-            if len(results) > 0:
-                paper = results[0]
+        if isinstance(result, list) and hasattr(result[0], "text"):
+            # Parse JSON from TextContent objects
+            results = [json.loads(item.text) for item in result]
         else:
-            # Single result case
-            results = [response]
-            paper = response
+            results = result
+
+        assert len(results) <= 5
+        if len(results) > 0:
+            paper = results[0]
 
         if results:
             # Check first result structure
@@ -130,17 +130,18 @@ class TestArxivIntegration:
             },
         )
 
-        response = result
+        # ArXiv search returns list of TextContent objects containing JSON
+        import json
 
-        # Handle single result or list
-        if isinstance(response, list):
-            results = response
-            assert len(results) <= 2
-            if results:
-                paper = results[0]
+        if isinstance(result, list) and hasattr(result[0], "text"):
+            # Parse JSON from TextContent objects
+            results = [json.loads(item.text) for item in result]
         else:
-            results = [response]
-            paper = response
+            results = result
+
+        assert len(results) <= 2
+        if results:
+            paper = results[0]
 
         if results:
             assert "id" in paper and paper["id"]  # Always included
@@ -160,17 +161,18 @@ class TestArxivIntegration:
             },
         )
 
-        response = result
+        # ArXiv search returns list of TextContent objects containing JSON
+        import json
 
-        # Handle single result or list
-        if isinstance(response, list):
-            results = response
-            assert len(results) <= 2
-            if results:
-                paper = results[0]
+        if isinstance(result, list) and hasattr(result[0], "text"):
+            # Parse JSON from TextContent objects
+            results = [json.loads(item.text) for item in result]
         else:
-            results = [response]
-            paper = response
+            results = result
+
+        assert len(results) <= 2
+        if results:
+            paper = results[0]
 
         if results:
             assert "id" in paper and paper["id"]  # Always included
@@ -193,16 +195,17 @@ class TestArxivIntegration:
             {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
         )
 
-        response = result
+        # ArXiv search returns list of TextContent objects containing JSON
+        import json
 
-        # Handle single result or list
-        if isinstance(response, list):
-            results = response
-            if results:
-                paper = results[0]
+        if isinstance(result, list) and hasattr(result[0], "text"):
+            # Parse JSON from TextContent objects
+            results = [json.loads(item.text) for item in result]
         else:
-            results = [response]
-            paper = response
+            results = result
+
+        if results:
+            paper = results[0]
 
         if results and paper.get("summary"):
             summary = paper["summary"]
@@ -220,10 +223,12 @@ class TestArxivIntegration:
             },
         )
 
-        response2 = result2
-
-        # Handle single result or list
-        results = response2 if isinstance(response2, list) else [response2]
+        # ArXiv search returns list of TextContent objects containing JSON
+        if isinstance(result2, list) and hasattr(result2[0], "text"):
+            # Parse JSON from TextContent objects
+            results = [json.loads(item.text) for item in result2]
+        else:
+            results = result2 if isinstance(result2, list) else [result2]
 
         for paper in results:
             if paper.get("authors") and len(paper["authors"]) > 3:

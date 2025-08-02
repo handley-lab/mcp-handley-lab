@@ -196,7 +196,18 @@ class TestMuttServerInfoCLI:
             "mcp_handley_lab.common.process.run_command", mock_run_command
         )
 
-        _, response = await mutt_mcp.call_tool("server_info", {})
+        result = await mutt_mcp.call_tool("server_info", {})
+
+        # Handle different MCP response formats
+        import json
+
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        elif isinstance(result, list):
+            response = result[0]
+        else:
+            response = result
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -243,7 +254,22 @@ class TestMuttCLIErrorScenarios:
         from mcp.server.fastmcp.exceptions import ToolError
 
         try:
-            _, response = await mutt_mcp.call_tool("server_info", {})
+            result = await mutt_mcp.call_tool("server_info", {})
+
+            # Handle different MCP response formats
+            import json
+
+            if (
+                isinstance(result, list)
+                and len(result) > 0
+                and hasattr(result[0], "text")
+            ):
+                response = json.loads(result[0].text)
+            elif isinstance(result, list):
+                response = result[0]
+            else:
+                response = result
+
             # If no exception raised, should be an error response
             assert "error" in response or "mutt" in str(response).lower()
         except ToolError as exc_info:

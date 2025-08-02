@@ -77,7 +77,14 @@ class TestArxivInvalidInputs:
         result = await mcp.call_tool(
             "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
         )
-        response = json.loads(result[0].text)
+
+        # Handle different MCP response formats
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        elif isinstance(result, list):
+            response = result[0]
+        else:
+            response = result
 
         # Should handle empty path gracefully (use default)
         assert "error" not in response, response.get("error")
@@ -148,7 +155,18 @@ class TestArxivNetworkAndServiceErrors:
                     "output_path": str(nested_path),
                 },
             )
-            response = json.loads(result[0].text)
+
+            # Handle different MCP response formats
+            if (
+                isinstance(result, list)
+                and len(result) > 0
+                and hasattr(result[0], "text")
+            ):
+                response = json.loads(result[0].text)
+            elif isinstance(result, list):
+                response = result[0]
+            else:
+                response = result
 
             # If successful, file should exist
             if "error" not in response:
@@ -188,7 +206,18 @@ class TestArxivNetworkAndServiceErrors:
                     "output_path": str(output_file),
                 },
             )
-            response = json.loads(result[0].text)
+
+            # Handle different MCP response formats
+            if (
+                isinstance(result, list)
+                and len(result) > 0
+                and hasattr(result[0], "text")
+            ):
+                response = json.loads(result[0].text)
+            elif isinstance(result, list):
+                response = result[0]
+            else:
+                response = result
 
             # Should succeed in normal circumstances
             if "error" not in response:
@@ -243,7 +272,18 @@ class TestArxivCorruptedDataHandling:
                         "output_path": "-",
                     },
                 )
-                response = json.loads(result[0].text)
+
+                # Handle different MCP response formats
+                if (
+                    isinstance(result, list)
+                    and len(result) > 0
+                    and hasattr(result[0], "text")
+                ):
+                    response = json.loads(result[0].text)
+                elif isinstance(result, list):
+                    response = result[0]
+                else:
+                    response = result
 
                 # If successful, should have valid response structure
                 if "error" not in response:
@@ -308,7 +348,18 @@ class TestArxivEdgeCases:
                     "download",
                     {"arxiv_id": versioned_id, "format": "src", "output_path": "-"},
                 )
-                response = json.loads(result[0].text)
+
+                # Handle different MCP response formats
+                if (
+                    isinstance(result, list)
+                    and len(result) > 0
+                    and hasattr(result[0], "text")
+                ):
+                    response = json.loads(result[0].text)
+                elif isinstance(result, list):
+                    response = result[0]
+                else:
+                    response = result
 
                 # If successful, should handle version correctly
                 if "error" not in response:
@@ -347,7 +398,19 @@ class TestArxivEdgeCases:
                         "output_path": f"/tmp/arxiv_test_{output_suffix}.dat",
                     },
                 )
-                response = json.loads(result[0].text)
+
+                # Handle different MCP response formats
+                if (
+                    isinstance(result, list)
+                    and len(result) > 0
+                    and hasattr(result[0], "text")
+                ):
+                    response = json.loads(result[0].text)
+                elif isinstance(result, list):
+                    response = result[0]
+                else:
+                    response = result
+
                 return response
             except Exception as e:
                 return {"error": str(e)}
@@ -424,16 +487,30 @@ class TestArxivEdgeCases:
             "download",
             {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": "-"},
         )
-        response = json.loads(result[0].text)
+
+        # Handle different MCP response formats
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        elif isinstance(result, list):
+            response = result[0]
+        else:
+            response = result
+
         assert "error" not in response, response.get("error")
 
         # Test empty output path (should use default)
-        import json
-
         result = await mcp.call_tool(
             "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
         )
-        response = json.loads(result[0].text)
+
+        # Handle different MCP response formats
+        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+            response = json.loads(result[0].text)
+        elif isinstance(result, list):
+            response = result[0]
+        else:
+            response = result
+
         assert "error" not in response, response.get("error")
 
 
@@ -451,7 +528,19 @@ class TestArxivServerInfoErrors:
             import json
 
             result = await mcp.call_tool("server_info", {})
-            response = json.loads(result[0].text)
+
+            # Handle different MCP response formats
+            if (
+                isinstance(result, list)
+                and len(result) > 0
+                and hasattr(result[0], "text")
+            ):
+                response = json.loads(result[0].text)
+            elif isinstance(result, list):
+                response = result[0]
+            else:
+                response = result
+
             responses.append(response)
             assert "error" not in response, response.get("error")
 

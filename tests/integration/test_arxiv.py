@@ -82,10 +82,19 @@ class TestArxivIntegration:
             "search", {"query": "machine learning", "max_results": 5}
         )
 
-        # ArXiv search returns list of TextContent objects containing JSON
+        # Handle tuple format from ArXiv search: (list_of_textcontent, dict_result) or direct result
         import json
 
-        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+        if isinstance(result, tuple) and len(result) == 2:
+            # Tuple format: (list_of_textcontent, dict_result) - use the dict
+            _, result_dict = result
+            if isinstance(result_dict, dict) and "result" in result_dict:
+                results = result_dict["result"]
+            else:
+                results = result_dict
+        elif (
+            isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text")
+        ):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
@@ -130,10 +139,19 @@ class TestArxivIntegration:
             },
         )
 
-        # ArXiv search returns list of TextContent objects containing JSON
+        # Handle tuple format from ArXiv search: (list_of_textcontent, dict_result) or direct result
         import json
 
-        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+        if isinstance(result, tuple) and len(result) == 2:
+            # Tuple format: (list_of_textcontent, dict_result) - use the dict
+            _, result_dict = result
+            if isinstance(result_dict, dict) and "result" in result_dict:
+                results = result_dict["result"]
+            else:
+                results = result_dict
+        elif (
+            isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text")
+        ):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
@@ -161,10 +179,17 @@ class TestArxivIntegration:
             },
         )
 
-        # ArXiv search returns list of TextContent objects containing JSON
-        import json
-
-        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+        # Handle tuple format from ArXiv search: (list_of_textcontent, dict_result) or direct result
+        if isinstance(result, tuple) and len(result) == 2:
+            # Tuple format: (list_of_textcontent, dict_result) - use the dict
+            _, result_dict = result
+            if isinstance(result_dict, dict) and "result" in result_dict:
+                results = result_dict["result"]
+            else:
+                results = result_dict
+        elif (
+            isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text")
+        ):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
@@ -195,10 +220,19 @@ class TestArxivIntegration:
             {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
         )
 
-        # ArXiv search returns list of TextContent objects containing JSON
+        # Handle tuple format from ArXiv search: (list_of_textcontent, dict_result) or direct result
         import json
 
-        if isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text"):
+        if isinstance(result, tuple) and len(result) == 2:
+            # Tuple format: (list_of_textcontent, dict_result) - use the dict
+            _, result_dict = result
+            if isinstance(result_dict, dict) and "result" in result_dict:
+                results = result_dict["result"]
+            else:
+                results = result_dict
+        elif (
+            isinstance(result, list) and len(result) > 0 and hasattr(result[0], "text")
+        ):
             # Parse JSON from TextContent objects
             results = [json.loads(item.text) for item in result]
         else:
@@ -223,8 +257,15 @@ class TestArxivIntegration:
             },
         )
 
-        # ArXiv search returns list of TextContent objects containing JSON
-        if (
+        # Handle tuple format from ArXiv search: (list_of_textcontent, dict_result) or direct result
+        if isinstance(result2, tuple) and len(result2) == 2:
+            # Tuple format: (list_of_textcontent, dict_result) - use the dict
+            _, result_dict = result2
+            if isinstance(result_dict, dict) and "result" in result_dict:
+                results = result_dict["result"]
+            else:
+                results = result_dict
+        elif (
             isinstance(result2, list)
             and len(result2) > 0
             and hasattr(result2[0], "text")

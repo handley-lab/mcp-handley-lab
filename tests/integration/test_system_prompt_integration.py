@@ -122,7 +122,7 @@ class TestSystemPromptBasic:
     ):
         """Test that system_prompt parameter is accepted by all providers."""
         # Test with a simple math question and specific system prompt
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What is 2+2?",
@@ -132,6 +132,20 @@ class TestSystemPromptBasic:
                 "system_prompt": "You are a helpful math tutor. Always explain your reasoning.",
             },
         )
+
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
 
         assert "error" not in result
         assert "content" in result
@@ -149,7 +163,7 @@ class TestSystemPromptBasic:
         self, mcp_instance, tool_name, api_key, model, sample_image_path
     ):
         """Test system_prompt works with image analysis tools."""
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What do you see in this image?",
@@ -160,6 +174,20 @@ class TestSystemPromptBasic:
                 "system_prompt": "You are a professional art critic. Provide detailed, sophisticated analysis.",
             },
         )
+
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
 
         assert "error" not in result
         assert "content" in result
@@ -405,7 +433,7 @@ class TestSystemPromptEdgeCases:
     )
     async def test_empty_system_prompt(self, mcp_instance, tool_name, api_key, model):
         """Test behavior with empty system prompt."""
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What is 9+1?",
@@ -416,6 +444,20 @@ class TestSystemPromptEdgeCases:
             },
         )
 
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
+
         assert "error" not in result
         assert "content" in result
 
@@ -425,7 +467,7 @@ class TestSystemPromptEdgeCases:
     )
     async def test_none_system_prompt(self, mcp_instance, tool_name, api_key, model):
         """Test behavior with None system prompt."""
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What is 1+9?",
@@ -435,6 +477,20 @@ class TestSystemPromptEdgeCases:
                 "system_prompt": None,
             },
         )
+
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
 
         assert "error" not in result
         assert "content" in result
@@ -449,7 +505,7 @@ class TestSystemPromptEdgeCases:
         """Test behavior with very long system prompt."""
         long_prompt = "You are a helpful assistant. " * 100  # Very long prompt
 
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What is 6+4?",
@@ -459,6 +515,20 @@ class TestSystemPromptEdgeCases:
                 "system_prompt": long_prompt,
             },
         )
+
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
 
         assert "error" not in result
         assert "content" in result
@@ -475,7 +545,7 @@ class TestSystemPromptEdgeCases:
             "You are a helpful assistant 🤖. Use emojis: ∑, ∏, ∆, ∇, ∈, ∉, ∀, ∃"
         )
 
-        _, result = await mcp_instance.call_tool(
+        response = await mcp_instance.call_tool(
             tool_name,
             {
                 "prompt": "What is 3+7?",
@@ -485,6 +555,20 @@ class TestSystemPromptEdgeCases:
                 "system_prompt": special_prompt,
             },
         )
+
+        # Handle different MCP response formats
+        import json
+
+        if (
+            isinstance(response, list)
+            and len(response) > 0
+            and hasattr(response[0], "text")
+        ):
+            result = json.loads(response[0].text)
+        elif isinstance(response, list):
+            result = response[0]
+        else:
+            result = response
 
         assert "error" not in result
         assert "content" in result

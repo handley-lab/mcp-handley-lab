@@ -50,6 +50,7 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
         "start_datetime": start_time.isoformat() + "Z",
         "end_datetime": end_time.isoformat() + "Z",
         "description": "Test event for VCR testing",
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     create_result = create_response

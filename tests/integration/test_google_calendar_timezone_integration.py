@@ -222,6 +222,7 @@ async def test_all_day_event_unaffected_by_timezone_normalization(
         "description": "All day event test",
         "start_timezone": "",  # Empty string for default
         "end_timezone": "",  # Empty string for default
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     

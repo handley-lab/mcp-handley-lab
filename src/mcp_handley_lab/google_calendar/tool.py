@@ -542,7 +542,7 @@ def get_event(
     ),
     calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar containing the event. Defaults to the user's primary calendar.",
+        description="The ID or name of the calendar containing the event. Use 'list_calendars' to see available options. Defaults to the user's primary calendar.",
     ),
 ) -> CalendarEvent:
     """Get detailed information about a specific event."""
@@ -579,8 +579,8 @@ def create_event(
         "", description="The physical location or meeting link for the event."
     ),
     calendar_id: str = Field(
-        "primary",
-        description="The ID or name of the calendar to add the event to. Defaults to the primary calendar.",
+        ...,
+        description="The ID or name of the calendar to add the event to. Use 'list_calendars' to see available options. Required parameter - no default.",
     ),
     start_timezone: str = Field(
         "",
@@ -665,7 +665,7 @@ def update_event(
     ),
     calendar_id: str = Field(
         "primary",
-        description="The calendar where the event is located. Defaults to the primary calendar.",
+        description="The calendar where the event is located. Use 'list_calendars' to see available options. Defaults to the primary calendar.",
     ),
     summary: str = Field(
         "", description="New title for the event. If empty, the summary is not changed."
@@ -792,7 +792,7 @@ def delete_event(
     ),
     calendar_id: str = Field(
         "primary",
-        description="The calendar where the event is located. Defaults to the primary calendar.",
+        description="The calendar where the event is located. Use 'list_calendars' to see available options. Defaults to the primary calendar.",
     ),
 ) -> str:
     """Delete a calendar event. Trusts the provided event_id."""
@@ -812,11 +812,11 @@ def move_event(
     ),
     source_calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar the event is currently in. Defaults to primary.",
+        description="The ID or name of the calendar the event is currently in. Use 'list_calendars' to see available options. Defaults to primary.",
     ),
     destination_calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar to move the event to. Defaults to primary.",
+        description="The ID or name of the calendar to move the event to. Use 'list_calendars' to see available options. Defaults to primary.",
     ),
 ) -> str:
     """Move an event from one calendar to another using the Google Calendar API move endpoint."""
@@ -865,7 +865,7 @@ def list_calendars() -> list[CalendarInfo]:
 def find_time(
     calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar to search for free time. Defaults to primary.",
+        description="The ID or name of the calendar to search for free time. Use 'list_calendars' to see available options. Defaults to primary.",
     ),
     start_date: str = Field(
         "", description="The start date (YYYY-MM-DD) for the search. Defaults to now."
@@ -967,7 +967,7 @@ def search_events(
     ),
     calendar_id: str = Field(
         "all",
-        description="ID or name of the calendar to search. Use 'all' to search every accessible calendar.",
+        description="ID or name of the calendar to search. Use 'all' to search every accessible calendar, or use 'list_calendars' to see available options.",
     ),
     start_date: str = Field(
         "",

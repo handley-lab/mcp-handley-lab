@@ -21,6 +21,7 @@ async def test_normalize_timezone_integration(google_calendar_test_config):
         "start_timezone": "Europe/London",  # But with timezone label
         "end_timezone": "Europe/London",
         "description": "Testing timezone normalization",
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     
@@ -78,6 +79,7 @@ async def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
         "start_timezone": "Europe/London",
         "end_timezone": "Europe/London",
         "description": "No timezone issues",
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     
@@ -128,6 +130,7 @@ async def test_create_event_without_timezone_uses_api_defaults(google_calendar_t
         "description": "Testing default timezone fallback",
         "start_timezone": "",  # Empty string for default
         "end_timezone": "",  # Empty string for default
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     
@@ -166,6 +169,7 @@ async def test_update_event_datetime_without_timezone(google_calendar_test_confi
         "description": "Original time",
         "start_timezone": "",  # Empty string for default
         "end_timezone": "",  # Empty string for default
+        "calendar_id": "primary",
     })
     assert "error" not in create_response, create_response.get("error")
     

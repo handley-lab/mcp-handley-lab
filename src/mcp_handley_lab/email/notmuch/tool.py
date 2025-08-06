@@ -35,9 +35,12 @@ def _find_smart_destination(
     rel_path = first_source.relative_to(maildir_root)
 
     # Determine account path - handles both root and account-specific folders
-    account_path = (
-        maildir_root / rel_path.parts[0] if len(rel_path.parts) > 1 else maildir_root
-    )
+    # Root level emails are in structure: maildir/cur/file.eml or maildir/new/file.eml
+    # Account emails are in structure: maildir/Account/INBOX/cur/file.eml
+    if len(rel_path.parts) > 2:  # Account/folder/cur/file.eml
+        account_path = maildir_root / rel_path.parts[0]
+    else:  # cur/file.eml or new/file.eml (root level)
+        account_path = maildir_root
     account_name = account_path.name
 
     # Try exact match first

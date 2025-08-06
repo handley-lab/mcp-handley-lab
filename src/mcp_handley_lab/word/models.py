@@ -45,10 +45,17 @@ class DocumentMetadata(BaseModel):
     format_version: str = Field(default="", description="Document format version (.doc, .docx, etc.).")
 
 
+class Heading(BaseModel):
+    """Document heading with level and text."""
+    
+    level: str = Field(..., description="The style level of the heading (e.g., 'Heading 1').")
+    text: str = Field(..., description="The text content of the heading.")
+
+
 class DocumentStructure(BaseModel):
     """Document structure analysis."""
     
-    headings: list[dict[str, str]] = Field(default_factory=list, description="List of headings with level and text.")
+    headings: list[Heading] = Field(default_factory=list, description="List of headings with level and text.")
     sections: list[str] = Field(default_factory=list, description="List of section titles.")
     tables: int = Field(default=0, description="Number of tables in the document.")
     images: int = Field(default=0, description="Number of images in the document.")

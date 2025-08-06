@@ -5,7 +5,7 @@ from pydantic import Field
 
 from mcp_handley_lab.shared.models import ServerInfo
 
-from .converter import WordConverter
+from . import converter
 from .models import (
     CommentExtractionResult,
     ConversionResult,
@@ -43,17 +43,7 @@ def extract_comments(
 ) -> CommentExtractionResult:
     """Extract comments from Word document."""
     parser = WordDocumentParser(document_path)
-    
-    if not parser.load():
-        return CommentExtractionResult(
-            success=False,
-            document_path=document_path,
-            comments=[],
-            total_comments=0,
-            unique_authors=[],
-            message="Failed to load Word document. Check file path and format.",
-            metadata=parser.extract_metadata()
-        )
+    parser.load()
     
     comments = parser.extract_comments()
     unique_authors = list(set(comment.author for comment in comments))
@@ -81,17 +71,7 @@ def extract_tracked_changes(
 ) -> TrackedChangesResult:
     """Extract tracked changes from Word document."""
     parser = WordDocumentParser(document_path)
-    
-    if not parser.load():
-        return TrackedChangesResult(
-            success=False,
-            document_path=document_path,
-            changes=[],
-            total_changes=0,
-            unique_authors=[],
-            pending_changes=0,
-            message="Failed to load Word document. Check file path and format."
-        )
+    parser.load()
     
     changes = parser.extract_tracked_changes()
     unique_authors = list(set(change.author for change in changes))
@@ -122,7 +102,7 @@ def docx_to_markdown(
     )
 ) -> ConversionResult:
     """Convert DOCX to Markdown using pandoc."""
-    return WordConverter.docx_to_markdown(input_path, output_path)
+    return converter.docx_to_markdown(input_path, output_path)
 
 
 @mcp.tool(
@@ -139,7 +119,7 @@ def markdown_to_docx(
     )
 ) -> ConversionResult:
     """Convert Markdown to DOCX using pandoc."""
-    return WordConverter.markdown_to_docx(input_path, output_path)
+    return converter.markdown_to_docx(input_path, output_path)
 
 
 @mcp.tool(
@@ -156,7 +136,7 @@ def docx_to_html(
     )
 ) -> ConversionResult:
     """Convert DOCX to HTML using pandoc."""
-    return WordConverter.docx_to_html(input_path, output_path)
+    return converter.docx_to_html(input_path, output_path)
 
 
 @mcp.tool(
@@ -173,7 +153,7 @@ def docx_to_text(
     )
 ) -> ConversionResult:
     """Convert DOCX to plain text using pandoc."""
-    return WordConverter.docx_to_text(input_path, output_path)
+    return converter.docx_to_text(input_path, output_path)
 
 
 @mcp.tool(
@@ -187,17 +167,7 @@ def analyze_document(
 ) -> DocumentAnalysisResult:
     """Perform comprehensive Word document analysis."""
     parser = WordDocumentParser(document_path)
-    
-    if not parser.load():
-        return DocumentAnalysisResult(
-            success=False,
-            document_path=document_path,
-            metadata=parser.extract_metadata(),
-            structure=parser.analyze_structure(),
-            has_comments=False,
-            has_tracked_changes=False,
-            message="Failed to load Word document. Check file path and format."
-        )
+    parser.load()
     
     metadata = parser.extract_metadata()
     structure = parser.analyze_structure()
@@ -230,7 +200,7 @@ def server_info() -> ServerInfo:
             text=True,
             check=True
         )
-        pandoc_version = result.stdout.split('\\n')[0] if result.stdout else "Available"
+        pandoc_version = result.stdout.split('\n')[0].strip() if result.stdout else "Available"
     except (subprocess.CalledProcessError, FileNotFoundError):
         pandoc_version = "Not available"
     
@@ -246,12 +216,6 @@ def server_info() -> ServerInfo:
         "server_info"
     ]
     
-    supported_formats = {
-        "input": [".docx", ".doc", "extracted XML", "document.xml"],
-        "output": [".md", ".html", ".txt", ".docx"],
-        "conversion": "Bidirectional Markdown ↔ DOCX"
-    }
-    
     return ServerInfo(
         name="Word Documents Tool",
         version="1.0.0",
@@ -259,7 +223,8 @@ def server_info() -> ServerInfo:
         capabilities=available_functions,
         dependencies={
             "pandoc": pandoc_version,
-            "supported_formats": str(supported_formats),
+            "supported_inputs": ".docx, .doc, extracted XML",
+            "supported_outputs": ".md, .html, .txt, .docx",
             "xml_parser": "Built-in xml.etree.ElementTree"
         }
     )

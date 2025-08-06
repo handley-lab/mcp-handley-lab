@@ -8,9 +8,12 @@ from typing import Dict, List, Tuple
 from .models import (
     DocumentMetadata,
     DocumentStructure,
+    Heading,
     TrackedChange,
     WordComment,
 )
+
+
 
 # Word namespace mappings
 NAMESPACES = {
@@ -92,15 +95,18 @@ class WordDocumentParser:
             return False
         return False
     
-    def load(self) -> bool:
+    def load(self) -> None:
         """Load document content based on file type."""
+        success = False
         if self.document_path.suffix.lower() == '.docx':
-            return self._load_docx_xml()
+            success = self._load_docx_xml()
         elif self.document_path.is_dir():
-            return self._load_xml_directory()
+            success = self._load_xml_directory()
         elif self.document_path.name == "document.xml":
-            return self._load_single_xml()
-        return False
+            success = self._load_single_xml()
+        
+        if not success:
+            raise ValueError(f"Failed to load or parse document: {self.document_path}")
     
     def extract_text_from_run(self, run_elem) -> str:
         """Extract text from a Word run element."""
@@ -344,13 +350,13 @@ class WordDocumentParser:
                 if "heading" in style_val.lower() or style_val.startswith("Heading"):
                     heading_text = self.extract_text_from_paragraph(para)
                     if heading_text.strip():
-                        headings.append({
-                            "level": style_val,
-                            "text": heading_text.strip()
-                        })
+                        headings.append(Heading(
+                            level=style_val,
+                            text=heading_text.strip()
+                        ))
         
         structure.headings = headings
-        structure.sections = [h["text"] for h in headings if h["text"]]
+        structure.sections = [h.text for h in headings]
         
         # Count other elements
         structure.tables = len(self.document_root.findall('.//w:tbl', NAMESPACES))

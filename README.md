@@ -18,18 +18,32 @@ source venv/bin/activate
 # 3. Install the toolkit (editable mode for development)
 pip install -e .
 
-# 4. Set up API keys (export in .bashrc, .env file, or current session)
+# 4. Set up API keys and authentication
+# Export in your .bashrc/.zshrc, a .env file, or the current session
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export ANTHROPIC_API_KEY="sk-ant-..."
+export GROK_API_KEY="grok-..."
 export GOOGLE_MAPS_API_KEY="AIza..."
+# Note: Google Calendar requires OAuth setup (see tool description below)
 
-# 5. Register tools with Claude
+# 5. Register essential tools with Claude (add others as needed)
+# Note: Registering too many MCP tools can cause context bloat and reduce tool calling accuracy
+# Only register the tools you actively need to maintain optimal performance
 claude mcp add gemini --scope user mcp-gemini
 claude mcp add openai --scope user mcp-openai
 claude mcp add arxiv --scope user mcp-arxiv
 claude mcp add google-maps --scope user mcp-google-maps
 claude mcp add word --scope user mcp-word
+
+# Add additional tools as needed:
+# claude mcp add claude --scope user mcp-claude
+# claude mcp add grok --scope user mcp-grok
+# claude mcp add py2nb --scope user mcp-py2nb
+# claude mcp add code2prompt --scope user mcp-code2prompt
+# claude mcp add google-calendar --scope user mcp-google-calendar
+# claude mcp add vim --scope user mcp-vim
+# claude mcp add email --scope user mcp-email
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -103,6 +117,7 @@ Comprehensive email workflow integration
   - Search and manage emails with Notmuch
   - Contact management and OAuth2 setup
   - _Claude example_: `> compose an email to the team about the project update`
+  - **Requires**: `msmtp`, `mutt`, and `notmuch` installed and configured
 
 
 
@@ -123,11 +138,6 @@ This pattern works because:
 - AI tools like Gemini can read files as context
 - The AI gets a view of your codebase without hitting token limits
 
-## Additional Setup
-
-Some tools require additional configuration:
-
-- **Google Calendar**: Requires OAuth2 setup. See [Google Calendar Setup Guide](docs/google-calendar-setup.md)
 
 ## Testing
 

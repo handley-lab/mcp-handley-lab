@@ -29,6 +29,7 @@ claude mcp add gemini --scope user mcp-gemini
 claude mcp add openai --scope user mcp-openai
 claude mcp add arxiv --scope user mcp-arxiv
 claude mcp add google-maps --scope user mcp-google-maps
+claude mcp add word --scope user mcp-word
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -80,6 +81,15 @@ Get directions and routing information
 
 
 
+### 📄 **Word Documents** (`word`)
+Process Word documents for analysis and conversion
+  - Extract comments with referenced text context
+  - Analyze tracked changes and revision history
+  - Convert between DOCX ↔ Markdown, HTML, plain text
+  - Document metadata and structure analysis
+  - _Claude example_: `> extract all the comments from this feedback document and show me the author breakdown`
+  - **Requires**: [pandoc](https://pandoc.org/installing.html) for document conversion
+
 ### ✏️ **Interactive Editing** (`vim`)
 Open vim for user input when needed
   - Create or edit content interactively
@@ -93,13 +103,6 @@ Comprehensive email workflow integration
   - Search and manage emails with Notmuch
   - Contact management and OAuth2 setup
   - _Claude example_: `> compose an email to the team about the project update`
-
-### 📓 **Notebook Conversion** (`py2nb`)
-Convert between Python scripts and Jupyter notebooks
-  - Bidirectional conversion with metadata preservation
-  - Support for markdown cells and cell separators
-  - Validation and execution capabilities
-  - _Claude example_: `> convert my analysis.py script to a jupyter notebook`
 
 
 

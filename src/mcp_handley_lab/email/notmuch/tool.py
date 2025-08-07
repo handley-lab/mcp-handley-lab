@@ -16,6 +16,55 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 
+def _find_smart_destination(
+    source_files: list[str], maildir_root: Path, destination_folder: str
+) -> Path:
+    """Find existing destination folder based on source email locations. Never creates new folders."""
+    if not source_files:
+        raise ValueError("No source files provided to determine destination.")
+
+    folder_map = {
+        "archive": ["archive"],
+        "trash": ["bin", "trash", "deleted"],
+        "sent": ["sent"],
+        "drafts": ["drafts", "draft"],
+        "spam": ["spam", "junk"],
+    }
+
+    first_source = Path(source_files[0])
+    rel_path = first_source.relative_to(maildir_root)
+
+    # Determine account path - handles both root and account-specific folders
+    # Root level emails are in structure: maildir/cur/file.eml or maildir/new/file.eml
+    # Account emails are in structure: maildir/Account/INBOX/cur/file.eml
+    if len(rel_path.parts) > 2:  # Account/folder/cur/file.eml
+        account_path = maildir_root / rel_path.parts[0]
+    else:  # cur/file.eml or new/file.eml (root level)
+        account_path = maildir_root
+    account_name = account_path.name
+
+    # Try exact match first
+    exact_match = account_path / destination_folder
+    if exact_match.is_dir():
+        return exact_match
+
+    # Try common name variations (case-insensitive)
+    destination_lower = destination_folder.lower()
+    if potential_names := folder_map.get(destination_lower):
+        for folder in account_path.iterdir():
+            if folder.is_dir() and any(
+                name in folder.name.lower() for name in potential_names
+            ):
+                return folder
+
+    # No match found - fail with helpful error
+    available_folders = [f.name for f in account_path.iterdir() if f.is_dir()]
+    raise FileNotFoundError(
+        f"No existing folder matching '{destination_folder}' found in account '{account_name}'. "
+        f"Available folders: {available_folders}"
+    )
+
+
 class EmailContent(BaseModel):
     """Structured representation of a single email's content."""
 
@@ -270,16 +319,13 @@ def tag(
         ..., description="The notmuch message ID of the email to modify."
     ),
     add_tags: list[str] = Field(
-        default=None, description="A list of tags to add to the email."
+        default_factory=list, description="A list of tags to add to the email."
     ),
     remove_tags: list[str] = Field(
-        default=None, description="A list of tags to remove from the email."
+        default_factory=list, description="A list of tags to remove from the email."
     ),
 ) -> TagResult:
     """Add or remove tags from a specific email using notmuch."""
-    add_tags = add_tags or []
-    remove_tags = remove_tags or []
-
     cmd = (
         ["notmuch", "tag"]
         + [f"+{tag}" for tag in add_tags]
@@ -366,7 +412,7 @@ def extract_attachments(
 
 
 @mcp.tool(
-    description="Moves emails to a different maildir folder (e.g., 'Trash', 'Archive'). This physically moves the email files on disk and updates the notmuch index. The destination folder will be created if it doesn't exist."
+    description="Moves emails to an existing maildir folder (e.g., 'Trash', 'Archive'). Automatically finds the correct folder within the same email account (e.g., 'Hermes/Archive' for emails from 'Hermes/INBOX'). Will not create new folders - only moves to existing ones."
 )
 def move(
     message_ids: list[str] = Field(
@@ -376,7 +422,7 @@ def move(
     ),
     destination_folder: str = Field(
         ...,
-        description="The destination maildir folder name (e.g., 'Trash', 'Archive'). The folder will be created if it doesn't exist.",
+        description="The destination maildir folder name (e.g., 'Trash', 'Archive'). Must be an existing folder. The tool will find the appropriate folder within the same email account.",
     ),
 ) -> MoveResult:
     """
@@ -403,20 +449,26 @@ def move(
             f"No email files found for the given message IDs: {message_ids}"
         )
 
-    # Get maildir root and move files
+    # Get maildir root and determine smart destination folder
     db_path_str, _ = run_command(["notmuch", "config", "get", "database.path"])
     maildir_root = Path(db_path_str.decode().strip())
-    # Per maildir standard, new mail is placed in the 'new' subfolder
-    destination_dir = maildir_root / destination_folder / "new"
+
+    # Find the appropriate destination based on source email locations
+    smart_destination = _find_smart_destination(
+        source_files, maildir_root, destination_folder
+    )
+    destination_dir = smart_destination / "new"
 
     for file_path in source_files:
         source_path = Path(file_path)
         destination_path = destination_dir / source_path.name
 
-        # os.renames robustly moves the file and creates intermediate
-        # directories (like 'Trash' and 'Trash/new') if they don't exist.
+        # Use os.rename instead of os.renames to avoid creating directories
+        # Create the destination 'new' directory if needed (this is safe)
+        destination_dir.mkdir(parents=True, exist_ok=True)
+
         try:
-            os.renames(source_path, destination_path)
+            os.rename(source_path, destination_path)
         except OSError as e:
             raise OSError(
                 f"Failed to move {source_path} to {destination_path}: {e}"

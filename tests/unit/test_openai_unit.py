@@ -16,6 +16,10 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gpt-5-chat-latest",
             "o3",
             "o4-mini",
             "o1",
@@ -40,6 +44,12 @@ class TestOpenAIModelConfiguration:
 
     def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
+        # GPT-5 series
+        assert MODEL_CONFIGS["gpt-5"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5-mini"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5-nano"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5-chat-latest"]["output_tokens"] == 128000
+
         # O3/O4 series
         assert MODEL_CONFIGS["o4-mini"]["output_tokens"] == 100000
 
@@ -57,6 +67,12 @@ class TestOpenAIModelConfiguration:
 
     def test_model_configs_param_names(self):
         """Test that model configurations use correct parameter names."""
+        # GPT-5 series use max_completion_tokens
+        assert MODEL_CONFIGS["gpt-5"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["gpt-5-mini"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["gpt-5-nano"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["gpt-5-chat-latest"]["param"] == "max_completion_tokens"
+
         # O1/O4 series use max_completion_tokens
         assert MODEL_CONFIGS["o4-mini"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["o1-preview"]["param"] == "max_completion_tokens"
@@ -80,8 +96,8 @@ class TestOpenAIModelConfiguration:
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to o4-mini
-        assert config["output_tokens"] == 100000
+        # Should default to gpt-5-mini
+        assert config["output_tokens"] == 128000
         assert config["param"] == "max_completion_tokens"
 
 

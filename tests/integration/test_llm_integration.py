@@ -32,7 +32,7 @@ llm_providers = [
         openai_mcp,
         "ask",
         "OPENAI_API_KEY",
-        "gpt-4o-mini",
+        "gpt-5-nano",
         "2+2",
         "4",
         id="openai",

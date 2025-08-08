@@ -1,4 +1,68 @@
 models:
+  gpt-5:
+    # Model metadata
+    description: "OpenAI's flagship model for coding, reasoning, and agentic tasks across domains"
+    capabilities: "🎯 Best for: Complex coding tasks, advanced reasoning, agentic workflows"
+    tags: ["latest", "general", "premium", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_completion_tokens"
+    supports_temperature: false
+    
+    # Pricing
+    input_per_1m: 1.25
+    output_per_1m: 10.00
+    cached_input_per_1m: 0.125
+    supports_caching: true
+
+  gpt-5-mini:
+    # Model metadata
+    description: "Faster, more cost-efficient version of GPT-5 for well-defined tasks"
+    capabilities: "⚖️ Best for: Most coding tasks, balanced performance and cost"
+    tags: ["latest", "general", "cost-effective", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_completion_tokens"
+    supports_temperature: false
+    
+    # Pricing
+    input_per_1m: 0.25
+    output_per_1m: 2.00
+    cached_input_per_1m: 0.025
+    supports_caching: true
+
+  gpt-5-nano:
+    # Model metadata
+    description: "Fastest, most cost-efficient version of GPT-5 for simple tasks"
+    capabilities: "⚡ Best for: Quick tasks, high-volume processing, cost optimization"
+    tags: ["latest", "general", "fast", "cost-effective", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_completion_tokens"
+    supports_temperature: false
+    
+    # Pricing
+    input_per_1m: 0.05
+    output_per_1m: 0.40
+    cached_input_per_1m: 0.005
+    supports_caching: true
+
+  gpt-5-chat-latest:
+    # Model metadata
+    description: "GPT-5 model used in ChatGPT with latest optimizations"
+    capabilities: "🎯 Best for: Conversational AI, chat applications, interactive tasks"
+    tags: ["latest", "general", "premium", "vision", "chat"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_completion_tokens"
+    supports_temperature: false
+    
+    # Pricing
+    input_per_1m: 1.25
+    output_per_1m: 10.00
+    cached_input_per_1m: 0.125
+    supports_caching: true
+
   o3:
     # Model metadata
     description: "Most powerful reasoning model with leading performance on coding, math, science, and vision"
@@ -341,12 +405,14 @@ display_categories:
     description: "Previous generation models for established workflows"
 
 # Default model
-default_model: "o4-mini"
+default_model: "gpt-5-mini"
 
 # Usage notes
 usage_notes:
+  - "GPT-5 models have 400K context window and support vision (image analysis)"
+  - "GPT-5 models support cached input pricing for cost optimization"
   - "Reasoning models (o1, o3, o4) don't support temperature parameter"
-  - "Vision models (gpt-4o series) support image analysis"
+  - "Vision models (gpt-4o series, gpt-5 series) support image analysis"
   - "Image generation models charge per image, not per token"
   - "Use snapshots for reproducible behavior across deployments"
   - "Batch API provides 50% discount on inputs and outputs"

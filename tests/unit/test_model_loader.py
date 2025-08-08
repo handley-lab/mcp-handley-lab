@@ -48,7 +48,7 @@ class TestLoadModelConfig:
         assert "dall-e-3" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "o4-mini"
+        assert config["default_model"] == "gpt-5-mini"
 
     def test_load_model_config_claude(self):
         """Test loading Claude model configuration."""
@@ -216,7 +216,7 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Openai Model Summary" in listing
-        assert "Default Model: o4-mini" in listing
+        assert "Default Model: gpt-5-mini" in listing
 
         # Check model categories
         assert "🧠 Reasoning Models" in listing

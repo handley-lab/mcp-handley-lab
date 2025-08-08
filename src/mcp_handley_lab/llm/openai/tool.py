@@ -54,12 +54,19 @@ def _openai_generation_adapter(
     **kwargs,
 ) -> dict[str, Any]:
     """OpenAI-specific text generation function for the shared processor."""
+    # Get model configuration first for validation
+    model_config = _get_model_config(model)
+    
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
     enable_logprobs = kwargs["enable_logprobs"]
     top_logprobs = kwargs["top_logprobs"]
+    
+    # Validate temperature parameter
+    if not model_config.get("supports_temperature", True) and temperature != 1.0:
+        raise ValueError(f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request.")
 
     # Build messages
     messages = []
@@ -80,8 +87,6 @@ def _openai_generation_adapter(
         user_content += "\n\n" + "\n\n".join(inline_content)
     messages.append({"role": "user", "content": user_content})
 
-    # Get model configuration
-    model_config = _get_model_config(model)
     param_name = model_config["param"]
     default_tokens = model_config["output_tokens"]
 
@@ -97,19 +102,16 @@ def _openai_generation_adapter(
         if top_logprobs > 0:
             request_params["top_logprobs"] = top_logprobs
 
-    request_params["temperature"] = temperature
+    # Add temperature for models that support it
+    if model_config.get("supports_temperature", True):
+        request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
-    if max_output_tokens > 0:
-        request_params[param_name] = max_output_tokens
-    else:
-        request_params[param_name] = default_tokens
+    request_params[param_name] = max_output_tokens or default_tokens
 
     # Make API call
     response = client.chat.completions.create(**request_params)
 
-    if not response.choices or not response.choices[0].message.content:
-        raise RuntimeError("No response generated")
 
     # Extract additional OpenAI metadata
     choice = response.choices[0]
@@ -163,10 +165,18 @@ def _openai_image_analysis_adapter(
     **kwargs,
 ) -> dict[str, Any]:
     """OpenAI-specific image analysis function for the shared processor."""
+    # Get model configuration first for validation
+    model_config = _get_model_config(model)
+    
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
+    temperature = kwargs.get("temperature", 1.0)
+    
+    # Validate temperature parameter
+    if not model_config.get("supports_temperature", True) and temperature != 1.0:
+        raise ValueError(f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request.")
 
     # Use standardized image processing
     from mcp_handley_lab.llm.common import resolve_images_for_multimodal_prompt
@@ -202,8 +212,6 @@ def _openai_image_analysis_adapter(
     # Add current message with images
     messages.append({"role": "user", "content": content})
 
-    # Get model configuration
-    model_config = _get_model_config(model)
     param_name = model_config["param"]
     default_tokens = model_config["output_tokens"]
 
@@ -213,21 +221,16 @@ def _openai_image_analysis_adapter(
         "messages": messages,
     }
 
-    # Only add temperature for models that support it (reasoning models don't)
-    if not model.startswith(("o1", "o3", "o4")):
-        request_params["temperature"] = 1.0
+    # Add temperature for models that support it
+    if model_config.get("supports_temperature", True):
+        request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
-    if max_output_tokens > 0:
-        request_params[param_name] = max_output_tokens
-    else:
-        request_params[param_name] = default_tokens
+    request_params[param_name] = max_output_tokens or default_tokens
 
     # Make API call
     response = client.chat.completions.create(**request_params)
 
-    if not response.choices or not response.choices[0].message.content:
-        raise RuntimeError("No response generated")
 
     return {
         "text": response.choices[0].message.content,

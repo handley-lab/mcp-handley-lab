@@ -2,6 +2,11 @@
 
 A toolkit that bridges AI assistants with command-line tools and services. Built on the Model Context Protocol (MCP), it enables AI models like Claude, Gemini, or GPT to interact with your local development environment, manage calendars, analyze code, and automate workflows through a standardized interface.
 
+## Requirements
+
+- **Python**: 3.10 or higher
+- **MCP CLI**: `pip install mcp[cli]` (for Claude Desktop integration)
+
 ## Quick Start
 
 Get up and running in 5 minutes:
@@ -11,11 +16,11 @@ Get up and running in 5 minutes:
 git clone git@github.com:handley-lab/mcp-handley-lab.git
 cd mcp-handley-lab
 
-# 2. Set up Python environment
+# 2. Set up Python environment (requires Python 3.10+)
 python3 -m venv venv
 source venv/bin/activate
 
-# 3. Install the toolkit (editable mode for development)
+# 3. Install the toolkit (includes mcp[cli] automatically)
 pip install -e .
 
 # 4. Set up API keys and authentication

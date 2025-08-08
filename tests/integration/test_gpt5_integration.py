@@ -133,21 +133,15 @@ class TestGPT5Integration:
         skip_if_no_openai_key()
 
         # GPT-5 models should reject custom temperature values
-        try:
-            _, response = await mcp.call_tool("ask", {
+        from mcp.server.fastmcp.exceptions import ToolError
+        with pytest.raises(ToolError, match="does not support the 'temperature' parameter"):
+            await mcp.call_tool("ask", {
                 "prompt": "Say hello",
                 "model": "gpt-5-nano", 
                 "temperature": 0.1,  # Should fail
                 "agent_name": "false",
                 "output_file": "-"
             })
-            # If we get here, the call succeeded unexpectedly
-            pytest.fail("Expected temperature parameter to be rejected by GPT-5")
-        except Exception as e:
-            # Should get an error about temperature not being supported
-            error_msg = str(e).lower()
-            assert "temperature" in error_msg
-            assert any(word in error_msg for word in ["not supported", "unsupported", "default"])
 
     @pytest.mark.asyncio
     async def test_gpt5_nano_no_temperature(self):

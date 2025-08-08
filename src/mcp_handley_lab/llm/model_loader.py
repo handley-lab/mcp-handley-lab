@@ -102,6 +102,7 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 model_configs[model_id] = {
                     "output_tokens": model_info["output_tokens"],
                     "param": model_info["param"],
+                    "supports_temperature": model_info.get("supports_temperature", True),
                 }
         elif provider == "claude":
             # Claude format - require explicit values in YAML

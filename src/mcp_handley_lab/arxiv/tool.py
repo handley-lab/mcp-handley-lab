@@ -214,6 +214,25 @@ def _handle_tar_archive_structured(
             )
 
 
+def _build_download_result(
+    arxiv_id: str,
+    format: str,
+    output_path: str,
+    size_bytes: int,
+    message: str,
+    files: list[str],
+) -> DownloadResult:
+    """Build a DownloadResult object with common fields."""
+    return DownloadResult(
+        message=message,
+        arxiv_id=arxiv_id,
+        format=format,
+        output_path=output_path,
+        size_bytes=size_bytes,
+        files=files,
+    )
+
+
 @mcp.tool(
     description="Downloads an ArXiv paper by ID in various formats ('src', 'pdf', 'tex') or lists its source files."
 )
@@ -246,25 +265,24 @@ def download(
 
         size_bytes = len(response.content)
         if output_path == "-":
-            # Return file info for stdout
-            return DownloadResult(
-                message=f"ArXiv PDF for {arxiv_id}: {size_bytes / (1024 * 1024):.2f} MB",
-                arxiv_id=arxiv_id,
-                format=format,
-                output_path=output_path,
-                size_bytes=size_bytes,
-                files=[f"{arxiv_id}.pdf"],
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                f"ArXiv PDF for {arxiv_id}: {size_bytes / (1024 * 1024):.2f} MB",
+                [f"{arxiv_id}.pdf"],
             )
         else:
             with open(output_path, "wb") as f:
                 f.write(response.content)
-            return DownloadResult(
-                message=f"ArXiv PDF saved to: {output_path}",
-                arxiv_id=arxiv_id,
-                format=format,
-                output_path=output_path,
-                size_bytes=size_bytes,
-                files=[output_path],
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                f"ArXiv PDF saved to: {output_path}",
+                [output_path],
             )
 
     else:
@@ -326,24 +344,21 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
 
 def _apply_field_filtering(
-    paper_dict: dict[str, Any],
-    include_fields: list[str] | None,
+    paper_dict: dict[str, Any], include_fields: list[str]
 ) -> dict[str, Any]:
     """
     Apply field filtering to a paper dictionary.
 
-    If include_fields is None, returns all fields.
+    If include_fields is empty, returns all fields.
     If include_fields is provided, returns only those fields (plus 'id' which is always included).
     """
-    if include_fields is None:
-        # Return all fields
+    if not include_fields:
         return paper_dict
 
     # Use specified fields, ensuring 'id' is always included
     included_fields = set(include_fields)
     included_fields.add("id")
 
-    # Filter the paper dictionary
     return {k: v for k, v in paper_dict.items() if k in included_fields}
 
 
@@ -381,10 +396,9 @@ def search(
             "pdf_url",
             "abs_url",
         ]
-    ]
-    | None = Field(
-        None,
-        description="Specific fields to include in results. If not provided, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
+    ] = Field(
+        default_factory=list,
+        description="Specific fields to include in results. If empty, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
     ),
     max_authors: int | None = Field(
         5,

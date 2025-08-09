@@ -46,7 +46,7 @@ def extract_comments(
     parser.load()
 
     comments = parser.extract_comments()
-    unique_authors = list(set(comment.author for comment in comments))
+    unique_authors = list(dict.fromkeys(comment.author for comment in comments))
     metadata = parser.extract_metadata()
 
     return CommentExtractionResult(
@@ -74,7 +74,7 @@ def extract_tracked_changes(
     parser.load()
 
     changes = parser.extract_tracked_changes()
-    unique_authors = list(set(change.author for change in changes))
+    unique_authors = list(dict.fromkeys(change.author for change in changes))
     pending_changes = len([change for change in changes if not change.accepted])
 
     return TrackedChangesResult(

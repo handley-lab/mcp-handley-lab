@@ -1,7 +1,7 @@
 """Grok LLM tool for AI interactions via MCP."""
 
 import threading
-from typing import Any, Optional
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
@@ -28,7 +28,7 @@ from mcp_handley_lab.shared.models import (
 mcp = FastMCP("Grok Tool")
 
 # Lazy initialization of Grok client
-_client: Optional[Client] = None
+_client: Client | None = None
 _client_lock = threading.Lock()
 
 

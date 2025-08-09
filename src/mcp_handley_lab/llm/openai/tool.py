@@ -3,7 +3,7 @@
 import json
 import threading
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import numpy as np
@@ -41,7 +41,7 @@ DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_BATCH_SIZE = 100
 
 # Lazy initialization of OpenAI client
-_client: Optional[OpenAI] = None
+_client: OpenAI | None = None
 _client_lock = threading.Lock()
 
 

@@ -7,7 +7,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import numpy as np
 from google import genai as google_genai
@@ -69,7 +69,7 @@ EmbeddingTaskType = Literal[
 ]
 
 # Lazy initialization of Gemini client
-_client: Optional[google_genai.Client] = None
+_client: google_genai.Client | None = None
 _client_lock = threading.Lock()
 
 

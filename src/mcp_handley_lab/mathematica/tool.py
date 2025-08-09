@@ -10,7 +10,7 @@ import re
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("Mathematica Tool")
 
 # Global session management with thread safety
-_session: Optional[WolframLanguageSession] = None
+_session: WolframLanguageSession | None = None
 _evaluation_count = 0
 _session_lock = threading.RLock()
 _kernel_path = "/usr/bin/WolframKernel"
@@ -42,10 +42,8 @@ class MathematicaResult(BaseModel):
     evaluation_count: int = Field(description="Number of evaluations in this session")
     expression: str = Field(description="The original expression that was evaluated")
     format_used: str = Field(description="The output format that was used")
-    error: Optional[str] = Field(None, description="Error message if evaluation failed")
-    note: Optional[str] = Field(
-        None, description="Additional notes about the evaluation"
-    )
+    error: str | None = Field(None, description="Error message if evaluation failed")
+    note: str | None = Field(None, description="Additional notes about the evaluation")
 
 
 class SessionInfo(BaseModel):
@@ -53,16 +51,12 @@ class SessionInfo(BaseModel):
 
     active: bool = Field(description="Whether the kernel session is active")
     evaluation_count: int = Field(description="Number of evaluations performed")
-    version: Optional[str] = Field(None, description="Wolfram kernel version")
-    memory_used: Optional[str] = Field(None, description="Memory currently in use")
-    kernel_id: Optional[str] = Field(None, description="Kernel process ID")
+    version: str | None = Field(None, description="Wolfram kernel version")
+    memory_used: str | None = Field(None, description="Memory currently in use")
+    kernel_id: str | None = Field(None, description="Kernel process ID")
     kernel_path: str = Field(description="Path to the Wolfram kernel")
-    uptime_seconds: Optional[float] = Field(
-        None, description="Session uptime in seconds"
-    )
-    last_evaluation: Optional[str] = Field(
-        None, description="Last expression evaluated"
-    )
+    uptime_seconds: float | None = Field(None, description="Session uptime in seconds")
+    last_evaluation: str | None = Field(None, description="Last expression evaluated")
 
 
 def _get_session() -> WolframLanguageSession:
@@ -91,7 +85,7 @@ def _get_session() -> WolframLanguageSession:
             except Exception as e:
                 logger.error(f"❌ Failed to start Wolfram session: {e}")
                 _session = None
-                raise RuntimeError(f"Could not start Wolfram session: {e}")
+                raise RuntimeError(f"Could not start Wolfram session: {e}") from e
 
     return _session
 
@@ -227,7 +221,7 @@ def evaluate(
             "'TeXForm': LaTeX representation for documents."
         ),
     ),
-    store_context: Optional[str] = Field(
+    store_context: str | None = Field(
         None, description="Optional key to store this result for later reference"
     ),
 ) -> MathematicaResult:
@@ -255,52 +249,36 @@ def evaluate(
     global _evaluation_count
 
     with _session_lock:
-        try:
-            # Ensure session is active
-            if not _ensure_session_active():
-                session = _get_session()
-            else:
-                session = _session
+        # Ensure session is active
+        session = _get_session() if not _ensure_session_active() else _session
 
-            logger.debug(f"Evaluating: {expression}")
+        logger.debug(f"Evaluating: {expression}")
 
-            # Preprocess % references before evaluation
-            processed_expression = _preprocess_percent_references(expression)
+        # Preprocess % references before evaluation
+        processed_expression = _preprocess_percent_references(expression)
 
-            # Evaluate the processed expression
-            raw_result = session.evaluate(wlexpr(processed_expression))
-            _evaluation_count += 1
+        # Evaluate the processed expression
+        raw_result = session.evaluate(wlexpr(processed_expression))
+        _evaluation_count += 1
 
-            # Store result in history for % references
-            global _result_history, _input_history
-            _result_history.append(raw_result)
-            _input_history.append(expression)  # Store input for notebook reconstruction
+        # Store result in history for % references
+        global _result_history, _input_history
+        _result_history.append(raw_result)
+        _input_history.append(expression)  # Store input for notebook reconstruction
 
-            # Format the result based on requested format
-            formatted_result = _format_result(session, raw_result, output_format)
+        # Format the result based on requested format
+        formatted_result = _format_result(session, raw_result, output_format)
 
-            logger.debug(f"✅ Evaluation successful: {formatted_result}")
+        logger.debug(f"✅ Evaluation successful: {formatted_result}")
 
-            return MathematicaResult(
-                result=formatted_result,
-                raw_result=str(raw_result),
-                success=True,
-                evaluation_count=_evaluation_count,
-                expression=expression,
-                format_used=output_format,
-            )
-
-        except Exception as e:
-            logger.error(f"❌ Evaluation failed: {e}")
-            return MathematicaResult(
-                result=f"Error: {str(e)}",
-                raw_result="",
-                success=False,
-                evaluation_count=_evaluation_count,
-                expression=expression,
-                format_used=output_format if isinstance(output_format, str) else "Raw",
-                error=str(e),
-            )
+        return MathematicaResult(
+            result=formatted_result,
+            raw_result=str(raw_result),
+            success=True,
+            evaluation_count=_evaluation_count,
+            expression=expression,
+            format_used=output_format,
+        )
 
 
 @mcp.tool()
@@ -327,7 +305,6 @@ def session_info() -> SessionInfo:
             version = str(_session.evaluate(wlexpr("$Version")))
             memory_used = str(_session.evaluate(wlexpr("MemoryInUse[]")))
             kernel_id = str(_session.evaluate(wlexpr("$ProcessID")))
-            session_id = str(_session.evaluate(wlexpr("$SessionID")))
 
             return SessionInfo(
                 active=True,
@@ -372,10 +349,7 @@ def clear_session(
 
     with _session_lock:
         try:
-            if not _ensure_session_active():
-                session = _get_session()
-            else:
-                session = _session
+            session = _get_session() if not _ensure_session_active() else _session
 
             if keep_builtin:
                 # Clear only user-defined symbols in Global context
@@ -441,7 +415,7 @@ def restart_kernel() -> OperationResult:
             _input_history.clear()
 
             # Start new session
-            new_session = _get_session()
+            _get_session()
 
             return OperationResult(
                 status="success",
@@ -486,10 +460,7 @@ def apply_to_last(
 
     with _session_lock:
         try:
-            if not _ensure_session_active():
-                session = _get_session()
-            else:
-                session = _session
+            session = _get_session() if not _ensure_session_active() else _session
 
             if not _result_history:
                 return MathematicaResult(
@@ -587,10 +558,7 @@ def convert_latex(
 
     with _session_lock:
         try:
-            if not _ensure_session_active():
-                session = _get_session()
-            else:
-                session = _session
+            session = _get_session() if not _ensure_session_active() else _session
 
             # Attempt to convert LaTeX to Wolfram Language
             try:
@@ -679,11 +647,11 @@ def save_notebook(
 
         # Choose format handler
         if format == "md":
-            result = _save_as_markdown(filepath, title, timestamp)
+            _save_as_markdown(filepath, title, timestamp)
         elif format == "wl":
-            result = _save_as_wolfram_script(filepath, title, timestamp)
+            _save_as_wolfram_script(filepath, title, timestamp)
         elif format == "wls":
-            result = _save_as_wolfram_script_with_outputs(filepath, title, timestamp)
+            _save_as_wolfram_script_with_outputs(filepath, title, timestamp)
         else:
             return OperationResult(
                 status="error",

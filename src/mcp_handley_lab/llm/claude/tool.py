@@ -1,7 +1,7 @@
 """Claude LLM tool for AI interactions via MCP."""
 
 import threading
-from typing import Any, Optional
+from typing import Any
 
 from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
@@ -24,7 +24,7 @@ from mcp_handley_lab.shared.models import LLMResult, ModelListing, ServerInfo
 mcp = FastMCP("Claude Tool")
 
 # Lazy initialization of Claude client
-_client: Optional[Anthropic] = None
+_client: Anthropic | None = None
 _client_lock = threading.Lock()
 
 

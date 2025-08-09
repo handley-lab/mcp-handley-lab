@@ -104,7 +104,7 @@ def _calculate_cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
 
 def _get_session_id() -> LLMResult:
     """Get the persistent session ID for this MCP server process."""
-    return get_session_id(mcp)
+    return get_session_id(mcp, "gemini")
 
 
 def _get_model_config(model: str) -> dict[str, int]:

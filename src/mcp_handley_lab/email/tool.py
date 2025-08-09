@@ -50,47 +50,70 @@ def server_info(
     config_file: str = Field(
         default=None,
         description="Optional path to the offlineimap configuration file (e.g., ~/.offlineimaprc). If not provided, the default location will be used.",
-    )
+    ),
 ) -> ServerInfo:
-    """Check the status of email tools and their configurations."""
-    run_command(["msmtp", "--version"])
+    """Check the configured status of email tools without running external commands."""
+    # This function should report configured dependencies, not run them.
 
-    from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc
+    dependencies = {
+        "msmtp": "required",
+        "offlineimap": "required",
+        "notmuch": "required",
+        "msal (for OAuth2)": "optional",
+    }
 
-    accounts = _parse_msmtprc()
+    # Check for config files, which is a quick, non-blocking operation
+    msmtprc_path = Path.home() / ".msmtprc"
+    offlineimaprc_path = (
+        Path(config_file) if config_file else Path.home() / ".offlineimaprc"
+    )
 
-    run_command(["offlineimap", "--version"])
-    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-    if not config_path.exists():
-        raise RuntimeError(f"offlineimap configuration not found at {config_path}")
+    dependencies["msmtp_config"] = "found" if msmtprc_path.exists() else "not found"
+    dependencies["offlineimap_config"] = (
+        "found" if offlineimaprc_path.exists() else "not found"
+    )
 
-    run_command(["notmuch", "--version"])
-
-    stdout, stderr = run_command(["notmuch", "count", "*"])
-    db_info = stdout.decode().strip()
-    db_status = f"{db_info} messages indexed"
-
+    # Check for msal import without subprocess
     try:
         import importlib.util
 
         spec = importlib.util.find_spec("msal")
-        oauth2_status = (
-            "supported (msal available)"
-            if spec
-            else "not supported (msal not installed)"
-        )
+        dependencies["msal_oauth2"] = "available" if spec else "not installed"
     except ImportError:
-        oauth2_status = "not supported (msal not installed)"
+        dependencies["msal_oauth2"] = "not installed"
 
     return ServerInfo(
         name="Email Tool Server",
         version="1.9.4",
-        status="active",
+        status="active",  # Assumes active, relies on user to run health checks
         capabilities=["msmtp", "offlineimap", "notmuch", "mutt", "oauth2"],
-        dependencies={
-            "msmtp_accounts": str(len(accounts)),
-            "notmuch_database": db_status,
-            "offlineimap_config": "found",
-            "oauth2_support": oauth2_status,
-        },
+        dependencies=dependencies,
     )
+
+
+@mcp.tool(
+    description="Actively checks email tool dependencies by running version commands."
+)
+def check_dependencies() -> str:
+    """Actively tests email tool availability by running external commands."""
+    results = []
+
+    try:
+        run_command(["msmtp", "--version"])
+        results.append("✅ msmtp: available")
+    except Exception as e:
+        results.append(f"❌ msmtp: {e}")
+
+    try:
+        run_command(["offlineimap", "--version"])
+        results.append("✅ offlineimap: available")
+    except Exception as e:
+        results.append(f"❌ offlineimap: {e}")
+
+    try:
+        run_command(["notmuch", "--version"])
+        results.append("✅ notmuch: available")
+    except Exception as e:
+        results.append(f"❌ notmuch: {e}")
+
+    return "\n".join(results)

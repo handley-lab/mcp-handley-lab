@@ -117,81 +117,57 @@ class MCPToolClient:
                 click.echo(f"Stderr: {stderr}", err=True)
             return False
 
-    def _ensure_initialized(self) -> bool:
-        """Starts the tool server if not already running. Returns success."""
-        if not self._initialized:
-            return self.start_tool_server()
-        return True
+    def _ensure_initialized(self) -> None:
+        """Starts the tool server if not already running."""
+        if not self._initialized and not self.start_tool_server():
+            raise RuntimeError(f"Failed to start {self.tool_name} server")
 
-    def list_tools(self) -> list[dict[str, Any]] | None:
+    def list_tools(self) -> list[dict[str, Any]]:
         """Get list of available tools from the server."""
-        if not self._ensure_initialized():
-            return None
+        self._ensure_initialized()
 
-        try:
-            request = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+        request = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
 
-            self.process.stdin.write(json.dumps(request) + "\n")
-            self.process.stdin.flush()
+        self.process.stdin.write(json.dumps(request) + "\n")
+        self.process.stdin.flush()
 
-            response_line = self.process.stdout.readline()
-            if not response_line:
-                return None
+        response_line = self.process.stdout.readline()
+        response = json.loads(response_line.strip())
 
-            response = json.loads(response_line.strip())
-            if "error" in response:
-                click.echo(f"Error listing tools: {response['error']}", err=True)
-                return None
+        if "error" in response:
+            raise RuntimeError(f"Error listing tools: {response['error']}")
 
-            return response.get("result", {}).get("tools", [])
+        return response.get("result", {}).get("tools", [])
 
-        except Exception as e:
-            click.echo(f"Failed to list tools from {self.tool_name}: {e}", err=True)
-            return None
-
-    def call_tool(
-        self, tool_name: str, arguments: dict[str, Any]
-    ) -> dict[str, Any] | None:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """Call a specific tool function."""
-        if not self._ensure_initialized():
-            return None
+        self._ensure_initialized()
 
-        try:
-            request = {
-                "jsonrpc": "2.0",
-                "id": 3,
-                "method": "tools/call",
-                "params": {"name": tool_name, "arguments": arguments},
-            }
+        request = {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": arguments},
+        }
 
-            self.process.stdin.write(json.dumps(request) + "\n")
-            self.process.stdin.flush()
+        self.process.stdin.write(json.dumps(request) + "\n")
+        self.process.stdin.flush()
 
-            response_line = self.process.stdout.readline()
-            if not response_line:
-                return None
-
-            response = json.loads(response_line.strip())
-            return response
-
-        except Exception as e:
-            click.echo(f"Failed to call {tool_name}: {e}", err=True)
-            return None
+        response_line = self.process.stdout.readline()
+        response = json.loads(response_line.strip())
+        return response
 
     def cleanup(self):
         """Clean up the server process."""
         if self.process:
+            self.process.terminate()
             try:
-                self.process.terminate()
                 self.process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.process.wait()
-            except Exception:
-                pass
-            finally:
-                self.process = None
-                self._initialized = False
+            self.process = None
+            self._initialized = False
 
 
 # Global clients dictionary

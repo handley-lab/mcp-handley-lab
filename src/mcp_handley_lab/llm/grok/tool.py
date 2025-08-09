@@ -1,5 +1,6 @@
 """Grok LLM tool for AI interactions via MCP."""
 
+import threading
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -26,8 +27,22 @@ from mcp_handley_lab.shared.models import (
 
 mcp = FastMCP("Grok Tool")
 
-# Configure Grok client
-client = Client(api_key=settings.xai_api_key)
+# Lazy initialization of Grok client
+_client: Client | None = None
+_client_lock = threading.Lock()
+
+
+def _get_client() -> Client:
+    """Get or create the global Grok client with thread safety."""
+    global _client
+    with _client_lock:
+        if _client is None:
+            try:
+                _client = Client(api_key=settings.xai_api_key)
+            except Exception as e:
+                raise RuntimeError(f"Failed to initialize Grok client: {e}") from e
+    return _client
+
 
 # Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("grok")
@@ -89,7 +104,7 @@ def _grok_generation_adapter(
         request_params["max_tokens"] = default_tokens
 
     # Make API call using XAI SDK's two-step process
-    chat_session = client.chat.create(**request_params)
+    chat_session = _get_client().chat.create(**request_params)
     response = chat_session.sample()
 
     if not response or not response.proto or not response.proto.choices:
@@ -195,7 +210,7 @@ def _grok_image_analysis_adapter(
         request_params["max_tokens"] = default_tokens
 
     # Make API call using XAI SDK's two-step process
-    chat_session = client.chat.create(**request_params)
+    chat_session = _get_client().chat.create(**request_params)
     response = chat_session.sample()
 
     if not response or not response.proto or not response.proto.choices:
@@ -337,7 +352,9 @@ def analyze_image(
 def _grok_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     """Grok-specific image generation function with comprehensive metadata extraction."""
     # Use xai-sdk's image.sample method
-    response = client.image.sample(prompt=prompt, model=model, image_format="base64")
+    response = _get_client().image.sample(
+        prompt=prompt, model=model, image_format="base64"
+    )
 
     if not response or not response.images:
         raise RuntimeError("No image generated")
@@ -402,11 +419,11 @@ def generate_image(
 def list_models() -> ModelListing:
     """List available Grok models with detailed information."""
     # Get models from API for availability checking
-    language_models = client.models.list_language_models()
+    language_models = _get_client().models.list_language_models()
     api_model_ids = {m.name for m in language_models}
 
     # Also get image generation models
-    image_models = client.models.list_image_generation_models()
+    image_models = _get_client().models.list_image_generation_models()
     api_model_ids.update({m.name for m in image_models})
 
     # Use structured model listing
@@ -417,14 +434,9 @@ def list_models() -> ModelListing:
     description="Checks Grok Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
 def server_info() -> ServerInfo:
-    """Get server status and Grok configuration."""
-    # Test API key by listing models
-    language_models = client.models.list_language_models()
-    available_models = [m.name for m in language_models if "grok" in m.name.lower()]
-
-    # Also count image models
-    image_models = client.models.list_image_generation_models()
-    available_models.extend([m.name for m in image_models if "grok" in m.name.lower()])
+    """Get server status and Grok configuration without making a network call."""
+    # Get model names from the local YAML config instead of the API
+    available_models = list(MODEL_CONFIGS.keys())
 
     return build_server_info(
         provider_name="Grok",
@@ -433,3 +445,15 @@ def server_info() -> ServerInfo:
         vision_support=True,
         image_generation=True,
     )
+
+
+@mcp.tool(description="Tests the connection to the Grok API by listing models.")
+def test_connection() -> str:
+    """Tests the connection to the Grok API."""
+    try:
+        language_models = _get_client().models.list_language_models()
+        image_models = _get_client().models.list_image_generation_models()
+        total_models = len(language_models) + len(image_models)
+        return f"✅ Connection successful. Found {total_models} models."
+    except Exception as e:
+        return f"❌ Connection failed: {e}"

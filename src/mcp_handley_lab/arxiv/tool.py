@@ -2,6 +2,7 @@
 
 import gzip
 import os
+import sys
 import tarfile
 import tempfile
 from datetime import datetime
@@ -73,6 +74,29 @@ class ArxivPaper(BaseModel):
 
 
 mcp = FastMCP("ArXiv Tool")
+
+
+def _safe_tar_extract(tar: tarfile.TarFile, member: tarfile.TarInfo | None = None, path: str = ".") -> None:
+    """Safely extract tar files with Python version compatibility."""
+    if sys.version_info >= (3, 12):
+        # Use secure filter for Python 3.12+
+        if member:
+            tar.extract(member, path=path, filter="data")
+        else:
+            tar.extractall(path=path, filter="data")
+    else:
+        # For older Python versions, extract without filter but validate paths
+        if member:
+            # Validate single member path
+            if member.name.startswith('/') or '..' in member.name:
+                raise ValueError(f"Unsafe tar member path: {member.name}")
+            tar.extract(member, path=path)
+        else:
+            # Validate all member paths
+            for m in tar.getmembers():
+                if m.name.startswith('/') or '..' in m.name:
+                    raise ValueError(f"Unsafe tar member path: {m.name}")
+            tar.extractall(path=path)
 
 
 def _get_cached_source(arxiv_id: str) -> bytes | None:
@@ -193,12 +217,12 @@ def _handle_tar_archive_structured(
                     if member.isfile() and any(
                         member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
                     ):
-                        tar.extract(member, path=output_path, filter="data")
+                        _safe_tar_extract(tar, member, path=output_path)
                         extracted_files.append(member.name)
                         total_size += member.size
             else:
                 # Extract all files (src format)
-                tar.extractall(path=output_path, filter="data")
+                _safe_tar_extract(tar, path=output_path)
                 for member in tar.getmembers():
                     if member.isfile():
                         extracted_files.append(member.name)

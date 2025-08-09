@@ -282,7 +282,7 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The OpenAI GPT model to use for the request (e.g., 'gpt-4o').",
+        description="The OpenAI GPT model to use for the request (e.g., 'gpt-5', 'gpt-5-mini', 'o3').",
     ),
     temperature: float = Field(
         default=1.0,

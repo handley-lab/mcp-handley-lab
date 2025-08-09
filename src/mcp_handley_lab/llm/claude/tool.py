@@ -1,6 +1,7 @@
 """Claude LLM tool for AI interactions via MCP."""
 
-from typing import Any
+import threading
+from typing import Any, Optional
 
 from anthropic import Anthropic
 from mcp.server.fastmcp import FastMCP
@@ -22,8 +23,22 @@ from mcp_handley_lab.shared.models import LLMResult, ModelListing, ServerInfo
 
 mcp = FastMCP("Claude Tool")
 
-# Configure Claude client - fail fast if API key is invalid/missing
-client = Anthropic(api_key=settings.anthropic_api_key)
+# Lazy initialization of Claude client
+_client: Optional[Anthropic] = None
+_client_lock = threading.Lock()
+
+
+def _get_client() -> Anthropic:
+    """Get or create the global Claude client with thread safety."""
+    global _client
+    with _client_lock:
+        if _client is None:
+            try:
+                _client = Anthropic(api_key=settings.anthropic_api_key)
+            except Exception as e:
+                raise RuntimeError(f"Failed to initialize Claude client: {e}") from e
+    return _client
+
 
 # Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("claude")
@@ -170,7 +185,7 @@ def _claude_generation_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = client.messages.create(**request_params)
+    response = _get_client().messages.create(**request_params)
 
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
@@ -243,7 +258,7 @@ def _claude_image_analysis_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = client.messages.create(**request_params)
+    response = _get_client().messages.create(**request_params)
 
     return {
         "text": response.content[0].text,
@@ -381,14 +396,8 @@ def list_models() -> ModelListing:
     description="Checks the status of the Claude Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests."
 )
 def server_info() -> ServerInfo:
-    """Get server status and Claude configuration."""
-    # Test API by making a simple request
-    client.messages.create(
-        model="claude-3-5-haiku-20241022",
-        messages=[{"role": "user", "content": "Hello"}],
-        max_tokens=10,
-    )
-
+    """Get server status and Claude configuration without making a network call."""
+    # Get model names from the local YAML config instead of the API
     available_models = list(MODEL_CONFIGS.keys())
 
     return build_server_info(
@@ -398,3 +407,19 @@ def server_info() -> ServerInfo:
         vision_support=True,
         image_generation=False,
     )
+
+
+@mcp.tool(
+    description="Tests the connection to the Claude API by making a simple request."
+)
+def test_connection() -> str:
+    """Tests the connection to the Claude API."""
+    try:
+        _get_client().messages.create(
+            model="claude-3-5-haiku-20241022",
+            messages=[{"role": "user", "content": "Hello"}],
+            max_tokens=10,
+        )
+        return "✅ Connection successful."
+    except Exception as e:
+        return f"❌ Connection failed: {e}"

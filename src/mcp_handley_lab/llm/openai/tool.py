@@ -1,8 +1,9 @@
 """OpenAI LLM tool for AI interactions via MCP."""
 
 import json
+import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import httpx
 import numpy as np
@@ -39,8 +40,22 @@ mcp = FastMCP("OpenAI Tool")
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_BATCH_SIZE = 100
 
-# Configure OpenAI client
-client = OpenAI(api_key=settings.openai_api_key)
+# Lazy initialization of OpenAI client
+_client: Optional[OpenAI] = None
+_client_lock = threading.Lock()
+
+
+def _get_client() -> OpenAI:
+    """Get or create the global OpenAI client with thread safety."""
+    global _client
+    with _client_lock:
+        if _client is None:
+            try:
+                _client = OpenAI(api_key=settings.openai_api_key)
+            except Exception as e:
+                raise RuntimeError(f"Failed to initialize OpenAI client: {e}") from e
+    return _client
+
 
 # Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("openai")
@@ -56,17 +71,19 @@ def _openai_generation_adapter(
     """OpenAI-specific text generation function for the shared processor."""
     # Get model configuration first for validation
     model_config = _get_model_config(model)
-    
+
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
     max_output_tokens = kwargs.get("max_output_tokens")
     enable_logprobs = kwargs["enable_logprobs"]
     top_logprobs = kwargs["top_logprobs"]
-    
+
     # Validate temperature parameter
     if not model_config.get("supports_temperature", True) and temperature != 1.0:
-        raise ValueError(f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request.")
+        raise ValueError(
+            f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request."
+        )
 
     # Build messages
     messages = []
@@ -110,8 +127,7 @@ def _openai_generation_adapter(
     request_params[param_name] = max_output_tokens or default_tokens
 
     # Make API call
-    response = client.chat.completions.create(**request_params)
-
+    response = _get_client().chat.completions.create(**request_params)
 
     # Extract additional OpenAI metadata
     choice = response.choices[0]
@@ -167,16 +183,18 @@ def _openai_image_analysis_adapter(
     """OpenAI-specific image analysis function for the shared processor."""
     # Get model configuration first for validation
     model_config = _get_model_config(model)
-    
+
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
     max_output_tokens = kwargs.get("max_output_tokens")
     temperature = kwargs.get("temperature", 1.0)
-    
+
     # Validate temperature parameter
     if not model_config.get("supports_temperature", True) and temperature != 1.0:
-        raise ValueError(f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request.")
+        raise ValueError(
+            f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request."
+        )
 
     # Use standardized image processing
     from mcp_handley_lab.llm.common import resolve_images_for_multimodal_prompt
@@ -229,8 +247,7 @@ def _openai_image_analysis_adapter(
     request_params[param_name] = max_output_tokens or default_tokens
 
     # Make API call
-    response = client.chat.completions.create(**request_params)
-
+    response = _get_client().chat.completions.create(**request_params)
 
     return {
         "text": response.choices[0].message.content,
@@ -372,7 +389,7 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     if model == "dall-e-3":
         params["quality"] = quality
 
-    response = client.images.generate(**params)
+    response = _get_client().images.generate(**params)
     image = response.data[0]
 
     # Download the image
@@ -480,7 +497,7 @@ def get_embeddings(
         params["dimensions"] = dimensions
 
     # Direct, fail-fast API call
-    response = client.embeddings.create(**params)
+    response = _get_client().embeddings.create(**params)
 
     # Direct access - trust the response structure
     return [EmbeddingResult(embedding=item.embedding) for item in response.data]
@@ -623,7 +640,7 @@ def search_documents(
 def list_models() -> ModelListing:
     """List available OpenAI models with detailed information."""
     # Get models from API for availability checking
-    api_models = client.models.list()
+    api_models = _get_client().models.list()
     api_model_ids = {m.id for m in api_models.data}
 
     # Use structured model listing
@@ -634,12 +651,9 @@ def list_models() -> ModelListing:
     description="Checks OpenAI Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
 def server_info() -> ServerInfo:
-    """Get server status and OpenAI configuration."""
-    # Test API key by listing models
-    models = client.models.list()
-    available_models = [
-        m.id for m in models.data if m.id.startswith(("gpt", "dall-e", "text-", "o1"))
-    ]
+    """Get server status and OpenAI configuration without making a network call."""
+    # Get model names from the local YAML config instead of the API
+    available_models = list(MODEL_CONFIGS.keys())
 
     # Add embedding capabilities to the server info
     info = build_server_info(
@@ -660,3 +674,14 @@ def server_info() -> ServerInfo:
     info.capabilities.extend(embedding_capabilities)
 
     return info
+
+
+@mcp.tool(description="Tests the connection to the OpenAI API by listing models.")
+def test_connection() -> str:
+    """Tests the connection to the OpenAI API."""
+    try:
+        models = _get_client().models.list()
+        model_count = len(models.data)
+        return f"✅ Connection successful. Found {model_count} models."
+    except Exception as e:
+        return f"❌ Connection failed: {e}"

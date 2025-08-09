@@ -4,9 +4,10 @@ import base64
 import io
 import json
 import os
+import threading
 import time
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 import numpy as np
 from google import genai as google_genai
@@ -67,8 +68,22 @@ EmbeddingTaskType = Literal[
     "CLUSTERING",
 ]
 
-# Configure Gemini client - fail fast if API key is invalid/missing
-client = google_genai.Client(api_key=settings.gemini_api_key)
+# Lazy initialization of Gemini client
+_client: Optional[google_genai.Client] = None
+_client_lock = threading.Lock()
+
+
+def _get_client() -> google_genai.Client:
+    """Get or create the global Gemini client with thread safety."""
+    global _client
+    with _client_lock:
+        if _client is None:
+            try:
+                _client = google_genai.Client(api_key=settings.gemini_api_key)
+            except Exception as e:
+                raise RuntimeError(f"Failed to initialize Gemini client: {e}") from e
+    return _client
+
 
 # Generate session ID once at module load time
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
@@ -120,7 +135,7 @@ def _resolve_files(
         if file_size > GEMINI_INLINE_FILE_LIMIT_BYTES:
             # Large file - use Files API
             used_files_api = True
-            uploaded_file = client.files.upload(
+            uploaded_file = _get_client().files.upload(
                 file=str(file_path),
                 mime_type=get_gemini_safe_mime_type(file_path),
             )
@@ -223,18 +238,18 @@ def _gemini_generation_adapter(
         contents = gemini_history + [
             {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
         ]
-        response = client.models.generate_content(
+        response = _get_client().models.generate_content(
             model=model, contents=contents, config=config
         )
     else:
         # New conversation
         if file_parts:
             content_parts = [Part(text=prompt)] + file_parts
-            response = client.models.generate_content(
+            response = _get_client().models.generate_content(
                 model=model, contents=content_parts, config=config
             )
         else:
-            response = client.models.generate_content(
+            response = _get_client().models.generate_content(
                 model=model, contents=prompt, config=config
             )
 
@@ -327,7 +342,7 @@ def _gemini_image_analysis_adapter(
     config = GenerateContentConfig(**config_params)
 
     # Generate response - image analysis starts fresh conversation
-    response = client.models.generate_content(
+    response = _get_client().models.generate_content(
         model=model, contents=content, config=config
     )
 
@@ -460,7 +475,7 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     aspect_ratio = kwargs.get("aspect_ratio", "1:1")
     config = GenerateImagesConfig(number_of_images=1, aspect_ratio=aspect_ratio)
 
-    response = client.models.generate_images(
+    response = _get_client().models.generate_images(
         model=actual_model,
         prompt=prompt,
         config=config,
@@ -474,7 +489,7 @@ def _gemini_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     image = generated_image.image
 
     # Get the prompt token count. No fallback. If this fails, the request fails.
-    count_response = client.models.count_tokens(
+    count_response = _get_client().models.count_tokens(
         model="gemini-1.5-flash-latest", contents=prompt
     )
     input_tokens = count_response.total_tokens
@@ -571,7 +586,7 @@ def get_embeddings(
 
     config = EmbedContentConfig(**config_params)
 
-    response = client.models.embed_content(
+    response = _get_client().models.embed_content(
         model=model, contents=contents, config=config
     )
 
@@ -731,7 +746,7 @@ def list_models() -> ModelListing:
     """List available Gemini models with detailed information."""
 
     # Get models from API
-    models_response = client.models.list()
+    models_response = _get_client().models.list()
     api_model_names = {model.name.split("/")[-1] for model in models_response}
 
     # Use structured model listing
@@ -742,15 +757,10 @@ def list_models() -> ModelListing:
     description="Checks Gemini Tool server status and API connectivity. Returns version info, model availability, and a list of available functions."
 )
 def server_info() -> ServerInfo:
-    """Get server status and Gemini configuration."""
+    """Get server status and Gemini configuration without making a network call."""
 
-    # Test API by listing models
-    models_response = client.models.list()
-    available_models = []
-    for model in models_response:
-        # Filter for models that can be used with the generateContent and embedContent methods
-        if "gemini" in model.name or "embedding" in model.name:
-            available_models.append(model.name.split("/")[-1])
+    # Get model names from the local YAML config instead of the API
+    available_models = list(MODEL_CONFIGS.keys())
 
     # Add our new functions to the capabilities list
     info = build_server_info(
@@ -771,3 +781,18 @@ def server_info() -> ServerInfo:
     info.capabilities.extend(embedding_capabilities)
 
     return info
+
+
+@mcp.tool(description="Tests the connection to the Gemini API by listing models.")
+def test_connection() -> str:
+    """Tests the connection to the Gemini API."""
+    try:
+        models_response = _get_client().models.list()
+        model_count = sum(
+            1
+            for model in models_response
+            if "gemini" in model.name or "embedding" in model.name
+        )
+        return f"✅ Connection successful. Found {model_count} relevant models."
+    except Exception as e:
+        return f"❌ Connection failed: {e}"

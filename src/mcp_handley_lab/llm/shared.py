@@ -19,7 +19,7 @@ from mcp_handley_lab.shared.models import (
 
 
 def _handle_memory_setup(
-    agent_name: str, system_prompt: str | None, mcp_instance
+    agent_name: str, system_prompt: str | None, mcp_instance, provider: str
 ) -> tuple[bool, str, list, str | None]:
     """Set up memory for the LLM request."""
     use_memory = should_use_memory(agent_name)
@@ -29,7 +29,7 @@ def _handle_memory_setup(
 
     if use_memory:
         if agent_name == "session":
-            actual_agent_name = get_session_id(mcp_instance)
+            actual_agent_name = get_session_id(mcp_instance, provider)
 
         agent = memory_manager.get_agent(actual_agent_name)
         if not agent:
@@ -113,7 +113,7 @@ def process_llm_request(
 
     # Set up memory and get conversation context
     use_memory, actual_agent_name, history, system_instruction = _handle_memory_setup(
-        agent_name, system_prompt, mcp_instance
+        agent_name, system_prompt, mcp_instance, provider
     )
 
     # Enhance prompt for image analysis
@@ -225,7 +225,7 @@ def process_image_generation(
         input_tokens,
         output_tokens,
         cost,
-        lambda: get_session_id(mcp_instance),
+        lambda: get_session_id(mcp_instance, provider),
     )
 
     file_size = len(image_bytes)

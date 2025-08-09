@@ -60,11 +60,12 @@ TEXT_BASED_APPLICATION_TYPES = {
 }
 
 
-def get_session_id(mcp_instance) -> str:
-    """Get persistent session ID for this MCP server process."""
+def get_session_id(mcp_instance, provider: str = "default") -> str:
+    """Get persistent session ID for this MCP server process with provider isolation."""
     context = mcp_instance.get_context()
     client_id = getattr(context, "client_id", None)
-    return f"_session_{client_id}" if client_id else f"_session_{os.getpid()}"
+    base_id = client_id if client_id else os.getpid()
+    return f"_session_{provider}_{base_id}"
 
 
 def determine_mime_type(file_path: Path) -> str:

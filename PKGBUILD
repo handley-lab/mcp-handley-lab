@@ -44,6 +44,7 @@ makedepends=(
     'python-installer'
     'python-setuptools'
     'python-wheel'
+    'python-pip'
 )
 checkdepends=(
     'python-pytest>=7.0.0'
@@ -69,18 +70,20 @@ build() {
 check() {
     cd "$startdir"
     
-    # Run tests directly from source (skip integration tests that require specific environment)
+    # Run unit tests only (exclude integration directory with VCR cassettes)
     # Use PYTHONPATH to ensure we test the source code, not any installed package
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
         --cov=src/mcp_handley_lab \
         --cov-report=term-missing \
-        -v \
-        -k "not integration"
+        --tb=no \
+        --no-header \
+        -q \
+        --ignore=tests/integration/
 }
 
 package() {
     cd "$startdir"
-    python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
+    /usr/bin/python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
     
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"

@@ -1079,15 +1079,21 @@ def search_events(
     description="Checks the status of the Google Calendar server and API connectivity. Returns version info and available functions."
 )
 def server_info() -> ServerInfo:
-    """Get server status and Google Calendar API connection info."""
-    service = _get_calendar_service()
+    """Get server status and Google Calendar API connection info without making a network call."""
+    # This version does not make a network call. It checks for credentials.
+    token_file = settings.google_token_path
+    credentials_file = settings.google_credentials_path
 
-    calendar_list = service.calendarList().list(maxResults=1).execute()
+    status = (
+        "active"
+        if token_file.exists() or credentials_file.exists()
+        else "inactive (no credentials)"
+    )
 
     return ServerInfo(
         name="Google Calendar Tool",
         version="1.9.4",
-        status="active",
+        status=status,
         capabilities=[
             "search_events",
             "get_event",
@@ -1100,7 +1106,22 @@ def server_info() -> ServerInfo:
             "server_info",
         ],
         dependencies={
-            "google_calendar_api": "active",
-            "calendars_accessible": str(len(calendar_list.get("items", []))),
+            "google_api_credentials": "configured"
+            if status == "active"
+            else "not found",
         },
     )
+
+
+@mcp.tool(
+    description="Tests the connection to the Google Calendar API by listing calendars."
+)
+def test_connection() -> str:
+    """Tests the connection to the Google Calendar API."""
+    try:
+        service = _get_calendar_service()
+        calendar_list = service.calendarList().list(maxResults=1).execute()
+        calendar_count = len(calendar_list.get("items", []))
+        return f"✅ Connection successful. Can access {calendar_count}+ calendars."
+    except Exception as e:
+        return f"❌ Connection failed: {e}"

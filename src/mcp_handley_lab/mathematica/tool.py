@@ -830,12 +830,7 @@ def server_info() -> ServerInfo:
         )
 
 
-# Initialize session when module loads (like the working simple_server.py)
-try:
-    _get_session()
-    logger.info("✅ Mathematica MCP tool initialized successfully")
-except Exception as e:
-    logger.warning(f"Could not initialize Mathematica session on startup: {e}")
+# Session will be initialized lazily on first use
 
 
 if __name__ == "__main__":

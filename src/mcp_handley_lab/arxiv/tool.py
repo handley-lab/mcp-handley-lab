@@ -2,6 +2,7 @@
 
 import gzip
 import os
+import sys
 import tarfile
 import tempfile
 from datetime import datetime
@@ -73,6 +74,29 @@ class ArxivPaper(BaseModel):
 
 
 mcp = FastMCP("ArXiv Tool")
+
+
+def _safe_tar_extract(tar: tarfile.TarFile, member: tarfile.TarInfo | None = None, path: str = ".") -> None:
+    """Safely extract tar files with Python version compatibility."""
+    if sys.version_info >= (3, 12):
+        # Use secure filter for Python 3.12+
+        if member:
+            tar.extract(member, path=path, filter="data")
+        else:
+            tar.extractall(path=path, filter="data")
+    else:
+        # For older Python versions, extract without filter but validate paths
+        if member:
+            # Validate single member path
+            if member.name.startswith('/') or '..' in member.name:
+                raise ValueError(f"Unsafe tar member path: {member.name}")
+            tar.extract(member, path=path)
+        else:
+            # Validate all member paths
+            for m in tar.getmembers():
+                if m.name.startswith('/') or '..' in m.name:
+                    raise ValueError(f"Unsafe tar member path: {m.name}")
+            tar.extractall(path=path)
 
 
 def _get_cached_source(arxiv_id: str) -> bytes | None:
@@ -193,12 +217,12 @@ def _handle_tar_archive_structured(
                     if member.isfile() and any(
                         member.name.endswith(ext) for ext in [".tex", ".bib", ".bbl"]
                     ):
-                        tar.extract(member, path=output_path, filter="data")
+                        _safe_tar_extract(tar, member, path=output_path)
                         extracted_files.append(member.name)
                         total_size += member.size
             else:
                 # Extract all files (src format)
-                tar.extractall(path=output_path, filter="data")
+                _safe_tar_extract(tar, path=output_path)
                 for member in tar.getmembers():
                     if member.isfile():
                         extracted_files.append(member.name)
@@ -212,6 +236,25 @@ def _handle_tar_archive_structured(
                 size_bytes=total_size,
                 files=extracted_files,
             )
+
+
+def _build_download_result(
+    arxiv_id: str,
+    format: str,
+    output_path: str,
+    size_bytes: int,
+    message: str,
+    files: list[str],
+) -> DownloadResult:
+    """Build a DownloadResult object with common fields."""
+    return DownloadResult(
+        message=message,
+        arxiv_id=arxiv_id,
+        format=format,
+        output_path=output_path,
+        size_bytes=size_bytes,
+        files=files,
+    )
 
 
 @mcp.tool(
@@ -246,25 +289,24 @@ def download(
 
         size_bytes = len(response.content)
         if output_path == "-":
-            # Return file info for stdout
-            return DownloadResult(
-                message=f"ArXiv PDF for {arxiv_id}: {size_bytes / (1024 * 1024):.2f} MB",
-                arxiv_id=arxiv_id,
-                format=format,
-                output_path=output_path,
-                size_bytes=size_bytes,
-                files=[f"{arxiv_id}.pdf"],
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                f"ArXiv PDF for {arxiv_id}: {size_bytes / (1024 * 1024):.2f} MB",
+                [f"{arxiv_id}.pdf"],
             )
         else:
             with open(output_path, "wb") as f:
                 f.write(response.content)
-            return DownloadResult(
-                message=f"ArXiv PDF saved to: {output_path}",
-                arxiv_id=arxiv_id,
-                format=format,
-                output_path=output_path,
-                size_bytes=size_bytes,
-                files=[output_path],
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                f"ArXiv PDF saved to: {output_path}",
+                [output_path],
             )
 
     else:
@@ -326,24 +368,21 @@ def _parse_arxiv_entry(entry: ElementTree.Element) -> dict[str, Any]:
 
 
 def _apply_field_filtering(
-    paper_dict: dict[str, Any],
-    include_fields: list[str] | None,
+    paper_dict: dict[str, Any], include_fields: list[str]
 ) -> dict[str, Any]:
     """
     Apply field filtering to a paper dictionary.
 
-    If include_fields is None, returns all fields.
+    If include_fields is empty, returns all fields.
     If include_fields is provided, returns only those fields (plus 'id' which is always included).
     """
-    if include_fields is None:
-        # Return all fields
+    if not include_fields:
         return paper_dict
 
     # Use specified fields, ensuring 'id' is always included
     included_fields = set(include_fields)
     included_fields.add("id")
 
-    # Filter the paper dictionary
     return {k: v for k, v in paper_dict.items() if k in included_fields}
 
 
@@ -381,10 +420,9 @@ def search(
             "pdf_url",
             "abs_url",
         ]
-    ]
-    | None = Field(
-        None,
-        description="Specific fields to include in results. If not provided, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
+    ] = Field(
+        default_factory=list,
+        description="Specific fields to include in results. If empty, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
     ),
     max_authors: int | None = Field(
         5,

@@ -405,7 +405,7 @@ display_categories:
     description: "Previous generation models for established workflows"
 
 # Default model
-default_model: "gpt-5-mini"
+default_model: "gpt-5"
 
 # Usage notes
 usage_notes:

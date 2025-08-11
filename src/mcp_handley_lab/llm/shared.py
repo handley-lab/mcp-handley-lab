@@ -18,6 +18,80 @@ from mcp_handley_lab.shared.models import (
 )
 
 
+def _handle_memory_setup(
+    agent_name: str, system_prompt: str | None, mcp_instance
+) -> tuple[bool, str, list, str | None]:
+    """Set up memory for the LLM request."""
+    use_memory = should_use_memory(agent_name)
+    actual_agent_name = agent_name
+    history = []
+    system_instruction = None
+
+    if use_memory:
+        if agent_name == "session":
+            actual_agent_name = get_session_id(mcp_instance)
+
+        agent = memory_manager.get_agent(actual_agent_name)
+        if not agent:
+            agent = memory_manager.create_agent(actual_agent_name, system_prompt)
+        elif system_prompt is not None:
+            agent.system_prompt = system_prompt
+            memory_manager._save_agent(agent)
+
+        history = agent.get_history()
+        system_instruction = agent.system_prompt
+
+    return use_memory, actual_agent_name, history, system_instruction
+
+
+def _extract_response_metadata(response_data: dict, model: str, provider: str) -> dict:
+    """Extract metadata from provider response."""
+    input_tokens = response_data["input_tokens"]
+    output_tokens = response_data["output_tokens"]
+
+    return {
+        "response_text": response_data["text"],
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cost": calculate_cost(model, input_tokens, output_tokens, provider),
+        "finish_reason": response_data.get("finish_reason", ""),
+        "avg_logprobs": response_data.get("avg_logprobs", 0.0),
+        "model_version": response_data.get("model_version", ""),
+        "generation_time_ms": response_data.get("generation_time_ms", 0),
+        "response_id": response_data.get("response_id", ""),
+        "system_fingerprint": response_data.get("system_fingerprint", ""),
+        "service_tier": response_data.get("service_tier", ""),
+        "completion_tokens_details": response_data.get("completion_tokens_details", {}),
+        "prompt_tokens_details": response_data.get("prompt_tokens_details", {}),
+        "stop_sequence": response_data.get("stop_sequence", ""),
+        "cache_creation_input_tokens": response_data.get(
+            "cache_creation_input_tokens", 0
+        ),
+        "cache_read_input_tokens": response_data.get("cache_read_input_tokens", 0),
+        "grounding_metadata_dict": response_data.get("grounding_metadata"),
+    }
+
+
+def _enhance_prompt_for_images(
+    prompt: str, user_prompt: str, kwargs: dict
+) -> tuple[str, str]:
+    """Enhance prompt for image analysis."""
+    if "image_data" in kwargs or "images" in kwargs:
+        focus = kwargs.get("focus", "general")
+        if focus != "general":
+            prompt = f"Focus on {focus} aspects. {prompt}"
+
+        image_count = 0
+        if kwargs.get("image_data"):
+            image_count += 1
+        if kwargs.get("images"):
+            image_count += len(kwargs.get("images", []))
+        if image_count > 0:
+            user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
+
+    return prompt, user_prompt
+
+
 def process_llm_request(
     prompt: str,
     output_file: str,
@@ -29,55 +103,21 @@ def process_llm_request(
     **kwargs,
 ) -> LLMResult:
     """Generic handler for LLM requests that abstracts common patterns."""
-    # Input validation
     if not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
     if not output_file.strip():
         raise ValueError("Output file is required and cannot be empty")
-    # Extract system_prompt parameter
+
     system_prompt = kwargs.pop("system_prompt", None)
-
-    # Store original prompt for memory
     user_prompt = prompt
-    history = []
-    system_instruction = None
-    actual_agent_name = agent_name
 
-    # Handle agent memory with string-based pattern
-    use_memory = should_use_memory(agent_name)
-    if use_memory:
-        if agent_name == "session":
-            actual_agent_name = get_session_id(mcp_instance)
-        else:
-            actual_agent_name = agent_name
+    # Set up memory and get conversation context
+    use_memory, actual_agent_name, history, system_instruction = _handle_memory_setup(
+        agent_name, system_prompt, mcp_instance
+    )
 
-        # Get or create agent
-        agent = memory_manager.get_agent(actual_agent_name)
-        if not agent:
-            # Create agent with provided system_prompt
-            agent = memory_manager.create_agent(actual_agent_name, system_prompt)
-        elif system_prompt is not None:
-            # Update agent's system_prompt if provided
-            agent.system_prompt = system_prompt
-            memory_manager._save_agent(agent)
-
-        # Get conversation history and current system_prompt
-        history = agent.get_history()
-        system_instruction = agent.system_prompt
-
-    # Handle image analysis specific prompt modification
-    if "image_data" in kwargs or "images" in kwargs:
-        focus = kwargs.get("focus", "general")
-        if focus != "general":
-            prompt = f"Focus on {focus} aspects. {prompt}"
-        # Add image description for memory
-        image_count = 0
-        if kwargs.get("image_data"):
-            image_count += 1
-        if kwargs.get("images"):
-            image_count += len(kwargs.get("images", []))
-        if image_count > 0:
-            user_prompt = f"{user_prompt} [Image analysis: {image_count} image(s)]"
+    # Enhance prompt for image analysis
+    prompt, user_prompt = _enhance_prompt_for_images(prompt, user_prompt, kwargs)
 
     # Call provider-specific generation function
     response_data = generation_func(
@@ -88,85 +128,66 @@ def process_llm_request(
         **kwargs,
     )
 
-    # Extract common response data
-    response_text = response_data["text"]
-    input_tokens = response_data["input_tokens"]
-    output_tokens = response_data["output_tokens"]
-    grounding_metadata_dict = response_data.get("grounding_metadata")
-    finish_reason = response_data.get("finish_reason", "")
-    avg_logprobs = response_data.get("avg_logprobs", 0.0)
-    model_version = response_data.get("model_version", "")
-    generation_time_ms = response_data.get("generation_time_ms", 0)
-    response_id = response_data.get("response_id", "")
-    # OpenAI-specific fields
-    system_fingerprint = response_data.get("system_fingerprint", "")
-    service_tier = response_data.get("service_tier", "")
-    completion_tokens_details = response_data.get("completion_tokens_details", {})
-    prompt_tokens_details = response_data.get("prompt_tokens_details", {})
-    # Claude-specific fields
-    stop_sequence = response_data.get("stop_sequence", "")
-    cache_creation_input_tokens = response_data.get("cache_creation_input_tokens", 0)
-    cache_read_input_tokens = response_data.get("cache_read_input_tokens", 0)
-    cost = calculate_cost(model, input_tokens, output_tokens, provider)
+    # Extract response metadata
+    metadata = _extract_response_metadata(response_data, model, provider)
 
     # Handle memory
     if use_memory:
         handle_agent_memory(
             actual_agent_name,
             user_prompt,
-            response_text,
-            input_tokens,
-            output_tokens,
-            cost,
+            metadata["response_text"],
+            metadata["input_tokens"],
+            metadata["output_tokens"],
+            metadata["cost"],
             lambda: actual_agent_name,
         )
 
     # Handle output
     if output_file != "-":
         output_path = Path(output_file)
-        output_path.write_text(response_text)
+        output_path.write_text(metadata["response_text"])
 
     from mcp_handley_lab.shared.models import UsageStats
 
     usage_stats = UsageStats(
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cost=cost,
+        input_tokens=metadata["input_tokens"],
+        output_tokens=metadata["output_tokens"],
+        cost=metadata["cost"],
         model_used=model,
     )
 
-    # Convert grounding metadata dict to GroundingMetadata object
     grounding_metadata = None
-    if grounding_metadata_dict:
-        grounding_metadata = GroundingMetadata(**grounding_metadata_dict)
+    if metadata["grounding_metadata_dict"]:
+        grounding_metadata = GroundingMetadata(**metadata["grounding_metadata_dict"])
 
     return LLMResult(
-        content=response_text,
+        content=metadata["response_text"],
         usage=usage_stats,
         agent_name=actual_agent_name if use_memory else "",
         grounding_metadata=grounding_metadata,
-        finish_reason=finish_reason,
-        avg_logprobs=avg_logprobs,
-        model_version=model_version,
-        generation_time_ms=generation_time_ms,
-        response_id=response_id,
-        system_fingerprint=system_fingerprint,
-        service_tier=service_tier,
-        completion_tokens_details=completion_tokens_details,
-        prompt_tokens_details=prompt_tokens_details,
-        stop_sequence=stop_sequence,
-        cache_creation_input_tokens=cache_creation_input_tokens,
-        cache_read_input_tokens=cache_read_input_tokens,
+        finish_reason=metadata["finish_reason"],
+        avg_logprobs=metadata["avg_logprobs"],
+        model_version=metadata["model_version"],
+        generation_time_ms=metadata["generation_time_ms"],
+        response_id=metadata["response_id"],
+        system_fingerprint=metadata["system_fingerprint"],
+        service_tier=metadata["service_tier"],
+        completion_tokens_details=metadata["completion_tokens_details"],
+        prompt_tokens_details=metadata["prompt_tokens_details"],
+        stop_sequence=metadata["stop_sequence"],
+        cache_creation_input_tokens=metadata["cache_creation_input_tokens"],
+        cache_read_input_tokens=metadata["cache_read_input_tokens"],
     )
 
 
 def should_use_memory(agent_name: str | bool | None) -> bool:
     """Determines if agent memory should be used based on the agent_name parameter."""
-    if isinstance(agent_name, bool):
-        return agent_name
-    if agent_name is None:
-        return True
-    return agent_name != "" and agent_name.lower() != "false"
+    return (
+        agent_name
+        if isinstance(agent_name, bool)
+        else agent_name is None or (agent_name and agent_name.lower() != "false")
+    )
 
 
 def process_image_generation(

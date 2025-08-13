@@ -13,7 +13,7 @@ repos:
 
   # Python formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: main
     hooks:
       - id: ruff
         args: [--fix]

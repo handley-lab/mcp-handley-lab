@@ -1,4 +1,5 @@
 """Integration tests for py2nb conversion tool."""
+
 import contextlib
 import json
 import subprocess
@@ -6,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
 from mcp_handley_lab.py2nb.tool import (
     mcp,
 )

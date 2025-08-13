@@ -48,7 +48,7 @@ htmlcov/
 # But allow essential project files
 !README.md
 !CONTRIBUTING.md
-!SECURITY.md  
+!SECURITY.md
 !CLAUDE.md
 
 # MCP Handley Lab local data

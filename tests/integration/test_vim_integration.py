@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
 from mcp_handley_lab.vim.tool import server_info
 
 
@@ -64,7 +65,7 @@ class TestVimIntegration:
             ]
 
             # Execute vim non-interactively - should complete quickly
-            result = subprocess.run(
+            subprocess.run(
                 command,
                 check=True,
                 capture_output=True,
@@ -125,7 +126,7 @@ class TestVimIntegration:
                 temp_path,
             ]
 
-            result = subprocess.run(
+            subprocess.run(
                 command,
                 check=True,
                 capture_output=True,
@@ -184,20 +185,13 @@ def hello():
                 "/definitely/nonexistent/path/file.txt",
             ]
 
-            # Vim may hang waiting for user input on file creation errors
-            # So we expect either a timeout or success (if vim handles it gracefully)
-            try:
-                result = subprocess.run(
-                    command,
-                    capture_output=True,
-                    stdin=subprocess.DEVNULL,
-                    timeout=2,  # Short timeout since this often hangs
-                )
-                # If it completes, that's fine too
-            except subprocess.TimeoutExpired:
-                # Expected behavior - vim hangs on file creation errors
-                # This documents a limitation of automated vim testing
-                pass
+            # Vim may hang on file creation errors - use timeout
+            subprocess.run(
+                command,
+                capture_output=True,
+                stdin=subprocess.DEVNULL,
+                timeout=2,  # Short timeout since this often hangs
+            )
 
         except FileNotFoundError:
             pytest.skip("vim command not installed")

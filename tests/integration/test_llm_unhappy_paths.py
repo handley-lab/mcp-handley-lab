@@ -3,10 +3,12 @@
 Tests error scenarios across OpenAI, Gemini, and Claude providers including
 rate limiting, large inputs, network errors, content policy violations.
 """
+
 from pathlib import Path
 
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
+
 from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
 from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
 from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
@@ -64,7 +66,7 @@ class TestLLMRateLimitingErrors:
                 _, response = await mcp_instance.call_tool(
                     tool_name,
                     {
-                        "prompt": f"Count to {i+1}",
+                        "prompt": f"Count to {i + 1}",
                         "output_file": output_file,
                         "model": model,
                         "agent_name": "",
@@ -80,9 +82,9 @@ class TestLLMRateLimitingErrors:
 
         # At least some requests should succeed
         successful_requests = [r for r in requests if "error" not in r]
-        assert (
-            len(successful_requests) > 0
-        ), "All requests failed - check API configuration"
+        assert len(successful_requests) > 0, (
+            "All requests failed - check API configuration"
+        )
 
 
 @pytest.mark.integration

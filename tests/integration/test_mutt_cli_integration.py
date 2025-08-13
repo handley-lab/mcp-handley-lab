@@ -3,9 +3,11 @@
 Tests real mutt CLI commands without filesystem dependencies.
 Focuses on command execution, process management, and CLI interface.
 """
+
 import shutil
 
 import pytest
+
 from mcp_handley_lab.email.mutt.tool import mcp as mutt_mcp
 from mcp_handley_lab.email.mutt.tool import run_command
 
@@ -216,7 +218,7 @@ class TestMuttCLIErrorScenarios:
         # Temporarily hide mutt from PATH
         import os
 
-        original_path = os.environ.get("PATH", "")
+        os.environ.get("PATH", "")
 
         def mock_which(cmd):
             return None  # Simulate mutt not being found

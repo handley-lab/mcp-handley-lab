@@ -1,8 +1,10 @@
 """Integration tests for Gemini MIME type handling with real API calls."""
+
 import tempfile
 from pathlib import Path
 
 import pytest
+
 from mcp_handley_lab.llm.gemini.tool import mcp
 
 # File type test parameters

@@ -13,6 +13,10 @@ repos:
       - id: end-of-file-fixer
       - id: detect-private-key
       - id: debug-statements
+      - id: check-ast
+      - id: check-added-large-files
+      - id: mixed-line-ending
+      - id: trailing-whitespace
 
   # Python formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit

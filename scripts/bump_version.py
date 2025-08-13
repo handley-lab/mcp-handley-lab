@@ -11,6 +11,7 @@ Usage:
     python scripts/bump_version.py rc       # 0.0.0b5 -> 0.0.0rc1
     python scripts/bump_version.py release  # 0.0.0b5 -> 0.0.0
 """
+
 import argparse
 import re
 import sys

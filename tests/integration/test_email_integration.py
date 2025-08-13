@@ -1,4 +1,5 @@
 """Integration tests for the email MCP tool with real offlineimap setup."""
+
 import os
 import subprocess
 import tempfile
@@ -101,9 +102,9 @@ class TestEmailIntegration:
         offlineimaprc_path = fixtures_dir / "offlineimaprc"
 
         # Verify test config exists
-        assert (
-            offlineimaprc_path.exists()
-        ), f"Test config not found: {offlineimaprc_path}"
+        assert offlineimaprc_path.exists(), (
+            f"Test config not found: {offlineimaprc_path}"
+        )
 
         # Check that test mail directory gets created (relative to config dir)
         project_root = Path(__file__).parent.parent.parent
@@ -164,9 +165,9 @@ class TestEmailIntegration:
 
         # Verify configs exist
         assert msmtprc_path.exists(), f"msmtp config not found: {msmtprc_path}"
-        assert (
-            offlineimaprc_path.exists()
-        ), f"offlineimap config not found: {offlineimaprc_path}"
+        assert offlineimaprc_path.exists(), (
+            f"offlineimap config not found: {offlineimaprc_path}"
+        )
 
         # Create unique test email content
         test_id = str(uuid.uuid4())[:8]
@@ -325,9 +326,9 @@ Subject: {test_subject}
 
         # Verify test configs exist
         assert msmtprc_path.exists(), f"msmtp config not found: {msmtprc_path}"
-        assert (
-            offlineimaprc_path.exists()
-        ), f"offlineimap config not found: {offlineimaprc_path}"
+        assert offlineimaprc_path.exists(), (
+            f"offlineimap config not found: {offlineimaprc_path}"
+        )
 
         # Create unique test email
         test_id = str(uuid.uuid4())[:8]

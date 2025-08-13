@@ -3,10 +3,12 @@
 Tests address book file manipulation without CLI interaction.
 Focuses on pure file I/O logic, parsing, and data transformation.
 """
+
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
+
 from mcp_handley_lab.email.mutt_aliases.tool import (
     _find_contact_fuzzy,
     _get_all_contacts,
@@ -88,13 +90,15 @@ invalid line that should be ignored
 alias another_simple another@example.com
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    contacts = _get_all_contacts()
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                contacts = _get_all_contacts()
 
         # Should parse only valid alias lines
         assert len(contacts) == 4
@@ -116,13 +120,15 @@ alias another_simple another@example.com
 
     def test_get_all_contacts_empty_file(self):
         """Test reading empty address book file."""
-        with patch("builtins.open", mock_open(read_data="")):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data="")),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    contacts = _get_all_contacts()
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                contacts = _get_all_contacts()
 
         assert contacts == []
 
@@ -134,13 +140,15 @@ alias another_simple another@example.com
 # Yet another comment
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    contacts = _get_all_contacts()
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                contacts = _get_all_contacts()
 
         assert contacts == []
 
@@ -165,13 +173,15 @@ class TestMuttFuzzySearch:
 alias jane_smith "Jane Smith" <jane@example.com>
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("john_doe")
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("john_doe")
 
         assert len(matches) == 1
         assert matches[0].alias == "john_doe"
@@ -183,13 +193,15 @@ alias john_smith "John Smith" <john.smith@example.com>
 alias jane_doe "Jane Doe" <jane@example.com>
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("john")
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("john")
 
         # Should find both john_doe and john_smith
         assert len(matches) == 2
@@ -204,13 +216,15 @@ alias jsmith "John Smith" <john.smith@example.com>
 alias manager "Jane Doe" <jane@example.com>
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("doe")
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("doe")
 
         # Should find both John Doe and Jane Doe
         assert len(matches) == 2
@@ -225,13 +239,15 @@ alias personal_john "John Doe" <john@personal.com>
 alias jane "Jane Smith" <jane@company.com>
 """
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("company")
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("company")
 
         # Should find both company email addresses
         assert len(matches) == 2
@@ -243,29 +259,33 @@ alias jane "Jane Smith" <jane@company.com>
         """Test case-insensitive fuzzy matching."""
         file_content = 'alias john_doe "John Doe" <john@example.com>'
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    # Test different case variations
-                    for query in ["JOHN", "John", "john", "DOE", "Doe", "doe"]:
-                        matches = _find_contact_fuzzy(query)
-                        assert len(matches) == 1
-                        assert matches[0].alias == "john_doe"
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                # Test different case variations
+                for query in ["JOHN", "John", "john", "DOE", "Doe", "doe"]:
+                    matches = _find_contact_fuzzy(query)
+                    assert len(matches) == 1
+                    assert matches[0].alias == "john_doe"
 
     def test_find_contact_fuzzy_no_matches(self):
         """Test fuzzy search with no matches."""
         file_content = 'alias john_doe "John Doe" <john@example.com>'
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("nonexistent")
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("nonexistent")
 
         assert matches == []
 
@@ -276,13 +296,15 @@ alias jane "Jane Smith" <jane@company.com>
             [f'alias test_{i} "Test User {i}" <test{i}@example.com>' for i in range(20)]
         )
 
-        with patch("builtins.open", mock_open(read_data=file_content)):
-            with patch(
+        with (
+            patch("builtins.open", mock_open(read_data=file_content)),
+            patch(
                 "mcp_handley_lab.email.mutt_aliases.tool.get_mutt_alias_file"
-            ) as mock_alias_file:
-                mock_alias_file.return_value = Path("/fake/path")
-                with patch.object(Path, "exists", return_value=True):
-                    matches = _find_contact_fuzzy("test", max_results=5)
+            ) as mock_alias_file,
+        ):
+            mock_alias_file.return_value = Path("/fake/path")
+            with patch.object(Path, "exists", return_value=True):
+                matches = _find_contact_fuzzy("test", max_results=5)
 
         assert len(matches) == 5
 

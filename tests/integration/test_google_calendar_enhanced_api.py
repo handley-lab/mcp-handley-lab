@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 
 import pytest
+
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
@@ -640,9 +641,9 @@ class TestEnhancedRealWorldWorkflows:
             _, updated_planning_response = await mcp.call_tool(
                 "get_event", {"event_id": planning_id, "calendar_id": "primary"}
             )
-            assert (
-                "error" not in updated_planning_response
-            ), updated_planning_response.get("error")
+            assert "error" not in updated_planning_response, (
+                updated_planning_response.get("error")
+            )
             updated_planning = updated_planning_response
 
             assert "moved to 10am" in updated_planning["description"]

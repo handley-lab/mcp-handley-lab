@@ -1,7 +1,9 @@
 """Demonstration of how event_creator fixture simplifies Google Calendar tests."""
+
 from datetime import datetime, timedelta
 
 import pytest
+
 from mcp_handley_lab.google_calendar.tool import mcp
 
 

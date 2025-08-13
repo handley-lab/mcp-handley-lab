@@ -1,9 +1,11 @@
 """Unit tests for LLM common utilities."""
+
 import base64
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+
 from mcp_handley_lab.llm.common import (
     determine_mime_type,
     get_gemini_safe_mime_type,

@@ -69,7 +69,7 @@ build() {
 
 check() {
     cd "$startdir"
-    
+
     # Run unit tests only (exclude integration directory with VCR cassettes)
     # Use PYTHONPATH to ensure we test the source code, not any installed package
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
@@ -84,7 +84,7 @@ check() {
 package() {
     cd "$startdir"
     /usr/bin/python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
-    
+
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"
 }

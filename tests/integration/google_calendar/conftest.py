@@ -1,4 +1,5 @@
 """Google Calendar test fixtures and utilities."""
+
 from collections.abc import AsyncGenerator, Callable
 from typing import Any
 
@@ -44,9 +45,9 @@ async def event_creator(
         full_params = {**default_params, **params}
 
         _, response = await mcp.call_tool("create_event", full_params)
-        assert (
-            "error" not in response
-        ), f"Failed to create event: {response.get('error')}"
+        assert "error" not in response, (
+            f"Failed to create event: {response.get('error')}"
+        )
 
         event_id = response.get("event_id")
         assert event_id, f"No event_id in response: {response}"

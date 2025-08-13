@@ -1,8 +1,10 @@
 """Unit tests for model_loader module."""
+
 from unittest.mock import mock_open, patch
 
 import pytest
 import yaml
+
 from mcp_handley_lab.llm.model_loader import (
     build_model_configs_dict,
     format_model_listing,

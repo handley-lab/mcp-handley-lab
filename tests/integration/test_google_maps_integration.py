@@ -1,9 +1,11 @@
 """Integration tests for Google Maps tool with VCR recording."""
+
 import os
 from pathlib import Path
 
 import pytest
 import vcr
+
 from mcp_handley_lab.google_maps.tool import mcp
 
 

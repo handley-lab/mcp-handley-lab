@@ -11,7 +11,7 @@ A toolkit that bridges AI assistants with command-line tools and services. Built
 
 ### System Dependencies (Optional)
 Some tools require additional system packages:
-- **code2prompt tool**: `cargo install code2prompt` 
+- **code2prompt tool**: `cargo install code2prompt`
 - **word tool**: `pandoc` for document conversion
 - **email tools**: `msmtp`, `mutt`, `notmuch` for email management
 
@@ -67,7 +67,7 @@ claude mcp add word --scope user mcp-word
 ### 🤖 **AI Integration** (`gemini`, `openai`, `claude`, `grok`)
 Connect with major AI providers
   - Persistent conversations with memory
-  - Image analysis and generation  
+  - Image analysis and generation
   - Claude, Gemini, OpenAI, and Grok support
   - _Claude example_: `> ask gemini to review the changes you just made`
 
@@ -182,7 +182,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 **Quick start for contributors:**
 1. Fork and clone the repository
 2. Create a feature branch
-3. Make your changes following existing patterns  
+3. Make your changes following existing patterns
 4. Run tests and linting: `pytest && ruff check .`
 5. Bump version: `python scripts/bump_version.py`
 6. Submit a pull request

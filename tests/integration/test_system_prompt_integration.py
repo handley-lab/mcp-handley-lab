@@ -1,15 +1,17 @@
 """Integration tests for system_prompt functionality across all LLM providers."""
+
 import os
 import tempfile
 from pathlib import Path
 
 import pytest
+from PIL import Image
+
 from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
 from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
 from mcp_handley_lab.llm.grok.tool import mcp as grok_mcp
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
-from PIL import Image
 
 # Skip all API-requiring tests if API keys not available
 gemini_available = bool(os.getenv("GEMINI_API_KEY"))

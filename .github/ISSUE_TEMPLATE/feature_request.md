@@ -11,13 +11,13 @@ assignees: ''
 <!-- Clear description of the proposed feature -->
 
 ## Use Case
-**Problem:** 
+**Problem:**
 <!-- What problem does this solve? -->
 
-**Workflow:** 
+**Workflow:**
 <!-- How would this fit into a user's workflow? -->
 
-**Target Tool:** 
+**Target Tool:**
 <!-- Which existing tool should this enhance, or is this a new tool? -->
 
 ## Proposed Implementation

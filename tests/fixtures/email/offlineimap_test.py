@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test helper functions for OfflineIMAP authentication."""
+
 import os
 
 

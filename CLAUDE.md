@@ -41,7 +41,7 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 python scripts/bump_version.py         # Auto-detect minimal bump (0.0.1b5 → 0.0.1b6, 0.0.1 → 0.0.2)
 python scripts/bump_version.py beta    # For development iterations (0.0.1 → 0.0.1b1, 0.0.1b5 → 0.0.1b6)
 python scripts/bump_version.py patch   # For bug fixes (0.0.0b5 → 0.0.1)
-python scripts/bump_version.py minor   # For new features (0.0.0b5 → 0.1.0)  
+python scripts/bump_version.py minor   # For new features (0.0.0b5 → 0.1.0)
 python scripts/bump_version.py major   # For breaking changes (0.0.0b5 → 1.0.0)
 
 # For release process:
@@ -176,7 +176,7 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 - **Status**: Production ready with comprehensive API integration and consolidated search interface
 
 ### LLM Memory Management ✓ **100% Test Coverage**
-- **Location**: 
+- **Location**:
   - Backend: `src/mcp_handley_lab/llm/memory.py`
   - Utilities: `src/mcp_handley_lab/llm/agent_utils.py`
 - **Purpose**: Core LLM module feature providing persistent, provider-agnostic conversational memory
@@ -267,12 +267,12 @@ Send these JSON-RPC messages in sequence:
 **Step 1: Initialize the server**
 ```json
 {
-  "jsonrpc": "2.0", 
-  "id": 1, 
-  "method": "initialize", 
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
   "params": {
-    "protocolVersion": "2024-11-05", 
-    "capabilities": {}, 
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
     "clientInfo": {"name": "test-client", "version": "1.0.0"}
   }
 }
@@ -291,14 +291,14 @@ Send these JSON-RPC messages in sequence:
 **Step 4: Call a tool**
 ```json
 {
-  "jsonrpc": "2.0", 
-  "id": 3, 
-  "method": "tools/call", 
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
   "params": {
-    "name": "ask", 
+    "name": "ask",
     "arguments": {
-      "prompt": "What is 2+2?", 
-      "output_file": "/tmp/result.txt", 
+      "prompt": "What is 2+2?",
+      "output_file": "/tmp/result.txt",
       "agent_name": false
     }
   }
@@ -360,7 +360,7 @@ echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "as
   "result": {
     "content": [
       {
-        "type": "text", 
+        "type": "text",
         "text": {
           "content": "The answer is 10.",
           "usage": {
@@ -405,7 +405,7 @@ source venv/bin/activate
 # Method 1: Automated test script
 python /tmp/test_jsonrpc.py
 
-# Method 2: Manual JSON-RPC commands  
+# Method 2: Manual JSON-RPC commands
 (
 echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}'
 echo '{"jsonrpc": "2.0", "method": "notifications/initialized"}'
@@ -421,25 +421,25 @@ import json
 
 def test_mcp_jsonrpc():
     process = subprocess.Popen(
-        ['mcp-gemini'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, 
+        ['mcp-gemini'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, text=True, bufsize=0)
-    
+
     try:
         # Initialize
         init_request = {
             "jsonrpc": "2.0", "id": 1, "method": "initialize",
-            "params": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, 
+            "params": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}},
                       "clientInfo": {"name": "test-client", "version": "1.0.0"}}
         }
         process.stdin.write(json.dumps(init_request) + '\n')
         process.stdin.flush()
         response = process.stdout.readline()
         print("Initialize:", response.strip())
-        
+
         # Send initialized notification
         process.stdin.write('{"jsonrpc": "2.0", "method": "notifications/initialized"}\n')
         process.stdin.flush()
-        
+
         # Test tool call
         ask_request = {
             "jsonrpc": "2.0", "id": 2, "method": "tools/call",
@@ -449,13 +449,13 @@ def test_mcp_jsonrpc():
         process.stdin.flush()
         response = process.stdout.readline()
         print("Tool call:", response.strip())
-        
+
         # Check for errors
         if '"isError":true' in response:
             print("❌ Tool execution failed!")
         else:
             print("✅ Tool execution successful!")
-            
+
     finally:
         process.terminate()
         process.wait()
@@ -486,7 +486,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 // Missing import error
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: name 'memory_manager' is not defined"}],"isError":true}}
 
-// API key missing  
+// API key missing
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: GEMINI_API_KEY not found"}],"isError":true}}
 ```
 
@@ -509,7 +509,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 **Google Calendar Tool:**
 ```json
 {
-  "method": "tools/call", 
+  "method": "tools/call",
   "params": {
     "name": "search_events",
     "arguments": {
@@ -525,7 +525,7 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 {
   "method": "tools/call",
   "params": {
-    "name": "generate_prompt", 
+    "name": "generate_prompt",
     "arguments": {
       "path": "/path/to/code",
       "include": ["*.py"],
@@ -641,7 +641,7 @@ Always test your implementations before marking tasks as complete.
 
 **Why MCP Protocol is Required**:
 - Pydantic `Field()` descriptors only work through MCP interface
-- Direct function calls pass `FieldInfo` objects instead of actual values  
+- Direct function calls pass `FieldInfo` objects instead of actual values
 - MCP converts `Field()` descriptors to proper Python types
 - FastMCP handles validation and type coercion automatically
 - Claude Code uses MCP protocol exclusively - direct calls don't match real usage
@@ -659,7 +659,7 @@ async def test_tool_function():
 ```
 
 **❌ NEVER Do This in Integration Tests**:
-```python  
+```python
 def test_tool_function():
     # Direct call - bypasses MCP conversion
     result = function_name(param="value")  # WRONG!
@@ -681,7 +681,7 @@ Following architectural best practices, tests are organized by concern:
 - Test CLI interface compatibility
 - Example: `test_mutt_cli_integration.py`
 
-#### **API Integration Tests** (Service Integration)  
+#### **API Integration Tests** (Service Integration)
 - Real API calls with VCR cassettes for consistency
 - Test service integration and response handling
 - Validate API contract compliance
@@ -706,17 +706,17 @@ Use factory fixtures to eliminate test boilerplate:
 @pytest.fixture
 async def event_creator() -> AsyncGenerator[Callable, None]:
     created_event_ids = []
-    
+
     async def _event_factory(params: Dict[str, Any]) -> str:
         # Create with defaults + user params
         full_params = {**defaults, **params}
         _, response = await mcp.call_tool("create_event", full_params)
-        event_id = response["event_id"] 
+        event_id = response["event_id"]
         created_event_ids.append(event_id)
         return event_id
-    
+
     yield _event_factory
-    
+
     # Automatic cleanup
     for event_id in created_event_ids:
         await mcp.call_tool("delete_event", {"event_id": event_id})
@@ -728,7 +728,7 @@ async def event_creator() -> AsyncGenerator[Callable, None]:
 Integration tests are **essential** for tools that interact with external CLIs or APIs:
 
 1. **Catch CLI parameter mismatches**: Mocked tests can't detect when CLI tools change their argument syntax
-2. **Validate real output formats**: Ensure tools actually produce expected data structures  
+2. **Validate real output formats**: Ensure tools actually produce expected data structures
 3. **Test environment variations**: Different versions, configurations, and edge cases
 4. **Prevent production failures**: Catch breaking changes before they reach users
 

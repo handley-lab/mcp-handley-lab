@@ -1,7 +1,9 @@
 """Unit tests for Google Maps tool functionality."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from mcp_handley_lab.google_maps.tool import (
     DirectionLeg,
     DirectionRoute,

@@ -3,10 +3,12 @@
 Tests error scenarios, edge cases, and failure modes to ensure robust error handling.
 Covers authentication failures, invalid inputs, resource constraints, and service errors.
 """
+
 from datetime import datetime, timedelta
 
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
+
 from mcp_handley_lab.google_calendar.tool import mcp
 
 

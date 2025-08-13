@@ -1,12 +1,14 @@
 """Unified integration tests for all LLM providers (Claude, Gemini, OpenAI)."""
+
 from pathlib import Path
 
 import pytest
+from PIL import Image
+
 from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
 from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
 from mcp_handley_lab.llm.grok.tool import mcp as grok_mcp
 from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
-from PIL import Image
 
 # Define provider-specific parameters
 llm_providers = [
@@ -674,9 +676,9 @@ class TestLLMMemory:
 
         # Verify isolation - Agent 2 should not know Agent 1's information
         content2 = Path(test_output_file2).read_text().lower()
-        assert (
-            "123" not in content2
-        ), f"Agent 2 should not know Agent 1's number: {content2}"
+        assert "123" not in content2, (
+            f"Agent 2 should not know Agent 1's number: {content2}"
+        )
         assert any(
             phrase in content2
             for phrase in [

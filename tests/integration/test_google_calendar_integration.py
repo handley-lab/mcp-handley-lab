@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytest
+
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
@@ -220,9 +221,9 @@ async def test_google_calendar_move_event(google_calendar_test_config):
         _, get_from_dest_response = await mcp.call_tool(
             "get_event", {"event_id": event_id, "calendar_id": other_calendar}
         )
-        assert (
-            "error" not in get_from_dest_response
-        ), "Event should exist in destination calendar"
+        assert "error" not in get_from_dest_response, (
+            "Event should exist in destination calendar"
+        )
         moved_event = get_from_dest_response
 
         assert moved_event["summary"] == "Event to Move"
@@ -231,15 +232,10 @@ async def test_google_calendar_move_event(google_calendar_test_config):
         )
 
     finally:
-        # Clean up - try to delete from both calendars
-        for cal_id in [primary_calendar, other_calendar]:
-            try:
-                await mcp.call_tool(
-                    "delete_event", {"event_id": event_id, "calendar_id": cal_id}
-                )
-            except:
-                # Expected if event not in this calendar
-                pass
+        # Clean up - delete from destination calendar (where event should be after move)
+        await mcp.call_tool(
+            "delete_event", {"event_id": event_id, "calendar_id": other_calendar}
+        )
 
 
 @pytest.mark.live

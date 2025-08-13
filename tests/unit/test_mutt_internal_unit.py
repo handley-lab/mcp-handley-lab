@@ -1,4 +1,5 @@
 """Tests for mutt tool internal logic."""
+
 from mcp_handley_lab.email.mutt.tool import _build_mutt_command
 
 
@@ -26,16 +27,16 @@ class TestMuttCommandConstruction:
 
         # Verify correct ordering: -H comes before -a, and -- comes before recipient
         assert dash_h_pos < dash_a_pos, "'-H' flag should come before '-a' flag"
-        assert (
-            temp_file_pos < dash_a_pos
-        ), "temp file path should come before attachments"
+        assert temp_file_pos < dash_a_pos, (
+            "temp file path should come before attachments"
+        )
         assert dash_a_pos < separator_pos, "'-a' flag should come before '--' separator"
-        assert (
-            attachment_pos < separator_pos
-        ), "attachment path should come before '--' separator"
-        assert (
-            separator_pos < recipient_pos
-        ), "'--' separator should come before recipient"
+        assert attachment_pos < separator_pos, (
+            "attachment path should come before '--' separator"
+        )
+        assert separator_pos < recipient_pos, (
+            "'--' separator should come before recipient"
+        )
 
     def test_build_mutt_command_no_attachments(self):
         """Test command construction without attachments."""

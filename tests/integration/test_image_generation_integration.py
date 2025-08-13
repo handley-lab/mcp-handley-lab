@@ -1,8 +1,10 @@
 """Integration tests for image generation metadata extraction."""
+
 import os
 from pathlib import Path
 
 import pytest
+
 from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image
 from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
 from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image

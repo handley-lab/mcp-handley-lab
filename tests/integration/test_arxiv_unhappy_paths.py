@@ -6,6 +6,7 @@ network failures, and edge cases not covered by basic integration tests.
 
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
+
 from mcp_handley_lab.arxiv.tool import mcp
 
 
@@ -435,6 +436,6 @@ class TestArxivServerInfoErrors:
             assert "capabilities" in response
 
         # Responses should be identical
-        assert all(
-            r == responses[0] for r in responses
-        ), "Server info responses should be consistent"
+        assert all(r == responses[0] for r in responses), (
+            "Server info responses should be consistent"
+        )

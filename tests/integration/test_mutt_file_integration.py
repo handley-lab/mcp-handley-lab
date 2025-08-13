@@ -5,6 +5,7 @@ Focuses on file I/O, directory management, and data persistence.
 """
 
 import pytest
+
 from mcp_handley_lab.email.mutt_aliases.tool import mcp as aliases_mcp
 
 

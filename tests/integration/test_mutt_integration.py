@@ -1,7 +1,9 @@
 """Integration tests for Mutt tools using real filesystem operations."""
+
 import shutil
 
 import pytest
+
 from mcp_handley_lab.email.mutt.tool import mcp as mutt_mcp
 from mcp_handley_lab.email.mutt_aliases.tool import mcp as aliases_mcp
 

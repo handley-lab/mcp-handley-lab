@@ -13,12 +13,12 @@ MSMTP configuration for sending emails via Gmail SMTP. Based on the user's exist
 send(to="test@example.com", subject="Test", body="Test message", config_file="/path/to/test_configs/msmtprc")
 ```
 
-### `offlineimaprc` 
+### `offlineimaprc`
 OfflineIMAP configuration for syncing emails from Gmail. Uses test mail directory `~/test_mail/HandleyLab`.
 
 **Usage:**
 ```python
-# In email tool tests  
+# In email tool tests
 sync(account="HandleyLab", config_file="/path/to/test_configs/offlineimaprc")
 ```
 

@@ -102,7 +102,7 @@ git commit --no-verify -m "bypass hooks"
 - **Let Python be Python**: Use built-in features, list comprehensions, and standard library over custom implementations
 - **Use standard library where possible**: Prefer `mimetypes`, `pathlib.Path.rglob()`, `subprocess` over manual implementations
 - **Prefer functional design**: Use stateless functions with explicit parameters over classes with mutable state
-- **Alpha software mindset**: Don't worry about backwards compatibility - break APIs freely to improve design
+- **Beta software mindset**: APIs may change to improve design, though we aim for stability
 - **Always use absolute imports**: NEVER use relative imports (`from .module import`) - always use absolute imports (`from mcp_handley_lab.module import`)
 
 ### ⚠️ CRITICAL ERROR HANDLING RULE
@@ -148,7 +148,7 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 3. **Error Handling**: Use specific Python exceptions (ValueError, FileNotFoundError, etc.) - FastMCP handles conversion to MCP errors
 4. **Data Modeling**: Pydantic BaseModel for complex data structures
 5. **Stateless Design**: Functions take explicit storage_dir parameters instead of using global state
-6. **Alpha Development**: This is alpha software - APIs may change without notice to improve design
+6. **Beta Development**: This is beta software - APIs may change to improve design, though we aim for stability
 7. **CRITICAL: Avoid Union types for inputs**: Never use `Union[str, dict, list]` or similar union types for MCP tool parameters. This makes Claude Code integration difficult as Claude cannot determine which type to use. Always use single, specific types (e.g., `str`) and handle type variations internally within the function implementation.
 
 ### Development Phases

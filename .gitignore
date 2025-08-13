@@ -43,6 +43,14 @@ htmlcov/
 *.tmp
 *~
 
+# Generated/temporary markdown files in root directory only
+/*.md
+# But allow essential project files
+!README.md
+!CONTRIBUTING.md
+!SECURITY.md  
+!CLAUDE.md
+
 # MCP Handley Lab local data
 .mcp_handley_lab/
 

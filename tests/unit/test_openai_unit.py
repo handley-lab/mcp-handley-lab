@@ -139,8 +139,6 @@ class TestOpenAIHelperFunctions:
         assert is_text_file(Path("test.exe")) is False
 
 
-
-
 @pytest.fixture
 def temp_storage_dir():
     """Create temporary directory for testing."""

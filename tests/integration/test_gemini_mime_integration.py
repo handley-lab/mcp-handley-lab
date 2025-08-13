@@ -107,16 +107,19 @@ async def test_gemini_file_upload_by_type(
         file_path = f.name
 
     try:
-        _, response = await mcp.call_tool("ask", {
-            "prompt": prompt,
-            "files": [file_path],
-            "output_file": test_output_file,
-            "model": "gemini-2.5-flash",
-            "agent_name": "",
-            "temperature": 1.0,
-            "max_output_tokens": 0,
-            "grounding": False
-        })
+        _, response = await mcp.call_tool(
+            "ask",
+            {
+                "prompt": prompt,
+                "files": [file_path],
+                "output_file": test_output_file,
+                "model": "gemini-2.5-flash",
+                "agent_name": "",
+                "temperature": 1.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            },
+        )
         assert "error" not in response, response.get("error")
         result = response
 
@@ -152,16 +155,19 @@ async def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output
                 file_paths.append(f.name)
 
         # Test with multiple files
-        _, response = await mcp.call_tool("ask", {
-            "prompt": "What types of files are these and what do they contain?",
-            "files": file_paths,
-            "output_file": test_output_file,
-            "model": "gemini-2.5-flash",
-            "agent_name": "",
-            "temperature": 1.0,
-            "max_output_tokens": 0,
-            "grounding": False
-        })
+        _, response = await mcp.call_tool(
+            "ask",
+            {
+                "prompt": "What types of files are these and what do they contain?",
+                "files": file_paths,
+                "output_file": test_output_file,
+                "model": "gemini-2.5-flash",
+                "agent_name": "",
+                "temperature": 1.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            },
+        )
         assert "error" not in response, response.get("error")
         result = response
 
@@ -195,16 +201,19 @@ async def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_f
         txt_file_path = f.name
 
     try:
-        _, response = await mcp.call_tool("ask", {
-            "prompt": "What is in this text file?",
-            "files": [txt_file_path],
-            "output_file": test_output_file,
-            "model": "gemini-2.5-flash",
-            "agent_name": "",
-            "temperature": 1.0,
-            "max_output_tokens": 0,
-            "grounding": False
-        })
+        _, response = await mcp.call_tool(
+            "ask",
+            {
+                "prompt": "What is in this text file?",
+                "files": [txt_file_path],
+                "output_file": test_output_file,
+                "model": "gemini-2.5-flash",
+                "agent_name": "",
+                "temperature": 1.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            },
+        )
         assert "error" not in response, response.get("error")
         result = response
 
@@ -226,16 +235,19 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
     """Test that grounding returns all expected metadata fields."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
-    _, response = await mcp.call_tool("ask", {
-        "prompt": "What were the main AI announcements from Apple WWDC 2024?",
-        "output_file": test_output_file,
-        "model": "gemini-1.5-flash",
-        "grounding": True,
-        "agent_name": "test_grounding_metadata",
-        "temperature": 1.0,
-        "max_output_tokens": 0,
-        "files": []
-    })
+    _, response = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What were the main AI announcements from Apple WWDC 2024?",
+            "output_file": test_output_file,
+            "model": "gemini-1.5-flash",
+            "grounding": True,
+            "agent_name": "test_grounding_metadata",
+            "temperature": 1.0,
+            "max_output_tokens": 0,
+            "files": [],
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -280,20 +292,25 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_gemini_without_grounding_no_metadata(skip_if_no_api_key, test_output_file):
+async def test_gemini_without_grounding_no_metadata(
+    skip_if_no_api_key, test_output_file
+):
     """Test that without grounding, grounding metadata is None but other fields exist."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
-    _, response = await mcp.call_tool("ask", {
-        "prompt": "What is 2+2?",
-        "output_file": test_output_file,
-        "model": "gemini-1.5-flash",
-        "grounding": False,
-        "agent_name": "test_no_grounding",
-        "temperature": 1.0,
-        "max_output_tokens": 0,
-        "files": []
-    })
+    _, response = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What is 2+2?",
+            "output_file": test_output_file,
+            "model": "gemini-1.5-flash",
+            "grounding": False,
+            "agent_name": "test_no_grounding",
+            "temperature": 1.0,
+            "max_output_tokens": 0,
+            "files": [],
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 
@@ -319,16 +336,19 @@ async def test_gemini_grounding_search_entry_point_structure(
     """Test the search entry point contains expected HTML interface."""
     skip_if_no_api_key("GEMINI_API_KEY")
 
-    _, response = await mcp.call_tool("ask", {
-        "prompt": "Latest developments in quantum computing 2024",
-        "output_file": test_output_file,
-        "model": "gemini-1.5-flash",
-        "grounding": True,
-        "agent_name": "test_search_entry_point",
-        "temperature": 1.0,
-        "max_output_tokens": 0,
-        "files": []
-    })
+    _, response = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "Latest developments in quantum computing 2024",
+            "output_file": test_output_file,
+            "model": "gemini-1.5-flash",
+            "grounding": True,
+            "agent_name": "test_search_entry_point",
+            "temperature": 1.0,
+            "max_output_tokens": 0,
+            "files": [],
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response
 

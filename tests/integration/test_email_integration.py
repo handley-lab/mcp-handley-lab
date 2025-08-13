@@ -5,9 +5,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.email.msmtp.tool import send
-from mcp_handley_lab.email.notmuch.tool import search
-from mcp_handley_lab.email.offlineimap.tool import sync
 
 
 def find_email_in_maildir(
@@ -40,9 +37,7 @@ def find_email_in_maildir(
     return False
 
 
-def run_email_command(
-    command: list, fixtures_dir: Path
-) -> subprocess.CompletedProcess:
+def run_email_command(command: list, fixtures_dir: Path) -> subprocess.CompletedProcess:
     """Helper to run email-related commands with consistent error handling."""
     return subprocess.run(
         command,
@@ -78,10 +73,9 @@ def test_maildir():
 
 class TestEmailIntegration:
     """Integration tests for email functionality with real email infrastructure.
-    
+
     Tests use actual IMAP/SMTP interactions with configured test credentials for comprehensive validation.
     """
-
 
     def test_maildir_structure(self, test_maildir):
         """Test maildir structure creation."""
@@ -95,7 +89,6 @@ class TestEmailIntegration:
         # Check subfolder structure
         assert (maildir_path / ".Sent" / "cur").exists()
         assert (maildir_path / ".Drafts" / "cur").exists()
-
 
     @pytest.mark.integration
     def test_real_offlineimap_sync(self):
@@ -152,7 +145,9 @@ class TestEmailIntegration:
 
         except subprocess.CalledProcessError as e:
             # Fail fast and loud - let offlineimap errors surface immediately
-            pytest.fail(f"Offlineimap sync failed with exit code {e.returncode}: {e.stderr}")
+            pytest.fail(
+                f"Offlineimap sync failed with exit code {e.returncode}: {e.stderr}"
+            )
 
     @pytest.mark.integration
     def test_msmtp_send_and_receive_cycle(self):
@@ -285,7 +280,7 @@ Subject: {test_subject}
                         cwd=str(fixtures_dir),
                         capture_output=True,
                         text=True,
-                            )
+                    )
                     print("✅ Cleanup sync completed")
 
                 except Exception as cleanup_error:
@@ -314,7 +309,7 @@ Subject: {test_subject}
     @pytest.mark.integration
     def test_email_tool_functions_with_custom_configs(self):
         """Test direct subprocess calls to email tools with custom config files.
-        
+
         Since the email tool functions don't yet support config_file parameters,
         this test validates the email infrastructure by calling the tools directly
         with custom config file paths.
@@ -327,10 +322,12 @@ Subject: {test_subject}
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
         msmtprc_path = fixtures_dir / "msmtprc"
         offlineimaprc_path = fixtures_dir / "offlineimaprc"
-        
+
         # Verify test configs exist
         assert msmtprc_path.exists(), f"msmtp config not found: {msmtprc_path}"
-        assert offlineimaprc_path.exists(), f"offlineimap config not found: {offlineimaprc_path}"
+        assert (
+            offlineimaprc_path.exists()
+        ), f"offlineimap config not found: {offlineimaprc_path}"
 
         # Create unique test email
         test_id = str(uuid.uuid4())[:8]
@@ -350,8 +347,10 @@ Subject: {test_subject}
             send_result = subprocess.run(
                 [
                     "msmtp",
-                    "-C", str(msmtprc_path),  # Use custom config file
-                    "-a", "HandleyLab",       # Use HandleyLab account
+                    "-C",
+                    str(msmtprc_path),  # Use custom config file
+                    "-a",
+                    "HandleyLab",  # Use HandleyLab account
                     "handleylab@gmail.com",
                 ],
                 input=email_content,
@@ -372,7 +371,8 @@ Subject: {test_subject}
             sync_result = subprocess.run(
                 [
                     "offlineimap",
-                    "-c", str(offlineimaprc_path),  # Use custom config file
+                    "-c",
+                    str(offlineimaprc_path),  # Use custom config file
                     "-o1",  # One-time sync
                 ],
                 cwd=str(fixtures_dir),  # Run from fixtures dir so Python file is found
@@ -398,7 +398,7 @@ Subject: {test_subject}
                 search_dirs = [
                     test_mail_dir / "INBOX" / "new",
                     test_mail_dir / "INBOX" / "cur",
-                    test_mail_dir / "[Gmail].All Mail" / "new", 
+                    test_mail_dir / "[Gmail].All Mail" / "new",
                     test_mail_dir / "[Gmail].All Mail" / "cur",
                 ]
 
@@ -419,7 +419,9 @@ Subject: {test_subject}
                             break
 
             if email_found:
-                print(f"✅ Email tool config test successful! Email with ID {test_id} was sent and received.")
+                print(
+                    f"✅ Email tool config test successful! Email with ID {test_id} was sent and received."
+                )
                 print(f"📍 Email location: {email_locations[0]}")
 
                 # Step 5: Clean up - delete the test email
@@ -437,7 +439,7 @@ Subject: {test_subject}
                         cwd=str(fixtures_dir),  # Run from fixtures dir
                         capture_output=True,
                         text=True,
-                            )
+                    )
                     print("✅ Cleanup sync completed")
 
                 except Exception as cleanup_error:
@@ -455,14 +457,13 @@ Subject: {test_subject}
     @pytest.mark.asyncio
     async def test_email_tool_functions_integration(self):
         """Test email tool functions that don't require credentials."""
-        from mcp_handley_lab.email.msmtp.tool import list_accounts, _parse_msmtprc
-        from mcp_handley_lab.email.tool import server_info
         from mcp_handley_lab.email.common import mcp
-        
+        from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc, list_accounts
+
         # Test msmtp account parsing with real config file
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
         msmtprc_path = fixtures_dir / "msmtprc"
-        
+
         # Test parsing real msmtprc file
         try:
             accounts = _parse_msmtprc(str(msmtprc_path))
@@ -470,20 +471,20 @@ Subject: {test_subject}
             assert len(accounts) >= 1
         except FileNotFoundError:
             pytest.skip("Test msmtprc file not found")
-        
+
         # Test list_accounts function
         try:
             accounts = list_accounts(str(msmtprc_path))
             assert "HandleyLab" in accounts
         except FileNotFoundError:
             pytest.skip("Test msmtprc file not found")
-        
+
         # Test server_info function using MCP call_tool
         try:
             _, response = await mcp.call_tool("server_info", {})
             assert "error" not in response, response.get("error")
             info = response
-            
+
             # Accept any of the email-related tool servers due to MCP tool conflicts
             assert "Tool" in info["name"]
             assert info["status"] == "active"
@@ -494,51 +495,51 @@ Subject: {test_subject}
 
     def test_notmuch_functions_integration(self):
         """Test notmuch functions with real database (if available)."""
-        from mcp_handley_lab.email.notmuch.tool import count, tag, search
-        
+        from mcp_handley_lab.email.notmuch.tool import count, search, tag
+
         try:
             # Test count function - should work even with empty database
             result = count("*")
             assert isinstance(result, int)
             assert result >= 0
-            
+
             # Test search function
             search_result = search("*")
             assert isinstance(search_result, list)
-            
+
             # Test tag function with non-existent message (should fail gracefully)
             try:
                 tag_result = tag("nonexistent123", add_tags=["test"])
                 # If it succeeds, check the result structure
-                assert hasattr(tag_result, 'message_id')
+                assert hasattr(tag_result, "message_id")
             except RuntimeError:
                 # Expected for non-existent message - notmuch should fail fast
                 pass
-                
+
         except (FileNotFoundError, RuntimeError) as e:
             pytest.skip(f"Notmuch not available or configured: {e}")
 
     def test_offlineimap_dry_run_integration(self):
         """Test offlineimap sync_status with real config."""
         from mcp_handley_lab.email.offlineimap.tool import sync_status
-        
+
         # Test with real config file
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
         offlineimaprc_path = fixtures_dir / "offlineimaprc"
-        
+
         if not offlineimaprc_path.exists():
             pytest.skip("Test offlineimaprc file not found")
-        
+
         try:
             # Change to fixtures directory for Python file resolution
             original_cwd = os.getcwd()
             os.chdir(str(fixtures_dir))
-            
+
             # Test dry run - should validate config without connecting
             result = sync_status(str(offlineimaprc_path))
-            assert hasattr(result, 'message')
+            assert hasattr(result, "message")
             assert len(result.message) > 0
-            
+
         except (FileNotFoundError, RuntimeError) as e:
             pytest.skip(f"Offlineimap not available: {e}")
         finally:

@@ -24,10 +24,9 @@ async def test_google_calendar_search_events_basic_listing(google_calendar_test_
     start_date = "2024-06-01T00:00:00Z"
     end_date = "2024-06-08T00:00:00Z"
 
-    _, response = await mcp.call_tool("search_events", {
-        "start_date": start_date, 
-        "end_date": end_date
-    })
+    _, response = await mcp.call_tool(
+        "search_events", {"start_date": start_date, "end_date": end_date}
+    )
     assert "error" not in response, response.get("error")
     result = response["result"]
 
@@ -45,13 +44,16 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
 
     event_title = "VCR Test Event"
 
-    _, create_response = await mcp.call_tool("create_event", {
-        "summary": event_title,
-        "start_datetime": start_time.isoformat() + "Z",
-        "end_datetime": end_time.isoformat() + "Z",
-        "description": "Test event for VCR testing",
-        "calendar_id": "primary",
-    })
+    _, create_response = await mcp.call_tool(
+        "create_event",
+        {
+            "summary": event_title,
+            "start_datetime": start_time.isoformat() + "Z",
+            "end_datetime": end_time.isoformat() + "Z",
+            "description": "Test event for VCR testing",
+            "calendar_id": "primary",
+        },
+    )
     assert "error" not in create_response, create_response.get("error")
     create_result = create_response
 
@@ -68,11 +70,14 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
     assert event_title in get_result["summary"]
 
     # Update event
-    _, update_response = await mcp.call_tool("update_event", {
-        "event_id": event_id,
-        "summary": event_title,
-        "description": "Updated description for VCR test",
-    })
+    _, update_response = await mcp.call_tool(
+        "update_event",
+        {
+            "event_id": event_id,
+            "summary": event_title,
+            "description": "Updated description for VCR test",
+        },
+    )
     assert "error" not in update_response, update_response.get("error")
     update_result = update_response
     assert update_result["event_id"] == event_id
@@ -89,10 +94,9 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
 @pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_google_calendar_find_time(google_calendar_test_config):
-    _, response = await mcp.call_tool("find_time", {
-        "duration_minutes": 30, 
-        "work_hours_only": True
-    })
+    _, response = await mcp.call_tool(
+        "find_time", {"duration_minutes": 30, "work_hours_only": True}
+    )
     assert "error" not in response, response.get("error")
     result = response["result"]
 
@@ -108,12 +112,15 @@ async def test_google_calendar_search_events(google_calendar_test_config):
     end_date = "2024-06-08T00:00:00Z"
 
     # Test basic search functionality
-    _, response = await mcp.call_tool("search_events", {
-        "search_text": "meeting",
-        "start_date": start_date,
-        "end_date": end_date,
-        "match_all_terms": False,  # Use OR logic to increase chances of matches
-    })
+    _, response = await mcp.call_tool(
+        "search_events",
+        {
+            "search_text": "meeting",
+            "start_date": start_date,
+            "end_date": end_date,
+            "match_all_terms": False,  # Use OR logic to increase chances of matches
+        },
+    )
     assert "error" not in response, response.get("error")
     result = response["result"]
 
@@ -130,11 +137,10 @@ async def test_google_calendar_list_events_with_search(google_calendar_test_conf
     end_date = "2024-06-08T00:00:00Z"
 
     # Test search via search_events
-    _, response = await mcp.call_tool("search_events", {
-        "search_text": "test", 
-        "start_date": start_date, 
-        "end_date": end_date
-    })
+    _, response = await mcp.call_tool(
+        "search_events",
+        {"search_text": "test", "start_date": start_date, "end_date": end_date},
+    )
     assert "error" not in response, response.get("error")
     result = response["result"]
 
@@ -151,78 +157,86 @@ async def test_google_calendar_move_event(google_calendar_test_config):
     _, calendars_response = await mcp.call_tool("list_calendars", {})
     assert "error" not in calendars_response, calendars_response.get("error")
     calendars = calendars_response["result"]
-    
+
     # Find two calendars with write access
     writable_calendars = [
-        cal for cal in calendars 
-        if cal.get("accessRole") in ["owner", "writer"]
+        cal for cal in calendars if cal.get("accessRole") in ["owner", "writer"]
     ]
-    
+
     if len(writable_calendars) < 2:
         pytest.skip("Need at least 2 writable calendars for move_event test")
-    
-    primary_calendar = writable_calendars[0]["id"] 
+
+    primary_calendar = writable_calendars[0]["id"]
     other_calendar = writable_calendars[1]["id"]
-    
+
     # Create event in primary calendar
     tomorrow = datetime.now() + timedelta(days=1)
-    
-    _, create_response = await mcp.call_tool("create_event", {
-        "summary": "Event to Move",
-        "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T10:00:00",
-        "end_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T11:00:00",
-        "description": "This event will be moved between calendars",
-        "calendar_id": primary_calendar,
-        "location": "",
-        "attendees": [],
-        "start_timezone": "",
-        "end_timezone": ""
-    })
+
+    _, create_response = await mcp.call_tool(
+        "create_event",
+        {
+            "summary": "Event to Move",
+            "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T10:00:00",
+            "end_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T11:00:00",
+            "description": "This event will be moved between calendars",
+            "calendar_id": primary_calendar,
+            "location": "",
+            "attendees": [],
+            "start_timezone": "",
+            "end_timezone": "",
+        },
+    )
     assert "error" not in create_response, create_response.get("error")
     event_id = create_response["event_id"]
-    
+
     try:
         # Move event to other calendar
-        _, move_response = await mcp.call_tool("move_event", {
-            "event_id": event_id,
-            "source_calendar_id": primary_calendar,
-            "destination_calendar_id": other_calendar
-        })
+        _, move_response = await mcp.call_tool(
+            "move_event",
+            {
+                "event_id": event_id,
+                "source_calendar_id": primary_calendar,
+                "destination_calendar_id": other_calendar,
+            },
+        )
         assert "error" not in move_response, move_response.get("error")
-        
+
         # Verify event is no longer in source calendar
         try:
-            _, get_from_source_response = await mcp.call_tool("get_event", {
-                "event_id": event_id,
-                "calendar_id": primary_calendar
-            })
+            _, get_from_source_response = await mcp.call_tool(
+                "get_event", {"event_id": event_id, "calendar_id": primary_calendar}
+            )
             # Should fail to find event in original calendar
             if "error" not in get_from_source_response:
                 # Some implementations might still show the event
-                pytest.skip("Event still visible in source calendar - move behavior may vary")
+                pytest.skip(
+                    "Event still visible in source calendar - move behavior may vary"
+                )
         except Exception:
             # Expected - event should not be in source calendar
             pass
-            
+
         # Verify event exists in destination calendar
-        _, get_from_dest_response = await mcp.call_tool("get_event", {
-            "event_id": event_id,
-            "calendar_id": other_calendar
-        })
-        assert "error" not in get_from_dest_response, "Event should exist in destination calendar"
+        _, get_from_dest_response = await mcp.call_tool(
+            "get_event", {"event_id": event_id, "calendar_id": other_calendar}
+        )
+        assert (
+            "error" not in get_from_dest_response
+        ), "Event should exist in destination calendar"
         moved_event = get_from_dest_response
-        
+
         assert moved_event["summary"] == "Event to Move"
-        assert moved_event["description"] == "This event will be moved between calendars"
-        
+        assert (
+            moved_event["description"] == "This event will be moved between calendars"
+        )
+
     finally:
         # Clean up - try to delete from both calendars
         for cal_id in [primary_calendar, other_calendar]:
             try:
-                await mcp.call_tool("delete_event", {
-                    "event_id": event_id,
-                    "calendar_id": cal_id
-                })
+                await mcp.call_tool(
+                    "delete_event", {"event_id": event_id, "calendar_id": cal_id}
+                )
             except:
                 # Expected if event not in this calendar
                 pass

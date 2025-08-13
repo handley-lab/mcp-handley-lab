@@ -8,8 +8,11 @@ repos:
     hooks:
       - id: check-yaml
       - id: check-toml
+      - id: check-json
       - id: check-merge-conflict
       - id: end-of-file-fixer
+      - id: detect-private-key
+      - id: debug-statements
 
   # Python formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit

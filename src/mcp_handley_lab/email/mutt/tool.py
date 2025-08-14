@@ -276,12 +276,14 @@ def reply(
     # Use compose with extracted data
     return compose(
         to=reply_to,
-        cc=reply_cc,
         subject=reply_subject,
+        cc=reply_cc,
+        bcc=None,
         initial_body=complete_reply_body,
+        attachments=None,
+        auto_send=auto_send,
         in_reply_to=in_reply_to,
         references=references,
-        auto_send=auto_send,
     )
 
 
@@ -341,8 +343,13 @@ def forward(
     return compose(
         to=to,
         subject=forward_subject,
+        cc=None,
+        bcc=None,
         initial_body=complete_forward_body,
+        attachments=None,
         auto_send=auto_send,
+        in_reply_to=None,
+        references=None,
     )
 
 

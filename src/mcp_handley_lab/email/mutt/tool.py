@@ -1,6 +1,5 @@
 """Mutt tool for interactive email composition via MCP."""
 
-import os
 import shlex
 import tempfile
 
@@ -19,18 +18,7 @@ def _execute_mutt_command(cmd: list[str], input_text: str = None) -> str:
     return stdout.decode().strip()
 
 
-def _prepare_body_with_signature(initial_body: str = "") -> str:
-    """Prepare email body with signature if configured."""
-    body_content = initial_body or "Automated email"
-
-    sig_result = _execute_mutt_command(["mutt", "-Q", "signature"])
-    sig_path = sig_result.split("=", 1)[1].strip().strip('"')
-    sig_path = os.path.expanduser(sig_path) if sig_path.startswith("~") else sig_path
-
-    with open(sig_path) as f:
-        signature = f.read().strip()
-
-    return body_content + f"\n\n{signature}" if signature else body_content
+# Function removed as auto_send functionality was removed
 
 
 def _build_mutt_command(
@@ -39,7 +27,6 @@ def _build_mutt_command(
     cc: str = None,
     bcc: str = None,
     attachments: list[str] = None,
-    auto_send: bool = False,
     reply_all: bool = False,
     folder: str = None,
     temp_file_path: str = None,
@@ -48,9 +35,6 @@ def _build_mutt_command(
 ) -> list[str]:
     """Build mutt command with proper arguments."""
     mutt_cmd = ["mutt"]
-
-    if auto_send:
-        mutt_cmd.extend(["-e", "set postpone=no"])
 
     if reply_all:
         mutt_cmd.extend(["-e", "set reply_to_all=yes"])
@@ -87,22 +71,17 @@ def _build_mutt_command(
     return mutt_cmd
 
 
-def _execute_mutt_interactive_or_auto(
+def _execute_mutt_interactive(
     mutt_cmd: list[str],
-    auto_send: bool = False,
-    body_content: str = "",
     window_title: str = "Mutt",
 ) -> None:
-    """Execute mutt command either interactively or automatically."""
-    if auto_send:
-        _execute_mutt_command(mutt_cmd, input_text=body_content)
-    else:
-        command_str = shlex.join(mutt_cmd)
-        launch_interactive(command_str, window_title=window_title, wait=True)
+    """Execute mutt command interactively."""
+    command_str = shlex.join(mutt_cmd)
+    launch_interactive(command_str, window_title=window_title, wait=True)
 
 
 @mcp.tool(
-    description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments, pre-filled body, and an `auto_send` option that bypasses interactive review."
+    description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments and pre-filled body."
 )
 def compose(
     to: str = Field(
@@ -117,15 +96,11 @@ def compose(
         default=None,
         description="Email address for the 'Bcc' (blind carbon copy) field.",
     ),
-    initial_body: str = Field(
+    body: str = Field(
         default="", description="Text to pre-populate in the email body."
     ),
     attachments: list[str] = Field(
         default=None, description="A list of local file paths to attach to the email."
-    ),
-    auto_send: bool = Field(
-        default=False,
-        description="If True, sends the email automatically without opening the interactive Mutt editor. A signature will be appended if configured. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
     in_reply_to: str = Field(
         default=None,
@@ -138,7 +113,7 @@ def compose(
 ) -> OperationResult:
     """Compose an email using mutt's interactive interface."""
 
-    if initial_body:
+    if body:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".txt", delete=False
         ) as temp_f:
@@ -155,8 +130,8 @@ def compose(
             if references:
                 temp_f.write(f"References: {references}\n")
             temp_f.write("\n")  # Empty line separates headers from body
-            temp_f.write(initial_body)
-            if not initial_body.endswith("\n"):
+            temp_f.write(body)
+            if not body.endswith("\n"):
                 temp_f.write("\n")  # Ensure proper line ending
             temp_file_path = temp_f.name
 
@@ -166,22 +141,13 @@ def compose(
             cc=None,  # Already in draft file
             bcc=None,  # Already in draft file
             attachments=attachments,
-            auto_send=auto_send,
             temp_file_path=temp_file_path,
             in_reply_to=None,  # Already in draft file
             references=None,  # Already in draft file
         )
 
-        body_content = _prepare_body_with_signature(initial_body) if auto_send else ""
         window_title = f"Mutt: {subject or 'New Email'}"
-
-        _execute_mutt_interactive_or_auto(
-            mutt_cmd, auto_send, body_content, window_title
-        )
-
-        # Only delete temp file if auto_send (mutt finished using it)
-        if auto_send:
-            os.unlink(temp_file_path)
+        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
     else:
         mutt_cmd = _build_mutt_command(
             to=to,
@@ -189,24 +155,18 @@ def compose(
             cc=cc,
             bcc=bcc,
             attachments=attachments,
-            auto_send=auto_send,
             in_reply_to=in_reply_to,
             references=references,
         )
 
-        body_content = _prepare_body_with_signature() if auto_send else ""
         window_title = f"Mutt: {subject or 'New Email'}"
-
-        _execute_mutt_interactive_or_auto(
-            mutt_cmd, auto_send, body_content, window_title
-        )
+        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
 
     attachment_info = f" with {len(attachments)} attachment(s)" if attachments else ""
-    action = "sent automatically" if auto_send else "composition completed"
 
     return OperationResult(
         status="success",
-        message=f"Email {action}: {to}{attachment_info}",
+        message=f"Email composition completed: {to}{attachment_info}",
     )
 
 
@@ -221,13 +181,9 @@ def reply(
         default=False,
         description="If True, reply to all recipients (To and Cc) of the original message.",
     ),
-    initial_body: str = Field(
+    body: str = Field(
         default="",
         description="Text to add to the top of the reply, above the quoted original message.",
-    ),
-    auto_send: bool = Field(
-        default=False,
-        description="If True, sends the reply automatically without opening the interactive Mutt editor. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
@@ -268,8 +224,8 @@ def reply(
 
     # Combine user's body + separator + quoted original
     complete_reply_body = (
-        f"{initial_body}\n\n{reply_separator}\n{quoted_body}"
-        if initial_body
+        f"{body}\n\n{reply_separator}\n{quoted_body}"
+        if body
         else f"{reply_separator}\n{quoted_body}"
     )
 
@@ -278,10 +234,9 @@ def reply(
         to=reply_to,
         cc=reply_cc,
         subject=reply_subject,
-        initial_body=complete_reply_body,
+        body=complete_reply_body,
         in_reply_to=in_reply_to,
         references=references,
-        auto_send=auto_send,
     )
 
 
@@ -296,13 +251,9 @@ def forward(
         default="",
         description="The recipient's email address for the forwarded message. If empty, Mutt will prompt for it.",
     ),
-    initial_body: str = Field(
+    body: str = Field(
         default="",
         description="Commentary to add to the top of the email, above the forwarded message.",
-    ),
-    auto_send: bool = Field(
-        default=False,
-        description="If True, sends the forward automatically without opening the interactive Mutt editor. WARNING: Only use with explicit user permission as this bypasses review.",
     ),
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
@@ -332,8 +283,8 @@ def forward(
 
     # Combine user's body + intro + original message + trailer
     complete_forward_body = (
-        f"{initial_body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}"
-        if initial_body
+        f"{body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+        if body
         else f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
     )
 
@@ -341,8 +292,7 @@ def forward(
     return compose(
         to=to,
         subject=forward_subject,
-        initial_body=complete_forward_body,
-        auto_send=auto_send,
+        body=complete_forward_body,
     )
 
 
@@ -374,7 +324,7 @@ def open_folder(
     """Open mutt with a specific folder."""
     mutt_cmd = _build_mutt_command(folder=folder)
     window_title = f"Mutt: {folder}"
-    _execute_mutt_interactive_or_auto(mutt_cmd, window_title=window_title)
+    _execute_mutt_interactive(mutt_cmd, window_title=window_title)
 
     return OperationResult(status="success", message=f"Opened folder: {folder}")
 

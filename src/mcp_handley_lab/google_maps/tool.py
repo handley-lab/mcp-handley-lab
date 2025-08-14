@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 import dateparser
 import googlemaps
-import pendulum
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
@@ -21,31 +20,14 @@ def _parse_flexible_datetime(
     time_str: str, default_tz: str = DEFAULT_TIMEZONE
 ) -> datetime:
     """
-    Parse flexible datetime inputs and return timezone-aware datetime object.
+    Parse flexible datetime string into timezone-aware datetime object.
 
-    Supports:
-    - Natural language: "17:00", "5pm", "tomorrow 5pm"
-    - ISO 8601 formats: "2024-08-15T17:00:00Z", "2024-08-15T17:00:00"
-    - Relative times: "in 2 hours", "after 17:00"
-
-    Args:
-        time_str: The input time string
-        default_tz: Default timezone for naive datetimes
-
-    Returns:
-        Timezone-aware datetime object
+    Relies on dateparser to handle natural language, ISO 8601, and relative times.
+    Naive times are interpreted in the default timezone.
     """
-    if not time_str.strip():
+    if not time_str:
         raise ValueError("Time string cannot be empty")
 
-    # If it's already a proper ISO 8601 UTC string, parse directly
-    if time_str.endswith("Z") or "+" in time_str or time_str.count("-") > 2:
-        try:
-            return datetime.fromisoformat(time_str.replace("Z", "+00:00"))
-        except ValueError:
-            pass  # Fall through to dateparser
-
-    # Try dateparser for natural language and flexible formats
     settings = {
         "PREFER_DATES_FROM": "future",
         "RETURN_AS_TIMEZONE_AWARE": True,
@@ -53,25 +35,13 @@ def _parse_flexible_datetime(
     }
 
     parsed_dt = dateparser.parse(time_str, settings=settings)
-    if parsed_dt:
-        try:
-            return parsed_dt
-        except Exception:
-            # Handle StaticTzInfo conversion issues
-            return datetime.fromisoformat(parsed_dt.isoformat())
+    if not parsed_dt:
+        raise ValueError(f"Could not parse datetime string: '{time_str}'")
 
-    # Fallback to pendulum for structured formats
-    try:
-        parsed_dt = pendulum.parse(time_str)
-        # If no timezone and we have a default, apply it
-        if parsed_dt.timezone is None and default_tz:
-            parsed_dt = parsed_dt.in_timezone(default_tz)
-        # Convert pendulum datetime to standard datetime
-        return datetime.fromisoformat(parsed_dt.isoformat())
-    except Exception:
-        pass
-
-    raise ValueError(f"Could not parse datetime string: '{time_str}'")
+    # Ensure we return a standard datetime object for library interop
+    if isinstance(parsed_dt, datetime):
+        return parsed_dt
+    return datetime.fromisoformat(parsed_dt.isoformat())
 
 
 class TransitDetails(BaseModel):
@@ -309,7 +279,7 @@ def _generate_maps_url(
     return url
 
 
-def _parse_step(step: dict[str, Any]) -> DirectionStep:
+def _parse_step(step: dict[str, Any], user_timezone: str) -> DirectionStep:
     """Parse a direction step from API response."""
     transit_details = None
     travel_mode = step.get("travel_mode", "")
@@ -318,13 +288,13 @@ def _parse_step(step: dict[str, Any]) -> DirectionStep:
     if travel_mode == "TRANSIT" and "transit_details" in step:
         transit_data = step["transit_details"]
 
-        # Convert Unix timestamps to UK local time for LLM-friendly display
-        uk_tz = zoneinfo.ZoneInfo("Europe/London")
+        # Convert Unix timestamps to user's local time for LLM-friendly display
+        local_tz = zoneinfo.ZoneInfo(user_timezone)
         departure_dt = datetime.fromtimestamp(
-            transit_data["departure_time"]["value"], tz=uk_tz
+            transit_data["departure_time"]["value"], tz=local_tz
         )
         arrival_dt = datetime.fromtimestamp(
-            transit_data["arrival_time"]["value"], tz=uk_tz
+            transit_data["arrival_time"]["value"], tz=local_tz
         )
 
         line_data = transit_data.get("line", {})
@@ -350,20 +320,20 @@ def _parse_step(step: dict[str, Any]) -> DirectionStep:
     )
 
 
-def _parse_leg(leg: dict[str, Any]) -> DirectionLeg:
+def _parse_leg(leg: dict[str, Any], user_timezone: str) -> DirectionLeg:
     """Parse a direction leg from API response."""
     return DirectionLeg(
         distance=leg["distance"]["text"],
         duration=leg["duration"]["text"],
         start_address=leg["start_address"],
         end_address=leg["end_address"],
-        steps=[_parse_step(step) for step in leg["steps"]],
+        steps=[_parse_step(step, user_timezone) for step in leg["steps"]],
     )
 
 
-def _parse_route(route: dict[str, Any]) -> DirectionRoute:
+def _parse_route(route: dict[str, Any], user_timezone: str) -> DirectionRoute:
     """Parse a route from API response."""
-    legs = [_parse_leg(leg) for leg in route["legs"]]
+    legs = [_parse_leg(leg, user_timezone) for leg in route["legs"]]
 
     # Calculate total distance and duration
     total_distance = sum(leg["distance"]["value"] for leg in route["legs"])
@@ -450,13 +420,11 @@ def get_directions(
         mode=mode,
         departure_time=departure_dt,
         arrival_time=arrival_dt,
-        avoid=avoid if avoid else None,
+        avoid=avoid,
         alternatives=alternatives,
-        waypoints=waypoints if waypoints else None,
-        transit_mode=transit_mode if transit_mode else None,
-        transit_routing_preference=transit_routing_preference
-        if transit_routing_preference
-        else None,
+        waypoints=waypoints,
+        transit_mode=transit_mode,
+        transit_routing_preference=transit_routing_preference,
     )
 
     if not result:
@@ -471,7 +439,7 @@ def get_directions(
         )
 
     # Parse routes
-    routes = [_parse_route(route) for route in result]
+    routes = [_parse_route(route, user_timezone) for route in result]
 
     # Generate Google Maps URL
     maps_url = _generate_maps_url(

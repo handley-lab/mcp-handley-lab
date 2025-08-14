@@ -16,7 +16,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -26,7 +26,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -44,7 +44,7 @@ interactions:
         \   \"param\": \"size\",\n    \"code\": \"invalid_value\"\n  }\n}"
     headers:
       CF-RAY:
-      - 95d9dd12ac950752-MAN
+      - 96f218ee5e438a91-LHR
       Connection:
       - keep-alive
       Content-Length:
@@ -52,14 +52,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 11 Jul 2025 17:01:34 GMT
+      - Thu, 14 Aug 2025 17:16:01 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=8qJBECki.COLueQm.BcKc0VCJ2zwKeHxY6ca0PSc260-1752253294-1.0.1.1-s.4TCHPFKpzOH64eF3jG_MJld8RiEBBY2NI7xLk_saYGSRz5jw7TyE3TwhDsbBM8nw1cOimYTh6gKNk6M73sey04SjOzfKg3zkTndc6MEzg;
-        path=/; expires=Fri, 11-Jul-25 17:31:34 GMT; domain=.api.openai.com; HttpOnly;
+      - __cf_bm=zTno71vQP99xPciw_exxXmkHVIIpJPFSMvWYFsGv3UQ-1755191761-1.0.1.1-6JocN7XPsDzZeD6N2rxdsVPYXP8_r4_kmVjK8a9L3NgSq1rwKUaUeyv5486FYdBEWBiGLKco31FcsDKdmGkPXvWb7PHyKkO9zVAhif6QrbI;
+        path=/; expires=Thu, 14-Aug-25 17:46:01 GMT; domain=.api.openai.com; HttpOnly;
         Secure; SameSite=None
-      - _cfuvid=uQrSxXVlCso10LSq8z1OVcvUcmOTOtiT8gvG8J7.jkw-1752253294722-0.0.1.1-604800000;
+      - _cfuvid=ltcxFvnXOfTRANvKyDawEmYjifG29oCJjrGFmdjkztE-1755191761142-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       X-Content-Type-Options:
       - nosniff
@@ -70,13 +70,17 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '20'
+      - '13'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
+      x-envoy-upstream-service-time:
+      - '17'
       x-request-id:
-      - req_8b2c475411c564e72de11fabeef5ed08
+      - req_00c01837a7fb1bfe270ec2334fb4f7c1
     status:
       code: 400
       message: Bad Request

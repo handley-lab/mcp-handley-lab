@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.10.3
+pkgver=0.11.0
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -69,7 +69,7 @@ build() {
 
 check() {
     cd "$startdir"
-    
+
     # Run unit tests only (exclude integration directory with VCR cassettes)
     # Use PYTHONPATH to ensure we test the source code, not any installed package
     PYTHONPATH="src:$PYTHONPATH" python -m pytest tests/ \
@@ -84,7 +84,7 @@ check() {
 package() {
     cd "$startdir"
     /usr/bin/python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
-    
+
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"
 }

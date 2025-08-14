@@ -185,7 +185,11 @@ def _claude_generation_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = _get_client().messages.create(**request_params)
+    try:
+        response = _get_client().messages.create(**request_params)
+    except Exception as e:
+        # Convert all API errors to ValueError for consistent error handling
+        raise ValueError(f"Claude API error: {str(e)}") from e
 
     if not response.content or not response.content[0].text:
         raise RuntimeError("No response text generated")
@@ -258,7 +262,11 @@ def _claude_image_analysis_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    response = _get_client().messages.create(**request_params)
+    try:
+        response = _get_client().messages.create(**request_params)
+    except Exception as e:
+        # Convert all API errors to ValueError for consistent error handling
+        raise ValueError(f"Claude API error: {str(e)}") from e
 
     return {
         "text": response.content[0].text,

@@ -1,9 +1,9 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What type of document is this and what
-      mathematical formula does it contain?"}, {"text": "[File: tmp9qf2bzhz.tex]\n\\documentclass{article}\n\\begin{document}\nThis
+      mathematical formula does it contain?"}, {"text": "[File: tmpjzl4uuar.tex]\n\\documentclass{article}\n\\begin{document}\nThis
       is a test LaTeX document with mathematical formula: $E = mc^2$\n\\end{document}"}],
-      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      "role": "user"}], "generationConfig": {"temperature": 1.0, "maxOutputTokens":
       65536}}'
     headers:
       accept:
@@ -19,33 +19,37 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"This is a **LaTeX document**.\\n\\nThe
-        mathematical formula it contains is:\\n$E = mc^2$\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        65,\n    \"candidatesTokenCount\": 23,\n    \"totalTokenCount\": 606,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 65\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 518\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"i9ZqaNP4OP-1nsEPtqXBuAQ\"\n}\n"
+        [\n          {\n            \"text\": \"Based on the content provided:\\n\\n1.
+        \ **Type of Document:** This is a **LaTeX source file**. It's designed to
+        be compiled by a LaTeX processor to produce a formatted document (typically
+        a PDF). Specifically, the `\\\\documentclass{article}` command indicates it's
+        intended to be an **article**.\\n\\n2.  **Mathematical Formula:** The document
+        contains the following mathematical formula:\\n    **$E = mc^2$**\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        63,\n    \"candidatesTokenCount\": 92,\n    \"totalTokenCount\": 670,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 63\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 515\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"-N-daOrQIO-5nsEP0buUqQQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:23 GMT
+      - Thu, 14 Aug 2025 13:09:12 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=2793
+      - gfet4t7; dur=5089
       Transfer-Encoding:
       - chunked
       Vary:
@@ -59,7 +63,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '629'
+      - '947'
     status:
       code: 200
       message: OK

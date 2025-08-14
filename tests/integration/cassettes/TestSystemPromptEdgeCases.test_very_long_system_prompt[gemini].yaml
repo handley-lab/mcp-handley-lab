@@ -1,0 +1,110 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What is 6+4?"}], "role": "user"}, {"parts":
+      [{"text": "6 + 4 = 10"}], "role": "model"}, {"parts": [{"text": "What is 6+4?"}],
+      "role": "user"}, {"parts": [{"text": "6 + 4 = 10"}], "role": "model"}, {"parts":
+      [{"text": "What is 6+4?"}], "role": "user"}, {"parts": [{"text": "6 + 4 = 10"}],
+      "role": "model"}, {"parts": [{"text": "What is 6+4?"}], "role": "user"}, {"parts":
+      [{"text": "6 + 4 = 10"}], "role": "model"}, {"parts": [{"text": "What is 6+4?"}],
+      "role": "user"}, {"parts": [{"text": "6 + 4 = 10"}], "role": "model"}, {"parts":
+      [{"text": "What is 6+4?"}], "role": "user"}, {"parts": [{"text": "6 + 4 = 10"}],
+      "role": "model"}, {"parts": [{"text": "What is 6+4?"}], "role": "user"}, {"parts":
+      [{"text": "6 + 4 = 10"}], "role": "model"}, {"parts": [{"text": "What is 6+4?"}],
+      "role": "user"}], "systemInstruction": {"parts": [{"text": "You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. "}], "role": "user"}, "generationConfig": {"temperature":
+      1.0, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '3864'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"6 + 4 = 10\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        729,\n    \"candidatesTokenCount\": 8,\n    \"totalTokenCount\": 737,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 729\n
+        \     }\n    ]\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\":
+        \"C9-daKvDEfz6vdIPraShiQk\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 14 Aug 2025 13:05:15 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=271
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '524'
+    status:
+      code: 200
+      message: OK
+version: 1

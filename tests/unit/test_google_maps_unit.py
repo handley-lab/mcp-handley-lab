@@ -1,7 +1,9 @@
 """Unit tests for Google Maps tool functionality."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from mcp_handley_lab.google_maps.tool import (
     DirectionLeg,
     DirectionRoute,
@@ -215,8 +217,6 @@ class TestDataParsing:
         assert route.polyline == route_data["overview_polyline"]["points"]
         assert len(route.warnings) == expected_warnings_count
         assert len(route.legs) == 1
-
-
 
 
 class TestServerInfo:

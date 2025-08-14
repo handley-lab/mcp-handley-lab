@@ -232,26 +232,30 @@ def _gemini_generation_adapter(
     ]
 
     # Generate content
-    if gemini_history:
-        # Continue existing conversation
-        user_parts = [Part(text=prompt)] + file_parts
-        contents = gemini_history + [
-            {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
-        ]
-        response = _get_client().models.generate_content(
-            model=model, contents=contents, config=config
-        )
-    else:
-        # New conversation
-        if file_parts:
-            content_parts = [Part(text=prompt)] + file_parts
+    try:
+        if gemini_history:
+            # Continue existing conversation
+            user_parts = [Part(text=prompt)] + file_parts
+            contents = gemini_history + [
+                {"role": "user", "parts": [part.to_json_dict() for part in user_parts]}
+            ]
             response = _get_client().models.generate_content(
-                model=model, contents=content_parts, config=config
+                model=model, contents=contents, config=config
             )
         else:
-            response = _get_client().models.generate_content(
-                model=model, contents=prompt, config=config
-            )
+            # New conversation
+            if file_parts:
+                content_parts = [Part(text=prompt)] + file_parts
+                response = _get_client().models.generate_content(
+                    model=model, contents=content_parts, config=config
+                )
+            else:
+                response = _get_client().models.generate_content(
+                    model=model, contents=prompt, config=config
+                )
+    except Exception as e:
+        # Convert all API errors to ValueError for consistent error handling
+        raise ValueError(f"Gemini API error: {str(e)}") from e
 
     if not response.text:
         raise RuntimeError("No response text generated")
@@ -342,9 +346,13 @@ def _gemini_image_analysis_adapter(
     config = GenerateContentConfig(**config_params)
 
     # Generate response - image analysis starts fresh conversation
-    response = _get_client().models.generate_content(
-        model=model, contents=content, config=config
-    )
+    try:
+        response = _get_client().models.generate_content(
+            model=model, contents=content, config=config
+        )
+    except Exception as e:
+        # Convert all API errors to ValueError for consistent error handling
+        raise ValueError(f"Gemini API error: {str(e)}") from e
 
     if not response.text:
         raise RuntimeError("No response text generated")

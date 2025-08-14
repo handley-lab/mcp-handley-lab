@@ -17,9 +17,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
@@ -28,21 +28,21 @@ interactions:
         [\n          {\n            \"text\": \"6\"\n          }\n        ],\n        \"role\":
         \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
         \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 14,\n    \"candidatesTokenCount\":
-        1,\n    \"totalTokenCount\": 51,\n    \"promptTokensDetails\": [\n      {\n
+        1,\n    \"totalTokenCount\": 59,\n    \"promptTokensDetails\": [\n      {\n
         \       \"modality\": \"TEXT\",\n        \"tokenCount\": 14\n      }\n    ],\n
-        \   \"thoughtsTokenCount\": 36\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
-        \ \"responseId\": \"tNZqaIu6Hb-InsEPgZqRqA8\"\n}\n"
+        \   \"thoughtsTokenCount\": 44\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"QoedaIqyLZOYvdIPloaUiA8\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:04 GMT
+      - Thu, 14 Aug 2025 06:50:42 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=739
+      - gfet4t7; dur=491
       Transfer-Encoding:
       - chunked
       Vary:

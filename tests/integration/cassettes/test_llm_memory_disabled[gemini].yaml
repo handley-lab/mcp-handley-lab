@@ -17,32 +17,32 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"I will remember 6.\\n\\n3 + 3 = 6\"\n
-        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        [\n          {\n            \"text\": \"3 + 3 is 6. I remember the number
+        6.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        15,\n    \"candidatesTokenCount\": 14,\n    \"totalTokenCount\": 67,\n    \"promptTokensDetails\":
+        15,\n    \"candidatesTokenCount\": 15,\n    \"totalTokenCount\": 118,\n    \"promptTokensDetails\":
         [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 15\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 38\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"yNZqaJ36EN-C7M8P77DOsQ8\"\n}\n"
+        \     }\n    ],\n    \"thoughtsTokenCount\": 88\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"9IedaJDPOrjWvdIPsffkyAc\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:24 GMT
+      - Thu, 14 Aug 2025 06:53:40 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=615
+      - gfet4t7; dur=730
       Transfer-Encoding:
       - chunked
       Vary:
@@ -56,7 +56,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '573'
+      - '579'
     status:
       code: 200
       message: OK

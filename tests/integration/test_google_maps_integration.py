@@ -1,9 +1,11 @@
 """Integration tests for Google Maps tool with VCR recording."""
+
 import os
 from pathlib import Path
 
 import pytest
 import vcr
+
 from mcp_handley_lab.google_maps.tool import mcp
 
 
@@ -47,14 +49,14 @@ class TestGoogleMapsIntegration:
     async def test_directions_basic(self, mock_api_key):
         """Test basic directions request."""
         _, response = await mcp.call_tool(
-            "get_directions", 
+            "get_directions",
             {
                 "origin": "Times Square, New York, NY",
                 "destination": "Brooklyn Bridge, New York, NY",
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -85,9 +87,9 @@ class TestGoogleMapsIntegration:
                 "origin": "Grand Central Terminal, New York, NY",
                 "destination": "JFK Airport, New York, NY",
                 "mode": "transit",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -106,9 +108,9 @@ class TestGoogleMapsIntegration:
                 "destination": "Brooklyn Bridge, New York, NY",
                 "waypoints": ["Central Park, New York, NY"],
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -126,9 +128,9 @@ class TestGoogleMapsIntegration:
                 "destination": "Brooklyn Bridge, New York, NY",
                 "alternatives": True,
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -147,9 +149,9 @@ class TestGoogleMapsIntegration:
                 "destination": "Brooklyn Bridge, New York, NY",
                 "avoid": ["tolls", "highways"],
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -166,9 +168,9 @@ class TestGoogleMapsIntegration:
                 "origin": "Times Square, New York, NY",
                 "destination": "Central Park, New York, NY",
                 "mode": "walking",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -186,9 +188,9 @@ class TestGoogleMapsIntegration:
                 "origin": "Times Square, New York, NY",
                 "destination": "Central Park, New York, NY",
                 "mode": "bicycling",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
@@ -214,7 +216,7 @@ class TestGoogleMapsErrorHandling:
                     "origin": "Invalid Location That Does Not Exist",
                     "destination": "Another Invalid Location",
                     "mode": "driving",
-                }
+                },
             )
 
     @google_maps_vcr.use_cassette("test_unreachable_destination.json")
@@ -223,21 +225,17 @@ class TestGoogleMapsErrorHandling:
         """Test handling of unreachable destination."""
         _, response = await mcp.call_tool(
             "get_directions",
-            {
-                "origin": "New York, NY",
-                "destination": "Hawaii",
-                "mode": "driving"
-            }
+            {"origin": "New York, NY", "destination": "Hawaii", "mode": "driving"},
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
         # Should handle gracefully
         # May return no routes or a specific error
-        assert result["status"] in ["NO_ROUTES_FOUND", "OK"] or result["status"].startswith(
-            "ERROR:"
-        )
+        assert result["status"] in ["NO_ROUTES_FOUND", "OK"] or result[
+            "status"
+        ].startswith("ERROR:")
 
 
 @pytest.mark.integration
@@ -254,16 +252,16 @@ class TestGoogleMapsSpecialCases:
                 "origin": "Times Square, New York, NY",
                 "destination": "Times Square, New York, NY",
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 
         # Should handle gracefully
-        assert result["status"] in ["OK", "NO_ROUTES_FOUND"] or result["status"].startswith(
-            "ERROR:"
-        )
+        assert result["status"] in ["OK", "NO_ROUTES_FOUND"] or result[
+            "status"
+        ].startswith("ERROR:")
 
     @google_maps_vcr.use_cassette("test_coordinates_input.json")
     @pytest.mark.asyncio
@@ -275,9 +273,9 @@ class TestGoogleMapsSpecialCases:
                 "origin": "40.7128,-74.0060",  # NYC coordinates
                 "destination": "40.7580,-73.9855",  # Times Square coordinates
                 "mode": "driving",
-            }
+            },
         )
-        
+
         assert "error" not in response, response.get("error")
         result = response
 

@@ -6,11 +6,11 @@ models:
     tags: ["gemini-2.5", "pro", "latest", "multimodal"]
     context_window: "2,000,000 tokens"
     output_tokens: 65536
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (tiered based on token count)
     input_tiers:
       - threshold: 200000
@@ -30,11 +30,11 @@ models:
     tags: ["gemini-2.5", "flash", "general", "multimodal"]
     context_window: "1,000,000 tokens"
     output_tokens: 65536
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (by modality)
     input_by_modality:
       text: 0.30
@@ -51,11 +51,11 @@ models:
     tags: ["gemini-2.5", "flash", "cost-effective", "fast"]
     context_window: "1,000,000 tokens"
     output_tokens: 64000
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (by modality)
     input_by_modality:
       text: 0.10
@@ -72,11 +72,11 @@ models:
     tags: ["gemini-1.5", "pro", "legacy", "multimodal"]
     context_window: "2,000,000 tokens"
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (standard per-token)
     input_per_1m: 1.25
     output_per_1m: 5.00
@@ -88,11 +88,11 @@ models:
     tags: ["gemini-1.5", "flash", "legacy", "multimodal"]
     context_window: "1,000,000 tokens"
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (standard per-token)
     input_per_1m: 0.075
     output_per_1m: 0.30
@@ -104,11 +104,11 @@ models:
     tags: ["gemini-1.5", "flash", "legacy", "cost-effective"]
     context_window: "1,000,000 tokens"
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    
+
     # Pricing (standard per-token)
     input_per_1m: 0.0375
     output_per_1m: 0.15
@@ -119,11 +119,11 @@ models:
     capabilities: "🎨 Best for: High-quality image generation"
     tags: ["image-generation", "latest"]
     context_window: "N/A (Image generation)"
-    
+
     # Capabilities
     supports_vision: false
     supports_grounding: false
-    
+
     # Pricing (per image)
     price_per_image: 0.040
     pricing_type: "per_image"
@@ -135,11 +135,11 @@ models:
     capabilities: "🎨 Best for: Ultra-high quality artistic images"
     tags: ["image-generation", "latest", "premium"]
     context_window: "N/A (Image generation)"
-    
+
     # Capabilities
     supports_vision: false
     supports_grounding: false
-    
+
     # Pricing (per image)
     price_per_image: 0.060
     pricing_type: "per_image"
@@ -151,11 +151,11 @@ models:
     capabilities: "🎨 Best for: High-quality image generation"
     tags: ["image-generation", "legacy"]
     context_window: "N/A (Image generation)"
-    
+
     # Capabilities
     supports_vision: false
     supports_grounding: false
-    
+
     # Pricing (per image)
     price_per_image: 0.030
     pricing_type: "per_image"
@@ -168,11 +168,11 @@ models:
     capabilities: "🎬 Best for: Video content creation"
     tags: ["video-generation", "latest"]
     context_window: "N/A (Video generation)"
-    
+
     # Capabilities
     supports_vision: false
     supports_grounding: false
-    
+
     # Pricing (per second)
     price_per_second: 0.35
     pricing_type: "per_second"

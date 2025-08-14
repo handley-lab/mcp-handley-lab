@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.email.common import mcp
 
 

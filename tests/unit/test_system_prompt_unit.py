@@ -1,4 +1,5 @@
 """Simplified unit tests for system prompt functionality."""
+
 import tempfile
 from unittest.mock import Mock, patch
 
@@ -136,9 +137,12 @@ class TestSystemPromptSharedLogic:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_memory = MemoryManager(temp_dir)
 
-            with patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory), patch(
-                "mcp_handley_lab.llm.shared.get_session_id",
-                return_value="session_123",
+            with (
+                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+                patch(
+                    "mcp_handley_lab.llm.shared.get_session_id",
+                    return_value="session_123",
+                ),
             ):
                 process_llm_request(
                     prompt="Test prompt",
@@ -177,9 +181,12 @@ class TestSystemPromptSharedLogic:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_memory = MemoryManager(temp_dir)
 
-            with patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory), patch(
-                "mcp_handley_lab.llm.shared.get_session_id",
-                return_value="session_123",
+            with (
+                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+                patch(
+                    "mcp_handley_lab.llm.shared.get_session_id",
+                    return_value="session_123",
+                ),
             ):
                 process_llm_request(
                     prompt="Test prompt",
@@ -222,9 +229,12 @@ class TestSystemPromptSharedLogic:
             agent = temp_memory.create_agent("existing_agent", "Original prompt")
             assert agent.system_prompt == "Original prompt"
 
-            with patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory), patch(
-                "mcp_handley_lab.llm.shared.get_session_id",
-                return_value="session_123",
+            with (
+                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+                patch(
+                    "mcp_handley_lab.llm.shared.get_session_id",
+                    return_value="session_123",
+                ),
             ):
                 process_llm_request(
                     prompt="Test prompt",

@@ -6,7 +6,7 @@ The CI is now configured to run email integration tests with the following setup
 
 ### System Dependencies Installed
 - `msmtp` - SMTP client for sending emails
-- `offlineimap3` - IMAP client for syncing emails 
+- `offlineimap3` - IMAP client for syncing emails
 - `notmuch` - Email indexing and search
 - `mutt` - Email client
 
@@ -56,7 +56,7 @@ ssl = yes
 - Tests send actual emails and verify receipt
 - Complete send-receive-sync cycle validation
 
-### Without GMAIL_TEST_PASSWORD Set  
+### Without GMAIL_TEST_PASSWORD Set
 - Email integration tests are skipped with message:
   ```
   "Gmail test credentials not available (set GMAIL_TEST_PASSWORD)"
@@ -92,7 +92,7 @@ python -m pytest tests/integration/test_email_integration.py -v
 # Test msmtp config
 msmtp -C tests/fixtures/email/msmtprc --pretend
 
-# Test offlineimap config  
+# Test offlineimap config
 offlineimap -c tests/fixtures/email/offlineimaprc --dry-run
 
 # Check notmuch database

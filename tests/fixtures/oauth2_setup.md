@@ -19,7 +19,7 @@ Sometimes available at: https://myaccount.google.com/lesssecureapps
    ```bash
    # Copy the OAuth2 script
    cp ~/.mutt/mutt_oauth2.py test_configs/
-   
+
    # Initial authorization (interactive)
    python test_configs/mutt_oauth2.py \
      --generate_oauth2_token \

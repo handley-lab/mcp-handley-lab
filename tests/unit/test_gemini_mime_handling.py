@@ -1,4 +1,5 @@
 """Tests for Gemini MIME type handling and fallback logic."""
+
 import tempfile
 from pathlib import Path
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate tool schemas for fast CLI startup."""
+
 import asyncio
 import hashlib
 import importlib

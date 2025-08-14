@@ -1,8 +1,13 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "What
-      color is this image?"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
-      "model": "gpt-4o", "max_tokens": 16384, "temperature": 0.7}'
+    body: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "Focus
+      on annotation=NoneType required=False default=''general'' description=\"The
+      area of focus for the analysis (e.g., ''ocr'', ''objects''). This enhances the
+      prompt to guide the model.\" aspects. Focus on annotation=NoneType required=False
+      default=''general'' description=\"The area of focus for the analysis (e.g.,
+      ''ocr'', ''objects''). This enhances the prompt to guide the model.\" aspects.
+      What color is this image?"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
+      "model": "gpt-4o", "max_tokens": 16384, "temperature": 1.0}'
     headers:
       accept:
       - application/json
@@ -11,13 +16,13 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '597'
+      - '983'
       content-type:
       - application/json
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -27,7 +32,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -35,33 +40,35 @@ interactions:
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
-      - 3.13.3
+      - 3.13.5
     method: POST
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-BqPszFtYxuWFH8En4uV4jXoe9BGxO\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1751832261,\n  \"model\": \"gpt-4o-2024-08-06\",\n
+      string: "{\n  \"id\": \"chatcmpl-C4M8AIgoYJNN9pNQHG71FJX8TvmDl\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1755154418,\n  \"model\": \"gpt-4o-2024-08-06\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"The image is red.\",\n        \"refusal\":
-        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
-        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        268,\n    \"completion_tokens\": 5,\n    \"total_tokens\": 273,\n    \"prompt_tokens_details\":
+        \"assistant\",\n        \"content\": \"The color of the image is red.\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        350,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 358,\n    \"prompt_tokens_details\":
         {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
         {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
         0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_a288987b44\"\n}\n"
+        \"default\",\n  \"system_fingerprint\": \"fp_ff25b2783a\"\n}\n"
     headers:
       CF-RAY:
-      - 95b1b5eebbaa4f47-MAN
+      - 96ee894d8bf9e4ed-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 20:04:21 GMT
+      - Thu, 14 Aug 2025 06:53:39 GMT
       Server:
       - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -73,17 +80,17 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '820'
+      - '833'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '647'
+      - '417'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
-      strict-transport-security:
-      - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '601'
+      - '443'
       x-ratelimit-limit-input-images:
       - '250000'
       x-ratelimit-limit-requests:
@@ -95,7 +102,7 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '29999226'
+      - '29999131'
       x-ratelimit-reset-input-images:
       - 0s
       x-ratelimit-reset-requests:
@@ -103,7 +110,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 1ms
       x-request-id:
-      - req_dea6c134513d22ff47c0f8887311c150
+      - req_7ceadc784a254b6fa43d594c28ae80cf
     status:
       code: 200
       message: OK

@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 import numpy as np
+import openai
 from mcp.server.fastmcp import FastMCP
 from openai import OpenAI
 from pydantic import Field
@@ -389,7 +390,12 @@ def _openai_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     if model == "dall-e-3":
         params["quality"] = quality
 
-    response = _get_client().images.generate(**params)
+    try:
+        response = _get_client().images.generate(**params)
+    except openai.BadRequestError as e:
+        raise ValueError(f"OpenAI image generation error: {str(e)}") from e
+    except Exception as e:
+        raise ValueError(f"OpenAI image generation error: {str(e)}") from e
     image = response.data[0]
 
     # Download the image

@@ -1,9 +1,50 @@
 import os
+import re
 import tempfile
 from pathlib import Path
 
 import pytest
 
+
+def scrub_oauth_tokens(response):
+    """Scrub OAuth tokens from response bodies."""
+    if not hasattr(response, "get") or "body" not in response:
+        return response
+
+    body = response["body"]
+    if isinstance(body, dict) and "string" in body:
+        body_str = body["string"]
+
+        # Handle both string and bytes content
+        if isinstance(body_str, bytes):
+            # Decode bytes to string, scrub, then encode back
+            body_str = body_str.decode("utf-8", errors="ignore")
+            body_str = re.sub(
+                r'"access_token"\s*:\s*"ya29\.[^"]*"',
+                '"access_token": "REDACTED_OAUTH_TOKEN"',
+                body_str,
+            )
+            body_str = re.sub(
+                r'"access_token"\s*:\s*"[A-Za-z0-9._-]{100,}"',
+                '"access_token": "REDACTED_OAUTH_TOKEN"',
+                body_str,
+            )
+            body["string"] = body_str.encode("utf-8")
+        elif isinstance(body_str, str):
+            # Handle string content directly
+            body_str = re.sub(
+                r'"access_token"\s*:\s*"ya29\.[^"]*"',
+                '"access_token": "REDACTED_OAUTH_TOKEN"',
+                body_str,
+            )
+            body_str = re.sub(
+                r'"access_token"\s*:\s*"[A-Za-z0-9._-]{100,}"',
+                '"access_token": "REDACTED_OAUTH_TOKEN"',
+                body_str,
+            )
+            body["string"] = body_str
+
+    return response
 
 
 @pytest.fixture(scope="session")
@@ -29,6 +70,7 @@ def vcr_config():
             "refresh_token",
             "access_token",
         ],
+        "before_record_response": scrub_oauth_tokens,
         "decode_compressed_response": True,
     }
 
@@ -88,5 +130,3 @@ def google_calendar_test_config():
     # Restore original settings
     settings.google_credentials_file = original_creds
     settings.google_token_file = original_token
-
-

@@ -1,4 +1,5 @@
 """Unit tests for Grok LLM module."""
+
 from mcp_handley_lab.llm.grok.tool import (
     MODEL_CONFIGS,
     _get_model_config,
@@ -76,9 +77,9 @@ class TestGrokErrorHandling:
             assert "output_tokens" in config, f"Missing output_tokens in {model_name}"
             # Allow None for image generation models (like grok-2-image-1212)
             output_tokens = config["output_tokens"]
-            assert output_tokens is None or isinstance(
-                output_tokens, int
-            ), f"Invalid output_tokens type in {model_name}: {type(output_tokens)}"
+            assert output_tokens is None or isinstance(output_tokens, int), (
+                f"Invalid output_tokens type in {model_name}: {type(output_tokens)}"
+            )
 
     def test_model_count_matches_expected(self):
         """Test that we have the expected number of models."""

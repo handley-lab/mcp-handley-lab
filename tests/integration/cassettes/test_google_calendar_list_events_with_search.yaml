@@ -11,7 +11,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -63,12 +63,12 @@ interactions:
       user-agent:
       - Python-httplib2/0.22.0 (gzip)
       x-goog-api-client:
-      - gl-python/3.13.3 auth/2.40.3 cred-type/u
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
     method: POST
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.a0AS3H6Nzwp-EYEg5BOL_YQIlwHh8u0pqIrB9xV_8KXMVywPR5c3lE2eRVVs1iwE81eTlbgzMmahajQxMKt6NwpSGUiOsBYRto98-WKEyDKOhNulRA-kmqVpPwAu8qE2jQ6Qd4px90kkEyDvowkxeWPN_ijhlK1Tuwd7dtLha0SQaCgYKAaESARcSFQHGX2MinWvjQnJztVZa0vOlcLDpmg0177\",\n
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -99,7 +99,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '351'
+      - '383'
     status:
       code: 200
       message: OK
@@ -115,27 +115,14 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33nvrruhgekos0o\\\"\",\n
-        \"nextSyncToken\": \"CO_979GDqY4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p337vdgl5p63ou0o\\\"\",\n
+        \"nextSyncToken\": \"CM_2wqXJh48DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
-        \"\\\"1482883012196000\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
-        \"Europe/London\",\n   \"colorId\": \"14\",\n   \"backgroundColor\": \"#9fe1e7\",\n
-        \  \"foregroundColor\": \"#000000\",\n   \"selected\": true,\n   \"accessRole\":
-        \"owner\",\n   \"defaultReminders\": [\n    {\n     \"method\": \"popup\",\n
-        \    \"minutes\": 30\n    }\n   ],\n   \"notificationSettings\": {\n    \"notifications\":
-        [\n     {\n      \"type\": \"eventCreation\",\n      \"method\": \"email\"\n
-        \    },\n     {\n      \"type\": \"eventChange\",\n      \"method\": \"email\"\n
-        \    },\n     {\n      \"type\": \"eventCancellation\",\n      \"method\":
-        \"email\"\n     },\n     {\n      \"type\": \"eventResponse\",\n      \"method\":
-        \"email\"\n     }\n    ]\n   },\n   \"primary\": true,\n   \"conferenceProperties\":
-        {\n    \"allowedConferenceSolutionTypes\": [\n     \"hangoutsMeet\"\n    ]\n
-        \  }\n  },\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1617278361036000\\\"\",\n   \"id\": \"en.uk#holiday@group.v.calendar.google.com\",\n
         \  \"summary\": \"Holidays in United Kingdom\",\n   \"description\": \"Holidays
         and Observances in United Kingdom\",\n   \"timeZone\": \"Europe/London\",\n
@@ -156,7 +143,20 @@ interactions:
         \  \"backgroundColor\": \"#ff7537\",\n   \"foregroundColor\": \"#000000\",\n
         \  \"selected\": true,\n   \"accessRole\": \"owner\",\n   \"defaultReminders\":
         [],\n   \"conferenceProperties\": {\n    \"allowedConferenceSolutionTypes\":
-        [\n     \"hangoutsMeet\"\n    ]\n   }\n  }\n ]\n}\n"
+        [\n     \"hangoutsMeet\"\n    ]\n   }\n  },\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n
+        \  \"etag\": \"\\\"1753380364597631\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
+        \"Europe/London\",\n   \"colorId\": \"14\",\n   \"backgroundColor\": \"#9fe1e7\",\n
+        \  \"foregroundColor\": \"#000000\",\n   \"selected\": true,\n   \"accessRole\":
+        \"owner\",\n   \"defaultReminders\": [\n    {\n     \"method\": \"popup\",\n
+        \    \"minutes\": 30\n    }\n   ],\n   \"notificationSettings\": {\n    \"notifications\":
+        [\n     {\n      \"type\": \"eventCreation\",\n      \"method\": \"email\"\n
+        \    },\n     {\n      \"type\": \"eventChange\",\n      \"method\": \"email\"\n
+        \    },\n     {\n      \"type\": \"eventCancellation\",\n      \"method\":
+        \"email\"\n     },\n     {\n      \"type\": \"eventResponse\",\n      \"method\":
+        \"email\"\n     }\n    ]\n   },\n   \"primary\": true,\n   \"conferenceProperties\":
+        {\n    \"allowedConferenceSolutionTypes\": [\n     \"hangoutsMeet\"\n    ]\n
+        \  }\n  }\n ]\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
@@ -165,9 +165,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Expires:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -201,66 +201,12 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
-    method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/williamjameshandley.arxiv%40gmail.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
-  response:
-    body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33nvrruhgekos0o\\\"\",\n
-        \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
-        \"updated\": \"2025-07-06T20:03:57.702Z\",\n \"timeZone\": \"Europe/London\",\n
-        \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
-        \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
-    headers:
-      Alt-Svc:
-      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
-      Cache-Control:
-      - private, max-age=0, must-revalidate, no-transform
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Sun, 06 Jul 2025 20:04:00 GMT
-      Expires:
-      - Sun, 06 Jul 2025 20:04:00 GMT
-      Server:
-      - ESF
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Origin
-      - X-Origin
-      - Referer
-      X-Content-Type-Options:
-      - nosniff
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-XSS-Protection:
-      - '0'
-      content-length:
-      - '317'
-      x-l2-request-path:
-      - l2-managed-14
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      accept:
-      - application/json
-      accept-encoding:
-      - gzip, deflate
-      content-length:
-      - '0'
-      user-agent:
-      - (gzip)
-      x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/en.uk%23holiday%40group.v.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33veld6jgekos0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p332dll56p63ou0o\\\"\",\n
         \"summary\": \"Holidays in United Kingdom\",\n \"description\": \"Holidays
         and Observances in United Kingdom\",\n \"updated\": \"2025-05-02T13:55:42.356Z\",\n
         \"timeZone\": \"Europe/London\",\n \"accessRole\": \"reader\",\n \"defaultReminders\":
@@ -273,9 +219,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Expires:
-      - Sun, 06 Jul 2025 20:04:00 GMT
+      - Wed, 13 Aug 2025 10:25:52 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -309,14 +255,14 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/48799f0fc362053eeb75ab613f81422594eee6c1b0fc74ef2f42fb025a4dbcb4%40group.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32fqllegqnvoq0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32fs5mvirfm8s0o\\\"\",\n
         \"summary\": \"Test Work Calendar\",\n \"description\": \"Test calendar for
-        work events\",\n \"updated\": \"2025-06-20T09:18:57.864Z\",\n \"timeZone\":
+        work events\",\n \"updated\": \"2025-08-02T18:07:11.364Z\",\n \"timeZone\":
         \"UTC\",\n \"accessRole\": \"owner\",\n \"defaultReminders\": [],\n \"items\":
         []\n}\n"
     headers:
@@ -327,9 +273,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:01 GMT
+      - Wed, 13 Aug 2025 10:25:53 GMT
       Expires:
-      - Sun, 06 Jul 2025 20:04:01 GMT
+      - Wed, 13 Aug 2025 10:25:53 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -363,14 +309,14 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.3 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/a6acf9c6db52b0d7b636d364f6d9d808f672af4aeacc70a0967e6571976f3adc%40group.calendar.google.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
   response:
     body:
-      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p33fpvmkpqrvoq0o\\\"\",\n
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p32fulunjrfm8s0o\\\"\",\n
         \"summary\": \"Updated Test Calendar\",\n \"description\": \"Updated description
-        for testing\",\n \"updated\": \"2025-06-20T09:21:31.037Z\",\n \"timeZone\":
+        for testing\",\n \"updated\": \"2025-08-02T18:07:13.974Z\",\n \"timeZone\":
         \"UTC\",\n \"accessRole\": \"owner\",\n \"defaultReminders\": [],\n \"items\":
         []\n}\n"
     headers:
@@ -381,9 +327,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:01 GMT
+      - Wed, 13 Aug 2025 10:25:53 GMT
       Expires:
-      - Sun, 06 Jul 2025 20:04:01 GMT
+      - Wed, 13 Aug 2025 10:25:53 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -400,6 +346,60 @@ interactions:
       - '0'
       content-length:
       - '275'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/williamjameshandley.arxiv%40gmail.com/events?alt=json&maxResults=100&orderBy=startTime&q=test&singleEvents=true&timeMax=2024-06-08T00%3A00%3A00Z&timeMin=2024-06-01T00%3A00%3A00Z
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#events\",\n \"etag\": \"\\\"p337vdgl5p63ou0o\\\"\",\n
+        \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n \"description\": \"\",\n
+        \"updated\": \"2025-08-13T10:25:50.578Z\",\n \"timeZone\": \"Europe/London\",\n
+        \"accessRole\": \"owner\",\n \"defaultReminders\": [\n  {\n   \"method\":
+        \"popup\",\n   \"minutes\": 30\n  }\n ],\n \"items\": []\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - private, max-age=0, must-revalidate, no-transform
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:53 GMT
+      Expires:
+      - Wed, 13 Aug 2025 10:25:53 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '317'
       x-l2-request-path:
       - l2-managed-14
     status:

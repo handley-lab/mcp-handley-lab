@@ -16,9 +16,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents
   response:
@@ -799,11 +799,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 15 Jul 2025 15:48:45 GMT
+      - Thu, 14 Aug 2025 06:57:30 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=245
+      - gfet4t7; dur=243
       Transfer-Encoding:
       - chunked
       Vary:
@@ -838,9 +838,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents
   response:
@@ -1622,11 +1622,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 15 Jul 2025 15:48:45 GMT
+      - Thu, 14 Aug 2025 06:57:31 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=255
+      - gfet4t7; dur=225
       Transfer-Encoding:
       - chunked
       Vary:

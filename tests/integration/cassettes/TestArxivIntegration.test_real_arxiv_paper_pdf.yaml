@@ -24,7 +24,7 @@ interactions:
 
         <h1>Redirecting...</h1>
 
-        <p>You should be redirected automatically to the target URL: <a href="http://arxiv.org/pdf/0704.0001">http://arxiv.org/pdf/0704.0001</a>.
+        <p>You should be redirected automatically to the target URL: <a href="/pdf/0704.0001">/pdf/0704.0001</a>.
         If not, click the link.
 
         '
@@ -36,25 +36,25 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '247'
+      - '215'
       Date:
-      - Sun, 06 Jul 2025 20:04:28 GMT
+      - Wed, 13 Aug 2025 10:22:23 GMT
       X-Cache:
       - MISS, MISS
       X-Served-By:
-      - cache-lga21931-LGA, cache-lcy-egml8630072-LCY
+      - cache-lga21931-LGA, cache-lcy-eglc8600093-LCY
       X-Timer:
-      - S1751832269.549426,VS0,VE264
+      - S1755080544.632937,VS0,VE268
       content-type:
       - text/html; charset=utf-8
       location:
-      - http://arxiv.org/pdf/0704.0001
+      - /pdf/0704.0001
       server:
       - Google Frontend
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish
       x-cloud-trace-context:
-      - fda79a72b90dc93d355fa817adddbbab
+      - 54db10abbddc6b9920576334e8645f04
     status:
       code: 301
       message: Moved Permanently
@@ -72,7 +72,7 @@ interactions:
       user-agent:
       - python-httpx/0.28.1
     method: GET
-    uri: http://arxiv.org/pdf/0704.0001
+    uri: https://arxiv.org/pdf/0704.0001
   response:
     body:
       string: !!binary |
@@ -28981,19 +28981,19 @@ interactions:
       Accept-Ranges:
       - bytes
       Age:
-      - '112383'
+      - '74251'
       Connection:
       - keep-alive
       Content-Length:
       - '1647343'
       Date:
-      - Sun, 06 Jul 2025 20:04:29 GMT
+      - Wed, 13 Aug 2025 10:22:23 GMT
       X-Cache:
-      - HIT, MISS
+      - HIT, HIT
       X-Served-By:
-      - cache-lga21984-LGA, cache-lcy-egml8630076-LCY
+      - cache-lga21984-LGA, cache-lcy-eglc8600093-LCY
       X-Timer:
-      - S1751832269.870867,VS0,VE301
+      - S1755080544.927457,VS0,VE71
       access-control-allow-origin:
       - '*'
       content-disposition:
@@ -29011,7 +29011,7 @@ interactions:
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish
       x-cloud-trace-context:
-      - d99264f25ac3b661f21b159dcaee1db3
+      - f21a8e253999ba36e457dd4a910df1ed
     status:
       code: 200
       message: OK

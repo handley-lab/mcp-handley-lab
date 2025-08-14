@@ -11,7 +11,111 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
+        invalid authentication credentials. Expected OAuth 2 access token, login cookie
+        or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n
+        \   \"errors\": [\n      {\n        \"message\": \"Invalid Credentials\",\n
+        \       \"domain\": \"global\",\n        \"reason\": \"authError\",\n        \"location\":
+        \"Authorization\",\n        \"locationType\": \"header\"\n      }\n    ],\n
+        \   \"status\": \"UNAUTHENTICATED\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:15 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      WWW-Authenticate:
+      - Bearer realm="https://accounts.google.com/", error="invalid_token"
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '507'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:15 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
   response:
@@ -28,11 +132,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 15 Jul 2025 23:22:47 GMT
+      - Wed, 13 Aug 2025 10:25:16 GMT
       ETag:
       - '"yBYytaCkItN-Z7wk25cvBHCrK3k"'
       Expires:
-      - Tue, 15 Jul 2025 23:22:47 GMT
+      - Wed, 13 Aug 2025 10:25:16 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -57,36 +161,36 @@ interactions:
 - request:
     body: '{"summary": "Global Team Sync", "description": "Meeting starts 9AM London
       time, ends 5PM New York time", "location": "Video Conference", "start": {"dateTime":
-      "2025-07-17T09:00:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2025-07-17T17:00:00",
-      "timeZone": "America/New_York"}}'
+      "2025-08-14T09:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime":
+      "2025-08-14T17:00:00-04:00", "timeZone": "America/New_York"}}'
     headers:
       accept:
       - application/json
       accept-encoding:
       - gzip, deflate
       content-length:
-      - '287'
+      - '299'
       content-type:
       - application/json
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: POST
     uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505243535862142\\\"\",\n
-        \"id\": \"pd0ueruhmdvnhrk8673mr3mokg\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=cGQwdWVydWhtZHZuaHJrODY3M21yM21va2cgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-07-15T23:22:47.000Z\",\n \"updated\": \"2025-07-15T23:22:47.931Z\",\n
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3510161433014590\\\"\",\n
+        \"id\": \"r62damqboqoqjuksoecni2ma7g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=cjYyZGFtcWJvcW9xanVrc29lY25pMm1hN2cgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-08-13T10:25:16.000Z\",\n \"updated\": \"2025-08-13T10:25:16.507Z\",\n
         \"summary\": \"Global Team Sync\",\n \"description\": \"Meeting starts 9AM
         London time, ends 5PM New York time\",\n \"location\": \"Video Conference\",\n
         \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
         true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-17T09:00:00+01:00\",\n
-        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-17T22:00:00+01:00\",\n
-        \ \"timeZone\": \"America/New_York\"\n },\n \"iCalUID\": \"pd0ueruhmdvnhrk8673mr3mokg@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-08-14T09:00:00+01:00\",\n
+        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-08-14T22:00:00+01:00\",\n
+        \ \"timeZone\": \"America/New_York\"\n },\n \"iCalUID\": \"r62damqboqoqjuksoecni2ma7g@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -97,9 +201,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 15 Jul 2025 23:22:47 GMT
+      - Wed, 13 Aug 2025 10:25:16 GMT
       ETag:
-      - '"3505243535862142"'
+      - '"3510161433014590"'
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -137,22 +241,126 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/pd0ueruhmdvnhrk8673mr3mokg?alt=json
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/r62damqboqoqjuksoecni2ma7g?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3505243535862142\\\"\",\n
-        \"id\": \"pd0ueruhmdvnhrk8673mr3mokg\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=cGQwdWVydWhtZHZuaHJrODY3M21yM21va2cgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-07-15T23:22:47.000Z\",\n \"updated\": \"2025-07-15T23:22:47.931Z\",\n
+      string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
+        invalid authentication credentials. Expected OAuth 2 access token, login cookie
+        or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n
+        \   \"errors\": [\n      {\n        \"message\": \"Invalid Credentials\",\n
+        \       \"domain\": \"global\",\n        \"reason\": \"authError\",\n        \"location\":
+        \"Authorization\",\n        \"locationType\": \"header\"\n      }\n    ],\n
+        \   \"status\": \"UNAUTHENTICATED\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:16 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      WWW-Authenticate:
+      - Bearer realm="https://accounts.google.com/", error="invalid_token"
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '507'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:16 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
+    method: GET
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/r62damqboqoqjuksoecni2ma7g?alt=json
+  response:
+    body:
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3510161433014590\\\"\",\n
+        \"id\": \"r62damqboqoqjuksoecni2ma7g\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=cjYyZGFtcWJvcW9xanVrc29lY25pMm1hN2cgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-08-13T10:25:16.000Z\",\n \"updated\": \"2025-08-13T10:25:16.507Z\",\n
         \"summary\": \"Global Team Sync\",\n \"description\": \"Meeting starts 9AM
         London time, ends 5PM New York time\",\n \"location\": \"Video Conference\",\n
         \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n  \"self\":
         true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-17T09:00:00+01:00\",\n
-        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-17T22:00:00+01:00\",\n
-        \ \"timeZone\": \"America/New_York\"\n },\n \"iCalUID\": \"pd0ueruhmdvnhrk8673mr3mokg@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-08-14T09:00:00+01:00\",\n
+        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-08-14T22:00:00+01:00\",\n
+        \ \"timeZone\": \"America/New_York\"\n },\n \"iCalUID\": \"r62damqboqoqjuksoecni2ma7g@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -163,11 +371,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 15 Jul 2025 23:22:48 GMT
+      - Wed, 13 Aug 2025 10:25:17 GMT
       ETag:
-      - '"3505243535862142"'
+      - '"3510161433014590"'
       Expires:
-      - Tue, 15 Jul 2025 23:22:48 GMT
+      - Wed, 13 Aug 2025 10:25:17 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -201,9 +409,113 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: DELETE
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/pd0ueruhmdvnhrk8673mr3mokg
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/r62damqboqoqjuksoecni2ma7g
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
+        invalid authentication credentials. Expected OAuth 2 access token, login cookie
+        or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n
+        \   \"errors\": [\n      {\n        \"message\": \"Invalid Credentials\",\n
+        \       \"domain\": \"global\",\n        \"reason\": \"authError\",\n        \"location\":
+        \"Authorization\",\n        \"locationType\": \"header\"\n      }\n    ],\n
+        \   \"status\": \"UNAUTHENTICATED\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:17 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      WWW-Authenticate:
+      - Bearer realm="https://accounts.google.com/", error="invalid_token"
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '507'
+      x-l2-request-path:
+      - l2-managed-14
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: grant_type=refresh_token&client_id=378887917503-cmthhlg1nnnr6hqvum1sgaggmqqbnse7.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar
+    headers:
+      accept-encoding:
+      - gzip, deflate
+      content-type:
+      - application/x-www-form-urlencoded
+      user-agent:
+      - Python-httplib2/0.22.0 (gzip)
+      x-goog-api-client:
+      - gl-python/3.13.5 auth/2.40.3 cred-type/u
+    method: POST
+    uri: https://oauth2.googleapis.com/token
+  response:
+    body:
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
+        \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
+        \ \"token_type\": \"Bearer\"\n}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 13 Aug 2025 10:25:17 GMT
+      Expires:
+      - Mon, 01 Jan 1990 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - scaffolding on HTTPServer2
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '383'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      content-length:
+      - '0'
+      user-agent:
+      - (gzip)
+      x-goog-api-client:
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
+    method: DELETE
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/r62damqboqoqjuksoecni2ma7g
   response:
     body:
       string: ''
@@ -217,7 +529,7 @@ interactions:
       Content-Type:
       - text/html
       Date:
-      - Tue, 15 Jul 2025 23:22:48 GMT
+      - Wed, 13 Aug 2025 10:25:17 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

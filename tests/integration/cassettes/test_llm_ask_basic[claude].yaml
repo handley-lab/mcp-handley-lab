@@ -19,7 +19,7 @@ interactions:
       host:
       - api.anthropic.com
       user-agent:
-      - Anthropic/Python 0.57.1
+      - Anthropic/Python 0.61.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -29,31 +29,31 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 0.57.1
+      - 0.61.0
       x-stainless-read-timeout:
-      - '600'
+      - '599'
       x-stainless-retry-count:
       - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
-      - 3.13.3
+      - 3.13.5
       x-stainless-timeout:
-      - '600'
+      - '599'
     method: POST
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01TrYQUzUcvTGPJrP2fU9Eyc","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"10"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5,"service_tier":"standard"}}'
+      string: '{"id":"msg_01BtRfX6vvC9tguKQsweLVE3","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"10"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":5,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 95b1b57989d3b314-MAN
+      - 96ee84fa7a32aebb-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 20:04:03 GMT
+      - Thu, 14 Aug 2025 06:50:42 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -67,31 +67,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-06T20:04:03Z'
+      - '2025-08-14T06:50:42Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-06T20:04:03Z'
+      - '2025-08-14T06:50:42Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-06T20:04:02Z'
+      - '2025-08-14T06:50:41Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-06T20:04:03Z'
+      - '2025-08-14T06:50:42Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '327'
+      - '406'
       request-id:
-      - req_011CQrN5XVsRSFNRJ3waZH3V
+      - req_011CS7A8QAoQHc35CuzyKChU
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

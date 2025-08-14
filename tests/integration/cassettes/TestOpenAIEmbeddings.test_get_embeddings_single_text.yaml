@@ -16,7 +16,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -26,7 +26,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -45,20 +45,17 @@ interactions:
         4,\n    \"total_tokens\": 4\n  }\n}\n"
     headers:
       CF-RAY:
-      - 95fc6d6cfeb0f663-LHR
+      - 96ee1fac0fb9b3b3-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 15 Jul 2025 21:42:03 GMT
+      - Thu, 14 Aug 2025 05:41:32 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=HrjuG34OftGbmh6svbfRbnyFGUrwciuVWQFGI2wG5Eo-1752615723-1.0.1.1-S9qxOVfpsofM4I1CqEbp.TmgzNP5tZ5Vge3GqXAfomeVmXVKpDjC91b0x6iu2k2ZhLjFg9FkbBz828Tb.IiLPvR1RZxRh.YrPKddU.1Bb6E;
-        path=/; expires=Tue, 15-Jul-25 22:12:03 GMT; domain=.api.openai.com; HttpOnly;
-        Secure; SameSite=None
-      - _cfuvid=0AHRewUfTjDZkIsIpY8gLtrVwcIB0GRehMk_hNxAcT4-1752615723584-0.0.1.1-604800000;
+      - _cfuvid=VDtUxYGXGis0IiEoTEh5sOyQOHR8k5tWSZdxtK5GY3s-1755150092736-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Transfer-Encoding:
       - chunked
@@ -79,7 +76,7 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '49'
+      - '94'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
@@ -87,9 +84,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:
-      - envoy-router-98dcf5b5f-f6lzx
+      - envoy-router-68b84f5fb9-6nlqk
       x-envoy-upstream-service-time:
-      - '51'
+      - '162'
       x-ratelimit-limit-requests:
       - '10000'
       x-ratelimit-limit-tokens:
@@ -97,13 +94,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '9999996'
+      - '9999997'
       x-ratelimit-reset-requests:
       - 6ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_46761952004073be76ed5d5433caa99d
+      - req_e21137bee8d44a98bbb0ad582db959ab
     status:
       code: 200
       message: OK

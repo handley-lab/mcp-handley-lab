@@ -260,6 +260,9 @@ class TestGoogleCalendarZeroResultsScenarios:
     @pytest.mark.asyncio
     async def test_search_events_no_matches(self, google_calendar_test_config):
         """Test search with query that matches no events."""
+        if google_calendar_test_config is None:
+            pytest.skip("Google Calendar test credentials not available")
+
         # Use a very unique search term that won't match existing events
         unique_query = f"unique_search_term_{datetime.now().timestamp()}"
 

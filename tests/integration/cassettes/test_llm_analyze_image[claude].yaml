@@ -1,9 +1,14 @@
 interactions:
 - request:
     body: '{"max_tokens": 8192, "messages": [{"role": "user", "content": [{"type":
-      "text", "text": "What color is this image?"}, {"type": "image", "source": {"type":
-      "base64", "media_type": "image/png", "data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
-      "model": "claude-3-5-sonnet-20240620", "temperature": 0.7}'
+      "text", "text": "Focus on annotation=NoneType required=False default=''general''
+      description=\"Specifies the focus of the analysis (e.g., ''text'' to transcribe,
+      ''objects'' to identify).\" aspects. Focus on annotation=NoneType required=False
+      default=''general'' description=\"Specifies the focus of the analysis (e.g.,
+      ''text'' to transcribe, ''objects'' to identify).\" aspects. What color is this
+      image?"}, {"type": "image", "source": {"type": "base64", "media_type": "image/png",
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}}]}],
+      "model": "claude-3-5-sonnet-20240620", "temperature": 1.0}'
     headers:
       accept:
       - application/json
@@ -14,13 +19,13 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '629'
+      - '981'
       content-type:
       - application/json
       host:
       - api.anthropic.com
       user-agent:
-      - Anthropic/Python 0.57.1
+      - Anthropic/Python 0.61.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -30,34 +35,34 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 0.57.1
+      - 0.61.0
       x-stainless-read-timeout:
-      - '600'
+      - '599'
       x-stainless-retry-count:
       - '0'
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
-      - 3.13.3
+      - 3.13.5
       x-stainless-timeout:
-      - '600'
+      - '599'
     method: POST
     uri: https://api.anthropic.com/v1/messages
   response:
     body:
-      string: '{"id":"msg_01S9jtbKwzcLhDQNWnoQfKNy","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"This
-        image is a solid, vibrant red color. It appears to be a simple square or rectangular
-        shape filled entirely with a bright, pure red hue without any other colors,
-        patterns, or elements visible."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":32,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":45,"service_tier":"standard"}}'
+      string: '{"id":"msg_017bycbxzzSRkNSJzYhpXdHP","type":"message","role":"assistant","model":"claude-3-5-sonnet-20240620","content":[{"type":"text","text":"The
+        image consists entirely of a solid, bright red color. There are no other colors,
+        patterns, shapes, or elements visible - it''s just a uniform red background
+        filling the entire frame."}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":126,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":41,"service_tier":"standard"}}'
     headers:
       CF-RAY:
-      - 95b1b5bf19eeb314-MAN
+      - 96ee88f0df0d3c7f-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Sun, 06 Jul 2025 20:04:15 GMT
+      - Thu, 14 Aug 2025 06:53:25 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -71,31 +76,31 @@ interactions:
       anthropic-ratelimit-input-tokens-remaining:
       - '400000'
       anthropic-ratelimit-input-tokens-reset:
-      - '2025-07-06T20:04:14Z'
+      - '2025-08-14T06:53:24Z'
       anthropic-ratelimit-output-tokens-limit:
       - '80000'
       anthropic-ratelimit-output-tokens-remaining:
       - '80000'
       anthropic-ratelimit-output-tokens-reset:
-      - '2025-07-06T20:04:15Z'
+      - '2025-08-14T06:53:25Z'
       anthropic-ratelimit-requests-limit:
       - '4000'
       anthropic-ratelimit-requests-remaining:
       - '3999'
       anthropic-ratelimit-requests-reset:
-      - '2025-07-06T20:04:13Z'
+      - '2025-08-14T06:53:24Z'
       anthropic-ratelimit-tokens-limit:
       - '480000'
       anthropic-ratelimit-tokens-remaining:
       - '480000'
       anthropic-ratelimit-tokens-reset:
-      - '2025-07-06T20:04:14Z'
+      - '2025-08-14T06:53:24Z'
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '523'
+      - '592'
       request-id:
-      - req_011CQrN6M8ZHMuFgSncyG4mb
+      - req_011CS7ALN5d5SDGFfhMyRq3i
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

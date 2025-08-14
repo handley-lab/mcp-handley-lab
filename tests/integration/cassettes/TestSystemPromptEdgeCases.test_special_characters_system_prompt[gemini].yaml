@@ -1,0 +1,75 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What is 3+7?"}], "role": "user"}, {"parts":
+      [{"text": "3+7 = 10 \ud83d\udd22\u2728"}], "role": "model"}, {"parts": [{"text":
+      "What is 3+7?"}], "role": "user"}, {"parts": [{"text": "3+7 = 10 \ud83d\udd22\u2705"}],
+      "role": "model"}, {"parts": [{"text": "What is 3+7?"}], "role": "user"}, {"parts":
+      [{"text": "3+7 = 10 \ud83d\udd22\ud83d\udc4d"}], "role": "model"}, {"parts":
+      [{"text": "What is 3+7?"}], "role": "user"}, {"parts": [{"text": "3+7 = 10 \ud83d\udd22\ud83d\udc4c"}],
+      "role": "model"}, {"parts": [{"text": "What is 3+7?"}], "role": "user"}, {"parts":
+      [{"text": "3+7 = 10 \ud83d\udd22\ud83d\ude0a"}], "role": "model"}, {"parts":
+      [{"text": "What is 3+7?"}], "role": "user"}, {"parts": [{"text": "3+7 = 10 \ud83d\udd22\ud83d\ude03"}],
+      "role": "model"}, {"parts": [{"text": "What is 3+7?"}], "role": "user"}, {"parts":
+      [{"text": "3+7 = 10 \ud83d\udd22\ud83c\udf1f"}], "role": "model"}, {"parts":
+      [{"text": "What is 3+7?"}], "role": "user"}], "systemInstruction": {"parts":
+      [{"text": "You are a helpful assistant \ud83e\udd16. Use emojis: \u2211, \u220f,
+      \u2206, \u2207, \u2208, \u2209, \u2200, \u2203"}], "role": "user"}, "generationConfig":
+      {"temperature": 1.0, "maxOutputTokens": 65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '1229'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"3+7 = 10 \U0001F522\U0001F973\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        172,\n    \"candidatesTokenCount\": 10,\n    \"totalTokenCount\": 217,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 172\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 35\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"Dd-daIDPOaLUxN8Pkc_LqA8\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 14 Aug 2025 13:05:17 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=586
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '562'
+    status:
+      code: 200
+      message: OK
+version: 1

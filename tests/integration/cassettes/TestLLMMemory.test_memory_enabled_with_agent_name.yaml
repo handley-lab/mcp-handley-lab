@@ -1,0 +1,217 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "My user ID is 789. Remember
+      this important number."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      0.1}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '152'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.1
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.99.1
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-C4M8J6JH8VSsTfDg0nxs6nkBwHb0v\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1755154427,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"I'm sorry, but I can't store personal
+        information or remember specific user IDs for privacy and security reasons.
+        If you have any questions or need assistance, feel free to ask!\",\n        \"refusal\":
+        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
+        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        19,\n    \"completion_tokens\": 34,\n    \"total_tokens\": 53,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 96ee89847f6ce4ed-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 06:53:48 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '984'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '1223'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '1240'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999985'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_df592fcd960f4e9bb5b439d44dbdeb30
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "My user ID is 789. Remember
+      this important number."}, {"role": "assistant", "content": "I''m sorry, but
+      I can''t store personal information or remember specific user IDs for privacy
+      and security reasons. If you have any questions or need assistance, feel free
+      to ask!"}, {"role": "user", "content": "What was my user ID that I told you?"}],
+      "model": "gpt-4o-mini", "max_tokens": 16384, "temperature": 0.1}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '428'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.1
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.99.1
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-C4M8LyoMdy9J6yn25hSrPdK5hmXX8\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1755154429,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"You mentioned that your user ID is
+        789, but I can't remember or store that information for future reference.
+        If you have any other questions or need assistance, feel free to ask!\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        71,\n    \"completion_tokens\": 37,\n    \"total_tokens\": 108,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 96ee898d9ca9e4ed-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 06:53:50 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '986'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '1046'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '1070'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999930'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_f4fdb5ab7ba044119ce5eb4de4dae727
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,35 @@
+# Gitleaks configuration to exclude false positives
+
+# Exclude the REDACTED_OAUTH_TOKEN placeholder we use to replace real tokens
+[[rules]]
+id = "redacted-oauth-token-allowlist"
+description = "Allow REDACTED_OAUTH_TOKEN placeholders in VCR cassettes"
+regex = '''REDACTED_OAUTH_TOKEN'''
+
+# This is an allowlist - these patterns are explicitly allowed
+[rules.allowlist]
+paths = [
+    '''tests/integration/cassettes/.*\.yaml$''',
+    '''scripts/scrub_vcr_tokens\.py$''',
+    '''tests/conftest\.py$'''
+]
+
+# Override the generic-api-key rule to exclude our redacted tokens
+[[rules]]
+id = "generic-api-key-override"
+description = "Override generic API key detection to exclude redacted tokens"
+regex = '''(?i)(?:key|api|token|secret|password)["']?\s*[:=]\s*["']?[a-z0-9_\-]{20,}["']?'''
+
+[rules.allowlist]
+regexes = [
+    '''REDACTED_OAUTH_TOKEN''',
+    '''ANTHROPIC_API_KEY''',
+    '''OPENAI_API_KEY''',
+    '''GEMINI_API_KEY'''
+]
+paths = [
+    '''tests/integration/cassettes/.*\.yaml$''',
+    '''tests/integration/test_.*\.py$''',
+    '''scripts/scrub_vcr_tokens\.py$''',
+    '''tests/conftest\.py$'''
+]

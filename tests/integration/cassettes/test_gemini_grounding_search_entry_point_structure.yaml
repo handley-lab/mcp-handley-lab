@@ -1,8 +1,470 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "Latest developments in quantum computing
+      2024"}], "role": "user"}, {"parts": [{"text": "Quantum computing in 2024 saw
+      significant advancements across several key areas:\n\n**Hardware:**\n\n*   **Increased
+      Qubit Count:** IBM unveiled its Condor processor with 1,121 qubits, a substantial
+      leap from its previous 127-qubit Eagle processor.  This increase allows for
+      tackling more complex problems.  Other companies also made progress in increasing
+      qubit numbers.\n*   **Improved Qubit Stability and Error Correction:**  Researchers
+      made progress in improving qubit stability and developing more effective error
+      correction techniques. Google announced a new quantum error correction method
+      focusing on creating more robust logical qubits from multiple physical ones.  Argonne
+      National Laboratory significantly extended the coherence time of a novel qubit
+      type by nearly a thousand times.  The development of topological qubits is also
+      progressing.\n\n**Software and Algorithms:**\n\n*   **Advancements in Quantum
+      Algorithms:** New algorithms were developed to leverage quantum computing''s
+      unique capabilities, promising more efficient solutions in fields like cryptography,
+      materials science, and machine learning.\n*   **Quantum Machine Learning:**  Quantum
+      machine learning emerged as a significant area of development, with researchers
+      developing quantum neural networks and other algorithms for tasks like image
+      and natural language processing.  This was enabled, in part, by increased access
+      to quantum computing through quantum-as-a-service (QaaS).\n\n**Accessibility
+      and Applications:**\n\n*   **Quantum Cloud Services:**  The expansion of quantum
+      cloud services from companies like IBM, Google, and Amazon made quantum computing
+      more accessible to researchers and businesses, accelerating innovation.\n*   **Practical
+      Applications:** While broad-scale applications remain a decade away according
+      to some analyses, quantum computing is already finding use in solving specific
+      problems.  For example, D-Wave''s annealing quantum technology successfully
+      optimized mobile network resources for NTT Docomo significantly faster than
+      classical methods.  Applications in materials science, drug discovery, and other
+      fields are showing promising results.\n*   **Quantum Internet Development:**
+      Research into a quantum internet is progressing, focusing on quantum key distribution,
+      repeaters, and networking protocols.  Improved quantum sensing is also impacting
+      fields such as navigation and medical imaging.\n\n**Overall Assessment:**\n\nWhile
+      2024 saw substantial progress, many experts agree that quantum computing remains
+      largely experimental.  Though significant breakthroughs were achieved, widespread
+      practical applications are still projected to be some years in the future.  However,
+      the continued investment and advancements suggest a bright outlook for the field''s
+      continued growth and development in the coming years.\n"}], "role": "model"},
+      {"parts": [{"text": "Latest developments in quantum computing 2024"}], "role":
+      "user"}, {"parts": [{"text": "The year 2024 witnessed substantial progress in
+      quantum computing, although widespread practical applications remain some years
+      away.  Here''s a summary of the key developments:\n\n**Hardware Advancements:**\n\n*   A
+      significant increase in qubit count was achieved. IBM''s Condor processor, boasting
+      1,121 qubits, marked a substantial leap forward, enabling the exploration of
+      more complex problems.  Other companies also reported increases in qubit numbers.\n*   Improvements
+      in qubit stability and coherence times were reported.  Argonne National Laboratory
+      achieved a near thousand-fold increase in coherence time for a novel qubit type.
+      Google announced a new quantum error correction method aimed at creating more
+      reliable logical qubits.\n\n**Software and Algorithmic Developments:**\n\n*   New
+      quantum algorithms were developed, promising more efficient solutions in various
+      fields.\n*   Quantum machine learning progressed significantly, with researchers
+      creating quantum neural networks and algorithms for tasks like image and natural
+      language processing.  Increased access via quantum-as-a-service (QaaS) platforms
+      fueled this progress.\n\n**Accessibility and Applications:**\n\n*   Expanded
+      quantum cloud services from major tech companies made quantum computing more
+      accessible to researchers and businesses.\n*   While broad-scale applications
+      are still some time away,  demonstrations of quantum computing''s practical
+      use in specific problems occurred, such as D-Wave''s success in optimizing mobile
+      network resources.  Progress was also seen in materials science and drug discovery.\n*   Research
+      into a quantum internet, focusing on quantum key distribution and networking
+      protocols, continued to advance.\n\n\n**Challenges and Perspectives:**\n\n*   Despite
+      significant advancements, many experts emphasize that quantum computing remains
+      largely experimental.  While breakthroughs were made, the technology hasn''t
+      yet demonstrated a practical advantage over classical computers for most applications.
+      Broad-scale applications are projected to be a decade away, according to some
+      analyses.\n*   However, continued investment and the ongoing research suggest
+      a promising future for quantum computing.  The convergence of AI, software advancements,
+      and hardware innovations is expected to drive the technology toward mainstream
+      adoption.\n\nIn short, 2024 was a year of substantial progress in quantum computing,
+      marked by increases in qubit numbers, improvements in qubit stability and error
+      correction, and expansion in accessibility and exploration of potential applications.  While
+      widespread practical use is still some years away, the field is continuing to
+      advance at a rapid pace.\n"}], "role": "model"}, {"parts": [{"text": "Latest
+      developments in quantum computing 2024"}], "role": "user"}, {"parts": [{"text":
+      "2024 saw significant but uneven progress in quantum computing.  Advancements
+      were made in several key areas, but widespread practical applications remain
+      a longer-term goal.\n\n**Hardware:**\n\n*   **Increased Qubit Count:**  A major
+      milestone was IBM''s unveiling of the Condor processor with 1,121 qubits, a
+      substantial increase over previous generations.  Other companies also reported
+      increases in qubit numbers, though specific figures varied.  This expansion
+      in qubit count allows for tackling increasingly complex problems.\n*   **Improved
+      Qubit Stability and Error Correction:**  Researchers achieved breakthroughs
+      in improving qubit stability and developing more robust error correction techniques.  Google
+      announced a new error correction method, while Argonne National Laboratory dramatically
+      extended the coherence time of a novel qubit type by almost a thousand times.  These
+      improvements are crucial for building more reliable and scalable quantum computers.  Progress
+      was also reported in the development of topological qubits.\n\n**Software and
+      Algorithms:**\n\n*   **Algorithm Development:** New quantum algorithms were
+      developed to exploit quantum computing''s unique capabilities, potentially leading
+      to more efficient solutions in cryptography, materials science, and machine
+      learning.  However, the development of new algorithms has lagged behind hardware
+      advancements in recent years.\n*   **Quantum Machine Learning:**  Quantum machine
+      learning (QML) saw significant progress, with the development of quantum neural
+      networks and algorithms designed for complex tasks such as image and natural
+      language processing.  This was partially driven by increased access to quantum
+      computing resources through quantum-as-a-service (QaaS) platforms.\n\n**Accessibility
+      and Applications:**\n\n*   **Cloud Services:**  The expansion of quantum cloud
+      services from major companies like IBM, Google, and Amazon increased accessibility
+      for researchers and businesses.  This broader access is accelerating innovation
+      and experimentation.\n*   **Specific Applications:** While broad-scale applications
+      are still some years away, quantum computing demonstrated usefulness in specific
+      areas.  For instance, D-Wave''s annealing quantum computer achieved significant
+      performance gains in optimizing mobile network resources.  Other applications
+      showed progress in materials science, drug discovery, and optimization problems.  The
+      limitations of current, noisy intermediate-scale quantum (NISQ) computers mean
+      that these applications are still niche and often require specialized algorithms
+      and hardware.\n*   **Quantum Internet:** Research into a quantum internet continued
+      to advance, focusing on quantum key distribution and networking protocols.\n\n\n**Challenges
+      and Outlook:**\n\n*   **Experimental Stage:**  Despite significant progress,
+      quantum computing remains largely experimental.  Practical advantages over classical
+      computers haven''t been demonstrated for most applications, and broad-scale
+      applications are still considered to be a decade away by some experts.\n*   **Error
+      Rates and Scalability:**  High error rates and challenges with scalability remain
+      significant obstacles.  Even with improved error correction, current hardware
+      struggles with the number of gate operations required for many useful algorithms.\n*   **Investment:**
+      While investment in quantum computing continued in 2024, there was a notable
+      slowdown in venture capital funding compared to previous years. However, government
+      funding is stepping in to support the continued development of this critical
+      technology.\n\n\nIn summary, 2024 showed substantial advancements in quantum
+      computing hardware and software, but significant challenges remain before the
+      technology reaches its full potential.  While the long-term prospects remain
+      positive, widespread practical applications are still a considerable distance
+      away.\n"}], "role": "model"}, {"parts": [{"text": "Latest developments in quantum
+      computing 2024"}], "role": "user"}, {"parts": [{"text": "2024 saw significant
+      advancements in quantum computing, although the technology remains largely experimental
+      and widespread practical applications are still some years away.  Key developments
+      included:\n\n\n**Hardware:**\n\n*   **Increased Qubit Count:**  IBM''s announcement
+      of the Condor processor with 1,121 qubits was a major milestone, surpassing
+      previous generation processors significantly. This increase in qubit count allows
+      for tackling increasingly complex problems.  Other companies also reported advancements
+      in qubit numbers.\n*   **Improved Qubit Stability and Error Correction:**  Researchers
+      made substantial progress in improving qubit stability and developing more effective
+      error correction techniques.  Google''s new quantum error correction method
+      and Argonne National Laboratory''s nearly thousand-fold increase in coherence
+      time for a novel qubit type are examples of these advancements.  This is crucial
+      for building more reliable and scalable quantum computers.  Progress in topological
+      qubits also continued.  IBM also announced a landmark new error-correcting code
+      significantly more efficient than previous methods.\n\n**Software and Algorithms:**\n\n*   **New
+      Algorithms:**  New quantum algorithms were developed to leverage quantum computing''s
+      unique capabilities for applications in various fields like cryptography, materials
+      science, and machine learning.  Advancements in algorithms for factoring large
+      numbers have potential implications for cybersecurity.\n*   **Quantum Machine
+      Learning:**  The field of quantum machine learning saw significant progress,
+      with developments in quantum neural networks and algorithms designed for complex
+      tasks.  Increased access to quantum computing through quantum-as-a-service (QaaS)
+      platforms accelerated this progress.  IBM released a stable version of its Qiskit
+      SDK, becoming a leading software stack for quantum computing.\n\n**Accessibility
+      and Applications:**\n\n*   **Expanded Cloud Services:**  Major tech companies
+      expanded their quantum cloud services, making quantum computing more accessible
+      to researchers and businesses.  This increased accessibility is expected to
+      accelerate innovation and the development of new applications.\n*   **Specific
+      Applications:**  While broad-scale applications remain in the future, quantum
+      computing was used successfully to solve specific problems.  For example, D-Wave''s
+      annealing quantum computer optimized mobile network resources for NTT Docomo
+      significantly faster than classical methods.  However,  claims of surpassing
+      classical computers for optimization problems were challenged.  Applications
+      in materials science and drug discovery showed promising results.\n*   **Quantum
+      Internet Development:**  Research into quantum internet technologies, including
+      quantum key distribution and networking protocols, continued to advance.\n\n\n**Challenges
+      and Outlook:**\n\n*   **Experimental Stage:**  Despite progress, quantum computing
+      remains largely experimental.  Practical advantages over classical computers
+      haven''t been demonstrated for most applications.  Widespread practical applications
+      are projected to be a decade away according to some analysts.\n*   **Error Rates
+      and Scalability:**  High error rates and scalability challenges persist.  Current
+      hardware limitations restrict the number of gate operations required for many
+      algorithms.\n*   **Investment:**  While substantial investment continued, there
+      was some slowdown in venture capital funding compared to previous years, potentially
+      reflecting a correction after earlier hype.  However, government funding continues
+      to be an important element in supporting the field.\n\n\nIn summary, 2024 showed
+      significant progress in quantum computing hardware and software, but major hurdles
+      remain before the technology reaches its full potential.  While the long-term
+      prospects are positive, widespread practical applications are still some years
+      away.\n"}], "role": "model"}, {"parts": [{"text": "Latest developments in quantum
+      computing 2024"}], "role": "user"}, {"parts": [{"text": "2024 saw significant,
+      though uneven, progress in quantum computing.  While broad-scale commercial
+      applications remain some years off, advancements across hardware, software,
+      and accessibility were notable.\n\n**Hardware:**\n\n*   **Increased Qubit Count:**  IBM''s
+      Condor processor, featuring 1,121 qubits, represented a substantial increase,
+      exceeding previous generations significantly.  This advancement, mirrored by
+      other companies, allows for tackling more complex problems.\n*   **Improved
+      Qubit Stability and Error Correction:**  Several key improvements were reported.  Google
+      announced a novel quantum error correction technique, and Argonne National Laboratory
+      achieved a remarkable thousand-fold increase in coherence time for a new qubit
+      type.  These advancements address a critical challenge in quantum computing
+      \u2013 maintaining qubit stability and reducing errors.  Furthermore, IBM released
+      a new, highly efficient error-correcting code.  Research into topological qubits
+      also showed continued progress.  University of Chicago researchers also created
+      qubits using \"stretched\" diamond films, reducing equipment and expense.\n\n**Software
+      and Algorithms:**\n\n*   **Algorithm Development:**  New quantum algorithms
+      were designed to exploit the unique capabilities of quantum computers.  Advances
+      in algorithms for factoring large numbers have implications for cryptography
+      and cybersecurity.\n*   **Quantum Machine Learning:** This field saw considerable
+      progress, with new quantum neural networks and algorithms developed for complex
+      tasks.  The expansion of quantum-as-a-service (QaaS) platforms facilitated this
+      progress by making quantum computing resources more accessible.  IBM released
+      an updated Qiskit SDK.\n\n**Accessibility and Applications:**\n\n*   **Cloud
+      Services:**  Major companies expanded their quantum cloud services, making quantum
+      computing more readily accessible to researchers and businesses.\n*   **Specific
+      Applications:**  While broad-scale applications are still future goals,  quantum
+      computers successfully addressed specific problems.  D-Wave''s annealing quantum
+      computer optimized mobile network resources for a major telecom provider.  Applications
+      in materials science and drug discovery also demonstrated progress.  However,
+      it''s crucial to note that the capabilities of current, noisy intermediate-scale
+      quantum (NISQ) computers limit the scope of these applications.\n*   **Quantum
+      Internet Development:** Research continued on quantum internet technologies,
+      including quantum key distribution and networking protocols.\n\n**Challenges
+      and Outlook:**\n\n*   **Experimental Stage:**  Despite progress, quantum computing
+      remains largely in the experimental stage.  Practical advantages over classical
+      computers for most applications remain unproven.  Many experts project that
+      widespread practical applications are still a decade away.\n*   **Error Rates
+      and Scalability:**  High error rates and scalability remain major obstacles.  Existing
+      error correction methods are not yet reliable enough to ensure the accuracy
+      required for many practical algorithms.\n*   **Investment:**  While significant
+      investment continued, a slowdown in venture capital funding was noted in 2024
+      compared to previous years, potentially due to macroeconomic factors and a correction
+      after earlier hype. However, increased government funding is helping support
+      continued development.  A shift towards application software and cloud-based
+      services is also observed, indicating a change in focus from hardware-centric
+      development.\n\n\nIn conclusion, 2024 demonstrated significant advancements
+      in quantum computing across multiple fronts, but challenges persist.  While
+      the long-term outlook remains promising, widespread practical applications are
+      still some years away.\n"}], "role": "model"}, {"parts": [{"text": "Latest developments
+      in quantum computing 2024"}], "role": "user"}, {"parts": [{"text": "The year
+      2024 witnessed significant advancements in quantum computing, though widespread
+      practical applications remain a longer-term prospect.  Key developments included:\n\n**Hardware:**\n\n*   **Increased
+      Qubit Count:**  IBM''s release of the Condor processor, featuring 1,121 qubits,
+      represented a substantial leap forward in processing power, enabling more complex
+      computations.  This trend of increased qubit count was echoed by other companies.\n*   **Improved
+      Qubit Stability and Error Correction:**  Significant progress was made in enhancing
+      qubit stability and developing more effective error correction techniques.  This
+      included Google''s new error correction method and Argonne National Laboratory''s
+      dramatic improvement in qubit coherence time (nearly a thousandfold increase).  IBM
+      also announced a landmark new error-correcting code, significantly more efficient
+      than previous methods.  Furthermore, researchers at the University of Chicago
+      developed qubits using \"stretched\" diamond films, simplifying manufacturing
+      and reducing costs.\n\n**Software and Algorithms:**\n\n*   **New Algorithms:**  Progress
+      was made in developing new quantum algorithms designed to exploit the unique
+      capabilities of quantum computers for various applications, including cryptography
+      (with implications for cybersecurity), materials science, and machine learning.\n*   **Quantum
+      Machine Learning:**  This field saw substantial growth, with new quantum neural
+      networks and algorithms developed for complex tasks.  The increased availability
+      of quantum computing resources through quantum-as-a-service (QaaS) platforms
+      accelerated this progress.  IBM released a stable version of its Qiskit SDK,
+      becoming a leading software stack.\n\n**Accessibility and Applications:**\n\n*   **Expanded
+      Cloud Services:** Major companies expanded their quantum cloud services, making
+      quantum computing more accessible to researchers and businesses.\n*   **Specific
+      Applications:** While broad-scale applications are still some years away, successful
+      applications of quantum computing emerged in specific problem domains.  One
+      example was D-Wave''s annealing quantum computer''s optimization of mobile network
+      resources for NTT Docomo, achieving a significant speedup compared to classical
+      methods. However,  some claims regarding exceeding classical computing capabilities
+      in certain areas were contested. Applications in materials science and drug
+      discovery also showed promise.\n*   **Quantum Internet Development:**  Research
+      continued in quantum internet technologies, including quantum key distribution
+      and networking protocols.\n\n\n**Challenges and Outlook:**\n\n*   **Experimental
+      Stage:**  Despite the progress, quantum computing remains largely experimental.  Widespread
+      practical advantages over classical computers haven''t been demonstrated for
+      most applications, with broad-scale applications projected to be a decade away
+      by some estimates.\n*   **Error Rates and Scalability:**  High error rates and
+      scalability challenges continue to hinder progress.  Current error correction
+      methods are not yet sufficiently reliable for many practical algorithms.\n*   **Investment:**  While
+      significant investment continued, some slowdown in venture capital funding was
+      observed in 2024 compared to previous years, although government funding remains
+      substantial.  A shift toward application software and cloud-based services was
+      also noted, indicating a change in focus from hardware-centric development.  The
+      sources indicate that despite this slowdown, the field is expected to continue
+      receiving substantial investment in the near future.\n\n\nIn summary, 2024 was
+      a year of notable advancements in quantum computing, particularly in hardware
+      and software.  However, significant challenges remain before the technology
+      reaches its full potential, and widespread practical applications are still
+      projected to be several years away.\n"}], "role": "model"}, {"parts": [{"text":
+      "Latest developments in quantum computing 2024"}], "role": "user"}, {"parts":
+      [{"text": "The year 2024 showed substantial progress in quantum computing, although
+      significant challenges remain before widespread practical applications become
+      a reality.  Here''s a summary based on your provided sources:\n\n**Hardware:**\n\n*   **Increased
+      Qubit Count:**  A major development was IBM''s unveiling of the Condor processor
+      with 1,121 qubits, a considerable increase over previous generations.  This
+      signifies a move towards more complex problem-solving capabilities.  Other companies
+      also reported increases in qubit numbers, though exact figures varied across
+      sources.\n*   **Improved Qubit Stability and Error Correction:**  Multiple sources
+      highlighted progress in qubit stability and error correction techniques.  Google
+      announced a new error correction method, focusing on creating more robust logical
+      qubits from multiple physical ones.  Researchers at Argonne National Laboratory
+      significantly improved coherence time for a novel qubit type by nearly a thousand
+      times.  The University of Chicago also announced a breakthrough in creating
+      qubits using stretched diamond films, simplifying manufacturing and lowering
+      costs.  IBM additionally revealed a highly efficient new error-correcting code.  These
+      advancements are crucial for building more reliable and scalable quantum computers.\n\n**Software
+      and Algorithms:**\n\n*   **Advancements in Quantum Algorithms:**  Sources indicate
+      the development of new algorithms designed to exploit quantum computing''s unique
+      capabilities, potentially leading to more efficient solutions in cryptography,
+      materials science, and machine learning.\n*   **Quantum Machine Learning:**  This
+      field showed significant growth, with researchers developing quantum neural
+      networks and algorithms for complex tasks. The expansion of quantum-as-a-service
+      (QaaS) platforms contributed to this progress by increasing accessibility.\n\n**Accessibility
+      and Applications:**\n\n*   **Quantum Cloud Services:** The expansion of quantum
+      cloud services from companies like IBM, Google, and Amazon made quantum computing
+      more accessible to researchers and businesses.\n*   **Practical Applications:**
+      While broad-scale applications are still some years away, examples of quantum
+      computing''s successful application in specific problems emerged.  D-Wave''s
+      annealing quantum computer optimized mobile network resources for NTT Docomo,
+      significantly outperforming classical methods.  However, the limitations of
+      current noisy intermediate-scale quantum (NISQ) computers mean these applications
+      are currently niche and often require specialized algorithms and hardware.\n*   **Quantum
+      Internet Development:**  Research into a quantum internet continued, focusing
+      on quantum key distribution, repeaters, and networking protocols.\n\n\n**Challenges
+      and Outlook:**\n\n*   **Experimental Stage:**  Despite significant advancements,
+      many sources emphasize that quantum computing remains largely experimental.  While
+      breakthroughs were made, practical advantages over classical computers for most
+      applications are yet to be demonstrated on a wide scale.  Broad-scale applications
+      are projected to be a decade or more away, according to multiple sources.\n*   **Investment:**
+      While significant investment continued, some sources noted a potential slowdown
+      in venture capital funding compared to previous years, possibly reflecting a
+      correction after earlier hype. However, government funding remains substantial,
+      and investment in application software and cloud-based services is increasing.\n\n\nIn
+      summary, 2024 was a year of substantial progress in quantum computing, marked
+      by increases in qubit numbers, improvements in qubit stability and error correction,
+      and expanded accessibility.  However, significant challenges remain before the
+      technology reaches its full potential, and widespread practical applications
+      are still some years away.  The shift towards application software and cloud
+      services suggests a change in focus from hardware-centric development.\n"}],
+      "role": "model"}, {"parts": [{"text": "Latest developments in quantum computing
+      2024"}], "role": "user"}, {"parts": [{"text": "2024 witnessed significant advancements
+      in quantum computing, although widespread practical applications remain several
+      years away.  Key developments include:\n\n**Hardware:**\n\n*   **Increased Qubit
+      Count:** IBM''s Condor processor, with 1,121 qubits, marked a substantial increase
+      in processing power, allowing for more complex computations.  Other companies
+      also reported increases in qubit numbers.\n*   **Improved Qubit Stability and
+      Error Correction:**  Major strides were made in improving qubit stability and
+      error correction.  Google announced a new error correction technique, while
+      Argonne National Laboratory achieved a dramatic improvement in coherence time
+      for a novel qubit type (nearly 1000x).  The University of Chicago developed
+      qubits using stretched diamond films, simplifying manufacturing and reducing
+      costs. IBM also introduced a highly efficient new error-correcting code.  These
+      advancements address critical challenges in building reliable and scalable quantum
+      computers.\n\n**Software and Algorithms:**\n\n*   **New Algorithms:** New algorithms
+      were developed to leverage quantum computing''s unique capabilities, with potential
+      applications in cryptography (impacting cybersecurity), materials science, and
+      machine learning.  Progress in algorithms for factoring large numbers has significant
+      implications for breaking current encryption methods.\n*   **Quantum Machine
+      Learning:**  This field experienced considerable growth, with advancements in
+      quantum neural networks and algorithms for complex tasks.  Increased accessibility
+      through quantum-as-a-service (QaaS) platforms accelerated this progress.\n\n**Accessibility
+      and Applications:**\n\n*   **Expanded Cloud Services:**  Major tech companies
+      expanded their quantum cloud services, increasing accessibility for researchers
+      and businesses.\n*   **Specific Applications:**  While broad-scale applications
+      remain future goals, quantum computers successfully addressed specific problems.  D-Wave''s
+      annealing quantum computer optimized mobile network resources significantly
+      faster than classical methods.  However, claims of surpassing classical computers
+      in all optimization problems were challenged.  Applications in materials science
+      and drug discovery also showed promise.\n*   **Quantum Internet Development:**  Research
+      into quantum internet technologies, including quantum key distribution and networking
+      protocols, continued to advance.\n\n**Challenges and Outlook:**\n\n*   **Experimental
+      Stage:** Despite progress, quantum computing remains largely experimental.  Widespread
+      practical advantages over classical computers haven''t been fully demonstrated.  Many
+      experts project that broad-scale applications are still a decade or more away.\n*   **Error
+      Rates and Scalability:**  High error rates and scalability challenges persist.  Current
+      error correction techniques are not yet sufficiently reliable for many practical
+      algorithms.\n*   **Investment:**  While substantial investment continued, some
+      sources noted a potential slowdown in venture capital funding compared to previous
+      years, possibly reflecting a correction after earlier hype.  However, government
+      funding remains significant, and investment in application software and cloud-based
+      services is increasing.\n\n\nIn summary, 2024 demonstrated significant advancements
+      in quantum computing hardware and software, but considerable challenges remain
+      before the technology reaches its full potential.  While the long-term prospects
+      are positive, widespread practical applications are projected to be several
+      years away.\n"}], "role": "model"}, {"parts": [{"text": "Latest developments
+      in quantum computing 2024"}], "role": "user"}, {"parts": [{"text": "The year
+      2024 saw notable progress in quantum computing, although widespread practical
+      applications remain several years away.  Key advancements included:\n\n**Hardware:**\n\n*   **Increased
+      Qubit Count:** IBM''s Condor processor, with 1,121 qubits, represented a significant
+      leap forward, enabling more complex computations.  Other companies also reported
+      increases in qubit numbers.\n*   **Improved Qubit Stability and Error Correction:**  Significant
+      improvements were made in qubit stability and error correction techniques.  This
+      included advancements in error correction codes and the development of more
+      stable qubits, such as topological qubits.  Specific examples include Google''s
+      new quantum error correction technique and Argonne National Laboratory''s dramatic
+      increase in coherence time (nearly 1000x) for a novel qubit type.  Researchers
+      at the University of Chicago also developed a more cost-effective method for
+      creating qubits using stretched diamond films.  IBM also announced a highly
+      efficient new error-correcting code.\n\n**Software and Algorithms:**\n\n*   **New
+      Algorithms:**  New quantum algorithms were developed, potentially offering more
+      efficient solutions in cryptography, materials science, and machine learning.  Progress
+      was made in algorithms for factoring large numbers, with implications for cybersecurity.\n*   **Quantum
+      Machine Learning:**  This field experienced substantial growth, with the development
+      of new quantum neural networks and algorithms for complex tasks. The expanded
+      availability of quantum computing resources via quantum-as-a-service (QaaS)
+      platforms accelerated this progress.\n\n**Accessibility and Applications:**\n\n*   **Expanded
+      Cloud Services:**  Major tech companies further expanded their quantum cloud
+      services, making quantum computing more accessible to researchers and businesses.\n*   **Practical
+      Applications:**  While broad-scale applications are still some time away, quantum
+      computers were successfully applied to specific problems.  For instance, D-Wave''s
+      annealing quantum computer demonstrated improved performance in optimizing mobile
+      network resources.  Progress was also seen in applications within materials
+      science and drug discovery.  However, it is important to note that the capabilities
+      of current noisy intermediate-scale quantum (NISQ) computers limit the scope
+      of these applications.\n*   **Quantum Internet Development:** Research into
+      quantum internet technologies, including quantum key distribution and networking
+      protocols, continued to advance.\n\n**Challenges and Outlook:**\n\n*   **Experimental
+      Stage:** Despite advancements, quantum computing remains largely experimental.  Widespread
+      practical advantages over classical computers haven''t been consistently demonstrated.  Broad-scale
+      applications are projected to be a decade or more away, according to some analyses.\n*   **Error
+      Rates and Scalability:**  High error rates and scalability challenges remain
+      significant obstacles. Current error correction methods are not yet sufficiently
+      reliable for many practical algorithms.\n*   **Investment:**  While substantial
+      investment continued, some sources noted a potential slowdown in venture capital
+      funding compared to previous years, potentially reflecting a correction after
+      earlier hype.  However, government funding and investment in application software
+      and cloud-based services remain strong.  The shift towards application software
+      and cloud services reflects an industry shift away from hardware-centric development.\n\n\nIn
+      summary, 2024 demonstrated significant progress in quantum computing hardware
+      and software, but substantial challenges persist before the technology reaches
+      its full potential.  Widespread practical applications are still projected to
+      be several years away.\n"}], "role": "model"}, {"parts": [{"text": "Latest developments
+      in quantum computing 2024"}], "role": "user"}, {"parts": [{"text": "The year
+      2024 marked significant progress in quantum computing, although widespread practical
+      applications remain a future goal.  Key developments across several areas are
+      summarized below:\n\n\n**Hardware:**\n\n*   **Increased Qubit Count:**  IBM''s
+      Condor processor, with its 1,121 qubits, represented a substantial increase,
+      enabling more complex computations.  Other companies also announced increases
+      in qubit numbers.  This growth in qubit count is a crucial step toward tackling
+      more challenging problems.\n*   **Improved Qubit Stability and Error Correction:**  Researchers
+      made significant strides in improving qubit stability and developing more effective
+      error correction techniques.  Specific examples include Google''s new error
+      correction method and Argonne National Laboratory''s remarkable near thousand-fold
+      improvement in coherence time for a novel qubit type.  The University of Chicago
+      developed a method for creating qubits using stretched diamond films, reducing
+      cost and complexity.  IBM also introduced a new, highly efficient error-correcting
+      code.  These advancements are vital for creating more reliable and scalable
+      quantum computers.\n\n**Software and Algorithms:**\n\n*   **New Algorithms:**  Progress
+      was made in developing new quantum algorithms, potentially leading to more efficient
+      solutions in fields like cryptography, materials science, and machine learning.  Advancements
+      in algorithms for factoring large numbers have major implications for cybersecurity.\n*   **Quantum
+      Machine Learning:**  This area experienced growth, with new quantum neural networks
+      and algorithms developed for complex tasks.  The expansion of quantum-as-a-service
+      (QaaS) platforms increased accessibility and accelerated this progress.\n\n**Accessibility
+      and Applications:**\n\n*   **Expanded Cloud Services:**  Major companies expanded
+      their quantum cloud services, making quantum computing more accessible to researchers
+      and businesses.  This enhanced accessibility is accelerating innovation.\n*   **Specific
+      Applications:** While broad-scale applications are still some years away, quantum
+      computers successfully addressed specific problems.  D-Wave''s annealing quantum
+      computer demonstrated significant speed improvements in optimizing mobile network
+      resources for NTT Docomo.  However, the limitations of current noisy intermediate-scale
+      quantum (NISQ) computers mean that these applications remain niche.  Applications
+      in materials science and drug discovery also showed promising results.\n*   **Quantum
+      Internet Development:** Research into quantum internet technologies, including
+      quantum key distribution and networking protocols, continued to advance.\n\n**Challenges
+      and Outlook:**\n\n*   **Experimental Stage:** Despite significant advancements,
+      quantum computing remains largely experimental.  Widespread practical advantages
+      over classical computers haven''t been consistently demonstrated.  Broad-scale
+      applications are projected to be a decade or more away, according to several
+      sources.\n*   **Error Rates and Scalability:**  High error rates and scalability
+      challenges remain significant obstacles. Current error correction methods aren''t
+      yet sufficiently reliable for many practical algorithms.\n*   **Investment:**  While
+      significant investment continued, some sources noted a potential slowdown in
+      venture capital funding, possibly reflecting a correction after earlier hype.
+      However, government funding and investment in application software and cloud-based
+      services remain strong.  A shift towards application software and cloud-based
+      services is also observed.\n\n\nIn summary, 2024 demonstrated substantial progress
+      in quantum computing, particularly in hardware and software.  However, significant
+      challenges remain before the technology reaches its full potential, and widespread
+      practical applications are still several years away.  The increasing focus on
+      application software and cloud-based services suggests a shift in industry priorities.\n"}],
+      "role": "model"}, {"parts": [{"text": "Latest developments in quantum computing
       2024"}], "role": "user"}], "tools": [{"googleSearchRetrieval": {}}], "generationConfig":
-      {"temperature": 0.7, "maxOutputTokens": 8192}}'
+      {"temperature": 1.0, "maxOutputTokens": 8192}}'
     headers:
       accept:
       - '*/*'
@@ -11,86 +473,82 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '211'
+      - '37962'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Quantum computing in 2024 saw significant
-        advancements across hardware, software, algorithms, and applications.  Here's
-        a summary of the key developments:\\n\\n**Hardware Advancements:**\\n\\n*
-        **Increased Qubit Count and Stability:**  Companies like IBM made headlines
-        with the unveiling of significantly more powerful processors.  IBM's Condor
-        processor, boasting 1,121 qubits, represented a substantial leap forward,
-        exceeding previous capabilities.  Simultaneously,  research focused on improving
-        qubit stability and coherence times, crucial for reliable computation.  This
-        included advancements in error correction techniques,  with Google announcing
-        a new method for creating more robust logical qubits.  The development of
-        topological qubits by Microsoft also marked a significant milestone.  Further
-        advancements in hypercube network technologies improved the scalability and
-        performance of quantum systems by enhancing communication between qubits.
-        \ Integrated photonics combined with ion traps also showed promise for more
-        compact and efficient quantum devices. Innovative materials like germanium
-        and GeSn-based quantum well lasers were explored to enhance quantum hardware
-        performance.\\n\\n* **Increased Accessibility:** Cloud-based quantum computing
-        services from major tech companies like IBM, Google, and Amazon expanded,
-        making quantum computing more accessible to researchers and businesses without
-        requiring them to build their own hardware.\\n\\n**Software and Algorithmic
-        Advancements:**\\n\\n* **Quantum Machine Learning Integration:**  The integration
-        of machine learning with quantum systems continued to advance, with frameworks
-        like TorchQC enabling the application of deep learning techniques in quantum
-        dynamics and control. This integration is expected to optimize quantum algorithms
-        for real-world applications.\\n\\n* **Advancements in Quantum Algorithms:**
-        New algorithms designed to leverage quantum computing's unique capabilities
-        were developed, promising more efficient solutions in various fields such
-        as cryptography, materials science, and machine learning.\\n\\n**Applications
-        and Impact:**\\n\\n* **Post-Quantum Cryptography:** The development of post-quantum
-        cryptographic algorithms gained momentum due to the threat quantum computers
-        pose to existing encryption methods.  Standardization efforts led by NIST
-        were underway to ensure future data security.\\n\\n* **Real-World Applications:**
-        Quantum computing moved beyond theoretical exploration into practical applications
-        across various sectors. Companies were using quantum computing to improve
-        hydrogen fuel cell catalysts, electric batteries, and generate more secure
-        encryption keys.  The use of quantum computing in aerospace, energy, financial
-        services, and national security was no longer considered a futuristic concept
-        but a competitive tool.\\n\\n* **Quantum Supremacy:** While the definition
-        of quantum supremacy remained a topic of discussion, demonstrations showed
-        quantum computers solving increasingly complex problems beyond the capabilities
-        of classical computers, particularly in simulations and optimization.\\n\\n*
-        **Quantum Internet Development:** The concept of a quantum internet gained
-        traction, with advancements in quantum key distribution, repeaters, and networking
-        protocols.  Improved quantum sensing and metrology showed potential for applications
-        in navigation, medical imaging, and scientific research.\\n\\n**Overall:**\\n\\n2024
-        was a year of significant progress in quantum computing, marked by substantial
-        advancements in hardware, software, and applications.  The increased accessibility
-        of quantum computing through cloud services and the development of real-world
-        applications signaled a transition from theoretical exploration to practical
-        implementation.  The field continues to attract substantial investment and
-        research globally.  While challenges remain, the pace of innovation suggests
-        a transformative potential for quantum computing in the near future.  This
-        information is current as of July 10th, 2025.\\n\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n          \"renderedContent\":
-        \"\\u003cstyle\\u003e\\n.container {\\n  align-items: center;\\n  border-radius:
-        8px;\\n  display: flex;\\n  font-family: Google Sans, Roboto, sans-serif;\\n
-        \ font-size: 14px;\\n  line-height: 20px;\\n  padding: 8px 12px;\\n}\\n.chip
-        {\\n  display: inline-block;\\n  border: solid 1px;\\n  border-radius: 16px;\\n
-        \ min-width: 14px;\\n  padding: 5px 16px;\\n  text-align: center;\\n  user-select:
-        none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color: transparent;\\n}\\n.carousel
-        {\\n  overflow: auto;\\n  scrollbar-width: none;\\n  white-space: nowrap;\\n
-        \ margin-right: -12px;\\n}\\n.headline {\\n  display: flex;\\n  margin-right:
-        4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient {\\n
-        \ position: absolute;\\n  transform: translate(3px, -9px);\\n  height: 36px;\\n
-        \ width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
+        [\n          {\n            \"text\": \"2024 saw significant, though uneven,
+        progress in quantum computing. While broad-scale commercial applications remain
+        a long-term goal (projected to be a decade away by some analysts [9]),  advancements
+        were made across hardware, software, and accessibility.\\n\\n**Hardware:**\\n\\n*
+        \  **Increased Qubit Count:**  A major development was IBM's Condor processor
+        with 1,121 qubits [8], a substantial increase enabling more complex computations.
+        Other companies also reported increases [7, 12].  This focus on increasing
+        qubit count, however, is predicted to shift towards prioritizing qubit quality
+        and performance by 2025 [3].\\n*   **Improved Qubit Stability and Error Correction:**
+        \ Several sources highlighted breakthroughs in qubit stability and coherence
+        times [3, 4, 8, 10].  Argonne National Laboratory achieved a nearly thousand-fold
+        increase in coherence time for a novel qubit type [10].  Google announced
+        a new error correction method [9], and IBM released a new, highly efficient
+        error-correcting code [5]. The University of Chicago researchers also created
+        qubits using \\\"stretched\\\" diamond films, reducing equipment and expense
+        [10].  These improvements are crucial for building more reliable and scalable
+        quantum computers.  A key advancement in quantum error correction (QEC) was
+        cited as a significant breakthrough in 2024 [5].\\n\\n**Software and Algorithms:**\\n\\n*
+        \  **New Algorithms:**  The development of new quantum algorithms was reported
+        [3, 4, 9], potentially leading to more efficient solutions in diverse fields.\\n*
+        \  **Quantum Machine Learning:**  This field saw considerable progress [9],
+        with researchers developing quantum neural networks and algorithms for complex
+        tasks [11].  The expansion of quantum-as-a-service (QaaS) platforms [9] increased
+        accessibility and fueled this growth.  IBM released the first stable version
+        of its Qiskit SDK [11], a significant software advancement.\\n\\n**Accessibility
+        and Applications:**\\n\\n*   **Expanded Cloud Services:**  Increased accessibility
+        through expanded quantum cloud services from major companies (IBM, Google,
+        Amazon) [4, 9, 12] accelerated innovation and experimentation.\\n*   **Specific
+        Applications:** While broad-scale applications are still future goals, successful
+        applications in specific problem domains emerged [1, 2, 4, 6].  Examples include
+        optimization problems [2, 6], drug discovery [1, 6], materials science [1,
+        2], financial modeling [1, 2],  and cybersecurity [1, 2].  However, the limitations
+        of current noisy intermediate-scale quantum (NISQ) computers mean these applications
+        remain niche [7].  D-Wave's annealing quantum computer showed success in optimizing
+        mobile network resources [4].  A shift from hardware-centric development to
+        application software and cloud-based services is evident [5], demonstrating
+        a change in industry focus.\\n\\n**Challenges and Outlook:**\\n\\n*   **Experimental
+        Stage:**  Quantum computing remains largely experimental [7, 9], with widespread
+        practical advantages over classical computers still undemonstrated for most
+        applications [9].  Broad-scale applications are projected to be at least a
+        decade away [9].\\n*   **Investment:**  While significant investment continued,
+        some sources noted a potential slowdown in venture capital funding [9], possibly
+        reflecting a correction after earlier hype. However, government funding and
+        investment in application software and cloud-based services remain strong
+        [5].\\n\\n\\nIn summary, 2024 showed significant advancements in quantum computing
+        hardware and software, but considerable challenges remain before the technology
+        reaches its full potential.  While long-term prospects are positive, widespread
+        practical applications are still some years away.  A clear shift in industry
+        focus towards application software and cloud services is emerging.\\n\"\n
+        \         }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"STOP\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\": {\n
+        \         \"renderedContent\": \"\\u003cstyle\\u003e\\n.container {\\n  align-items:
+        center;\\n  border-radius: 8px;\\n  display: flex;\\n  font-family: Google
+        Sans, Roboto, sans-serif;\\n  font-size: 14px;\\n  line-height: 20px;\\n  padding:
+        8px 12px;\\n}\\n.chip {\\n  display: inline-block;\\n  border: solid 1px;\\n
+        \ border-radius: 16px;\\n  min-width: 14px;\\n  padding: 5px 16px;\\n  text-align:
+        center;\\n  user-select: none;\\n  margin: 0 8px;\\n  -webkit-tap-highlight-color:
+        transparent;\\n}\\n.carousel {\\n  overflow: auto;\\n  scrollbar-width: none;\\n
+        \ white-space: nowrap;\\n  margin-right: -12px;\\n}\\n.headline {\\n  display:
+        flex;\\n  margin-right: 4px;\\n}\\n.gradient-container {\\n  position: relative;\\n}\\n.gradient
+        {\\n  position: absolute;\\n  transform: translate(3px, -9px);\\n  height:
+        36px;\\n  width: 9px;\\n}\\n@media (prefers-color-scheme: light) {\\n  .container
         {\\n    background-color: #fafafa;\\n    box-shadow: 0 0 0 1px #0000000f;\\n
         \ }\\n  .headline-label {\\n    color: #1f1f1f;\\n  }\\n  .chip {\\n    background-color:
         #ffffff;\\n    border-color: #d2d2d2;\\n    color: #5e5e5e;\\n    text-decoration:
@@ -142,165 +600,157 @@ interactions:
         \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
         class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
         \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
-        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFbt1YfX44142ucIK_ZEMvdja3Xi7e8U9tDV3L3CWXh1-iROUjhRppw0ZR7C5XdGytDcUPWwZ-BCh-cSu5xySDJ95v_wxNvwdP4YdPB-5ydRjn1P9e9FLnx-qGCfB_GkJqTDYDGLcVFUuC6TL7nxEwKSsB28cM64tWdy-a_5EEneUcwfU1B6FtKYtAsRosW4BlrCFAea2NJL2B9OloQqiPwuknCTb-o15yVAiIX_cRP\\\"\\u003elatest
-        developments in quantum computing 2024\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH_5aff8HaDEj4WV8tcEVKUpy1TYki2SAYmwYjiB1D5wPslU-m78asmqPUdQCLn4ITPBg2cjH_4IxKS4EcjJSWLjq_DfMhGHFojUeOel-Qz3FV23d6bkAKvZlQgvve70fnoxPvU2RlnUCr16oomJ6qH5F9zE8098e6egE3Cy7PJlt5sY1kaeYaxIzDMTFetNY-ngYCRMkS8clTvb_HLrl8dnsIlpE3N\\\"\\u003equantum
+        computing applications 2024\\u003c/a\\u003e\\n    \\u003ca class=\\\"chip\\\"
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHdfLHdkXPy975tRALK5BRf80m5X32LHZZidOdTsEkH9keveVQ4dKE6MlwA1N8utOHhl0BR03KajSpWzl3kKsOC06VBNGkGY8rhC9AZVcBk_7TEs7CYuErJ-dLNRWNdy-BH_5Rew77LaLw5n1tYtrVQ3GXmreKDH76LGvunQw6cxcAZCQsFNMVhwcwtuhQrDuoWrKlg5mflDWUx85x-Q3fVRJA=\\\"\\u003equantum
+        computing hardware 2024\\u003c/a\\u003e\\n    \\u003ca class=\\\"chip\\\"
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF_gYvzDWa2DjKvheSw1_cX4_JxmzA2Qh4_eSHwPdgIP277S1DfoigxGRqi2uthM4JrgfUafbCFWMC-4yS57W5BNGzOnO3izzigtFq30JCYjxaK5vjTD0bjjLSqYz_5YWdNkCKhNIqfspgLvzbxH4XxZPIkeb4q-_CMdQNc2-Ziv_PY7g1GGWR_Dk1G6DGAD4_q9-Ce4nEx2rGxRvAF7t6tjXw9uENKDPinJ68V4BVmng==\\\"\\u003elatest
+        developments in quantum computing 2024\\u003c/a\\u003e\\n    \\u003ca class=\\\"chip\\\"
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF2w5dwn7saVmv5IEDYMPc1knkD0oh4IPLFk9sbEexCy4uXUvkoS4zHCO_Qw9zNuYed1bQHwM1pbPHl2L4m3NJGa6jQbJFN4OcbT5ajDD40oo_xnx2oB6iRtfCPNhFwIWH1bgE4gh8_zyWcIOeqq1ZdggxU44StgnCZ1Xez6tmKY6Fusx4F3t7wJNXNTJUPMBg_Gj5a65XVUJmf0aXtrM9RXXU=\\\"\\u003equantum
+        computing software 2024\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
         \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
-        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFYUIhiMxyLhhQ1OUb_LvQjG4j-Ys-pGBRZljM5_sprre8__zA6nHqiaXgttCen263QuGKP6zvHCTxVm1imWFxMLRcUZpkduiSdkuchxo461nFxq7Nn8UUnKLA1Q-4b73mxCUTACdI2ix6A3_1gY3mae1j7jvzv0cGAhNtYO6oaC3KhG3otVTQLf_8LY8ZkmxTtU9JcxakGAEoPLPGJM5ljLrnpReDWKY6Q3p1pCQ==\",\n
-        \             \"title\": \"openaccessgovernment.org\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGqZJA3frW5f8vfotFVSXrkkI-gc3niMdYJWu9hHsfnqkUmQyl3Xz_sGsVy7rI05NPShkkEv5FA3HuGcQ8txljewSL-f7IK88iHl46WgLp4qL7j398QZeyxCablwJK3Gm1YTxLhUKsF5QRDJfE4AORzlkpIFSWRnQ8PSED4aSNXKeUXnsrS3JhOrZJ1Sg==\",\n
-        \             \"title\": \"tomia.co.uk\"\n            }\n          },\n          {\n
-        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG_qisqSEvwOXCTdO_iGjIX5aYTtaGo_iRCaQQKloeTbL8j_KtYZjZJO4zgygokZcUJetilbV62UMtloO1V9b3as_Url8cPEkspoA2B653f8Tj9KGAGRN5XkTyXvo9rXc8fbef2FLv09v1NKLSt7JBCDcP_VXRZNGuRlfiEd-za2Hcj5fh7krHHBPA2Jf3LptbNsuk_HscM\",\n
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH5CsrIb0v25ZuqzlmKVDK4b5UFNSX2el42kK7OdOztAqJh-D81yr4cQOAk9-r6e3rNtX0KQ6Mzmz_B6AI9P_By8HN8obXZhiD99zS4KDVBOKuMZ5xPdSkRw-fUkuY8HBWb7XmtU4ybIJhG_orUO31eZd6moFrToQL4qP-il41KbiYq9cRzou35G9RHs8cmc2QB3u3zE45GcQ==\",\n
         \             \"title\": \"microtime.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGJc5yulQlCaQA796kgmSCSWnGAdoRzEsNHXp_kxaEoSTxmfvql7yqvgxWbyVCscD27_lm9_63nSr8qUUD0P65NtSScWvGB0prdGncEcZmVOg5rMspuW7oyA0fEVvrUyk7Zv6GZKR6md8BPzR9q\",\n
-        \             \"title\": \"time.com\"\n            }\n          },\n          {\n
-        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFsricR-kOcMRVPxc13ODrMeyC-LuxzRnMZUeOs-jJ2HSTIc2FSJ8uPik41odz1lvcKmP7h_t4QJ4xOB7NP0OFfGeELqsr0WiFKcLKkuNIkh6luBfKFO_wgWb5ALmL1hyZDeLc775p-XqKdmV0Jii7gl1ix9vgnbhO9iPWziI87JKuFNTz_X7TW5IbDPWCm\",\n
-        \             \"title\": \"firstignite.com\"\n            }\n          }\n
-        \       ],\n        \"groundingSupports\": [\n          {\n            \"segment\":
-        {\n              \"endIndex\": 111,\n              \"text\": \"Quantum computing
-        in 2024 saw significant advancements across hardware, software, algorithms,
-        and applications.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              0\n            ],\n            \"confidenceScores\": [\n
-        \             0.6893048\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 184,\n              \"endIndex\": 323,\n
-        \             \"text\": \"* **Increased Qubit Count and Stability:**  Companies
-        like IBM made headlines with the unveiling of significantly more powerful
-        processors.\"\n            },\n            \"groundingChunkIndices\": [\n
-        \             1\n            ],\n            \"confidenceScores\": [\n              0.69999903\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        325,\n              \"endIndex\": 444,\n              \"text\": \"IBM's Condor
-        processor, boasting 1,121 qubits, represented a substantial leap forward,
-        exceeding previous capabilities.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              1\n            ],\n            \"confidenceScores\": [\n
-        \             0.9770563\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 565,\n              \"endIndex\": 701,\n
-        \             \"text\": \"This included advancements in error correction techniques,
-        \ with Google announcing a new method for creating more robust logical qubits.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              1\n
-        \           ],\n            \"confidenceScores\": [\n              0.72739804\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        792,\n              \"endIndex\": 949,\n              \"text\": \"Further
-        advancements in hypercube network technologies improved the scalability and
-        performance of quantum systems by enhancing communication between qubits.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              0\n
-        \           ],\n            \"confidenceScores\": [\n              0.8205849\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        951,\n              \"endIndex\": 1063,\n              \"text\": \"Integrated
-        photonics combined with ion traps also showed promise for more compact and
-        efficient quantum devices.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              0\n            ],\n            \"confidenceScores\": [\n
-        \             0.9925861\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 1064,\n              \"endIndex\": 1189,\n
-        \             \"text\": \"Innovative materials like germanium and GeSn-based
-        quantum well lasers were explored to enhance quantum hardware performance.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              0\n
-        \           ],\n            \"confidenceScores\": [\n              0.9701461\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1191,\n              \"endIndex\": 1448,\n              \"text\": \"* **Increased
-        Accessibility:** Cloud-based quantum computing services from major tech companies
-        like IBM, Google, and Amazon expanded, making quantum computing more accessible
-        to researchers and businesses without requiring them to build their own hardware.\"\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFbzYobvIfOTO8ADO1ENWDDgwQE9Chmm_QHc0KLoUyHK44Nyo7Q7SqenBaBVz9F2oixMSJ2Gsj1HDC4SpDPpwjq7mN2ydUaLterRdY9GygwOiJbRMDpn2ZQlVpE1Y5eOLyRjsKHf5V3gTXARF6v-vPWn1VUEgOvwlNVmwM1tGZrjOX0o9oLcbraD8y6tDmIy2GydwUcHdZIJa64yskTQyx3cwVhLDsp7J3E6u0X8eHaZ78=\",\n
+        \             \"title\": \"technewsworld.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE559Sl81IDZVtG4FEHD4UYBQhjLOM-pmtojS2mY59TtOg_OevPI9Q6k7RTxThpI3h2i2AVOLzLxsPrSK3Q8osI625ojK9ew94h11SnxYMTB38u3ADwIl2s3Ci7EyGpCTmvZdAF-j_gwU4BtNZT790VI0CKqbQONFQWABi9nPS-2Q_lTQUJs0fXPjWxM50=\",\n
+        \             \"title\": \"tomia.co.uk\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE_Up0U9yeFwu-pSzhMuHsywFJ_A-aj2SXsGT28dZ5VLWn0n0Nteq77kaJgxfAS4Cyy6q7AGwfLS4lE-7hnP2OEojdEc0ljukImyq-9jIPgCPxuDgH4wwEfCP0VnXBjEhOdBVuPw8JSKJfGEX9AOXZkDj8g-VLY1MANDLkVpAoR8Z1tg13Y9ZQ=\",\n
+        \             \"title\": \"quantum-machines.co\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQESNnMF55wtdoUps5G4ZdDOp-P1-lGvw4NoJbPnuNMJ80qf95YGj8zRWaEFIL-YtWGqXdhZLpebaMTbyjsI51PtocYtx9vwB0gp-d4CuXCygEajsOOhdc204tLhA5UYfC3g9zLhxjLZTYx6oI7haFsDiNFoQO2nrjWfordKTq8kdt_Z5R6PhG10TKV9e0TCYbxIIQ-_An_iRbD-IngVZDfva9E=\",\n
+        \             \"title\": \"uchicago.edu\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHZQqRbiz9BIYagt2za8ekHuzjQTAV5_bV7as0q2OhSnaIbGo0IQKUVwwEYDhI9NpbXGgynWMgRr_AYI0Aw_ABGC5IQ1j5jwdO97T74jJWlykspeaD3lf6GVRNO40lgr-qsoKHAMKJt3Y0vMmFlssBKT_beBjc3aGDZwfz4MOV4laeU24MUBcltX71H5Nvo7Q==\",\n
+        \             \"title\": \"firstignite.com\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGswv1B3-pxBWMu1A24v0LMX1Lbg_viiCIIoTYa0I3PwoFW1ThMeL-WR3xzEfp9obQb5Y0G7THUeiknyYVAL4jb2xM6Wx3g9aPPkfyipf6D7GMy4-hNe0dARE1iP4-x4p9BuG1ovTXVJmBBB5jU7EJgnarZod8ln9W0ovJwJDJq81Yi8J7fGTFjr4Y1Cg==\",\n
+        \             \"title\": \"epb.com\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEX1WehJjaUdvdKdJcC20rsPzAYCI3G1IbiIBdSR1iV18Ntfy_aoog9aeivEQNXfHDWoskYeEdrKZd_hYgmeOey0PrJ6ysaOniZGJLxfTatpww0EaDkeiRZmW03O9zz8hQYmGTNiBk4gaqqMNHZw5Ki9J9ffTy_\",\n
+        \             \"title\": \"builtin.com\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHsSz9cP0ipiNm1SIO9ip_iIugdZDWe4-byO72245KqGNA7DL1ycNmYmmA0prLmwd2A1SHSREphDOrAXNuWXrX9dL5qy-pmj1p6rpczJwz8nrF-ju5LQODEExjmGJoeWTHpf-CUnnumub5yiQ==\",\n
+        \             \"title\": \"e27.co\"\n            }\n          }\n        ],\n
+        \       \"groundingSupports\": [\n          {\n            \"segment\": {\n
+        \             \"endIndex\": 67,\n              \"text\": \"2024 saw significant,
+        though uneven, progress in quantum computing.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0,\n              1\n            ],\n            \"confidenceScores\":
+        [\n              0.84586304,\n              0.7214407\n            ]\n          },\n
+        \         {\n            \"segment\": {\n              \"startIndex\": 274,\n
+        \             \"endIndex\": 434,\n              \"text\": \"*   **Increased
+        Qubit Count:**  A major development was IBM's Condor processor with 1,121
+        qubits [8], a substantial increase enabling more complex computations.\"\n
         \           },\n            \"groundingChunkIndices\": [\n              2\n
-        \           ],\n            \"confidenceScores\": [\n              0.98737955\n
+        \           ],\n            \"confidenceScores\": [\n              0.972718\n
         \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1494,\n              \"endIndex\": 1732,\n              \"text\": \"* **Quantum
-        Machine Learning Integration:**  The integration of machine learning with
-        quantum systems continued to advance, with frameworks like TorchQC enabling
-        the application of deep learning techniques in quantum dynamics and control.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              0\n
-        \           ],\n            \"confidenceScores\": [\n              0.98852205\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1733,\n              \"endIndex\": 1821,\n              \"text\": \"This integration
-        is expected to optimize quantum algorithms for real-world applications.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              0\n
-        \           ],\n            \"confidenceScores\": [\n              0.9242623\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1823,\n              \"endIndex\": 2072,\n              \"text\": \"* **Advancements
-        in Quantum Algorithms:** New algorithms designed to leverage quantum computing's
-        unique capabilities were developed, promising more efficient solutions in
-        various fields such as cryptography, materials science, and machine learning.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              0,\n
-        \             2\n            ],\n            \"confidenceScores\": [\n              0.8031337,\n
-        \             0.9859886\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 2104,\n              \"endIndex\": 2282,\n
-        \             \"text\": \"* **Post-Quantum Cryptography:** The development
-        of post-quantum cryptographic algorithms gained momentum due to the threat
-        quantum computers pose to existing encryption methods.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              0\n            ],\n
-        \           \"confidenceScores\": [\n              0.67786086\n            ]\n
-        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
-        2284,\n              \"endIndex\": 2365,\n              \"text\": \"Standardization
-        efforts led by NIST were underway to ensure future data security.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              1\n            ],\n
-        \           \"confidenceScores\": [\n              0.8593892\n            ]\n
-        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
-        2367,\n              \"endIndex\": 2504,\n              \"text\": \"* **Real-World
-        Applications:** Quantum computing moved beyond theoretical exploration into
-        practical applications across various sectors.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              0,\n              1,\n              3\n            ],\n            \"confidenceScores\":
-        [\n              0.68529123,\n              0.7217993,\n              0.92004913\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        2505,\n              \"endIndex\": 2646,\n              \"text\": \"Companies
-        were using quantum computing to improve hydrogen fuel cell catalysts, electric
-        batteries, and generate more secure encryption keys.\"\n            },\n            \"groundingChunkIndices\":
+        485,\n              \"endIndex\": 617,\n              \"text\": \"This focus
+        on increasing qubit count, however, is predicted to shift towards prioritizing
+        qubit quality and performance by 2025 [3].\"\n            },\n            \"groundingChunkIndices\":
         [\n              3\n            ],\n            \"confidenceScores\": [\n
-        \             0.95573395\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 2648,\n              \"endIndex\": 2810,\n
-        \             \"text\": \"The use of quantum computing in aerospace, energy,
-        financial services, and national security was no longer considered a futuristic
-        concept but a competitive tool.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              3\n            ],\n            \"confidenceScores\": [\n
-        \             0.941659\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 2812,\n              \"endIndex\": 3082,\n
-        \             \"text\": \"* **Quantum Supremacy:** While the definition of
-        quantum supremacy remained a topic of discussion, demonstrations showed quantum
-        computers solving increasingly complex problems beyond the capabilities of
-        classical computers, particularly in simulations and optimization.\"\n            },\n
-        \           \"groundingChunkIndices\": [\n              2\n            ],\n
-        \           \"confidenceScores\": [\n              0.991368\n            ]\n
+        \             0.77391917\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 771,\n              \"endIndex\": 886,\n
+        \             \"text\": \"Argonne National Laboratory achieved a nearly thousand-fold
+        increase in coherence time for a novel qubit type [10].\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              4\n            ],\n
+        \           \"confidenceScores\": [\n              0.9643462\n            ]\n
         \         },\n          {\n            \"segment\": {\n              \"startIndex\":
-        3084,\n              \"endIndex\": 3254,\n              \"text\": \"* **Quantum
-        Internet Development:** The concept of a quantum internet gained traction,
-        with advancements in quantum key distribution, repeaters, and networking protocols.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              4\n
-        \           ],\n            \"confidenceScores\": [\n              0.96124065\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        3256,\n              \"endIndex\": 3385,\n              \"text\": \"Improved
-        quantum sensing and metrology showed potential for applications in navigation,
-        medical imaging, and scientific research.\"\n            },\n            \"groundingChunkIndices\":
+        1008,\n              \"endIndex\": 1135,\n              \"text\": \"The University
+        of Chicago researchers also created qubits using \\\"stretched\\\" diamond
+        films, reducing equipment and expense [10].\"\n            },\n            \"groundingChunkIndices\":
         [\n              4\n            ],\n            \"confidenceScores\": [\n
-        \             0.92126966\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 3401,\n              \"endIndex\": 3538,\n
-        \             \"text\": \"2024 was a year of significant progress in quantum
-        computing, marked by substantial advancements in hardware, software, and applications.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              3,\n
-        \             4,\n              1,\n              0,\n              2\n            ],\n
-        \           \"confidenceScores\": [\n              0.8444159,\n              0.8173544,\n
-        \             0.7242562,\n              0.7628315,\n              0.7276775\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        3818,\n              \"endIndex\": 3943,\n              \"text\": \"While
-        challenges remain, the pace of innovation suggests a transformative potential
-        for quantum computing in the near future.\"\n            },\n            \"groundingChunkIndices\":
+        \             0.9425143\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 1137,\n              \"endIndex\": 1226,\n
+        \             \"text\": \"These improvements are crucial for building more
+        reliable and scalable quantum computers.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              5\n            ],\n            \"confidenceScores\": [\n
+        \             0.6510148\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 1228,\n              \"endIndex\": 1332,\n
+        \             \"text\": \"A key advancement in quantum error correction (QEC)
+        was cited as a significant breakthrough in 2024 [5].\"\n            },\n            \"groundingChunkIndices\":
         [\n              0\n            ],\n            \"confidenceScores\": [\n
-        \             0.84325033\n            ]\n          }\n        ],\n        \"retrievalMetadata\":
-        {},\n        \"webSearchQueries\": [\n          \"latest developments in quantum
-        computing 2024\"\n        ]\n      },\n      \"avgLogprobs\": -0.22710236307483372\n
-        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 10,\n    \"candidatesTokenCount\":
-        686,\n    \"totalTokenCount\": 696,\n    \"promptTokensDetails\": [\n      {\n
-        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 10\n      }\n    ],\n
+        \             0.62038493\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 1364,\n              \"endIndex\": 1521,\n
+        \             \"text\": \"*   **New Algorithms:**  The development of new
+        quantum algorithms was reported [3, 4, 9], potentially leading to more efficient
+        solutions in diverse fields.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              2,\n              0,\n              3\n            ],\n            \"confidenceScores\":
+        [\n              0.6802612,\n              0.977457,\n              0.7498739\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1522,\n              \"endIndex\": 1689,\n              \"text\": \"*   **Quantum
+        Machine Learning:**  This field saw considerable progress [9], with researchers
+        developing quantum neural networks and algorithms for complex tasks [11].\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              1\n
+        \           ],\n            \"confidenceScores\": [\n              0.90244335\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1691,\n              \"endIndex\": 1797,\n              \"text\": \"The expansion
+        of quantum-as-a-service (QaaS) platforms [9] increased accessibility and fueled
+        this growth.\"\n            },\n            \"groundingChunkIndices\": [\n
+        \             0\n            ],\n            \"confidenceScores\": [\n              0.68334544\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        1935,\n              \"endIndex\": 2130,\n              \"text\": \"*   **Expanded
+        Cloud Services:**  Increased accessibility through expanded quantum cloud
+        services from major companies (IBM, Google, Amazon) [4, 9, 12] accelerated
+        innovation and experimentation.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0\n            ],\n            \"confidenceScores\": [\n
+        \             0.9499752\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 2292,\n              \"endIndex\": 2441,\n
+        \             \"text\": \"Examples include optimization problems [2, 6], drug
+        discovery [1, 6], materials science [1, 2], financial modeling [1, 2],  and
+        cybersecurity [1, 2].\"\n            },\n            \"groundingChunkIndices\":
+        [\n              5,\n              6,\n              7\n            ],\n            \"confidenceScores\":
+        [\n              0.87894446,\n              0.8854025,\n              0.8321776\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        2668,\n              \"endIndex\": 2816,\n              \"text\": \"A shift
+        from hardware-centric development to application software and cloud-based
+        services is evident [5], demonstrating a change in industry focus.\"\n            },\n
+        \           \"groundingChunkIndices\": [\n              8\n            ],\n
+        \           \"confidenceScores\": [\n              0.9733219\n            ]\n
+        \         },\n          {\n            \"segment\": {\n              \"startIndex\":
+        2847,\n              \"endIndex\": 3040,\n              \"text\": \"*   **Experimental
+        Stage:**  Quantum computing remains largely experimental [7, 9], with widespread
+        practical advantages over classical computers still undemonstrated for most
+        applications [9].\"\n            },\n            \"groundingChunkIndices\":
+        [\n              1\n            ],\n            \"confidenceScores\": [\n
+        \             0.9009267\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 3042,\n              \"endIndex\": 3114,\n
+        \             \"text\": \"Broad-scale applications are projected to be at
+        least a decade away [9].\"\n            },\n            \"groundingChunkIndices\":
+        [\n              1\n            ],\n            \"confidenceScores\": [\n
+        \             0.95244145\n            ]\n          },\n          {\n            \"segment\":
+        {\n              \"startIndex\": 3414,\n              \"endIndex\": 3591,\n
+        \             \"text\": \"In summary, 2024 showed significant advancements
+        in quantum computing hardware and software, but considerable challenges remain
+        before the technology reaches its full potential.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0,\n              1\n            ],\n            \"confidenceScores\":
+        [\n              0.69473654,\n              0.70299256\n            ]\n          },\n
+        \         {\n            \"segment\": {\n              \"startIndex\": 3593,\n
+        \             \"endIndex\": 3693,\n              \"text\": \"While long-term
+        prospects are positive, widespread practical applications are still some years
+        away.\"\n            },\n            \"groundingChunkIndices\": [\n              1\n
+        \           ],\n            \"confidenceScores\": [\n              0.64813\n
+        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
+        3695,\n              \"endIndex\": 3787,\n              \"text\": \"A clear
+        shift in industry focus towards application software and cloud services is
+        emerging.\"\n            },\n            \"groundingChunkIndices\": [\n              8\n
+        \           ],\n            \"confidenceScores\": [\n              0.9307955\n
+        \           ]\n          }\n        ],\n        \"retrievalMetadata\": {},\n
+        \       \"webSearchQueries\": [\n          \"latest developments in quantum
+        computing 2024\",\n          \"quantum computing software 2024\",\n          \"quantum
+        computing applications 2024\",\n          \"quantum computing hardware 2024\"\n
+        \       ]\n      },\n      \"avgLogprobs\": -0.26089116453214456\n    }\n
+        \ ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 6514,\n    \"candidatesTokenCount\":
+        786,\n    \"totalTokenCount\": 7300,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 6514\n      }\n    ],\n
         \   \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 686\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-flash\",\n
-        \ \"responseId\": \"K6FvaO_GKOCqhMIPybfouQo\"\n}\n"
+        \       \"tokenCount\": 786\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-flash\",\n
+        \ \"responseId\": \"DeCdaKuDJ-aXsbQPgbvTwQQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 10 Jul 2025 11:17:10 GMT
+      - Thu, 14 Aug 2025 13:09:41 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=10863
+      - gfet4t7; dur=8391
       Transfer-Encoding:
       - chunked
       Vary:
@@ -314,7 +764,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '21886'
+      - '22634'
     status:
       code: 200
       message: OK

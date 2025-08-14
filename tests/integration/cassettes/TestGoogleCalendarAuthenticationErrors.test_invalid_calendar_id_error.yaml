@@ -11,7 +11,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:31:54 GMT
+      - Wed, 13 Aug 2025 10:26:48 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -68,7 +68,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.A0AS3H6NwGQlOL58q-iUX-ANe7fPSFMHvfTwyHE7zfI8cswVjPLqeM6PmyCjNRXpPguZ6x-p1ba5oXY3bm967gQpdynQI5x0ddzJBx26wLDnRxt16xpytFseQRvhh3kFC5bLMy-hdAASf-ebvwY-Ra-_HiekZgWQoTcq56YHRisy7zOEJwYhuKRwBtjqDA8eEWso_mtFCxiAaCgYKAY0SARASFQHGX2MiL8nNaXWWTRI3xKjmt_jPtw0209\",\n
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 21 Jul 2025 14:31:54 GMT
+      - Wed, 13 Aug 2025 10:26:48 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -115,13 +115,13 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/users/me/calendarList?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p33vrp2ctib78s0o\\\"\",\n
-        \"nextSyncToken\": \"CP-8iZ2Szo4DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
+      string: "{\n \"kind\": \"calendar#calendarList\",\n \"etag\": \"\\\"p32nqjvu0p63ou0o\\\"\",\n
+        \"nextSyncToken\": \"CK-p_8DJh48DEiN3aWxsaWFtamFtZXNoYW5kbGV5LmFyeGl2QGdtYWlsLmNvbQ==\",\n
         \"items\": [\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n   \"etag\":
         \"\\\"1617278361036000\\\"\",\n   \"id\": \"en.uk#holiday@group.v.calendar.google.com\",\n
         \  \"summary\": \"Holidays in United Kingdom\",\n   \"description\": \"Holidays
@@ -144,7 +144,7 @@ interactions:
         \  \"selected\": true,\n   \"accessRole\": \"owner\",\n   \"defaultReminders\":
         [],\n   \"conferenceProperties\": {\n    \"allowedConferenceSolutionTypes\":
         [\n     \"hangoutsMeet\"\n    ]\n   }\n  },\n  {\n   \"kind\": \"calendar#calendarListEntry\",\n
-        \  \"etag\": \"\\\"1752299187071295\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
+        \  \"etag\": \"\\\"1753380364597631\\\"\",\n   \"id\": \"williamjameshandley.arxiv@gmail.com\",\n
         \  \"summary\": \"williamjameshandley.arxiv@gmail.com\",\n   \"timeZone\":
         \"Europe/London\",\n   \"colorId\": \"14\",\n   \"backgroundColor\": \"#9fe1e7\",\n
         \  \"foregroundColor\": \"#000000\",\n   \"selected\": true,\n   \"accessRole\":
@@ -165,9 +165,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:31:54 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Expires:
-      - Mon, 21 Jul 2025 14:31:54 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -201,7 +201,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/nonexistent_calendar_12345%40group.calendar.google.com?alt=json
   response:
@@ -219,7 +219,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:31:55 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -258,7 +258,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.A0AS3H6NycyvUQIH7qZCFAK3yedcazcq7FptUsJtC0Eu6bzRYMznN5aUsY3_qI0mMGmB_XwpBBFdrBdYIq1EP_4vveMm36EGfigwRJtOD5wsv2g3hVYgXotP57agwWaeY4o9thgSCn8BmAPyZigHla-jfyOACsV6qqZKDry5pbgnFdYt9jNIg0pBin2PPmsln0uibpUDZUKgaCgYKAWASARASFQHGX2MiVdvgQ5O7ns8iDtyQfICPlg0209\",\n
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -269,7 +269,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 21 Jul 2025 14:31:55 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -305,7 +305,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/nonexistent_calendar_12345%40group.calendar.google.com?alt=json
   response:
@@ -321,7 +321,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:31:55 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -349,8 +349,8 @@ interactions:
       message: Not Found
 - request:
     body: '{"summary": "Test Event", "description": "", "location": "", "start": {"dateTime":
-      "2025-07-22T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime":
-      "2025-07-22T11:00:00+01:00", "timeZone": "Europe/London"}}'
+      "2025-08-14T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime":
+      "2025-08-14T11:00:00+01:00", "timeZone": "Europe/London"}}'
     headers:
       accept:
       - application/json
@@ -363,7 +363,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: POST
     uri: https://www.googleapis.com/calendar/v3/calendars/nonexistent_calendar_12345%40group.calendar.google.com/events?alt=json
   response:
@@ -379,7 +379,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:31:55 GMT
+      - Wed, 13 Aug 2025 10:26:49 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

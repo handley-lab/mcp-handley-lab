@@ -8,12 +8,28 @@ repos:
     hooks:
       - id: check-yaml
       - id: check-toml
+      - id: check-json
       - id: check-merge-conflict
       - id: end-of-file-fixer
+      - id: detect-private-key
+      - id: debug-statements
+      - id: check-ast
+      - id: check-added-large-files
+        exclude: '^tests/integration/cassettes/.*\.yaml$'
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  # API key and secret detection
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
 
   # Python formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.12.8
     hooks:
       - id: ruff
         args: [--fix]

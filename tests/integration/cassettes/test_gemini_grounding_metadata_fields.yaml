@@ -1,8 +1,223 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What were the main AI announcements
-      from Apple WWDC 2024?"}], "role": "user"}], "tools": [{"googleSearchRetrieval":
-      {}}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192}}'
+      from Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC
+      2024 keynote announcements focused heavily on  software updates across its product
+      ecosystem and the introduction of its new AI system, \"Apple Intelligence.\"\n\nHere''s
+      a summary of the key announcements:\n\n**1. Apple Intelligence:**  This new
+      AI system is designed to integrate powerful generative models with users'' personal
+      context, providing personalized and relevant intelligence across iPhone, iPad,
+      and Mac while prioritizing user privacy.  It''s deeply integrated into various
+      Apple platforms and services.\n\n**2. Operating System Updates:**  Major updates
+      were unveiled for all major Apple operating systems:\n\n*   **iOS 18 and iPadOS
+      18:**  These updates featured extensive customization options, including the
+      ability to reposition apps and widgets freely on the home screen,  customize
+      the Lock Screen controls, and create personalized Control Center screens.  New
+      features included a redesigned Photos app, a new calculator app for iPad with
+      Apple Pencil support, enhanced iMessage features (bold, italic, underline, text
+      effects, and Genmoji creation), and improved app locking for enhanced privacy.\n\n*   **macOS
+      Sequoia:** This update introduced iPhone mirroring to Macs, allowing users to
+      wirelessly use their iPhone from their Mac.  It also included a new Passwords
+      app and improved support for Passkeys.\n\n*   **visionOS 2:** This update brought
+      spatial photos with natural depth, new hand gestures for interaction, and expanded
+      Mac virtual display sizes for Apple Vision Pro users.\n\n*   **watchOS 11:**
+      This update introduced a \"Training Load\" feature to measure workout intensity''s
+      impact on the body and a redesigned Vitals app.\n\n*   **tvOS 18:** This update
+      focused on enhanced entertainment experiences and improved integration of useful
+      information within Apple TV+ content.\n\n\n**3. Other Announcements:**\n\n*   There
+      were also announcements about new AirPods Pro features, such as improved voice
+      isolation for clearer calls and new head gestures.\n*   Apple showcased an updated
+      look at its next-generation CarPlay system.\n*   A new partnership with Canon
+      resulted in a mirrorless camera lens specifically designed for spatial video
+      capture.\n\nThe public betas of all these operating system updates were released
+      in July 2024.  The final versions were released in the fall of 2024.\n"}], "role":
+      "model"}, {"parts": [{"text": "What were the main AI announcements from Apple
+      WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024 keynote
+      featured a significant push into AI, primarily through the introduction of \"Apple
+      Intelligence,\" a suite of AI-powered features designed to enhance user experience
+      across its devices (iPhones, Macs, iPads, etc.).  This marks a notable shift
+      for Apple, which had previously been more reserved about explicitly branding
+      its machine learning features as AI.\n\nKey AI announcements included:\n\n*
+      **Apple Intelligence:** This overarching system powers many of the new AI features,
+      aiming for seamless integration across devices while maintaining user privacy.  It''s
+      designed to be intuitive and personalized.\n\n* **Enhanced Siri:** Siri''s capabilities
+      are significantly boosted with Apple Intelligence.  It becomes more context-aware,
+      capable of handling complex requests, performing cross-app actions (e.g., adding
+      information from a photo to a note), and understanding nuanced language.  The
+      ability to type to Siri, rather than just using voice commands, is also introduced,
+      making it more chatbot-like.\n\n* **System-wide Writing Tools:**  These tools
+      leverage AI to help users generate, rewrite, proofread, and summarize text within
+      various apps like Mail and Notes.  The system can also suggest different tones
+      for written communication.\n\n* **AI-powered Image Generation:**  Users can
+      create original images in various styles (sketch, illustration, animation) based
+      on descriptions.  This functionality is integrated into several apps.\n\n* **AI
+      in Photos App:** The Photos app gains AI capabilities for improved searching
+      and organization of images. Users can now more easily locate specific photos
+      based on complex descriptions.\n\n* **Improved Notifications:**  Apple Intelligence
+      prioritizes notifications, surfacing the most important ones at the top.\n\n*
+      **ChatGPT Integration:** Apple partnered with OpenAI to integrate ChatGPT 4o
+      into its ecosystem.  Siri can leverage ChatGPT''s capabilities for particularly
+      complex requests, and users can access ChatGPT directly (free tier and paid
+      features for subscribers).  Apple assures users their data privacy is protected,
+      stating that user requests and information are not logged.  They also plan to
+      integrate additional AI models in the future.\n\n* **Genmoji:** This new feature
+      allows users to create custom emoji based on text descriptions.\n\nApple emphasized
+      that its AI systems prioritize user privacy, using on-device processing whenever
+      possible and employing secure cloud processing for more complex tasks.  While
+      many of these features mirror capabilities found in offerings from competitors
+      like Google and Samsung, Apple positions its implementation as a more private
+      and user-friendly approach.  The rollout of Apple Intelligence and related features
+      began with beta releases in summer 2024 and full releases in the fall.  Compatibility
+      is largely limited to newer devices with the latest processors.\n"}], "role":
+      "model"}, {"parts": [{"text": "What were the main AI announcements from Apple
+      WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "The main AI announcements
+      from Apple''s WWDC 2024 centered around the introduction of \"Apple Intelligence,\"
+      a new AI system designed to enhance user experiences across Apple devices.  Key
+      features and announcements included:\n\n\n* **Apple Intelligence:** This is
+      the core of Apple''s AI strategy, integrating various AI capabilities into a
+      cohesive system designed to be intuitive and personalized,  while emphasizing
+      user privacy.  It powers many of the new AI features across Apple''s operating
+      systems.\n\n* **Enhanced Siri:** Siri received a significant upgrade, transforming
+      into a more conversational and context-aware AI assistant.  It can now handle
+      more complex requests, perform cross-app actions, understand nuanced language,
+      and even receive typed inputs, behaving more like a chatbot.  It leverages Apple
+      Intelligence for enhanced capabilities.\n\n* **System-wide Writing Tools:**  These
+      AI-powered tools assist users with generating, rewriting, proofreading, and
+      summarizing text within various applications like Mail and Notes.\n\n* **AI-powered
+      Image Generation:**  Users can create original images in different styles (sketch,
+      illustration, animation) based on text descriptions.\n\n* **AI Enhancements
+      in Photos App:** The Photos app gained AI capabilities for improved search and
+      organization of images. More specific searches based on complex descriptions
+      become possible.\n\n* **Improved Notifications:** Apple Intelligence helps prioritize
+      notifications, showing users the most important ones first.\n\n* **ChatGPT Integration:**  Apple
+      integrated ChatGPT 4.0 (from OpenAI) into its ecosystem. Siri can use ChatGPT
+      for tasks it can''t handle independently, and users can access ChatGPT directly
+      through their Apple devices (free tier and paid features available).  Apple
+      emphasized that user data privacy is protected through methods such as not logging
+      user requests.  Plans to incorporate other AI models were also mentioned.\n\n*
+      **Genmoji:**  This feature allows users to generate custom emoji based on text
+      prompts.\n\nApple highlighted that its approach to AI prioritizes user privacy,
+      emphasizing on-device processing where feasible and employing a private cloud
+      compute system for more demanding tasks.  The release of Apple Intelligence
+      and its associated features began with betas in summer 2024 and continued through
+      fall 2024 releases, with compatibility often limited to newer devices and the
+      latest processors.\n"}], "role": "model"}, {"parts": [{"text": "What were the
+      main AI announcements from Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text":
+      "Apple''s WWDC 2024 announcements significantly featured a new AI system called
+      \"Apple Intelligence,\" integrating AI capabilities across its devices and services.  Key
+      AI announcements included:\n\n* **Apple Intelligence:** This overarching system
+      powers many AI features, aiming for seamless integration across devices while
+      prioritizing user privacy.  It uses on-device processing where possible and
+      secure cloud processing for more complex tasks.\n\n* **Enhanced Siri:** Siri''s
+      capabilities were substantially improved through Apple Intelligence. It became
+      more context-aware, handled complex requests, performed cross-app actions, and
+      offered typed input in addition to voice commands.\n\n* **System-wide Writing
+      Tools:** AI-powered tools for rewriting, proofreading, and summarizing text
+      were integrated into many apps (Mail, Notes, etc.).  These tools also offered
+      suggestions for different writing tones.\n\n* **AI-powered Image Generation
+      (Image Playground and Image Wand):**  Users could generate original images in
+      various styles (e.g., sketch, illustration, animation) based on text descriptions.  Image
+      Wand, specifically within the Notes app, allowed users to enhance existing sketches.\n\n*
+      **AI in Photos App:** The Photos app received AI enhancements for improved image
+      searching and organization using natural language.\n\n* **Improved Notifications:**
+      Apple Intelligence prioritized notifications, intelligently surfacing the most
+      important ones.\n\n* **Genmoji:**  This feature enabled users to create custom
+      emoji based on text descriptions, even using images of people from their photo
+      library.\n\n* **ChatGPT Integration:**  Apple partnered with OpenAI to integrate
+      ChatGPT 4.0 into its ecosystem. Siri could leverage ChatGPT for complex requests,
+      and users could access ChatGPT directly (with free and paid options). Apple
+      emphasized that user data privacy was protected, and user requests and information
+      were not logged by OpenAI.  Apple also planned to integrate other AI models
+      in the future.\n\nThe rollout of these features began with beta releases in
+      summer 2024 and continued into the fall, with compatibility primarily limited
+      to newer devices with the latest processors.  Apple consistently emphasized
+      its commitment to user privacy in its AI development.\n"}], "role": "model"},
+      {"parts": [{"text": "What were the main AI announcements from Apple WWDC 2024?"}],
+      "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024 keynote prominently
+      featured the introduction of \"Apple Intelligence,\" a new AI system designed
+      to improve user experiences across its devices.  Key AI announcements included:\n\n*
+      **Apple Intelligence:** This system underpins many new AI features, aiming for
+      seamless integration across Apple devices while prioritizing user privacy.  It
+      leverages on-device processing whenever possible, with secure cloud processing
+      for more complex tasks.\n\n* **Enhanced Siri:**  Siri received significant AI
+      enhancements, becoming more context-aware and capable of handling complex, multi-step
+      requests across different apps. It also gained the ability to accept typed input.\n\n*
+      **AI-Powered Writing Tools:**  These tools, integrated system-wide, help users
+      generate, rewrite, proofread, and summarize text within various apps (Mail,
+      Notes, etc.).\n\n* **AI-Powered Image Generation (Image Playground & Image Wand):**  Users
+      could create original images from text descriptions, with different artistic
+      styles available.  Image Wand, specifically within the Notes app, allowed for
+      enhancements to existing sketches.\n\n* **AI Enhancements in Photos:** The Photos
+      app gained AI-powered improvements to searching and organization, enabling more
+      nuanced searches using natural language.  It also gained the ability to automatically
+      create story-based memories from photo and video collections.\n\n* **Improved
+      Notifications:**  Apple Intelligence prioritized notifications, intelligently
+      surfacing the most important ones.\n\n* **Genmoji:** This feature allowed users
+      to create custom emojis based on text descriptions.\n\n* **ChatGPT Integration:**
+      Apple integrated ChatGPT 4.0, allowing Siri to leverage its capabilities for
+      tasks beyond its own and providing users with direct access to ChatGPT (with
+      free and paid tiers).  Apple stressed its commitment to user privacy, stating
+      that user data is not logged.  Plans to add other AI models were also mentioned.\n\nThe
+      rollout started with betas in summer 2024 and continued with full releases in
+      the fall, with compatibility largely limited to newer devices with the latest
+      processors.  Throughout the announcements, Apple emphasized its dedication to
+      user privacy in its AI initiatives.\n"}], "role": "model"}, {"parts": [{"text":
+      "What were the main AI announcements from Apple WWDC 2024?"}], "role": "user"},
+      {"parts": [{"text": "Apple''s WWDC 2024 showcased a significant leap into AI,
+      primarily through the introduction of \"Apple Intelligence,\" a system integrating
+      AI capabilities across its devices.  Key announcements included:\n\n* **Apple
+      Intelligence:** This core system powers many AI features, aiming for seamless
+      integration and user privacy.  It prioritizes on-device processing but uses
+      secure cloud processing for complex tasks.\n\n* **Enhanced Siri:** Siri received
+      a major upgrade, becoming more context-aware and capable of handling complex
+      requests across apps.  It now understands nuanced language and accepts typed
+      input.\n\n* **AI-Powered Writing Tools:** System-wide tools help users generate,
+      rewrite, proofread, and summarize text in various apps (Mail, Notes, etc.).\n\n*
+      **AI-Powered Image Generation (Image Playground & Image Wand):** Users can create
+      original images from text descriptions in various styles (sketch, illustration,
+      animation). Image Wand within Notes enhances existing sketches.\n\n* **AI Enhancements
+      in Photos:** The Photos app gained AI for improved searching and organization
+      using natural language, and for automatically creating story-based memories.\n\n*
+      **Improved Notifications:** Apple Intelligence prioritizes notifications, showing
+      the most important ones first.\n\n* **Genmoji:** This feature lets users create
+      custom emojis from text descriptions.\n\n* **ChatGPT Integration:** Apple integrated
+      ChatGPT 4.0, allowing Siri to use it for complex tasks and providing users with
+      direct access (free and paid options).  Apple stressed data privacy, emphasizing
+      that user data isn''t logged.  Future integration of other AI models was also
+      mentioned.\n\nThe rollout began with betas in summer 2024 and full releases
+      in the fall, primarily for newer devices with the latest processors.  Apple
+      consistently emphasized its commitment to user privacy in all its AI developments.\n"}],
+      "role": "model"}, {"parts": [{"text": "What were the main AI announcements from
+      Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024
+      keynote prominently featured the introduction of \"Apple Intelligence,\" a new
+      AI system designed to enhance user experiences across its devices. Key AI announcements
+      included:\n\n* **Apple Intelligence:** This overarching system powers many AI
+      features, emphasizing seamless integration across devices while prioritizing
+      user privacy.  On-device processing is used when possible; otherwise, secure
+      cloud processing is employed.\n\n* **Enhanced Siri:** Siri received significant
+      AI upgrades, becoming more context-aware and capable of handling complex, multi-step
+      requests across apps. It now understands nuanced language and accepts typed
+      input as well as voice commands.\n\n* **AI-Powered Writing Tools:**  System-wide
+      tools assist users with generating, rewriting, proofreading, and summarizing
+      text within various apps (Mail, Notes, etc.).\n\n* **AI-Powered Image Generation
+      (Image Playground & Image Wand):**  Users can create original images from text
+      descriptions, choosing from various artistic styles.  Image Wand, specifically
+      within the Notes app, allows for enhancements to existing sketches.\n\n* **AI
+      Enhancements in Photos:** The Photos app gained AI for improved searching and
+      organization using natural language.  It can automatically create story-based
+      memories from photos and videos.\n\n* **Improved Notifications:**  Apple Intelligence
+      prioritizes notifications, intelligently surfacing the most important ones.\n\n*
+      **Genmoji:** This feature lets users create custom emojis based on text descriptions.\n\n*
+      **ChatGPT Integration:**  Apple integrated ChatGPT 4.0, allowing Siri to utilize
+      its capabilities for complex requests and giving users direct access (free and
+      paid options).  Apple stressed user privacy, stating user data isn''t logged.  Future
+      integration of other AI models was also mentioned.\n\nThe rollout began with
+      betas in summer 2024 and continued with full releases in the fall, largely limited
+      to newer devices with the latest processors.  Apple consistently highlighted
+      its commitment to user privacy throughout its AI announcements.\n"}], "role":
+      "model"}, {"parts": [{"text": "What were the main AI announcements from Apple
+      WWDC 2024?"}], "role": "user"}], "tools": [{"googleSearchRetrieval": {}}], "generationConfig":
+      {"temperature": 1.0, "maxOutputTokens": 8192}}'
     headers:
       accept:
       - '*/*'
@@ -11,52 +226,299 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '223'
+      - '17448'
       content-type:
       - application/json
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
   response:
     body:
+      string: "{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"The input
+        token count (33569) exceeds the maximum number of tokens allowed (32768).\",\n
+        \   \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 14 Aug 2025 13:09:33 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=1506
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '173'
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: '{"contents": [{"parts": [{"text": "What were the main AI announcements
+      from Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC
+      2024 keynote announcements focused heavily on  software updates across its product
+      ecosystem and the introduction of its new AI system, \"Apple Intelligence.\"\n\nHere''s
+      a summary of the key announcements:\n\n**1. Apple Intelligence:**  This new
+      AI system is designed to integrate powerful generative models with users'' personal
+      context, providing personalized and relevant intelligence across iPhone, iPad,
+      and Mac while prioritizing user privacy.  It''s deeply integrated into various
+      Apple platforms and services.\n\n**2. Operating System Updates:**  Major updates
+      were unveiled for all major Apple operating systems:\n\n*   **iOS 18 and iPadOS
+      18:**  These updates featured extensive customization options, including the
+      ability to reposition apps and widgets freely on the home screen,  customize
+      the Lock Screen controls, and create personalized Control Center screens.  New
+      features included a redesigned Photos app, a new calculator app for iPad with
+      Apple Pencil support, enhanced iMessage features (bold, italic, underline, text
+      effects, and Genmoji creation), and improved app locking for enhanced privacy.\n\n*   **macOS
+      Sequoia:** This update introduced iPhone mirroring to Macs, allowing users to
+      wirelessly use their iPhone from their Mac.  It also included a new Passwords
+      app and improved support for Passkeys.\n\n*   **visionOS 2:** This update brought
+      spatial photos with natural depth, new hand gestures for interaction, and expanded
+      Mac virtual display sizes for Apple Vision Pro users.\n\n*   **watchOS 11:**
+      This update introduced a \"Training Load\" feature to measure workout intensity''s
+      impact on the body and a redesigned Vitals app.\n\n*   **tvOS 18:** This update
+      focused on enhanced entertainment experiences and improved integration of useful
+      information within Apple TV+ content.\n\n\n**3. Other Announcements:**\n\n*   There
+      were also announcements about new AirPods Pro features, such as improved voice
+      isolation for clearer calls and new head gestures.\n*   Apple showcased an updated
+      look at its next-generation CarPlay system.\n*   A new partnership with Canon
+      resulted in a mirrorless camera lens specifically designed for spatial video
+      capture.\n\nThe public betas of all these operating system updates were released
+      in July 2024.  The final versions were released in the fall of 2024.\n"}], "role":
+      "model"}, {"parts": [{"text": "What were the main AI announcements from Apple
+      WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024 keynote
+      featured a significant push into AI, primarily through the introduction of \"Apple
+      Intelligence,\" a suite of AI-powered features designed to enhance user experience
+      across its devices (iPhones, Macs, iPads, etc.).  This marks a notable shift
+      for Apple, which had previously been more reserved about explicitly branding
+      its machine learning features as AI.\n\nKey AI announcements included:\n\n*
+      **Apple Intelligence:** This overarching system powers many of the new AI features,
+      aiming for seamless integration across devices while maintaining user privacy.  It''s
+      designed to be intuitive and personalized.\n\n* **Enhanced Siri:** Siri''s capabilities
+      are significantly boosted with Apple Intelligence.  It becomes more context-aware,
+      capable of handling complex requests, performing cross-app actions (e.g., adding
+      information from a photo to a note), and understanding nuanced language.  The
+      ability to type to Siri, rather than just using voice commands, is also introduced,
+      making it more chatbot-like.\n\n* **System-wide Writing Tools:**  These tools
+      leverage AI to help users generate, rewrite, proofread, and summarize text within
+      various apps like Mail and Notes.  The system can also suggest different tones
+      for written communication.\n\n* **AI-powered Image Generation:**  Users can
+      create original images in various styles (sketch, illustration, animation) based
+      on descriptions.  This functionality is integrated into several apps.\n\n* **AI
+      in Photos App:** The Photos app gains AI capabilities for improved searching
+      and organization of images. Users can now more easily locate specific photos
+      based on complex descriptions.\n\n* **Improved Notifications:**  Apple Intelligence
+      prioritizes notifications, surfacing the most important ones at the top.\n\n*
+      **ChatGPT Integration:** Apple partnered with OpenAI to integrate ChatGPT 4o
+      into its ecosystem.  Siri can leverage ChatGPT''s capabilities for particularly
+      complex requests, and users can access ChatGPT directly (free tier and paid
+      features for subscribers).  Apple assures users their data privacy is protected,
+      stating that user requests and information are not logged.  They also plan to
+      integrate additional AI models in the future.\n\n* **Genmoji:** This new feature
+      allows users to create custom emoji based on text descriptions.\n\nApple emphasized
+      that its AI systems prioritize user privacy, using on-device processing whenever
+      possible and employing secure cloud processing for more complex tasks.  While
+      many of these features mirror capabilities found in offerings from competitors
+      like Google and Samsung, Apple positions its implementation as a more private
+      and user-friendly approach.  The rollout of Apple Intelligence and related features
+      began with beta releases in summer 2024 and full releases in the fall.  Compatibility
+      is largely limited to newer devices with the latest processors.\n"}], "role":
+      "model"}, {"parts": [{"text": "What were the main AI announcements from Apple
+      WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "The main AI announcements
+      from Apple''s WWDC 2024 centered around the introduction of \"Apple Intelligence,\"
+      a new AI system designed to enhance user experiences across Apple devices.  Key
+      features and announcements included:\n\n\n* **Apple Intelligence:** This is
+      the core of Apple''s AI strategy, integrating various AI capabilities into a
+      cohesive system designed to be intuitive and personalized,  while emphasizing
+      user privacy.  It powers many of the new AI features across Apple''s operating
+      systems.\n\n* **Enhanced Siri:** Siri received a significant upgrade, transforming
+      into a more conversational and context-aware AI assistant.  It can now handle
+      more complex requests, perform cross-app actions, understand nuanced language,
+      and even receive typed inputs, behaving more like a chatbot.  It leverages Apple
+      Intelligence for enhanced capabilities.\n\n* **System-wide Writing Tools:**  These
+      AI-powered tools assist users with generating, rewriting, proofreading, and
+      summarizing text within various applications like Mail and Notes.\n\n* **AI-powered
+      Image Generation:**  Users can create original images in different styles (sketch,
+      illustration, animation) based on text descriptions.\n\n* **AI Enhancements
+      in Photos App:** The Photos app gained AI capabilities for improved search and
+      organization of images. More specific searches based on complex descriptions
+      become possible.\n\n* **Improved Notifications:** Apple Intelligence helps prioritize
+      notifications, showing users the most important ones first.\n\n* **ChatGPT Integration:**  Apple
+      integrated ChatGPT 4.0 (from OpenAI) into its ecosystem. Siri can use ChatGPT
+      for tasks it can''t handle independently, and users can access ChatGPT directly
+      through their Apple devices (free tier and paid features available).  Apple
+      emphasized that user data privacy is protected through methods such as not logging
+      user requests.  Plans to incorporate other AI models were also mentioned.\n\n*
+      **Genmoji:**  This feature allows users to generate custom emoji based on text
+      prompts.\n\nApple highlighted that its approach to AI prioritizes user privacy,
+      emphasizing on-device processing where feasible and employing a private cloud
+      compute system for more demanding tasks.  The release of Apple Intelligence
+      and its associated features began with betas in summer 2024 and continued through
+      fall 2024 releases, with compatibility often limited to newer devices and the
+      latest processors.\n"}], "role": "model"}, {"parts": [{"text": "What were the
+      main AI announcements from Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text":
+      "Apple''s WWDC 2024 announcements significantly featured a new AI system called
+      \"Apple Intelligence,\" integrating AI capabilities across its devices and services.  Key
+      AI announcements included:\n\n* **Apple Intelligence:** This overarching system
+      powers many AI features, aiming for seamless integration across devices while
+      prioritizing user privacy.  It uses on-device processing where possible and
+      secure cloud processing for more complex tasks.\n\n* **Enhanced Siri:** Siri''s
+      capabilities were substantially improved through Apple Intelligence. It became
+      more context-aware, handled complex requests, performed cross-app actions, and
+      offered typed input in addition to voice commands.\n\n* **System-wide Writing
+      Tools:** AI-powered tools for rewriting, proofreading, and summarizing text
+      were integrated into many apps (Mail, Notes, etc.).  These tools also offered
+      suggestions for different writing tones.\n\n* **AI-powered Image Generation
+      (Image Playground and Image Wand):**  Users could generate original images in
+      various styles (e.g., sketch, illustration, animation) based on text descriptions.  Image
+      Wand, specifically within the Notes app, allowed users to enhance existing sketches.\n\n*
+      **AI in Photos App:** The Photos app received AI enhancements for improved image
+      searching and organization using natural language.\n\n* **Improved Notifications:**
+      Apple Intelligence prioritized notifications, intelligently surfacing the most
+      important ones.\n\n* **Genmoji:**  This feature enabled users to create custom
+      emoji based on text descriptions, even using images of people from their photo
+      library.\n\n* **ChatGPT Integration:**  Apple partnered with OpenAI to integrate
+      ChatGPT 4.0 into its ecosystem. Siri could leverage ChatGPT for complex requests,
+      and users could access ChatGPT directly (with free and paid options). Apple
+      emphasized that user data privacy was protected, and user requests and information
+      were not logged by OpenAI.  Apple also planned to integrate other AI models
+      in the future.\n\nThe rollout of these features began with beta releases in
+      summer 2024 and continued into the fall, with compatibility primarily limited
+      to newer devices with the latest processors.  Apple consistently emphasized
+      its commitment to user privacy in its AI development.\n"}], "role": "model"},
+      {"parts": [{"text": "What were the main AI announcements from Apple WWDC 2024?"}],
+      "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024 keynote prominently
+      featured the introduction of \"Apple Intelligence,\" a new AI system designed
+      to improve user experiences across its devices.  Key AI announcements included:\n\n*
+      **Apple Intelligence:** This system underpins many new AI features, aiming for
+      seamless integration across Apple devices while prioritizing user privacy.  It
+      leverages on-device processing whenever possible, with secure cloud processing
+      for more complex tasks.\n\n* **Enhanced Siri:**  Siri received significant AI
+      enhancements, becoming more context-aware and capable of handling complex, multi-step
+      requests across different apps. It also gained the ability to accept typed input.\n\n*
+      **AI-Powered Writing Tools:**  These tools, integrated system-wide, help users
+      generate, rewrite, proofread, and summarize text within various apps (Mail,
+      Notes, etc.).\n\n* **AI-Powered Image Generation (Image Playground & Image Wand):**  Users
+      could create original images from text descriptions, with different artistic
+      styles available.  Image Wand, specifically within the Notes app, allowed for
+      enhancements to existing sketches.\n\n* **AI Enhancements in Photos:** The Photos
+      app gained AI-powered improvements to searching and organization, enabling more
+      nuanced searches using natural language.  It also gained the ability to automatically
+      create story-based memories from photo and video collections.\n\n* **Improved
+      Notifications:**  Apple Intelligence prioritized notifications, intelligently
+      surfacing the most important ones.\n\n* **Genmoji:** This feature allowed users
+      to create custom emojis based on text descriptions.\n\n* **ChatGPT Integration:**
+      Apple integrated ChatGPT 4.0, allowing Siri to leverage its capabilities for
+      tasks beyond its own and providing users with direct access to ChatGPT (with
+      free and paid tiers).  Apple stressed its commitment to user privacy, stating
+      that user data is not logged.  Plans to add other AI models were also mentioned.\n\nThe
+      rollout started with betas in summer 2024 and continued with full releases in
+      the fall, with compatibility largely limited to newer devices with the latest
+      processors.  Throughout the announcements, Apple emphasized its dedication to
+      user privacy in its AI initiatives.\n"}], "role": "model"}, {"parts": [{"text":
+      "What were the main AI announcements from Apple WWDC 2024?"}], "role": "user"},
+      {"parts": [{"text": "Apple''s WWDC 2024 showcased a significant leap into AI,
+      primarily through the introduction of \"Apple Intelligence,\" a system integrating
+      AI capabilities across its devices.  Key announcements included:\n\n* **Apple
+      Intelligence:** This core system powers many AI features, aiming for seamless
+      integration and user privacy.  It prioritizes on-device processing but uses
+      secure cloud processing for complex tasks.\n\n* **Enhanced Siri:** Siri received
+      a major upgrade, becoming more context-aware and capable of handling complex
+      requests across apps.  It now understands nuanced language and accepts typed
+      input.\n\n* **AI-Powered Writing Tools:** System-wide tools help users generate,
+      rewrite, proofread, and summarize text in various apps (Mail, Notes, etc.).\n\n*
+      **AI-Powered Image Generation (Image Playground & Image Wand):** Users can create
+      original images from text descriptions in various styles (sketch, illustration,
+      animation). Image Wand within Notes enhances existing sketches.\n\n* **AI Enhancements
+      in Photos:** The Photos app gained AI for improved searching and organization
+      using natural language, and for automatically creating story-based memories.\n\n*
+      **Improved Notifications:** Apple Intelligence prioritizes notifications, showing
+      the most important ones first.\n\n* **Genmoji:** This feature lets users create
+      custom emojis from text descriptions.\n\n* **ChatGPT Integration:** Apple integrated
+      ChatGPT 4.0, allowing Siri to use it for complex tasks and providing users with
+      direct access (free and paid options).  Apple stressed data privacy, emphasizing
+      that user data isn''t logged.  Future integration of other AI models was also
+      mentioned.\n\nThe rollout began with betas in summer 2024 and full releases
+      in the fall, primarily for newer devices with the latest processors.  Apple
+      consistently emphasized its commitment to user privacy in all its AI developments.\n"}],
+      "role": "model"}, {"parts": [{"text": "What were the main AI announcements from
+      Apple WWDC 2024?"}], "role": "user"}, {"parts": [{"text": "Apple''s WWDC 2024
+      keynote prominently featured the introduction of \"Apple Intelligence,\" a new
+      AI system designed to enhance user experiences across its devices. Key AI announcements
+      included:\n\n* **Apple Intelligence:** This overarching system powers many AI
+      features, emphasizing seamless integration across devices while prioritizing
+      user privacy.  On-device processing is used when possible; otherwise, secure
+      cloud processing is employed.\n\n* **Enhanced Siri:** Siri received significant
+      AI upgrades, becoming more context-aware and capable of handling complex, multi-step
+      requests across apps. It now understands nuanced language and accepts typed
+      input as well as voice commands.\n\n* **AI-Powered Writing Tools:**  System-wide
+      tools assist users with generating, rewriting, proofreading, and summarizing
+      text within various apps (Mail, Notes, etc.).\n\n* **AI-Powered Image Generation
+      (Image Playground & Image Wand):**  Users can create original images from text
+      descriptions, choosing from various artistic styles.  Image Wand, specifically
+      within the Notes app, allows for enhancements to existing sketches.\n\n* **AI
+      Enhancements in Photos:** The Photos app gained AI for improved searching and
+      organization using natural language.  It can automatically create story-based
+      memories from photos and videos.\n\n* **Improved Notifications:**  Apple Intelligence
+      prioritizes notifications, intelligently surfacing the most important ones.\n\n*
+      **Genmoji:** This feature lets users create custom emojis based on text descriptions.\n\n*
+      **ChatGPT Integration:**  Apple integrated ChatGPT 4.0, allowing Siri to utilize
+      its capabilities for complex requests and giving users direct access (free and
+      paid options).  Apple stressed user privacy, stating user data isn''t logged.  Future
+      integration of other AI models was also mentioned.\n\nThe rollout began with
+      betas in summer 2024 and continued with full releases in the fall, largely limited
+      to newer devices with the latest processors.  Apple consistently highlighted
+      its commitment to user privacy throughout its AI announcements.\n"}], "role":
+      "model"}, {"parts": [{"text": "What is AI?"}], "role": "user"}], "tools": [{"googleSearchRetrieval":
+      {}}], "generationConfig": {"temperature": 1.0, "maxOutputTokens": 100}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '17401'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent
+  response:
+    body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"Apple's WWDC 2024 keynote prominently
-        featured several AI-related announcements, primarily centered around the new
-        \\\"Apple Intelligence\\\" framework.  This framework powers a range of new
-        features across its operating systems (iOS 18, iPadOS 18, macOS Sequoia, and
-        others).\\n\\nHere's a summary of the key AI announcements:\\n\\n* **Apple
-        Intelligence:** This is Apple's overarching AI framework, designed to integrate
-        AI capabilities across various Apple devices and apps.  It enables features
-        like intelligent text summarization in Mail and Notes, improved Siri capabilities
-        (including cross-app actions and contextual understanding), and AI-powered
-        image generation.\\n\\n* **Siri Enhancements:**  Siri received significant
-        upgrades through Apple Intelligence.  It now boasts improved contextual awareness,
-        enabling more complex and nuanced commands.  It can perform actions across
-        multiple apps based on user requests and access information from various sources
-        (e.g., emails, texts, notes).  A notable addition is the direct integration
-        of ChatGPT, allowing Siri to leverage its capabilities when necessary.\\n\\n*
-        **Image Playground and Genmoji:**  Apple introduced \\\"Image Playground,\\\"
-        an on-device AI image generator that lets users create custom images.  \\\"Genmoji\\\"
-        is a related feature that enables the creation of personalized emoji-like
-        reactions.\\n\\n* **ChatGPT Integration:**  Apple announced the integration
-        of ChatGPT (powered by GPT-40) into iOS 18, iPadOS 18, and macOS Sequoia.
-        \ This allows users to access ChatGPT's capabilities directly within various
-        apps like Messages and Mail.\\n\\n* **AI-Powered Features in Other Apps:**
-        \ Apple Intelligence is not limited to Siri.  It powers features like AI-driven
-        summarization in the Mail and Notes apps,  and an AI-powered \\\"Highlights\\\"
-        feature in Safari to summarize webpages.  The Phone app gained an AI-powered
-        call recording feature (with notification to the other party).\\n\\nIn essence,
-        WWDC 2024 marked Apple's significant entry into the consumer AI market, integrating
-        AI capabilities deeply into its existing ecosystem.  While Apple arrived later
-        than some competitors, the breadth and integration of Apple Intelligence across
-        its devices and services demonstrates a considerable effort to compete in
-        this space.\\n\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
-        \     \"finishReason\": \"STOP\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\":
+        [\n          {\n            \"text\": \"Artificial intelligence (AI) is the
+        ability of computer systems to perform tasks that typically require human
+        intelligence. These tasks include learning, reasoning, problem-solving, perception,
+        and decision-making.  AI systems are designed to perceive their environment,
+        learn from experiences, and take actions to achieve specific goals.\\n\\nWhile
+        the concept of AI has been around since the 1940s (with the advent of digital
+        computers), and formally established as a field in 1956,  recent\"\n          }\n
+        \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
+        \"MAX_TOKENS\",\n      \"groundingMetadata\": {\n        \"searchEntryPoint\":
         {\n          \"renderedContent\": \"\\u003cstyle\\u003e\\n.container {\\n
         \ align-items: center;\\n  border-radius: 8px;\\n  display: flex;\\n  font-family:
         Google Sans, Roboto, sans-serif;\\n  font-size: 14px;\\n  line-height: 20px;\\n
@@ -120,95 +582,52 @@ interactions:
         \   \\u003c/svg\\u003e\\n    \\u003cdiv class=\\\"gradient-container\\\"\\u003e\\u003cdiv
         class=\\\"gradient\\\"\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\n  \\u003c/div\\u003e\\n
         \ \\u003cdiv class=\\\"carousel\\\"\\u003e\\n    \\u003ca class=\\\"chip\\\"
-        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHVF5RvqdK6E1Jkz6WN6zyQ8lfWg7qu30IE6HxwCteDIHwROzYL1zQbBkkKZqoQ1Orbg_F_Ruj7z-J0WP40xXlssEaaS16uLOD0ToMXrB5cOP-hDNOl69MQIZ0uo-8ni51rGeJSiEG5SKrFCIpg_li7O7GxWOgHTLeSGOlbhCMimWKl8f-F5V-Blv1mKmriTVteB-rX3JWsWoTXixPfr2U=\\\"\\u003eApple
-        WWDC 2024 announcements\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
+        href=\\\"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHKz9ydsSWbJF1tU8qbQgKy6BoxGWGzKJHaq54esWZtEWGdFyThMyYt5Bkq3-LT5F9xhyfxk8RHOXdgbK6i8dPep54bimSGDF2MsrMzafcEzt7v_x3IvnqrHfwZgq0buWL10nYVhvadJgM5XusbdtsoUsuL3Ql5zX7IA9RsOt07MFJ2BQp-VrMVYwnhn7BIIq8=\\\"\\u003eWhat
+        is AI?\\u003c/a\\u003e\\n  \\u003c/div\\u003e\\n\\u003c/div\\u003e\\n\"\n
         \       },\n        \"groundingChunks\": [\n          {\n            \"web\":
-        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEwSW3Xy0ek676Gvy9j9uqAgdZYceEYvQjAEd2NvnT6CtptouKuOLWkfHPMHOIR-PixxIQHhcBGHYZXUkj84XpbN3AHwabLk7oEMh6EK0f1YERZRYIMRCP5pj1CtLc6GPovP4kKDbxbe0ULejNIkwjU4pXfgGbYS1d5ez0ebjnd_fOhl2ICxEbG7Dyue5k6hawSUvaODYMrzMJ-muIDfEuB-A==\",\n
-        \             \"title\": \"cnet.com\"\n            }\n          },\n          {\n
-        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHUxR1c8Ucbk3Xu7UKPWZGvJGWBdjruhGcZNCU2iFSgUhScBfOoTNJJ4GOisgI7z8IiJ_GZP3UF-4643h7pYPgC4D5Wvvx_1Y-txUfT_8QeEoqtrIPExKJvTUi1Fh4iugfgps_bCuHlKWImmcFpOMIERfkNzuUVsfzXe0s=\",\n
-        \             \"title\": \"macrumors.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEbKAe5xSaJjgJj8KA7T6WNJvydksw9wDXcv-Mf53KEO9PjvkJ18NuE5_C3Z-tZD2LXsvS0y5-MoYxC_3mQNPf8hh9EqJ05YZ6PaASNXPGhDyYb4egcCbjEIq5G7UFB2VgD5q5gftBjgLa3Ycdq-FiyyQ1apw-CSLXe\",\n
-        \             \"title\": \"youtube.com\"\n            }\n          },\n          {\n
-        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGmNXCgtPvAtGrgt_aaqxcPn_XStSWDFyYv1C3U7CifdMI1y4lF1XmV5AjBO1JGpaXBDMllpmrQ2GsFlnxdkIpHBiqpu9ZkDg369HrdKUjI3QJfwXX7Q9QAPQI3JShMnoMq4vNFhgXEC2WMNcihZ3w=\",\n
-        \             \"title\": \"macrumors.com\"\n            }\n          },\n
-        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEHT2aElxiZoiY487kg-RGVHt88yorFW68DWWAz-ZzBNoPiVJyuzQop1j_oYaP70MSPpxUwHZg0Da9kRKhzeLfLMbV1l0_IolHvqr-9obiKnL5soh74xt4ji486rhiPNm66SWh_eeqxKY8UDVaAP7IwV1cYBFVnnWCorIE=\",\n
-        \             \"title\": \"mashable.com\"\n            }\n          }\n        ],\n
+        {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGCAFtvEVrfTqta_sjoZoTZnfq7338A5EeW5QIbbAyZsw41jd7XtBq2w6_xn7C_pEpIlaMzkTPKLyBYdxI-bX0dvjl9povzM2_RUXhyXRi-2zs_Ely1vBJuWy6iMIcbddxufP7Quax8NkBo5q4TDdWR\",\n
+        \             \"title\": \"wikipedia.org\"\n            }\n          },\n
+        \         {\n            \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE4q3TfFV6ms4K1HqaDL7TzHqyAasKfvtd1Xp3pcjB9pj0lAh5sP0Z6m2RcdWBRyZZ0CE2ASLb4RLEQHkp4CDdTqlZWK8rnrCuMxZ8t-HxL-6D5ZTpzdLg5Zo_fLyGMCKTtdICa80x9T391weQsSe7H\",\n
+        \             \"title\": \"nasa.gov\"\n            }\n          },\n          {\n
+        \           \"web\": {\n              \"uri\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHBw_yitENhWE4hg1NIg7ddBVjEuXyzhfh9AtfnEIHbFGtn9ODiUr4s9EXnn4FHQ8sarah3fG1Fil-5mBk6JbBOUSBr13EKaZImXg_0KdZdxnOQwf6BNNl4IEbPPeU27qV2pFsrq4oWAXw7DGZs0X68ZOCl\",\n
+        \             \"title\": \"ibm.com\"\n            }\n          }\n        ],\n
         \       \"groundingSupports\": [\n          {\n            \"segment\": {\n
-        \             \"endIndex\": 146,\n              \"text\": \"Apple's WWDC 2024
-        keynote prominently featured several AI-related announcements, primarily centered
-        around the new \\\"Apple Intelligence\\\" framework.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              0,\n              1,\n              2\n            ],\n            \"confidenceScores\":
-        [\n              0.6408878,\n              0.605521,\n              0.7558356\n
+        \             \"endIndex\": 123,\n              \"text\": \"Artificial intelligence
+        (AI) is the ability of computer systems to perform tasks that typically require
+        human intelligence.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              0,\n              1\n            ],\n            \"confidenceScores\":
+        [\n              0.86283064,\n              0.68934476\n            ]\n          },\n
+        \         {\n            \"segment\": {\n              \"startIndex\": 124,\n
+        \             \"endIndex\": 214,\n              \"text\": \"These tasks include
+        learning, reasoning, problem-solving, perception, and decision-making.\"\n
+        \           },\n            \"groundingChunkIndices\": [\n              0\n
+        \           ],\n            \"confidenceScores\": [\n              0.86881196\n
         \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        148,\n              \"endIndex\": 270,\n              \"text\": \"This framework
-        powers a range of new features across its operating systems (iOS 18, iPadOS
-        18, macOS Sequoia, and others).\"\n            },\n            \"groundingChunkIndices\":
-        [\n              3,\n              0,\n              2,\n              4\n
-        \           ],\n            \"confidenceScores\": [\n              0.73839086,\n
-        \             0.95371485,\n              0.6892886,\n              0.6901721\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        661,\n              \"endIndex\": 749,\n              \"text\": \"* **Siri
-        Enhancements:**  Siri received significant upgrades through Apple Intelligence.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              2\n
-        \           ],\n            \"confidenceScores\": [\n              0.8257213\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        841,\n              \"endIndex\": 981,\n              \"text\": \"It can perform
-        actions across multiple apps based on user requests and access information
-        from various sources (e.g., emails, texts, notes).\"\n            },\n            \"groundingChunkIndices\":
-        [\n              2,\n              4\n            ],\n            \"confidenceScores\":
-        [\n              0.7517817,\n              0.6206719\n            ]\n          },\n
-        \         {\n            \"segment\": {\n              \"startIndex\": 983,\n
-        \             \"endIndex\": 1098,\n              \"text\": \"A notable addition
-        is the direct integration of ChatGPT, allowing Siri to leverage its capabilities
-        when necessary.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              2\n            ],\n            \"confidenceScores\": [\n
-        \             0.816122\n            ]\n          },\n          {\n            \"segment\":
-        {\n              \"startIndex\": 1245,\n              \"endIndex\": 1339,\n
-        \             \"text\": \"\\\"Genmoji\\\" is a related feature that enables
-        the creation of personalized emoji-like reactions.\"\n            },\n            \"groundingChunkIndices\":
-        [\n              3,\n              2\n            ],\n            \"confidenceScores\":
-        [\n              0.6165295,\n              0.65487957\n            ]\n          },\n
-        \         {\n            \"segment\": {\n              \"startIndex\": 1476,\n
-        \             \"endIndex\": 1579,\n              \"text\": \"This allows users
-        to access ChatGPT's capabilities directly within various apps like Messages
-        and Mail.\"\n            },\n            \"groundingChunkIndices\": [\n              4\n
-        \           ],\n            \"confidenceScores\": [\n              0.7137096\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1581,\n              \"endIndex\": 1665,\n              \"text\": \"* **AI-Powered
-        Features in Other Apps:**  Apple Intelligence is not limited to Siri.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              2\n
-        \           ],\n            \"confidenceScores\": [\n              0.6621814\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1667,\n              \"endIndex\": 1815,\n              \"text\": \"It powers
-        features like AI-driven summarization in the Mail and Notes apps,  and an
-        AI-powered \\\"Highlights\\\" feature in Safari to summarize webpages.\"\n
-        \           },\n            \"groundingChunkIndices\": [\n              4\n
-        \           ],\n            \"confidenceScores\": [\n              0.9098888\n
-        \           ]\n          },\n          {\n            \"segment\": {\n              \"startIndex\":
-        1817,\n              \"endIndex\": 1914,\n              \"text\": \"The Phone
-        app gained an AI-powered call recording feature (with notification to the
-        other party).\"\n            },\n            \"groundingChunkIndices\": [\n
-        \             2,\n              4\n            ],\n            \"confidenceScores\":
-        [\n              0.8753848,\n              0.92415076\n            ]\n          }\n
-        \       ],\n        \"retrievalMetadata\": {},\n        \"webSearchQueries\":
-        [\n          \"Apple WWDC 2024 announcements\"\n        ]\n      },\n      \"avgLogprobs\":
-        -0.27841748339418232\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        16,\n    \"candidatesTokenCount\": 459,\n    \"totalTokenCount\": 475,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 16\n
-        \     }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\":
-        \"TEXT\",\n        \"tokenCount\": 459\n      }\n    ]\n  },\n  \"modelVersion\":
-        \"gemini-1.5-flash\",\n  \"responseId\": \"E6FvaNnMJeCqhMIPybfouQo\"\n}\n"
+        216,\n              \"endIndex\": 338,\n              \"text\": \"AI systems
+        are designed to perceive their environment, learn from experiences, and take
+        actions to achieve specific goals.\"\n            },\n            \"groundingChunkIndices\":
+        [\n              2,\n              0,\n              1\n            ],\n            \"confidenceScores\":
+        [\n              0.6880605,\n              0.8925215,\n              0.67311877\n
+        \           ]\n          }\n        ],\n        \"retrievalMetadata\": {},\n
+        \       \"webSearchQueries\": [\n          \"What is AI?\"\n        ]\n      },\n
+        \     \"avgLogprobs\": -0.088105592727661136\n    }\n  ],\n  \"usageMetadata\":
+        {\n    \"promptTokenCount\": 3218,\n    \"candidatesTokenCount\": 100,\n    \"totalTokenCount\":
+        3318,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
+        \       \"tokenCount\": 3218\n      }\n    ],\n    \"candidatesTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 100\n
+        \     }\n    ]\n  },\n  \"modelVersion\": \"gemini-1.5-pro-002\",\n  \"responseId\":
+        \"RSWeaMiFHPKW1PIPiPT-8A0\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 10 Jul 2025 11:16:45 GMT
+      - Thu, 14 Aug 2025 18:04:56 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=9850
+      - gfet4t7; dur=3182
       Transfer-Encoding:
       - chunked
       Vary:
@@ -222,7 +641,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '14618'
+      - '8890'
     status:
       code: 200
       message: OK

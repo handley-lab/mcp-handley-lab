@@ -1,5 +1,7 @@
 """Unit tests for Gemini LLM tool functionality."""
+
 import pytest
+
 from mcp_handley_lab.llm.gemini.tool import (
     MODEL_CONFIGS,
     _get_model_config,
@@ -59,8 +61,6 @@ class TestModelConfiguration:
         config = _get_model_config("unknown-model")
         # Should default to gemini-2.5-flash
         assert config["output_tokens"] == 65536
-
-
 
 
 class TestGeminiHelpers:

@@ -8,7 +8,7 @@ models:
     output_tokens: 128000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 1.25
     output_per_1m: 10.00
@@ -24,7 +24,7 @@ models:
     output_tokens: 128000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 0.25
     output_per_1m: 2.00
@@ -40,7 +40,7 @@ models:
     output_tokens: 128000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 0.05
     output_per_1m: 0.40
@@ -56,7 +56,7 @@ models:
     output_tokens: 128000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 1.25
     output_per_1m: 10.00
@@ -72,7 +72,7 @@ models:
     output_tokens: 100000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 2.00
     output_per_1m: 8.00
@@ -86,7 +86,7 @@ models:
     output_tokens: 100000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 1.00
     output_per_1m: 4.00
@@ -100,7 +100,7 @@ models:
     output_tokens: 100000
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 15.00
     output_per_1m: 60.00
@@ -114,7 +114,7 @@ models:
     output_tokens: 32768
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 15.00
     output_per_1m: 60.00
@@ -128,7 +128,7 @@ models:
     output_tokens: 65536
     param: "max_completion_tokens"
     supports_temperature: false
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 12.00
@@ -142,7 +142,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 2.00
     output_per_1m: 8.00
@@ -158,7 +158,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 0.40
     output_per_1m: 1.60
@@ -174,7 +174,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 0.10
     output_per_1m: 0.40
@@ -190,7 +190,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 2.50
     output_per_1m: 10.00
@@ -206,7 +206,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 0.15
     output_per_1m: 0.60
@@ -222,7 +222,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 2.50
     output_per_1m: 10.00
@@ -237,7 +237,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 2.50
     output_per_1m: 10.00
@@ -252,7 +252,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 0.15
     output_per_1m: 0.60
@@ -267,7 +267,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Complex pricing (per modality and per image)
     text_input_per_1m: 5.00
     image_input_per_1m: 10.00
@@ -286,7 +286,7 @@ models:
     capabilities: "🎨 Best for: Creative image generation, artistic tasks"
     tags: ["image-generation", "legacy"]
     context_window: "N/A (Image generation)"
-    
+
     # Pricing
     price_per_image: 0.040
     pricing_type: "per_image"
@@ -297,7 +297,7 @@ models:
     capabilities: "🎨 Best for: Simple image generation, cost-effective creation"
     tags: ["image-generation", "legacy", "cost-effective"]
     context_window: "N/A (Image generation)"
-    
+
     # Pricing
     price_per_image: 0.020
     pricing_type: "per_image"
@@ -311,7 +311,7 @@ models:
     output_tokens: 4096
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 10.00
     output_per_1m: 30.00
@@ -326,7 +326,7 @@ models:
     output_tokens: 8192
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 30.00
     output_per_1m: 60.00
@@ -341,7 +341,7 @@ models:
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
-    
+
     # Pricing
     input_per_1m: 0.50
     output_per_1m: 1.50
@@ -354,19 +354,19 @@ fine_tuning:
     output_per_1m: 12.00
     cached_input_per_1m: 0.75
     training_per_1m: 25.00
-    
+
   gpt-4.1-mini:
     input_per_1m: 0.80
     output_per_1m: 3.20
     cached_input_per_1m: 0.20
     training_per_1m: 5.00
-    
+
   gpt-4.1-nano:
     input_per_1m: 0.20
     output_per_1m: 0.80
     cached_input_per_1m: 0.05
     training_per_1m: 1.50
-    
+
   o4-mini:
     input_per_1m: 4.00
     output_per_1m: 16.00

@@ -1,0 +1,192 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts":
+      [{"text": "2 + 2 = 4.\n\nWhen you add 2 and 2, you are combining two groups
+      of two items into one larger group. If you have two apples and someone gives
+      you two more apples, you would then have four apples in total."}], "role": "model"},
+      {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2
+      + 2 equals 4. \n\nThis is a basic arithmetic operation where you are simply
+      adding two quantities together. If you have two of something and you add another
+      two of the same thing, you end up with four. It\u2019s a fundamental concept
+      in mathematics!"}], "role": "model"}, {"parts": [{"text": "What is 2+2?"}],
+      "role": "user"}, {"parts": [{"text": "2 + 2 = 4\n\nLet me break this down step
+      by step:\n- You start with 2\n- You add another 2\n- When you combine these
+      quantities, the result is 4\n\nThis is a fundamental mathematical fact that
+      can be demonstrated in many ways:\n- On your fingers: Hold up 2 fingers on one
+      hand, 2 on the other, and you''ll see 4 fingers total\n- With objects: If you
+      have 2 apples and someone gives you 2 more, you now have 4 apples\n- Using number
+      lines: If you start at 2 and move 2 more spaces to the right, you land on 4\n\nThe
+      consistency of this calculation is why 2 + 2 always equals 4."}], "role": "model"},
+      {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2
+      + 2 = 4.\n\nI''ve answered this question a few times now. Is there something
+      specific about this calculation that you''d like to understand, or perhaps a
+      different math problem or concept you''d like to explore?"}], "role": "model"},
+      {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2
+      + 2 equals 4.\n\nThis is a simple addition problem. You start with the number
+      2, add another 2 to it, and the total comes out to 4. It''s a fundamental arithmetic
+      operation that illustrates the concept of combining quantities. If you need
+      more information or have another question, feel free to ask!"}], "role": "model"},
+      {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2
+      + 2 = 4\n\nThis is a basic arithmetic fact that remains consistent in all mathematical
+      systems. Whether you''re counting objects, using a number line, or performing
+      abstract mathematical operations, 2 plus 2 will always equal 4.\n\nWould you
+      like me to explain this in more detail, or are you interested in exploring a
+      different mathematical concept?"}], "role": "model"}, {"parts": [{"text": "What
+      is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nI''ve provided
+      this answer several times now. Is there a specific reason you''re asking the
+      same question repeatedly, or are you perhaps looking for a different kind of
+      explanation, a different problem, or trying to understand something specific
+      about this equation? Please let me know how I can help you further!"}], "role":
+      "model"}, {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text":
+      "2 + 2 = 4.\n\nThis addition problem represents the combination of two quantities:
+      if you have 2 of something and add 2 more, you get 4 in total. This is a fundamental
+      principle of arithmetic. If you have any more questions or if you\u2019d like
+      to discuss a different topic, feel free to ask!"}], "role": "model"}, {"parts":
+      [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nI
+      notice that you''ve asked this same question multiple times. Each time, the
+      answer remains the same. If you''re looking for something more than a simple
+      repetition, I''m happy to elaborate on the math, discuss different ways of understanding
+      this calculation, or explore a new mathematical concept. What would you like
+      to know?"}], "role": "model"}, {"parts": [{"text": "What is 2+2?"}], "role":
+      "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nYou''ve asked this question quite
+      a few times now, and the answer remains consistently 4.\n\nIf you''re asking
+      for a reason or a different perspective, perhaps you''re wondering:\n*   **Why
+      is it always 4?** It''s a fundamental property of our number system, based on
+      how we define addition and counting.\n*   **Are there any exceptions?** No,
+      in standard arithmetic, 2 + 2 is always 4.\n*   **Is this a trick question?**
+      While it''s a common phrase used in that context, in pure mathematics, 2 + 2
+      is definitively 4.\n\nIs there a particular reason you keep asking this question,
+      or something specific you''re hoping to learn about it? I''m here to help with
+      any math questions you have!"}], "role": "model"}, {"parts": [{"text": "What
+      is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nThis is a fundamental
+      arithmetic operation, and the answer remains constant no matter how many times
+      it is asked. If you combine two items with another two items, you end up with
+      four items in total.\n\nIf there''s something specific you''re curious about
+      regarding this calculation, or if you''d like to explore a different topic,
+      please let me know!"}], "role": "model"}, {"parts": [{"text": "What is 2+2?"}],
+      "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nI see that you have been
+      asking the same question repeatedly. While the answer remains consistent, I''m
+      happy to provide more depth or explore different mathematical concepts if you''d
+      like. Is there a specific reason you''re asking about 2 + 2, or would you like
+      to discuss something else?"}], "role": "model"}, {"parts": [{"text": "What is
+      2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nYou''ve asked this
+      question many times. The answer in standard arithmetic is always 4.\n\nSince
+      you''re asking it repeatedly, I want to make sure I''m being helpful. Could
+      you tell me:\n*   Are you testing if the answer changes? (It won''t in standard
+      math.)\n*   Are you looking for a very specific type of explanation?\n*   Are
+      you perhaps trying to illustrate a point or just playing around?\n*   Or would
+      you like to move on to a different math problem or concept entirely?\n\nPlease
+      let me know how I can assist you best!"}], "role": "model"}, {"parts": [{"text":
+      "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nThis basic
+      arithmetic operation reflects the principle of combining two quantities. If
+      you''d like to discuss anything further about addition, explore different math
+      topics, or ask another question, I''m here to help!"}], "role": "model"}, {"parts":
+      [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nI
+      notice you''ve asked this same question multiple times. Each time, the mathematical
+      answer remains consistent. If you''re looking for something more substantive,
+      I''m happy to:\n- Explain the concept in more depth\n- Discuss different ways
+      of understanding addition\n- Explore a different mathematical topic\n\nWhat
+      would you like to do?"}], "role": "model"}, {"parts": [{"text": "What is 2+2?"}],
+      "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nYou''ve consistently asked
+      this question, and the answer, in standard mathematics, is always 4.\n\nSince
+      you''re asking it repeatedly, I want to make sure I''m truly helping you. Could
+      you clarify:\n*   Are you looking for a more detailed explanation of why it''s
+      4?\n*   Are you trying to see if the answer ever changes?\n*   Do you have a
+      different kind of math problem or concept you''d like to discuss?\n\nPlease
+      let me know how I can assist you further!"}], "role": "model"}, {"parts": [{"text":
+      "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nThis is
+      a fundamental arithmetic equation that illustrates basic addition. If you start
+      with 2 and add another 2, you combine the two quantities, leading to a total
+      of 4. \n\nIf you have something specific you\u2019d like to discuss about this
+      equation or if you have other math-related questions, please feel free to ask!"}],
+      "role": "model"}, {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts":
+      [{"text": "2 + 2 = 4.\n\nThe answer remains consistent. Each time you ask, the
+      result is the same. If you''re looking for more than a simple repetition, I''m
+      happy to:\n- Explain the concept in more depth\n- Discuss different mathematical
+      principles\n- Explore a new math problem\n\nWhat would you like to do?"}], "role":
+      "model"}, {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text":
+      "2 + 2 = 4.\n\nYou''ve asked this question a number of times now, and the answer,
+      in standard arithmetic, is always 4.\n\nIf you are exploring the consistency
+      of this answer, or if there''s a particular nuance you''re trying to understand,
+      please let me know. Otherwise, I''m ready to help you with a different mathematical
+      problem or concept!"}], "role": "model"}, {"parts": [{"text": "What is 2+2?"}],
+      "role": "user"}, {"parts": [{"text": "2 + 2 = 4.\n\nThis basic arithmetic operation
+      shows that when you combine two quantities of 2, the total is 4. If you have
+      any other questions or if there''s a specific reason you''re asking this question
+      repeatedly, please let me know how I can assist you further!"}], "role": "model"},
+      {"parts": [{"text": "What is 2+2?"}], "role": "user"}, {"parts": [{"text": "2
+      + 2 = 4.\n\nYou have asked this question many times, and the mathematical answer
+      remains consistent. If you''re looking for something more substantive, I''m
+      happy to:\n- Provide a deeper explanation of addition\n- Explore different mathematical
+      concepts\n- Discuss a new math problem\n\nWhat would you like to do?"}], "role":
+      "model"}, {"parts": [{"text": "What is 2+2?"}], "role": "user"}], "systemInstruction":
+      {"parts": [{"text": "You are a helpful math tutor. Always explain your reasoning."}],
+      "role": "user"}, "generationConfig": {"temperature": 1.0, "maxOutputTokens":
+      65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '9674'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"2 + 2 = 4.\\n\\nYou have asked this
+        question many times. The answer in standard mathematics remains consistently
+        4.\\n\\nSince you're asking it repeatedly, it seems like you might be looking
+        for something beyond a simple answer. Could you please tell me:\\n*   **Why
+        are you repeatedly asking this specific question?**\\n*   **Are you testing
+        for consistency?** (The answer will always be 4 in standard arithmetic.)\\n*
+        \  **Are you hoping for a different kind of explanation?**\\n*   **Would you
+        like to move on to a different math problem or concept entirely?**\\n\\nI'm
+        here to help you understand math, so please let me know how I can assist you
+        more effectively!\"\n          }\n        ],\n        \"role\": \"model\"\n
+        \     },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n
+        \ \"usageMetadata\": {\n    \"promptTokenCount\": 1968,\n    \"candidatesTokenCount\":
+        152,\n    \"totalTokenCount\": 2378,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 1968\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 258\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"5dydaOakO9jrkdUPpJCNSA\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 14 Aug 2025 12:56:05 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=2851
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '1205'
+    status:
+      code: 200
+      message: OK
+version: 1

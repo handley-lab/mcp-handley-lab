@@ -1,8 +1,8 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What is in this text file?"}, {"text":
-      "[File: tmptg4s8srf.txt]\nThis is a simple text file with some content for testing."}],
-      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      "[File: tmp2csfjprc.txt]\nThis is a simple text file with some content for testing."}],
+      "role": "user"}], "generationConfig": {"temperature": 1.0, "maxOutputTokens":
       65536}}'
     headers:
       accept:
@@ -18,35 +18,33 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"The text you provided as the content
-        of the file is:\\n\\n`This is a simple text file with some content for testing.`\\n\\nSince
-        I cannot directly access local files on your computer, I am interpreting the
-        text you included in your prompt as the content of the file.\"\n          }\n
+        [\n          {\n            \"text\": \"The text file contains the following:\\n\\n\\\"This
+        is a simple text file with some content for testing.\\\"\"\n          }\n
         \       ],\n        \"role\": \"model\"\n      },\n      \"finishReason\":
         \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        35,\n    \"candidatesTokenCount\": 55,\n    \"totalTokenCount\": 544,\n    \"promptTokensDetails\":
-        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 35\n
-        \     }\n    ],\n    \"thoughtsTokenCount\": 454\n  },\n  \"modelVersion\":
-        \"gemini-2.5-flash\",\n  \"responseId\": \"qNZqaKu5LKPNkdUP9eejuQM\"\n}\n"
+        33,\n    \"candidatesTokenCount\": 21,\n    \"totalTokenCount\": 227,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 33\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 173\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"C-CdaPS4GvqwkdUPrYqFUQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:52 GMT
+      - Thu, 14 Aug 2025 13:09:31 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=2828
+      - gfet4t7; dur=1204
       Transfer-Encoding:
       - chunked
       Vary:
@@ -60,7 +58,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '806'
+      - '645'
     status:
       code: 200
       message: OK

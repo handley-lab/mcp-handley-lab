@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": "Test prompt"}], "model": "invalid-model-name-that-does-not-exist",
-      "max_completion_tokens": 100000, "temperature": 0.7}'
+      "max_completion_tokens": 128000}'
     headers:
       accept:
       - application/json
@@ -10,13 +10,13 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '152'
+      - '134'
       content-type:
       - application/json
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -26,7 +26,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -34,7 +34,7 @@ interactions:
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
-      - 3.13.3
+      - 3.13.5
     method: POST
     uri: https://api.openai.com/v1/chat/completions
   response:
@@ -44,15 +44,17 @@ interactions:
         \       \"param\": null,\n        \"code\": \"model_not_found\"\n    }\n}\n"
     headers:
       CF-RAY:
-      - 95b1b61b29704f47-MAN
+      - 96ee89696a85e4ed-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Sun, 06 Jul 2025 20:04:28 GMT
+      - Thu, 14 Aug 2025 06:53:43 GMT
       Server:
       - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -63,12 +65,12 @@ interactions:
       - DYNAMIC
       content-length:
       - '244'
-      strict-transport-security:
-      - max-age=31536000; includeSubDomains; preload
       vary:
       - Origin
+      x-envoy-upstream-service-time:
+      - '126'
       x-request-id:
-      - req_05852d0bbb92419af4815ac98601f600
+      - req_102682370f694806a252e8dd30c7c6cf
     status:
       code: 404
       message: Not Found

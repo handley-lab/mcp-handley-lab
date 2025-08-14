@@ -1,65 +1,60 @@
 """Integration tests for image generation metadata extraction."""
+
 import os
 from pathlib import Path
 
 import pytest
-from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image, mcp as gemini_mcp
-from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image, mcp as openai_mcp
+
+from mcp_handley_lab.llm.gemini.tool import generate_image as gemini_generate_image
+from mcp_handley_lab.llm.openai.tool import generate_image as openai_generate_image
 from mcp_handley_lab.shared.models import ImageGenerationResult
-from openai import BadRequestError
 
 
 class TestOpenAIImageGeneration:
     """Test OpenAI image generation with comprehensive metadata extraction."""
 
-    @pytest.mark.live
-    @pytest.mark.asyncio
-    async def test_dalle2_basic_metadata(self):
+    @pytest.mark.vcr
+    def test_dalle2_basic_metadata(self):
         """Test DALL-E 2 basic metadata extraction."""
-        _, response = await openai_mcp.call_tool(
-            "generate_image", 
-            {
-                "prompt": "A simple red circle",
-                "model": "dall-e-2",
-                "size": "512x512",
-                "agent_name": "test_dalle2",
-            }
+        result = openai_generate_image(
+            prompt="A simple red circle",
+            model="dall-e-2",
+            quality="standard",
+            size="512x512",
+            agent_name="test_dalle2",
         )
-        
-        assert "error" not in response, response.get("error")
-        result = response
 
         # Verify core fields
-        assert result["message"] == "Image Generated Successfully"
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["agent_name"] == "test_dalle2"
+        assert result.message == "Image Generated Successfully"
+        assert Path(result.file_path).exists()
+        assert result.file_size_bytes > 0
+        assert result.agent_name == "test_dalle2"
 
         # Verify usage statistics
-        assert result["usage"]["input_tokens"] >= 0
-        assert result["usage"]["output_tokens"] == 1  # Images count as 1 output token
-        assert result["usage"]["cost"] > 0
-        assert result["usage"]["model_used"] == "dall-e-2"
+        assert result.usage.input_tokens >= 0
+        assert result.usage.output_tokens == 1  # Images count as 1 output token
+        assert result.usage.cost > 0
+        assert result.usage.model_used == "dall-e-2"
 
         # Verify OpenAI-specific metadata
-        assert result["generation_timestamp"] > 0
-        assert result["original_prompt"] == "A simple red circle"
-        assert result["requested_size"] == "512x512"
-        assert result["mime_type"] == "image/png"
-        assert result["original_url"].startswith("https://")
-        assert isinstance(result["openai_metadata"], dict)
+        assert result.generation_timestamp > 0
+        assert result.original_prompt == "A simple red circle"
+        assert result.requested_size == "512x512"
+        assert result.mime_type == "image/png"
+        assert result.original_url.startswith("https://")
+        assert isinstance(result.openai_metadata, dict)
 
         # DALL-E 2 doesn't enhance prompts
-        assert result["enhanced_prompt"] == ""
+        assert result.enhanced_prompt == ""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     def test_dalle3_enhanced_metadata(self):
         """Test DALL-E 3 enhanced metadata extraction including revised prompts."""
         result = openai_generate_image(
             prompt="A futuristic city",
             model="dall-e-3",
-            size="1024x1024",
             quality="hd",
+            size="1024x1024",
             agent_name="test_dalle3",
         )
 
@@ -190,129 +185,98 @@ class TestImageGenerationComparison:
     """Test comparing metadata across providers."""
 
     @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_metadata_structure_consistency(self):
+    def test_metadata_structure_consistency(self):
         """Test that both providers return consistent metadata structure."""
         prompt = "A simple test image"
 
-        _, openai_response = await openai_mcp.call_tool(
-            "generate_image", 
-            {
-                "prompt": prompt,
-                "model": "dall-e-2",
-                "size": "512x512",
-                "agent_name": "consistency_test",
-            }
+        openai_result = openai_generate_image(
+            prompt=prompt,
+            model="dall-e-2",
+            size="512x512",
+            quality="standard",
+            agent_name="consistency_test",
         )
-        assert "error" not in openai_response, openai_response.get("error")
-        openai_result = openai_response
 
-        _, gemini_response = await gemini_mcp.call_tool(
-            "generate_image", 
-            {
-                "prompt": prompt,
-                "model": "imagen-3.0-generate-002",
-                "agent_name": "consistency_test",
-            }
+        gemini_result = gemini_generate_image(
+            prompt=prompt,
+            model="imagen-3.0-generate-002",
+            agent_name="consistency_test",
         )
-        assert "error" not in gemini_response, gemini_response.get("error")
-        gemini_result = gemini_response
 
         # Both should have the same core structure
         for result in [openai_result, gemini_result]:
-            assert "message" in result
-            assert "file_path" in result
-            assert "file_size_bytes" in result
-            assert "usage" in result
-            assert "agent_name" in result
-            assert "generation_timestamp" in result
-            assert "enhanced_prompt" in result
-            assert "original_prompt" in result
-            assert "safety_attributes" in result
-            assert "openai_metadata" in result
-            assert "gemini_metadata" in result
+            assert hasattr(result, "message")
+            assert hasattr(result, "file_path")
+            assert hasattr(result, "file_size_bytes")
+            assert hasattr(result, "usage")
+            assert hasattr(result, "agent_name")
+            assert hasattr(result, "generation_timestamp")
+            assert hasattr(result, "enhanced_prompt")
+            assert hasattr(result, "original_prompt")
+            assert hasattr(result, "safety_attributes")
+            assert hasattr(result, "openai_metadata")
+            assert hasattr(result, "gemini_metadata")
 
         # Verify provider-specific metadata is in correct containers
-        assert len(openai_result["openai_metadata"]) > 0
-        assert len(openai_result["gemini_metadata"]) == 0
-        assert len(gemini_result["gemini_metadata"]) > 0
-        assert len(gemini_result["openai_metadata"]) == 0
+        assert len(openai_result.openai_metadata) > 0
+        assert len(openai_result.gemini_metadata) == 0
+        assert len(gemini_result.gemini_metadata) > 0
+        assert len(gemini_result.openai_metadata) == 0
 
     @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_prompt_enhancement_differences(self):
+    def test_prompt_enhancement_differences(self):
         """Test how different providers handle prompt enhancement."""
         prompt = "A cat wearing a hat"
 
-        _, openai_response = await openai_mcp.call_tool(
-            "generate_image", 
-            {
-                "prompt": prompt,
-                "model": "dall-e-3",  # DALL-E 3 enhances prompts
-                "size": "1024x1024",
-                "agent_name": "enhancement_test",
-            }
+        openai_result = openai_generate_image(
+            prompt=prompt,
+            model="dall-e-3",  # DALL-E 3 enhances prompts
+            size="1024x1024",
+            quality="standard",
+            agent_name="enhancement_test",
         )
-        assert "error" not in openai_response, openai_response.get("error")
-        openai_result = openai_response
 
-        _, gemini_response = await gemini_mcp.call_tool(
-            "generate_image", 
-            {
-                "prompt": prompt,
-                "model": "imagen-3.0-generate-002",
-                "agent_name": "enhancement_test",
-            }
+        gemini_result = gemini_generate_image(
+            prompt=prompt,
+            model="imagen-3.0-generate-002",
+            agent_name="enhancement_test",
         )
-        assert "error" not in gemini_response, gemini_response.get("error")
-        gemini_result = gemini_response
 
         # Both should preserve original prompt
-        assert openai_result["original_prompt"] == prompt
-        assert gemini_result["original_prompt"] == prompt
+        assert openai_result.original_prompt == prompt
+        assert gemini_result.original_prompt == prompt
 
         # DALL-E 3 should enhance prompts significantly
-        assert openai_result["enhanced_prompt"] != ""
-        assert len(openai_result["enhanced_prompt"]) > len(prompt)
+        assert openai_result.enhanced_prompt != ""
+        assert len(openai_result.enhanced_prompt) > len(prompt)
 
         # Gemini may or may not enhance prompts
-        assert isinstance(gemini_result["enhanced_prompt"], str)
+        assert isinstance(gemini_result.enhanced_prompt, str)
 
 
 class TestImageGenerationErrorHandling:
     """Test error handling in image generation."""
 
-    @pytest.mark.asyncio
-    async def test_empty_prompt_openai(self):
+    def test_empty_prompt_openai(self):
         """Test OpenAI image generation with empty prompt."""
-        from mcp.server.fastmcp.exceptions import ToolError
-        
-        with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
-            await openai_mcp.call_tool("generate_image", {"prompt": ""})
+        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
+            openai_generate_image(prompt="")
 
-    @pytest.mark.asyncio
-    async def test_empty_prompt_gemini(self):
+    def test_empty_prompt_gemini(self):
         """Test Gemini image generation with empty prompt."""
-        from mcp.server.fastmcp.exceptions import ToolError
-        
-        with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
-            await gemini_mcp.call_tool("generate_image", {"prompt": ""})
+        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
+            gemini_generate_image(prompt="")
 
     @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_invalid_size_openai(self):
+    def test_invalid_size_openai(self):
         """Test OpenAI with invalid size parameter."""
-        from mcp.server.fastmcp.exceptions import ToolError
-        
-        with pytest.raises(ToolError):  # MCP wraps API errors in ToolError
-            await openai_mcp.call_tool(
-                "generate_image", 
-                {
-                    "prompt": "Test",
-                    "model": "dall-e-3",
-                    "size": "100x100",  # Invalid size
-                    "agent_name": "error_test",
-                }
+        with pytest.raises(ValueError):  # API errors propagate as ValueError
+            openai_generate_image(
+                prompt="Test",
+                model="dall-e-3",
+                size="100x100",  # Invalid size
+                agent_name="error_test",
+                quality="standard",
             )
 
 

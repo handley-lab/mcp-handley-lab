@@ -1,9 +1,11 @@
 """Unit tests for image generation metadata extraction."""
+
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from mcp_handley_lab.llm.shared import process_image_generation
 from mcp_handley_lab.shared.models import ImageGenerationResult, UsageStats
 
@@ -118,8 +120,11 @@ class TestImageGenerationMetadata:
 
         mock_mcp = MagicMock()
 
-        with tempfile.TemporaryDirectory() as temp_dir, patch(
-            "mcp_handley_lab.llm.shared.tempfile.gettempdir", return_value=temp_dir
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch(
+                "mcp_handley_lab.llm.shared.tempfile.gettempdir", return_value=temp_dir
+            ),
         ):
             result = process_image_generation(
                 prompt="Test prompt",
@@ -171,8 +176,11 @@ class TestImageGenerationMetadata:
 
         mock_mcp = MagicMock()
 
-        with tempfile.TemporaryDirectory() as temp_dir, patch(
-            "mcp_handley_lab.llm.shared.tempfile.gettempdir", return_value=temp_dir
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch(
+                "mcp_handley_lab.llm.shared.tempfile.gettempdir", return_value=temp_dir
+            ),
         ):
             result = process_image_generation(
                 prompt="Minimal test",

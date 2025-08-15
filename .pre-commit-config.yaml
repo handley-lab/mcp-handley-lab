@@ -35,9 +35,16 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # Custom version checking (must run last)
+  # Custom hooks
   - repo: local
     hooks:
+      - id: prevent-master-commit
+        name: Prevent commits to master branch
+        entry: scripts/prevent-master-commit.sh
+        language: script
+        stages: [pre-commit]
+        always_run: true
+        pass_filenames: false
       - id: version-check
         name: Check for Version Bump
         entry: python scripts/check_version.py

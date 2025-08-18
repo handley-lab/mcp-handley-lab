@@ -284,27 +284,35 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Anthropic Claude AI service on behalf of the human user. Returns Claude's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Claude. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Anthropic Claude AI service. Can take a prompt directly or load it from a template file with variables. Returns Claude's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ...,
+        default=None,
         description="The user's question to delegate to external Claude AI service.",
     ),
+    prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
+    ),
     output_file: str = Field(
-        "-",
+        default="-",
         description="Path to save Claude's response. Use '-' to stream the output directly to stdout.",
     ),
     agent_name: str = Field(
-        "session",
+        default="session",
         description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
     ),
     model: str = Field(
-        DEFAULT_MODEL,
+        default=DEFAULT_MODEL,
         description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'.",
     ),
     temperature: float = Field(
-        1.0,
+        default=1.0,
         description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic.",
     ),
     files: list[str] = Field(
@@ -312,12 +320,20 @@ def ask(
         description="A list of file paths to be read and included as context in the prompt.",
     ),
     max_output_tokens: int = Field(
-        0,
+        default=0,
         description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
     ),
-    system_prompt: str | None = Field(
+    system_prompt: str = Field(
         default=None,
         description="System instructions to send to external Claude AI service. Remembered for this conversation thread.",
+    ),
+    system_prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
+    ),
+    system_prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
     ),
 ) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
@@ -325,6 +341,8 @@ def ask(
     resolved_model = _resolve_model_alias(model)
     return process_llm_request(
         prompt=prompt,
+        prompt_file=prompt_file,
+        prompt_vars=prompt_vars,
         output_file=output_file,
         agent_name=agent_name,
         model=resolved_model,
@@ -335,6 +353,8 @@ def ask(
         files=files,
         max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
+        system_prompt_file=system_prompt_file,
+        system_prompt_vars=system_prompt_vars,
     )
 
 

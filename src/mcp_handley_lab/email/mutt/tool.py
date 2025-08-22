@@ -185,6 +185,9 @@ def reply(
         default="",
         description="Text to add to the top of the reply, above the quoted original message.",
     ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
+    ),
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
 
@@ -233,8 +236,10 @@ def reply(
     return compose(
         to=reply_to,
         cc=reply_cc,
+        bcc=None,
         subject=reply_subject,
         body=complete_reply_body,
+        attachments=attachments,
         in_reply_to=in_reply_to,
         references=references,
     )
@@ -254,6 +259,9 @@ def forward(
     body: str = Field(
         default="",
         description="Commentary to add to the top of the email, above the forwarded message.",
+    ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
     ),
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
@@ -291,8 +299,11 @@ def forward(
     # Use compose with extracted data (no threading headers for forwards)
     return compose(
         to=to,
+        cc=None,
+        bcc=None,
         subject=forward_subject,
         body=complete_forward_body,
+        attachments=attachments,
     )
 
 

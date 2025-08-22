@@ -9,11 +9,10 @@ from email.parser import BytesParser
 from pathlib import Path
 
 import ftfy
-import talon
+from email_reply_parser import EmailReplyParser
 from inscriptis import get_text
 from pydantic import BaseModel, Field
 from selectolax.parser import HTMLParser
-from talon import quotations
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
@@ -168,8 +167,8 @@ def _get_message_from_raw_source(message_id: str) -> EmailMessage:
     return parser.parsebytes(raw_email_bytes)
 
 
-# Initialize talon once (downloads ML models on first run)
-talon.init()
+# Initialize email reply parser
+reply_parser = EmailReplyParser()
 
 
 def normalize_whitespace(text: str) -> str:
@@ -242,9 +241,8 @@ def optimize_email_content(msg: EmailMessage, mode: str = "full") -> dict:
             "body_format": "empty",
         }
 
-    # Apply talon for signature/reply detection and quote stripping
-    message_body, signature = talon.signature.extract(content)
-    clean_content = quotations.strip_from_text(message_body)
+    # Apply email-reply-parser for quote stripping and clean content extraction
+    clean_content = reply_parser.parse_reply(content)
 
     # Final normalization
     clean_content = ftfy.fix_text(clean_content)
@@ -332,7 +330,7 @@ def process_html_content(html_content: str) -> str:
 
 
 @mcp.tool(
-    description="""Display email content with optimized token efficiency. Uses advanced libraries (talon, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
+    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
 )
 def show(
     query: str = Field(

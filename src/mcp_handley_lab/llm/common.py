@@ -4,6 +4,7 @@ import base64
 import mimetypes
 import os
 from pathlib import Path
+from string import Template
 
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.shared.models import ServerInfo
@@ -58,6 +59,41 @@ TEXT_BASED_APPLICATION_TYPES = {
     "application/x-tex",
     "application/toml",
 }
+
+
+def load_prompt_text(
+    prompt: str,
+    prompt_file: str,
+    prompt_vars: dict[str, str],
+) -> str:
+    """Resolve and render prompt from either string or file with optional templating.
+
+    Args:
+        prompt: Direct prompt text (mutually exclusive with prompt_file)
+        prompt_file: Path to file containing prompt (mutually exclusive with prompt)
+        prompt_vars: Variables for ${var} substitution in the prompt text
+
+    Returns:
+        Final resolved prompt text
+
+    Raises:
+        ValueError: If both or neither prompt sources provided, or template substitution fails
+        FileNotFoundError: If prompt_file doesn't exist
+    """
+    if not (bool(prompt) ^ bool(prompt_file)):
+        raise ValueError("Provide exactly one of 'prompt' or 'prompt_file'.")
+
+    # Load prompt text
+    if prompt_file:
+        final_prompt = Path(prompt_file).read_text(encoding="utf-8")
+    else:
+        final_prompt = prompt
+
+    # Apply template substitution if variables provided
+    if prompt_vars:
+        final_prompt = Template(final_prompt).substitute(prompt_vars)
+
+    return final_prompt
 
 
 def get_session_id(mcp_instance) -> str:

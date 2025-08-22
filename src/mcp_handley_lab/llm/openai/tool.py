@@ -266,12 +266,20 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external OpenAI GPT service on behalf of the human user. Returns OpenAI's verbatim response to assist the user. Use `agent_name` for separate conversation thread with OpenAI. For code reviews, use code2prompt first."
+    description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ...,
+        default=None,
         description="The user's question to delegate to external OpenAI AI service.",
+    ),
+    prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
         default="-",
@@ -305,14 +313,24 @@ def ask(
         default=0,
         description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
-    system_prompt: str | None = Field(
+    system_prompt: str = Field(
         default=None,
         description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
+    ),
+    system_prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
+    ),
+    system_prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
     ),
 ) -> LLMResult:
     """Ask OpenAI a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
+        prompt_file=prompt_file,
+        prompt_vars=prompt_vars,
         output_file=output_file,
         agent_name=agent_name,
         model=model,
@@ -325,6 +343,8 @@ def ask(
         enable_logprobs=enable_logprobs,
         top_logprobs=top_logprobs,
         system_prompt=system_prompt,
+        system_prompt_file=system_prompt_file,
+        system_prompt_vars=system_prompt_vars,
     )
 
 

@@ -365,12 +365,20 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Google Gemini AI service on behalf of the human user. Returns Gemini's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Gemini. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Google Gemini AI service. Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ...,
+        default=None,
         description="The user's question to delegate to external Gemini AI service.",
+    ),
+    prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
         default="-",
@@ -400,14 +408,24 @@ def ask(
         default=0,
         description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
-    system_prompt: str | None = Field(
+    system_prompt: str = Field(
         default=None,
         description="System instructions to send to external Gemini AI service. Remembered for this conversation thread.",
+    ),
+    system_prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
+    ),
+    system_prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
     ),
 ) -> LLMResult:
     """Ask Gemini a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
+        prompt_file=prompt_file,
+        prompt_vars=prompt_vars,
         output_file=output_file,
         agent_name=agent_name,
         model=model,
@@ -419,6 +437,8 @@ def ask(
         files=files,
         max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
+        system_prompt_file=system_prompt_file,
+        system_prompt_vars=system_prompt_vars,
     )
 
 

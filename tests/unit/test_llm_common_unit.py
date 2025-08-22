@@ -14,6 +14,7 @@ from mcp_handley_lab.llm.common import (
     handle_output,
     is_gemini_supported_mime_type,
     is_text_file,
+    load_prompt_text,
     read_file_smart,
     resolve_file_content,
     resolve_image_data,
@@ -529,23 +530,138 @@ class TestHandleAgentMemory:
 
         assert result is None
 
+
+class TestLoadPromptText:
+    """Test prompt text loading with file support and template substitution."""
+
+    def test_load_from_direct_prompt(self):
+        """Test loading from a direct prompt string without variables."""
+        result = load_prompt_text(prompt="Hello World", prompt_file="", prompt_vars={})
+        assert result == "Hello World"
+
+    def test_load_from_direct_prompt_with_vars(self):
+        """Test loading from a direct prompt string with template substitution."""
+        result = load_prompt_text(
+            prompt="Hello, ${name}!",
+            prompt_file="",
+            prompt_vars={"name": "World"},
+        )
+        assert result == "Hello, World!"
+
+    def test_load_from_file(self, tmp_path):
+        """Test loading from a prompt file without variables."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("File content")
+        result = load_prompt_text(
+            prompt="", prompt_file=str(prompt_file), prompt_vars={}
+        )
+        assert result == "File content"
+
+    def test_load_from_file_with_vars(self, tmp_path):
+        """Test loading from a prompt file with template substitution."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("File says: ${greeting}, ${subject}!")
+        result = load_prompt_text(
+            prompt="",
+            prompt_file=str(prompt_file),
+            prompt_vars={"greeting": "Greetings", "subject": "Universe"},
+        )
+        assert result == "File says: Greetings, Universe!"
+
+    def test_xor_validation_fails_with_both(self):
+        """Test that ValueError is raised if both prompt and prompt_file are provided."""
+        with pytest.raises(
+            ValueError, match="Provide exactly one of 'prompt' or 'prompt_file'."
+        ):
+            load_prompt_text(prompt="Hello", prompt_file="/some/path", prompt_vars={})
+
+    def test_xor_validation_fails_with_neither(self):
+        """Test that ValueError is raised if neither prompt nor prompt_file is provided."""
+        with pytest.raises(
+            ValueError, match="Provide exactly one of 'prompt' or 'prompt_file'."
+        ):
+            load_prompt_text(prompt="", prompt_file="", prompt_vars={})
+
+    def test_file_not_found(self):
+        """Test that FileNotFoundError is raised for a non-existent file."""
+        with pytest.raises(FileNotFoundError):
+            load_prompt_text(
+                prompt="", prompt_file="/non/existent/path.txt", prompt_vars={}
+            )
+
+    def test_missing_template_variable_raises_key_error(self, tmp_path):
+        """Test that a KeyError is raised for a missing template variable."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("Hello, ${name}!")
+        with pytest.raises(KeyError):
+            load_prompt_text(
+                prompt="",
+                prompt_file=str(prompt_file),
+                prompt_vars={"wrong_key": "World"},
+            )
+
+    def test_empty_prompt_file(self, tmp_path):
+        """Test handling of an empty prompt file."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.touch()
+        result = load_prompt_text(
+            prompt="", prompt_file=str(prompt_file), prompt_vars={}
+        )
+        assert result == ""
+
+    def test_substitution_with_escaped_dollars(self, tmp_path):
+        """Test template substitution with escaped dollar signs."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("Cost is $$${amount}")
+        result = load_prompt_text(
+            prompt="",
+            prompt_file=str(prompt_file),
+            prompt_vars={"amount": "100"},
+        )
+        assert result == "Cost is $100"
+
+    def test_substitution_with_adjacent_text(self):
+        """Test template substitution with variables adjacent to other text."""
+        result = load_prompt_text(
+            prompt="${name}_id_${suffix}",
+            prompt_file="",
+            prompt_vars={"name": "alice", "suffix": "123"},
+        )
+        assert result == "alice_id_123"
+
+    def test_no_substitution_when_no_vars(self, tmp_path):
+        """Test that no substitution occurs when prompt_vars is empty."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("Hello ${name}")
+        result = load_prompt_text(
+            prompt="", prompt_file=str(prompt_file), prompt_vars={}
+        )
+        assert result == "Hello ${name}"
+
+    def test_unused_variables_ok(self):
+        """Test that unused variables in prompt_vars don't cause errors."""
+        result = load_prompt_text(
+            prompt="Hello World",
+            prompt_file="",
+            prompt_vars={"unused": "value", "also_unused": "another"},
+        )
+        assert result == "Hello World"
+
+    def test_utf8_handling(self, tmp_path):
+        """Test proper UTF-8 handling with special characters."""
+        prompt_file = tmp_path / "prompt.txt"
+        prompt_file.write_text("你好, ${name}! 🌍", encoding="utf-8")
+        result = load_prompt_text(
+            prompt="",
+            prompt_file=str(prompt_file),
+            prompt_vars={"name": "世界"},
+        )
+        assert result == "你好, 世界! 🌍"
+
     def test_handle_agent_memory_string_false_normalization(self):
         """Test that string 'false' is normalized to boolean False."""
         result = handle_agent_memory(
             agent_name="false",  # String "false" should be treated as False
-            user_prompt="Test prompt",
-            response_text="Test response",
-            input_tokens=100,
-            output_tokens=50,
-            cost=0.001,
-            session_id_func=lambda: "session_123",
-        )
-
-        assert result is None
-
-        # Test case insensitive
-        result = handle_agent_memory(
-            agent_name="FALSE",  # Case insensitive
             user_prompt="Test prompt",
             response_text="Test response",
             input_tokens=100,

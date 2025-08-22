@@ -9,18 +9,11 @@ from email.parser import BytesParser
 from pathlib import Path
 
 import ftfy
+import talon
 from inscriptis import get_text
 from pydantic import BaseModel, Field
 from selectolax.parser import HTMLParser
-
-# Optional imports for advanced features
-try:
-    import talon
-    from talon import quotations
-
-    TALON_AVAILABLE = True
-except ImportError:
-    TALON_AVAILABLE = False
+from talon import quotations
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
@@ -176,12 +169,7 @@ def _get_message_from_raw_source(message_id: str) -> EmailMessage:
 
 
 # Initialize talon once (downloads ML models on first run)
-if TALON_AVAILABLE:
-    try:
-        talon.init()
-    except Exception:
-        # Fallback if talon initialization fails
-        TALON_AVAILABLE = False
+talon.init()
 
 
 def normalize_whitespace(text: str) -> str:
@@ -254,20 +242,9 @@ def optimize_email_content(msg: EmailMessage, mode: str = "full") -> dict:
             "body_format": "empty",
         }
 
-    # Apply talon for signature/reply detection if available
-    if TALON_AVAILABLE:
-        try:
-            # Extract main message body, strip signature
-            message_body, signature = talon.signature.extract(content)
-
-            # Strip quoted reply blocks
-            clean_content = quotations.strip_from_text(message_body)
-        except Exception:
-            # Fallback if talon fails
-            clean_content = content
-    else:
-        # Basic fallback without talon
-        clean_content = content
+    # Apply talon for signature/reply detection and quote stripping
+    message_body, signature = talon.signature.extract(content)
+    clean_content = quotations.strip_from_text(message_body)
 
     # Final normalization
     clean_content = ftfy.fix_text(clean_content)

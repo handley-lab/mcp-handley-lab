@@ -112,6 +112,7 @@ def compose(
     ),
 ) -> OperationResult:
     """Compose an email using mutt's interactive interface."""
+    temp_file_path = None
 
     if body:
         with tempfile.NamedTemporaryFile(
@@ -135,32 +136,20 @@ def compose(
                 temp_f.write("\n")  # Ensure proper line ending
             temp_file_path = temp_f.name
 
-        mutt_cmd = _build_mutt_command(
-            to=None,  # Already in draft file
-            subject=None,  # Already in draft file
-            cc=None,  # Already in draft file
-            bcc=None,  # Already in draft file
-            attachments=attachments,
-            temp_file_path=temp_file_path,
-            in_reply_to=None,  # Already in draft file
-            references=None,  # Already in draft file
-        )
+    # Consolidate command building
+    mutt_cmd = _build_mutt_command(
+        to=to if not body else None,  # Pass None for args handled by draft file
+        subject=subject if not body else None,
+        cc=cc if not body else None,
+        bcc=bcc if not body else None,
+        attachments=attachments,
+        temp_file_path=temp_file_path,
+        in_reply_to=in_reply_to if not body else None,
+        references=references if not body else None,
+    )
 
-        window_title = f"Mutt: {subject or 'New Email'}"
-        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
-    else:
-        mutt_cmd = _build_mutt_command(
-            to=to,
-            subject=subject,
-            cc=cc,
-            bcc=bcc,
-            attachments=attachments,
-            in_reply_to=in_reply_to,
-            references=references,
-        )
-
-        window_title = f"Mutt: {subject or 'New Email'}"
-        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
+    window_title = f"Mutt: {subject or 'New Email'}"
+    launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
 
     attachment_info = f" with {len(attachments)} attachment(s)" if attachments else ""
 

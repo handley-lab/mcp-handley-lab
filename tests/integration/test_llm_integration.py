@@ -810,3 +810,318 @@ class TestLLMMemory:
                 "don't have access",
             ]
         ), f"Agent 2 should indicate it doesn't know: {content2}"
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
+def test_llm_prompt_file_basic(
+    skip_if_no_api_key,
+    test_output_file,
+    tmp_path,
+    ask_func,
+    api_key,
+    model,
+    question,
+    answer,
+):
+    """Test basic prompt file loading for all LLM providers."""
+    skip_if_no_api_key(api_key)
+
+    # Create test prompt file
+    prompt_file = tmp_path / "test_prompt.txt"
+    prompt_file.write_text(f"What is {question}? Answer with just the number.")
+
+    # Provider-specific parameters
+    base_params = {
+        "prompt": "",
+        "prompt_file": str(prompt_file),
+        "prompt_vars": {},
+        "system_prompt": None,
+        "system_prompt_file": "",
+        "system_prompt_vars": {},
+        "output_file": test_output_file,
+        "model": model,
+        "agent_name": "",
+        "files": [],
+    }
+
+    # Add provider-specific parameters
+    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "enable_logprobs": False,
+                "top_logprobs": 0,
+            }
+        )
+    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            }
+        )
+    elif (
+        ask_func.__name__ == "ask"
+        and "claude" in ask_func.__module__
+        or ask_func.__name__ == "ask"
+        and "grok" in ask_func.__module__
+    ):
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+            }
+        )
+
+    result = ask_func(**base_params)
+
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert answer in content
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
+def test_llm_prompt_file_with_template_vars(
+    skip_if_no_api_key,
+    test_output_file,
+    tmp_path,
+    ask_func,
+    api_key,
+    model,
+    question,
+    answer,
+):
+    """Test prompt file loading with template variable substitution for all LLM providers."""
+    skip_if_no_api_key(api_key)
+
+    # Create test prompt file with template variables
+    prompt_file = tmp_path / "template_prompt.txt"
+    prompt_file.write_text(
+        "What is ${math_problem}? Answer with just the ${output_format}."
+    )
+
+    # Provider-specific parameters
+    base_params = {
+        "prompt": "",
+        "prompt_file": str(prompt_file),
+        "prompt_vars": {"math_problem": question, "output_format": "number"},
+        "system_prompt": None,
+        "system_prompt_file": "",
+        "system_prompt_vars": {},
+        "output_file": test_output_file,
+        "model": model,
+        "agent_name": "",
+        "files": [],
+    }
+
+    # Add provider-specific parameters
+    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "enable_logprobs": False,
+                "top_logprobs": 0,
+            }
+        )
+    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            }
+        )
+    elif (
+        ask_func.__name__ == "ask"
+        and "claude" in ask_func.__module__
+        or ask_func.__name__ == "ask"
+        and "grok" in ask_func.__module__
+    ):
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+            }
+        )
+
+    result = ask_func(**base_params)
+
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert answer in content
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
+def test_llm_system_prompt_file_with_templates(
+    skip_if_no_api_key,
+    test_output_file,
+    tmp_path,
+    ask_func,
+    api_key,
+    model,
+    question,
+    answer,
+):
+    """Test system prompt file loading with template variables for all LLM providers."""
+    skip_if_no_api_key(api_key)
+
+    # Create test system prompt file with template variables
+    system_prompt_file = tmp_path / "system_template.txt"
+    system_prompt_file.write_text("You are a ${persona}. ${instruction}")
+
+    # Provider-specific parameters
+    base_params = {
+        "prompt": f"What is {question}?",
+        "prompt_file": "",
+        "prompt_vars": {},
+        "system_prompt": "",
+        "system_prompt_file": str(system_prompt_file),
+        "system_prompt_vars": {
+            "persona": "helpful mathematics tutor",
+            "instruction": "Always provide clear, concise answers with just the result.",
+        },
+        "output_file": test_output_file,
+        "model": model,
+        "agent_name": "",
+        "files": [],
+    }
+
+    # Add provider-specific parameters
+    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "enable_logprobs": False,
+                "top_logprobs": 0,
+            }
+        )
+    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            }
+        )
+    elif (
+        ask_func.__name__ == "ask"
+        and "claude" in ask_func.__module__
+        or ask_func.__name__ == "ask"
+        and "grok" in ask_func.__module__
+    ):
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+            }
+        )
+
+    result = ask_func(**base_params)
+
+    assert result.content is not None
+    assert len(result.content) > 0
+    assert result.usage.input_tokens > 0
+    assert Path(test_output_file).exists()
+    content = Path(test_output_file).read_text()
+    assert answer in content
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
+def test_llm_prompt_file_xor_validation(
+    skip_if_no_api_key,
+    test_output_file,
+    tmp_path,
+    ask_func,
+    api_key,
+    model,
+    question,
+    answer,
+):
+    """Test XOR validation for prompt and prompt_file parameters."""
+    skip_if_no_api_key(api_key)
+
+    # Create test prompt file
+    prompt_file = tmp_path / "test_prompt.txt"
+    prompt_file.write_text(f"What is {question}?")
+
+    # Provider-specific base parameters
+    base_params = {
+        "output_file": test_output_file,
+        "model": model,
+        "agent_name": "",
+        "files": [],
+        "system_prompt": None,
+        "prompt_file": "",
+        "prompt_vars": {},
+        "system_prompt_file": "",
+        "system_prompt_vars": {},
+    }
+
+    # Add provider-specific parameters
+    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "enable_logprobs": False,
+                "top_logprobs": 0,
+            }
+        )
+    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+                "grounding": False,
+            }
+        )
+    elif (
+        ask_func.__name__ == "ask"
+        and "claude" in ask_func.__module__
+        or ask_func.__name__ == "ask"
+        and "grok" in ask_func.__module__
+    ):
+        base_params.update(
+            {
+                "temperature": 0.0,
+                "max_output_tokens": 0,
+            }
+        )
+
+    # Test: both prompt and prompt_file provided (should fail)
+    with pytest.raises(ValueError) as exc_info:
+        params_both = base_params.copy()
+        params_both.update(
+            {
+                "prompt": f"What is {question}?",
+                "prompt_file": str(prompt_file),
+            }
+        )
+        ask_func(**params_both)
+    assert "exactly one of 'prompt' or 'prompt_file'" in str(exc_info.value).lower()
+
+    # Test: neither prompt nor prompt_file provided (should fail)
+    with pytest.raises(ValueError) as exc_info:
+        params_neither = base_params.copy()
+        params_neither.update(
+            {
+                "prompt": "",
+                "prompt_file": "",
+            }
+        )
+        ask_func(**params_neither)
+    assert "exactly one of 'prompt' or 'prompt_file'" in str(exc_info.value).lower()

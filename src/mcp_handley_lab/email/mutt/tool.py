@@ -1,5 +1,6 @@
 """Mutt tool for interactive email composition via MCP."""
 
+import os
 import shlex
 import tempfile
 
@@ -71,13 +72,146 @@ def _build_mutt_command(
     return mutt_cmd
 
 
+def _get_msmtp_log_size() -> int:
+    """Get current size of msmtp log file."""
+    log_path = os.path.expanduser("~/.msmtp.log")
+    try:
+        return os.path.getsize(log_path) if os.path.exists(log_path) else 0
+    except OSError:
+        return 0
+
+
+def _parse_msmtp_log_entry(log_line: str) -> dict:
+    """Parse an msmtp log entry to extract detailed information.
+
+    Example log line:
+    Aug 23 09:16:33 host=smtp.office365.com tls=on auth=on user=wh260@cam.ac.uk
+    from=wh260@cam.ac.uk recipients=wh260@cam.ac.uk,cc@example.com,bcc@example.com
+    mailsize=273 smtpstatus=250 smtpmsg='250 2.0.0 OK <aKj2OhY87X3qWDJs@maxwell> [Hostname=...]'
+    exitcode=EX_OK
+    """
+    data = {}
+
+    # Extract timestamp (first 15 chars typically)
+    if len(log_line) >= 15:
+        data["timestamp"] = log_line[:15].strip()
+
+    # Extract key=value pairs
+    import re
+
+    # Extract recipients (can be comma-separated)
+    recipients_match = re.search(r"recipients=([^\s]+)", log_line)
+    if recipients_match:
+        recipients_str = recipients_match.group(1)
+        data["all_recipients"] = recipients_str.split(",")
+
+    # Extract from address
+    from_match = re.search(r"from=([^\s]+)", log_line)
+    if from_match:
+        data["from"] = from_match.group(1)
+
+    # Extract mail size
+    size_match = re.search(r"mailsize=(\d+)", log_line)
+    if size_match:
+        data["mail_size_bytes"] = int(size_match.group(1))
+
+    # Extract SMTP status code
+    status_match = re.search(r"smtpstatus=(\d+)", log_line)
+    if status_match:
+        data["smtp_status_code"] = status_match.group(1)
+
+    # Extract SMTP message (including message ID)
+    msg_match = re.search(r"smtpmsg='([^']+)'", log_line)
+    if msg_match:
+        smtp_msg = msg_match.group(1)
+        data["smtp_message"] = smtp_msg
+
+        # Try to extract message ID from SMTP response
+        msg_id_match = re.search(r"<([^>]+)>", smtp_msg)
+        if msg_id_match:
+            data["message_id"] = msg_id_match.group(1)
+
+    # Extract error message if present
+    error_match = re.search(r"errormsg='([^']+)'", log_line)
+    if error_match:
+        data["error_message"] = error_match.group(1)
+
+    # Extract exit code
+    exit_match = re.search(r"exitcode=(\w+)", log_line)
+    if exit_match:
+        data["exit_code"] = exit_match.group(1)
+
+    # Extract host
+    host_match = re.search(r"host=([^\s]+)", log_line)
+    if host_match:
+        data["smtp_host"] = host_match.group(1)
+
+    return data
+
+
+def _check_recent_send() -> tuple[bool, bool, dict]:
+    """Check if a recent send occurred and extract detailed information.
+
+    Returns:
+        (send_occurred, send_successful, data_dict)
+    """
+    log_path = os.path.expanduser("~/.msmtp.log")
+    try:
+        if not os.path.exists(log_path):
+            return False, False, {}
+
+        with open(log_path) as f:
+            lines = f.readlines()
+            if not lines:
+                return False, False, {}
+
+            # Get the last line (most recent entry)
+            last_line = lines[-1].strip()
+            if not last_line:
+                return False, False, {}
+
+            # Check if it contains exitcode info (indicates a send attempt)
+            if "exitcode=" in last_line:
+                # Parse the log entry for detailed data
+                data = _parse_msmtp_log_entry(last_line)
+
+                # Check if it was successful (EX_OK = 0)
+                send_successful = "exitcode=EX_OK" in last_line
+                return True, send_successful, data
+
+        return False, False, {}
+    except OSError:
+        return False, False, {}
+
+
 def _execute_mutt_interactive(
     mutt_cmd: list[str],
     window_title: str = "Mutt",
-) -> None:
-    """Execute mutt command interactively."""
+) -> tuple[int, str, dict]:
+    """Execute mutt command interactively and determine send status.
+
+    Returns:
+        (exit_code, status, data) where status is "success", "error", or "cancelled"
+    """
+    log_size_before = _get_msmtp_log_size()
+
     command_str = shlex.join(mutt_cmd)
-    launch_interactive(command_str, window_title=window_title, wait=True)
+    _, exit_code = launch_interactive(command_str, window_title=window_title, wait=True)
+
+    log_size_after = _get_msmtp_log_size()
+
+    # If log size increased, check the recent send status
+    if log_size_after > log_size_before:
+        send_occurred, send_successful, data = _check_recent_send()
+        if send_occurred:
+            return exit_code, "success" if send_successful else "error", data
+
+    # No new log entry means user cancelled/quit without sending
+    if exit_code == 0:
+        return exit_code, "cancelled", {}
+    else:
+        # Non-zero exit code is an error regardless
+        return exit_code, "error", {"exit_code": exit_code}
 
 
 @mcp.tool(
@@ -147,7 +281,9 @@ def compose(
         )
 
         window_title = f"Mutt: {subject or 'New Email'}"
-        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
+        exit_code, status, data = _execute_mutt_interactive(
+            mutt_cmd, window_title=window_title
+        )
     else:
         mutt_cmd = _build_mutt_command(
             to=to,
@@ -160,14 +296,30 @@ def compose(
         )
 
         window_title = f"Mutt: {subject or 'New Email'}"
-        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
+        exit_code, status, data = _execute_mutt_interactive(
+            mutt_cmd, window_title=window_title
+        )
 
     attachment_info = f" with {len(attachments)} attachment(s)" if attachments else ""
 
-    return OperationResult(
-        status="success",
-        message=f"Email composition completed: {to}{attachment_info}",
-    )
+    if status == "success":
+        return OperationResult(
+            status="success",
+            message=f"Email sent successfully: {to}{attachment_info}",
+            data=data,
+        )
+    elif status == "cancelled":
+        return OperationResult(
+            status="cancelled",
+            message=f"Email composition cancelled: {to}{attachment_info}",
+            data=data,
+        )
+    else:  # status == "error"
+        return OperationResult(
+            status="error",
+            message=f"Email sending failed: {to}{attachment_info} (exit code: {exit_code})",
+            data=data,
+        )
 
 
 @mcp.tool(
@@ -184,6 +336,9 @@ def reply(
     body: str = Field(
         default="",
         description="Text to add to the top of the reply, above the quoted original message.",
+    ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
     ),
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
@@ -233,8 +388,10 @@ def reply(
     return compose(
         to=reply_to,
         cc=reply_cc,
+        bcc=None,
         subject=reply_subject,
         body=complete_reply_body,
+        attachments=attachments,
         in_reply_to=in_reply_to,
         references=references,
     )
@@ -254,6 +411,9 @@ def forward(
     body: str = Field(
         default="",
         description="Commentary to add to the top of the email, above the forwarded message.",
+    ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
     ),
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
@@ -291,8 +451,11 @@ def forward(
     # Use compose with extracted data (no threading headers for forwards)
     return compose(
         to=to,
+        cc=None,
+        bcc=None,
         subject=forward_subject,
         body=complete_forward_body,
+        attachments=attachments,
     )
 
 
@@ -324,9 +487,26 @@ def open_folder(
     """Open mutt with a specific folder."""
     mutt_cmd = _build_mutt_command(folder=folder)
     window_title = f"Mutt: {folder}"
-    _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+    exit_code, status, data = _execute_mutt_interactive(
+        mutt_cmd, window_title=window_title
+    )
 
-    return OperationResult(status="success", message=f"Opened folder: {folder}")
+    if status == "success":
+        return OperationResult(
+            status="success",
+            message=f"Folder session completed with email sent: {folder}",
+            data=data,
+        )
+    elif status == "cancelled":
+        return OperationResult(
+            status="cancelled", message=f"Folder session closed: {folder}", data=data
+        )
+    else:  # status == "error"
+        return OperationResult(
+            status="error",
+            message=f"Folder session failed: {folder} (exit code: {exit_code})",
+            data=data,
+        )
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")

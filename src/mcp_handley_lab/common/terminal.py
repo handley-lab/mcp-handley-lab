@@ -13,7 +13,7 @@ def launch_interactive(
     window_title: str | None = None,
     prefer_tmux: bool = True,
     wait: bool = False,
-) -> str:
+) -> str | tuple[str, int]:
     """Launch an interactive command in a new terminal window.
 
     Automatically detects environment and chooses appropriate method:
@@ -27,7 +27,8 @@ def launch_interactive(
         wait: Whether to wait for the command to complete before returning
 
     Returns:
-        Status message describing what was launched
+        If wait=True: tuple of (status_message, exit_code)
+        If wait=False: status message string describing what was launched
 
     Raises:
         RuntimeError: If neither tmux nor xterm is available
@@ -67,7 +68,7 @@ def launch_interactive(
                             ["tmux", "select-window", "-t", current_window], check=True
                         )
 
-                return f"Completed in tmux window: {command}"
+                return f"Completed in tmux window: {command}", 0
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(f"Failed to run command in tmux: {e}") from e
         else:
@@ -97,8 +98,8 @@ def launch_interactive(
                 print(
                     f"Waiting for user input from {window_title or 'xterm window'}..."
                 )
-                subprocess.run(xterm_cmd, check=True)
-                return f"Completed in xterm: {command}"
+                result = subprocess.run(xterm_cmd)
+                return f"Completed in xterm: {command}", result.returncode
             except FileNotFoundError as e:
                 raise RuntimeError("xterm not available for interactive launch") from e
         else:

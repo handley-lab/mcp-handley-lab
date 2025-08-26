@@ -30,14 +30,13 @@ def _query_mutt_var(var: str) -> str | None:
 
 def _is_maildir(path: Path) -> bool:
     """Check if a path is a valid Maildir directory."""
-    if not path.is_dir():
-        return False
-    return all((path / subdir).exists() for subdir in ["cur", "new", "tmp"])
+    return path.is_dir() and all(
+        (path / subdir).exists() for subdir in ["cur", "new", "tmp"]
+    )
 
 
-def _find_account_folders(folder_root: str, mailbox: str) -> list[tuple[str, str]]:
+def _find_account_folders(root: Path, mailbox: str) -> list[tuple[str, str]]:
     """Find all account folders containing a specific mailbox."""
-    root = Path(os.path.expanduser(folder_root))
     if not root.is_dir():
         return []
 
@@ -58,14 +57,14 @@ def _find_account_folders(folder_root: str, mailbox: str) -> list[tuple[str, str
     return candidates
 
 
-def _resolve_folder(folder: str) -> tuple[str, list[str]]:
+def _resolve_folder(folder: str) -> str:
     """Resolve a folder path with smart handling of = and + shortcuts."""
     if not folder:
-        return "", []
+        return ""
 
     # 1. Handle absolute paths and IMAP URLs - pass through
     if folder.startswith(("/", "imap://", "imaps://", "~")):
-        return os.path.expanduser(folder), []
+        return os.path.expanduser(folder)
 
     # 2. Get mutt's folder variable, with a sensible default
     folder_root = _query_mutt_var("folder") or "~/mail"
@@ -81,7 +80,7 @@ def _resolve_folder(folder: str) -> tuple[str, list[str]]:
     if "/" in mailbox:
         absolute_path = folder_root_path / mailbox
         if _is_maildir(absolute_path):
-            return str(absolute_path), []
+            return str(absolute_path)
         raise ValueError(
             f"Folder '{absolute_path}' does not exist or is not a Maildir."
         )
@@ -90,19 +89,19 @@ def _resolve_folder(folder: str) -> tuple[str, list[str]]:
     # Check directly under folder_root first, as it's a common pattern for Sent, Drafts etc.
     direct_path = folder_root_path / mailbox
     if _is_maildir(direct_path):
-        return str(direct_path), []
+        return str(direct_path)
 
-    candidates = _find_account_folders(str(folder_root_path), mailbox)
+    candidates = _find_account_folders(folder_root_path, mailbox)
 
     # 6. Resolve ambiguity using environment variable or count
     default_account = os.environ.get("MCP_EMAIL_DEFAULT_ACCOUNT")
     if default_account:
         for account_name, path in candidates:
             if account_name == default_account:
-                return path, []
+                return path
 
     if len(candidates) == 1:
-        return candidates[0][1], []
+        return candidates[0][1]
 
     if len(candidates) > 1:
         suggestions = [f"{name}/{mailbox}" for name, _ in candidates]
@@ -413,7 +412,8 @@ def open(
         if "@" in clean_target and "/" not in clean_target:
             # Use notmuch to find the email file path
             stdout, _ = run_command(
-                ["notmuch", "search", "--output=files", f"id:{clean_target}"]
+                ["notmuch", "search", "--output=files", f"id:{clean_target}"],
+                raise_on_error=True,
             )
             mail_files = stdout.decode().strip().splitlines()
 

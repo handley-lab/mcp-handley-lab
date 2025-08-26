@@ -21,178 +21,101 @@ def _execute_mutt_command(cmd: list[str], input_text: str = None) -> str:
 
 
 def _query_mutt_var(var: str) -> str | None:
-    """Query a mutt configuration variable.
-
-    Args:
-        var: The variable name to query
-
-    Returns:
-        The variable value or None if not found
-    """
-    try:
-        result = _execute_mutt_command(["mutt", "-Q", var])
-        if "=" in result:
-            return result.split("=", 1)[1].strip().strip('"')
-    except Exception:
-        pass
+    """Query a mutt configuration variable."""
+    result = _execute_mutt_command(["mutt", "-Q", var])
+    if "=" in result:
+        return result.partition("=")[2].strip().strip('"')
     return None
 
 
-def _mailbox_exists(path: str, allow_inbox_root: bool = False) -> bool:
-    """Check if a mailbox path exists.
-
-    Args:
-        path: The mailbox path to check
-        allow_inbox_root: If True, also check if path is a Maildir root (for INBOX special case)
-
-    Returns:
-        True if the mailbox exists
-    """
-    p = Path(os.path.expanduser(path))
-
-    # Check if it's a regular directory
-    if p.exists() and p.is_dir():
-        # Check if it's a Maildir (has cur, new, tmp subdirs)
-        is_maildir = all((p / subdir).exists() for subdir in ["cur", "new", "tmp"])
-
-        # For INBOX, we allow either a folder called INBOX or the account root itself
-        if allow_inbox_root and path.endswith("INBOX"):
-            # Check parent directory as potential account root
-            parent = p.parent
-            if all((parent / subdir).exists() for subdir in ["cur", "new", "tmp"]):
-                return True
-
-        return is_maildir or p.exists()
-
-    return False
+def _is_maildir(path: Path) -> bool:
+    """Check if a path is a valid Maildir directory."""
+    if not path.is_dir():
+        return False
+    return all((path / subdir).exists() for subdir in ["cur", "new", "tmp"])
 
 
 def _find_account_folders(folder_root: str, mailbox: str) -> list[tuple[str, str]]:
-    """Find all account folders containing a specific mailbox.
-
-    Args:
-        folder_root: The root mail folder path
-        mailbox: The mailbox name to find (e.g., "INBOX")
-
-    Returns:
-        List of tuples (account_name, full_path)
-    """
+    """Find all account folders containing a specific mailbox."""
     root = Path(os.path.expanduser(folder_root))
+    if not root.is_dir():
+        return []
+
     candidates = []
-
-    if not root.exists():
-        return candidates
-
-    # Look for account directories
     for account_dir in root.iterdir():
-        if account_dir.is_dir():
-            # Check for mailbox within account
-            mailbox_path = account_dir / mailbox
+        if not account_dir.is_dir():
+            continue
 
-            if mailbox == "INBOX":
-                # Special case: INBOX might be the account root itself
-                if all(
-                    (account_dir / subdir).exists() for subdir in ["cur", "new", "tmp"]
-                ):
-                    candidates.append((account_dir.name, str(account_dir)))
-                elif mailbox_path.exists() and mailbox_path.is_dir():
-                    candidates.append((account_dir.name, str(mailbox_path)))
-            elif mailbox_path.exists() and mailbox_path.is_dir():
-                candidates.append((account_dir.name, str(mailbox_path)))
+        # Case 1: Mailbox is the account root itself (e.g., for INBOX)
+        if mailbox == "INBOX" and _is_maildir(account_dir):
+            candidates.append((account_dir.name, str(account_dir)))
+
+        # Case 2: Mailbox is a subdirectory of the account
+        mailbox_path = account_dir / mailbox
+        if _is_maildir(mailbox_path):
+            candidates.append((account_dir.name, str(mailbox_path)))
 
     return candidates
 
 
 def _resolve_folder(folder: str) -> tuple[str, list[str]]:
-    """Resolve a folder path with smart handling of = and + shortcuts.
-
-    Args:
-        folder: The folder specification (e.g., "=INBOX", "+INBOX", "Hermes/INBOX", or full path)
-
-    Returns:
-        Tuple of (resolved_folder, extra_mutt_args)
-
-    Raises:
-        ValueError: If folder cannot be resolved or is ambiguous
-    """
+    """Resolve a folder path with smart handling of = and + shortcuts."""
     if not folder:
         return "", []
 
-    # Handle absolute paths and IMAP URLs - pass through
-    if folder.startswith(("/", "imap://", "imaps://")):
-        return folder, []
-
-    # Handle tilde expansion
-    if folder.startswith("~"):
+    # 1. Handle absolute paths and IMAP URLs - pass through
+    if folder.startswith(("/", "imap://", "imaps://", "~")):
         return os.path.expanduser(folder), []
 
-    # Get mutt's folder variable
-    folder_root = _query_mutt_var("folder")
-    if not folder_root:
-        folder_root = os.path.expanduser("~/mail")
-    else:
-        folder_root = os.path.expanduser(folder_root)
+    # 2. Get mutt's folder variable, with a sensible default
+    folder_root = _query_mutt_var("folder") or "~/mail"
+    folder_root_path = Path(os.path.expanduser(folder_root))
 
-    # Handle = or + shortcuts
-    if folder.startswith(("=", "+")):
-        mailbox = folder[1:]
+    # 3. Normalize folder name (e.g., "INBOX" -> "=INBOX")
+    if not folder.startswith(("=", "+")):
+        folder = f"={folder}"
 
-        # If it contains a slash, it's like =Hermes/INBOX - construct absolute path
-        if "/" in mailbox:
-            # Just construct the absolute path
-            absolute_path = os.path.join(folder_root, mailbox)
-            if Path(absolute_path).exists():
-                return absolute_path, []
-            else:
-                raise ValueError(f"Folder '{absolute_path}' does not exist")
+    mailbox = folder[1:]
 
-        # For single mailbox names like =INBOX, find in accounts
-        # First check if the mailbox exists directly under folder root
-        direct_path = os.path.join(folder_root, mailbox)
-        if _mailbox_exists(direct_path, allow_inbox_root=(mailbox == "INBOX")):
-            return direct_path, []
-
-        # Find candidates in account subdirectories
-        candidates = _find_account_folders(folder_root, mailbox)
-
-        # Check for default account from environment
-        default_account = os.environ.get("MCP_EMAIL_DEFAULT_ACCOUNT")
-        if default_account:
-            for account_name, path in candidates:
-                if account_name == default_account:
-                    return path, []
-
-        # If exactly one candidate, use it
-        if len(candidates) == 1:
-            account_name, path = candidates[0]
-            return path, []
-
-        # Multiple candidates - error with suggestions
-        if len(candidates) > 1:
-            suggestions = [f"{name}/{mailbox}" for name, _ in candidates]
-            raise ValueError(
-                f"Multiple accounts contain {mailbox}: {', '.join(suggestions)}. "
-                f"Please specify the account (e.g., '{suggestions[0]}') or set "
-                f"MCP_EMAIL_DEFAULT_ACCOUNT environment variable."
-            )
-
-        # No candidates found
+    # 4. Handle explicit paths like "Account/INBOX"
+    if "/" in mailbox:
+        absolute_path = folder_root_path / mailbox
+        if _is_maildir(absolute_path):
+            return str(absolute_path), []
         raise ValueError(
-            f"Mailbox '{mailbox}' not found. Check available folders with 'list_folders' "
-            f"or specify full path."
+            f"Folder '{absolute_path}' does not exist or is not a Maildir."
         )
 
-    # Handle account/mailbox format (e.g., "Hermes/INBOX")
-    if "/" in folder:
-        # Construct absolute path
-        absolute_path = os.path.join(folder_root, folder)
-        if Path(absolute_path).exists():
-            return absolute_path, []
-        else:
-            raise ValueError(f"Folder '{absolute_path}' does not exist")
+    # 5. Handle ambiguous names like "INBOX" - find candidates
+    # Check directly under folder_root first, as it's a common pattern for Sent, Drafts etc.
+    direct_path = folder_root_path / mailbox
+    if _is_maildir(direct_path):
+        return str(direct_path), []
 
-    # Single folder name - treat as =folder
-    return _resolve_folder(f"={folder}")  # Recursive call with = prefix
+    candidates = _find_account_folders(str(folder_root_path), mailbox)
+
+    # 6. Resolve ambiguity using environment variable or count
+    default_account = os.environ.get("MCP_EMAIL_DEFAULT_ACCOUNT")
+    if default_account:
+        for account_name, path in candidates:
+            if account_name == default_account:
+                return path, []
+
+    if len(candidates) == 1:
+        return candidates[0][1], []
+
+    if len(candidates) > 1:
+        suggestions = [f"{name}/{mailbox}" for name, _ in candidates]
+        raise ValueError(
+            f"Ambiguous mailbox '{mailbox}'. Found in: {', '.join(suggestions)}. "
+            f"Specify the full path (e.g., '{suggestions[0]}') or set MCP_EMAIL_DEFAULT_ACCOUNT."
+        )
+
+    # 7. No candidates found
+    raise ValueError(
+        f"Mailbox '{mailbox}' not found in '{folder_root_path}' or any accounts. "
+        "Check available folders with 'list_folders'."
+    )
 
 
 # Function removed as auto_send functionality was removed
@@ -246,15 +169,6 @@ def _build_mutt_command(
         mutt_cmd.append(to)
 
     return mutt_cmd
-
-
-def _execute_mutt_interactive(
-    mutt_cmd: list[str],
-    window_title: str = "Mutt",
-) -> None:
-    """Execute mutt command interactively."""
-    command_str = shlex.join(mutt_cmd)
-    launch_interactive(command_str, window_title=window_title, wait=True)
 
 
 @mcp.tool(
@@ -491,69 +405,52 @@ def open(
     try:
         if not target:
             # No target specified - open default inbox
-            mutt_cmd = ["mutt"]
-            window_title = "Mutt: Inbox"
-            _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+            launch_interactive("mutt", window_title="Mutt: Inbox", wait=True)
             return OperationResult(status="success", message="Opened default inbox")
 
-        # Check if target looks like a message ID (contains @ and other email-like characters)
+        # Heuristic: if it contains '@' and not '/', treat as message ID
         clean_target = target.replace("mailto:", "")
         if "@" in clean_target and "/" not in clean_target:
-            # Treat as message ID - try to open specific email
-            try:
-                # Get the email file path using notmuch
-                stdout, stderr = run_command(
-                    ["notmuch", "search", "--output=files", f"id:{clean_target}"]
-                )
-                mail_files = stdout.decode().strip().split("\n")
+            # Use notmuch to find the email file path
+            stdout, _ = run_command(
+                ["notmuch", "search", "--output=files", f"id:{clean_target}"]
+            )
+            mail_files = stdout.decode().strip().splitlines()
 
-                if not mail_files or not mail_files[0]:
-                    return OperationResult(
-                        status="error",
-                        message=f"Email with message ID '{clean_target}' not found",
-                    )
-
-                # Get the first file (there may be duplicates)
-                mail_file = mail_files[0]
-
-                # Extract folder path (parent of parent of the email file)
-                folder_path = os.path.dirname(os.path.dirname(mail_file))
-
-                # Build mutt command with push commands to navigate to specific email
-                push_cmd = f"push l~i\\'{clean_target}\\'<enter>l.<enter><enter>"
-                mutt_cmd = ["mutt", "-f", folder_path, "-e", push_cmd]
-
-                window_title = f"Mutt: Email {clean_target[:8]}..."
-                _execute_mutt_interactive(mutt_cmd, window_title=window_title)
-
+            if not mail_files:
                 return OperationResult(
-                    status="success", message=f"Opened email {clean_target} in mutt"
+                    status="error", message=f"Email with ID '{clean_target}' not found"
                 )
 
-            except Exception as e:
-                return OperationResult(
-                    status="error", message=f"Failed to open email: {str(e)}"
-                )
-        else:
-            # Treat as folder path
-            resolved_folder, extra_args = _resolve_folder(target)
+            # Get the folder path (parent of parent of the email file)
+            mail_file_path = Path(mail_files[0])
+            folder_path = mail_file_path.parent.parent
 
-            # Build mutt command with resolved folder and any extra args
-            mutt_cmd = ["mutt"] + extra_args
-            if resolved_folder:
-                mutt_cmd.extend(["-f", resolved_folder])
+            # Build mutt command to open folder and navigate to the message
+            push_cmd = f"push l~i'{clean_target}'<enter>l.<enter><enter>"
+            mutt_cmd = ["mutt", "-f", str(folder_path), "-e", push_cmd]
 
-            window_title = f"Mutt: {target}"
-            _execute_mutt_interactive(mutt_cmd, window_title=window_title)
-
+            window_title = f"Mutt: Email {clean_target[:12]}..."
+            launch_interactive(
+                shlex.join(mutt_cmd), window_title=window_title, wait=True
+            )
             return OperationResult(
-                status="success",
-                message=f"Opened folder: {target}",
+                status="success", message=f"Opened email {clean_target} in mutt"
             )
 
-    except ValueError as e:
+        # Treat as a folder path
+        resolved_folder, extra_args = _resolve_folder(target)
+        mutt_cmd = ["mutt"] + extra_args
+        if resolved_folder:
+            mutt_cmd.extend(["-f", resolved_folder])
+
+        window_title = f"Mutt: {target}"
+        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
+        return OperationResult(status="success", message=f"Opened folder: {target}")
+
+    except ValueError as e:  # Catch specific resolution errors
         return OperationResult(status="error", message=str(e))
-    except Exception as e:
+    except Exception as e:  # Catch other errors (e.g., from run_command)
         return OperationResult(status="error", message=f"Failed to open: {str(e)}")
 
 

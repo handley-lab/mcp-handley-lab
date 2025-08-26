@@ -479,39 +479,82 @@ def list_folders() -> list[str]:
 
 
 @mcp.tool(
-    description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox. Supports smart folder resolution for shortcuts like =INBOX."""
+    description="""Opens Mutt in interactive terminal. Can open a specific email by message ID or browse a folder. Supports smart folder resolution for shortcuts like =INBOX."""
 )
-def open_folder(
-    folder: str = Field(
+def open(
+    target: str = Field(
         default=None,
-        description="The mail folder to open. Examples: '=INBOX' (auto-detects account), 'Hermes/INBOX', '~/mail/Hermes/INBOX', or blank for default inbox. Use 'list_folders' to see all options.",
+        description="What to open: message ID to view specific email, folder path (e.g., '=INBOX', 'Hermes/INBOX'), or blank for default inbox. Message IDs can include 'mailto:' prefix.",
     ),
 ) -> OperationResult:
-    """Open mutt with a specific folder."""
+    """Open mutt with a specific email or folder."""
     try:
-        if folder:
-            # Resolve folder with smart handling
-            resolved_folder, extra_args = _resolve_folder(folder)
+        if not target:
+            # No target specified - open default inbox
+            mutt_cmd = ["mutt"]
+            window_title = "Mutt: Inbox"
+            _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+            return OperationResult(status="success", message="Opened default inbox")
+
+        # Check if target looks like a message ID (contains @ and other email-like characters)
+        clean_target = target.replace("mailto:", "")
+        if "@" in clean_target and "/" not in clean_target:
+            # Treat as message ID - try to open specific email
+            try:
+                # Get the email file path using notmuch
+                stdout, stderr = run_command(
+                    ["notmuch", "search", "--output=files", f"id:{clean_target}"]
+                )
+                mail_files = stdout.decode().strip().split("\n")
+
+                if not mail_files or not mail_files[0]:
+                    return OperationResult(
+                        status="error",
+                        message=f"Email with message ID '{clean_target}' not found",
+                    )
+
+                # Get the first file (there may be duplicates)
+                mail_file = mail_files[0]
+
+                # Extract folder path (parent of parent of the email file)
+                folder_path = os.path.dirname(os.path.dirname(mail_file))
+
+                # Build mutt command with push commands to navigate to specific email
+                push_cmd = f"push l~i\\'{clean_target}\\'<enter>l.<enter><enter>"
+                mutt_cmd = ["mutt", "-f", folder_path, "-e", push_cmd]
+
+                window_title = f"Mutt: Email {clean_target[:8]}..."
+                _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+
+                return OperationResult(
+                    status="success", message=f"Opened email {clean_target} in mutt"
+                )
+
+            except Exception as e:
+                return OperationResult(
+                    status="error", message=f"Failed to open email: {str(e)}"
+                )
+        else:
+            # Treat as folder path
+            resolved_folder, extra_args = _resolve_folder(target)
 
             # Build mutt command with resolved folder and any extra args
             mutt_cmd = ["mutt"] + extra_args
             if resolved_folder:
                 mutt_cmd.extend(["-f", resolved_folder])
 
-            window_title = f"Mutt: {folder}"
-        else:
-            # No folder specified - open default inbox
-            mutt_cmd = ["mutt"]
-            window_title = "Mutt: Inbox"
+            window_title = f"Mutt: {target}"
+            _execute_mutt_interactive(mutt_cmd, window_title=window_title)
 
-        _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+            return OperationResult(
+                status="success",
+                message=f"Opened folder: {target}",
+            )
 
-        return OperationResult(
-            status="success",
-            message=f"Opened {'folder: ' + folder if folder else 'default inbox'}",
-        )
     except ValueError as e:
         return OperationResult(status="error", message=str(e))
+    except Exception as e:
+        return OperationResult(status="error", message=f"Failed to open: {str(e)}")
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
@@ -529,9 +572,8 @@ def server_info() -> ServerInfo:
             "compose",
             "reply",
             "forward",
-            "move",
             "list_folders",
-            "open_folder",
+            "open",
             "server_info",
         ],
         dependencies={"mutt": version_line},

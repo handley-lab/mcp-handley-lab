@@ -1,7 +1,9 @@
 """Mutt tool for interactive email composition via MCP."""
 
+import os
 import shlex
 import tempfile
+from pathlib import Path
 
 from pydantic import Field
 
@@ -16,6 +18,181 @@ def _execute_mutt_command(cmd: list[str], input_text: str = None) -> str:
     input_bytes = input_text.encode() if input_text else None
     stdout, stderr = run_command(cmd, input_data=input_bytes)
     return stdout.decode().strip()
+
+
+def _query_mutt_var(var: str) -> str | None:
+    """Query a mutt configuration variable.
+
+    Args:
+        var: The variable name to query
+
+    Returns:
+        The variable value or None if not found
+    """
+    try:
+        result = _execute_mutt_command(["mutt", "-Q", var])
+        if "=" in result:
+            return result.split("=", 1)[1].strip().strip('"')
+    except Exception:
+        pass
+    return None
+
+
+def _mailbox_exists(path: str, allow_inbox_root: bool = False) -> bool:
+    """Check if a mailbox path exists.
+
+    Args:
+        path: The mailbox path to check
+        allow_inbox_root: If True, also check if path is a Maildir root (for INBOX special case)
+
+    Returns:
+        True if the mailbox exists
+    """
+    p = Path(os.path.expanduser(path))
+
+    # Check if it's a regular directory
+    if p.exists() and p.is_dir():
+        # Check if it's a Maildir (has cur, new, tmp subdirs)
+        is_maildir = all((p / subdir).exists() for subdir in ["cur", "new", "tmp"])
+
+        # For INBOX, we allow either a folder called INBOX or the account root itself
+        if allow_inbox_root and path.endswith("INBOX"):
+            # Check parent directory as potential account root
+            parent = p.parent
+            if all((parent / subdir).exists() for subdir in ["cur", "new", "tmp"]):
+                return True
+
+        return is_maildir or p.exists()
+
+    return False
+
+
+def _find_account_folders(folder_root: str, mailbox: str) -> list[tuple[str, str]]:
+    """Find all account folders containing a specific mailbox.
+
+    Args:
+        folder_root: The root mail folder path
+        mailbox: The mailbox name to find (e.g., "INBOX")
+
+    Returns:
+        List of tuples (account_name, full_path)
+    """
+    root = Path(os.path.expanduser(folder_root))
+    candidates = []
+
+    if not root.exists():
+        return candidates
+
+    # Look for account directories
+    for account_dir in root.iterdir():
+        if account_dir.is_dir():
+            # Check for mailbox within account
+            mailbox_path = account_dir / mailbox
+
+            if mailbox == "INBOX":
+                # Special case: INBOX might be the account root itself
+                if all(
+                    (account_dir / subdir).exists() for subdir in ["cur", "new", "tmp"]
+                ):
+                    candidates.append((account_dir.name, str(account_dir)))
+                elif mailbox_path.exists() and mailbox_path.is_dir():
+                    candidates.append((account_dir.name, str(mailbox_path)))
+            elif mailbox_path.exists() and mailbox_path.is_dir():
+                candidates.append((account_dir.name, str(mailbox_path)))
+
+    return candidates
+
+
+def _resolve_folder(folder: str) -> tuple[str, list[str]]:
+    """Resolve a folder path with smart handling of = and + shortcuts.
+
+    Args:
+        folder: The folder specification (e.g., "=INBOX", "+INBOX", "Hermes/INBOX", or full path)
+
+    Returns:
+        Tuple of (resolved_folder, extra_mutt_args)
+
+    Raises:
+        ValueError: If folder cannot be resolved or is ambiguous
+    """
+    if not folder:
+        return "", []
+
+    # Handle absolute paths and IMAP URLs - pass through
+    if folder.startswith(("/", "imap://", "imaps://")):
+        return folder, []
+
+    # Handle tilde expansion
+    if folder.startswith("~"):
+        return os.path.expanduser(folder), []
+
+    # Get mutt's folder variable
+    folder_root = _query_mutt_var("folder")
+    if not folder_root:
+        folder_root = os.path.expanduser("~/mail")
+    else:
+        folder_root = os.path.expanduser(folder_root)
+
+    # Handle = or + shortcuts
+    if folder.startswith(("=", "+")):
+        mailbox = folder[1:]
+
+        # If it contains a slash, it's like =Hermes/INBOX - construct absolute path
+        if "/" in mailbox:
+            # Just construct the absolute path
+            absolute_path = os.path.join(folder_root, mailbox)
+            if Path(absolute_path).exists():
+                return absolute_path, []
+            else:
+                raise ValueError(f"Folder '{absolute_path}' does not exist")
+
+        # For single mailbox names like =INBOX, find in accounts
+        # First check if the mailbox exists directly under folder root
+        direct_path = os.path.join(folder_root, mailbox)
+        if _mailbox_exists(direct_path, allow_inbox_root=(mailbox == "INBOX")):
+            return direct_path, []
+
+        # Find candidates in account subdirectories
+        candidates = _find_account_folders(folder_root, mailbox)
+
+        # Check for default account from environment
+        default_account = os.environ.get("MCP_EMAIL_DEFAULT_ACCOUNT")
+        if default_account:
+            for account_name, path in candidates:
+                if account_name == default_account:
+                    return path, []
+
+        # If exactly one candidate, use it
+        if len(candidates) == 1:
+            account_name, path = candidates[0]
+            return path, []
+
+        # Multiple candidates - error with suggestions
+        if len(candidates) > 1:
+            suggestions = [f"{name}/{mailbox}" for name, _ in candidates]
+            raise ValueError(
+                f"Multiple accounts contain {mailbox}: {', '.join(suggestions)}. "
+                f"Please specify the account (e.g., '{suggestions[0]}') or set "
+                f"MCP_EMAIL_DEFAULT_ACCOUNT environment variable."
+            )
+
+        # No candidates found
+        raise ValueError(
+            f"Mailbox '{mailbox}' not found. Check available folders with 'list_folders' "
+            f"or specify full path."
+        )
+
+    # Handle account/mailbox format (e.g., "Hermes/INBOX")
+    if "/" in folder:
+        # Construct absolute path
+        absolute_path = os.path.join(folder_root, folder)
+        if Path(absolute_path).exists():
+            return absolute_path, []
+        else:
+            raise ValueError(f"Folder '{absolute_path}' does not exist")
+
+    # Single folder name - treat as =folder
+    return _resolve_folder(f"={folder}")  # Recursive call with = prefix
 
 
 # Function removed as auto_send functionality was removed
@@ -302,20 +479,39 @@ def list_folders() -> list[str]:
 
 
 @mcp.tool(
-    description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox."""
+    description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox. Supports smart folder resolution for shortcuts like =INBOX."""
 )
 def open_folder(
     folder: str = Field(
-        ...,
-        description="The name of the mail folder to open (e.g., '=INBOX'). Use 'list_folders' to see available options.",
+        default=None,
+        description="The mail folder to open. Examples: '=INBOX' (auto-detects account), 'Hermes/INBOX', '~/mail/Hermes/INBOX', or blank for default inbox. Use 'list_folders' to see all options.",
     ),
 ) -> OperationResult:
     """Open mutt with a specific folder."""
-    mutt_cmd = _build_mutt_command(folder=folder)
-    window_title = f"Mutt: {folder}"
-    _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+    try:
+        if folder:
+            # Resolve folder with smart handling
+            resolved_folder, extra_args = _resolve_folder(folder)
 
-    return OperationResult(status="success", message=f"Opened folder: {folder}")
+            # Build mutt command with resolved folder and any extra args
+            mutt_cmd = ["mutt"] + extra_args
+            if resolved_folder:
+                mutt_cmd.extend(["-f", resolved_folder])
+
+            window_title = f"Mutt: {folder}"
+        else:
+            # No folder specified - open default inbox
+            mutt_cmd = ["mutt"]
+            window_title = "Mutt: Inbox"
+
+        _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+
+        return OperationResult(
+            status="success",
+            message=f"Opened {'folder: ' + folder if folder else 'default inbox'}",
+        )
+    except ValueError as e:
+        return OperationResult(status="error", message=str(e))
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")

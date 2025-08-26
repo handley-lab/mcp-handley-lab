@@ -470,6 +470,12 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 - Integration issues with shared utilities are caught during JSON-RPC testing
 - Claude Code uses JSON-RPC exclusively - direct function calls don't match real usage
 
+**CRITICAL: Restart Required for MCP Tool Changes:**
+- After making changes to MCP tool implementations, Claude Code must be restarted for changes to take effect
+- This applies to all MCP tools accessed via `mcp__` prefix
+- The user must restart Claude Code before testing updated MCP functionality
+- For development testing without restarting, use JSON-RPC commands directly as shown above
+
 **CRITICAL: Test Changes Locally Before Using MCP Tools:**
 - After making changes to tool implementations, ALWAYS test locally first
 - **Claude Desktop must be restarted** to use updated tool versions via MCP

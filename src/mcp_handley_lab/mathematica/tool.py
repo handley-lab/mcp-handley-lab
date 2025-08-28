@@ -5,8 +5,11 @@ Provides MCP tools for interacting with Wolfram Mathematica through a persistent
 Enables LLM-driven mathematical workflows with true REPL behavior and variable persistence.
 """
 
+import glob
 import logging
+import platform
 import re
+import shutil
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -24,11 +27,73 @@ logger = logging.getLogger(__name__)
 # Initialize FastMCP server
 mcp = FastMCP("Mathematica Tool")
 
+
+def _find_wolfram_kernel() -> str:
+    """
+    Find the WolframKernel executable on the system.
+
+    Attempts multiple common locations and uses system PATH.
+    Returns the first valid kernel found or raises an error if none found.
+    """
+    # First try system PATH
+    kernel_from_path = shutil.which("WolframKernel")
+    if kernel_from_path:
+        logger.info(f"Found WolframKernel in PATH: {kernel_from_path}")
+        return kernel_from_path
+
+    # Platform-specific search paths
+    search_paths = []
+
+    if platform.system() == "Darwin":  # macOS
+        search_paths = [
+            "/Applications/Wolfram.app/Contents/MacOS/WolframKernel",  # Wolfram Engine (newer versions)
+            "/Applications/Mathematica.app/Contents/MacOS/WolframKernel",  # Traditional Mathematica
+            "/Applications/Wolfram Mathematica*/Contents/MacOS/WolframKernel",  # Versioned installations
+        ]
+    elif platform.system() == "Linux":
+        search_paths = [
+            "/usr/bin/WolframKernel",
+            "/usr/local/bin/WolframKernel",
+            "/opt/Wolfram/WolframEngine/*/Executables/WolframKernel",
+            "/opt/Wolfram/Mathematica/*/Executables/WolframKernel",
+        ]
+    elif platform.system() == "Windows":
+        # Windows paths (for future compatibility)
+        search_paths = [
+            r"C:\Program Files\Wolfram Research\Mathematica\*\WolframKernel.exe",
+            r"C:\Program Files\Wolfram Research\Wolfram Engine\*\WolframKernel.exe",
+        ]
+
+    # Search in order of preference
+    for search_path in search_paths:
+        if "*" in search_path:
+            # Handle glob patterns
+            matches = glob.glob(search_path)
+            if matches:
+                # Take the first match (likely newest version)
+                kernel_path = matches[0]
+                if Path(kernel_path).is_file():
+                    logger.info(f"Found WolframKernel via glob: {kernel_path}")
+                    return kernel_path
+        else:
+            # Direct path check
+            if Path(search_path).is_file():
+                logger.info(f"Found WolframKernel: {search_path}")
+                return search_path
+
+    # No kernel found
+    available_paths = "\n  - ".join(search_paths)
+    raise RuntimeError(
+        f"WolframKernel not found. Searched:\n  - {available_paths}\n\n"
+        f"Please ensure Mathematica or Wolfram Engine is installed.\n"
+        f"Platform detected: {platform.system()}"
+    )
+
 # Global session management with thread safety
 _session: WolframLanguageSession | None = None
 _evaluation_count = 0
 _session_lock = threading.RLock()
-_kernel_path = "/usr/bin/WolframKernel"
+_kernel_path: str | None = None  # Will be detected dynamically on first use
 _result_history: list[Any] = []  # Store all results for %, %%, %n references
 _input_history: list[str] = []  # Store input expressions for notebook reconstruction
 
@@ -61,12 +126,16 @@ class SessionInfo(BaseModel):
 
 def _get_session() -> WolframLanguageSession:
     """Get or create the global Wolfram session with thread safety."""
-    global _session, _evaluation_count
+    global _session, _evaluation_count, _kernel_path
 
     with _session_lock:
         if _session is None:
             try:
-                logger.info("Starting Wolfram kernel session...")
+                # Detect kernel path on first use
+                if _kernel_path is None:
+                    _kernel_path = _find_wolfram_kernel()
+
+                logger.info(f"Starting Wolfram kernel session at {_kernel_path}...")
                 _session = WolframLanguageSession(_kernel_path)
                 _evaluation_count = 0
 

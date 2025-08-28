@@ -7,10 +7,10 @@ Complete VCR-based test suite for the MCP framework with both unit and integrati
 ```
 tests/
 ├── conftest.py                          # VCR configuration and fixtures
-├── unit/                               # Unit tests with mocked dependencies  
+├── unit/                               # Unit tests with mocked dependencies
 │   ├── cassettes/                      # VCR cassettes for unit tests
 │   ├── test_openai_unit.py            # OpenAI unit tests
-│   ├── test_gemini_unit.py            # Gemini unit tests  
+│   ├── test_gemini_unit.py            # Gemini unit tests
 │   ├── test_google_calendar_unit.py   # Google Calendar unit tests
 │   ├── test_cli_tools_unit.py         # CLI tools unit tests
 │   └── test_tool_chainer_unit.py      # Tool Chainer unit tests
@@ -32,7 +32,7 @@ tests/
 - Fast execution without network calls
 - **Note**: Current unit tests need validation logic fixes
 
-### Integration Tests  
+### Integration Tests
 - Use VCR to record/replay real API interactions
 - Test actual HTTP requests and CLI tool executions
 - Comprehensive testing of full workflows
@@ -80,7 +80,7 @@ Automatically filters:
 
 For integration test recording:
 - `OPENAI_API_KEY` - OpenAI API access
-- `GEMINI_API_KEY` - Google Gemini API access  
+- `GEMINI_API_KEY` - Google Gemini API access
 - `GOOGLE_CALENDAR_CREDENTIALS` - Google Calendar API credentials
 
 ## Test Statistics

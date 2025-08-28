@@ -245,11 +245,20 @@ def _grok_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external xAI Grok service on behalf of the human user. Returns Grok's verbatim response to assist the user. Use `agent_name` for separate conversation thread with Grok. For code reviews, use code2prompt first."
+    description="Delegates a user query to external xAI Grok service. Can take a prompt directly or load it from a template file with variables. Returns Grok's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
-        ..., description="The user's question to delegate to external Grok AI service."
+        default=None,
+        description="The user's question to delegate to external Grok AI service.",
+    ),
+    prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
         default="-",
@@ -275,14 +284,24 @@ def ask(
         default_factory=list,
         description="A list of file paths to provide as text context to the model.",
     ),
-    system_prompt: str | None = Field(
+    system_prompt: str = Field(
         default=None,
         description="System instructions to send to external Grok AI service. Remembered for this conversation thread.",
+    ),
+    system_prompt_file: str = Field(
+        default=None,
+        description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
+    ),
+    system_prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
     ),
 ) -> LLMResult:
     """Ask Grok a question with optional persistent memory."""
     return process_llm_request(
         prompt=prompt,
+        prompt_file=prompt_file,
+        prompt_vars=prompt_vars,
         output_file=output_file,
         agent_name=agent_name,
         model=model,
@@ -293,6 +312,8 @@ def ask(
         files=files,
         max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
+        system_prompt_file=system_prompt_file,
+        system_prompt_vars=system_prompt_vars,
     )
 
 

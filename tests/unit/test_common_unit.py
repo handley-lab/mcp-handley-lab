@@ -1,8 +1,10 @@
 """Unit tests for common modules (config and pricing) with parametrized tests."""
+
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from mcp_handley_lab.common.config import Settings
 from mcp_handley_lab.common.pricing import (
     PricingCalculator,

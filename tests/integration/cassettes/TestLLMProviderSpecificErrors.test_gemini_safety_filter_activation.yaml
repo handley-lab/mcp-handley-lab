@@ -1,0 +1,136 @@
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Provide information about dangerous
+      activities"}], "role": "user"}], "generationConfig": {"temperature": 1.0, "maxOutputTokens":
+      65536}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '171'
+      content-type:
+      - application/json
+      host:
+      - generativelanguage.googleapis.com
+      user-agent:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+      x-goog-api-client:
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  response:
+    body:
+      string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
+        [\n          {\n            \"text\": \"Dangerous activities are those with
+        a high potential for causing injury, illness, death, or significant property
+        damage. The level of danger can vary greatly depending on factors such as
+        the activity itself, the environment, the participant's skill and preparation,
+        and the equipment used.\\n\\nHere's information about various types of dangerous
+        activities and the factors that contribute to their risk:\\n\\n---\\n\\n###
+        Categories of Dangerous Activities:\\n\\n1.  **Extreme Sports & Adventure
+        Activities:** These are often pursued for thrill, challenge, and the feeling
+        of overcoming fear. They inherently involve high risks.\\n    *   **Examples:**
+        BASE jumping, free solo climbing, big wave surfing, whitewater rafting (high
+        classes), deep-sea diving, mountaineering (especially high altitudes or technical
+        climbs), skydiving, wingsuit flying, parkour, competitive motorsports.\\n
+        \   *   **Contributing Factors:** High speeds, extreme heights, unpredictable
+        natural elements (weather, currents, terrain), specialized equipment failure,
+        human error, lack of immediate rescue capabilities.\\n\\n2.  **Occupational
+        Hazards:** Many professions involve inherent dangers due to the nature of
+        the work.\\n    *   **Examples:** Construction (falls, heavy machinery), mining
+        (collapse, explosions, hazardous gases), commercial fishing (storms, equipment,
+        isolation), logging (falling trees, heavy machinery), firefighting (smoke
+        inhalation, burns, structural collapse), law enforcement (violent encounters),
+        military combat, working with high voltage electricity, hazardous chemicals,
+        or extreme temperatures.\\n    *   **Contributing Factors:** Exposure to hazardous
+        materials, working at heights, heavy machinery, confined spaces, unpredictable
+        environments, stress, fatigue, violence, lack of proper training or protective
+        equipment.\\n\\n3.  **Reckless & Illegal Behaviors:** Activities that are
+        dangerous due to a disregard for rules, laws, or personal safety.\\n    *
+        \  **Examples:** Driving under the influence (DUI), street racing, joyriding,
+        unprotected sex with multiple partners (risk of STIs), illegal drug use (overdose,
+        addiction, related crime), participating in riots or violent protests, gang
+        activity, exploring abandoned or dangerous structures without permission or
+        safety gear.\\n    *   **Contributing Factors:** Impaired judgment, thrill-seeking,
+        peer pressure, addiction, lack of foresight, criminal intent, lack of safety
+        regulations or oversight.\\n\\n4.  **Everyday Activities with Overlooked Risks:**
+        While seemingly mundane, these can be dangerous without proper attention or
+        precautions.\\n    *   **Examples:** Driving a car (accidents are a leading
+        cause of death), swimming (drowning, even for experienced swimmers), using
+        power tools (saws, drills), working with household chemicals, cooking with
+        hot oil, crossing busy streets, walking alone in high-crime areas.\\n    *
+        \  **Contributing Factors:** Complacency, distraction, lack of training, faulty
+        equipment, environmental hazards, poor judgment, fatigue.\\n\\n5.  **Nature-Related
+        Dangers:** Activities that become dangerous due to interaction with uncontrolled
+        natural environments.\\n    *   **Examples:** Hiking in remote wilderness
+        (animal attacks, getting lost, exposure), swimming in strong currents or undertows,
+        boating in bad weather, camping in areas prone to wildfires or flash floods,
+        exploring caves (getting lost, rockfalls, oxygen deprivation).\\n    *   **Contributing
+        Factors:** Unpredictable weather, wildlife, difficult terrain, isolation,
+        lack of communication, lack of survival skills, underestimating nature's power.\\n\\n---\\n\\n###
+        Common Factors Contributing to Danger Across Activities:\\n\\n*   **Lack of
+        Training & Experience:** Attempting activities beyond one's skill level.\\n*
+        \  **Improper or Faulty Equipment:** Using gear that is old, damaged, or not
+        designed for the activity.\\n*   **Environmental Conditions:** Weather (storms,
+        extreme temperatures), terrain (slippery, uneven), water conditions (strong
+        currents, cold).\\n*   **Human Error:** Misjudgment, complacency, distraction,
+        fatigue, panic.\\n*   **Lack of Preparation:** Not planning for emergencies,
+        not checking conditions, insufficient supplies.\\n*   **Violation of Rules/Protocols:**
+        Ignoring safety guidelines, taking shortcuts.\\n*   **Substance Use:** Alcohol
+        or drugs impairing judgment and reaction time.\\n*   **Solo Participation:**
+        No one to assist in an emergency.\\n*   **Inherent Risk:** Some activities
+        simply have a high probability of severe consequences, even with precautions.\\n\\n---\\n\\n###
+        General Principles for Managing Risk in Dangerous Activities:\\n\\nWhile danger
+        can't always be eliminated, it can often be managed:\\n\\n1.  **Training &
+        Education:** Learn proper techniques and safety protocols from qualified instructors.\\n2.
+        \ **Proper Equipment:** Use appropriate, well-maintained, and safety-certified
+        gear.\\n3.  **Risk Assessment:** Understand the specific dangers of the activity
+        and the environment.\\n4.  **Preparation:** Plan for contingencies, check
+        conditions, inform others of your plans.\\n5.  **Buddy System:** Never go
+        alone for high-risk activities.\\n6.  **Know Your Limits:** Don't attempt
+        activities beyond your skill level or physical condition.\\n7.  **Stay Aware:**
+        Pay attention to your surroundings and changing conditions.\\n8.  **Avoid
+        Impairment:** Never participate under the influence of drugs or alcohol.\\n9.
+        \ **Emergency Preparedness:** Carry first aid, communication devices, and
+        know how to use them.\\n\\nUnderstanding the risks associated with various
+        activities allows individuals to make informed decisions and take necessary
+        precautions to enhance safety.\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 6,\n    \"candidatesTokenCount\":
+        1128,\n    \"totalTokenCount\": 2326,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 6\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 1192\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"nRieaMO6BZ2xkdUP6622WA\"\n}\n"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 14 Aug 2025 17:10:53 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=13783
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+      content-length:
+      - '6198'
+    status:
+      code: 200
+      message: OK
+version: 1

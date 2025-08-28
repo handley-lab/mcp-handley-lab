@@ -11,7 +11,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
   response:
@@ -29,7 +29,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:32:11 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -68,7 +68,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.A0AS3H6NwBvrCR8sb5PXCmMbjHO6TTH-rmaVZe3Z4ZrggkVJfdbKTLb_uxJCfvrcRafjrFNgCd8rs80GOypwZNGw5X22rKMcAQqxdRPSYuW1E8YQxBSkhHx78cU6juLqSorz2ZiBdO4KcqmoYzVJdkpNPqxoxmBR77XAYkrlYH9qCLGTy3c902vprG-tfjA8NABJeOQSEIGwaCgYKAUsSARMSFQHGX2Mip5TY0A8-ZVRienHph-9W6A0209\",\n
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 21 Jul 2025 14:32:11 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -115,7 +115,7 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: GET
     uri: https://www.googleapis.com/calendar/v3/calendars/primary?alt=json
   response:
@@ -132,11 +132,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:32:11 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       ETag:
       - '"yBYytaCkItN-Z7wk25cvBHCrK3k"'
       Expires:
-      - Mon, 21 Jul 2025 14:32:11 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -160,8 +160,8 @@ interactions:
       message: OK
 - request:
     body: '{"summary": "Minimal Duration Event", "description": "Testing minimal duration
-      handling", "location": "", "start": {"dateTime": "2025-07-22T10:00:00+01:00",
-      "timeZone": "Europe/London"}, "end": {"dateTime": "2025-07-22T10:01:00+01:00",
+      handling", "location": "", "start": {"dateTime": "2025-08-14T10:00:00+01:00",
+      "timeZone": "Europe/London"}, "end": {"dateTime": "2025-08-14T10:01:00+01:00",
       "timeZone": "Europe/London"}}'
     headers:
       accept:
@@ -175,21 +175,21 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: POST
     uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json
   response:
     body:
-      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3506216664493854\\\"\",\n
-        \"id\": \"3qlci8snbrbok69d7pe6vgdp98\",\n \"status\": \"confirmed\",\n \"htmlLink\":
-        \"https://www.google.com/calendar/event?eid=M3FsY2k4c25icmJvazY5ZDdwZTZ2Z2RwOTggd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
-        \"created\": \"2025-07-21T14:32:11.000Z\",\n \"updated\": \"2025-07-21T14:32:12.246Z\",\n
+      string: "{\n \"kind\": \"calendar#event\",\n \"etag\": \"\\\"3510161651371742\\\"\",\n
+        \"id\": \"5hcl3aqa39a03h36kkc3leopag\",\n \"status\": \"confirmed\",\n \"htmlLink\":
+        \"https://www.google.com/calendar/event?eid=NWhjbDNhcWEzOWEwM2gzNmtrYzNsZW9wYWcgd2lsbGlhbWphbWVzaGFuZGxleS5hcnhpdkBt\",\n
+        \"created\": \"2025-08-13T10:27:05.000Z\",\n \"updated\": \"2025-08-13T10:27:05.685Z\",\n
         \"summary\": \"Minimal Duration Event\",\n \"description\": \"Testing minimal
         duration handling\",\n \"creator\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
         \ \"self\": true\n },\n \"organizer\": {\n  \"email\": \"williamjameshandley.arxiv@gmail.com\",\n
-        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-07-22T10:00:00+01:00\",\n
-        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-07-22T10:01:00+01:00\",\n
-        \ \"timeZone\": \"Europe/London\"\n },\n \"iCalUID\": \"3qlci8snbrbok69d7pe6vgdp98@google.com\",\n
+        \ \"self\": true\n },\n \"start\": {\n  \"dateTime\": \"2025-08-14T10:00:00+01:00\",\n
+        \ \"timeZone\": \"Europe/London\"\n },\n \"end\": {\n  \"dateTime\": \"2025-08-14T10:01:00+01:00\",\n
+        \ \"timeZone\": \"Europe/London\"\n },\n \"iCalUID\": \"5hcl3aqa39a03h36kkc3leopag@google.com\",\n
         \"sequence\": 0,\n \"reminders\": {\n  \"useDefault\": true\n },\n \"eventType\":
         \"default\"\n}\n"
     headers:
@@ -200,9 +200,9 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:32:12 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       ETag:
-      - '"3506216664493854"'
+      - '"3510161651371742"'
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -240,9 +240,9 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: DELETE
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/3qlci8snbrbok69d7pe6vgdp98
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/5hcl3aqa39a03h36kkc3leopag
   response:
     body:
       string: "{\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had
@@ -258,7 +258,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 21 Jul 2025 14:32:12 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       Server:
       - ESF
       Transfer-Encoding:
@@ -297,7 +297,7 @@ interactions:
     uri: https://oauth2.googleapis.com/token
   response:
     body:
-      string: "{\n  \"access_token\": \"ya29.A0AS3H6Nw6D9RJdtb4SXFhxZJR2FmyVinDsuAg0NY1WjRIovhh6-0Qnh8fJ7esNDf7oRQYFMzP7Vr1EBLik-OGQXODJkZWcelFBFeicJSQckbcA8OeZpNynpxShRKBexJGIbhV2cIapcXPrqZkU6huSH7rfivMXZJFrfMdW8Ecl91MEac-P1jqjfJtVVbftQBsoQ-vGO7TtAaCgYKAfgSARYSFQHGX2MiBEOgRj3Q70BbeI53neGJTg0209\",\n
+      string: "{\n  \"access_token\": \"REDACTED_OAUTH_TOKEN\",\n
         \ \"expires_in\": 3599,\n  \"scope\": \"https://www.googleapis.com/auth/calendar\",\n
         \ \"token_type\": \"Bearer\"\n}"
     headers:
@@ -308,7 +308,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 21 Jul 2025 14:32:12 GMT
+      - Wed, 13 Aug 2025 10:27:05 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -344,9 +344,9 @@ interactions:
       user-agent:
       - (gzip)
       x-goog-api-client:
-      - gdcl/2.175.0 gl-python/3.13.5 cred-type/u
+      - gdcl/2.177.0 gl-python/3.13.5 cred-type/u
     method: DELETE
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/3qlci8snbrbok69d7pe6vgdp98
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events/5hcl3aqa39a03h36kkc3leopag
   response:
     body:
       string: ''
@@ -360,7 +360,7 @@ interactions:
       Content-Type:
       - text/html
       Date:
-      - Mon, 21 Jul 2025 14:32:13 GMT
+      - Wed, 13 Aug 2025 10:27:06 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:

@@ -8,9 +8,11 @@ from email.message import EmailMessage
 from email.parser import BytesParser
 from pathlib import Path
 
-from bs4 import BeautifulSoup
-from markdownify import markdownify as md
+import ftfy
+from email_reply_parser import EmailReplyParser
+from inscriptis import get_text
 from pydantic import BaseModel, Field
+from selectolax.parser import HTMLParser
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
@@ -165,69 +167,212 @@ def _get_message_from_raw_source(message_id: str) -> EmailMessage:
     return parser.parsebytes(raw_email_bytes)
 
 
-def parse_email_content(msg: EmailMessage):
-    """Parses an EmailMessage to extract the best text body and attachments."""
-    body = None
+# Initialize email reply parser
+reply_parser = EmailReplyParser()
+
+
+def normalize_whitespace(text: str) -> str:
+    """Normalize whitespace for token efficiency while preserving readability."""
+    if not text:
+        return ""
+
+    # Collapse excessive newlines (preserve paragraph structure)
+    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
+
+    # Remove trailing whitespace from lines
+    text = "\n".join(line.rstrip() for line in text.split("\n"))
+
+    # Compress multiple spaces to single space
+    text = re.sub(r"[ \t]+", " ", text)
+
+    return text.strip()
+
+
+def optimize_email_content(msg: EmailMessage, mode: str = "full") -> dict:
+    """
+    Optimized email content extraction using expert-recommended libraries.
+
+    Args:
+        msg: EmailMessage object
+        mode: "headers", "summary", or "full"
+
+    Returns:
+        dict with body, attachments, and body_format
+    """
     attachments = []
-    html_part = None
 
-    body_part = msg.get_body(preferencelist=("html", "plain"))
-
-    if body_part:
-        content = body_part.get_content()
-
-        if body_part.get_content_type() == "text/html":
-            html_part = body_part
-            soup = BeautifulSoup(content, "html.parser")
-            for s in soup(["script", "style"]):
-                s.decompose()
-            body = md(str(soup), heading_style="ATX")
-        else:
-            body = content
-    elif not msg.is_multipart() and not msg.is_attachment():
-        body = msg.get_content()
-
+    # Extract attachments
     for part in msg.walk():
-        if part.get_filename() and part is not body_part:
+        if part.get_filename():
             attachment_info = f"{part.get_filename()} ({part.get_content_type()})"
             attachments.append(attachment_info)
 
+    if mode == "headers":
+        return {
+            "body": "",
+            "attachments": sorted(set(attachments)),
+            "body_format": "headers_only",
+        }
+
+    # Get best content part
+    body_part = msg.get_body(preferencelist=("plain", "html"))
+
+    if not body_part:
+        # Fallback: try to extract from multipart
+        if not msg.is_multipart() and not msg.is_attachment():
+            content = msg.get_content()
+        else:
+            content = ""
+    else:
+        content = body_part.get_content()
+        content_type = body_part.get_content_type()
+
+        if content_type == "text/html":
+            # Use optimized HTML processing pipeline
+            content = process_html_content(content)
+            body_format = "html"
+        else:
+            body_format = "text"
+
+    if not content:
+        return {
+            "body": "",
+            "attachments": sorted(set(attachments)),
+            "body_format": "empty",
+        }
+
+    # Apply email-reply-parser for quote stripping and clean content extraction
+    clean_content = reply_parser.parse_reply(content)
+
+    # Final normalization
+    clean_content = ftfy.fix_text(clean_content)
+    clean_content = normalize_whitespace(clean_content)
+
+    # Apply length limits based on mode
+    if mode == "summary" and len(clean_content) > 2000:
+        clean_content = (
+            clean_content[:2000] + "\n\n[Content truncated for summary mode]"
+        )
+
     return {
-        "body": body.strip() if body else "",
+        "body": clean_content,
         "attachments": sorted(set(attachments)),
-        "body_format": "html" if html_part else "text",
+        "body_format": body_format if "body_format" in locals() else "text",
     }
 
 
+def process_html_content(html_content: str) -> str:
+    """
+    Process HTML content using selectolax + inscriptis for optimal token efficiency.
+    """
+    if not html_content:
+        return ""
+
+    try:
+        # Parse with selectolax (faster than BeautifulSoup)
+        tree = HTMLParser(html_content)
+
+        # Remove common email cruft
+        selectors_to_remove = [
+            "script",
+            "style",
+            "meta",
+            "link",
+            "head",
+            "noscript",
+            "iframe",
+            # Hidden content
+            '[style*="display:none"]',
+            '[style*="visibility:hidden"]',
+            '[style*="opacity:0"]',
+            '[style*="font-size:0"]',
+            "[hidden]",
+            '[aria-hidden="true"]',
+            # Tracking and marketing
+            'img[width="1"]',
+            'img[height="1"]',
+            'img[src*="tracking"]',
+            'img[src*="open"]',
+            'img[src*="fls.doubleclick.net"]',
+            'img[src*="googletagmanager"]',
+            # Email client quote blocks
+            ".gmail_quote",
+            ".OutlookMessageHeader",
+            ".yahoo_quoted",
+            'blockquote[type="cite"]',
+            'div[style*="border-left:1px #ccc solid"]',
+            # Unsubscribe and footer content
+            ".unsubscribe",
+            ".unsubscribe-link",
+            'a[href*="unsubscribe"]',
+            'a[href*="optout"]',
+            ".disclaimer",
+            ".legal",
+            "footer",
+            "nav",
+        ]
+
+        for selector in selectors_to_remove:
+            for node in tree.css(selector):
+                node.decompose()
+
+        # Get cleaned HTML
+        cleaned_html = tree.body.html if tree.body else tree.html
+
+        # Convert to clean text with inscriptis
+        text_content = get_text(cleaned_html)
+
+        return text_content
+
+    except Exception:
+        # Fallback to basic text extraction
+        return html_content
+
+
 @mcp.tool(
-    description="""Display complete email content by message ID or notmuch query. Returns a structured object with headers and a clean, Markdown-formatted body for optimal LLM understanding."""
+    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
 )
 def show(
     query: str = Field(
         ...,
         description="A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
     ),
+    mode: str = Field(
+        default="full",
+        description="Rendering mode: 'headers' (metadata only), 'summary' (first 2000 chars), or 'full' (complete optimized content)",
+    ),
+    limit: int | None = Field(
+        default=None,
+        description="Maximum number of emails to return (helps prevent token overflow). If None, returns all emails.",
+    ),
 ) -> list[EmailContent]:
-    """Show email content by fetching raw email sources and parsing with Python's email library."""
+    """Show email content with optimized token-efficient processing."""
     cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
     message_ids = json.loads(output)
 
+    # Apply limit to prevent token overflow if specified
+    if limit is not None and len(message_ids) > limit:
+        message_ids = message_ids[:limit]
+
     results = []
     for message_id in message_ids:
         reconstructed_msg = _get_message_from_raw_source(message_id)
 
-        extracted_data = parse_email_content(reconstructed_msg)
-        body_markdown = extracted_data["body"]
+        # Use optimized content extraction
+        extracted_data = optimize_email_content(reconstructed_msg, mode=mode)
+        body_content = extracted_data["body"]
         body_format = extracted_data["body_format"]
         attachments = extracted_data["attachments"]
 
-        subject = reconstructed_msg["Subject"]
-        from_address = reconstructed_msg["From"]
-        to_address = reconstructed_msg["To"]
-        date = reconstructed_msg["Date"]
+        # Extract headers
+        subject = reconstructed_msg.get("Subject", "")
+        from_address = reconstructed_msg.get("From", "")
+        to_address = reconstructed_msg.get("To", "")
+        date = reconstructed_msg.get("Date", "")
 
+        # Get tags
         tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
         tag_stdout, _ = run_command(tag_cmd)
         tags = [
@@ -239,12 +384,12 @@ def show(
         results.append(
             EmailContent(
                 id=message_id,
-                subject=subject,
-                from_address=from_address,
-                to_address=to_address,
-                date=date,
+                subject=subject or "[No Subject]",
+                from_address=from_address or "[Unknown Sender]",
+                to_address=to_address or "[Unknown Recipient]",
+                date=date or "[Unknown Date]",
                 tags=tags,
-                body_markdown=body_markdown.strip(),
+                body_markdown=body_content,
                 body_format=body_format,
                 attachments=attachments,
             )

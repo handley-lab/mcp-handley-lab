@@ -1,0 +1,615 @@
+interactions:
+- request:
+    body: '{"max_tokens": 8192, "messages": [{"role": "user", "content": "What is
+      5+5?"}, {"role": "assistant", "content": "Let me break this down comprehensively
+      for you!\n\nWhen we perform the addition operation of 5 + 5, we are essentially
+      combining two equal quantities of 5 together. \n\nLet''s visualize this step-by-step:\n\n1.
+      First, imagine you have 5 objects in one group\n   For example: \u2605\u2605\u2605\u2605\u2605\n\n2.
+      Then, you have another 5 objects in a second group\n   Like this: \u2605\u2605\u2605\u2605\u2605\n\n3.
+      When you add these groups together, you combine all the objects\n   Result:
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n4. Mathematically,
+      this looks like:\n   5 + 5 = 10\n\nBreaking it down further:\n- The \"+\" symbol
+      represents addition, which means combining or increasing a quantity\n- Each
+      \"5\" represents a specific numerical value\n- When added together, these values
+      create a new, larger value of 10\n\nIn practical terms, this could be like:\n-
+      Having 5 apples in one hand and 5 apples in another hand, then counting the
+      total (10 apples)\n- Adding 5 dollars to another 5 dollars, resulting in 10
+      dollars\n\nThe answer is definitively and unequivocally 10. \ud83e\uddee\ud83d\udd22"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me explain this in detail once again:\n\nWhen we add 5 + 5, we are
+      combining two equal groups of 5:\n\n1. Visualization:\n   First group:  \u2605\u2605\u2605\u2605\u2605\n   Second
+      group: \u2605\u2605\u2605\u2605\u2605\n\n2. Combining these groups:\n   \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n3.
+      Mathematical process:\n   5 + 5 = 10\n\n4. Number line representation:\n   Start
+      at 5, then move 5 more steps: 0 \u2192 5 \u2192 10\n\n5. Practical example:\n   -
+      5 pencils in one hand\n   - 5 pencils in the other hand\n   - Total pencils:
+      10\n\nThe answer is 10, just as in my previous detailed explanation. The fundamental
+      mathematical truth remains consistent: 5 + 5 = 10. \ud83e\uddee\ud83d\udcca\n\nWould
+      you like me to elaborate further on this addition problem?"}, {"role": "user",
+      "content": "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role":
+      "user", "content": "What is 7+7?"}, {"role": "assistant", "content": "14"},
+      {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me break this down comprehensively:\n\n1. Visual Representation:\n   First
+      group:  \u2605\u2605\u2605\u2605\u2605\n   Second group: \u2605\u2605\u2605\u2605\u2605\n   Total
+      group:  \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n2. Mathematical
+      Process:\n   5 + 5 = 10\n\n3. Number Line Method:\n   Start at 0\n   Move 5
+      steps: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n4. Practical Example:\n   -
+      5 apples in one basket\n   - 5 apples in another basket\n   - Total apples:
+      10 apples\n\nThe definitive answer is 10. This is a fundamental addition fact
+      that remains constant. \ud83e\uddee\ud83c\udf4e"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nDetailed explanation:\n\n1.
+      Numerical Analysis:\n   \u2022 First number: 5\n   \u2022 Second number: 5\n   \u2022
+      Operation: Addition (+)\n\n2. Calculation Process:\n   5 + 5 = 10\n\n3. Visual
+      Representation:\n   \u2605\u2605\u2605\u2605\u2605 + \u2605\u2605\u2605\u2605\u2605
+      = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n   (5 stars)  (5
+      stars)   (10 stars total)\n\n4. Number Line Tracking:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps to 5\n   \u2022 Move another 5 steps to 10\n\n5. Verification Methods:\n   \u2022
+      Counting: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10\n   \u2022 Multiplication inverse: 2
+      \u00d7 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe answer is definitively
+      10. \ud83e\uddee\ud83d\udcca"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12"}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nLet me explain the
+      calculation of 5+5 in great detail:\n\n1. Basic Addition:\n   \u2022 First number:
+      5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2. Calculation:\n   5
+      + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605 (first
+      group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605
+      (10 stars total)\n\n4. Number Line Method:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps forward: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022
+      Move another 5 steps: 5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5.
+      Alternative Verification:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022
+      Repeated addition: 5 + 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe
+      definitive answer is 10. This is a fundamental addition fact. \ud83e\uddee\ud83c\udf1f"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nComprehensive explanation:\n\n1. Numerical Breakdown:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Arithmetic operation: Addition
+      (+)\n\n2. Direct Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Progression:\n   \u2022 Start at 0\n   \u2022 Move 5 steps: 0 \u2192
+      1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps: 5 \u2192
+      6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Verification Methods:\n   \u2022
+      Multiplication: 2 \u00d7 5 = 10\n   \u2022 Repeated addition: 5 + 5 = 10\n   \u2022
+      Inverse subtraction: 10 - 5 = 5\n\nThe answer is unequivocally 10. \ud83e\uddee\ud83d\udcca"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nDetailed explanation of 5+5:\n\n1. Basic Addition Facts:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2.
+      Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Demonstration:\n   \u2022 Start at 0\n   \u2022 Move 5 steps forward:
+      0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Multiple Verification
+      Methods:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022 Repeated
+      addition: 5 + 5 = 10\n   \u2022 Subtraction verification: 10 - 5 = 5\n\nThe
+      definitive answer is 10. \ud83e\uddee\ud83c\udf1f"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}], "model": "claude-3-5-haiku-20241022", "system": "You are a
+      verbose math teacher. Explain everything in great detail with examples.", "temperature":
+      1.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      anthropic-version:
+      - '2023-06-01'
+      connection:
+      - keep-alive
+      content-length:
+      - '7002'
+      content-type:
+      - application/json
+      host:
+      - api.anthropic.com
+      user-agent:
+      - Anthropic/Python 0.61.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 0.61.0
+      x-stainless-read-timeout:
+      - '599'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+      x-stainless-timeout:
+      - '599'
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: "{\"id\":\"msg_01KppSP33CEwZpGjiBdST9XN\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-3-5-haiku-20241022\",\"content\":[{\"type\":\"text\",\"text\":\"10\\n\\nLet
+        me explain 5+5 in exhaustive detail:\\n\\n1. Numerical Composition:\\n   \u2022
+        First number: 5\\n   \u2022 Second number: 5\\n   \u2022 Mathematical operation:
+        Addition (+)\\n\\n2. Direct Calculation:\\n   5 + 5 = 10\\n\\n3. Visual Representation:\\n
+        \  \u2605\u2605\u2605\u2605\u2605 (first group of 5)\\n   \u2605\u2605\u2605\u2605\u2605
+        (second group of 5)\\n   = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605
+        (10 stars total)\\n\\n4. Number Line Progression:\\n   \u2022 Start at 0\\n
+        \  \u2022 Move 5 steps: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\\n
+        \  \u2022 Move another 5 steps: 5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192
+        10\\n\\n5. Multiple Verification Techniques:\\n   \u2022 Multiplication check:
+        2 \xD7 5 = 10\\n   \u2022 Repeated addition: 5 + 5 = 10\\n   \u2022 Inverse
+        subtraction: 10 - 5 = 5\\n\\nThe answer is conclusively 10. \U0001F9EE\U0001F4CA\"}],\"stop_reason\":\"end_turn\",\"stop_sequence\":null,\"usage\":{\"input_tokens\":2136,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":284,\"service_tier\":\"standard\"}}"
+    headers:
+      CF-RAY:
+      - 96f0a929296f3238-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 13:04:58 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Robots-Tag:
+      - none
+      anthropic-organization-id:
+      - 2c171920-9bc8-49f3-a3b0-ec271bf76c62
+      anthropic-ratelimit-input-tokens-limit:
+      - '400000'
+      anthropic-ratelimit-input-tokens-remaining:
+      - '399000'
+      anthropic-ratelimit-input-tokens-reset:
+      - '2025-08-14T13:04:55Z'
+      anthropic-ratelimit-output-tokens-limit:
+      - '80000'
+      anthropic-ratelimit-output-tokens-remaining:
+      - '80000'
+      anthropic-ratelimit-output-tokens-reset:
+      - '2025-08-14T13:04:59Z'
+      anthropic-ratelimit-requests-limit:
+      - '4000'
+      anthropic-ratelimit-requests-remaining:
+      - '3999'
+      anthropic-ratelimit-requests-reset:
+      - '2025-08-14T13:04:55Z'
+      anthropic-ratelimit-tokens-limit:
+      - '480000'
+      anthropic-ratelimit-tokens-remaining:
+      - '479000'
+      anthropic-ratelimit-tokens-reset:
+      - '2025-08-14T13:04:55Z'
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '1150'
+      request-id:
+      - req_011CS7efYk7RhWsZaGAUdGUn
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      via:
+      - 1.1 google
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"max_tokens": 8192, "messages": [{"role": "user", "content": "What is
+      5+5?"}, {"role": "assistant", "content": "Let me break this down comprehensively
+      for you!\n\nWhen we perform the addition operation of 5 + 5, we are essentially
+      combining two equal quantities of 5 together. \n\nLet''s visualize this step-by-step:\n\n1.
+      First, imagine you have 5 objects in one group\n   For example: \u2605\u2605\u2605\u2605\u2605\n\n2.
+      Then, you have another 5 objects in a second group\n   Like this: \u2605\u2605\u2605\u2605\u2605\n\n3.
+      When you add these groups together, you combine all the objects\n   Result:
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n4. Mathematically,
+      this looks like:\n   5 + 5 = 10\n\nBreaking it down further:\n- The \"+\" symbol
+      represents addition, which means combining or increasing a quantity\n- Each
+      \"5\" represents a specific numerical value\n- When added together, these values
+      create a new, larger value of 10\n\nIn practical terms, this could be like:\n-
+      Having 5 apples in one hand and 5 apples in another hand, then counting the
+      total (10 apples)\n- Adding 5 dollars to another 5 dollars, resulting in 10
+      dollars\n\nThe answer is definitively and unequivocally 10. \ud83e\uddee\ud83d\udd22"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me explain this in detail once again:\n\nWhen we add 5 + 5, we are
+      combining two equal groups of 5:\n\n1. Visualization:\n   First group:  \u2605\u2605\u2605\u2605\u2605\n   Second
+      group: \u2605\u2605\u2605\u2605\u2605\n\n2. Combining these groups:\n   \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n3.
+      Mathematical process:\n   5 + 5 = 10\n\n4. Number line representation:\n   Start
+      at 5, then move 5 more steps: 0 \u2192 5 \u2192 10\n\n5. Practical example:\n   -
+      5 pencils in one hand\n   - 5 pencils in the other hand\n   - Total pencils:
+      10\n\nThe answer is 10, just as in my previous detailed explanation. The fundamental
+      mathematical truth remains consistent: 5 + 5 = 10. \ud83e\uddee\ud83d\udcca\n\nWould
+      you like me to elaborate further on this addition problem?"}, {"role": "user",
+      "content": "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role":
+      "user", "content": "What is 7+7?"}, {"role": "assistant", "content": "14"},
+      {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me break this down comprehensively:\n\n1. Visual Representation:\n   First
+      group:  \u2605\u2605\u2605\u2605\u2605\n   Second group: \u2605\u2605\u2605\u2605\u2605\n   Total
+      group:  \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n2. Mathematical
+      Process:\n   5 + 5 = 10\n\n3. Number Line Method:\n   Start at 0\n   Move 5
+      steps: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n4. Practical Example:\n   -
+      5 apples in one basket\n   - 5 apples in another basket\n   - Total apples:
+      10 apples\n\nThe definitive answer is 10. This is a fundamental addition fact
+      that remains constant. \ud83e\uddee\ud83c\udf4e"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nDetailed explanation:\n\n1.
+      Numerical Analysis:\n   \u2022 First number: 5\n   \u2022 Second number: 5\n   \u2022
+      Operation: Addition (+)\n\n2. Calculation Process:\n   5 + 5 = 10\n\n3. Visual
+      Representation:\n   \u2605\u2605\u2605\u2605\u2605 + \u2605\u2605\u2605\u2605\u2605
+      = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n   (5 stars)  (5
+      stars)   (10 stars total)\n\n4. Number Line Tracking:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps to 5\n   \u2022 Move another 5 steps to 10\n\n5. Verification Methods:\n   \u2022
+      Counting: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10\n   \u2022 Multiplication inverse: 2
+      \u00d7 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe answer is definitively
+      10. \ud83e\uddee\ud83d\udcca"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12"}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nLet me explain the
+      calculation of 5+5 in great detail:\n\n1. Basic Addition:\n   \u2022 First number:
+      5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2. Calculation:\n   5
+      + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605 (first
+      group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605
+      (10 stars total)\n\n4. Number Line Method:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps forward: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022
+      Move another 5 steps: 5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5.
+      Alternative Verification:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022
+      Repeated addition: 5 + 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe
+      definitive answer is 10. This is a fundamental addition fact. \ud83e\uddee\ud83c\udf1f"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nComprehensive explanation:\n\n1. Numerical Breakdown:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Arithmetic operation: Addition
+      (+)\n\n2. Direct Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Progression:\n   \u2022 Start at 0\n   \u2022 Move 5 steps: 0 \u2192
+      1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps: 5 \u2192
+      6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Verification Methods:\n   \u2022
+      Multiplication: 2 \u00d7 5 = 10\n   \u2022 Repeated addition: 5 + 5 = 10\n   \u2022
+      Inverse subtraction: 10 - 5 = 5\n\nThe answer is unequivocally 10. \ud83e\uddee\ud83d\udcca"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nDetailed explanation of 5+5:\n\n1. Basic Addition Facts:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2.
+      Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Demonstration:\n   \u2022 Start at 0\n   \u2022 Move 5 steps forward:
+      0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Multiple Verification
+      Methods:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022 Repeated
+      addition: 5 + 5 = 10\n   \u2022 Subtraction verification: 10 - 5 = 5\n\nThe
+      definitive answer is 10. \ud83e\uddee\ud83c\udf1f"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nLet me explain 5+5
+      in exhaustive detail:\n\n1. Numerical Composition:\n   \u2022 First number:
+      5\n   \u2022 Second number: 5\n   \u2022 Mathematical operation: Addition (+)\n\n2.
+      Direct Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Progression:\n   \u2022 Start at 0\n   \u2022 Move 5 steps: 0 \u2192
+      1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps: 5 \u2192
+      6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Multiple Verification Techniques:\n   \u2022
+      Multiplication check: 2 \u00d7 5 = 10\n   \u2022 Repeated addition: 5 + 5 =
+      10\n   \u2022 Inverse subtraction: 10 - 5 = 5\n\nThe answer is conclusively
+      10. \ud83e\uddee\ud83d\udcca"}, {"role": "user", "content": "What is 6+6?"}],
+      "model": "claude-3-5-haiku-20241022", "system": "You are brief. Give only the
+      answer.", "temperature": 1.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      anthropic-version:
+      - '2023-06-01'
+      connection:
+      - keep-alive
+      content-length:
+      - '7774'
+      content-type:
+      - application/json
+      host:
+      - api.anthropic.com
+      user-agent:
+      - Anthropic/Python 0.61.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 0.61.0
+      x-stainless-read-timeout:
+      - '599'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+      x-stainless-timeout:
+      - '599'
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: '{"id":"msg_01J3U2fdbU7U2JYbL5LNmyxa","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"12"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":2423,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":5,"service_tier":"standard"}}'
+    headers:
+      CF-RAY:
+      - 96f0a940cebb3238-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 13:04:59 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Robots-Tag:
+      - none
+      anthropic-organization-id:
+      - 2c171920-9bc8-49f3-a3b0-ec271bf76c62
+      anthropic-ratelimit-input-tokens-limit:
+      - '400000'
+      anthropic-ratelimit-input-tokens-remaining:
+      - '399000'
+      anthropic-ratelimit-input-tokens-reset:
+      - '2025-08-14T13:04:59Z'
+      anthropic-ratelimit-output-tokens-limit:
+      - '80000'
+      anthropic-ratelimit-output-tokens-remaining:
+      - '80000'
+      anthropic-ratelimit-output-tokens-reset:
+      - '2025-08-14T13:04:59Z'
+      anthropic-ratelimit-requests-limit:
+      - '4000'
+      anthropic-ratelimit-requests-remaining:
+      - '3999'
+      anthropic-ratelimit-requests-reset:
+      - '2025-08-14T13:04:59Z'
+      anthropic-ratelimit-tokens-limit:
+      - '480000'
+      anthropic-ratelimit-tokens-remaining:
+      - '479000'
+      anthropic-ratelimit-tokens-reset:
+      - '2025-08-14T13:04:59Z'
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '408'
+      request-id:
+      - req_011CS7efpuxChSVsnAHn6iGX
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      via:
+      - 1.1 google
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"max_tokens": 8192, "messages": [{"role": "user", "content": "What is
+      5+5?"}, {"role": "assistant", "content": "Let me break this down comprehensively
+      for you!\n\nWhen we perform the addition operation of 5 + 5, we are essentially
+      combining two equal quantities of 5 together. \n\nLet''s visualize this step-by-step:\n\n1.
+      First, imagine you have 5 objects in one group\n   For example: \u2605\u2605\u2605\u2605\u2605\n\n2.
+      Then, you have another 5 objects in a second group\n   Like this: \u2605\u2605\u2605\u2605\u2605\n\n3.
+      When you add these groups together, you combine all the objects\n   Result:
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n4. Mathematically,
+      this looks like:\n   5 + 5 = 10\n\nBreaking it down further:\n- The \"+\" symbol
+      represents addition, which means combining or increasing a quantity\n- Each
+      \"5\" represents a specific numerical value\n- When added together, these values
+      create a new, larger value of 10\n\nIn practical terms, this could be like:\n-
+      Having 5 apples in one hand and 5 apples in another hand, then counting the
+      total (10 apples)\n- Adding 5 dollars to another 5 dollars, resulting in 10
+      dollars\n\nThe answer is definitively and unequivocally 10. \ud83e\uddee\ud83d\udd22"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me explain this in detail once again:\n\nWhen we add 5 + 5, we are
+      combining two equal groups of 5:\n\n1. Visualization:\n   First group:  \u2605\u2605\u2605\u2605\u2605\n   Second
+      group: \u2605\u2605\u2605\u2605\u2605\n\n2. Combining these groups:\n   \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n3.
+      Mathematical process:\n   5 + 5 = 10\n\n4. Number line representation:\n   Start
+      at 5, then move 5 more steps: 0 \u2192 5 \u2192 10\n\n5. Practical example:\n   -
+      5 pencils in one hand\n   - 5 pencils in the other hand\n   - Total pencils:
+      10\n\nThe answer is 10, just as in my previous detailed explanation. The fundamental
+      mathematical truth remains consistent: 5 + 5 = 10. \ud83e\uddee\ud83d\udcca\n\nWould
+      you like me to elaborate further on this addition problem?"}, {"role": "user",
+      "content": "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role":
+      "user", "content": "What is 7+7?"}, {"role": "assistant", "content": "14"},
+      {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nLet me break this down comprehensively:\n\n1. Visual Representation:\n   First
+      group:  \u2605\u2605\u2605\u2605\u2605\n   Second group: \u2605\u2605\u2605\u2605\u2605\n   Total
+      group:  \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n\n2. Mathematical
+      Process:\n   5 + 5 = 10\n\n3. Number Line Method:\n   Start at 0\n   Move 5
+      steps: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n4. Practical Example:\n   -
+      5 apples in one basket\n   - 5 apples in another basket\n   - Total apples:
+      10 apples\n\nThe definitive answer is 10. This is a fundamental addition fact
+      that remains constant. \ud83e\uddee\ud83c\udf4e"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nDetailed explanation:\n\n1.
+      Numerical Analysis:\n   \u2022 First number: 5\n   \u2022 Second number: 5\n   \u2022
+      Operation: Addition (+)\n\n2. Calculation Process:\n   5 + 5 = 10\n\n3. Visual
+      Representation:\n   \u2605\u2605\u2605\u2605\u2605 + \u2605\u2605\u2605\u2605\u2605
+      = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\n   (5 stars)  (5
+      stars)   (10 stars total)\n\n4. Number Line Tracking:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps to 5\n   \u2022 Move another 5 steps to 10\n\n5. Verification Methods:\n   \u2022
+      Counting: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10\n   \u2022 Multiplication inverse: 2
+      \u00d7 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe answer is definitively
+      10. \ud83e\uddee\ud83d\udcca"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12"}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nLet me explain the
+      calculation of 5+5 in great detail:\n\n1. Basic Addition:\n   \u2022 First number:
+      5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2. Calculation:\n   5
+      + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605 (first
+      group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   = \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605
+      (10 stars total)\n\n4. Number Line Method:\n   \u2022 Start at 0\n   \u2022
+      Move 5 steps forward: 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022
+      Move another 5 steps: 5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5.
+      Alternative Verification:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022
+      Repeated addition: 5 + 5 = 10\n   \u2022 Subtraction check: 10 - 5 = 5\n\nThe
+      definitive answer is 10. This is a fundamental addition fact. \ud83e\uddee\ud83c\udf1f"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nComprehensive explanation:\n\n1. Numerical Breakdown:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Arithmetic operation: Addition
+      (+)\n\n2. Direct Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Progression:\n   \u2022 Start at 0\n   \u2022 Move 5 steps: 0 \u2192
+      1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps: 5 \u2192
+      6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Verification Methods:\n   \u2022
+      Multiplication: 2 \u00d7 5 = 10\n   \u2022 Repeated addition: 5 + 5 = 10\n   \u2022
+      Inverse subtraction: 10 - 5 = 5\n\nThe answer is unequivocally 10. \ud83e\uddee\ud83d\udcca"},
+      {"role": "user", "content": "What is 6+6?"}, {"role": "assistant", "content":
+      "12"}, {"role": "user", "content": "What is 7+7?"}, {"role": "assistant", "content":
+      "14"}, {"role": "user", "content": "What is 5+5?"}, {"role": "assistant", "content":
+      "10\n\nDetailed explanation of 5+5:\n\n1. Basic Addition Facts:\n   \u2022 First
+      number: 5\n   \u2022 Second number: 5\n   \u2022 Operation: Addition (+)\n\n2.
+      Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Demonstration:\n   \u2022 Start at 0\n   \u2022 Move 5 steps forward:
+      0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps:
+      5 \u2192 6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Multiple Verification
+      Methods:\n   \u2022 Multiplication check: 2 \u00d7 5 = 10\n   \u2022 Repeated
+      addition: 5 + 5 = 10\n   \u2022 Subtraction verification: 10 - 5 = 5\n\nThe
+      definitive answer is 10. \ud83e\uddee\ud83c\udf1f"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12"}, {"role": "user", "content":
+      "What is 7+7?"}, {"role": "assistant", "content": "14"}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "10\n\nLet me explain 5+5
+      in exhaustive detail:\n\n1. Numerical Composition:\n   \u2022 First number:
+      5\n   \u2022 Second number: 5\n   \u2022 Mathematical operation: Addition (+)\n\n2.
+      Direct Calculation:\n   5 + 5 = 10\n\n3. Visual Representation:\n   \u2605\u2605\u2605\u2605\u2605
+      (first group of 5)\n   \u2605\u2605\u2605\u2605\u2605 (second group of 5)\n   =
+      \u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605\u2605 (10 stars total)\n\n4.
+      Number Line Progression:\n   \u2022 Start at 0\n   \u2022 Move 5 steps: 0 \u2192
+      1 \u2192 2 \u2192 3 \u2192 4 \u2192 5\n   \u2022 Move another 5 steps: 5 \u2192
+      6 \u2192 7 \u2192 8 \u2192 9 \u2192 10\n\n5. Multiple Verification Techniques:\n   \u2022
+      Multiplication check: 2 \u00d7 5 = 10\n   \u2022 Repeated addition: 5 + 5 =
+      10\n   \u2022 Inverse subtraction: 10 - 5 = 5\n\nThe answer is conclusively
+      10. \ud83e\uddee\ud83d\udcca"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12"}, {"role": "user", "content": "What is
+      7+7?"}], "model": "claude-3-5-haiku-20241022", "system": "You are brief. Give
+      only the answer.", "temperature": 1.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      anthropic-version:
+      - '2023-06-01'
+      connection:
+      - keep-alive
+      content-length:
+      - '7851'
+      content-type:
+      - application/json
+      host:
+      - api.anthropic.com
+      user-agent:
+      - Anthropic/Python 0.61.0
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 0.61.0
+      x-stainless-read-timeout:
+      - '599'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+      x-stainless-timeout:
+      - '599'
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: '{"id":"msg_01HEVXhErkZPimUuGbn1za59","type":"message","role":"assistant","model":"claude-3-5-haiku-20241022","content":[{"type":"text","text":"14"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":2438,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":5,"service_tier":"standard"}}'
+    headers:
+      CF-RAY:
+      - 96f0a9472b553238-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 13:05:00 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      X-Robots-Tag:
+      - none
+      anthropic-organization-id:
+      - 2c171920-9bc8-49f3-a3b0-ec271bf76c62
+      anthropic-ratelimit-input-tokens-limit:
+      - '400000'
+      anthropic-ratelimit-input-tokens-remaining:
+      - '399000'
+      anthropic-ratelimit-input-tokens-reset:
+      - '2025-08-14T13:05:00Z'
+      anthropic-ratelimit-output-tokens-limit:
+      - '80000'
+      anthropic-ratelimit-output-tokens-remaining:
+      - '80000'
+      anthropic-ratelimit-output-tokens-reset:
+      - '2025-08-14T13:05:00Z'
+      anthropic-ratelimit-requests-limit:
+      - '4000'
+      anthropic-ratelimit-requests-remaining:
+      - '3999'
+      anthropic-ratelimit-requests-reset:
+      - '2025-08-14T13:05:00Z'
+      anthropic-ratelimit-tokens-limit:
+      - '480000'
+      anthropic-ratelimit-tokens-remaining:
+      - '479000'
+      anthropic-ratelimit-tokens-reset:
+      - '2025-08-14T13:05:00Z'
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '408'
+      request-id:
+      - req_011CS7efuJ8Ub1oQzrbK17bQ
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      via:
+      - 1.1 google
+    status:
+      code: 200
+      message: OK
+version: 1

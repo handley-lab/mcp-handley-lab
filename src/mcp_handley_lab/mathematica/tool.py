@@ -699,10 +699,10 @@ def _save_as_markdown(filepath: str, title: str, timestamp: str) -> dict:
         else:
             output_result = "No output"
 
-        content += f"""## Evaluation {i+1}
+        content += f"""## Evaluation {i + 1}
 ```mathematica
-In[{i+1}]:= {input_expr}
-Out[{i+1}]= {output_result}
+In[{i + 1}]:= {input_expr}
+Out[{i + 1}]= {output_result}
 ```
 
 """
@@ -733,7 +733,7 @@ def _save_as_wolfram_script(filepath: str, title: str, timestamp: str) -> dict:
 
     # Add all input expressions as executable code
     for i, input_expr in enumerate(_input_history):
-        content += f"""(* Evaluation {i+1} *)
+        content += f"""(* Evaluation {i + 1} *)
 {input_expr};
 
 """
@@ -766,7 +766,7 @@ def _save_as_wolfram_script_with_outputs(
         else:
             output_result = "No output"
 
-        content += f"""(* Evaluation {i+1} *)
+        content += f"""(* Evaluation {i + 1} *)
 {input_expr};
 (* Result: {output_result} *)
 

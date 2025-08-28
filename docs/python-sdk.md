@@ -264,7 +264,7 @@ _Full example: [examples/snippets/servers/basic_tool.py](https://github.com/mode
 #### Structured Output
 
 Tools will return structured results by default, if their return type
-annotation is compatible. Otherwise, they will return unstructured results. 
+annotation is compatible. Otherwise, they will return unstructured results.
 
 Structured output supports these return types:
 - Pydantic models (BaseModel subclasses)
@@ -278,17 +278,17 @@ Classes without type hints cannot be serialized for structured output. Only
 classes with properly annotated attributes will be converted to Pydantic models
 for schema generation and validation.
 
-Structured results are automatically validated against the output schema 
-generated from the annotation. This ensures the tool returns well-typed, 
+Structured results are automatically validated against the output schema
+generated from the annotation. This ensures the tool returns well-typed,
 validated data that clients can easily process.
 
 **Note:** For backward compatibility, unstructured results are also
-returned. Unstructured results are provided for backward compatibility 
+returned. Unstructured results are provided for backward compatibility
 with previous versions of the MCP specification, and are quirks-compatible
 with previous versions of FastMCP in the current version of the SDK.
 
-**Note:** In cases where a tool function's return type annotation 
-causes the tool to be classified as structured _and this is undesirable_, 
+**Note:** In cases where a tool function's return type annotation
+causes the tool to be classified as structured _and this is undesirable_,
 the  classification can be suppressed by passing `structured_output=False`
 to the `@tool` decorator.
 

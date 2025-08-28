@@ -1,4 +1,5 @@
 """Unit tests for Claude LLM module."""
+
 from mcp_handley_lab.llm.claude.tool import (
     MODEL_CONFIGS,
     _get_model_config,
@@ -79,10 +80,6 @@ class TestClaudeModelConfiguration:
             _resolve_model_alias("claude-3-5-sonnet-20241022")
             == "claude-3-5-sonnet-20241022"
         )
-
-
-
-
 
 
 class TestClaudeErrorHandling:

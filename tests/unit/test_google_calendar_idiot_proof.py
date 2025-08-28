@@ -1,7 +1,7 @@
 """Unit tests for idiot-proof timezone handling in Google Calendar tool."""
 
-
 import pytest
+
 from mcp_handley_lab.google_calendar.tool import _prepare_event_datetime
 
 

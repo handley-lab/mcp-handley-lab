@@ -1,11 +1,11 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What is configured in this YAML file?
-      What is the application name?"}, {"text": "[File: tmpax51akw6.yaml]\n# Configuration
+      What is the application name?"}, {"text": "[File: tmpybt8x4po.yaml]\n# Configuration
       file\napp:\n  name: \"Test Application\"\n  version: \"1.0.0\"\n  features:\n    -
       authentication\n    - logging\n    - metrics\ndatabase:\n  host: \"localhost\"\n  port:
       5432\n  name: \"testdb\"\n"}], "role": "user"}], "generationConfig": {"temperature":
-      0.7, "maxOutputTokens": 65536}}'
+      1.0, "maxOutputTokens": 65536}}'
     headers:
       accept:
       - '*/*'
@@ -20,40 +20,41 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
     body:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
-        [\n          {\n            \"text\": \"This YAML file configures two main
-        sections:\\n\\n1.  **Application Details (`app`):**\\n    *   `name`: The
-        name of the application.\\n    *   `version`: The version of the application.\\n
-        \   *   `features`: A list of features enabled or included in the application
-        (authentication, logging, metrics).\\n\\n2.  **Database Connection Settings
-        (`database`):**\\n    *   `host`: The hostname or IP address of the database
-        server.\\n    *   `port`: The port number on which the database server is
-        listening.\\n    *   `name`: The name of the specific database to connect
-        to.\\n\\n---\\n\\nThe application name configured in this YAML file is: **Test
-        Application**\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n
-        \     \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\":
-        {\n    \"promptTokenCount\": 98,\n    \"candidatesTokenCount\": 153,\n    \"totalTokenCount\":
-        931,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 98\n      }\n    ],\n    \"thoughtsTokenCount\": 680\n
-        \ },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"lNZqaPqyGqLNnsEP6_SysQ8\"\n}\n"
+        [\n          {\n            \"text\": \"This YAML file configures settings
+        for an application and its database connection.\\n\\n1.  **What is configured
+        in this YAML file?**\\n    This YAML file configures:\\n    *   **Application
+        Details:**\\n        *   The application's name (\\\"Test Application\\\")\\n
+        \       *   Its version (\\\"1.0.0\\\")\\n        *   A list of features it
+        supports or has enabled: \\\"authentication\\\", \\\"logging\\\", and \\\"metrics\\\".\\n
+        \   *   **Database Connection:**\\n        *   The database host (\\\"localhost\\\")\\n
+        \       *   The database port (5432)\\n        *   The database name (\\\"testdb\\\")\\n\\n2.
+        \ **What is the application name?**\\n    The application name configured
+        in this YAML file is **\\\"Test Application\\\"**.\"\n          }\n        ],\n
+        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
+        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
+        98,\n    \"candidatesTokenCount\": 165,\n    \"totalTokenCount\": 861,\n    \"promptTokensDetails\":
+        [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 98\n
+        \     }\n    ],\n    \"thoughtsTokenCount\": 598\n  },\n  \"modelVersion\":
+        \"gemini-2.5-flash\",\n  \"responseId\": \"AeCdaPKyOsXrnsEPuKeYmQE\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:32 GMT
+      - Thu, 14 Aug 2025 13:09:21 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=3885
+      - gfet4t7; dur=3905
       Transfer-Encoding:
       - chunked
       Vary:
@@ -67,7 +68,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1191'
+      - '1236'
     status:
       code: 200
       message: OK

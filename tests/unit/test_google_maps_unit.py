@@ -1,7 +1,9 @@
 """Unit tests for Google Maps tool functionality."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from mcp_handley_lab.google_maps.tool import (
     DirectionLeg,
     DirectionRoute,
@@ -67,7 +69,7 @@ class TestDataParsing:
         self, step_data, expected_instruction, expected_distance, expected_duration
     ):
         """Test step parsing from API response."""
-        step = _parse_step(step_data)
+        step = _parse_step(step_data, "Europe/London")
 
         assert isinstance(step, DirectionStep)
         assert step.instruction == expected_instruction
@@ -132,7 +134,7 @@ class TestDataParsing:
         self, leg_data, expected_distance, expected_duration, expected_steps_count
     ):
         """Test leg parsing from API response."""
-        leg = _parse_leg(leg_data)
+        leg = _parse_leg(leg_data, "Europe/London")
 
         assert isinstance(leg, DirectionLeg)
         assert leg.distance == expected_distance
@@ -200,7 +202,7 @@ class TestDataParsing:
     )
     def test_parse_route(self, route_data, expected_summary, expected_warnings_count):
         """Test route parsing from API response."""
-        route = _parse_route(route_data)
+        route = _parse_route(route_data, "Europe/London")
 
         assert isinstance(route, DirectionRoute)
         assert route.summary == expected_summary
@@ -215,8 +217,6 @@ class TestDataParsing:
         assert route.polyline == route_data["overview_polyline"]["points"]
         assert len(route.warnings) == expected_warnings_count
         assert len(route.legs) == 1
-
-
 
 
 class TestServerInfo:

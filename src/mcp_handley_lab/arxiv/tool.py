@@ -76,7 +76,9 @@ class ArxivPaper(BaseModel):
 mcp = FastMCP("ArXiv Tool")
 
 
-def _safe_tar_extract(tar: tarfile.TarFile, member: tarfile.TarInfo | None = None, path: str = ".") -> None:
+def _safe_tar_extract(
+    tar: tarfile.TarFile, member: tarfile.TarInfo | None = None, path: str = "."
+) -> None:
     """Safely extract tar files with Python version compatibility."""
     if sys.version_info >= (3, 12):
         # Use secure filter for Python 3.12+
@@ -88,13 +90,13 @@ def _safe_tar_extract(tar: tarfile.TarFile, member: tarfile.TarInfo | None = Non
         # For older Python versions, extract without filter but validate paths
         if member:
             # Validate single member path
-            if member.name.startswith('/') or '..' in member.name:
+            if member.name.startswith("/") or ".." in member.name:
                 raise ValueError(f"Unsafe tar member path: {member.name}")
             tar.extract(member, path=path)
         else:
             # Validate all member paths
             for m in tar.getmembers():
-                if m.name.startswith('/') or '..' in m.name:
+                if m.name.startswith("/") or ".." in m.name:
                     raise ValueError(f"Unsafe tar member path: {m.name}")
             tar.extractall(path=path)
 

@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "Test prompt"}], "role": "user"}], "generationConfig":
-      {"temperature": 0.7, "maxOutputTokens": 65536}}'
+      {"temperature": 1.0, "maxOutputTokens": 65536}}'
     headers:
       accept:
       - '*/*'
@@ -16,9 +16,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/invalid-model-name-that-does-not-exist:generateContent
   response:
@@ -33,11 +33,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:04:27 GMT
+      - Thu, 14 Aug 2025 06:53:43 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=43
+      - gfet4t7; dur=35
       Transfer-Encoding:
       - chunked
       Vary:

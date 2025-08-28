@@ -9,6 +9,7 @@ from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.common import (
     get_session_id,
     handle_agent_memory,
+    load_prompt_text,
 )
 from mcp_handley_lab.llm.memory import memory_manager
 from mcp_handley_lab.shared.models import (
@@ -103,25 +104,36 @@ def process_llm_request(
     **kwargs,
 ) -> LLMResult:
     """Generic handler for LLM requests that abstracts common patterns."""
-    if not prompt.strip():
-        raise ValueError("Prompt is required and cannot be empty")
-    if not output_file.strip():
-        raise ValueError("Output file is required and cannot be empty")
-
+    # Extract prompt resolution parameters
+    prompt_file = kwargs.pop("prompt_file", None)
+    prompt_vars = kwargs.pop("prompt_vars", None)
     system_prompt = kwargs.pop("system_prompt", None)
-    user_prompt = prompt
+    system_prompt_file = kwargs.pop("system_prompt_file", None)
+    system_prompt_vars = kwargs.pop("system_prompt_vars", None)
+
+    # Resolve final prompt and system prompt
+    final_prompt = load_prompt_text(prompt, prompt_file, prompt_vars)
+    final_system_prompt = None
+    if system_prompt or system_prompt_file:
+        final_system_prompt = load_prompt_text(
+            system_prompt, system_prompt_file, system_prompt_vars
+        )
+
+    user_prompt = final_prompt
 
     # Set up memory and get conversation context
     use_memory, actual_agent_name, history, system_instruction = _handle_memory_setup(
-        agent_name, system_prompt, mcp_instance
+        agent_name, final_system_prompt, mcp_instance
     )
 
     # Enhance prompt for image analysis
-    prompt, user_prompt = _enhance_prompt_for_images(prompt, user_prompt, kwargs)
+    final_prompt, user_prompt = _enhance_prompt_for_images(
+        final_prompt, user_prompt, kwargs
+    )
 
     # Call provider-specific generation function
     response_data = generation_func(
-        prompt=prompt,
+        prompt=final_prompt,
         model=model,
         history=history,
         system_instruction=system_instruction,

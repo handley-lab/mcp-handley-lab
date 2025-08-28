@@ -1,4 +1,5 @@
 """Unit tests for Google Calendar search functionality."""
+
 import pytest
 
 # Test the client-side filtering functionality directly since it doesn't require Google dependencies

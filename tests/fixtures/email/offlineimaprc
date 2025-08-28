@@ -1,4 +1,4 @@
-# Test OfflineIMAP configuration for handleylab@gmail.com  
+# Test OfflineIMAP configuration for handleylab@gmail.com
 # Based on user's existing Gmail configuration
 
 [general]
@@ -7,7 +7,7 @@
 accounts = HandleyLab
 
 # Python helper file for password functions
-pythonfile = offlineimap_test.py 
+pythonfile = offlineimap_test.py
 
 maxsyncaccounts = 1
 
@@ -17,7 +17,7 @@ maxsyncaccounts = 1
 # Name for local repository
 localrepository = HandleyLab-Local
 
-# Name for remote repository  
+# Name for remote repository
 remoterepository = HandleyLab-Remote
 
 # Sync once per hour

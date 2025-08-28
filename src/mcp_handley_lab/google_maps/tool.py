@@ -1,8 +1,10 @@
 """Google Maps tool for directions and routing via MCP."""
 
-from datetime import datetime, timezone
+import zoneinfo
+from datetime import datetime
 from typing import Any, Literal
 
+import dateparser
 import googlemaps
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
@@ -10,62 +12,165 @@ from pydantic import BaseModel, Field
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.shared.models import ServerInfo
 
+# Default timezone for time parsing
+DEFAULT_TIMEZONE = "Europe/London"
+
+
+def _parse_flexible_datetime(
+    time_str: str, default_tz: str = DEFAULT_TIMEZONE
+) -> datetime:
+    """
+    Parse flexible datetime string into timezone-aware datetime object.
+
+    Relies on dateparser to handle natural language, ISO 8601, and relative times.
+    Naive times are interpreted in the default timezone.
+    """
+    if not time_str:
+        raise ValueError("Time string cannot be empty")
+
+    settings = {
+        "PREFER_DATES_FROM": "future",
+        "RETURN_AS_TIMEZONE_AWARE": True,
+        "TIMEZONE": default_tz,
+    }
+
+    parsed_dt = dateparser.parse(time_str, settings=settings)
+    if not parsed_dt:
+        raise ValueError(f"Could not parse datetime string: '{time_str}'")
+
+    # Ensure we return a standard datetime object for library interop
+    if isinstance(parsed_dt, datetime):
+        return parsed_dt
+    return datetime.fromisoformat(parsed_dt.isoformat())
+
 
 class TransitDetails(BaseModel):
     """Transit-specific information for a step."""
 
-    departure_time: datetime = Field(..., description="The scheduled departure time for this transit step.")
-    arrival_time: datetime = Field(..., description="The scheduled arrival time for this transit step.")
-    line_name: str = Field(..., description="The full name of the transit line (e.g., 'Red Line', 'Route 101').")
-    line_short_name: str = Field(default="", description="The short name or number of the transit line.")
-    vehicle_type: str = Field(..., description="The type of transit vehicle (e.g., 'BUS', 'SUBWAY', 'TRAIN').")
-    headsign: str = Field(default="", description="The destination sign displayed on the transit vehicle.")
-    num_stops: int = Field(..., description="The number of stops between boarding and alighting.")
+    departure_time: datetime = Field(
+        ...,
+        description="The scheduled departure time for this transit step in UK local time (BST/GMT with proper offset).",
+    )
+    arrival_time: datetime = Field(
+        ...,
+        description="The scheduled arrival time for this transit step in UK local time (BST/GMT with proper offset).",
+    )
+    line_name: str = Field(
+        ...,
+        description="The full name of the transit line (e.g., 'Red Line', 'Route 101').",
+    )
+    line_short_name: str = Field(
+        default="", description="The short name or number of the transit line."
+    )
+    vehicle_type: str = Field(
+        ..., description="The type of transit vehicle (e.g., 'BUS', 'SUBWAY', 'TRAIN')."
+    )
+    headsign: str = Field(
+        default="", description="The destination sign displayed on the transit vehicle."
+    )
+    num_stops: int = Field(
+        ..., description="The number of stops between boarding and alighting."
+    )
 
 
 class DirectionStep(BaseModel):
     """A single step in a route."""
 
-    instruction: str = Field(..., description="Human-readable navigation instruction for this step.")
-    distance: str = Field(..., description="The distance for this step (e.g., '0.5 km', '500 ft').")
-    duration: str = Field(..., description="The estimated time for this step (e.g., '5 mins', '2 hours').")
-    start_location: dict[str, float] = Field(..., description="The latitude and longitude coordinates where this step begins.")
-    end_location: dict[str, float] = Field(..., description="The latitude and longitude coordinates where this step ends.")
-    travel_mode: str = Field(default="", description="The mode of transport for this step (e.g., 'WALKING', 'DRIVING', 'TRANSIT').")
-    transit_details: TransitDetails | None = Field(default=None, description="Additional details if this step involves public transit.")
+    instruction: str = Field(
+        ..., description="Human-readable navigation instruction for this step."
+    )
+    distance: str = Field(
+        ..., description="The distance for this step (e.g., '0.5 km', '500 ft')."
+    )
+    duration: str = Field(
+        ..., description="The estimated time for this step (e.g., '5 mins', '2 hours')."
+    )
+    start_location: dict[str, float] = Field(
+        ...,
+        description="The latitude and longitude coordinates where this step begins.",
+    )
+    end_location: dict[str, float] = Field(
+        ..., description="The latitude and longitude coordinates where this step ends."
+    )
+    travel_mode: str = Field(
+        default="",
+        description="The mode of transport for this step (e.g., 'WALKING', 'DRIVING', 'TRANSIT').",
+    )
+    transit_details: TransitDetails | None = Field(
+        default=None,
+        description="Additional details if this step involves public transit.",
+    )
 
 
 class DirectionLeg(BaseModel):
     """A leg of a route (origin to destination or waypoint)."""
 
-    distance: str = Field(..., description="The total distance for this leg of the journey.")
-    duration: str = Field(..., description="The estimated total time for this leg of the journey.")
-    start_address: str = Field(..., description="The human-readable address where this leg begins.")
-    end_address: str = Field(..., description="The human-readable address where this leg ends.")
-    steps: list[DirectionStep] = Field(..., description="The individual navigation steps that make up this leg.")
+    distance: str = Field(
+        ..., description="The total distance for this leg of the journey."
+    )
+    duration: str = Field(
+        ..., description="The estimated total time for this leg of the journey."
+    )
+    start_address: str = Field(
+        ..., description="The human-readable address where this leg begins."
+    )
+    end_address: str = Field(
+        ..., description="The human-readable address where this leg ends."
+    )
+    steps: list[DirectionStep] = Field(
+        ..., description="The individual navigation steps that make up this leg."
+    )
 
 
 class DirectionRoute(BaseModel):
     """A complete route with all legs and steps."""
 
-    summary: str = Field(..., description="A short textual description of the route (e.g., 'via I-95 N').")
-    legs: list[DirectionLeg] = Field(..., description="The individual legs that make up this complete route.")
+    summary: str = Field(
+        ...,
+        description="A short textual description of the route (e.g., 'via I-95 N').",
+    )
+    legs: list[DirectionLeg] = Field(
+        ..., description="The individual legs that make up this complete route."
+    )
     distance: str = Field(..., description="The total distance for the entire route.")
-    duration: str = Field(..., description="The estimated total time for the entire route.")
-    polyline: str = Field(..., description="An encoded polyline representation of the route path.")
-    warnings: list[str] = Field(default_factory=list, description="Any warnings about the route (e.g., tolls, traffic).")
+    duration: str = Field(
+        ..., description="The estimated total time for the entire route."
+    )
+    polyline: str = Field(
+        ..., description="An encoded polyline representation of the route path."
+    )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description="Any warnings about the route (e.g., tolls, traffic).",
+    )
 
 
 class DirectionsResult(BaseModel):
     """Result of a directions request."""
 
-    routes: list[DirectionRoute] = Field(..., description="A list of possible routes from origin to destination.")
-    status: str = Field(..., description="The status of the API request (e.g., 'OK', 'ZERO_RESULTS').")
-    origin: str = Field(..., description="The address or coordinates of the starting point.")
-    destination: str = Field(..., description="The address or coordinates of the ending point.")
-    mode: str = Field(..., description="The travel mode used for the directions (e.g., 'driving', 'transit').")
-    departure_time: str = Field(default="", description="The requested departure time as an ISO 8601 string, if provided.")
-    maps_url: str = Field(default="", description="A direct URL to Google Maps with the requested route.")
+    routes: list[DirectionRoute] = Field(
+        ..., description="A list of possible routes from origin to destination."
+    )
+    status: str = Field(
+        ..., description="The status of the API request (e.g., 'OK', 'ZERO_RESULTS')."
+    )
+    origin: str = Field(
+        ..., description="The address or coordinates of the starting point."
+    )
+    destination: str = Field(
+        ..., description="The address or coordinates of the ending point."
+    )
+    mode: str = Field(
+        ...,
+        description="The travel mode used for the directions (e.g., 'driving', 'transit').",
+    )
+    departure_time: str = Field(
+        default="",
+        description="The requested departure time as an ISO 8601 string, if provided.",
+    )
+    maps_url: str = Field(
+        default="", description="A direct URL to Google Maps with the requested route."
+    )
 
 
 mcp = FastMCP("Google Maps Tool")
@@ -174,7 +279,7 @@ def _generate_maps_url(
     return url
 
 
-def _parse_step(step: dict[str, Any]) -> DirectionStep:
+def _parse_step(step: dict[str, Any], user_timezone: str) -> DirectionStep:
     """Parse a direction step from API response."""
     transit_details = None
     travel_mode = step.get("travel_mode", "")
@@ -183,12 +288,13 @@ def _parse_step(step: dict[str, Any]) -> DirectionStep:
     if travel_mode == "TRANSIT" and "transit_details" in step:
         transit_data = step["transit_details"]
 
-        # Convert Unix timestamps to datetime objects (using UTC then converting to local)
+        # Convert Unix timestamps to user's local time for LLM-friendly display
+        local_tz = zoneinfo.ZoneInfo(user_timezone)
         departure_dt = datetime.fromtimestamp(
-            transit_data["departure_time"]["value"], tz=timezone.utc
+            transit_data["departure_time"]["value"], tz=local_tz
         )
         arrival_dt = datetime.fromtimestamp(
-            transit_data["arrival_time"]["value"], tz=timezone.utc
+            transit_data["arrival_time"]["value"], tz=local_tz
         )
 
         line_data = transit_data.get("line", {})
@@ -214,20 +320,20 @@ def _parse_step(step: dict[str, Any]) -> DirectionStep:
     )
 
 
-def _parse_leg(leg: dict[str, Any]) -> DirectionLeg:
+def _parse_leg(leg: dict[str, Any], user_timezone: str) -> DirectionLeg:
     """Parse a direction leg from API response."""
     return DirectionLeg(
         distance=leg["distance"]["text"],
         duration=leg["duration"]["text"],
         start_address=leg["start_address"],
         end_address=leg["end_address"],
-        steps=[_parse_step(step) for step in leg["steps"]],
+        steps=[_parse_step(step, user_timezone) for step in leg["steps"]],
     )
 
 
-def _parse_route(route: dict[str, Any]) -> DirectionRoute:
+def _parse_route(route: dict[str, Any], user_timezone: str) -> DirectionRoute:
     """Parse a route from API response."""
-    legs = [_parse_leg(leg) for leg in route["legs"]]
+    legs = [_parse_leg(leg, user_timezone) for leg in route["legs"]]
 
     # Calculate total distance and duration
     total_distance = sum(leg["distance"]["value"] for leg in route["legs"])
@@ -251,26 +357,59 @@ def _parse_route(route: dict[str, Any]) -> DirectionRoute:
     description="Gets directions between an origin and destination, supporting multiple travel modes, waypoints, and route preferences. For transit, supports specific transport modes and routing preferences."
 )
 def get_directions(
-    origin: str = Field(..., description="The starting address, place name, or coordinates (e.g., '1600 Amphitheatre Parkway, Mountain View, CA')."),
-    destination: str = Field(..., description="The ending address, place name, or coordinates (e.g., 'San Francisco, CA')."),
-    mode: Literal["driving", "walking", "bicycling", "transit"] = Field("driving", description="The mode of transport to use for the directions."),
-    departure_time: str = Field("", description="The desired departure time as an ISO 8601 UTC string (e.g., '2024-08-15T09:00:00Z'). Cannot be used with arrival_time."),
-    arrival_time: str = Field("", description="The desired arrival time as an ISO 8601 UTC string (e.g., '2024-08-15T17:00:00Z'). Cannot be used with departure_time."),
-    avoid: list[Literal["tolls", "highways", "ferries"]] = Field(default_factory=list, description="A list of route features to avoid (e.g., 'tolls', 'highways'). Only for 'driving' mode."),
-    alternatives: bool = Field(False, description="If True, requests that alternative routes be provided in the response."),
-    waypoints: list[str] = Field(default_factory=list, description="A list of addresses or coordinates to route through between the origin and destination."),
-    transit_mode: list[Literal["bus", "subway", "train", "tram", "rail"]] = Field(default_factory=list, description="Preferred modes of public transit. Only for 'transit' mode."),
-    transit_routing_preference: Literal["", "less_walking", "fewer_transfers"] = Field("", description="Specifies preferences for transit routes, such as fewer transfers or less walking. Only for 'transit' mode."),
+    origin: str = Field(
+        ...,
+        description="The starting address, place name, or coordinates (e.g., '1600 Amphitheatre Parkway, Mountain View, CA').",
+    ),
+    destination: str = Field(
+        ...,
+        description="The ending address, place name, or coordinates (e.g., 'San Francisco, CA').",
+    ),
+    mode: Literal["driving", "walking", "bicycling", "transit"] = Field(
+        "driving", description="The mode of transport to use for the directions."
+    ),
+    departure_time: str = Field(
+        "",
+        description="The desired departure time. Supports natural language ('17:00', '5pm', 'tomorrow 5pm'), relative times ('in 2 hours'), or ISO 8601 formats. Times are interpreted as UK local time unless explicitly specified. Cannot be used with arrival_time.",
+    ),
+    arrival_time: str = Field(
+        "",
+        description="The desired arrival time. Supports natural language ('17:00', '5pm', 'tomorrow 5pm'), relative times ('in 2 hours'), or ISO 8601 formats. Times are interpreted as UK local time unless explicitly specified. Cannot be used with departure_time.",
+    ),
+    user_timezone: str = Field(
+        DEFAULT_TIMEZONE,
+        description="The timezone to use for interpreting departure/arrival times when not explicitly specified (e.g., 'Europe/London', 'America/New_York'). Defaults to UK timezone.",
+    ),
+    avoid: list[Literal["tolls", "highways", "ferries"]] = Field(
+        default_factory=list,
+        description="A list of route features to avoid (e.g., 'tolls', 'highways'). Only for 'driving' mode.",
+    ),
+    alternatives: bool = Field(
+        False,
+        description="If True, requests that alternative routes be provided in the response.",
+    ),
+    waypoints: list[str] = Field(
+        default_factory=list,
+        description="A list of addresses or coordinates to route through between the origin and destination.",
+    ),
+    transit_mode: list[Literal["bus", "subway", "train", "tram", "rail"]] = Field(
+        default_factory=list,
+        description="Preferred modes of public transit. Only for 'transit' mode.",
+    ),
+    transit_routing_preference: Literal["", "less_walking", "fewer_transfers"] = Field(
+        "",
+        description="Specifies preferences for transit routes, such as fewer transfers or less walking. Only for 'transit' mode.",
+    ),
 ) -> DirectionsResult:
     gmaps = _get_maps_client()
 
-    # Parse departure/arrival time if provided
+    # Parse departure/arrival time with flexible parsing
     departure_dt = None
     arrival_dt = None
     if departure_time:
-        departure_dt = datetime.fromisoformat(departure_time.replace("Z", "+00:00"))
+        departure_dt = _parse_flexible_datetime(departure_time, user_timezone)
     if arrival_time:
-        arrival_dt = datetime.fromisoformat(arrival_time.replace("Z", "+00:00"))
+        arrival_dt = _parse_flexible_datetime(arrival_time, user_timezone)
 
     # The avoid parameter is already a list, no need to process it
 
@@ -281,13 +420,11 @@ def get_directions(
         mode=mode,
         departure_time=departure_dt,
         arrival_time=arrival_dt,
-        avoid=avoid if avoid else None,
+        avoid=avoid,
         alternatives=alternatives,
-        waypoints=waypoints if waypoints else None,
-        transit_mode=transit_mode if transit_mode else None,
-        transit_routing_preference=transit_routing_preference
-        if transit_routing_preference
-        else None,
+        waypoints=waypoints,
+        transit_mode=transit_mode,
+        transit_routing_preference=transit_routing_preference,
     )
 
     if not result:
@@ -302,7 +439,7 @@ def get_directions(
         )
 
     # Parse routes
-    routes = [_parse_route(route) for route in result]
+    routes = [_parse_route(route, user_timezone) for route in result]
 
     # Generate Google Maps URL
     maps_url = _generate_maps_url(
@@ -310,8 +447,8 @@ def get_directions(
         destination,
         mode,
         waypoints,
-        departure_time,
-        arrival_time,
+        departure_dt.isoformat() if departure_dt else "",
+        arrival_dt.isoformat() if arrival_dt else "",
         avoid,
         transit_mode,
         transit_routing_preference,

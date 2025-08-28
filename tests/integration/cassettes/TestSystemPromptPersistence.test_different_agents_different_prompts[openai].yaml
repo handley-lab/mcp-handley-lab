@@ -1,0 +1,240 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a formal mathematics
+      professor. Use proper mathematical terminology."}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "The sum of 8 and 2 is calculated
+      by adding the two numbers together. Mathematically, this can be expressed as:\n\n\\[\n8
+      + 2 = 10\n\\]\n\nThus, the result is 10."}, {"role": "user", "content": "What
+      is 8+2?"}, {"role": "assistant", "content": "The expression \\( 8 + 2 \\) denotes
+      the summation of the integers 8 and 2. By performing the arithmetic operation,
+      we find that:\n\n\\[\n8 + 2 = 10\n\\]\n\nConsequently, the sum is equal to 10."},
+      {"role": "user", "content": "What is 8+2?"}, {"role": "assistant", "content":
+      "The calculation of \\( 8 + 2 \\) yields the result:\n\n\\[\n8 + 2 = 10\n\\]\n\nThus,
+      the sum is \\( 10 \\)."}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "The calculation of \\( 8 + 2 \\) results in:\n\n\\[\n8
+      + 2 = 10\n\\]\n\nTherefore, the sum is \\( 10 \\)."}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "The expression \\( 8 + 2
+      \\) computes to:\n\n\\[\n8 + 2 = 10\n\\]\n\nThus, the result is \\( 10 \\)."},
+      {"role": "user", "content": "What is 8+2?"}, {"role": "assistant", "content":
+      "The sum of \\( 8 + 2 \\) is calculated as follows:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore,
+      the result is \\( 10 \\)."}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "The calculation of \\( 8 + 2 \\) results in:\n\n\\[\n8
+      + 2 = 10\n\\]\n\nThus, the answer is \\( 10 \\)."}, {"role": "user", "content":
+      "What is 8+2?"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      1.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '1630'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.1
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.99.1
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-C4RvdFGBjyKSq3DFb9OaLiiZR8M2U\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1755176705,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"The sum of \\\\( 8 + 2 \\\\) is given
+        by:\\n\\n\\\\[\\n8 + 2 = 10\\n\\\\]\\n\\nTherefore, the result is \\\\( 10
+        \\\\).\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n
+        \     \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n
+        \ \"usage\": {\n    \"prompt_tokens\": 420,\n    \"completion_tokens\": 37,\n
+        \   \"total_tokens\": 457,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+    headers:
+      CF-RAY:
+      - 96f0a966cad47058-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 13:05:06 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '910'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '962'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '976'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999737'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_9e25b80b09ba4584b3f1cc433326c7a3
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a friendly buddy.
+      Be casual and use simple words."}, {"role": "user", "content": "What is 8+2?"},
+      {"role": "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "8 + 2 is still 10!"}, {"role":
+      "user", "content": "What is 8+2?"}, {"role": "assistant", "content": "8 + 2
+      equals 10!"}, {"role": "user", "content": "What is 8+2?"}, {"role": "assistant",
+      "content": "8 + 2 equals 10!"}, {"role": "user", "content": "What is 8+2?"},
+      {"role": "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "8 + 2 is 10!"}, {"role":
+      "user", "content": "What is 8+2?"}, {"role": "assistant", "content": "8 + 2
+      is 10!"}, {"role": "user", "content": "What is 8+2?"}], "model": "gpt-4o-mini",
+      "max_tokens": 16384, "temperature": 1.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '825'
+      content-type:
+      - application/json
+      host:
+      - api.openai.com
+      user-agent:
+      - OpenAI/Python 1.99.1
+      x-stainless-arch:
+      - x64
+      x-stainless-async:
+      - 'false'
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - Linux
+      x-stainless-package-version:
+      - 1.99.1
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.5
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-C4Rve713IpAjPuIa5A5CRRyqpf1hd\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1755176706,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"8 + 2 is 10!\",\n        \"refusal\":
+        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
+        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        193,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 201,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_62a23a81ef\"\n}\n"
+    headers:
+      CF-RAY:
+      - 96f0a96e488f7058-LHR
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 14 Aug 2025 13:05:07 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '820'
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '758'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '777'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999920'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_eb8357b6862b4c348aef13d48df8b966
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -16,7 +16,7 @@ interactions:
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -26,7 +26,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -47,13 +47,13 @@ interactions:
         12,\n    \"total_tokens\": 12\n  }\n}\n"
     headers:
       CF-RAY:
-      - 95fc6d7eed84f663-LHR
+      - 96eea04d9804ef03-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 15 Jul 2025 21:42:07 GMT
+      - Thu, 14 Aug 2025 07:09:21 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -75,7 +75,7 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '76'
+      - '55'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
@@ -83,9 +83,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:
-      - envoy-router-98dcf5b5f-924d4
+      - envoy-router-85b8f8db99-h2b42
       x-envoy-upstream-service-time:
-      - '79'
+      - '122'
       x-ratelimit-limit-requests:
       - '10000'
       x-ratelimit-limit-tokens:
@@ -93,13 +93,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '9999'
       x-ratelimit-remaining-tokens:
-      - '9999986'
+      - '9999987'
       x-ratelimit-reset-requests:
       - 6ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_4bac826e5ccb739d34d64c5b5edc7e6c
+      - req_68d5d5cf69b647ed80f2bf0f264d6511
     status:
       code: 200
       message: OK

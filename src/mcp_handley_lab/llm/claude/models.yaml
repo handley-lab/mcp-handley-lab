@@ -7,11 +7,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 32000
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 15.00
     output_per_1m: 75.00
@@ -24,11 +24,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 64000
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 15.00
@@ -41,11 +41,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 64000
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 15.00
@@ -58,11 +58,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 15.00
@@ -75,11 +75,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 15.00
@@ -92,11 +92,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 8192
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 0.80
     output_per_1m: 4.00
@@ -109,11 +109,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 4096
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 15.00
     output_per_1m: 75.00
@@ -126,11 +126,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 4096
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 3.00
     output_per_1m: 15.00
@@ -143,11 +143,11 @@ models:
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 4096
-    
+
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
-    
+
     # Pricing
     input_per_1m: 0.25
     output_per_1m: 1.25
@@ -163,7 +163,7 @@ cache_pricing:
     claude-3-5-sonnet-20240620: 3.75
     claude-3-5-haiku-20241022: 1.00
     claude-3-haiku-20240307: 0.30
-    
+
   1_hour_cache:
     claude-opus-4: 30.00
     claude-opus-3: 30.00

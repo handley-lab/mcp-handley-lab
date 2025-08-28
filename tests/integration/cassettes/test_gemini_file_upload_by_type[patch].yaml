@@ -1,10 +1,10 @@
 interactions:
 - request:
     body: '{"contents": [{"parts": [{"text": "What changes does this patch file make
-      to the code?"}, {"text": "[File: tmpobx4ubh4.patch]\ndiff --git a/test.py b/test.py\nindex
+      to the code?"}, {"text": "[File: tmpo_s80e50.patch]\ndiff --git a/test.py b/test.py\nindex
       1234567..abcdefg 100644\n--- a/test.py\n+++ b/test.py\n@@ -1,3 +1,4 @@\n def
       hello():\n-    print(\"Hello\")\n+    print(\"Hello World\")\n+    return \"success\"\n\n"}],
-      "role": "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens":
+      "role": "user"}], "generationConfig": {"temperature": 1.0, "maxOutputTokens":
       65536}}'
     headers:
       accept:
@@ -20,9 +20,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.3
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: POST
     uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
   response:
@@ -30,28 +30,29 @@ interactions:
       string: "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\":
         [\n          {\n            \"text\": \"This patch file makes the following
         changes to the `test.py` file:\\n\\n1.  **Modifies an existing line:**\\n
-        \   *   The line `print(\\\"Hello\\\")` is changed to `print(\\\"Hello World\\\")`.\\n2.
-        \ **Adds a new line:**\\n    *   A new line `return \\\"success\\\"` is added
+        \   *   The line `print(\\\"Hello\\\")` is changed to `print(\\\"Hello World\\\")`.
+        (It adds \\\" World\\\" to the string being printed).\\n\\n2.  **Adds a new
+        line:**\\n    *   A new line `return \\\"success\\\"` is added immediately
         after the `print` statement within the `hello()` function.\\n\\nIn summary,
-        the `hello()` function will now print \\\"Hello World\\\" instead of \\\"Hello\\\",
-        and it will also return the string \\\"success\\\".\"\n          }\n        ],\n
-        \       \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n
-        \     \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\":
-        110,\n    \"candidatesTokenCount\": 117,\n    \"totalTokenCount\": 1060,\n
-        \   \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n
-        \       \"tokenCount\": 110\n      }\n    ],\n    \"thoughtsTokenCount\":
-        833\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n  \"responseId\": \"kNZqaOz9HumD7M8PmPHWwQk\"\n}\n"
+        the `hello()` function will now print \\\"Hello World\\\" and then return
+        the string \\\"success\\\".\"\n          }\n        ],\n        \"role\":
+        \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n
+        \   }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 113,\n    \"candidatesTokenCount\":
+        123,\n    \"totalTokenCount\": 1134,\n    \"promptTokensDetails\": [\n      {\n
+        \       \"modality\": \"TEXT\",\n        \"tokenCount\": 113\n      }\n    ],\n
+        \   \"thoughtsTokenCount\": 898\n  },\n  \"modelVersion\": \"gemini-2.5-flash\",\n
+        \ \"responseId\": \"_d-daJ-cO5SckdUP0OPAkAQ\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Sun, 06 Jul 2025 20:03:28 GMT
+      - Thu, 14 Aug 2025 13:09:17 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=4531
+      - gfet4t7; dur=5350
       Transfer-Encoding:
       - chunked
       Vary:
@@ -65,7 +66,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '1003'
+      - '1037'
     status:
       code: 200
       message: OK

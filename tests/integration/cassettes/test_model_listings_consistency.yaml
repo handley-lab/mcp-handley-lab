@@ -13,9 +13,9 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: GET
     uri: https://generativelanguage.googleapis.com/v1beta/models
   response:
@@ -25,40 +25,26 @@ interactions:
         \     \"description\": \"Obtain a distributed representation of a text.\",\n
         \     \"inputTokenLimit\": 1024,\n      \"outputTokenLimit\": 1,\n      \"supportedGenerationMethods\":
         [\n        \"embedText\",\n        \"countTextTokens\"\n      ]\n    },\n
-        \   {\n      \"name\": \"models/gemini-1.0-pro-vision-latest\",\n      \"version\":
-        \"001\",\n      \"displayName\": \"Gemini 1.0 Pro Vision\",\n      \"description\":
-        \"The original Gemini 1.0 Pro Vision model version which was optimized for
-        image understanding. Gemini 1.0 Pro Vision was deprecated on July 12, 2024.
-        Move to a newer Gemini version.\",\n      \"inputTokenLimit\": 12288,\n      \"outputTokenLimit\":
-        4096,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
-        \       \"countTokens\"\n      ],\n      \"temperature\": 0.4,\n      \"topP\":
-        1,\n      \"topK\": 32\n    },\n    {\n      \"name\": \"models/gemini-pro-vision\",\n
-        \     \"version\": \"001\",\n      \"displayName\": \"Gemini 1.0 Pro Vision\",\n
-        \     \"description\": \"The original Gemini 1.0 Pro Vision model version
-        which was optimized for image understanding. Gemini 1.0 Pro Vision was deprecated
-        on July 12, 2024. Move to a newer Gemini version.\",\n      \"inputTokenLimit\":
-        12288,\n      \"outputTokenLimit\": 4096,\n      \"supportedGenerationMethods\":
-        [\n        \"generateContent\",\n        \"countTokens\"\n      ],\n      \"temperature\":
-        0.4,\n      \"topP\": 1,\n      \"topK\": 32\n    },\n    {\n      \"name\":
-        \"models/gemini-1.5-pro-latest\",\n      \"version\": \"001\",\n      \"displayName\":
-        \"Gemini 1.5 Pro Latest\",\n      \"description\": \"Alias that points to
-        the most recent production (non-experimental) release of Gemini 1.5 Pro, our
-        mid-size multimodal model that supports up to 2 million tokens.\",\n      \"inputTokenLimit\":
-        2000000,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
-        [\n        \"generateContent\",\n        \"countTokens\"\n      ],\n      \"temperature\":
+        \   {\n      \"name\": \"models/gemini-1.5-pro-latest\",\n      \"version\":
+        \"001\",\n      \"displayName\": \"Gemini 1.5 Pro Latest\",\n      \"description\":
+        \"Alias that points to the most recent production (non-experimental) release
+        of Gemini 1.5 Pro, our mid-size multimodal model that supports up to 2 million
+        tokens.\",\n      \"inputTokenLimit\": 2000000,\n      \"outputTokenLimit\":
+        8192,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
+        \       \"countTokens\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
+        0.95,\n      \"topK\": 40,\n      \"maxTemperature\": 2\n    },\n    {\n      \"name\":
+        \"models/gemini-1.5-pro-002\",\n      \"version\": \"002\",\n      \"displayName\":
+        \"Gemini 1.5 Pro 002\",\n      \"description\": \"Stable version of Gemini
+        1.5 Pro, our mid-size multimodal model that supports up to 2 million tokens,
+        released in September of 2024.\",\n      \"inputTokenLimit\": 2000000,\n      \"outputTokenLimit\":
+        8192,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
+        \       \"countTokens\",\n        \"createCachedContent\"\n      ],\n      \"temperature\":
         1,\n      \"topP\": 0.95,\n      \"topK\": 40,\n      \"maxTemperature\":
-        2\n    },\n    {\n      \"name\": \"models/gemini-1.5-pro-002\",\n      \"version\":
-        \"002\",\n      \"displayName\": \"Gemini 1.5 Pro 002\",\n      \"description\":
+        2\n    },\n    {\n      \"name\": \"models/gemini-1.5-pro\",\n      \"version\":
+        \"001\",\n      \"displayName\": \"Gemini 1.5 Pro\",\n      \"description\":
         \"Stable version of Gemini 1.5 Pro, our mid-size multimodal model that supports
-        up to 2 million tokens, released in September of 2024.\",\n      \"inputTokenLimit\":
+        up to 2 million tokens, released in May of 2024.\",\n      \"inputTokenLimit\":
         2000000,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
-        [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\"\n
-        \     ],\n      \"temperature\": 1,\n      \"topP\": 0.95,\n      \"topK\":
-        40,\n      \"maxTemperature\": 2\n    },\n    {\n      \"name\": \"models/gemini-1.5-pro\",\n
-        \     \"version\": \"001\",\n      \"displayName\": \"Gemini 1.5 Pro\",\n
-        \     \"description\": \"Stable version of Gemini 1.5 Pro, our mid-size multimodal
-        model that supports up to 2 million tokens, released in May of 2024.\",\n
-        \     \"inputTokenLimit\": 2000000,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
         [\n        \"generateContent\",\n        \"countTokens\"\n      ],\n      \"temperature\":
         1,\n      \"topP\": 0.95,\n      \"topK\": 40,\n      \"maxTemperature\":
         2\n    },\n    {\n      \"name\": \"models/gemini-1.5-flash-latest\",\n      \"version\":
@@ -113,14 +99,6 @@ interactions:
         \       \"countTokens\",\n        \"createCachedContent\",\n        \"batchGenerateContent\"\n
         \     ],\n      \"temperature\": 1,\n      \"topP\": 0.95,\n      \"topK\":
         64,\n      \"maxTemperature\": 2,\n      \"thinking\": true\n    },\n    {\n
-        \     \"name\": \"models/gemini-2.5-flash-preview-04-17\",\n      \"version\":
-        \"2.5-preview-04-17\",\n      \"displayName\": \"Gemini 2.5 Flash Preview
-        04-17\",\n      \"description\": \"Preview release (April 17th, 2025) of Gemini
-        2.5 Flash\",\n      \"inputTokenLimit\": 1048576,\n      \"outputTokenLimit\":
-        65536,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
-        \       \"countTokens\",\n        \"createCachedContent\",\n        \"batchGenerateContent\"\n
-        \     ],\n      \"temperature\": 1,\n      \"topP\": 0.95,\n      \"topK\":
-        64,\n      \"maxTemperature\": 2,\n      \"thinking\": true\n    },\n    {\n
         \     \"name\": \"models/gemini-2.5-flash-preview-05-20\",\n      \"version\":
         \"2.5-preview-05-20\",\n      \"displayName\": \"Gemini 2.5 Flash Preview
         05-20\",\n      \"description\": \"Preview release (April 17th, 2025) of Gemini
@@ -133,14 +111,6 @@ interactions:
         \     \"displayName\": \"Gemini 2.5 Flash\",\n      \"description\": \"Stable
         version of Gemini 2.5 Flash, our mid-size multimodal model that supports up
         to 1 million tokens, released in June of 2025.\",\n      \"inputTokenLimit\":
-        1048576,\n      \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
-        [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\",\n
-        \       \"batchGenerateContent\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
-        0.95,\n      \"topK\": 64,\n      \"maxTemperature\": 2,\n      \"thinking\":
-        true\n    },\n    {\n      \"name\": \"models/gemini-2.5-flash-preview-04-17-thinking\",\n
-        \     \"version\": \"2.5-preview-04-17\",\n      \"displayName\": \"Gemini
-        2.5 Flash Preview 04-17 for cursor testing\",\n      \"description\": \"Preview
-        release (April 17th, 2025) of Gemini 2.5 Flash\",\n      \"inputTokenLimit\":
         1048576,\n      \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
         [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\",\n
         \       \"batchGenerateContent\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
@@ -246,24 +216,24 @@ interactions:
         \       \"batchGenerateContent\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
         0.95,\n      \"topK\": 64,\n      \"maxTemperature\": 2,\n      \"thinking\":
         true\n    },\n    {\n      \"name\": \"models/gemini-2.0-flash-thinking-exp-01-21\",\n
-        \     \"version\": \"2.5-preview-04-17\",\n      \"displayName\": \"Gemini
-        2.5 Flash Preview 04-17\",\n      \"description\": \"Preview release (April
+        \     \"version\": \"2.5-preview-05-20\",\n      \"displayName\": \"Gemini
+        2.5 Flash Preview 05-20\",\n      \"description\": \"Preview release (April
         17th, 2025) of Gemini 2.5 Flash\",\n      \"inputTokenLimit\": 1048576,\n
         \     \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
         [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\",\n
         \       \"batchGenerateContent\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
         0.95,\n      \"topK\": 64,\n      \"maxTemperature\": 2,\n      \"thinking\":
         true\n    },\n    {\n      \"name\": \"models/gemini-2.0-flash-thinking-exp\",\n
-        \     \"version\": \"2.5-preview-04-17\",\n      \"displayName\": \"Gemini
-        2.5 Flash Preview 04-17\",\n      \"description\": \"Preview release (April
+        \     \"version\": \"2.5-preview-05-20\",\n      \"displayName\": \"Gemini
+        2.5 Flash Preview 05-20\",\n      \"description\": \"Preview release (April
         17th, 2025) of Gemini 2.5 Flash\",\n      \"inputTokenLimit\": 1048576,\n
         \     \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
         [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\",\n
         \       \"batchGenerateContent\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
         0.95,\n      \"topK\": 64,\n      \"maxTemperature\": 2,\n      \"thinking\":
         true\n    },\n    {\n      \"name\": \"models/gemini-2.0-flash-thinking-exp-1219\",\n
-        \     \"version\": \"2.5-preview-04-17\",\n      \"displayName\": \"Gemini
-        2.5 Flash Preview 04-17\",\n      \"description\": \"Preview release (April
+        \     \"version\": \"2.5-preview-05-20\",\n      \"displayName\": \"Gemini
+        2.5 Flash Preview 05-20\",\n      \"description\": \"Preview release (April
         17th, 2025) of Gemini 2.5 Flash\",\n      \"inputTokenLimit\": 1048576,\n
         \     \"outputTokenLimit\": 65536,\n      \"supportedGenerationMethods\":
         [\n        \"generateContent\",\n        \"countTokens\",\n        \"createCachedContent\",\n
@@ -315,14 +285,22 @@ interactions:
         \"Gemma 3n E2B\",\n      \"inputTokenLimit\": 8192,\n      \"outputTokenLimit\":
         2048,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
         \       \"countTokens\"\n      ],\n      \"temperature\": 1,\n      \"topP\":
-        0.95,\n      \"topK\": 64\n    },\n    {\n      \"name\": \"models/embedding-001\",\n
-        \     \"version\": \"001\",\n      \"displayName\": \"Embedding 001\",\n      \"description\":
+        0.95,\n      \"topK\": 64\n    },\n    {\n      \"name\": \"models/gemini-2.5-flash-lite\",\n
+        \     \"version\": \"001\",\n      \"displayName\": \"Gemini 2.5 Flash-Lite\",\n
+        \     \"description\": \"Stable verion of Gemini 2.5 Flash-Lite, released
+        in July of 2025\",\n      \"inputTokenLimit\": 1048576,\n      \"outputTokenLimit\":
+        65536,\n      \"supportedGenerationMethods\": [\n        \"generateContent\",\n
+        \       \"countTokens\",\n        \"createCachedContent\",\n        \"batchGenerateContent\"\n
+        \     ],\n      \"temperature\": 1,\n      \"topP\": 0.95,\n      \"topK\":
+        64,\n      \"maxTemperature\": 2,\n      \"thinking\": true\n    },\n    {\n
+        \     \"name\": \"models/embedding-001\",\n      \"version\": \"001\",\n      \"displayName\":
+        \"Embedding 001\",\n      \"description\": \"Obtain a distributed representation
+        of a text.\",\n      \"inputTokenLimit\": 2048,\n      \"outputTokenLimit\":
+        1,\n      \"supportedGenerationMethods\": [\n        \"embedContent\"\n      ]\n
+        \   },\n    {\n      \"name\": \"models/text-embedding-004\",\n      \"version\":
+        \"004\",\n      \"displayName\": \"Text Embedding 004\",\n      \"description\":
         \"Obtain a distributed representation of a text.\",\n      \"inputTokenLimit\":
         2048,\n      \"outputTokenLimit\": 1,\n      \"supportedGenerationMethods\":
-        [\n        \"embedContent\"\n      ]\n    },\n    {\n      \"name\": \"models/text-embedding-004\",\n
-        \     \"version\": \"004\",\n      \"displayName\": \"Text Embedding 004\",\n
-        \     \"description\": \"Obtain a distributed representation of a text.\",\n
-        \     \"inputTokenLimit\": 2048,\n      \"outputTokenLimit\": 1,\n      \"supportedGenerationMethods\":
         [\n        \"embedContent\"\n      ]\n    },\n    {\n      \"name\": \"models/gemini-embedding-exp-03-07\",\n
         \     \"version\": \"exp-03-07\",\n      \"displayName\": \"Gemini Embedding
         Experimental 03-07\",\n      \"description\": \"Obtain a distributed representation
@@ -333,33 +311,48 @@ interactions:
         Experimental\",\n      \"description\": \"Obtain a distributed representation
         of a text.\",\n      \"inputTokenLimit\": 8192,\n      \"outputTokenLimit\":
         1,\n      \"supportedGenerationMethods\": [\n        \"embedContent\",\n        \"countTextTokens\",\n
-        \       \"countTokens\"\n      ]\n    },\n    {\n      \"name\": \"models/aqa\",\n
-        \     \"version\": \"001\",\n      \"displayName\": \"Model that performs
-        Attributed Question Answering.\",\n      \"description\": \"Model trained
-        to return answers to questions that are grounded in provided sources, along
-        with estimating answerable probability.\",\n      \"inputTokenLimit\": 7168,\n
-        \     \"outputTokenLimit\": 1024,\n      \"supportedGenerationMethods\": [\n
-        \       \"generateAnswer\"\n      ],\n      \"temperature\": 0.2,\n      \"topP\":
-        1,\n      \"topK\": 40\n    },\n    {\n      \"name\": \"models/imagen-3.0-generate-002\",\n
-        \     \"version\": \"002\",\n      \"displayName\": \"Imagen 3.0 002 model\",\n
-        \     \"description\": \"Vertex served Imagen 3.0 002 model\",\n      \"inputTokenLimit\":
-        480,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
-        [\n        \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/imagen-4.0-generate-preview-06-06\",\n
+        \       \"countTokens\"\n      ]\n    },\n    {\n      \"name\": \"models/gemini-embedding-001\",\n
+        \     \"version\": \"001\",\n      \"displayName\": \"Gemini Embedding 001\",\n
+        \     \"description\": \"Obtain a distributed representation of a text.\",\n
+        \     \"inputTokenLimit\": 2048,\n      \"outputTokenLimit\": 1,\n      \"supportedGenerationMethods\":
+        [\n        \"embedContent\",\n        \"countTextTokens\",\n        \"countTokens\"\n
+        \     ]\n    },\n    {\n      \"name\": \"models/aqa\",\n      \"version\":
+        \"001\",\n      \"displayName\": \"Model that performs Attributed Question
+        Answering.\",\n      \"description\": \"Model trained to return answers to
+        questions that are grounded in provided sources, along with estimating answerable
+        probability.\",\n      \"inputTokenLimit\": 7168,\n      \"outputTokenLimit\":
+        1024,\n      \"supportedGenerationMethods\": [\n        \"generateAnswer\"\n
+        \     ],\n      \"temperature\": 0.2,\n      \"topP\": 1,\n      \"topK\":
+        40\n    },\n    {\n      \"name\": \"models/imagen-3.0-generate-002\",\n      \"version\":
+        \"002\",\n      \"displayName\": \"Imagen 3.0 002 model\",\n      \"description\":
+        \"Vertex served Imagen 3.0 002 model\",\n      \"inputTokenLimit\": 480,\n
+        \     \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\": [\n
+        \       \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/imagen-4.0-generate-preview-06-06\",\n
         \     \"version\": \"01\",\n      \"displayName\": \"Imagen 4 (Preview)\",\n
         \     \"description\": \"Vertex served Imagen 4.0 model\",\n      \"inputTokenLimit\":
         480,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
-        [\n        \"predict\"\n      ]\n    }\n  ],\n  \"nextPageToken\": \"Cihtb2RlbHMvaW1hZ2VuLTQuMC1nZW5lcmF0ZS1wcmV2aWV3LTA2LTA2\"\n}\n"
+        [\n        \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/imagen-4.0-ultra-generate-preview-06-06\",\n
+        \     \"version\": \"01\",\n      \"displayName\": \"Imagen 4 Ultra (Preview)\",\n
+        \     \"description\": \"Vertex served Imagen 4.0 ultra model\",\n      \"inputTokenLimit\":
+        480,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
+        [\n        \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/veo-2.0-generate-001\",\n
+        \     \"version\": \"2.0\",\n      \"displayName\": \"Veo 2\",\n      \"description\":
+        \"Vertex served Veo 2 model. Access to this model requires billing to be enabled
+        on the associated Google Cloud Platform account. Please visit https://console.cloud.google.com/billing
+        to enable it.\",\n      \"inputTokenLimit\": 480,\n      \"outputTokenLimit\":
+        8192,\n      \"supportedGenerationMethods\": [\n        \"predictLongRunning\"\n
+        \     ]\n    }\n  ],\n  \"nextPageToken\": \"Chttb2RlbHMvdmVvLTIuMC1nZW5lcmF0ZS0wMDE=\"\n}\n"
     headers:
       Alt-Svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 11 Jul 2025 15:18:05 GMT
+      - Wed, 13 Aug 2025 10:30:52 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=20
+      - gfet4t7; dur=13
       Transfer-Encoding:
       - chunked
       Vary:
@@ -373,7 +366,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '24843'
+      - '24270'
     status:
       code: 200
       message: OK
@@ -391,22 +384,20 @@ interactions:
       host:
       - generativelanguage.googleapis.com
       user-agent:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
       x-goog-api-client:
-      - google-genai-sdk/1.24.0 gl-python/3.13.5
+      - google-genai-sdk/1.28.0 gl-python/3.13.5
     method: GET
     uri: https://generativelanguage.googleapis.com/v1beta/models
   response:
     body:
-      string: "{\n  \"models\": [\n    {\n      \"name\": \"models/imagen-4.0-ultra-generate-preview-06-06\",\n
-        \     \"version\": \"01\",\n      \"displayName\": \"Imagen 4 Ultra (Preview)\",\n
-        \     \"description\": \"Vertex served Imagen 4.0 ultra model\",\n      \"inputTokenLimit\":
-        480,\n      \"outputTokenLimit\": 8192,\n      \"supportedGenerationMethods\":
-        [\n        \"predict\"\n      ]\n    },\n    {\n      \"name\": \"models/veo-2.0-generate-001\",\n
-        \     \"version\": \"2.0\",\n      \"displayName\": \"Veo 2\",\n      \"description\":
-        \"Vertex served Veo 2 model. Access to this model requires billing to be enabled
-        on the associated Google Cloud Platform account. Please visit https://console.cloud.google.com/billing
-        to enable it.\",\n      \"inputTokenLimit\": 480,\n      \"outputTokenLimit\":
+      string: "{\n  \"models\": [\n    {\n      \"name\": \"models/veo-3.0-generate-preview\",\n
+        \     \"version\": \"3.0\",\n      \"displayName\": \"Veo 3\",\n      \"description\":
+        \"Veo 3 preview.\",\n      \"inputTokenLimit\": 480,\n      \"outputTokenLimit\":
+        8192,\n      \"supportedGenerationMethods\": [\n        \"predictLongRunning\"\n
+        \     ]\n    },\n    {\n      \"name\": \"models/veo-3.0-fast-generate-preview\",\n
+        \     \"version\": \"3.0\",\n      \"displayName\": \"Veo 3 fast\",\n      \"description\":
+        \"Veo 3 fast preview.\",\n      \"inputTokenLimit\": 480,\n      \"outputTokenLimit\":
         8192,\n      \"supportedGenerationMethods\": [\n        \"predictLongRunning\"\n
         \     ]\n    },\n    {\n      \"name\": \"models/gemini-2.5-flash-preview-native-audio-dialog\",\n
         \     \"version\": \"gemini-2.5-flash-preview-native-audio-dialog-2025-05-19\",\n
@@ -447,11 +438,11 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 11 Jul 2025 15:18:06 GMT
+      - Wed, 13 Aug 2025 10:30:52 GMT
       Server:
       - scaffolding on HTTPServer2
       Server-Timing:
-      - gfet4t7; dur=19
+      - gfet4t7; dur=27
       Transfer-Encoding:
       - chunked
       Vary:
@@ -465,7 +456,7 @@ interactions:
       X-XSS-Protection:
       - '0'
       content-length:
-      - '3306'
+      - '3100'
     status:
       code: 200
       message: OK
@@ -478,12 +469,10 @@ interactions:
       - gzip, deflate
       connection:
       - keep-alive
-      content-type:
-      - application/json
       host:
       - api.openai.com
       user-agent:
-      - OpenAI/Python 1.93.0
+      - OpenAI/Python 1.99.1
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -493,7 +482,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 1.93.0
+      - 1.99.1
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
@@ -512,36 +501,36 @@ interactions:
         \     \"created\": 1687882411,\n      \"owned_by\": \"openai\"\n    },\n    {\n
         \     \"id\": \"gpt-3.5-turbo\",\n      \"object\": \"model\",\n      \"created\":
         1677610602,\n      \"owned_by\": \"openai\"\n    },\n    {\n      \"id\":
-        \"o4-mini-deep-research-2025-06-26\",\n      \"object\": \"model\",\n      \"created\":
-        1750866121,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"o3-pro-2025-06-10\",\n      \"object\": \"model\",\n      \"created\": 1749166761,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o4-mini-deep-research\",\n
-        \     \"object\": \"model\",\n      \"created\": 1749685485,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"o3-deep-research\",\n      \"object\":
-        \"model\",\n      \"created\": 1749840121,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"o3-deep-research-2025-06-26\",\n      \"object\":
-        \"model\",\n      \"created\": 1750865219,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"davinci-002\",\n      \"object\": \"model\",\n
-        \     \"created\": 1692634301,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"babbage-002\",\n      \"object\": \"model\",\n      \"created\":
-        1692634615,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-3.5-turbo-instruct\",\n      \"object\": \"model\",\n      \"created\":
-        1692901427,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-3.5-turbo-instruct-0914\",\n      \"object\": \"model\",\n      \"created\":
-        1694122472,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"dall-e-3\",\n      \"object\": \"model\",\n      \"created\": 1698785189,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"dall-e-2\",\n
-        \     \"object\": \"model\",\n      \"created\": 1698798177,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4-1106-preview\",\n      \"object\":
-        \"model\",\n      \"created\": 1698957206,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-3.5-turbo-1106\",\n      \"object\": \"model\",\n
-        \     \"created\": 1698959748,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"tts-1-hd\",\n      \"object\": \"model\",\n      \"created\":
-        1699046015,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"tts-1-1106\",\n      \"object\": \"model\",\n      \"created\": 1699053241,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"tts-1-hd-1106\",\n
-        \     \"object\": \"model\",\n      \"created\": 1699053533,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"text-embedding-3-small\",\n      \"object\":
+        \"gpt-5-nano\",\n      \"object\": \"model\",\n      \"created\": 1754426384,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-5\",\n
+        \     \"object\": \"model\",\n      \"created\": 1754425777,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-5-mini-2025-08-07\",\n      \"object\":
+        \"model\",\n      \"created\": 1754425867,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"gpt-5-mini\",\n      \"object\": \"model\",\n
+        \     \"created\": 1754425928,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"gpt-5-nano-2025-08-07\",\n      \"object\": \"model\",\n      \"created\":
+        1754426303,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"davinci-002\",\n      \"object\": \"model\",\n      \"created\": 1692634301,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"babbage-002\",\n
+        \     \"object\": \"model\",\n      \"created\": 1692634615,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-3.5-turbo-instruct\",\n      \"object\":
+        \"model\",\n      \"created\": 1692901427,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"gpt-3.5-turbo-instruct-0914\",\n      \"object\":
+        \"model\",\n      \"created\": 1694122472,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"dall-e-3\",\n      \"object\": \"model\",\n
+        \     \"created\": 1698785189,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"dall-e-2\",\n      \"object\": \"model\",\n      \"created\":
+        1698798177,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4-1106-preview\",\n      \"object\": \"model\",\n      \"created\":
+        1698957206,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-3.5-turbo-1106\",\n      \"object\": \"model\",\n      \"created\":
+        1698959748,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"tts-1-hd\",\n      \"object\": \"model\",\n      \"created\": 1699046015,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"tts-1-1106\",\n
+        \     \"object\": \"model\",\n      \"created\": 1699053241,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"tts-1-hd-1106\",\n      \"object\":
+        \"model\",\n      \"created\": 1699053533,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"text-embedding-3-small\",\n      \"object\":
         \"model\",\n      \"created\": 1705948997,\n      \"owned_by\": \"system\"\n
         \   },\n    {\n      \"id\": \"text-embedding-3-large\",\n      \"object\":
         \"model\",\n      \"created\": 1705953180,\n      \"owned_by\": \"system\"\n
@@ -565,115 +554,121 @@ interactions:
         \     \"object\": \"model\",\n      \"created\": 1722814719,\n      \"owned_by\":
         \"system\"\n    },\n    {\n      \"id\": \"chatgpt-4o-latest\",\n      \"object\":
         \"model\",\n      \"created\": 1723515131,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"o1-preview-2024-09-12\",\n      \"object\":
-        \"model\",\n      \"created\": 1725648865,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"o1-preview\",\n      \"object\": \"model\",\n
-        \     \"created\": 1725648897,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"o1-mini-2024-09-12\",\n      \"object\": \"model\",\n      \"created\":
-        1725648979,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"o1-mini\",\n      \"object\": \"model\",\n      \"created\": 1725649008,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-realtime-preview-2024-10-01\",\n
-        \     \"object\": \"model\",\n      \"created\": 1727131766,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-audio-preview-2024-10-01\",\n
-        \     \"object\": \"model\",\n      \"created\": 1727389042,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-audio-preview\",\n      \"object\":
-        \"model\",\n      \"created\": 1727460443,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4o-realtime-preview\",\n      \"object\":
-        \"model\",\n      \"created\": 1727659998,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"omni-moderation-latest\",\n      \"object\":
-        \"model\",\n      \"created\": 1731689265,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"omni-moderation-2024-09-26\",\n      \"object\":
-        \"model\",\n      \"created\": 1732734466,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4o-realtime-preview-2024-12-17\",\n      \"object\":
-        \"model\",\n      \"created\": 1733945430,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4o-audio-preview-2024-12-17\",\n      \"object\":
-        \"model\",\n      \"created\": 1734034239,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4o-mini-realtime-preview-2024-12-17\",\n
-        \     \"object\": \"model\",\n      \"created\": 1734112601,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-mini-audio-preview-2024-12-17\",\n
-        \     \"object\": \"model\",\n      \"created\": 1734115920,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"o1-2024-12-17\",\n      \"object\":
-        \"model\",\n      \"created\": 1734326976,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"o1\",\n      \"object\": \"model\",\n      \"created\":
-        1734375816,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-4o-mini-realtime-preview\",\n      \"object\": \"model\",\n      \"created\":
-        1734387380,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-4o-mini-audio-preview\",\n      \"object\": \"model\",\n      \"created\":
-        1734387424,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"computer-use-preview\",\n      \"object\": \"model\",\n      \"created\":
-        1734655677,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"o3-mini\",\n      \"object\": \"model\",\n      \"created\": 1737146383,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o3-mini-2025-01-31\",\n
-        \     \"object\": \"model\",\n      \"created\": 1738010200,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-2024-11-20\",\n      \"object\":
-        \"model\",\n      \"created\": 1739331543,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4.5-preview\",\n      \"object\": \"model\",\n
-        \     \"created\": 1740623059,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4.5-preview-2025-02-27\",\n      \"object\": \"model\",\n
-        \     \"created\": 1740623304,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"computer-use-preview-2025-03-11\",\n      \"object\": \"model\",\n
-        \     \"created\": 1741377021,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4o-search-preview-2025-03-11\",\n      \"object\": \"model\",\n
-        \     \"created\": 1741388170,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4o-search-preview\",\n      \"object\": \"model\",\n      \"created\":
-        1741388720,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-4o-mini-search-preview-2025-03-11\",\n      \"object\": \"model\",\n
-        \     \"created\": 1741390858,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4o-mini-search-preview\",\n      \"object\": \"model\",\n
-        \     \"created\": 1741391161,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4o-transcribe\",\n      \"object\": \"model\",\n      \"created\":
-        1742068463,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-4o-mini-transcribe\",\n      \"object\": \"model\",\n      \"created\":
-        1742068596,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"o1-pro-2025-03-19\",\n      \"object\": \"model\",\n      \"created\": 1742251504,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o1-pro\",\n
-        \     \"object\": \"model\",\n      \"created\": 1742251791,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-mini-tts\",\n      \"object\":
-        \"model\",\n      \"created\": 1742403959,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"o3-2025-04-16\",\n      \"object\": \"model\",\n
-        \     \"created\": 1744133301,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"o4-mini-2025-04-16\",\n      \"object\": \"model\",\n      \"created\":
-        1744133506,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"o3\",\n      \"object\": \"model\",\n      \"created\": 1744225308,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"o4-mini\",\n      \"object\": \"model\",\n
-        \     \"created\": 1744225351,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-4.1-2025-04-14\",\n      \"object\": \"model\",\n      \"created\":
-        1744315746,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"gpt-4.1\",\n      \"object\": \"model\",\n      \"created\": 1744316542,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-4.1-mini-2025-04-14\",\n
-        \     \"object\": \"model\",\n      \"created\": 1744317547,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4.1-mini\",\n      \"object\":
-        \"model\",\n      \"created\": 1744318173,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4.1-nano-2025-04-14\",\n      \"object\":
-        \"model\",\n      \"created\": 1744321025,\n      \"owned_by\": \"system\"\n
-        \   },\n    {\n      \"id\": \"gpt-4.1-nano\",\n      \"object\": \"model\",\n
-        \     \"created\": 1744321707,\n      \"owned_by\": \"system\"\n    },\n    {\n
-        \     \"id\": \"gpt-image-1\",\n      \"object\": \"model\",\n      \"created\":
-        1745517030,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
-        \"codex-mini-latest\",\n      \"object\": \"model\",\n      \"created\": 1746673257,\n
-        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o3-pro\",\n
-        \     \"object\": \"model\",\n      \"created\": 1748475349,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-realtime-preview-2025-06-03\",\n
-        \     \"object\": \"model\",\n      \"created\": 1748907838,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-audio-preview-2025-06-03\",\n
-        \     \"object\": \"model\",\n      \"created\": 1748908498,\n      \"owned_by\":
-        \"system\"\n    },\n    {\n      \"id\": \"gpt-3.5-turbo-16k\",\n      \"object\":
-        \"model\",\n      \"created\": 1683758102,\n      \"owned_by\": \"openai-internal\"\n
-        \   },\n    {\n      \"id\": \"tts-1\",\n      \"object\": \"model\",\n      \"created\":
-        1681940951,\n      \"owned_by\": \"openai-internal\"\n    },\n    {\n      \"id\":
-        \"whisper-1\",\n      \"object\": \"model\",\n      \"created\": 1677532384,\n
-        \     \"owned_by\": \"openai-internal\"\n    },\n    {\n      \"id\": \"text-embedding-ada-002\",\n
-        \     \"object\": \"model\",\n      \"created\": 1671217299,\n      \"owned_by\":
-        \"openai-internal\"\n    }\n  ]\n}"
+        \   },\n    {\n      \"id\": \"o1-mini-2024-09-12\",\n      \"object\": \"model\",\n
+        \     \"created\": 1725648979,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"o1-mini\",\n      \"object\": \"model\",\n      \"created\":
+        1725649008,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-realtime-preview-2024-10-01\",\n      \"object\": \"model\",\n      \"created\":
+        1727131766,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-audio-preview-2024-10-01\",\n      \"object\": \"model\",\n      \"created\":
+        1727389042,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-audio-preview\",\n      \"object\": \"model\",\n      \"created\":
+        1727460443,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-realtime-preview\",\n      \"object\": \"model\",\n      \"created\":
+        1727659998,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"omni-moderation-latest\",\n      \"object\": \"model\",\n      \"created\":
+        1731689265,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"omni-moderation-2024-09-26\",\n      \"object\": \"model\",\n      \"created\":
+        1732734466,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-realtime-preview-2024-12-17\",\n      \"object\": \"model\",\n      \"created\":
+        1733945430,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-audio-preview-2024-12-17\",\n      \"object\": \"model\",\n      \"created\":
+        1734034239,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-mini-realtime-preview-2024-12-17\",\n      \"object\": \"model\",\n
+        \     \"created\": 1734112601,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"gpt-4o-mini-audio-preview-2024-12-17\",\n      \"object\":
+        \"model\",\n      \"created\": 1734115920,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o1-2024-12-17\",\n      \"object\": \"model\",\n
+        \     \"created\": 1734326976,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"o1\",\n      \"object\": \"model\",\n      \"created\": 1734375816,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-mini-realtime-preview\",\n
+        \     \"object\": \"model\",\n      \"created\": 1734387380,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-mini-audio-preview\",\n
+        \     \"object\": \"model\",\n      \"created\": 1734387424,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"computer-use-preview\",\n      \"object\":
+        \"model\",\n      \"created\": 1734655677,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o3-mini\",\n      \"object\": \"model\",\n
+        \     \"created\": 1737146383,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"o3-mini-2025-01-31\",\n      \"object\": \"model\",\n      \"created\":
+        1738010200,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-2024-11-20\",\n      \"object\": \"model\",\n      \"created\": 1739331543,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"computer-use-preview-2025-03-11\",\n
+        \     \"object\": \"model\",\n      \"created\": 1741377021,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-search-preview-2025-03-11\",\n
+        \     \"object\": \"model\",\n      \"created\": 1741388170,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-search-preview\",\n      \"object\":
+        \"model\",\n      \"created\": 1741388720,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"gpt-4o-mini-search-preview-2025-03-11\",\n
+        \     \"object\": \"model\",\n      \"created\": 1741390858,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-mini-search-preview\",\n
+        \     \"object\": \"model\",\n      \"created\": 1741391161,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4o-transcribe\",\n      \"object\":
+        \"model\",\n      \"created\": 1742068463,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"gpt-4o-mini-transcribe\",\n      \"object\":
+        \"model\",\n      \"created\": 1742068596,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o1-pro-2025-03-19\",\n      \"object\": \"model\",\n
+        \     \"created\": 1742251504,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"o1-pro\",\n      \"object\": \"model\",\n      \"created\":
+        1742251791,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-mini-tts\",\n      \"object\": \"model\",\n      \"created\": 1742403959,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o3-2025-04-16\",\n
+        \     \"object\": \"model\",\n      \"created\": 1744133301,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"o4-mini-2025-04-16\",\n      \"object\":
+        \"model\",\n      \"created\": 1744133506,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o3\",\n      \"object\": \"model\",\n      \"created\":
+        1744225308,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"o4-mini\",\n      \"object\": \"model\",\n      \"created\": 1744225351,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-4.1-2025-04-14\",\n
+        \     \"object\": \"model\",\n      \"created\": 1744315746,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"gpt-4.1\",\n      \"object\": \"model\",\n
+        \     \"created\": 1744316542,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"gpt-4.1-mini-2025-04-14\",\n      \"object\": \"model\",\n
+        \     \"created\": 1744317547,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"gpt-4.1-mini\",\n      \"object\": \"model\",\n      \"created\":
+        1744318173,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4.1-nano-2025-04-14\",\n      \"object\": \"model\",\n      \"created\":
+        1744321025,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4.1-nano\",\n      \"object\": \"model\",\n      \"created\": 1744321707,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"gpt-image-1\",\n
+        \     \"object\": \"model\",\n      \"created\": 1745517030,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"codex-mini-latest\",\n      \"object\":
+        \"model\",\n      \"created\": 1746673257,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o3-pro\",\n      \"object\": \"model\",\n      \"created\":
+        1748475349,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-realtime-preview-2025-06-03\",\n      \"object\": \"model\",\n      \"created\":
+        1748907838,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-4o-audio-preview-2025-06-03\",\n      \"object\": \"model\",\n      \"created\":
+        1748908498,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"o3-pro-2025-06-10\",\n      \"object\": \"model\",\n      \"created\": 1749166761,\n
+        \     \"owned_by\": \"system\"\n    },\n    {\n      \"id\": \"o4-mini-deep-research\",\n
+        \     \"object\": \"model\",\n      \"created\": 1749685485,\n      \"owned_by\":
+        \"system\"\n    },\n    {\n      \"id\": \"o3-deep-research\",\n      \"object\":
+        \"model\",\n      \"created\": 1749840121,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o3-deep-research-2025-06-26\",\n      \"object\":
+        \"model\",\n      \"created\": 1750865219,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"o4-mini-deep-research-2025-06-26\",\n      \"object\":
+        \"model\",\n      \"created\": 1750866121,\n      \"owned_by\": \"system\"\n
+        \   },\n    {\n      \"id\": \"gpt-5-chat-latest\",\n      \"object\": \"model\",\n
+        \     \"created\": 1754073306,\n      \"owned_by\": \"system\"\n    },\n    {\n
+        \     \"id\": \"gpt-5-2025-08-07\",\n      \"object\": \"model\",\n      \"created\":
+        1754075360,\n      \"owned_by\": \"system\"\n    },\n    {\n      \"id\":
+        \"gpt-3.5-turbo-16k\",\n      \"object\": \"model\",\n      \"created\": 1683758102,\n
+        \     \"owned_by\": \"openai-internal\"\n    },\n    {\n      \"id\": \"tts-1\",\n
+        \     \"object\": \"model\",\n      \"created\": 1681940951,\n      \"owned_by\":
+        \"openai-internal\"\n    },\n    {\n      \"id\": \"whisper-1\",\n      \"object\":
+        \"model\",\n      \"created\": 1677532384,\n      \"owned_by\": \"openai-internal\"\n
+        \   },\n    {\n      \"id\": \"text-embedding-ada-002\",\n      \"object\":
+        \"model\",\n      \"created\": 1671217299,\n      \"owned_by\": \"openai-internal\"\n
+        \   }\n  ]\n}"
     headers:
       CF-RAY:
-      - 95d94580b8ddcda5-LHR
+      - 96e78a22aaa8cd53-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Fri, 11 Jul 2025 15:18:08 GMT
+      - Wed, 13 Aug 2025 10:30:54 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -685,15 +680,15 @@ interactions:
       cf-cache-status:
       - DYNAMIC
       content-length:
-      - '10975'
+      - '11333'
       openai-processing-ms:
-      - '1362'
+      - '1589'
       openai-version:
       - '2020-10-01'
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       x-request-id:
-      - 41245e50f551602eea2d1fd4e17bd69f
+      - 62fee8be4c6d52b459bd4bc38b190769
     status:
       code: 200
       message: OK

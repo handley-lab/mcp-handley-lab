@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"max_tokens": 64000, "messages": [{"role": "user", "content": "Test prompt"}],
-      "model": "invalid-model-name-that-does-not-exist", "temperature": 0.7}'
+      "model": "invalid-model-name-that-does-not-exist", "temperature": 1.0}'
     headers:
       accept:
       - application/json
@@ -18,7 +18,7 @@ interactions:
       host:
       - api.anthropic.com
       user-agent:
-      - Anthropic/Python 0.56.0
+      - Anthropic/Python 0.61.0
       x-stainless-arch:
       - x64
       x-stainless-async:
@@ -28,7 +28,7 @@ interactions:
       x-stainless-os:
       - Linux
       x-stainless-package-version:
-      - 0.56.0
+      - 0.61.0
       x-stainless-read-timeout:
       - '599'
       x-stainless-retry-count:
@@ -36,7 +36,7 @@ interactions:
       x-stainless-runtime:
       - CPython
       x-stainless-runtime-version:
-      - 3.13.3
+      - 3.13.5
       x-stainless-timeout:
       - '599'
     method: POST
@@ -47,13 +47,13 @@ interactions:
         invalid-model-name-that-does-not-exist"}}'
     headers:
       CF-RAY:
-      - 95bdb3144c78b352-MAN
+      - 96ee89675c98b84d-LHR
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       Date:
-      - Tue, 08 Jul 2025 06:59:33 GMT
+      - Thu, 14 Aug 2025 06:53:43 GMT
       Server:
       - cloudflare
       Transfer-Encoding:
@@ -67,7 +67,7 @@ interactions:
       content-length:
       - '109'
       request-id:
-      - req_011CQu7shkohhs99PbFwE61t
+      - req_011CS7AMm8jMvQMjhAyXT81j
       strict-transport-security:
       - max-age=31536000; includeSubDomains; preload
       via:

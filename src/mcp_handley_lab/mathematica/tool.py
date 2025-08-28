@@ -89,6 +89,7 @@ def _find_wolfram_kernel() -> str:
         f"Platform detected: {platform.system()}"
     )
 
+
 # Global session management with thread safety
 _session: WolframLanguageSession | None = None
 _evaluation_count = 0

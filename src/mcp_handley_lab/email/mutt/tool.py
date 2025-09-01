@@ -1,7 +1,9 @@
 """Mutt tool for interactive email composition via MCP."""
 
+import os
 import shlex
 import tempfile
+from pathlib import Path
 
 from pydantic import Field
 
@@ -16,6 +18,103 @@ def _execute_mutt_command(cmd: list[str], input_text: str = None) -> str:
     input_bytes = input_text.encode() if input_text else None
     stdout, stderr = run_command(cmd, input_data=input_bytes)
     return stdout.decode().strip()
+
+
+def _query_mutt_var(var: str) -> str | None:
+    """Query a mutt configuration variable."""
+    result = _execute_mutt_command(["mutt", "-Q", var])
+    if "=" in result:
+        return result.partition("=")[2].strip().strip('"')
+    return None
+
+
+def _is_maildir(path: Path) -> bool:
+    """Check if a path is a valid Maildir directory."""
+    return path.is_dir() and all(
+        (path / subdir).exists() for subdir in ["cur", "new", "tmp"]
+    )
+
+
+def _find_account_folders(root: Path, mailbox: str) -> list[tuple[str, str]]:
+    """Find all account folders containing a specific mailbox."""
+    if not root.is_dir():
+        return []
+
+    candidates = []
+    for account_dir in root.iterdir():
+        if not account_dir.is_dir():
+            continue
+
+        # Case 1: Mailbox is the account root itself (e.g., for INBOX)
+        if mailbox == "INBOX" and _is_maildir(account_dir):
+            candidates.append((account_dir.name, str(account_dir)))
+
+        # Case 2: Mailbox is a subdirectory of the account
+        mailbox_path = account_dir / mailbox
+        if _is_maildir(mailbox_path):
+            candidates.append((account_dir.name, str(mailbox_path)))
+
+    return candidates
+
+
+def _resolve_folder(folder: str) -> str:
+    """Resolve a folder path with smart handling of = and + shortcuts."""
+    if not folder:
+        return ""
+
+    # 1. Handle absolute paths and IMAP URLs - pass through
+    if folder.startswith(("/", "imap://", "imaps://", "~")):
+        return os.path.expanduser(folder)
+
+    # 2. Get mutt's folder variable, with a sensible default
+    folder_root = _query_mutt_var("folder") or "~/mail"
+    folder_root_path = Path(os.path.expanduser(folder_root))
+
+    # 3. Normalize folder name (e.g., "INBOX" -> "=INBOX")
+    if not folder.startswith(("=", "+")):
+        folder = f"={folder}"
+
+    mailbox = folder[1:]
+
+    # 4. Handle explicit paths like "Account/INBOX"
+    if "/" in mailbox:
+        absolute_path = folder_root_path / mailbox
+        if _is_maildir(absolute_path):
+            return str(absolute_path)
+        raise ValueError(
+            f"Folder '{absolute_path}' does not exist or is not a Maildir."
+        )
+
+    # 5. Handle ambiguous names like "INBOX" - find candidates
+    # Check directly under folder_root first, as it's a common pattern for Sent, Drafts etc.
+    direct_path = folder_root_path / mailbox
+    if _is_maildir(direct_path):
+        return str(direct_path)
+
+    candidates = _find_account_folders(folder_root_path, mailbox)
+
+    # 6. Resolve ambiguity using environment variable or count
+    default_account = os.environ.get("MCP_EMAIL_DEFAULT_ACCOUNT")
+    if default_account:
+        for account_name, path in candidates:
+            if account_name == default_account:
+                return path
+
+    if len(candidates) == 1:
+        return candidates[0][1]
+
+    if len(candidates) > 1:
+        suggestions = [f"{name}/{mailbox}" for name, _ in candidates]
+        raise ValueError(
+            f"Ambiguous mailbox '{mailbox}'. Found in: {', '.join(suggestions)}. "
+            f"Specify the full path (e.g., '{suggestions[0]}') or set MCP_EMAIL_DEFAULT_ACCOUNT."
+        )
+
+    # 7. No candidates found
+    raise ValueError(
+        f"Mailbox '{mailbox}' not found in '{folder_root_path}' or any accounts. "
+        "Check available folders with 'list_folders'."
+    )
 
 
 # Function removed as auto_send functionality was removed
@@ -69,15 +168,6 @@ def _build_mutt_command(
         mutt_cmd.append(to)
 
     return mutt_cmd
-
-
-def _execute_mutt_interactive(
-    mutt_cmd: list[str],
-    window_title: str = "Mutt",
-) -> None:
-    """Execute mutt command interactively."""
-    command_str = shlex.join(mutt_cmd)
-    launch_interactive(command_str, window_title=window_title, wait=True)
 
 
 @mcp.tool(
@@ -302,20 +392,66 @@ def list_folders() -> list[str]:
 
 
 @mcp.tool(
-    description="""Opens Mutt in interactive terminal focused on specific folder. Full functionality available for reading, replying, and managing emails within that mailbox."""
+    description="""Opens Mutt in interactive terminal. Can open a specific email by message ID or browse a folder. Supports smart folder resolution for shortcuts like =INBOX."""
 )
-def open_folder(
-    folder: str = Field(
-        ...,
-        description="The name of the mail folder to open (e.g., '=INBOX'). Use 'list_folders' to see available options.",
+def open(
+    target: str = Field(
+        default=None,
+        description="What to open: message ID to view specific email, folder path (e.g., '=INBOX', 'Hermes/INBOX'), or blank for default inbox. Message IDs can include 'mailto:' prefix.",
     ),
 ) -> OperationResult:
-    """Open mutt with a specific folder."""
-    mutt_cmd = _build_mutt_command(folder=folder)
-    window_title = f"Mutt: {folder}"
-    _execute_mutt_interactive(mutt_cmd, window_title=window_title)
+    """Open mutt with a specific email or folder."""
+    try:
+        if not target:
+            # No target specified - open default inbox
+            launch_interactive("mutt", window_title="Mutt: Inbox", wait=True)
+            return OperationResult(status="success", message="Opened default inbox")
 
-    return OperationResult(status="success", message=f"Opened folder: {folder}")
+        # Heuristic: if it contains '@' and not '/', treat as message ID
+        clean_target = target.replace("mailto:", "")
+        if "@" in clean_target and "/" not in clean_target:
+            # Use notmuch to find the email file path
+            stdout, _ = run_command(
+                ["notmuch", "search", "--output=files", f"id:{clean_target}"],
+                raise_on_error=True,
+            )
+            mail_files = stdout.decode().strip().splitlines()
+
+            if not mail_files:
+                return OperationResult(
+                    status="error", message=f"Email with ID '{clean_target}' not found"
+                )
+
+            # Get the folder path (parent of parent of the email file)
+            mail_file_path = Path(mail_files[0])
+            folder_path = mail_file_path.parent.parent
+
+            # Build mutt command to open folder and navigate to the message
+            push_cmd = f"push l~i'{clean_target}'<enter>l.<enter><enter>"
+            mutt_cmd = ["mutt", "-f", str(folder_path), "-e", push_cmd]
+
+            window_title = f"Mutt: Email {clean_target[:12]}..."
+            launch_interactive(
+                shlex.join(mutt_cmd), window_title=window_title, wait=True
+            )
+            return OperationResult(
+                status="success", message=f"Opened email {clean_target} in mutt"
+            )
+
+        # Treat as a folder path
+        resolved_folder, extra_args = _resolve_folder(target)
+        mutt_cmd = ["mutt"] + extra_args
+        if resolved_folder:
+            mutt_cmd.extend(["-f", resolved_folder])
+
+        window_title = f"Mutt: {target}"
+        launch_interactive(shlex.join(mutt_cmd), window_title=window_title, wait=True)
+        return OperationResult(status="success", message=f"Opened folder: {target}")
+
+    except ValueError as e:  # Catch specific resolution errors
+        return OperationResult(status="error", message=str(e))
+    except Exception as e:  # Catch other errors (e.g., from run_command)
+        return OperationResult(status="error", message=f"Failed to open: {str(e)}")
 
 
 @mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
@@ -333,9 +469,8 @@ def server_info() -> ServerInfo:
             "compose",
             "reply",
             "forward",
-            "move",
             "list_folders",
-            "open_folder",
+            "open",
             "server_info",
         ],
         dependencies={"mutt": version_line},

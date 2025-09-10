@@ -312,38 +312,17 @@ def _execute_mutt_interactive(
         return exit_code, "error", {"exit_code": exit_code}
 
 
-@mcp.tool(
-    description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments and pre-filled body."
-)
-def compose(
-    to: str = Field(
-        ...,
-        description="The primary recipient's email address (e.g., 'user@example.com').",
-    ),
-    subject: str = Field(default="", description="The subject line of the email."),
-    cc: str = Field(
-        default=None, description="Email address for the 'Cc' (carbon copy) field."
-    ),
-    bcc: str = Field(
-        default=None,
-        description="Email address for the 'Bcc' (blind carbon copy) field.",
-    ),
-    body: str = Field(
-        default="", description="Text to pre-populate in the email body."
-    ),
-    attachments: list[str] = Field(
-        default=None, description="A list of local file paths to attach to the email."
-    ),
-    in_reply_to: str = Field(
-        default=None,
-        description="The Message-ID of the email being replied to, for proper threading. Used by 'reply' tool.",
-    ),
-    references: str = Field(
-        default=None,
-        description="A space-separated list of Message-IDs for threading context. Used by 'reply' tool.",
-    ),
+def _compose_email(
+    to: str,
+    subject: str = "",
+    cc: str = None,
+    bcc: str = None,
+    body: str = "",
+    attachments: list[str] = None,
+    in_reply_to: str = None,
+    references: str = None,
 ) -> OperationResult:
-    """Compose an email using mutt's interactive interface."""
+    """Internal implementation of email composition."""
     temp_file_path = None
 
     if body:
@@ -408,6 +387,50 @@ def compose(
 
 
 @mcp.tool(
+    description="Opens Mutt to compose an email, using your full configuration (signatures, editor). Supports attachments and pre-filled body."
+)
+def compose(
+    to: str = Field(
+        ...,
+        description="The primary recipient's email address (e.g., 'user@example.com').",
+    ),
+    subject: str = Field(default="", description="The subject line of the email."),
+    cc: str = Field(
+        default=None, description="Email address for the 'Cc' (carbon copy) field."
+    ),
+    bcc: str = Field(
+        default=None,
+        description="Email address for the 'Bcc' (blind carbon copy) field.",
+    ),
+    body: str = Field(
+        default="", description="Text to pre-populate in the email body."
+    ),
+    attachments: list[str] = Field(
+        default=None, description="A list of local file paths to attach to the email."
+    ),
+    in_reply_to: str = Field(
+        default=None,
+        description="The Message-ID of the email being replied to, for proper threading. Used by 'reply' tool.",
+    ),
+    references: str = Field(
+        default=None,
+        description="A space-separated list of Message-IDs for threading context. Used by 'reply' tool.",
+    ),
+) -> OperationResult:
+    """Compose an email using mutt's interactive interface."""
+    return _compose_email(
+        to=to,
+        subject=subject,
+        cc=cc,
+        bcc=bcc,
+        body=body,
+        attachments=attachments,
+        in_reply_to=in_reply_to,
+        references=references,
+    )
+
+
+@mcp.tool(
     description="""Opens Mutt in interactive terminal to reply to specific email by message ID. Supports reply-all mode and initial body text. Headers auto-populated from original message."""
 )
 def reply(
@@ -469,8 +492,8 @@ def reply(
         else f"{reply_separator}\n{quoted_body}"
     )
 
-    # Use compose with extracted data
-    return compose(
+    # Use internal compose implementation with extracted data
+    return _compose_email(
         to=reply_to,
         cc=reply_cc,
         bcc=None,
@@ -533,8 +556,8 @@ def forward(
         else f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
     )
 
-    # Use compose with extracted data (no threading headers for forwards)
-    return compose(
+    # Use internal compose implementation with extracted data (no threading headers for forwards)
+    return _compose_email(
         to=to,
         cc=None,
         bcc=None,

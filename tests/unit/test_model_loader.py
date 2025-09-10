@@ -63,11 +63,11 @@ class TestLoadModelConfig:
         assert "usage_notes" in config
 
         # Verify some expected models
-        assert "claude-3-7-sonnet-20250219" in config["models"]
+        assert "claude-sonnet-4" in config["models"]
         assert "claude-opus-4" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "claude-3-7-sonnet-20250219"
+        assert config["default_model"] == "claude-sonnet-4"
 
     def test_load_model_config_nonexistent_provider(self):
         """Test loading configuration for non-existent provider."""
@@ -170,9 +170,9 @@ class TestBuildModelConfigsDict:
         configs = build_model_configs_dict("claude")
 
         # Test Claude model
-        assert "claude-3-7-sonnet-20250219" in configs
-        assert configs["claude-3-7-sonnet-20250219"]["input_tokens"] == 200000
-        assert configs["claude-3-7-sonnet-20250219"]["output_tokens"] == 64000
+        assert "claude-sonnet-4" in configs
+        assert configs["claude-sonnet-4"]["input_tokens"] == 200000
+        assert configs["claude-sonnet-4"]["output_tokens"] == 64000
 
     def test_build_model_configs_dict_gemini(self):
         """Test building Gemini model configs."""
@@ -236,14 +236,14 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Claude Model Summary" in listing
-        assert "Default Model: claude-3-7-sonnet-20250219" in listing
+        assert "Default Model: claude-sonnet-4" in listing
 
         # Check model categories
         assert "🚀 Claude 4 Series" in listing
         assert "⚡ Claude 3.5 Series" in listing
 
         # Check specific models
-        assert "claude-3-7-sonnet-20250219" in listing
+        assert "claude-sonnet-4" in listing
         assert "claude-opus-4" in listing
 
     def test_format_model_listing_with_api_models(self):

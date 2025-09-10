@@ -39,10 +39,12 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 ```bash
 # Use the automated version bump script with semantic versioning
 python scripts/bump_version.py         # Auto-detect minimal bump (0.0.1b5 → 0.0.1b6, 0.0.1 → 0.0.2)
-python scripts/bump_version.py beta    # For development iterations (0.0.1 → 0.0.1b1, 0.0.1b5 → 0.0.1b6)
 python scripts/bump_version.py patch   # For bug fixes (0.0.0b5 → 0.0.1)
 python scripts/bump_version.py minor   # For new features (0.0.0b5 → 0.1.0)
 python scripts/bump_version.py major   # For breaking changes (0.0.0b5 → 1.0.0)
+
+# For development iterations:
+python scripts/bump_version.py beta    # Beta versions (0.0.1 → 0.0.1b1, 0.0.1b5 → 0.0.1b6)
 
 # For release process:
 python scripts/bump_version.py rc      # Release candidate (0.0.0b5 → 0.0.0rc1)
@@ -469,6 +471,12 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 - Missing imports (like `memory_manager`) only surface during actual function calls
 - Integration issues with shared utilities are caught during JSON-RPC testing
 - Claude Code uses JSON-RPC exclusively - direct function calls don't match real usage
+
+**CRITICAL: Restart Required for MCP Tool Changes:**
+- After making changes to MCP tool implementations, Claude Code must be restarted for changes to take effect
+- This applies to all MCP tools accessed via `mcp__` prefix
+- The user must restart Claude Code before testing updated MCP functionality
+- For development testing without restarting, use JSON-RPC commands directly as shown above
 
 **CRITICAL: Test Changes Locally Before Using MCP Tools:**
 - After making changes to tool implementations, ALWAYS test locally first

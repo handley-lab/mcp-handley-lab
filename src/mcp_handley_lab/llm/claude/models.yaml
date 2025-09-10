@@ -187,14 +187,17 @@ display_categories:
     description: "Original Claude 3 models for established workflows"
 
 # Default model
-default_model: "claude-3-7-sonnet-20250219"
+default_model: "claude-sonnet-4"
 
 # Usage notes
 usage_notes:
   - "All Claude models have 200,000 token context windows"
   - "All models support vision and image analysis capabilities"
   - "System prompts supported via separate parameter"
-  - "Cache pricing applies to repeated content within time windows"
-  - "Newer models (Claude 4, 3.5) have enhanced reasoning capabilities"
-  - "Haiku models are fastest and most cost-effective"
-  - "Opus models are most capable for complex tasks"
+  - "Prompt caching available with 5-minute TTL (extended caching with 1-hour TTL)"
+  - "Latest models (Opus 4.1, Sonnet 4, Haiku 3.5) have enhanced reasoning capabilities"
+  - "Sonnet 4 has tiered pricing based on prompt size (≤200K vs >200K tokens)"
+  - "Web search costs $10 per 1,000 searches"
+  - "Code execution: $0.05/hour with 50 free hours daily per organization"
+  - "Batch processing offers 50% discount for asynchronous workloads"
+  - "Service tiers: Standard (default), Priority (SLA), Batch (50% discount)"

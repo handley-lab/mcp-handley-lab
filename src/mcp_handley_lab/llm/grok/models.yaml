@@ -1,13 +1,16 @@
 models:
   grok-4:
     # Model metadata
-    description: "Most powerful Grok model with leading performance on reasoning, coding, and vision"
+    description: "The world's best model, at your fingertips"
     capabilities: "🎯 Best for: Complex reasoning, advanced problem solving, multimodal tasks"
     tags: ["latest", "premium", "reasoning"]
     context_window: "256,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
     supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     input_per_1m: 3.00
@@ -15,13 +18,16 @@ models:
 
   grok-3:
     # Model metadata
-    description: "Flagship Grok model for enterprise tasks like data extraction and programming"
+    description: "Flagship model that excels at enterprise tasks like data extraction, programming, and text summarization"
     capabilities: "⚖️ Best for: Enterprise tasks, data extraction, programming, text summarization"
     tags: ["latest", "general", "enterprise"]
     context_window: "131,072 tokens"
     output_tokens: 65536
     param: "max_tokens"
     supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     input_per_1m: 3.00
@@ -29,27 +35,49 @@ models:
 
   grok-3-mini:
     # Model metadata
-    description: "Lightweight Grok model optimized for quantitative tasks involving math and reasoning"
+    description: "A lightweight model that thinks before responding. Excels at quantitative tasks that involve math and reasoning"
     capabilities: "⚡ Best for: Math and reasoning tasks, cost-effective analysis"
     tags: ["latest", "cost-effective", "reasoning"]
     context_window: "131,072 tokens"
     output_tokens: 65536
     param: "max_tokens"
     supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     input_per_1m: 0.30
     output_per_1m: 0.50
 
+  grok-code-fast-1:
+    # Model metadata
+    description: "A lightning fast reasoning model built for agentic coding"
+    capabilities: "⚡ Best for: Agentic coding, fast reasoning, development tasks"
+    tags: ["latest", "coding", "fast", "cost-effective"]
+    context_window: "256,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 0.20
+    output_per_1m: 1.50
+
   grok-2-vision-1212:
     # Model metadata
     description: "Multimodal Grok model capable of analyzing images and responding to text prompts"
     capabilities: "👁️ Best for: Image analysis, multimodal tasks, visual content understanding"
-    tags: ["multimodal", "vision", "general"]
-    context_window: "32,768 tokens"
+    tags: ["multimodal", "vision", "general", "legacy"]
+    context_window: "131,072 tokens"
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     input_per_1m: 2.00
@@ -58,10 +86,13 @@ models:
 
   grok-2-image-1212:
     # Model metadata
-    description: "Grok model specialized in generating multiple images from text prompts"
+    description: "Latest image generation model capable of generating multiple images from text prompt"
     capabilities: "🎨 Best for: Image generation, creative visual content"
-    tags: ["image-generation", "creative"]
-    context_window: "N/A (Image generation)"
+    tags: ["image-generation", "creative", "latest"]
+    context_window: "131,072 tokens"
+    supports_image_generation: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     price_per_image: 0.07
@@ -72,10 +103,12 @@ models:
     description: "Previous generation Grok model with solid performance"
     capabilities: "📚 Best for: General tasks, established workflows"
     tags: ["legacy", "general"]
-    context_window: "32,768 tokens"
+    context_window: "131,072 tokens"
     output_tokens: 16384
     param: "max_tokens"
     supports_temperature: true
+    supports_tool_calling: true
+    supports_structured_output: true
 
     # Pricing
     input_per_1m: 2.00
@@ -86,9 +119,12 @@ display_categories:
   - name: "🧠 Latest Reasoning Models"
     tags: ["latest", "reasoning"]
     description: "Advanced Grok models for complex problem solving and analysis"
+  - name: "⚡ Coding Models"
+    tags: ["coding"]
+    description: "Fast models optimized for agentic coding tasks"
   - name: "💭 Latest General Models"
     tags: ["latest", "general"]
-    exclude_tags: ["reasoning", "multimodal"]
+    exclude_tags: ["reasoning", "multimodal", "coding"]
     description: "Newest general-purpose Grok models"
   - name: "👁️ Multimodal Models"
     tags: ["multimodal", "vision"]
@@ -109,11 +145,13 @@ default_model: "grok-4"
 
 # Usage notes
 usage_notes:
-  - "All Grok models support function calling and tool use"
-  - "Vision models (grok-2-vision-1212) support image analysis"
+  - "All Grok models support function calling, tool use, and structured outputs"
+  - "Grok-4, Grok-3, Grok-3-mini support vision (image analysis)"
+  - "grok-code-fast-1 is optimized for lightning-fast agentic coding tasks"
   - "Image generation models charge per image, not per token"
   - "Grok has less restrictive moderation compared to other providers"
-  - "API is compatible with OpenAI SDK structure for easy migration"
-  - "Rate limits: Grok-4 has 60 requests/minute, 16,000 tokens/minute"
-  - "Knowledge cutoff varies by model (grok-2-1212: July 17, 2024)"
+  - "API is compatible with OpenAI and Anthropic SDKs for easy migration"
+  - "All models support reasoning, coding, and visual processing capabilities"
+  - "Real-time search integration available with live web data from X"
+  - "Context windows: Grok-4/code-fast-1 (256K), others (131K)"
   - "Image constraints: max 10MB, JPG/JPEG and PNG formats only"

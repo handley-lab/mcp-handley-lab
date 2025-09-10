@@ -15,10 +15,10 @@ jobs:
       with:
         fetch-depth: 0  # Need full history to compare with master
 
-    - name: Set up Python 3.13
+    - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
-        python-version: "3.13"
+        python-version: "3.12"
 
     - name: Install dependencies
       run: |
@@ -36,10 +36,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.13
+    - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
-        python-version: "3.13"
+        python-version: "3.12"
         cache: 'pip'
         cache-dependency-path: |
           pyproject.toml
@@ -48,6 +48,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y mutt msmtp offlineimap3 notmuch
+        sudo apt-get install -y build-essential python3-dev pkg-config libffi-dev
 
     - name: Install dependencies
       run: |
@@ -121,10 +122,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.13
+    - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
-        python-version: "3.13"
+        python-version: "3.12"
 
     - name: Install build dependencies
       run: |

@@ -1,5 +1,6 @@
 """Mutt tool for interactive email composition via MCP."""
 
+import builtins
 import os
 import shlex
 import tempfile
@@ -258,7 +259,7 @@ def _check_recent_send() -> tuple[bool, bool, dict]:
         if not os.path.exists(log_path):
             return False, False, {}
 
-        with open(log_path) as f:
+        with builtins.open(log_path) as f:
             lines = f.readlines()
             if not lines:
                 return False, False, {}
@@ -669,8 +670,8 @@ def open(
                 )
 
         # Treat as a folder path
-        resolved_folder, extra_args = _resolve_folder(target)
-        mutt_cmd = ["mutt"] + extra_args
+        resolved_folder = _resolve_folder(target)
+        mutt_cmd = ["mutt"]
         if resolved_folder:
             mutt_cmd.extend(["-f", resolved_folder])
 

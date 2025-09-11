@@ -452,11 +452,14 @@ def reply(
 ) -> OperationResult:
     """Reply to an email using compose with extracted reply data."""
 
-    # Import notmuch show to get original message data
-    from mcp_handley_lab.email.notmuch.tool import _get_message_from_raw_source, show
+    # Import notmuch functions to get original message data
+    from mcp_handley_lab.email.notmuch.tool import (
+        _get_message_from_raw_source,
+        _show_email,
+    )
 
-    # Get original message data
-    result = show(f"id:{message_id}")
+    # Get original message data directly without calling the MCP tool
+    result = _show_email(f"id:{message_id}")
     original_msg = result[0]
     raw_msg = _get_message_from_raw_source(message_id)
 
@@ -527,12 +530,11 @@ def forward(
 ) -> OperationResult:
     """Forward an email using compose with extracted forward data."""
 
-    # Import notmuch show to get original message data
+    # Import notmuch function to get original message data
+    from mcp_handley_lab.email.notmuch.tool import _show_email
 
-    from mcp_handley_lab.email.notmuch.tool import show
-
-    # Get original message data
-    result = show(f"id:{message_id}")
+    # Get original message data directly without calling the MCP tool
+    result = _show_email(f"id:{message_id}")
     original_msg = result[0]
 
     # Build forward subject with Fwd: prefix

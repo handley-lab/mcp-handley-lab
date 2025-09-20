@@ -211,15 +211,21 @@ class TestSessionManagement:
     """Test session management singleton behavior."""
 
     @patch("mcp_handley_lab.mathematica.tool.WolframLanguageSession")
+    @patch("mcp_handley_lab.mathematica.tool._find_wolfram_kernel")
     @patch("mcp_handley_lab.mathematica.tool._session", None)  # Start with None
-    def test_get_session_singleton(self, mock_session_class):
+    def test_get_session_singleton(self, mock_find_kernel, mock_session_class):
         """Test that _get_session returns the same instance on multiple calls."""
         import mcp_handley_lab.mathematica.tool as tool_module
 
         original_session = tool_module._session
+        original_kernel_path = tool_module._kernel_path
         tool_module._session = None  # Force reset
+        tool_module._kernel_path = None  # Force reset
 
         try:
+            # Mock the kernel path detection
+            mock_find_kernel.return_value = "/fake/path/to/WolframKernel"
+
             mock_instance = Mock()
             # Mock the evaluate method to avoid errors during session initialization
             mock_instance.evaluate.return_value = None
@@ -235,10 +241,13 @@ class TestSessionManagement:
             assert session1 is mock_instance
             # Constructor should only be called once
             mock_session_class.assert_called_once()
+            # Kernel detection should only be called once
+            mock_find_kernel.assert_called_once()
 
         finally:
             # Restore original state
             tool_module._session = original_session
+            tool_module._kernel_path = original_kernel_path
 
 
 if __name__ == "__main__":

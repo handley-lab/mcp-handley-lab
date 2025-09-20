@@ -57,6 +57,7 @@ claude mcp add word --scope user mcp-word
 # claude mcp add google-calendar --scope user mcp-google-calendar
 # claude mcp add vim --scope user mcp-vim
 # claude mcp add email --scope user mcp-email
+# claude mcp add mathematica --scope user mcp-mathematica
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -116,6 +117,15 @@ Process Word documents for analysis and conversion
   - Document metadata and structure analysis
   - _Claude example_: `> extract all the comments from this feedback document and show me the author breakdown`
   - **Requires**: [pandoc](https://pandoc.org/installing.html) for document conversion
+
+### 🧮 **Mathematica** (`mathematica`)
+Execute Mathematica code and computations
+  - Run WolframScript commands and notebooks
+  - Perform symbolic and numerical calculations
+  - Generate plots and visualizations
+  - Export results in various formats
+  - _Claude example_: `> use Mathematica to solve this differential equation and plot the solution`
+  - **Requires**: [WolframScript](https://www.wolfram.com/wolframscript/) installed and licensed
 
 ### ✏️ **Interactive Editing** (`vim`)
 Open vim for user input when needed

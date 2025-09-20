@@ -329,24 +329,10 @@ def process_html_content(html_content: str) -> str:
         return html_content
 
 
-@mcp.tool(
-    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
-)
-def show(
-    query: str = Field(
-        ...,
-        description="A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
-    ),
-    mode: str = Field(
-        default="full",
-        description="Rendering mode: 'headers' (metadata only), 'summary' (first 2000 chars), or 'full' (complete optimized content)",
-    ),
-    limit: int | None = Field(
-        default=None,
-        description="Maximum number of emails to return (helps prevent token overflow). If None, returns all emails.",
-    ),
+def _show_email(
+    query: str, mode: str = "full", limit: int = None
 ) -> list[EmailContent]:
-    """Show email content with optimized token-efficient processing."""
+    """Internal implementation of email display."""
     cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
     stdout, stderr = run_command(cmd)
     output = stdout.decode().strip()
@@ -395,6 +381,27 @@ def show(
             )
         )
     return results
+
+
+@mcp.tool(
+    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
+)
+def show(
+    query: str = Field(
+        ...,
+        description="A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
+    ),
+    mode: str = Field(
+        default="full",
+        description="Rendering mode: 'headers' (metadata only), 'summary' (first 2000 chars), or 'full' (complete optimized content)",
+    ),
+    limit: int | None = Field(
+        default=None,
+        description="Maximum number of emails to return (helps prevent token overflow). If None, returns all emails.",
+    ),
+) -> list[EmailContent]:
+    """Show email content with optimized token-efficient processing."""
+    return _show_email(query, mode, limit)
 
 
 @mcp.tool(

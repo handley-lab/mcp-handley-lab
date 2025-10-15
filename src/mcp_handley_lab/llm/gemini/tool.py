@@ -21,6 +21,7 @@ from google.genai.types import (
     GoogleSearchRetrieval,
     Part,
     Tool,
+    UploadFileConfig,
 )
 from mcp.server.fastmcp import FastMCP
 from PIL import Image
@@ -135,9 +136,10 @@ def _resolve_files(
         if file_size > GEMINI_INLINE_FILE_LIMIT_BYTES:
             # Large file - use Files API
             used_files_api = True
+            config = UploadFileConfig(mimeType=get_gemini_safe_mime_type(file_path))
             uploaded_file = _get_client().files.upload(
                 file=str(file_path),
-                mime_type=get_gemini_safe_mime_type(file_path),
+                config=config,
             )
             parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
         else:

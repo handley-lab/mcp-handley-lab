@@ -129,6 +129,17 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                         f"Missing 'output_tokens' for Gemini model {model_id}"
                     )
                 model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
+        elif provider == "groq":
+            # Groq format - similar to OpenAI (OpenAI-compatible API)
+            if "output_tokens" not in model_info:
+                raise ValueError(f"Missing 'output_tokens' for Groq model {model_id}")
+            if "param" not in model_info:
+                raise ValueError(f"Missing 'param' for Groq model {model_id}")
+            model_configs[model_id] = {
+                "output_tokens": model_info["output_tokens"],
+                "param": model_info["param"],
+                "supports_temperature": model_info.get("supports_temperature", True),
+            }
         elif provider == "grok":
             # Grok format - similar to Gemini but different pricing types
             if model_info.get("pricing_type") == "per_image":

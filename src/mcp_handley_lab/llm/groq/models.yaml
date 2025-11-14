@@ -1,24 +1,10 @@
 models:
-  llama3-70b-8192:
-    description: "Llama 3 70B model with an 8K context window, offering strong reasoning capabilities."
-    capabilities: "🎯 Best for: Complex reasoning, code generation, nuanced text understanding."
-    tags: ["llama3", "reasoning", "powerful"]
-    context_window: "8,192 tokens"
-    output_tokens: 8192
-    param: "max_tokens"
-    supports_temperature: true
-    supports_vision: false
-    supports_tool_calling: true
-    supports_system_prompt: true
-    input_per_1m: 0.59
-    output_per_1m: 0.79
-
-  llama3-8b-8192:
-    description: "Llama 3 8B model with an 8K context window, optimized for speed and efficiency."
-    capabilities: "⚡ Best for: General chat, summarization, fast response tasks."
-    tags: ["llama3", "fast", "cost-effective"]
-    context_window: "8,192 tokens"
-    output_tokens: 8192
+  llama-3.1-8b-instant:
+    description: "Meta's Llama 3.1 8B model optimized for speed with 131K context window."
+    capabilities: "⚡ Best for: Fast inference, general chat, summarization, cost-effective tasks."
+    tags: ["llama", "fast", "cost-effective"]
+    context_window: "131,072 tokens"
+    output_tokens: 131072
     param: "max_tokens"
     supports_temperature: true
     supports_vision: false
@@ -27,38 +13,24 @@ models:
     input_per_1m: 0.05
     output_per_1m: 0.08
 
-  mixtral-8x7b-32768:
-    description: "Mixtral 8x7B Mixture-of-Experts model with a 32K context window."
-    capabilities: "⚖️ Best for: Long-context tasks, multilingual applications, balanced performance."
-    tags: ["mixtral", "long-context"]
-    context_window: "32,768 tokens"
+  llama-3.3-70b-versatile:
+    description: "Meta's Llama 3.3 70B versatile model with 131K context window, delivering quality comparable to larger models."
+    capabilities: "🎯 Best for: Complex reasoning, code generation, nuanced text understanding, multilingual tasks."
+    tags: ["llama", "reasoning", "powerful", "versatile"]
+    context_window: "131,072 tokens"
     output_tokens: 32768
     param: "max_tokens"
     supports_temperature: true
     supports_vision: false
     supports_tool_calling: true
     supports_system_prompt: true
-    input_per_1m: 0.24
-    output_per_1m: 0.24
-
-  gemma-7b-it:
-    description: "Google's Gemma 7B instruction-tuned model, offering a balance of performance and efficiency."
-    capabilities: "📚 Best for: General-purpose tasks, instruction following, creative text."
-    tags: ["gemma", "general"]
-    context_window: "8,192 tokens"
-    output_tokens: 8192
-    param: "max_tokens"
-    supports_temperature: true
-    supports_vision: false
-    supports_tool_calling: true
-    supports_system_prompt: true
-    input_per_1m: 0.07
-    output_per_1m: 0.07
+    input_per_1m: 0.59
+    output_per_1m: 0.79
 
   moonshotai/kimi-k2-instruct-0905:
     description: "Moonshot AI's Kimi (via Groq) – 256K context, strong bilingual reasoning and production-grade code generation."
-    capabilities: "🎯 Best for: Long-context coding, cross-language debugging, deep reasoning, document-to-code workflows."
-    tags: ["kimi", "long-context", "reasoning", "powerful"]
+    capabilities: "🌙 Best for: Long-context coding, cross-language debugging, deep reasoning, document-to-code workflows."
+    tags: ["kimi", "long-context", "reasoning", "powerful", "bilingual"]
     context_window: "262,144 tokens"
     output_tokens: 16384
     param: "max_tokens"
@@ -69,24 +41,50 @@ models:
     input_per_1m: 1.00
     output_per_1m: 3.00
 
+  openai/gpt-oss-120b:
+    description: "OpenAI's open-weight GPT-OSS 120B flagship model with exceptional performance across diverse tasks."
+    capabilities: "🚀 Best for: Advanced reasoning, complex problem-solving, high-quality code generation, comprehensive analysis."
+    tags: ["gpt-oss", "powerful", "reasoning", "flagship"]
+    context_window: "131,072 tokens"
+    output_tokens: 65536
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.15
+    output_per_1m: 0.60
+
+  openai/gpt-oss-20b:
+    description: "OpenAI's open-weight GPT-OSS 20B model delivering excellent speed-to-quality balance."
+    capabilities: "⚖️ Best for: Balanced performance, general-purpose tasks, cost-effective high-quality output."
+    tags: ["gpt-oss", "balanced", "fast"]
+    context_window: "131,072 tokens"
+    output_tokens: 65536
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.075
+    output_per_1m: 0.30
+
 display_categories:
   - name: "🌙 Moonshot Kimi Models"
     tags: ["kimi"]
     description: "Moonshot AI's long-context reasoning models."
-  - name: "🚀 Llama 3 Models"
-    tags: ["llama3"]
-    description: "Meta's latest generation of open-source models."
-  - name: "⚖️ Mixtral MoE Models"
-    tags: ["mixtral"]
-    description: "Mixture-of-Experts models from Mistral AI."
-  - name: "📚 Google Gemma Models"
-    tags: ["gemma"]
-    description: "Google's family of open models."
+  - name: "🦙 Meta Llama Models"
+    tags: ["llama"]
+    description: "Meta's latest Llama 3.x generation models."
+  - name: "🤖 OpenAI GPT-OSS Models"
+    tags: ["gpt-oss"]
+    description: "OpenAI's open-weight GPT models."
 
-default_model: "llama3-8b-8192"
+default_model: "llama-3.1-8b-instant"
 
 usage_notes:
   - "Groq models are served via an OpenAI-compatible API."
   - "All models support the 'temperature' parameter."
   - "Pricing is per million tokens (input/output)."
   - "No current support for vision or image generation via this integration."
+  - "Context windows: Llama/GPT-OSS models support 131K tokens, Kimi supports 256K tokens."

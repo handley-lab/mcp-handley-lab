@@ -56,7 +56,7 @@ models:
     output_per_1m: 0.07
 
   moonshotai/kimi-k2-instruct-0905:
-    description: "Moonshot AI's Kimi (via Groq) – 128 K context, strong bilingual reasoning and production-grade code generation."
+    description: "Moonshot AI's Kimi (via Groq) – 256K context, strong bilingual reasoning and production-grade code generation."
     capabilities: "🎯 Best for: Long-context coding, cross-language debugging, deep reasoning, document-to-code workflows."
     tags: ["kimi", "long-context", "reasoning", "powerful"]
     context_window: "262,144 tokens"

@@ -14,6 +14,7 @@ class TestModelConfiguration:
     @pytest.mark.parametrize(
         "model_name,expected_output_tokens",
         [
+            ("gemini-3-pro-preview", 64000),
             ("gemini-2.5-pro", 65536),
             ("gemini-2.5-flash", 65536),
             ("gemini-2.5-flash-lite", 64000),
@@ -31,6 +32,7 @@ class TestModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected models are in MODEL_CONFIGS."""
         expected_models = {
+            "gemini-3-pro-preview",
             "gemini-2.5-pro",
             "gemini-2.5-flash",
             "gemini-2.5-flash-lite",
@@ -59,8 +61,8 @@ class TestModelConfiguration:
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to gemini-2.5-flash
-        assert config["output_tokens"] == 65536
+        # Should default to gemini-3-pro-preview
+        assert config["output_tokens"] == 64000
 
 
 class TestGeminiHelpers:

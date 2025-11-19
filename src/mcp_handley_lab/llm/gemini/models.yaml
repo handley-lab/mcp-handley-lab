@@ -1,4 +1,28 @@
 models:
+  gemini-3-pro-preview:
+    # Model metadata
+    description: "Google's most advanced model with breakthrough reasoning, agentic workflows, and autonomous coding capabilities"
+    capabilities: "🚀 Best for: Advanced reasoning, agentic AI, autonomous coding, complex multimodal tasks, research"
+    tags: ["gemini-3.0", "pro", "flagship", "multimodal", "preview"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+
+    # Pricing (tiered based on token count)
+    input_tiers:
+      - threshold: 200000
+        price: 2.00
+      - threshold: .inf
+        price: 4.00
+    output_tiers:
+      - threshold: 200000
+        price: 12.00
+      - threshold: .inf
+        price: 18.00
+
   gemini-2.5-pro:
     # Model metadata
     description: "Latest pro model with advanced reasoning and multimodal capabilities"
@@ -179,9 +203,12 @@ models:
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
-  - name: "🚀 Gemini 2.5 Series"
+  - name: "🚀 Gemini 3.0 Series"
+    tags: ["gemini-3.0"]
+    description: "Most advanced generation with breakthrough reasoning, agentic AI, and autonomous coding"
+  - name: "🎯 Gemini 2.5 Series"
     tags: ["gemini-2.5"]
-    description: "Latest generation with enhanced reasoning and capabilities"
+    description: "Latest stable generation with enhanced reasoning and capabilities"
   - name: "⚡ Gemini 1.5 Series"
     tags: ["gemini-1.5"]
     description: "Previous generation with proven performance"
@@ -197,12 +224,13 @@ default_model: "gemini-2.5-pro"
 
 # Usage notes
 usage_notes:
+  - "Gemini 3.0 Pro Preview is the most advanced model with breakthrough reasoning and agentic capabilities (1M context, no free tier)"
   - "Gemini 2.5 Flash and Flash-Lite have free tiers available"
-  - "Pro models have 2M token context windows"
+  - "Pro models have 1-2M token context windows"
   - "Flash models balance speed and capability"
   - "All text models support multimodal input (text, images, video)"
   - "Audio input costs more than text/image/video for Flash models"
-  - "Tiered pricing applies to 2.5 Pro based on token count thresholds"
+  - "Tiered pricing applies to Pro models based on token count thresholds (<=200k vs >200k)"
   - "Google Search grounding available with additional costs"
   - "Image generation models charge per image, not per token"
   - "Video generation models charge per second"

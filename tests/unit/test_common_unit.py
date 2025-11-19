@@ -69,7 +69,7 @@ class TestPricingCalculator:
         pytest.param(
             "gpt-4o-mini", 2000, 1000, "openai", 0.0009, id="openai-gpt4o-mini"
         ),
-        pytest.param("o1-preview", 1000, 500, "openai", 0.045, id="openai-o1-preview"),
+        pytest.param("o3", 1000, 500, "openai", 0.006, id="openai-o3"),
         pytest.param("o1-mini", 1000, 500, "openai", 0.00330, id="openai-o1-mini"),
         pytest.param("gpt-4.1", 1000, 500, "openai", 0.006, id="openai-gpt41"),
         pytest.param(

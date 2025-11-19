@@ -14,38 +14,38 @@ class TestOpenAIImageGeneration:
     """Test OpenAI image generation with comprehensive metadata extraction."""
 
     @pytest.mark.vcr
-    def test_dalle2_basic_metadata(self):
-        """Test DALL-E 2 basic metadata extraction."""
+    def test_dalle3_basic_metadata(self):
+        """Test DALL-E 3 basic metadata extraction."""
         result = openai_generate_image(
             prompt="A simple red circle",
-            model="dall-e-2",
+            model="dall-e-3",
             quality="standard",
-            size="512x512",
-            agent_name="test_dalle2",
+            size="1024x1024",
+            agent_name="test_dalle3_basic",
         )
 
         # Verify core fields
         assert result.message == "Image Generated Successfully"
         assert Path(result.file_path).exists()
         assert result.file_size_bytes > 0
-        assert result.agent_name == "test_dalle2"
+        assert result.agent_name == "test_dalle3_basic"
 
         # Verify usage statistics
         assert result.usage.input_tokens >= 0
         assert result.usage.output_tokens == 1  # Images count as 1 output token
         assert result.usage.cost > 0
-        assert result.usage.model_used == "dall-e-2"
+        assert result.usage.model_used == "dall-e-3"
 
         # Verify OpenAI-specific metadata
         assert result.generation_timestamp > 0
         assert result.original_prompt == "A simple red circle"
-        assert result.requested_size == "512x512"
+        assert result.requested_size == "1024x1024"
         assert result.mime_type == "image/png"
         assert result.original_url.startswith("https://")
         assert isinstance(result.openai_metadata, dict)
 
-        # DALL-E 2 doesn't enhance prompts
-        assert result.enhanced_prompt == ""
+        # DALL-E 3 enhances prompts
+        assert result.enhanced_prompt != ""
 
     @pytest.mark.vcr
     def test_dalle3_enhanced_metadata(self):
@@ -191,8 +191,8 @@ class TestImageGenerationComparison:
 
         openai_result = openai_generate_image(
             prompt=prompt,
-            model="dall-e-2",
-            size="512x512",
+            model="dall-e-3",
+            size="1024x1024",
             quality="standard",
             agent_name="consistency_test",
         )
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     if os.getenv("OPENAI_API_KEY"):
         print("Testing OpenAI...")
         result = openai_generate_image(
-            "Test", model="dall-e-2", size="512x512", agent_name="smoke"
+            "Test", model="dall-e-3", size="1024x1024", agent_name="smoke"
         )
         print(f"✅ Generated: {result.file_path}")
 

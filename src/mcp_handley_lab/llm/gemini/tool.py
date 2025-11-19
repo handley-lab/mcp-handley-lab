@@ -262,7 +262,7 @@ def _gemini_generation_adapter(
     if not response.text:
         raise RuntimeError("No response text generated")
 
-    # Extract grounding metadata - direct access, fail fast
+    # Extract grounding metadata - SDK converts to snake_case, fail fast on API changes
     grounding_metadata = None
     response_dict = response.to_json_dict()
     if "candidates" in response_dict and response_dict["candidates"]:

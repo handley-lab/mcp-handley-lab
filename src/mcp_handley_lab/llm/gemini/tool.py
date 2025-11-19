@@ -367,7 +367,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Google Gemini AI service. Defaults to Gemini 3 Pro Preview (most intelligent model with state-of-the-art reasoning). Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Google Gemini AI service. Defaults to Gemini 3 Pro Preview (most intelligent model with state-of-the-art reasoning). Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
     prompt: str = Field(

@@ -245,7 +245,7 @@ def _grok_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external xAI Grok service. Can take a prompt directly or load it from a template file with variables. Returns Grok's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external xAI Grok service. Can take a prompt directly or load it from a template file with variables. Returns Grok's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
     prompt: str = Field(

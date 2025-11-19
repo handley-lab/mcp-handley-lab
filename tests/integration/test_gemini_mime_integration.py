@@ -344,7 +344,7 @@ async def test_gemini_grounding_search_entry_point_structure(
             "output_file": test_output_file,
             "model": "gemini-2.5-flash",
             "grounding": True,
-            "agent_name": "test_search_entry_point",
+            "agent_name": "",  # No agent - test grounding metadata structure only
             "temperature": 1.0,
             "max_output_tokens": 0,
             "files": [],

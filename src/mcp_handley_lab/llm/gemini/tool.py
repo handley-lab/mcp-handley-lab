@@ -269,16 +269,20 @@ def _gemini_generation_adapter(
         candidate = response_dict["candidates"][0]
         if "grounding_metadata" in candidate:
             metadata = candidate["grounding_metadata"]
-            grounding_metadata = {
-                "web_search_queries": metadata["web_search_queries"],
-                "grounding_chunks": [
-                    {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
-                    for chunk in metadata["grounding_chunks"]
-                    if "web" in chunk
-                ],
-                "grounding_supports": metadata["grounding_supports"],
-                "search_entry_point": metadata["search_entry_point"],
-            }
+            # Skip if empty (happens with conversational history reusing previous grounding)
+            if not metadata:
+                pass
+            else:
+                grounding_metadata = {
+                    "web_search_queries": metadata["web_search_queries"],
+                    "grounding_chunks": [
+                        {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
+                        for chunk in metadata["grounding_chunks"]
+                        if "web" in chunk
+                    ],
+                    "grounding_supports": metadata["grounding_supports"],
+                    "search_entry_point": metadata["search_entry_point"],
+                }
 
     # Extract additional response metadata - direct access
     finish_reason = ""

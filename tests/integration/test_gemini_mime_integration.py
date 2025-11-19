@@ -294,7 +294,9 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_gemini_without_grounding_no_metadata(skip_if_no_api_key, test_output_file):
+async def test_gemini_without_grounding_no_metadata(
+    skip_if_no_api_key, test_output_file
+):
     """Test that without grounding, grounding metadata is None but other fields exist."""
     skip_if_no_api_key("GEMINI_API_KEY")
 

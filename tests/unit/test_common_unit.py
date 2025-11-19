@@ -193,7 +193,9 @@ class TestPricingCalculator:
         calc = PricingCalculator()
 
         # Test veo-2.0-generate-001 video model
-        cost = calc.calculate_cost("veo-2.0-generate-001", 0, 0, "gemini", seconds_generated=10)
+        cost = calc.calculate_cost(
+            "veo-2.0-generate-001", 0, 0, "gemini", seconds_generated=10
+        )
         expected = 10 * 0.35  # 10 seconds at $0.35 per second
         assert cost == expected
 

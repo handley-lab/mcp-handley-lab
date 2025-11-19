@@ -364,7 +364,9 @@ class TestSystemPromptPersistence:
     @pytest.mark.vcr
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
-    async def test_different_agents_different_prompts(self, mcp, provider, api_key, model):
+    async def test_different_agents_different_prompts(
+        self, mcp, provider, api_key, model
+    ):
         """Test that different agents can have different system prompts."""
 
         # Provider-specific parameters for Agent 1
@@ -659,7 +661,9 @@ class TestSystemPromptEdgeCases:
     @pytest.mark.vcr
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
-    async def test_special_characters_system_prompt(self, mcp, provider, api_key, model):
+    async def test_special_characters_system_prompt(
+        self, mcp, provider, api_key, model
+    ):
         """Test system prompt with special characters and Unicode."""
         special_prompt = (
             "You are a helpful assistant 🤖. Use emojis: ∑, ∏, ∆, ∇, ∈, ∉, ∀, ∃"

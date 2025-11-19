@@ -127,7 +127,7 @@ class TestProviderParameterConsistency:
 
     def test_parameter_types_are_consistent(self):
         """Test that all providers have consistent parameter types for new parameters."""
-        from typing import get_origin, get_args
+        from typing import get_args, get_origin
 
         providers = [openai_ask, claude_ask, gemini_ask, grok_ask]
         expected_types = {

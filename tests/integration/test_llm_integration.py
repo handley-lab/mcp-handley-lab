@@ -118,7 +118,9 @@ def create_test_image(tmp_path):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_ask_basic(
     skip_if_no_api_key,
     test_output_file,
@@ -180,7 +182,9 @@ async def test_llm_ask_basic(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_ask_with_files(
     skip_if_no_api_key,
     test_output_file,
@@ -293,7 +297,9 @@ async def test_llm_analyze_image(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_memory_disabled(
     skip_if_no_api_key,
     test_output_file,
@@ -370,7 +376,9 @@ async def test_llm_server_info(skip_if_no_api_key, mcp, api_key):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_input_validation(
     skip_if_no_api_key,
     test_output_file,
@@ -419,15 +427,21 @@ async def test_llm_input_validation(
 
     # Test empty prompt should raise error
     with pytest.raises(ToolError) as e1:
-        await mcp.call_tool("ask", {**base_params, "prompt": "", "output_file": test_output_file})
+        await mcp.call_tool(
+            "ask", {**base_params, "prompt": "", "output_file": test_output_file}
+        )
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
     # Test missing output_file should raise error
     with pytest.raises(ToolError) as e2:
-        await mcp.call_tool("ask", {**base_params, "prompt": "Test prompt", "output_file": ""})
+        await mcp.call_tool(
+            "ask", {**base_params, "prompt": "Test prompt", "output_file": ""}
+        )
     # Error may be about missing file, directory, or file path validation
     error_msg = str(e2.value).lower()
-    assert any(keyword in error_msg for keyword in ["output", "file", "directory", "path"])
+    assert any(
+        keyword in error_msg for keyword in ["output", "file", "directory", "path"]
+    )
 
 
 # Error scenario test parameters (MCP instances)
@@ -538,7 +552,9 @@ async def test_llm_error_scenarios(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, prompt, expected", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, prompt, expected", llm_providers
+)
 async def test_llm_response_metadata_fields(
     skip_if_no_api_key,
     test_output_file,
@@ -694,7 +710,9 @@ class TestLLMMemory:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_memory_enabled_with_agent_name(self, skip_if_no_api_key, test_output_file):
+    async def test_memory_enabled_with_agent_name(
+        self, skip_if_no_api_key, test_output_file
+    ):
         """Test that conversational context is maintained across two calls with the same agent_name."""
         skip_if_no_api_key("OPENAI_API_KEY")
 
@@ -806,7 +824,9 @@ class TestLLMMemory:
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_prompt_file_basic(
     skip_if_no_api_key,
     test_output_file,
@@ -873,7 +893,9 @@ async def test_llm_prompt_file_basic(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_prompt_file_with_template_vars(
     skip_if_no_api_key,
     test_output_file,
@@ -943,7 +965,9 @@ async def test_llm_prompt_file_with_template_vars(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_system_prompt_file_with_templates(
     skip_if_no_api_key,
     test_output_file,
@@ -1015,7 +1039,9 @@ async def test_llm_system_prompt_file_with_templates(
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+@pytest.mark.parametrize(
+    "mcp, provider, api_key, model, question, answer", llm_providers
+)
 async def test_llm_prompt_file_xor_validation(
     skip_if_no_api_key,
     test_output_file,

@@ -16,9 +16,7 @@ from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 # Provider configurations for systematic testing (MCP protocol)
 claude_api_key = "ANTHROPIC" + "_API_KEY"
 llm_unhappy_providers = [
-    pytest.param(
-        openai_mcp, "openai", "OPENAI_API_KEY", "gpt-4o-mini", id="openai"
-    ),
+    pytest.param(openai_mcp, "openai", "OPENAI_API_KEY", "gpt-4o-mini", id="openai"),
     pytest.param(
         gemini_mcp, "gemini", "GEMINI_API_KEY", "gemini-2.5-flash", id="gemini"
     ),
@@ -33,9 +31,7 @@ llm_unhappy_providers = [
 
 image_unhappy_providers = [
     pytest.param(openai_mcp, "openai", "OPENAI_API_KEY", "gpt-4o", id="openai"),
-    pytest.param(
-        gemini_mcp, "gemini", "GEMINI_API_KEY", "gemini-2.5-pro", id="gemini"
-    ),
+    pytest.param(gemini_mcp, "gemini", "GEMINI_API_KEY", "gemini-2.5-pro", id="gemini"),
     pytest.param(
         claude_mcp,
         "claude",
@@ -114,9 +110,7 @@ class TestLLMRateLimitingErrors:
                 )
 
         # At least some requests should succeed
-        successful_requests = [
-            r for r in requests if "content" in r and r["content"]
-        ]
+        successful_requests = [r for r in requests if "content" in r and r["content"]]
         assert len(successful_requests) > 0, (
             "All requests failed - check API configuration"
         )

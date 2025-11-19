@@ -269,11 +269,11 @@ def _openai_image_analysis_adapter(
     description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external OpenAI AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -313,11 +313,11 @@ def ask(
         default=0,
         description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),

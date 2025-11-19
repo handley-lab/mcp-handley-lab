@@ -3,7 +3,7 @@ models:
     # Model metadata
     description: "The best model for coding and agentic tasks with configurable reasoning effort"
     capabilities: "🌟 Best for: Agentic workflows, autonomous coding, complex multimodal tasks, advanced reasoning"
-    tags: ["flagship", "latest", "general", "premium"]
+    tags: ["flagship", "latest", "general", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_completion_tokens"
@@ -20,7 +20,7 @@ models:
     # Model metadata
     description: "Previous intelligent reasoning model for coding and agentic tasks"
     capabilities: "🎯 Best for: Complex coding tasks, advanced reasoning, agentic workflows"
-    tags: ["flagship", "general", "premium"]
+    tags: ["flagship", "general", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_completion_tokens"
@@ -37,7 +37,7 @@ models:
     # Model metadata
     description: "A faster, cheaper version of GPT-5 for well-defined tasks"
     capabilities: "⚖️ Best for: Most coding tasks, balanced performance and cost"
-    tags: ["flagship", "latest", "general", "cost-effective"]
+    tags: ["flagship", "latest", "general", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_completion_tokens"
@@ -54,7 +54,7 @@ models:
     # Model metadata
     description: "The fastest, cheapest version of GPT-5—great for summarization and classification tasks"
     capabilities: "⚡ Best for: Quick tasks, high-volume processing, cost optimization, classification"
-    tags: ["flagship", "latest", "general", "fast", "cost-effective"]
+    tags: ["flagship", "latest", "general", "fast", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_completion_tokens"
@@ -71,7 +71,7 @@ models:
     # Model metadata
     description: "Version of GPT-5 that produces smarter and more precise responses"
     capabilities: "🎯 Best for: Highest quality outputs, critical tasks requiring maximum precision"
-    tags: ["flagship", "premium"]
+    tags: ["flagship", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_completion_tokens"

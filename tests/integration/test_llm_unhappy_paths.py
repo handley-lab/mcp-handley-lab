@@ -7,26 +7,42 @@ rate limiting, large inputs, network errors, content policy violations.
 from pathlib import Path
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
-from mcp_handley_lab.llm.claude.tool import ask as claude_ask
-from mcp_handley_lab.llm.gemini.tool import analyze_image as gemini_analyze_image
-from mcp_handley_lab.llm.gemini.tool import ask as gemini_ask
-from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
-from mcp_handley_lab.llm.openai.tool import ask as openai_ask
+from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
+from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
+from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 
-# Provider configurations for systematic testing (direct functions)
+# Provider configurations for systematic testing (MCP protocol)
 claude_api_key = "ANTHROPIC" + "_API_KEY"
 llm_unhappy_providers = [
-    pytest.param(openai_ask, "OPENAI_API_KEY", "gpt-4o-mini", id="openai"),
-    pytest.param(gemini_ask, "GEMINI_API_KEY", "gemini-2.5-flash", id="gemini"),
-    pytest.param(claude_ask, claude_api_key, "claude-3-haiku", id="claude"),
+    pytest.param(
+        openai_mcp, "openai", "OPENAI_API_KEY", "gpt-4o-mini", id="openai"
+    ),
+    pytest.param(
+        gemini_mcp, "gemini", "GEMINI_API_KEY", "gemini-2.5-flash", id="gemini"
+    ),
+    pytest.param(
+        claude_mcp,
+        "claude",
+        claude_api_key,
+        "claude-haiku-4-5-20251001",
+        id="claude",
+    ),
 ]
 
 image_unhappy_providers = [
-    pytest.param(openai_analyze_image, "OPENAI_API_KEY", "gpt-4o", id="openai"),
-    pytest.param(gemini_analyze_image, "GEMINI_API_KEY", "gemini-2.5-pro", id="gemini"),
-    pytest.param(claude_analyze_image, claude_api_key, "claude-3-sonnet", id="claude"),
+    pytest.param(openai_mcp, "openai", "OPENAI_API_KEY", "gpt-4o", id="openai"),
+    pytest.param(
+        gemini_mcp, "gemini", "GEMINI_API_KEY", "gemini-2.5-pro", id="gemini"
+    ),
+    pytest.param(
+        claude_mcp,
+        "claude",
+        claude_api_key,
+        "claude-sonnet-4-5-20250929",
+        id="claude",
+    ),
 ]
 
 
@@ -34,12 +50,14 @@ image_unhappy_providers = [
 class TestLLMRateLimitingErrors:
     """Test rate limiting and quota scenarios."""
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_rapid_sequential_requests(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_rapid_sequential_requests(
         self,
         skip_if_no_api_key,
         test_output_file,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -58,11 +76,10 @@ class TestLLMRateLimitingErrors:
                     "model": model,
                     "agent_name": "",
                     "files": [],
-                    "system_prompt": None,
                 }
 
                 # Add provider-specific parameters
-                if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+                if provider == "openai":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -71,7 +88,7 @@ class TestLLMRateLimitingErrors:
                             "top_logprobs": 0,
                         }
                     )
-                elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+                elif provider == "gemini":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -79,7 +96,7 @@ class TestLLMRateLimitingErrors:
                             "grounding": False,
                         }
                     )
-                elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+                elif provider == "claude":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -87,7 +104,7 @@ class TestLLMRateLimitingErrors:
                         }
                     )
 
-                response = ask_func(**base_params)
+                _, response = await mcp.call_tool("ask", base_params)
                 requests.append(response)
             except (ValueError, RuntimeError) as e:
                 # Rate limiting errors are acceptable
@@ -98,7 +115,7 @@ class TestLLMRateLimitingErrors:
 
         # At least some requests should succeed
         successful_requests = [
-            r for r in requests if hasattr(r, "content") and r.content
+            r for r in requests if "content" in r and r["content"]
         ]
         assert len(successful_requests) > 0, (
             "All requests failed - check API configuration"
@@ -110,12 +127,14 @@ class TestLLMLargeInputHandling:
     """Test handling of large and problematic inputs."""
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_extremely_large_prompt(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_extremely_large_prompt(
         self,
         skip_if_no_api_key,
         test_output_file,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -133,11 +152,10 @@ class TestLLMLargeInputHandling:
             "model": model,
             "agent_name": "",
             "files": [],
-            "system_prompt": None,
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -146,7 +164,7 @@ class TestLLMLargeInputHandling:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -154,7 +172,7 @@ class TestLLMLargeInputHandling:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -163,12 +181,12 @@ class TestLLMLargeInputHandling:
             )
 
         try:
-            result = ask_func(**base_params)
+            _, response = await mcp.call_tool("ask", base_params)
 
             # If successful, response should be reasonable
-            assert result.content is not None
+            assert response["content"] is not None
 
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, ToolError) as e:
             # Expected errors for oversized prompts
             assert any(
                 keyword in str(e).lower()
@@ -184,13 +202,15 @@ class TestLLMLargeInputHandling:
             )
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_large_file_input_handling(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_large_file_input_handling(
         self,
         skip_if_no_api_key,
         test_output_file,
         tmp_path,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -209,11 +229,10 @@ class TestLLMLargeInputHandling:
             "files": [str(large_file)],
             "model": model,
             "agent_name": "",
-            "system_prompt": None,
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -222,7 +241,7 @@ class TestLLMLargeInputHandling:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -230,7 +249,7 @@ class TestLLMLargeInputHandling:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -239,13 +258,13 @@ class TestLLMLargeInputHandling:
             )
 
         try:
-            result = ask_func(**base_params)
+            _, response = await mcp.call_tool("ask", base_params)
 
             # If successful, should provide reasonable response
-            assert result.content is not None
-            assert len(result.content) > 0
+            assert response["content"] is not None
+            assert len(response["content"]) > 0
 
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, ToolError) as e:
             # Expected errors for oversized files
             assert any(
                 keyword in str(e).lower()
@@ -253,12 +272,14 @@ class TestLLMLargeInputHandling:
             )
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_problematic_characters_handling(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_problematic_characters_handling(
         self,
         skip_if_no_api_key,
         test_output_file,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -284,11 +305,10 @@ class TestLLMLargeInputHandling:
                     "model": model,
                     "agent_name": "",
                     "files": [],
-                    "system_prompt": None,
                 }
 
                 # Add provider-specific parameters
-                if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+                if provider == "openai":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -297,7 +317,7 @@ class TestLLMLargeInputHandling:
                             "top_logprobs": 0,
                         }
                     )
-                elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+                elif provider == "gemini":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -305,7 +325,7 @@ class TestLLMLargeInputHandling:
                             "grounding": False,
                         }
                     )
-                elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+                elif provider == "claude":
                     base_params.update(
                         {
                             "temperature": 1.0,
@@ -313,14 +333,14 @@ class TestLLMLargeInputHandling:
                         }
                     )
 
-                result = ask_func(**base_params)
+                _, response = await mcp.call_tool("ask", base_params)
 
                 # If successful, should handle characters properly
-                assert result.content is not None
+                assert response["content"] is not None
                 content = Path(output_file).read_text(encoding="utf-8")
                 assert len(content.strip()) > 0
 
-            except (ValueError, RuntimeError, UnicodeError) as e:
+            except (ValueError, RuntimeError, UnicodeError, ToolError) as e:
                 # Character encoding errors are acceptable for some inputs
                 assert any(
                     keyword in str(e).lower()
@@ -338,12 +358,14 @@ class TestLLMLargeInputHandling:
 class TestLLMFileInputErrors:
     """Test file input error scenarios."""
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_nonexistent_file_input(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_nonexistent_file_input(
         self,
         skip_if_no_api_key,
         test_output_file,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -359,11 +381,10 @@ class TestLLMFileInputErrors:
             "files": [nonexistent_file],
             "model": model,
             "agent_name": "",
-            "system_prompt": None,
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -372,7 +393,7 @@ class TestLLMFileInputErrors:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -380,7 +401,7 @@ class TestLLMFileInputErrors:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -389,18 +410,20 @@ class TestLLMFileInputErrors:
             )
 
         with pytest.raises(
-            (ValueError, RuntimeError, FileNotFoundError),
-            match="file.*not found|not.*exist|no such file|directory",
+            ToolError,
+            match="file.*not found|not.*exist|no such file|directory|No such file",
         ):
-            ask_func(**base_params)
+            await mcp.call_tool("ask", base_params)
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_permission_denied_file(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_permission_denied_file(
         self,
         skip_if_no_api_key,
         test_output_file,
         tmp_path,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -420,11 +443,10 @@ class TestLLMFileInputErrors:
                 "files": [str(restricted_file)],
                 "model": model,
                 "agent_name": "",
-                "system_prompt": None,
             }
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -433,7 +455,7 @@ class TestLLMFileInputErrors:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -441,7 +463,7 @@ class TestLLMFileInputErrors:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -450,21 +472,23 @@ class TestLLMFileInputErrors:
                 )
 
             with pytest.raises(
-                (ValueError, RuntimeError, PermissionError),
-                match="permission|access|denied|readable",
+                ToolError,
+                match="permission|access|denied|readable|Permission denied",
             ):
-                ask_func(**base_params)
+                await mcp.call_tool("ask", base_params)
         finally:
             # Restore permissions for cleanup
             restricted_file.chmod(0o644)
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_binary_file_input(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_binary_file_input(
         self,
         skip_if_no_api_key,
         test_output_file,
         tmp_path,
-        ask_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -484,11 +508,10 @@ class TestLLMFileInputErrors:
                 "files": [str(binary_file)],
                 "model": model,
                 "agent_name": "",
-                "system_prompt": None,
             }
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -497,7 +520,7 @@ class TestLLMFileInputErrors:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -505,7 +528,7 @@ class TestLLMFileInputErrors:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -513,14 +536,14 @@ class TestLLMFileInputErrors:
                     }
                 )
 
-            result = ask_func(**base_params)
+            _, response = await mcp.call_tool("ask", base_params)
 
             # If it succeeds, should handle gracefully
-            assert result.content is not None
+            assert response["content"] is not None
             content = Path(test_output_file).read_text()
             assert len(content) > 0
 
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, ToolError) as e:
             # Binary file errors are acceptable
             assert any(
                 keyword in str(e).lower()
@@ -540,13 +563,15 @@ class TestLLMFileInputErrors:
 class TestLLMImageAnalysisUnhappyPaths:
     """Test image analysis error scenarios."""
 
-    @pytest.mark.parametrize("analyze_func, api_key, model", image_unhappy_providers)
-    def test_corrupted_image_input(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", image_unhappy_providers)
+    async def test_corrupted_image_input(
         self,
         skip_if_no_api_key,
         test_output_file,
         tmp_path,
-        analyze_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -564,36 +589,29 @@ class TestLLMImageAnalysisUnhappyPaths:
             "files": [str(corrupted_image)],
             "model": model,
             "agent_name": "",
-            "system_prompt": None,
         }
 
         # Add provider-specific parameters
-        if (
-            analyze_func.__name__ == "analyze_image"
-            and "openai" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "gemini" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "claude" in analyze_func.__module__
-        ):
-            base_params.update(
-                {
-                    "max_output_tokens": 0,
-                }
-            )
+        base_params.update(
+            {
+                "max_output_tokens": 0,
+            }
+        )
 
         with pytest.raises(
-            (ValueError, RuntimeError, Exception),
+            ToolError,
             match="image|invalid|corrupted|format|decode|Could not process image",
         ):
-            analyze_func(**base_params)
+            await mcp.call_tool("analyze_image", base_params)
 
-    @pytest.mark.parametrize("analyze_func, api_key, model", image_unhappy_providers)
-    def test_missing_image_file(
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", image_unhappy_providers)
+    async def test_missing_image_file(
         self,
         skip_if_no_api_key,
         test_output_file,
-        analyze_func,
+        mcp,
+        provider,
         api_key,
         model,
     ):
@@ -609,29 +627,20 @@ class TestLLMImageAnalysisUnhappyPaths:
             "files": [nonexistent_image],
             "model": model,
             "agent_name": "",
-            "system_prompt": None,
         }
 
         # Add provider-specific parameters
-        if (
-            analyze_func.__name__ == "analyze_image"
-            and "openai" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "gemini" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "claude" in analyze_func.__module__
-        ):
-            base_params.update(
-                {
-                    "max_output_tokens": 0,
-                }
-            )
+        base_params.update(
+            {
+                "max_output_tokens": 0,
+            }
+        )
 
         with pytest.raises(
-            (ValueError, RuntimeError, FileNotFoundError),
-            match="file.*not found|not.*exist|no such file|directory",
+            ToolError,
+            match="file.*not found|not.*exist|no such file|directory|No such file",
         ):
-            analyze_func(**base_params)
+            await mcp.call_tool("analyze_image", base_params)
 
 
 @pytest.mark.integration
@@ -639,7 +648,8 @@ class TestLLMProviderSpecificErrors:
     """Test provider-specific error scenarios."""
 
     @pytest.mark.vcr
-    def test_openai_content_policy_violation(
+    @pytest.mark.asyncio
+    async def test_openai_content_policy_violation(
         self, skip_if_no_api_key, test_output_file
     ):
         """Test OpenAI content policy violation handling."""
@@ -656,20 +666,19 @@ class TestLLMProviderSpecificErrors:
                 "model": "gpt-4o-mini",
                 "agent_name": "",
                 "files": [],
-                "system_prompt": None,
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
             }
 
-            openai_ask(**base_params)
+            await openai_mcp.call_tool("ask", base_params)
 
             # OpenAI should either refuse or provide safe alternative
             content = Path(test_output_file).read_text()
             assert len(content.strip()) > 0  # Should provide some response
 
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, ToolError) as e:
             # Content policy errors are expected
             assert any(
                 keyword in str(e).lower()
@@ -683,7 +692,8 @@ class TestLLMProviderSpecificErrors:
             )
 
     @pytest.mark.vcr
-    def test_gemini_safety_filter_activation(
+    @pytest.mark.asyncio
+    async def test_gemini_safety_filter_activation(
         self, skip_if_no_api_key, test_output_file
     ):
         """Test Gemini safety filter activation."""
@@ -700,19 +710,18 @@ class TestLLMProviderSpecificErrors:
                 "model": "gemini-2.5-flash",
                 "agent_name": "",
                 "files": [],
-                "system_prompt": None,
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "grounding": False,
             }
 
-            gemini_ask(**base_params)
+            await gemini_mcp.call_tool("ask", base_params)
 
             # Gemini should either refuse or provide filtered response
             content = Path(test_output_file).read_text()
             assert len(content) > 0
 
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, ToolError) as e:
             # Safety filter activation is acceptable
             assert any(
                 keyword in str(e).lower()
@@ -724,9 +733,10 @@ class TestLLMProviderSpecificErrors:
 class TestLLMOutputFileErrors:
     """Test output file writing error scenarios."""
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_output_file_permission_denied(
-        self, skip_if_no_api_key, tmp_path, ask_func, api_key, model
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_output_file_permission_denied(
+        self, skip_if_no_api_key, tmp_path, mcp, provider, api_key, model
     ):
         """Test handling of output file permission errors."""
         skip_if_no_api_key(api_key)
@@ -746,11 +756,10 @@ class TestLLMOutputFileErrors:
                 "model": model,
                 "agent_name": "",
                 "files": [],
-                "system_prompt": None,
             }
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -759,7 +768,7 @@ class TestLLMOutputFileErrors:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -767,7 +776,7 @@ class TestLLMOutputFileErrors:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -776,17 +785,18 @@ class TestLLMOutputFileErrors:
                 )
 
             with pytest.raises(
-                (ValueError, RuntimeError, PermissionError),
-                match="permission|write|access|denied",
+                ToolError,
+                match="permission|write|access|denied|Permission denied",
             ):
-                ask_func(**base_params)
+                await mcp.call_tool("ask", base_params)
         finally:
             # Restore permissions for cleanup
             readonly_dir.chmod(0o755)
 
-    @pytest.mark.parametrize("ask_func, api_key, model", llm_unhappy_providers)
-    def test_output_directory_not_found(
-        self, skip_if_no_api_key, ask_func, api_key, model
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp, provider, api_key, model", llm_unhappy_providers)
+    async def test_output_directory_not_found(
+        self, skip_if_no_api_key, mcp, provider, api_key, model
     ):
         """Test handling of output file in non-existent directory."""
         skip_if_no_api_key(api_key)
@@ -802,11 +812,10 @@ class TestLLMOutputFileErrors:
                 "model": model,
                 "agent_name": "",
                 "files": [],
-                "system_prompt": None,
             }
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -815,7 +824,7 @@ class TestLLMOutputFileErrors:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -823,7 +832,7 @@ class TestLLMOutputFileErrors:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -831,12 +840,12 @@ class TestLLMOutputFileErrors:
                     }
                 )
 
-            ask_func(**base_params)
+            await mcp.call_tool("ask", base_params)
 
             # If successful, file should exist
             assert Path(output_file).exists()
 
-        except (ValueError, RuntimeError, FileNotFoundError) as e:
+        except (ValueError, RuntimeError, FileNotFoundError, ToolError) as e:
             # Directory creation errors are acceptable
             assert any(
                 keyword in str(e).lower()

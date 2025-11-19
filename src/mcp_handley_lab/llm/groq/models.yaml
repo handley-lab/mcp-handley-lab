@@ -80,7 +80,7 @@ display_categories:
     tags: ["gpt-oss"]
     description: "OpenAI's open-weight GPT models."
 
-default_model: "llama-3.1-8b-instant"
+default_model: "moonshotai/kimi-k2-instruct-0905"
 
 usage_notes:
   - "Groq models are served via an OpenAI-compatible API."

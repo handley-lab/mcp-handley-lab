@@ -52,7 +52,7 @@ claude mcp add word --scope user mcp-word
 
 # Add additional tools as needed:
 # claude mcp add claude --scope user mcp-claude
-# claude mcp add groq --scope user mcp-groq
+# claude mcp add groq --scope user mcp-groq 
 # claude mcp add grok --scope user mcp-grok
 # claude mcp add py2nb --scope user mcp-py2nb
 # claude mcp add code2prompt --scope user mcp-code2prompt
@@ -72,7 +72,7 @@ Connect with major AI providers
   - Persistent conversations with memory
   - Image analysis and generation
   - Claude, Gemini, OpenAI, Groq, and Grok support
-  - Groq provides fast inference for Llama, Mixtral, and Moonshot Kimi models
+  - Groq uses LPUs to deliver fast inference for Moonshot Kimi-k2 model (as well as a selection of other open source models)
   - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 📚 **ArXiv** (`arxiv`)

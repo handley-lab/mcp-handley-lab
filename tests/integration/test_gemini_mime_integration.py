@@ -233,7 +233,6 @@ async def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_f
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Gemini grounding API currently returns empty responses - needs cassette re-recording")
 async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_file):
     """Test that grounding returns all expected metadata fields."""
     skip_if_no_api_key("GEMINI_API_KEY")
@@ -245,9 +244,9 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
             "output_file": test_output_file,
             "model": "gemini-2.5-flash",
             "grounding": True,
-            "agent_name": "test_grounding_metadata",
+            "agent_name": "",  # No agent - test grounding metadata fields only
             "temperature": 1.0,
-            "max_output_tokens": 100,
+            "max_output_tokens": 0,
             "files": [],
         },
     )

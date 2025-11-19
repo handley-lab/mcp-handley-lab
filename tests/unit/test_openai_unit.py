@@ -18,11 +18,15 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
+            "gpt-5.1",
             "gpt-5",
             "gpt-5-mini",
             "gpt-5-nano",
             "gpt-5-chat-latest",
+            "gpt-5-pro",
             "o3",
+            "o3-pro",
+            "o3-mini",
             "o4-mini",
             "o1",
             "o1-preview",

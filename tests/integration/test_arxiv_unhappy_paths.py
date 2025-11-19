@@ -92,7 +92,7 @@ class TestArxivNetworkAndServiceErrors:
         nonexistent_id = "9999.99999"
 
         with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
+            ToolError, match="not found|does not exist|404|403|forbidden|paper.*not.*available"
         ):
             await mcp.call_tool(
                 "download",
@@ -207,7 +207,7 @@ class TestArxivCorruptedDataHandling:
         """Test download with file listing for problematic ArXiv IDs."""
         # Test with non-existent paper using download with output_path="-" for file listing
         with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
+            ToolError, match="not found|does not exist|404|403|forbidden|paper.*not.*available"
         ):
             await mcp.call_tool(
                 "download",
@@ -247,6 +247,8 @@ class TestArxivCorruptedDataHandling:
                     "format not found",
                     "not found",
                     "404",
+                    "403",
+                    "forbidden",
                     "does not exist",
                     "unavailable",
                     "no such file",

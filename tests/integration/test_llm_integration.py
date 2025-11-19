@@ -499,9 +499,15 @@ def test_llm_input_validation(
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
     # Test missing output_file should raise error
-    with pytest.raises((ValueError, RuntimeError, IsADirectoryError, FileNotFoundError)) as e2:
+    with pytest.raises(
+        (ValueError, RuntimeError, IsADirectoryError, FileNotFoundError)
+    ) as e2:
         ask_func(prompt="Test prompt", output_file="", **base_params)
-    assert "output" in str(e2.value).lower() or "file" in str(e2.value).lower() or "directory" in str(e2.value).lower()
+    assert (
+        "output" in str(e2.value).lower()
+        or "file" in str(e2.value).lower()
+        or "directory" in str(e2.value).lower()
+    )
 
 
 # Error scenario test parameters (direct function references)

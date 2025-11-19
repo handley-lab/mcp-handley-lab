@@ -52,7 +52,7 @@ claude mcp add word --scope user mcp-word
 
 # Add additional tools as needed:
 # claude mcp add claude --scope user mcp-claude
-# claude mcp add groq --scope user mcp-groq 
+# claude mcp add groq --scope user mcp-groq
 # claude mcp add grok --scope user mcp-grok
 # claude mcp add py2nb --scope user mcp-py2nb
 # claude mcp add code2prompt --scope user mcp-code2prompt

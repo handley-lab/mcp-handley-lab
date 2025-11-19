@@ -67,7 +67,7 @@ class TestGroqIntegration:
     @pytest.mark.vcr
     def test_groq_ask_with_files(self):
         """Test text generation with file input."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write("This is a test file content for Groq LLM processing.")
             test_file = f.name
 
@@ -195,7 +195,7 @@ class TestGroqIntegration:
         """Test loading prompt from file."""
         prompt_content = "What is 2+2? Answer briefly."
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write(prompt_content)
             prompt_file = f.name
 

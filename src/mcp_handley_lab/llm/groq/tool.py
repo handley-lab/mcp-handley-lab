@@ -30,7 +30,10 @@ def _get_client() -> OpenAI:
     global _client
     with _client_lock:
         if _client is None:
-            if not settings.groq_api_key or settings.groq_api_key == "YOUR_API_KEY_HERE":
+            if (
+                not settings.groq_api_key
+                or settings.groq_api_key == "YOUR_API_KEY_HERE"
+            ):
                 raise RuntimeError("GROQ_API_KEY is not configured.")
             try:
                 _client = OpenAI(
@@ -190,9 +193,7 @@ def list_models() -> ModelListing:
     return get_structured_model_listing("groq", api_model_ids)
 
 
-@mcp.tool(
-    description="Checks Groq Tool server status and API connectivity."
-)
+@mcp.tool(description="Checks Groq Tool server status and API connectivity.")
 def server_info() -> ServerInfo:
     """Get server status and Groq configuration."""
     available_models = list(MODEL_CONFIGS.keys())

@@ -5,23 +5,16 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
-from mcp_handley_lab.llm.claude.tool import ask as claude_ask
-from mcp_handley_lab.llm.claude.tool import server_info as claude_server_info
-from mcp_handley_lab.llm.gemini.tool import analyze_image as gemini_analyze_image
-from mcp_handley_lab.llm.gemini.tool import ask as gemini_ask
-from mcp_handley_lab.llm.gemini.tool import server_info as gemini_server_info
-from mcp_handley_lab.llm.grok.tool import analyze_image as grok_analyze_image
-from mcp_handley_lab.llm.grok.tool import ask as grok_ask
-from mcp_handley_lab.llm.grok.tool import server_info as grok_server_info
-from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
-from mcp_handley_lab.llm.openai.tool import ask as openai_ask
-from mcp_handley_lab.llm.openai.tool import server_info as openai_server_info
+from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
+from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
+from mcp_handley_lab.llm.grok.tool import mcp as grok_mcp
+from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 
-# Define provider-specific parameters (direct function references)
+# Define provider-specific parameters (MCP instances)
 llm_providers = [
     pytest.param(
-        claude_ask,
+        claude_mcp,
+        "claude",
         "ANTHROPIC_API_KEY",
         "claude-3-5-haiku-20241022",
         "5+5",
@@ -29,7 +22,8 @@ llm_providers = [
         id="claude",
     ),
     pytest.param(
-        gemini_ask,
+        gemini_mcp,
+        "gemini",
         "GEMINI_API_KEY",
         "gemini-2.5-flash",
         "3+3",
@@ -37,7 +31,8 @@ llm_providers = [
         id="gemini",
     ),
     pytest.param(
-        openai_ask,
+        openai_mcp,
+        "openai",
         "OPENAI_API_KEY",
         "gpt-4o-mini",
         "2+2",
@@ -45,7 +40,8 @@ llm_providers = [
         id="openai",
     ),
     pytest.param(
-        grok_ask,
+        grok_mcp,
+        "grok",
         "XAI_API_KEY",
         "grok-3-mini",
         "7+1",
@@ -59,25 +55,29 @@ llm_providers = [
 
 image_providers = [
     pytest.param(
-        claude_analyze_image,
+        claude_mcp,
+        "claude",
         "ANTHROPIC_API_KEY",
         "claude-3-5-sonnet-20240620",
         id="claude",
     ),
     pytest.param(
-        gemini_analyze_image,
+        gemini_mcp,
+        "gemini",
         "GEMINI_API_KEY",
         "gemini-2.5-pro",
         id="gemini",
     ),
     pytest.param(
-        openai_analyze_image,
+        openai_mcp,
+        "openai",
         "OPENAI_API_KEY",
         "gpt-4o",
         id="openai",
     ),
     pytest.param(
-        grok_analyze_image,
+        grok_mcp,
+        "grok",
         "XAI_API_KEY",
         "grok-2-vision-1212",
         id="grok",
@@ -88,11 +88,11 @@ image_providers = [
 ]
 
 server_info_providers = [
-    pytest.param(claude_server_info, "ANTHROPIC_API_KEY", id="claude"),
-    pytest.param(gemini_server_info, "GEMINI_API_KEY", id="gemini"),
-    pytest.param(openai_server_info, "OPENAI_API_KEY", id="openai"),
+    pytest.param(claude_mcp, "ANTHROPIC_API_KEY", id="claude"),
+    pytest.param(gemini_mcp, "GEMINI_API_KEY", id="gemini"),
+    pytest.param(openai_mcp, "OPENAI_API_KEY", id="openai"),
     pytest.param(
-        grok_server_info,
+        grok_mcp,
         "XAI_API_KEY",
         id="grok",
         marks=pytest.mark.skip(
@@ -116,11 +116,13 @@ def create_test_image(tmp_path):
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_ask_basic(
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+async def test_llm_ask_basic(
     skip_if_no_api_key,
     test_output_file,
-    ask_func,
+    mcp,
+    provider,
     api_key,
     model,
     question,
@@ -136,11 +138,10 @@ def test_llm_ask_basic(
         "model": model,
         "agent_name": "",  # Disable memory
         "files": [],
-        "system_prompt": None,
     }
 
     # Add provider-specific parameters
-    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+    if provider == "openai":
         base_params.update(
             {
                 "temperature": 0.0,
@@ -149,7 +150,7 @@ def test_llm_ask_basic(
                 "top_logprobs": 0,
             }
         )
-    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+    elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
@@ -157,12 +158,7 @@ def test_llm_ask_basic(
                 "grounding": False,
             }
         )
-    elif (
-        ask_func.__name__ == "ask"
-        and "claude" in ask_func.__module__
-        or ask_func.__name__ == "ask"
-        and "grok" in ask_func.__module__
-    ):
+    elif provider in ("claude", "grok"):
         base_params.update(
             {
                 "temperature": 0.0,
@@ -170,23 +166,26 @@ def test_llm_ask_basic(
             }
         )
 
-    result = ask_func(**base_params)
+    _, response = await mcp.call_tool("ask", base_params)
+    assert "error" not in response, response.get("error")
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert response["content"] is not None
+    assert len(response["content"]) > 0
+    assert response["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert answer in content
 
 
 @pytest.mark.vcr
-@pytest.mark.parametrize("ask_func, api_key, model, question, answer", llm_providers)
-def test_llm_ask_with_files(
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mcp, provider, api_key, model, question, answer", llm_providers)
+async def test_llm_ask_with_files(
     skip_if_no_api_key,
     test_output_file,
     tmp_path,
-    ask_func,
+    mcp,
+    provider,
     api_key,
     model,
     question,
@@ -206,11 +205,10 @@ def test_llm_ask_with_files(
         "files": [str(test_file)],
         "model": model,
         "agent_name": "",
-        "system_prompt": None,
     }
 
     # Add provider-specific parameters
-    if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+    if provider == "openai":
         base_params.update(
             {
                 "temperature": 1.0,
@@ -219,7 +217,7 @@ def test_llm_ask_with_files(
                 "top_logprobs": 0,
             }
         )
-    elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+    elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 1.0,
@@ -227,12 +225,7 @@ def test_llm_ask_with_files(
                 "grounding": False,
             }
         )
-    elif (
-        ask_func.__name__ == "ask"
-        and "claude" in ask_func.__module__
-        or ask_func.__name__ == "ask"
-        and "grok" in ask_func.__module__
-    ):
+    elif provider in ("claude", "grok"):
         base_params.update(
             {
                 "temperature": 1.0,
@@ -240,11 +233,12 @@ def test_llm_ask_with_files(
             }
         )
 
-    result = ask_func(**base_params)
+    _, response = await mcp.call_tool("ask", base_params)
+    assert "error" not in response, response.get("error")
 
-    assert result.content is not None
-    assert len(result.content) > 0
-    assert result.usage.input_tokens > 0
+    assert response["content"] is not None
+    assert len(response["content"]) > 0
+    assert response["usage"]["input_tokens"] > 0
     assert Path(test_output_file).exists()
     content = Path(test_output_file).read_text()
     assert any(word in content.lower() for word in ["hello", "world", "test"])

@@ -142,6 +142,22 @@ models:
     pricing_type: "per_image"
     quality: "ultra"
 
+  imagen-4.0-generate-preview-06-06:
+    # Model metadata
+    description: "Preview version of Imagen 4 (standard quality)"
+    capabilities: "🎨 Best for: Testing Imagen 4 features (preview)"
+    tags: ["image-generation", "preview"]
+    context_window: "N/A (Image generation)"
+
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+
+    # Pricing (per image) - same as standard Imagen 4
+    price_per_image: 0.040
+    pricing_type: "per_image"
+    quality: "standard"
+
   imagen-3.0-generate-002:
     # Model metadata
     description: "Previous generation image model"

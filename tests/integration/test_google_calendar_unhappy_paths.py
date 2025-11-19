@@ -317,11 +317,9 @@ class TestGoogleCalendarZeroResultsScenarios:
     @pytest.mark.asyncio
     async def test_search_events_empty_date_range(self, google_calendar_test_config):
         """Test search with date range that contains no events."""
-        # Use future dates far in the future
-        far_future_start = (datetime.now() + timedelta(days=3650)).strftime(
-            "%Y-%m-%d"
-        )  # ~10 years
-        far_future_end = (datetime.now() + timedelta(days=3651)).strftime("%Y-%m-%d")
+        # Use fixed future dates to match VCR cassette
+        far_future_start = "2035-08-11"
+        far_future_end = "2035-08-12"
 
         _, response = await mcp.call_tool(
             "search_events",

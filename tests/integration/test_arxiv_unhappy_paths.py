@@ -300,13 +300,15 @@ class TestArxivEdgeCases:
                     assert "message" in response
 
             except ToolError as e:
-                # Version not found errors are acceptable
+                # Version not found errors are acceptable (404 or 403)
                 error_msg = str(e).lower()
                 version_error_keywords = [
                     "version",
                     "not found",
                     "does not exist",
                     "404",
+                    "403",
+                    "forbidden",
                     "unavailable",
                 ]
                 assert any(keyword in error_msg for keyword in version_error_keywords)

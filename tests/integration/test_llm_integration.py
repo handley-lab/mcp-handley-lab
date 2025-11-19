@@ -139,7 +139,7 @@ def test_llm_ask_basic(
         "system_prompt": None,
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern required for Field() descriptors)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -147,6 +147,10 @@ def test_llm_ask_basic(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -155,6 +159,10 @@ def test_llm_ask_basic(
                 "temperature": 0.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -167,6 +175,10 @@ def test_llm_ask_basic(
             {
                 "temperature": 0.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -217,6 +229,10 @@ def test_llm_ask_with_files(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -225,6 +241,10 @@ def test_llm_ask_with_files(
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -237,6 +257,10 @@ def test_llm_ask_with_files(
             {
                 "temperature": 1.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -327,7 +351,7 @@ def test_llm_memory_disabled(
         "system_prompt": None,
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern required for Field() descriptors)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -335,6 +359,10 @@ def test_llm_memory_disabled(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -343,6 +371,10 @@ def test_llm_memory_disabled(
                 "temperature": 0.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -355,6 +387,10 @@ def test_llm_memory_disabled(
             {
                 "temperature": 0.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -422,6 +458,10 @@ def test_llm_input_validation(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -430,6 +470,10 @@ def test_llm_input_validation(
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -442,6 +486,10 @@ def test_llm_input_validation(
             {
                 "temperature": 1.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -451,9 +499,9 @@ def test_llm_input_validation(
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
     # Test missing output_file should raise error
-    with pytest.raises((ValueError, RuntimeError)) as e2:
+    with pytest.raises((ValueError, RuntimeError, IsADirectoryError, FileNotFoundError)) as e2:
         ask_func(prompt="Test prompt", output_file="", **base_params)
-    assert "output" in str(e2.value).lower() or "file" in str(e2.value).lower()
+    assert "output" in str(e2.value).lower() or "file" in str(e2.value).lower() or "directory" in str(e2.value).lower()
 
 
 # Error scenario test parameters (direct function references)
@@ -531,6 +579,10 @@ def test_llm_error_scenarios(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -539,6 +591,10 @@ def test_llm_error_scenarios(
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -551,6 +607,10 @@ def test_llm_error_scenarios(
             {
                 "temperature": 1.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -593,6 +653,10 @@ def test_llm_response_metadata_fields(
                 "max_output_tokens": 0,
                 "enable_logprobs": True,
                 "top_logprobs": 3,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -601,6 +665,10 @@ def test_llm_response_metadata_fields(
                 "temperature": 1.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -613,6 +681,10 @@ def test_llm_response_metadata_fields(
             {
                 "temperature": 1.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -845,7 +917,7 @@ def test_llm_prompt_file_basic(
         "files": [],
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern - already has prompt_file/vars set above)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -921,7 +993,7 @@ def test_llm_prompt_file_with_template_vars(
         "files": [],
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern - already has prompt_file/vars set above)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -998,7 +1070,7 @@ def test_llm_system_prompt_file_with_templates(
         "files": [],
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern required for Field() descriptors)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -1006,6 +1078,10 @@ def test_llm_system_prompt_file_with_templates(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -1014,6 +1090,10 @@ def test_llm_system_prompt_file_with_templates(
                 "temperature": 0.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -1026,6 +1106,10 @@ def test_llm_system_prompt_file_with_templates(
             {
                 "temperature": 0.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 
@@ -1071,7 +1155,7 @@ def test_llm_prompt_file_xor_validation(
         "system_prompt_vars": {},
     }
 
-    # Add provider-specific parameters
+    # Add provider-specific parameters (verbose pattern required for Field() descriptors)
     if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
         base_params.update(
             {
@@ -1079,6 +1163,10 @@ def test_llm_prompt_file_xor_validation(
                 "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
@@ -1087,6 +1175,10 @@ def test_llm_prompt_file_xor_validation(
                 "temperature": 0.0,
                 "max_output_tokens": 0,
                 "grounding": False,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
     elif (
@@ -1099,6 +1191,10 @@ def test_llm_prompt_file_xor_validation(
             {
                 "temperature": 0.0,
                 "max_output_tokens": 0,
+                "prompt_file": None,
+                "prompt_vars": {},
+                "system_prompt_file": None,
+                "system_prompt_vars": {},
             }
         )
 

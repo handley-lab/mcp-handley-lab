@@ -367,7 +367,7 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Google Gemini AI service. Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Google Gemini AI service. Defaults to Gemini 3 Pro Preview (most intelligent model with state-of-the-art reasoning). Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
 )
 def ask(
     prompt: str = Field(
@@ -392,7 +392,7 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini model to use for the request (e.g., 'gemini-1.5-pro-latest').",
+        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'.",
     ),
     temperature: float = Field(
         default=1.0,
@@ -445,7 +445,7 @@ def ask(
 
 
 @mcp.tool(
-    description="Delegates image analysis to external Gemini vision AI service on behalf of the user. Returns Gemini's verbatim visual analysis to assist the user."
+    description="Delegates image analysis to external Gemini vision AI service on behalf of the user. Defaults to Gemini 3 Pro Preview for best multimodal understanding. Returns Gemini's verbatim visual analysis to assist the user."
 )
 def analyze_image(
     prompt: str = Field(
@@ -466,7 +466,7 @@ def analyze_image(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini vision model to use (e.g., 'gemini-1.5-pro-latest').",
+        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding).",
     ),
     agent_name: str = Field(
         default="session",

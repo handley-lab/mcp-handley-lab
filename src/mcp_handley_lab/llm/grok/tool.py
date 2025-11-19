@@ -278,7 +278,7 @@ def ask(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate. 0 means use the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -347,7 +347,7 @@ def analyze_image(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,

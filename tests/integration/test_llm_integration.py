@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 from PIL import Image
 
 from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
@@ -58,7 +59,7 @@ image_providers = [
         claude_mcp,
         "claude",
         "ANTHROPIC_API_KEY",
-        "claude-3-5-sonnet-20240620",
+        "claude-sonnet-4-5-20250929",
         id="claude",
     ),
     pytest.param(
@@ -417,14 +418,16 @@ async def test_llm_input_validation(
         )
 
     # Test empty prompt should raise error
-    with pytest.raises((ValueError, RuntimeError)) as e1:
+    with pytest.raises(ToolError) as e1:
         await mcp.call_tool("ask", {**base_params, "prompt": "", "output_file": test_output_file})
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
     # Test missing output_file should raise error
-    with pytest.raises((ValueError, RuntimeError)) as e2:
+    with pytest.raises(ToolError) as e2:
         await mcp.call_tool("ask", {**base_params, "prompt": "Test prompt", "output_file": ""})
-    assert "output" in str(e2.value).lower() or "file" in str(e2.value).lower()
+    # Error may be about missing file, directory, or file path validation
+    error_msg = str(e2.value).lower()
+    assert any(keyword in error_msg for keyword in ["output", "file", "directory", "path"])
 
 
 # Error scenario test parameters (MCP instances)
@@ -1066,7 +1069,7 @@ async def test_llm_prompt_file_xor_validation(
         )
 
     # Test: both prompt and prompt_file provided (should fail)
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ToolError) as exc_info:
         params_both = base_params.copy()
         params_both.update(
             {
@@ -1078,6 +1081,6 @@ async def test_llm_prompt_file_xor_validation(
     assert "exactly one of 'prompt' or 'prompt_file'" in str(exc_info.value).lower()
 
     # Test: neither prompt nor prompt_file provided (should fail)
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ToolError) as exc_info:
         await mcp.call_tool("ask", base_params)
     assert "exactly one of 'prompt' or 'prompt_file'" in str(exc_info.value).lower()

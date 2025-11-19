@@ -47,9 +47,9 @@ MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("claude")
 def _resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
-        "sonnet": "claude-3-5-sonnet-20241022",
-        "opus": "claude-3-opus-20240229",
-        "haiku": "claude-3-5-haiku-20241022",
+        "sonnet": "claude-sonnet-4-5-20250929",
+        "opus": "claude-opus-4-1-20250805",
+        "haiku": "claude-haiku-4-5-20251001",
     }
     return aliases.get(model, model)
 
@@ -379,7 +379,7 @@ def analyze_image(
         description="Specifies the focus of the analysis (e.g., 'text' to transcribe, 'objects' to identify).",
     ),
     model: str = Field(
-        "claude-3-5-sonnet-20240620",
+        DEFAULT_MODEL,
         description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
     ),
     agent_name: str = Field(
@@ -444,7 +444,7 @@ def test_connection() -> str:
     """Tests the connection to the Claude API."""
     try:
         _get_client().messages.create(
-            model="claude-3-5-haiku-20241022",
+            model="claude-haiku-4-5-20251001",
             messages=[{"role": "user", "content": "Hello"}],
             max_tokens=10,
         )

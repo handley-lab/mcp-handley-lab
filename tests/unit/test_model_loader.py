@@ -32,7 +32,7 @@ class TestLoadModelConfig:
         assert "imagen-3.0-generate-002" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "gemini-2.5-pro"
+        assert config["default_model"] == "gemini-3-pro-preview"
 
     def test_load_model_config_openai(self):
         """Test loading OpenAI model configuration."""
@@ -50,7 +50,7 @@ class TestLoadModelConfig:
         assert "dall-e-3" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "gpt-5"
+        assert config["default_model"] == "gpt-5.1"
 
     def test_load_model_config_claude(self):
         """Test loading Claude model configuration."""
@@ -63,11 +63,11 @@ class TestLoadModelConfig:
         assert "usage_notes" in config
 
         # Verify some expected models
-        assert "claude-sonnet-4" in config["models"]
-        assert "claude-opus-4" in config["models"]
+        assert "claude-sonnet-4-5-20250929" in config["models"]
+        assert "claude-opus-4-1-20250805" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "claude-sonnet-4"
+        assert config["default_model"] == "claude-sonnet-4-5-20250929"
 
     def test_load_model_config_nonexistent_provider(self):
         """Test loading configuration for non-existent provider."""
@@ -170,9 +170,9 @@ class TestBuildModelConfigsDict:
         configs = build_model_configs_dict("claude")
 
         # Test Claude model
-        assert "claude-sonnet-4" in configs
-        assert configs["claude-sonnet-4"]["input_tokens"] == 200000
-        assert configs["claude-sonnet-4"]["output_tokens"] == 64000
+        assert "claude-sonnet-4-5-20250929" in configs
+        assert configs["claude-sonnet-4-5-20250929"]["input_tokens"] == 200000
+        assert configs["claude-sonnet-4-5-20250929"]["output_tokens"] == 64000
 
     def test_build_model_configs_dict_gemini(self):
         """Test building Gemini model configs."""
@@ -197,11 +197,11 @@ class TestFormatModelListing:
         # Check summary section
         assert "Gemini Model Summary" in listing
         assert "Total Models:" in listing
-        assert "Default Model: gemini-2.5-pro" in listing
+        assert "Default Model: gemini-3-pro-preview" in listing
 
         # Check model categories
+        assert "🌟 Gemini 3 Series" in listing
         assert "🚀 Gemini 2.5 Series" in listing
-        assert "⚡ Gemini 1.5 Series" in listing
         assert "🎨 Image Generation" in listing
 
         # Check specific models
@@ -218,11 +218,11 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Openai Model Summary" in listing
-        assert "Default Model: gpt-5" in listing
+        assert "Default Model: gpt-5.1" in listing
 
         # Check model categories
+        assert "🚀 Flagship Models" in listing
         assert "🧠 Reasoning Models" in listing
-        assert "💭 Latest Language Models" in listing
         assert "🎨 Image Generation" in listing
 
         # Check specific models
@@ -236,15 +236,15 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Claude Model Summary" in listing
-        assert "Default Model: claude-sonnet-4" in listing
+        assert "Default Model: claude-sonnet-4-5-20250929" in listing
 
         # Check model categories
-        assert "🚀 Claude 4 Series" in listing
-        assert "⚡ Claude 3.5 Series" in listing
+        assert "🚀 Claude 4.5 Series" in listing
+        assert "🎯 Claude 4 Series" in listing
 
         # Check specific models
-        assert "claude-sonnet-4" in listing
-        assert "claude-opus-4" in listing
+        assert "claude-sonnet-4-5-20250929" in listing
+        assert "claude-opus-4-1-20250805" in listing
 
     def test_format_model_listing_with_api_models(self):
         """Test formatting with API model availability."""

@@ -47,9 +47,9 @@ MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("claude")
 def _resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
-        "sonnet": "claude-3-5-sonnet-20241022",
-        "opus": "claude-3-opus-20240229",
-        "haiku": "claude-3-5-haiku-20241022",
+        "sonnet": "claude-sonnet-4-5-20250929",
+        "opus": "claude-opus-4-1-20250805",
+        "haiku": "claude-haiku-4-5-20251001",
     }
     return aliases.get(model, model)
 
@@ -284,14 +284,14 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Anthropic Claude AI service. Can take a prompt directly or load it from a template file with variables. Returns Claude's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Anthropic Claude AI service. Can take a prompt directly or load it from a template file with variables. Returns Claude's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external Claude AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -321,13 +321,13 @@ def ask(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external Claude AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),
@@ -379,7 +379,7 @@ def analyze_image(
         description="Specifies the focus of the analysis (e.g., 'text' to transcribe, 'objects' to identify).",
     ),
     model: str = Field(
-        "claude-3-5-sonnet-20240620",
+        DEFAULT_MODEL,
         description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
     ),
     agent_name: str = Field(
@@ -388,7 +388,7 @@ def analyze_image(
     ),
     max_output_tokens: int = Field(
         0,
-        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -444,7 +444,7 @@ def test_connection() -> str:
     """Tests the connection to the Claude API."""
     try:
         _get_client().messages.create(
-            model="claude-3-5-haiku-20241022",
+            model="claude-haiku-4-5-20251001",
             messages=[{"role": "user", "content": "Hello"}],
             max_tokens=10,
         )

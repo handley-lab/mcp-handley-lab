@@ -92,7 +92,8 @@ class TestArxivNetworkAndServiceErrors:
         nonexistent_id = "9999.99999"
 
         with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
+            ToolError,
+            match="not found|does not exist|404|403|forbidden|paper.*not.*available",
         ):
             await mcp.call_tool(
                 "download",
@@ -207,7 +208,8 @@ class TestArxivCorruptedDataHandling:
         """Test download with file listing for problematic ArXiv IDs."""
         # Test with non-existent paper using download with output_path="-" for file listing
         with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
+            ToolError,
+            match="not found|does not exist|404|403|forbidden|paper.*not.*available",
         ):
             await mcp.call_tool(
                 "download",
@@ -247,6 +249,8 @@ class TestArxivCorruptedDataHandling:
                     "format not found",
                     "not found",
                     "404",
+                    "403",
+                    "forbidden",
                     "does not exist",
                     "unavailable",
                     "no such file",
@@ -300,13 +304,15 @@ class TestArxivEdgeCases:
                     assert "message" in response
 
             except ToolError as e:
-                # Version not found errors are acceptable
+                # Version not found errors are acceptable (404 or 403)
                 error_msg = str(e).lower()
                 version_error_keywords = [
                     "version",
                     "not found",
                     "does not exist",
                     "404",
+                    "403",
+                    "forbidden",
                     "unavailable",
                 ]
                 assert any(keyword in error_msg for keyword in version_error_keywords)

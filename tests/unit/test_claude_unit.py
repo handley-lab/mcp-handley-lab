@@ -13,32 +13,20 @@ class TestClaudeModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Claude models are in MODEL_CONFIGS."""
         expected_models = {
-            "claude-opus-4",
-            "claude-sonnet-4",
-            "claude-3-7-sonnet-20250219",
-            "claude-3-5-sonnet-20241022",
-            "claude-3-5-sonnet-20240620",
-            "claude-3-5-haiku-20241022",
-            "claude-3-opus-20240229",
-            "claude-3-sonnet-20240229",
-            "claude-3-haiku-20240307",
+            "claude-sonnet-4-5-20250929",
+            "claude-haiku-4-5-20251001",
+            "claude-opus-4-1-20250805",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
 
     def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
-        # Claude 4 series
-        assert MODEL_CONFIGS["claude-opus-4"]["output_tokens"] == 32000
-        assert MODEL_CONFIGS["claude-sonnet-4"]["output_tokens"] == 64000
+        # Claude 4.5 series
+        assert MODEL_CONFIGS["claude-sonnet-4-5-20250929"]["output_tokens"] == 64000
+        assert MODEL_CONFIGS["claude-haiku-4-5-20251001"]["output_tokens"] == 64000
 
-        # Claude 3.5 series
-        assert MODEL_CONFIGS["claude-3-5-sonnet-20241022"]["output_tokens"] == 8192
-        assert MODEL_CONFIGS["claude-3-5-haiku-20241022"]["output_tokens"] == 8192
-
-        # Claude 3 series
-        assert MODEL_CONFIGS["claude-3-opus-20240229"]["output_tokens"] == 4096
-        assert MODEL_CONFIGS["claude-3-sonnet-20240229"]["output_tokens"] == 4096
-        assert MODEL_CONFIGS["claude-3-haiku-20240307"]["output_tokens"] == 4096
+        # Claude 4.1 series
+        assert MODEL_CONFIGS["claude-opus-4-1-20250805"]["output_tokens"] == 32000
 
     def test_model_configs_context_windows(self):
         """Test that model configurations have correct context windows."""
@@ -57,8 +45,8 @@ class TestClaudeModelConfiguration:
 
     def test_get_model_config_valid_model(self):
         """Test _get_model_config with valid model names."""
-        config = _get_model_config("claude-3-5-sonnet-20241022")
-        assert config["output_tokens"] == 8192
+        config = _get_model_config("claude-sonnet-4-5-20250929")
+        assert config["output_tokens"] == 64000
         assert config["input_tokens"] == 200000
 
     def test_get_model_config_fallback_to_default(self):
@@ -71,14 +59,14 @@ class TestClaudeModelConfiguration:
 
     def test_resolve_model_alias(self):
         """Test model alias resolution."""
-        assert _resolve_model_alias("sonnet") == "claude-3-5-sonnet-20241022"
-        assert _resolve_model_alias("opus") == "claude-3-opus-20240229"
-        assert _resolve_model_alias("haiku") == "claude-3-5-haiku-20241022"
+        assert _resolve_model_alias("sonnet") == "claude-sonnet-4-5-20250929"
+        assert _resolve_model_alias("opus") == "claude-opus-4-1-20250805"
+        assert _resolve_model_alias("haiku") == "claude-haiku-4-5-20251001"
 
         # Test that non-alias models pass through unchanged
         assert (
-            _resolve_model_alias("claude-3-5-sonnet-20241022")
-            == "claude-3-5-sonnet-20241022"
+            _resolve_model_alias("claude-sonnet-4-5-20250929")
+            == "claude-sonnet-4-5-20250929"
         )
 
 

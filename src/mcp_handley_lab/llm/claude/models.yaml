@@ -1,8 +1,44 @@
 models:
-  claude-opus-4:
+  claude-sonnet-4-5-20250929:
     # Model metadata
-    description: "Most capable Claude 4 model for the most complex tasks"
-    capabilities: "🎯 Best for: Complex analysis, creative writing, advanced reasoning, research"
+    description: "Smartest Claude model for complex agents and coding"
+    capabilities: "🌟 Best for: Complex agents, coding, agentic workflows, extended thinking"
+    tags: ["claude-4.5", "sonnet", "general", "latest"]
+    context_window: "200,000 tokens (~150,000 words)"
+    input_tokens: 200000
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_system_prompt: true
+    supports_extended_thinking: true
+
+    # Pricing
+    input_per_1m: 3.00
+    output_per_1m: 15.00
+
+  claude-haiku-4-5-20251001:
+    # Model metadata
+    description: "Fastest Claude model with near-frontier intelligence"
+    capabilities: "⚡ Best for: Quick tasks, high-throughput processing, cost-effective intelligence"
+    tags: ["claude-4.5", "haiku", "fast", "cost-effective", "latest"]
+    context_window: "200,000 tokens (~150,000 words)"
+    input_tokens: 200000
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_system_prompt: true
+    supports_extended_thinking: true
+
+    # Pricing
+    input_per_1m: 1.00
+    output_per_1m: 5.00
+
+  claude-opus-4-1-20250805:
+    # Model metadata
+    description: "Exceptional Claude model for specialized reasoning tasks"
+    capabilities: "🎯 Best for: Specialized reasoning, complex analysis, critical tasks"
     tags: ["claude-4", "opus", "premium", "latest"]
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
@@ -11,193 +47,49 @@ models:
     # Capabilities
     supports_vision: true
     supports_system_prompt: true
+    supports_extended_thinking: true
 
     # Pricing
     input_per_1m: 15.00
     output_per_1m: 75.00
-
-  claude-sonnet-4:
-    # Model metadata
-    description: "Balanced Claude 4 model for most use cases"
-    capabilities: "⚖️ Best for: General tasks, coding, analysis, balanced performance"
-    tags: ["claude-4", "sonnet", "general", "latest"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 64000
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
-
-  claude-3-7-sonnet-20250219:
-    # Model metadata
-    description: "Enhanced Claude 3.7 with improved reasoning capabilities"
-    capabilities: "⚖️ Best for: General tasks, enhanced reasoning, coding, step-by-step thinking"
-    tags: ["claude-3.7", "sonnet", "general", "latest"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 64000
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
-
-  claude-3-5-sonnet-20241022:
-    # Model metadata
-    description: "Latest Claude 3.5 Sonnet with enhanced reasoning"
-    capabilities: "⚖️ Best for: General tasks, coding, analysis, balanced performance"
-    tags: ["claude-3.5", "sonnet", "general", "latest"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
-
-  claude-3-5-sonnet-20240620:
-    # Model metadata
-    description: "Claude 3.5 Sonnet from June 2024"
-    capabilities: "⚖️ Best for: Established workflows, consistent behavior"
-    tags: ["claude-3.5", "sonnet", "general", "snapshot"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
-
-  claude-3-5-haiku-20241022:
-    # Model metadata
-    description: "Fast, efficient Claude 3.5 for quick tasks"
-    capabilities: "⚡ Best for: Quick tasks, simple queries, cost-sensitive applications"
-    tags: ["claude-3.5", "haiku", "fast", "cost-effective"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 0.80
-    output_per_1m: 4.00
-
-  claude-3-opus-20240229:
-    # Model metadata
-    description: "Most capable Claude 3 model"
-    capabilities: "🎯 Best for: Complex analysis, creative writing, advanced reasoning"
-    tags: ["claude-3", "opus", "premium", "legacy"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 4096
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 15.00
-    output_per_1m: 75.00
-
-  claude-3-sonnet-20240229:
-    # Model metadata
-    description: "Balanced Claude 3 model"
-    capabilities: "⚖️ Best for: General tasks, coding, analysis"
-    tags: ["claude-3", "sonnet", "general", "legacy"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 4096
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
-
-  claude-3-haiku-20240307:
-    # Model metadata
-    description: "Fastest Claude 3 model"
-    capabilities: "⚡ Best for: Quick tasks, simple queries, cost optimization"
-    tags: ["claude-3", "haiku", "fast", "cost-effective", "legacy"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 4096
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-
-    # Pricing
-    input_per_1m: 0.25
-    output_per_1m: 1.25
 
 # Cache pricing (optional feature)
 cache_pricing:
   5_minute_cache:
-    claude-opus-4: 18.75
-    claude-opus-3: 18.75
-    claude-sonnet-4: 3.75
-    claude-sonnet-3.7: 3.75
-    claude-3-5-sonnet-20241022: 3.75
-    claude-3-5-sonnet-20240620: 3.75
-    claude-3-5-haiku-20241022: 1.00
-    claude-3-haiku-20240307: 0.30
+    claude-opus-4-1-20250805: 18.75
+    claude-sonnet-4-5-20250929: 3.75
+    claude-haiku-4-5-20251001: 1.00
 
   1_hour_cache:
-    claude-opus-4: 30.00
-    claude-opus-3: 30.00
-    claude-sonnet-4: 6.00
-    claude-sonnet-3.7: 6.00
-    claude-3-5-sonnet-20241022: 6.00
-    claude-3-5-sonnet-20240620: 6.00
-    claude-3-5-haiku-20241022: 1.60
-    claude-3-haiku-20240307: 0.50
+    claude-opus-4-1-20250805: 30.00
+    claude-sonnet-4-5-20250929: 6.00
+    claude-haiku-4-5-20251001: 1.60
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
-  - name: "🚀 Claude 4 Series"
+  - name: "🚀 Claude 4.5 Series"
+    tags: ["claude-4.5"]
+    description: "Latest generation Claude models with extended thinking and enhanced capabilities"
+  - name: "🎯 Claude 4 Series"
     tags: ["claude-4"]
-    description: "Latest generation Claude models with enhanced capabilities"
-  - name: "⚡ Claude 3.5 Series"
-    tags: ["claude-3.5"]
-    description: "Enhanced Claude 3.5 models with improved reasoning"
-  - name: "📚 Claude 3 Legacy"
-    tags: ["claude-3", "legacy"]
-    description: "Original Claude 3 models for established workflows"
+    description: "Exceptional Claude models for specialized reasoning tasks"
 
 # Default model
-default_model: "claude-sonnet-4"
+default_model: "claude-sonnet-4-5-20250929"
 
 # Usage notes
 usage_notes:
   - "All Claude models have 200,000 token context windows"
+  - "Claude Sonnet 4.5 supports 1M token context window with beta header"
   - "All models support vision and image analysis capabilities"
+  - "All models support extended thinking for complex reasoning tasks"
   - "System prompts supported via separate parameter"
   - "Prompt caching available with 5-minute TTL (extended caching with 1-hour TTL)"
-  - "Latest models (Opus 4.1, Sonnet 4, Haiku 3.5) have enhanced reasoning capabilities"
-  - "Sonnet 4 has tiered pricing based on prompt size (≤200K vs >200K tokens)"
+  - "Claude Sonnet 4.5 recommended for most use cases (best balance of intelligence and cost)"
+  - "Claude Haiku 4.5 offers near-frontier intelligence with fastest latency"
+  - "Claude Opus 4.1 for specialized reasoning requiring maximum precision"
   - "Web search costs $10 per 1,000 searches"
   - "Code execution: $0.05/hour with 50 free hours daily per organization"
   - "Batch processing offers 50% discount for asynchronous workloads"
   - "Service tiers: Standard (default), Priority (SLA), Batch (50% discount)"
+  - "Extended thinking costs additional per reasoning token generated"

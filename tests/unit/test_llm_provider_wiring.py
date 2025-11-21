@@ -127,6 +127,8 @@ class TestProviderParameterConsistency:
 
     def test_parameter_types_are_consistent(self):
         """Test that all providers have consistent parameter types for new parameters."""
+        from typing import get_args, get_origin
+
         providers = [openai_ask, claude_ask, gemini_ask, grok_ask]
         expected_types = {
             "prompt_file": str,
@@ -144,14 +146,12 @@ class TestProviderParameterConsistency:
                 actual_type = param.annotation
 
                 # Handle dict[str, str] type annotations first
-                if (
-                    hasattr(actual_type, "__origin__")
-                    and actual_type.__origin__ is dict
-                ):
+                origin = get_origin(actual_type)
+                if origin is dict:
                     actual_type = dict
-                # Handle Union types (e.g., str | None)
-                elif hasattr(actual_type, "__origin__"):
-                    args = getattr(actual_type, "__args__", ())
+                # Handle Union types (e.g., str | None or Union[str, None])
+                elif origin is not None:
+                    args = get_args(actual_type)
                     # Get the first non-None type
                     actual_type = next(
                         (arg for arg in args if arg is not type(None)), actual_type

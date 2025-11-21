@@ -35,7 +35,7 @@ def _run_code2prompt(args: list[str]) -> str:
 
 
 @mcp.tool(
-    description="Generates a structured, token-counted summary of a codebase. Supports include/exclude, git diffs, and formatting options."
+    description="Generates a structured, token-counted summary of a codebase for LLM analysis. Supports include/exclude, git diffs, and formatting options."
 )
 def generate_prompt(
     path: str = Field(..., description="The source directory or file path to analyze."),

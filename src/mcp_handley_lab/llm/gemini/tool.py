@@ -262,23 +262,27 @@ def _gemini_generation_adapter(
     if not response.text:
         raise RuntimeError("No response text generated")
 
-    # Extract grounding metadata - direct access, fail fast
+    # Extract grounding metadata - SDK converts to snake_case, fail fast on API changes
     grounding_metadata = None
     response_dict = response.to_json_dict()
     if "candidates" in response_dict and response_dict["candidates"]:
         candidate = response_dict["candidates"][0]
         if "grounding_metadata" in candidate:
             metadata = candidate["grounding_metadata"]
-            grounding_metadata = {
-                "web_search_queries": metadata["web_search_queries"],
-                "grounding_chunks": [
-                    {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
-                    for chunk in metadata["grounding_chunks"]
-                    if "web" in chunk
-                ],
-                "grounding_supports": metadata["grounding_supports"],
-                "search_entry_point": metadata["search_entry_point"],
-            }
+            # Skip if empty (happens with conversational history reusing previous grounding)
+            if not metadata:
+                pass
+            else:
+                grounding_metadata = {
+                    "web_search_queries": metadata["web_search_queries"],
+                    "grounding_chunks": [
+                        {"uri": chunk["web"]["uri"], "title": chunk["web"]["title"]}
+                        for chunk in metadata["grounding_chunks"]
+                        if "web" in chunk
+                    ],
+                    "grounding_supports": metadata["grounding_supports"],
+                    "search_entry_point": metadata["search_entry_point"],
+                }
 
     # Extract additional response metadata - direct access
     finish_reason = ""
@@ -367,14 +371,14 @@ def _gemini_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Google Gemini AI service. Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Google Gemini AI service. Defaults to Gemini 3 Pro Preview (most intelligent model with state-of-the-art reasoning). Can take a prompt directly or load it from a template file with variables. Returns Gemini's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external Gemini AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -392,7 +396,7 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini model to use for the request (e.g., 'gemini-1.5-pro-latest').",
+        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'.",
     ),
     temperature: float = Field(
         default=1.0,
@@ -408,13 +412,13 @@ def ask(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external Gemini AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),
@@ -445,7 +449,7 @@ def ask(
 
 
 @mcp.tool(
-    description="Delegates image analysis to external Gemini vision AI service on behalf of the user. Returns Gemini's verbatim visual analysis to assist the user."
+    description="Delegates image analysis to external Gemini vision AI service on behalf of the user. Defaults to Gemini 3 Pro Preview for best multimodal understanding. Returns Gemini's verbatim visual analysis to assist the user."
 )
 def analyze_image(
     prompt: str = Field(
@@ -466,7 +470,7 @@ def analyze_image(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini vision model to use (e.g., 'gemini-1.5-pro-latest').",
+        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding).",
     ),
     agent_name: str = Field(
         default="session",
@@ -474,7 +478,7 @@ def analyze_image(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,

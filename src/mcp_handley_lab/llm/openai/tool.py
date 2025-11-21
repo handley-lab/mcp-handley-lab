@@ -266,14 +266,14 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external OpenAI AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -291,7 +291,7 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The OpenAI GPT model to use for the request (e.g., 'gpt-5', 'gpt-5-mini', 'o3').",
+        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.1' (recommended). Other options: 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'.",
     ),
     temperature: float = Field(
         default=1.0,
@@ -299,7 +299,7 @@ def ask(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="Max response tokens. 0 for model's default max.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -313,11 +313,11 @@ def ask(
         default=0,
         description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),
@@ -377,7 +377,7 @@ def analyze_image(
     ),
     max_output_tokens: int = Field(
         default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
+        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,

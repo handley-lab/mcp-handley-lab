@@ -7,7 +7,7 @@ import pytest
 
 
 def scrub_oauth_tokens(response):
-    """Scrub OAuth tokens from response bodies."""
+    """Scrub OAuth tokens from response bodies, preserving binary data."""
     if not hasattr(response, "get") or "body" not in response:
         return response
 
@@ -15,14 +15,20 @@ def scrub_oauth_tokens(response):
     if isinstance(body, dict) and "string" in body:
         body_str = body["string"]
 
-        # Handle both string and bytes content
         if isinstance(body_str, bytes):
-            # Decode bytes to string, scrub, then encode back
-            body_str = body_str.decode("utf-8", errors="ignore")
+            try:
+                # Attempt strict decode. If this contains binary data (gzip/tar),
+                # this will raise UnicodeDecodeError.
+                decoded_str = body_str.decode("utf-8")
+            except UnicodeDecodeError:
+                # Binary data - do not scrub, do not modify
+                return response
+
+            # Safe text - proceed with scrubbing
             body_str = re.sub(
                 r'"access_token"\s*:\s*"ya29\.[^"]*"',
                 '"access_token": "REDACTED_OAUTH_TOKEN"',
-                body_str,
+                decoded_str,
             )
             body_str = re.sub(
                 r'"access_token"\s*:\s*"[A-Za-z0-9._-]{100,}"',
@@ -30,6 +36,7 @@ def scrub_oauth_tokens(response):
                 body_str,
             )
             body["string"] = body_str.encode("utf-8")
+
         elif isinstance(body_str, str):
             # Handle string content directly
             body_str = re.sub(
@@ -71,7 +78,8 @@ def vcr_config():
             "access_token",
         ],
         "before_record_response": scrub_oauth_tokens,
-        "decode_compressed_response": True,
+        # Disable automatic decompression so binary gzip data is preserved
+        "decode_compressed_response": False,
     }
 
 

@@ -7,15 +7,11 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from mcp_handley_lab.llm.claude.tool import analyze_image as claude_analyze_image
-from mcp_handley_lab.llm.claude.tool import ask as claude_ask
-from mcp_handley_lab.llm.gemini.tool import analyze_image as gemini_analyze_image
-from mcp_handley_lab.llm.gemini.tool import ask as gemini_ask
-from mcp_handley_lab.llm.grok.tool import analyze_image as grok_analyze_image
-from mcp_handley_lab.llm.grok.tool import ask as grok_ask
+from mcp_handley_lab.llm.claude.tool import mcp as claude_mcp
+from mcp_handley_lab.llm.gemini.tool import mcp as gemini_mcp
+from mcp_handley_lab.llm.grok.tool import mcp as grok_mcp
 from mcp_handley_lab.llm.memory import memory_manager
-from mcp_handley_lab.llm.openai.tool import analyze_image as openai_analyze_image
-from mcp_handley_lab.llm.openai.tool import ask as openai_ask
+from mcp_handley_lab.llm.openai.tool import mcp as openai_mcp
 
 # Skip all API-requiring tests if API keys not available
 gemini_available = bool(os.getenv("GEMINI_API_KEY"))
@@ -26,7 +22,8 @@ grok_available = bool(os.getenv("XAI_API_KEY"))
 # Provider configurations for testing
 system_prompt_providers = [
     pytest.param(
-        gemini_ask,
+        gemini_mcp,
+        "gemini",
         "GEMINI_API_KEY",
         "gemini-2.5-flash",
         id="gemini",
@@ -35,7 +32,8 @@ system_prompt_providers = [
         ),
     ),
     pytest.param(
-        openai_ask,
+        openai_mcp,
+        "openai",
         "OPENAI_API_KEY",
         "gpt-4o-mini",
         id="openai",
@@ -44,16 +42,18 @@ system_prompt_providers = [
         ),
     ),
     pytest.param(
-        claude_ask,
+        claude_mcp,
+        "claude",
         "ANTHROPIC_API_KEY",
-        "claude-3-5-haiku-20241022",
+        "claude-haiku-4-5-20251001",
         id="claude",
         marks=pytest.mark.skipif(
             not claude_available, reason="ANTHROPIC_API_KEY not available"
         ),
     ),
     pytest.param(
-        grok_ask,
+        grok_mcp,
+        "grok",
         "XAI_API_KEY",
         "grok-3-mini",
         id="grok",
@@ -63,7 +63,8 @@ system_prompt_providers = [
 
 image_analysis_providers = [
     pytest.param(
-        gemini_analyze_image,
+        gemini_mcp,
+        "gemini",
         "GEMINI_API_KEY",
         "gemini-2.5-pro",
         id="gemini",
@@ -72,7 +73,8 @@ image_analysis_providers = [
         ),
     ),
     pytest.param(
-        openai_analyze_image,
+        openai_mcp,
+        "openai",
         "OPENAI_API_KEY",
         "gpt-4o",
         id="openai",
@@ -81,16 +83,18 @@ image_analysis_providers = [
         ),
     ),
     pytest.param(
-        claude_analyze_image,
+        claude_mcp,
+        "claude",
         "ANTHROPIC_API_KEY",
-        "claude-3-5-sonnet-20240620",
+        "claude-sonnet-4-5-20250929",
         id="claude",
         marks=pytest.mark.skipif(
             not claude_available, reason="ANTHROPIC_API_KEY not available"
         ),
     ),
     pytest.param(
-        grok_analyze_image,
+        grok_mcp,
+        "grok",
         "XAI_API_KEY",
         "grok-2-vision-1212",
         id="grok",
@@ -112,8 +116,9 @@ class TestSystemPromptBasic:
     """Test basic system prompt functionality."""
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_system_prompt_parameter_exists(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_system_prompt_parameter_exists(self, mcp, provider, api_key, model):
         """Test that system_prompt parameter is accepted by all providers."""
         # Test with a simple math question and specific system prompt
 
@@ -128,7 +133,7 @@ class TestSystemPromptBasic:
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -137,7 +142,7 @@ class TestSystemPromptBasic:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -145,7 +150,7 @@ class TestSystemPromptBasic:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -153,18 +158,20 @@ class TestSystemPromptBasic:
                 }
             )
 
-        result = ask_func(**base_params)
+        _, response = await mcp.call_tool("ask", base_params)
+        assert "error" not in response, response.get("error")
 
-        assert result.content is not None
-        assert len(result.content) > 0
+        assert response["content"] is not None
+        assert len(response["content"]) > 0
 
         # Verify response reflects the system prompt (should be explanatory)
-        assert len(result.content) > 10  # Should be more than just "4"
+        assert len(response["content"]) > 10  # Should be more than just "4"
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("analyze_func,api_key,model", image_analysis_providers)
-    def test_system_prompt_image_analysis(
-        self, analyze_func, api_key, model, sample_image_path
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", image_analysis_providers)
+    async def test_system_prompt_image_analysis(
+        self, mcp, provider, api_key, model, sample_image_path
     ):
         """Test system_prompt works with image analysis tools."""
 
@@ -179,32 +186,27 @@ class TestSystemPromptBasic:
         }
 
         # Add provider-specific parameters
-        if (
-            analyze_func.__name__ == "analyze_image"
-            and "openai" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "gemini" in analyze_func.__module__
-            or analyze_func.__name__ == "analyze_image"
-            and "claude" in analyze_func.__module__
-        ):
+        if provider in ("openai", "gemini", "claude"):
             base_params.update(
                 {
                     "max_output_tokens": 0,
                 }
             )
 
-        result = analyze_func(**base_params)
+        _, response = await mcp.call_tool("analyze_image", base_params)
+        assert "error" not in response, response.get("error")
 
-        assert result.content is not None
-        assert len(result.content) > 0
+        assert response["content"] is not None
+        assert len(response["content"]) > 0
 
 
 class TestSystemPromptPersistence:
     """Test that system prompts are remembered across calls."""
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_system_prompt_persistence(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_system_prompt_persistence(self, mcp, provider, api_key, model):
         """Test that system prompt is remembered across multiple calls."""
         agent_name = f"test_persistence_{model.replace('-', '_')}"
 
@@ -219,11 +221,9 @@ class TestSystemPromptPersistence:
             }
             if system_prompt:
                 base_params["system_prompt"] = system_prompt
-            else:
-                base_params["system_prompt"] = None
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -232,7 +232,7 @@ class TestSystemPromptPersistence:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -240,7 +240,7 @@ class TestSystemPromptPersistence:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -255,10 +255,11 @@ class TestSystemPromptPersistence:
             "/tmp/test_persistence1.txt",
             "You are a concise math expert. Give only the answer and one short explanation.",
         )
-        result1 = ask_func(**params1)
+        _, response1 = await mcp.call_tool("ask", params1)
+        assert "error" not in response1, response1.get("error")
 
-        assert result1.content is not None
-        content1 = result1.content
+        assert response1["content"] is not None
+        content1 = response1["content"]
 
         # Second call: No system prompt provided - should use remembered one
         params2 = get_base_params(
@@ -266,10 +267,11 @@ class TestSystemPromptPersistence:
             "/tmp/test_persistence2.txt",
             None,  # No system prompt - should use remembered one
         )
-        result2 = ask_func(**params2)
+        _, response2 = await mcp.call_tool("ask", params2)
+        assert "error" not in response2, response2.get("error")
 
-        assert result2.content is not None
-        content2 = result2.content
+        assert response2["content"] is not None
+        content2 = response2["content"]
 
         # Both responses should be concise (reflecting the system prompt)
         # This is a heuristic test - responses should be relatively short
@@ -277,8 +279,9 @@ class TestSystemPromptPersistence:
         assert len(content2) < 200  # Also concise (using remembered system prompt)
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_system_prompt_update(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_system_prompt_update(self, mcp, provider, api_key, model):
         """Test that system prompt can be updated and new one is remembered."""
         agent_name = f"test_update_{model.replace('-', '_')}"
 
@@ -293,11 +296,9 @@ class TestSystemPromptPersistence:
             }
             if system_prompt:
                 base_params["system_prompt"] = system_prompt
-            else:
-                base_params["system_prompt"] = None
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -306,7 +307,7 @@ class TestSystemPromptPersistence:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -314,7 +315,7 @@ class TestSystemPromptPersistence:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -329,9 +330,10 @@ class TestSystemPromptPersistence:
             "/tmp/test_update1.txt",
             "You are a verbose math teacher. Explain everything in great detail with examples.",
         )
-        result1 = ask_func(**params1)
-        assert result1.content is not None
-        content1 = result1.content
+        _, response1 = await mcp.call_tool("ask", params1)
+        assert "error" not in response1, response1.get("error")
+        assert response1["content"] is not None
+        content1 = response1["content"]
 
         # Second call: Change to brief system prompt
         params2 = get_base_params(
@@ -339,9 +341,10 @@ class TestSystemPromptPersistence:
             "/tmp/test_update2.txt",
             "You are brief. Give only the answer.",
         )
-        result2 = ask_func(**params2)
-        assert result2.content is not None
-        content2 = result2.content
+        _, response2 = await mcp.call_tool("ask", params2)
+        assert "error" not in response2, response2.get("error")
+        assert response2["content"] is not None
+        content2 = response2["content"]
 
         # Third call: No system prompt - should use the new brief one
         params3 = get_base_params(
@@ -349,17 +352,21 @@ class TestSystemPromptPersistence:
             "/tmp/test_update3.txt",
             None,  # No system prompt
         )
-        result3 = ask_func(**params3)
-        assert result3.content is not None
-        content3 = result3.content
+        _, response3 = await mcp.call_tool("ask", params3)
+        assert "error" not in response3, response3.get("error")
+        assert response3["content"] is not None
+        content3 = response3["content"]
 
         # First response should be verbose, second and third should be brief
         assert len(content1) > len(content2)  # Verbose vs brief
         assert len(content3) < 100  # Third response should also be brief
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_different_agents_different_prompts(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_different_agents_different_prompts(
+        self, mcp, provider, api_key, model
+    ):
         """Test that different agents can have different system prompts."""
 
         # Provider-specific parameters for Agent 1
@@ -373,11 +380,9 @@ class TestSystemPromptPersistence:
             }
             if system_prompt:
                 base_params["system_prompt"] = system_prompt
-            else:
-                base_params["system_prompt"] = None
 
             # Add provider-specific parameters
-            if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+            if provider == "openai":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -386,7 +391,7 @@ class TestSystemPromptPersistence:
                         "top_logprobs": 0,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+            elif provider == "gemini":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -394,7 +399,7 @@ class TestSystemPromptPersistence:
                         "grounding": False,
                     }
                 )
-            elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+            elif provider == "claude":
                 base_params.update(
                     {
                         "temperature": 1.0,
@@ -410,9 +415,10 @@ class TestSystemPromptPersistence:
             f"formal_agent_{model.replace('-', '_')}",
             "You are a formal mathematics professor. Use proper mathematical terminology.",
         )
-        result1 = ask_func(**params1)
-        assert result1.content is not None
-        content1 = result1.content
+        _, response1 = await mcp.call_tool("ask", params1)
+        assert "error" not in response1, response1.get("error")
+        assert response1["content"] is not None
+        content1 = response1["content"]
 
         # Agent 2: Casual style
         params2 = get_base_params(
@@ -421,9 +427,10 @@ class TestSystemPromptPersistence:
             f"casual_agent_{model.replace('-', '_')}",
             "You are a friendly buddy. Be casual and use simple words.",
         )
-        result2 = ask_func(**params2)
-        assert result2.content is not None
-        content2 = result2.content
+        _, response2 = await mcp.call_tool("ask", params2)
+        assert "error" not in response2, response2.get("error")
+        assert response2["content"] is not None
+        content2 = response2["content"]
 
         # Both should contain "10" but in different styles
         assert "10" in content1 or "ten" in content1.lower()
@@ -514,8 +521,9 @@ class TestSystemPromptEdgeCases:
     """Test edge cases and error scenarios for system prompts."""
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_empty_system_prompt(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_empty_system_prompt(self, mcp, provider, api_key, model):
         """Test behavior with empty system prompt."""
 
         # Provider-specific parameters
@@ -529,7 +537,7 @@ class TestSystemPromptEdgeCases:
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -538,7 +546,7 @@ class TestSystemPromptEdgeCases:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -546,7 +554,7 @@ class TestSystemPromptEdgeCases:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -554,12 +562,14 @@ class TestSystemPromptEdgeCases:
                 }
             )
 
-        result = ask_func(**base_params)
-        assert result.content is not None
+        _, response = await mcp.call_tool("ask", base_params)
+        assert "error" not in response, response.get("error")
+        assert response["content"] is not None
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_none_system_prompt(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_none_system_prompt(self, mcp, provider, api_key, model):
         """Test behavior with None system prompt."""
 
         # Provider-specific parameters
@@ -568,12 +578,11 @@ class TestSystemPromptEdgeCases:
             "output_file": "/tmp/test_none_prompt.txt",
             "agent_name": f"none_prompt_agent_{model.replace('-', '_')}",
             "model": model,
-            "system_prompt": None,
             "files": [],
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -582,7 +591,7 @@ class TestSystemPromptEdgeCases:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -590,7 +599,7 @@ class TestSystemPromptEdgeCases:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -598,12 +607,14 @@ class TestSystemPromptEdgeCases:
                 }
             )
 
-        result = ask_func(**base_params)
-        assert result.content is not None
+        _, response = await mcp.call_tool("ask", base_params)
+        assert "error" not in response, response.get("error")
+        assert response["content"] is not None
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_very_long_system_prompt(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_very_long_system_prompt(self, mcp, provider, api_key, model):
         """Test behavior with very long system prompt."""
         long_prompt = "You are a helpful assistant. " * 100  # Very long prompt
 
@@ -618,7 +629,7 @@ class TestSystemPromptEdgeCases:
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -627,7 +638,7 @@ class TestSystemPromptEdgeCases:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -635,7 +646,7 @@ class TestSystemPromptEdgeCases:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -643,12 +654,16 @@ class TestSystemPromptEdgeCases:
                 }
             )
 
-        result = ask_func(**base_params)
-        assert result.content is not None
+        _, response = await mcp.call_tool("ask", base_params)
+        assert "error" not in response, response.get("error")
+        assert response["content"] is not None
 
     @pytest.mark.vcr
-    @pytest.mark.parametrize("ask_func,api_key,model", system_prompt_providers)
-    def test_special_characters_system_prompt(self, ask_func, api_key, model):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("mcp,provider,api_key,model", system_prompt_providers)
+    async def test_special_characters_system_prompt(
+        self, mcp, provider, api_key, model
+    ):
         """Test system prompt with special characters and Unicode."""
         special_prompt = (
             "You are a helpful assistant 🤖. Use emojis: ∑, ∏, ∆, ∇, ∈, ∉, ∀, ∃"
@@ -665,7 +680,7 @@ class TestSystemPromptEdgeCases:
         }
 
         # Add provider-specific parameters
-        if ask_func.__name__ == "ask" and "openai" in ask_func.__module__:
+        if provider == "openai":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -674,7 +689,7 @@ class TestSystemPromptEdgeCases:
                     "top_logprobs": 0,
                 }
             )
-        elif ask_func.__name__ == "ask" and "gemini" in ask_func.__module__:
+        elif provider == "gemini":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -682,7 +697,7 @@ class TestSystemPromptEdgeCases:
                     "grounding": False,
                 }
             )
-        elif ask_func.__name__ == "ask" and "claude" in ask_func.__module__:
+        elif provider == "claude":
             base_params.update(
                 {
                     "temperature": 1.0,
@@ -690,5 +705,6 @@ class TestSystemPromptEdgeCases:
                 }
             )
 
-        result = ask_func(**base_params)
-        assert result.content is not None
+        _, response = await mcp.call_tool("ask", base_params)
+        assert "error" not in response, response.get("error")
+        assert response["content"] is not None

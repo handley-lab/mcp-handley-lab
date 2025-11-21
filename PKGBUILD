@@ -7,6 +7,7 @@ pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity
 arch=('any')
 url="https://github.com/handley-lab/mcp-handley-lab"
 license=('custom') # TODO: Replace with actual license when specified
+conflicts=('python-mcp-handley-lab-git')
 depends=(
     'python'
     'python-mcp>=1.0.0'
@@ -27,16 +28,16 @@ depends=(
     'python-jmespath>=1.0.0'
     'python-watchdog>=3.0.0'
     'python-click>=8.0.0'
-    'python-pybase64-git'
     'python-msal>=1.20.0'
+    'python-numpy>=1.24.0'
     'python-googlemaps'
-    'python-vcrpy'
     'python-html2text'
     'python-beautifulsoup4'
     'python-markdownify'
     'python-pendulum'
     'python-xai-sdk'
-    'jupyter-nbformat'
+    'jupyter-nbformat>=5.0.0'
+    'python-nbclient>=0.8.0'
     'python-dateparser'
     'python-ftfy'
     'python-inscriptis'
@@ -44,6 +45,11 @@ depends=(
     'python-email-reply-parser'
     'python-anthropic'
     'python-wolframclient'
+    'python-opentelemetry-sdk'
+    'python-chromadb>=1.0.0'
+    'python-mail-parser>=3.15.0'
+    'python-pyfzf>=0.3.1'
+    'python-dateutil>=2.8.0'
 )
 makedepends=(
     'python-build'
@@ -57,6 +63,7 @@ checkdepends=(
     'python-pytest-cov>=4.0.0'
     'python-pytest-asyncio>=0.21.0'
     'python-pytest-vcr>=1.0.0'
+    'python-vcrpy>=4.0.0'
 )
 optdepends=(
     'jq: JSON processing'

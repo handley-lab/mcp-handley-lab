@@ -11,11 +11,19 @@ Thank you for your interest in contributing! This is beta software with room for
    cd mcp-handley-lab
    ```
 3. **Set up the development environment**:
+
+   **Option A: Standard venv**
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -e ".[dev]"
    ```
+
+   **Option B: Using uv**
+   ```bash
+   uv sync --group dev
+   ```
+
 4. **Create a feature branch**:
    ```bash
    git checkout -b feature/amazing-feature

@@ -432,15 +432,14 @@ async def test_llm_input_validation(
         )
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
-    # Test missing output_file should raise error
+    # Test missing output_file should raise validation error (required parameter)
     with pytest.raises(ToolError) as e2:
-        await mcp.call_tool(
-            "ask", {**base_params, "prompt": "Test prompt", "output_file": ""}
-        )
-    # Error may be about missing file, directory, or file path validation
+        await mcp.call_tool("ask", {**base_params, "prompt": "Test prompt"})
+    # Error should be about missing required field
     error_msg = str(e2.value).lower()
     assert any(
-        keyword in error_msg for keyword in ["output", "file", "directory", "path"]
+        keyword in error_msg
+        for keyword in ["output_file", "required", "missing", "field"]
     )
 
 

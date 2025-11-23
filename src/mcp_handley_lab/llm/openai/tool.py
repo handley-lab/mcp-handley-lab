@@ -282,8 +282,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save OpenAI's response. Use '-' for standard output.",
+        ...,
+        description="File path to save OpenAI's response. Use '-' to return full output to MCP (discarded/stdout-like). Use a file path to save output and receive a summary.",
     ),
     agent_name: str = Field(
         default="session",
@@ -357,8 +357,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external OpenAI vision AI service.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save OpenAI's visual analysis. Use '-' for standard output.",
+        ...,
+        description="File path to save OpenAI's visual analysis. Use '-' to return full output to MCP (discarded/stdout-like). Use a file path to save output and receive a summary.",
     ),
     files: list[str] = Field(
         default_factory=list,

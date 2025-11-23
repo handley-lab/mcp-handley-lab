@@ -388,7 +388,7 @@ def ask(
     ),
     output_file: str = Field(
         ...,
-        description="File path to save Gemini's response. Use '-' to return full output to MCP (discarded/stdout-like). Use a file path to save output and receive a summary.",
+        description="File path to save Gemini's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -458,7 +458,7 @@ def analyze_image(
     ),
     output_file: str = Field(
         ...,
-        description="File path to save Gemini's visual analysis. Use '-' to return full output to MCP (discarded/stdout-like). Use a file path to save output and receive a summary.",
+        description="File path to save Gemini's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,

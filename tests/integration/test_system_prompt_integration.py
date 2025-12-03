@@ -137,7 +137,6 @@ class TestSystemPromptBasic:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -146,7 +145,6 @@ class TestSystemPromptBasic:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -154,7 +152,6 @@ class TestSystemPromptBasic:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -189,7 +186,6 @@ class TestSystemPromptBasic:
         if provider in ("openai", "gemini", "claude"):
             base_params.update(
                 {
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -227,7 +223,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -236,7 +231,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -244,7 +238,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
             return base_params
@@ -302,7 +295,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -311,7 +303,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -319,7 +310,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
             return base_params
@@ -386,7 +376,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -395,7 +384,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -403,7 +391,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
             return base_params
@@ -541,7 +528,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -550,7 +536,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -558,7 +543,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -586,7 +570,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -595,7 +578,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -603,7 +585,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -633,7 +614,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -642,7 +622,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -650,7 +629,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -684,7 +662,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -693,7 +670,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -701,7 +677,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 

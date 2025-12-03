@@ -79,7 +79,6 @@ class TestLLMRateLimitingErrors:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                             "enable_logprobs": False,
                             "top_logprobs": 0,
                         }
@@ -88,7 +87,6 @@ class TestLLMRateLimitingErrors:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                             "grounding": False,
                         }
                     )
@@ -96,7 +94,6 @@ class TestLLMRateLimitingErrors:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                         }
                     )
 
@@ -153,7 +150,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -162,7 +158,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -170,7 +165,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -230,7 +224,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -239,7 +232,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -247,7 +239,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -306,7 +297,6 @@ class TestLLMLargeInputHandling:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                             "enable_logprobs": False,
                             "top_logprobs": 0,
                         }
@@ -315,7 +305,6 @@ class TestLLMLargeInputHandling:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                             "grounding": False,
                         }
                     )
@@ -323,7 +312,6 @@ class TestLLMLargeInputHandling:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "max_output_tokens": 0,
                         }
                     )
 
@@ -382,7 +370,6 @@ class TestLLMFileInputErrors:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "enable_logprobs": False,
                     "top_logprobs": 0,
                 }
@@ -391,7 +378,6 @@ class TestLLMFileInputErrors:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                     "grounding": False,
                 }
             )
@@ -399,7 +385,6 @@ class TestLLMFileInputErrors:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "max_output_tokens": 0,
                 }
             )
 
@@ -444,7 +429,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -453,7 +437,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -461,7 +444,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
 
@@ -509,7 +491,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -518,7 +499,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -526,7 +506,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
 
@@ -588,7 +567,6 @@ class TestLLMImageAnalysisUnhappyPaths:
         # Add provider-specific parameters
         base_params.update(
             {
-                "max_output_tokens": 0,
             }
         )
 
@@ -626,7 +604,6 @@ class TestLLMImageAnalysisUnhappyPaths:
         # Add provider-specific parameters
         base_params.update(
             {
-                "max_output_tokens": 0,
             }
         )
 
@@ -661,7 +638,6 @@ class TestLLMProviderSpecificErrors:
                 "agent_name": "",
                 "files": [],
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "enable_logprobs": False,
                 "top_logprobs": 0,
             }
@@ -705,7 +681,6 @@ class TestLLMProviderSpecificErrors:
                 "agent_name": "",
                 "files": [],
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
 
@@ -757,7 +732,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -766,7 +740,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -774,7 +747,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
 
@@ -813,7 +785,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "enable_logprobs": False,
                         "top_logprobs": 0,
                     }
@@ -822,7 +793,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                         "grounding": False,
                     }
                 )
@@ -830,7 +800,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "max_output_tokens": 0,
                     }
                 )
 

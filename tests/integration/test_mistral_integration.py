@@ -89,9 +89,7 @@ async def test_mistral_analyze_image(skip_if_no_api_key, test_output_file):
     # Create a simple test image
     from PIL import Image
 
-    with tempfile.NamedTemporaryFile(
-        delete=False, suffix=".png"
-    ) as image_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as image_file:
         # Create a simple red square image
         img = Image.new("RGB", (100, 100), color="red")
         img.save(image_file.name)
@@ -125,11 +123,9 @@ async def test_mistral_analyze_image(skip_if_no_api_key, test_output_file):
 async def test_mistral_process_ocr_image(skip_if_no_api_key, test_output_file):
     """Test OCR processing with image input."""
     # Create a simple test image with text
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
-    with tempfile.NamedTemporaryFile(
-        delete=False, suffix=".png"
-    ) as image_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as image_file:
         # Create image with text
         img = Image.new("RGB", (400, 100), color="white")
         draw = ImageDraw.Draw(img)
@@ -184,7 +180,10 @@ async def test_mistral_test_connection(skip_if_no_api_key):
     """Test API connection."""
     _, response = await mcp.call_tool("test_connection", {})
 
-    assert "error" not in str(response).lower() or "connection successful" in str(response).lower()
+    assert (
+        "error" not in str(response).lower()
+        or "connection successful" in str(response).lower()
+    )
 
 
 @pytest.mark.vcr

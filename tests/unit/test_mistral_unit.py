@@ -62,7 +62,11 @@ class TestModelConfiguration:
 
     def test_vision_models_tagged_correctly(self):
         """Test that vision models have supports_vision=true."""
-        vision_models = ["pixtral-large-latest", "pixtral-12b-2409", "mistral-ocr-latest"]
+        vision_models = [
+            "pixtral-large-latest",
+            "pixtral-12b-2409",
+            "mistral-ocr-latest",
+        ]
         for model in vision_models:
             assert MODEL_CONFIGS[model]["supports_vision"] is True
 

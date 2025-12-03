@@ -291,15 +291,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.1' (recommended). Other options: 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'.",
+        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.1' (recommended). Other options: 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls response randomness (0.0-2.0). Higher is more creative.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
+        description="Controls response randomness (0.0-2.0). Higher is more creative. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -339,7 +335,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         enable_logprobs=enable_logprobs,
         top_logprobs=top_logprobs,
         system_prompt=system_prompt,
@@ -369,15 +364,12 @@ def analyze_image(
         description="The area of focus for the analysis (e.g., 'ocr', 'objects'). This enhances the prompt to guide the model.",
     ),
     model: str = Field(
-        default="gpt-4o", description="The OpenAI vision model to use (e.g., 'gpt-4o')."
+        default="gpt-4o",
+        description="The OpenAI vision model to use (e.g., 'gpt-4o'). Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with OpenAI AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -395,7 +387,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

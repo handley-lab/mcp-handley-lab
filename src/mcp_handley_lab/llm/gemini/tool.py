@@ -396,11 +396,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'.",
+        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic.",
+        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic. Only change if user explicitly requests.",
     ),
     grounding: bool = Field(
         default=False,
@@ -409,10 +409,6 @@ def ask(
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to provide as context to the model.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -441,7 +437,6 @@ def ask(
         temperature=temperature,
         grounding=grounding,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
@@ -470,15 +465,11 @@ def analyze_image(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding).",
+        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding). Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with Gemini AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -496,7 +487,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

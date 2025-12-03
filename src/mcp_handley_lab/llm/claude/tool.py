@@ -309,19 +309,15 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'.",
+        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic.",
+        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to be read and included as context in the prompt.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -351,7 +347,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
@@ -380,15 +375,11 @@ def analyze_image(
     ),
     model: str = Field(
         DEFAULT_MODEL,
-        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
+        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs. Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         "session",
         description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -406,7 +397,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

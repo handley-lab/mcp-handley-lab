@@ -1,0 +1,432 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:17:10 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27&max_results=2&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600091-LCY
+      X-Timer:
+      - S1764796630.109974,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/</id>\n  <title>arXiv Search Results</title>\n  <updated>2025-12-03T21:17:10Z</updated>\n
+        \ <opensearch:itemsPerPage>1</opensearch:itemsPerPage>\n  <opensearch:totalResults>1</opensearch:totalResults>\n
+        \ <opensearch:startIndex>0</opensearch:startIndex>\n  <entry>\n    <id>https://arxiv.org/api/errors#start_must_be_an_integer</id>\n
+        \   <title>Error</title>\n    <updated>2025-12-03T21:17:10Z</updated>\n    <link
+        href=\"https://arxiv.org/api/errors#start_must_be_an_integer\" rel=\"alternate\"
+        type=\"text/html\"/>\n    <summary>start must be an integer</summary>\n    <author>\n
+        \     <name>arXiv api core</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '833'
+      Date:
+      - Wed, 03 Dec 2025 21:17:10 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, MISS
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21982-LGA, cache-lga21949-LGA, cache-lcy-eglc8600064-LCY
+      X-Timer:
+      - S1764796630.157397,VS0,VE352
+      accept-ranges:
+      - bytes
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - 492c560b73b73feb607ea33ac2bb9ea5
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=0&max_results=2&sortBy=relevance&sortOrder=descending
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600038-LCY
+      X-Timer:
+      - S1764796713.134202,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/api/hqKfUmfv2TOKN6qqIw+lxKYqJlE</id>\n  <title>arXiv
+        Query: search_query=all:machine OR all:learning&amp;id_list=&amp;start=0&amp;max_results=2</title>\n
+        \ <updated>2025-12-03T21:11:34Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:machine+OR+all:learning&amp;start=0&amp;max_results=2&amp;id_list=\"
+        type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>2</opensearch:itemsPerPage>\n
+        \ <opensearch:totalResults>454196</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2306.04338v1</id>\n    <title>Changing
+        Data Sources in the Age of Machine Learning for Official Statistics</title>\n
+        \   <updated>2023-06-07T11:08:12Z</updated>\n    <link href=\"https://arxiv.org/abs/2306.04338v1\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2306.04338v1\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Data
+        science has become increasingly essential for the production of official statistics,
+        as it enables the automated collection, processing, and analysis of large
+        amounts of data. With such data science practices in place, it enables more
+        timely, more insightful and more flexible reporting. However, the quality
+        and integrity of data-science-driven statistics rely on the accuracy and reliability
+        of the data sources and the machine learning techniques that support them.
+        In particular, changes in data sources are inevitable to occur and pose significant
+        risks that are crucial to address in the context of machine learning for official
+        statistics.\n  This paper gives an overview of the main risks, liabilities,
+        and uncertainties associated with changing data sources in the context of
+        machine learning for official statistics. We provide a checklist of the most
+        prevalent origins and causes of changing data sources; not only on a technical
+        level but also regarding ownership, ethics, regulation, and public perception.
+        Next, we highlight the repercussions of changing data sources on statistical
+        reporting. These include technical effects such as concept drift, bias, availability,
+        validity, accuracy and completeness, but also the neutrality and potential
+        discontinuation of the statistical offering. We offer a few important precautionary
+        measures, such as enhancing robustness in both data sourcing and statistical
+        techniques, and thorough monitoring. In doing so, machine learning-based official
+        statistics can maintain integrity, reliability, consistency, and relevance
+        in policy-making, decision-making, and public discourse.</summary>\n    <category
+        term=\"stat.ML\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category
+        term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-06-07T11:08:12Z</published>\n
+        \   <arxiv:comment>Presented at UNECE Machine Learning for Official Statistics
+        Workshop 2023</arxiv:comment>\n    <arxiv:primary_category term=\"stat.ML\"/>\n
+        \   <arxiv:journal_ref>UNECE Machine Learning for Official Statistics Workshop
+        2023</arxiv:journal_ref>\n    <author>\n      <name>Cedric De Boom</name>\n
+        \   </author>\n    <author>\n      <name>Michael Reusens</name>\n    </author>\n
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2006.16189v4</id>\n    <title>DOME:
+        Recommendations for supervised machine learning validation in biology</title>\n
+        \   <updated>2021-01-07T07:29:24Z</updated>\n    <link href=\"https://arxiv.org/abs/2006.16189v4\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2006.16189v4\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Modern
+        biology frequently relies on machine learning to provide predictions and improve
+        decision processes. There have been recent calls for more scrutiny on machine
+        learning performance and possible limitations. Here we present a set of community-wide
+        recommendations aiming to help establish standards of supervised machine learning
+        validation in biology. Adopting a structured methods description for machine
+        learning based on data, optimization, model, evaluation (DOME) will aim to
+        help both reviewers and readers to better understand and assess the performance
+        and limitations of a method or outcome. The recommendations are formulated
+        as questions to anyone wishing to pursue implementation of a machine learning
+        algorithm. Answers to these questions can be easily included in the supplementary
+        material of published papers.</summary>\n    <category term=\"q-bio.OT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2020-06-25T12:01:39Z</published>\n    <arxiv:primary_category
+        term=\"q-bio.OT\"/>\n    <author>\n      <name>Ian Walsh</name>\n    </author>\n
+        \   <author>\n      <name>Dmytro Fishman</name>\n    </author>\n    <author>\n
+        \     <name>Dario Garcia-Gasulla</name>\n    </author>\n    <author>\n      <name>Tiina
+        Titma</name>\n    </author>\n    <author>\n      <name>Gianluca Pollastri</name>\n
+        \   </author>\n    <author>\n      <name>The ELIXIR Machine Learning focus
+        group</name>\n    </author>\n    <author>\n      <name>Jen Harrow</name>\n
+        \   </author>\n    <author>\n      <name>Fotis E. Psomopoulos</name>\n    </author>\n
+        \   <author>\n      <name>Silvio C. E. Tosatto</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '419'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5424'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, HIT
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21920-LGA, cache-lga21969-LGA, cache-lcy-eglc8600068-LCY
+      X-Timer:
+      - S1764796713.176797,VS0,VE4
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - 28b77c95da43975e2f6b25dcf77c7c25
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:18:50 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=0&max_results=2&sortBy=relevance&sortOrder=descending
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600099-LCY
+      X-Timer:
+      - S1764796731.528872,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=2&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/api/hqKfUmfv2TOKN6qqIw+lxKYqJlE</id>\n  <title>arXiv
+        Query: search_query=all:machine OR all:learning&amp;id_list=&amp;start=0&amp;max_results=2</title>\n
+        \ <updated>2025-12-03T21:11:34Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:machine+OR+all:learning&amp;start=0&amp;max_results=2&amp;id_list=\"
+        type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>2</opensearch:itemsPerPage>\n
+        \ <opensearch:totalResults>454196</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2306.04338v1</id>\n    <title>Changing
+        Data Sources in the Age of Machine Learning for Official Statistics</title>\n
+        \   <updated>2023-06-07T11:08:12Z</updated>\n    <link href=\"https://arxiv.org/abs/2306.04338v1\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2306.04338v1\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Data
+        science has become increasingly essential for the production of official statistics,
+        as it enables the automated collection, processing, and analysis of large
+        amounts of data. With such data science practices in place, it enables more
+        timely, more insightful and more flexible reporting. However, the quality
+        and integrity of data-science-driven statistics rely on the accuracy and reliability
+        of the data sources and the machine learning techniques that support them.
+        In particular, changes in data sources are inevitable to occur and pose significant
+        risks that are crucial to address in the context of machine learning for official
+        statistics.\n  This paper gives an overview of the main risks, liabilities,
+        and uncertainties associated with changing data sources in the context of
+        machine learning for official statistics. We provide a checklist of the most
+        prevalent origins and causes of changing data sources; not only on a technical
+        level but also regarding ownership, ethics, regulation, and public perception.
+        Next, we highlight the repercussions of changing data sources on statistical
+        reporting. These include technical effects such as concept drift, bias, availability,
+        validity, accuracy and completeness, but also the neutrality and potential
+        discontinuation of the statistical offering. We offer a few important precautionary
+        measures, such as enhancing robustness in both data sourcing and statistical
+        techniques, and thorough monitoring. In doing so, machine learning-based official
+        statistics can maintain integrity, reliability, consistency, and relevance
+        in policy-making, decision-making, and public discourse.</summary>\n    <category
+        term=\"stat.ML\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category
+        term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-06-07T11:08:12Z</published>\n
+        \   <arxiv:comment>Presented at UNECE Machine Learning for Official Statistics
+        Workshop 2023</arxiv:comment>\n    <arxiv:primary_category term=\"stat.ML\"/>\n
+        \   <arxiv:journal_ref>UNECE Machine Learning for Official Statistics Workshop
+        2023</arxiv:journal_ref>\n    <author>\n      <name>Cedric De Boom</name>\n
+        \   </author>\n    <author>\n      <name>Michael Reusens</name>\n    </author>\n
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2006.16189v4</id>\n    <title>DOME:
+        Recommendations for supervised machine learning validation in biology</title>\n
+        \   <updated>2021-01-07T07:29:24Z</updated>\n    <link href=\"https://arxiv.org/abs/2006.16189v4\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2006.16189v4\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Modern
+        biology frequently relies on machine learning to provide predictions and improve
+        decision processes. There have been recent calls for more scrutiny on machine
+        learning performance and possible limitations. Here we present a set of community-wide
+        recommendations aiming to help establish standards of supervised machine learning
+        validation in biology. Adopting a structured methods description for machine
+        learning based on data, optimization, model, evaluation (DOME) will aim to
+        help both reviewers and readers to better understand and assess the performance
+        and limitations of a method or outcome. The recommendations are formulated
+        as questions to anyone wishing to pursue implementation of a machine learning
+        algorithm. Answers to these questions can be easily included in the supplementary
+        material of published papers.</summary>\n    <category term=\"q-bio.OT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2020-06-25T12:01:39Z</published>\n    <arxiv:primary_category
+        term=\"q-bio.OT\"/>\n    <author>\n      <name>Ian Walsh</name>\n    </author>\n
+        \   <author>\n      <name>Dmytro Fishman</name>\n    </author>\n    <author>\n
+        \     <name>Dario Garcia-Gasulla</name>\n    </author>\n    <author>\n      <name>Tiina
+        Titma</name>\n    </author>\n    <author>\n      <name>Gianluca Pollastri</name>\n
+        \   </author>\n    <author>\n      <name>The ELIXIR Machine Learning focus
+        group</name>\n    </author>\n    <author>\n      <name>Jen Harrow</name>\n
+        \   </author>\n    <author>\n      <name>Fotis E. Psomopoulos</name>\n    </author>\n
+        \   <author>\n      <name>Silvio C. E. Tosatto</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '436'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5424'
+      Date:
+      - Wed, 03 Dec 2025 21:18:50 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, HIT
+      X-Cache-Hits:
+      - 0, 0, 1
+      X-Served-By:
+      - cache-lga21920-LGA, cache-lga21969-LGA, cache-lcy-eglc8600040-LCY
+      X-Timer:
+      - S1764796731.580450,VS0,VE3
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - 28b77c95da43975e2f6b25dcf77c7c25
+    status:
+      code: 200
+      message: OK
+version: 1

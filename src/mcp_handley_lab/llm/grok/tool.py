@@ -245,7 +245,7 @@ def _grok_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external xAI Grok service. Can take a prompt directly or load it from a template file with variables. Returns Grok's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external xAI Grok service. Can take a prompt directly or load it from a template file with variables. Returns Grok's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
     prompt: str = Field(
@@ -261,8 +261,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Grok's response. Use '-' for standard output.",
+        ...,
+        description="File path to save Grok's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -270,15 +270,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Grok model to use for the request (e.g., 'grok-1').",
+        description="The Grok model to use for the request (e.g., 'grok-1'). Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness. Higher values (e.g., 1.0) are more creative, lower values are more deterministic.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="The maximum number of tokens to generate. 0 means use the model's default maximum.",
+        description="Controls randomness. Higher values (e.g., 1.0) are more creative, lower values are more deterministic. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -310,7 +306,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
@@ -326,8 +321,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external Grok vision AI service.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Grok's visual analysis. Use '-' for standard output.",
+        ...,
+        description="File path to save Grok's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -339,15 +334,11 @@ def analyze_image(
     ),
     model: str = Field(
         default="grok-2-vision-1212",
-        description="The Grok vision model to use. Must be a vision-capable model.",
+        description="The Grok vision model to use. Must be a vision-capable model. Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with Grok AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -365,7 +356,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

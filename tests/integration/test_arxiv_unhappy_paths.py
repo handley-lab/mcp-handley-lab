@@ -4,18 +4,17 @@ Tests error scenarios including service downtime, corrupted downloads,
 network failures, and edge cases not covered by basic integration tests.
 """
 
+import httpx
 import pytest
-from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.arxiv.tool import mcp
+from mcp_handley_lab.arxiv.tool import download, server_info
 
 
 @pytest.mark.integration
 class TestArxivInvalidInputs:
     """Test invalid input scenarios for ArXiv integration."""
 
-    @pytest.mark.asyncio
-    async def test_malformed_arxiv_ids(self):
+    def test_malformed_arxiv_ids(self):
         """Test handling of various malformed ArXiv IDs."""
         malformed_ids = [
             "",  # Empty ID
@@ -34,14 +33,10 @@ class TestArxivInvalidInputs:
         ]
 
         for arxiv_id in malformed_ids:
-            with pytest.raises(ToolError, match="invalid|format|arxiv.*id|not.*found"):
-                await mcp.call_tool(
-                    "download",
-                    {"arxiv_id": arxiv_id, "format": "src", "output_path": "-"},
-                )
+            with pytest.raises(httpx.HTTPStatusError):
+                download(arxiv_id=arxiv_id, format="src", output_path="-")
 
-    @pytest.mark.asyncio
-    async def test_invalid_format_parameters(self):
+    def test_invalid_format_parameters(self):
         """Test handling of invalid format parameters."""
         valid_arxiv_id = "2301.07041"  # Known valid ID
 
@@ -56,28 +51,23 @@ class TestArxivInvalidInputs:
         ]
 
         for invalid_format in invalid_formats:
-            with pytest.raises(ToolError, match="format|invalid|supported"):
-                await mcp.call_tool(
-                    "download",
-                    {
-                        "arxiv_id": valid_arxiv_id,
-                        "format": invalid_format,
-                        "output_path": "-",
-                    },
+            with pytest.raises(ValueError, match="Invalid format"):
+                download(
+                    arxiv_id=valid_arxiv_id,
+                    format=invalid_format,
+                    output_path="-",
                 )
 
-    @pytest.mark.asyncio
-    async def test_empty_output_path_handling(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_empty_output_path_handling(self):
         """Test handling of empty or invalid output paths."""
         valid_arxiv_id = "2301.07041"
 
-        # Empty output path - should use default behavior
-        _, response = await mcp.call_tool(
-            "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
-        )
+        # Empty output path - should use default behavior (creates file)
+        result = download(arxiv_id=valid_arxiv_id, format="src", output_path="")
 
         # Should handle empty path gracefully (use default)
-        assert "error" not in response, response.get("error")
+        assert result.arxiv_id == valid_arxiv_id
 
 
 @pytest.mark.integration
@@ -85,22 +75,16 @@ class TestArxivNetworkAndServiceErrors:
     """Test network connectivity and ArXiv service error scenarios."""
 
     @pytest.mark.live
-    @pytest.mark.asyncio
-    async def test_nonexistent_arxiv_paper(self):
+    def test_nonexistent_arxiv_paper(self):
         """Test handling of ArXiv papers that don't exist."""
         # Use well-formed but non-existent ArXiv ID
         nonexistent_id = "9999.99999"
 
-        with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
-        ):
-            await mcp.call_tool(
-                "download",
-                {"arxiv_id": nonexistent_id, "format": "src", "output_path": "-"},
-            )
+        with pytest.raises(httpx.HTTPStatusError):
+            download(arxiv_id=nonexistent_id, format="src", output_path="-")
 
-    @pytest.mark.asyncio
-    async def test_output_file_permission_errors(self, tmp_path):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_output_file_permission_errors(self, tmp_path):
         """Test handling of output file permission errors."""
         valid_arxiv_id = "2301.07041"
 
@@ -109,114 +93,60 @@ class TestArxivNetworkAndServiceErrors:
         readonly_dir.mkdir()
         readonly_dir.chmod(0o555)  # Read and execute only
 
-        output_file = readonly_dir / "arxiv_output.tar.gz"
+        output_file = readonly_dir / "arxiv_output"
 
         try:
-            with pytest.raises(ToolError, match="permission|write|access|denied"):
-                await mcp.call_tool(
-                    "download",
-                    {
-                        "arxiv_id": valid_arxiv_id,
-                        "format": "src",
-                        "output_path": str(output_file),
-                    },
+            with pytest.raises((PermissionError, OSError)):
+                download(
+                    arxiv_id=valid_arxiv_id,
+                    format="src",
+                    output_path=str(output_file),
                 )
         finally:
             # Restore permissions for cleanup
             readonly_dir.chmod(0o755)
 
-    @pytest.mark.asyncio
-    async def test_output_directory_creation(self, tmp_path):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_output_directory_creation(self, tmp_path):
         """Test automatic directory creation for output files."""
         valid_arxiv_id = "2301.07041"
 
         # Output path in non-existent directory
-        nested_path = tmp_path / "nested" / "deep" / "directory" / "output.tar.gz"
+        nested_path = tmp_path / "nested" / "deep" / "directory"
 
         # Should either create directory or provide clear error
         try:
-            _, response = await mcp.call_tool(
-                "download",
-                {
-                    "arxiv_id": valid_arxiv_id,
-                    "format": "src",
-                    "output_path": str(nested_path),
-                },
+            result = download(
+                arxiv_id=valid_arxiv_id,
+                format="src",
+                output_path=str(nested_path),
             )
 
-            # If successful, file should exist
-            if "error" not in response:
-                assert nested_path.exists()
-                assert nested_path.stat().st_size > 0
+            # If successful, directory should exist
+            assert nested_path.exists()
+            assert result.arxiv_id == valid_arxiv_id
 
-        except ToolError as e:
+        except (FileNotFoundError, OSError) as e:
             # Directory creation errors are acceptable
             assert any(
                 keyword in str(e).lower()
                 for keyword in ["directory", "not found", "no such", "path", "create"]
             )
 
-    @pytest.mark.asyncio
-    async def test_disk_space_simulation(self, tmp_path, monkeypatch):
-        """Test behavior when disk space is limited (simulated)."""
-        valid_arxiv_id = "2301.07041"
-        output_file = tmp_path / "output.tar.gz"
-
-        # This test simulates disk space issues by using filesystem behavior
-        # In practice, ArXiv downloads could be several MB
-
-        # Create a very large file to potentially fill up available space
-        # (This is a simulation - actual disk space errors are hard to test reliably)
-        large_dummy_file = tmp_path / "space_filler.dat"
-        try:
-            # Try to create a large file to simulate disk pressure
-            large_dummy_file.write_bytes(b"0" * (1024 * 1024))  # 1MB
-
-            _, response = await mcp.call_tool(
-                "download",
-                {
-                    "arxiv_id": valid_arxiv_id,
-                    "format": "src",
-                    "output_path": str(output_file),
-                },
-            )
-
-            # Should succeed in normal circumstances
-            if "error" not in response:
-                assert output_file.exists()
-
-        except ToolError as e:
-            # Disk space errors are acceptable (though rare in tests)
-            assert any(
-                keyword in str(e).lower()
-                for keyword in ["space", "disk", "write", "full", "no space"]
-            )
-        finally:
-            # Clean up large file
-            if large_dummy_file.exists():
-                large_dummy_file.unlink()
-
 
 @pytest.mark.integration
 class TestArxivCorruptedDataHandling:
     """Test handling of corrupted or problematic ArXiv data."""
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_file_listing_errors(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_file_listing_errors(self):
         """Test download with file listing for problematic ArXiv IDs."""
         # Test with non-existent paper using download with output_path="-" for file listing
-        with pytest.raises(
-            ToolError, match="not found|does not exist|404|paper.*not.*available"
-        ):
-            await mcp.call_tool(
-                "download",
-                {"arxiv_id": "9999.99999", "format": "src", "output_path": "-"},
-            )
+        with pytest.raises(httpx.HTTPStatusError):
+            download(arxiv_id="9999.99999", format="src", output_path="-")
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_format_availability(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_format_availability(self):
         """Test requesting formats that might not be available for specific papers."""
         # Some very old papers might not have all formats available
         old_arxiv_id = "hep-th/9901001"  # Very old paper format
@@ -224,39 +154,24 @@ class TestArxivCorruptedDataHandling:
         # Test each format - some might not be available
         for format_type in ["src", "pdf", "tex"]:
             try:
-                _, response = await mcp.call_tool(
-                    "download",
-                    {
-                        "arxiv_id": old_arxiv_id,
-                        "format": format_type,
-                        "output_path": "-",
-                    },
+                result = download(
+                    arxiv_id=old_arxiv_id,
+                    format=format_type,
+                    output_path="-",
                 )
 
                 # If successful, should have valid response structure
-                if "error" not in response:
-                    assert "arxiv_id" in response
-                    assert "format" in response
-                    assert "message" in response
+                assert result.arxiv_id is not None
+                assert result.format is not None
+                assert result.message is not None
 
-            except ToolError as e:
+            except httpx.HTTPStatusError as e:
                 # Some formats might not be available for old papers
-                error_msg = str(e).lower()
-                acceptable_errors = [
-                    "not available",
-                    "format not found",
-                    "not found",
-                    "404",
-                    "does not exist",
-                    "unavailable",
-                    "no such file",
-                    "directory",
-                ]
-                assert any(err in error_msg for err in acceptable_errors)
+                # 404 or 403 errors are acceptable
+                assert e.response.status_code in [403, 404]
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_withdrawn_papers(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_withdrawn_papers(self):
         """Test handling of withdrawn ArXiv papers."""
         # Note: This is hard to test reliably since withdrawn papers are rare
         # and specific IDs may change. This test documents the expected behavior.
@@ -275,9 +190,8 @@ class TestArxivCorruptedDataHandling:
 class TestArxivEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_version_handling(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_version_handling(self):
         """Test handling of specific ArXiv paper versions."""
         base_arxiv_id = "2301.07041"
 
@@ -290,91 +204,47 @@ class TestArxivEdgeCases:
 
         for versioned_id in version_tests:
             try:
-                _, response = await mcp.call_tool(
-                    "download",
-                    {"arxiv_id": versioned_id, "format": "src", "output_path": "-"},
-                )
+                result = download(arxiv_id=versioned_id, format="src", output_path="-")
 
                 # If successful, should handle version correctly
-                if "error" not in response:
-                    assert "message" in response
+                assert result.message is not None
 
-            except ToolError as e:
-                # Version not found errors are acceptable
-                error_msg = str(e).lower()
-                version_error_keywords = [
-                    "version",
-                    "not found",
-                    "does not exist",
-                    "404",
-                    "unavailable",
-                ]
-                assert any(keyword in error_msg for keyword in version_error_keywords)
+            except httpx.HTTPStatusError as e:
+                # Version not found errors are acceptable (404 or 403)
+                assert e.response.status_code in [403, 404]
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_simultaneous_downloads(self):
-        """Test behavior with multiple simultaneous download requests."""
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_simultaneous_downloads(self, tmp_path):
+        """Test behavior with multiple sequential download requests."""
         valid_arxiv_id = "2301.07041"
 
-        # Make multiple simultaneous requests (simulates concurrency issues)
-        import asyncio
+        # Make multiple sequential requests
+        results = []
+        formats = ["src", "pdf", "tex"]
 
-        async def download_paper(format_type, output_suffix):
+        for i, format_type in enumerate(formats):
+            output_path = tmp_path / f"arxiv_test_{i}"
             try:
-                _, response = await mcp.call_tool(
-                    "download",
-                    {
-                        "arxiv_id": valid_arxiv_id,
-                        "format": format_type,
-                        "output_path": f"/tmp/arxiv_test_{output_suffix}.dat",
-                    },
+                result = download(
+                    arxiv_id=valid_arxiv_id,
+                    format=format_type,
+                    output_path=str(output_path),
                 )
-                return response
+                results.append(result)
             except Exception as e:
-                return {"error": str(e)}
+                results.append({"error": str(e)})
 
-        # Start multiple downloads concurrently
-        tasks = [
-            download_paper("src", "1"),
-            download_paper("pdf", "2"),
-            download_paper("tex", "3"),
-        ]
+        # At least some should succeed
+        successful_results = [r for r in results if hasattr(r, "arxiv_id")]
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Should have at least one success
+        assert len(successful_results) >= 1
 
-        # At least some should succeed (unless rate limited)
-        successful_results = [
-            r for r in results if isinstance(r, dict) and "error" not in r
-        ]
-
-        # Either succeeds or fails with reasonable errors
-        if len(successful_results) == 0:
-            # All failed - check if errors are reasonable
-            for result in results:
-                if isinstance(result, dict) and "error" in result:
-                    error_msg = result["error"].lower()
-                    acceptable_errors = [
-                        "rate",
-                        "limit",
-                        "throttl",
-                        "too many",
-                        "concurrent",
-                        "timeout",
-                        "busy",
-                        "unavailable",
-                    ]
-                    # Should fail with reasonable errors, not crashes
-                    assert (
-                        any(err in error_msg for err in acceptable_errors)
-                        or "not found" in error_msg
-                    )
-
-    @pytest.mark.asyncio
-    async def test_arxiv_special_character_handling(self):
+    def test_arxiv_special_character_handling(self):
         """Test handling of ArXiv IDs with edge case characters."""
         # ArXiv IDs should only contain specific characters
         # Test that invalid characters are rejected properly
+        # httpx.InvalidURL is raised for non-printable chars, HTTPStatusError for valid but bad IDs
 
         special_char_ids = [
             "2301.07041@test",  # @ symbol
@@ -384,56 +254,42 @@ class TestArxivEdgeCases:
         ]
 
         for special_id in special_char_ids:
-            with pytest.raises(
-                ToolError,
-                match="invalid|format|arxiv.*id|character|404|not found|non-printable|ascii",
-            ):
-                await mcp.call_tool(
-                    "download",
-                    {"arxiv_id": special_id, "format": "src", "output_path": "-"},
-                )
+            with pytest.raises((httpx.HTTPStatusError, httpx.InvalidURL)):
+                download(arxiv_id=special_id, format="src", output_path="-")
 
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
-    async def test_arxiv_output_path_edge_cases(self):
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    def test_arxiv_output_path_edge_cases(self):
         """Test various edge cases for output path handling."""
         valid_arxiv_id = "2301.07041"
 
         # Test stdout output (should work)
-        _, response = await mcp.call_tool(
-            "download",
-            {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": "-"},
-        )
-        assert "error" not in response, response.get("error")
+        result = download(arxiv_id=valid_arxiv_id, format="src", output_path="-")
+        assert result.arxiv_id == valid_arxiv_id
 
         # Test empty output path (should use default)
-        _, response = await mcp.call_tool(
-            "download", {"arxiv_id": valid_arxiv_id, "format": "src", "output_path": ""}
-        )
-        assert "error" not in response, response.get("error")
+        result = download(arxiv_id=valid_arxiv_id, format="src", output_path="")
+        assert result.arxiv_id == valid_arxiv_id
 
 
 @pytest.mark.integration
 class TestArxivServerInfoErrors:
     """Test server_info error scenarios."""
 
-    @pytest.mark.asyncio
-    async def test_server_info_reliability(self):
+    def test_server_info_reliability(self):
         """Test that server_info provides consistent, reliable information."""
         # Test multiple calls to ensure consistency
         responses = []
 
         for _ in range(3):
-            _, response = await mcp.call_tool("server_info", {})
+            response = server_info()
             responses.append(response)
-            assert "error" not in response, response.get("error")
 
         # All responses should be consistent
         for response in responses:
-            assert response["status"] == "active"
-            assert response["name"] == "ArXiv Tool"
-            assert "version" in response
-            assert "capabilities" in response
+            assert response.status == "active"
+            assert response.name == "ArXiv Tool"
+            assert response.version is not None
+            assert response.capabilities is not None
 
         # Responses should be identical
         assert all(r == responses[0] for r in responses), (

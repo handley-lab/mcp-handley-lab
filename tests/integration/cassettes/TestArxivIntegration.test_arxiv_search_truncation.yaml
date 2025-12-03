@@ -1,0 +1,470 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=1&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:17:10 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27&max_results=1&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600065-LCY
+      X-Timer:
+      - S1764796631.576262,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=1&search_query=machine+learning&sortBy=annotation%3DNoneType+required%3DFalse+default%3D%27relevance%27+description%3D%22Sorting+criteria.+Options%3A+%27relevance%27%2C+%27lastUpdatedDate%27%2C+%27submittedDate%27.%22&sortOrder=annotation%3DNoneType+required%3DFalse+default%3D%27descending%27+description%3D%22Sorting+order.+Options%3A+%27ascending%27+or+%27descending%27.%22&start=annotation%3DNoneType+required%3DFalse+default%3D0+description%3D%27The+starting+index+for+the+search+results%2C+used+for+pagination.%27
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/</id>\n  <title>arXiv Search Results</title>\n  <updated>2025-12-03T21:17:10Z</updated>\n
+        \ <opensearch:itemsPerPage>1</opensearch:itemsPerPage>\n  <opensearch:totalResults>1</opensearch:totalResults>\n
+        \ <opensearch:startIndex>0</opensearch:startIndex>\n  <entry>\n    <id>https://arxiv.org/api/errors#start_must_be_an_integer</id>\n
+        \   <title>Error</title>\n    <updated>2025-12-03T21:17:10Z</updated>\n    <link
+        href=\"https://arxiv.org/api/errors#start_must_be_an_integer\" rel=\"alternate\"
+        type=\"text/html\"/>\n    <summary>start must be an integer</summary>\n    <author>\n
+        \     <name>arXiv api core</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '833'
+      Date:
+      - Wed, 03 Dec 2025 21:17:10 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, MISS
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21993-LGA, cache-lga21962-LGA, cache-lcy-eglc8600054-LCY
+      X-Timer:
+      - S1764796631.630294,VS0,VE157
+      accept-ranges:
+      - bytes
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - 8ca0a914c1d4e378f747330123e09318
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=1&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=machine+learning&start=0&max_results=1&sortBy=relevance&sortOrder=descending
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600062-LCY
+      X-Timer:
+      - S1764796713.224288,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=1&search_query=machine+learning&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/api/vZ+ALB5sshJ6IiAm+1Wj4vcsH78</id>\n  <title>arXiv
+        Query: search_query=all:machine OR all:learning&amp;id_list=&amp;start=0&amp;max_results=1</title>\n
+        \ <updated>2025-12-03T21:11:35Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:machine+OR+all:learning&amp;start=0&amp;max_results=1&amp;id_list=\"
+        type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>1</opensearch:itemsPerPage>\n
+        \ <opensearch:totalResults>454196</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2306.04338v1</id>\n    <title>Changing
+        Data Sources in the Age of Machine Learning for Official Statistics</title>\n
+        \   <updated>2023-06-07T11:08:12Z</updated>\n    <link href=\"https://arxiv.org/abs/2306.04338v1\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2306.04338v1\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Data
+        science has become increasingly essential for the production of official statistics,
+        as it enables the automated collection, processing, and analysis of large
+        amounts of data. With such data science practices in place, it enables more
+        timely, more insightful and more flexible reporting. However, the quality
+        and integrity of data-science-driven statistics rely on the accuracy and reliability
+        of the data sources and the machine learning techniques that support them.
+        In particular, changes in data sources are inevitable to occur and pose significant
+        risks that are crucial to address in the context of machine learning for official
+        statistics.\n  This paper gives an overview of the main risks, liabilities,
+        and uncertainties associated with changing data sources in the context of
+        machine learning for official statistics. We provide a checklist of the most
+        prevalent origins and causes of changing data sources; not only on a technical
+        level but also regarding ownership, ethics, regulation, and public perception.
+        Next, we highlight the repercussions of changing data sources on statistical
+        reporting. These include technical effects such as concept drift, bias, availability,
+        validity, accuracy and completeness, but also the neutrality and potential
+        discontinuation of the statistical offering. We offer a few important precautionary
+        measures, such as enhancing robustness in both data sourcing and statistical
+        techniques, and thorough monitoring. In doing so, machine learning-based official
+        statistics can maintain integrity, reliability, consistency, and relevance
+        in policy-making, decision-making, and public discourse.</summary>\n    <category
+        term=\"stat.ML\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category
+        term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-06-07T11:08:12Z</published>\n
+        \   <arxiv:comment>Presented at UNECE Machine Learning for Official Statistics
+        Workshop 2023</arxiv:comment>\n    <arxiv:primary_category term=\"stat.ML\"/>\n
+        \   <arxiv:journal_ref>UNECE Machine Learning for Official Statistics Workshop
+        2023</arxiv:journal_ref>\n    <author>\n      <name>Cedric De Boom</name>\n
+        \   </author>\n    <author>\n      <name>Michael Reusens</name>\n    </author>\n
+        \ </entry>\n</feed>\n"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '418'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3355'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, HIT
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21920-LGA, cache-lga21941-LGA, cache-lcy-eglc8600063-LCY
+      X-Timer:
+      - S1764796713.275023,VS0,VE1
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - 01b5fbadb8f7a5901ee69554493c78c2
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://export.arxiv.org/api/query?max_results=5&search_query=deep+learning+collaboration&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Location:
+      - https://export.arxiv.org/api/query?search_query=deep+learning+collaboration&start=0&max_results=5&sortBy=relevance&sortOrder=descending
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Strict-Transport-Security:
+      - max-age=300
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - HIT
+      X-Cache-Hits:
+      - '0'
+      X-Served-By:
+      - cache-lcy-eglc8600092-LCY
+      X-Timer:
+      - S1764796713.309043,VS0,VE0
+    status:
+      code: 301
+      message: Moved Permanently
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - export.arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://export.arxiv.org/api/query?max_results=5&search_query=deep+learning+collaboration&sortBy=relevance&sortOrder=descending&start=0
+  response:
+    body:
+      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
+        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
+        \ <id>https://arxiv.org/api/rF8jJiTQnvPnsAzkr8Dwib1HVUo</id>\n  <title>arXiv
+        Query: search_query=all:deep OR all:learning OR all:collaboration&amp;id_list=&amp;start=0&amp;max_results=5</title>\n
+        \ <updated>2025-12-03T21:11:36Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:deep+OR+(all:learning+OR+all:collaboration)&amp;start=0&amp;max_results=5&amp;id_list=\"
+        type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>5</opensearch:itemsPerPage>\n
+        \ <opensearch:totalResults>519918</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2306.11113v2</id>\n    <title>Learn
+        to Accumulate Evidence from All Training Samples: Theory and Practice</title>\n
+        \   <updated>2023-06-24T17:45:51Z</updated>\n    <link href=\"https://arxiv.org/abs/2306.11113v2\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2306.11113v2\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Evidential
+        deep learning, built upon belief theory and subjective logic, offers a principled
+        and computationally efficient way to turn a deterministic neural network uncertainty-aware.
+        The resultant evidential models can quantify fine-grained uncertainty using
+        the learned evidence. To ensure theoretically sound evidential models, the
+        evidence needs to be non-negative, which requires special activation functions
+        for model training and inference. This constraint often leads to inferior
+        predictive performance compared to standard softmax models, making it challenging
+        to extend them to many large-scale datasets. To unveil the real cause of this
+        undesired behavior, we theoretically investigate evidential models and identify
+        a fundamental limitation that explains the inferior performance: existing
+        evidential activation functions create zero evidence regions, which prevent
+        the model to learn from training samples falling into such regions. A deeper
+        analysis of evidential activation functions based on our theoretical underpinning
+        inspires the design of a novel regularizer that effectively alleviates this
+        fundamental limitation. Extensive experiments over many challenging real-world
+        datasets and settings confirm our theoretical findings and demonstrate the
+        effectiveness of our proposed approach.</summary>\n    <category term=\"cs.LG\"
+        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2023-06-19T18:27:12Z</published>\n    <arxiv:comment>ICML 2023;
+        Analysis and improvement of evidential deep learning theory</arxiv:comment>\n
+        \   <arxiv:primary_category term=\"cs.LG\"/>\n    <author>\n      <name>Deep
+        Pandey</name>\n    </author>\n    <author>\n      <name>Qi Yu</name>\n    </author>\n
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2105.04026v2</id>\n    <title>The
+        Modern Mathematics of Deep Learning</title>\n    <updated>2023-02-08T16:48:49Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/2105.04026v2\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/2105.04026v2\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>We describe the new field of mathematical analysis
+        of deep learning. This field emerged around a list of research questions that
+        were not answered within the classical framework of learning theory. These
+        questions concern: the outstanding generalization power of overparametrized
+        neural networks, the role of depth in deep architectures, the apparent absence
+        of the curse of dimensionality, the surprisingly successful optimization performance
+        despite the non-convexity of the problem, understanding what features are
+        learned, why deep architectures perform exceptionally well in physical problems,
+        and which fine aspects of an architecture affect the behavior of a learning
+        task in which way. We present an overview of modern approaches that yield
+        partial answers to these questions. For selected approaches, we describe the
+        main ideas in more detail.</summary>\n    <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <category term=\"stat.ML\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2021-05-09T21:30:42Z</published>\n    <arxiv:comment>A version
+        of this review paper appears as a chapter in the book \"Mathematical Aspects
+        of Deep Learning\" by Cambridge University Press</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.LG\"/>\n    <arxiv:journal_ref>Mathematical Aspects of Deep Learning,
+        pp. 1-111. Cambridge University Press, 2022</arxiv:journal_ref>\n    <author>\n
+        \     <name>Julius Berner</name>\n    </author>\n    <author>\n      <name>Philipp
+        Grohs</name>\n    </author>\n    <author>\n      <name>Gitta Kutyniok</name>\n
+        \   </author>\n    <author>\n      <name>Philipp Petersen</name>\n    </author>\n
+        \   <arxiv:doi>10.1017/9781009025096.002</arxiv:doi>\n    <link rel=\"related\"
+        href=\"https://doi.org/10.1017/9781009025096.002\" title=\"doi\"/>\n  </entry>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2301.00942v1</id>\n    <title>Deep
+        Learning and Computational Physics (Lecture Notes)</title>\n    <updated>2023-01-03T03:56:19Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/2301.00942v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/2301.00942v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>These notes were compiled as lecture notes for
+        a course developed and taught at the University of the Southern California.
+        They should be accessible to a typical engineering graduate student with a
+        strong background in Applied Mathematics.\n  The main objective of these notes
+        is to introduce a student who is familiar with concepts in linear algebra
+        and partial differential equations to select topics in deep learning. These
+        lecture notes exploit the strong connections between deep learning algorithms
+        and the more conventional techniques of computational physics to achieve two
+        goals. First, they use concepts from computational physics to develop an understanding
+        of deep learning algorithms. Not surprisingly, many concepts in deep learning
+        can be connected to similar concepts in computational physics, and one can
+        utilize this connection to better understand these algorithms. Second, several
+        novel deep learning algorithms can be used to solve challenging problems in
+        computational physics. Thus, they offer someone who is interested in modeling
+        a physical phenomena with a complementary set of tools.</summary>\n    <category
+        term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"math-ph\"
+        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-01-03T03:56:19Z</published>\n
+        \   <arxiv:comment>7 chapters</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.LG\"/>\n    <author>\n      <name>Deep Ray</name>\n    </author>\n
+        \   <author>\n      <name>Orazio Pinti</name>\n    </author>\n    <author>\n
+        \     <name>Assad A. Oberai</name>\n    </author>\n  </entry>\n  <entry>\n
+        \   <id>http://arxiv.org/abs/1711.00146v1</id>\n    <title>A multitask deep
+        learning model for real-time deployment in embedded systems</title>\n    <updated>2017-10-31T23:59:23Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/1711.00146v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/1711.00146v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>We propose an approach to Multitask Learning
+        (MTL) to make deep learning models faster and lighter for applications in
+        which multiple tasks need to be solved simultaneously, which is particularly
+        useful in embedded, real-time systems. We develop a multitask model for both
+        Object Detection and Semantic Segmentation and analyze the challenges that
+        appear during its training. Our multitask network is 1.6x faster, lighter
+        and uses less memory than deploying the single-task models in parallel. We
+        conclude that MTL has the potential to give superior performance in exchange
+        of a more complex training process that introduces challenges not present
+        in single-task models.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2017-10-31T23:59:23Z</published>\n    <arxiv:comment>2 pages,
+        5 figures. Poster presentation at Swedish Symposium on Deep Learning SSDL2017,
+        Stockholm, Sweden. June 20-21, 2017</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.CV\"/>\n    <arxiv:journal_ref>Swedish Symposium on Deep Learning
+        2017</arxiv:journal_ref>\n    <author>\n      <name>Miquel Mart\xED</name>\n
+        \   </author>\n    <author>\n      <name>Atsuto Maki</name>\n    </author>\n
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2012.06469v1</id>\n    <title>DILIE:
+        Deep Internal Learning for Image Enhancement</title>\n    <updated>2020-12-11T16:39:44Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/2012.06469v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/2012.06469v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>We consider the generic deep image enhancement
+        problem where an input image is transformed into a perceptually better-looking
+        image. Recent methods for image enhancement consider the problem by performing
+        style transfer and image restoration. The methods mostly fall into two categories:
+        training data-based and training data-independent (deep internal learning
+        methods). We perform image enhancement in the deep internal learning framework.
+        Our Deep Internal Learning for Image Enhancement framework enhances content
+        features and style features and uses contextual content loss for preserving
+        image context in the enhanced image. We show results on both hazy and noisy
+        image enhancement. To validate the results, we use structure similarity and
+        perceptual error, which is efficient in measuring the unrealistic deformation
+        present in the images. We show that the proposed framework outperforms the
+        relevant state-of-the-art works for image enhancement.</summary>\n    <category
+        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2020-12-11T16:39:44Z</published>\n
+        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Indra
+        Deep Mastan</name>\n    </author>\n    <author>\n      <name>Shanmuganathan
+        Raman</name>\n    </author>\n  </entry>\n</feed>\n"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '417'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '10432'
+      Date:
+      - Wed, 03 Dec 2025 21:18:33 GMT
+      Strict-Transport-Security:
+      - max-age=300
+      X-Cache:
+      - MISS, MISS, HIT
+      X-Cache-Hits:
+      - 0, 0, 0
+      X-Served-By:
+      - cache-lga21986-LGA, cache-lga21972-LGA, cache-lcy-eglc8600093-LCY
+      X-Timer:
+      - S1764796713.360086,VS0,VE2
+      content-type:
+      - application/atom+xml; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - af4f223c172040d839b6ec3f41ffbb43
+    status:
+      code: 200
+      message: OK
+version: 1

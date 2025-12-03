@@ -1,9 +1,36 @@
 models:
+  gemini-3-pro-preview:
+    # Model metadata
+    description: "Most intelligent model with state-of-the-art reasoning and multimodal understanding"
+    capabilities: "🌟 Best for: Agentic workflows, autonomous coding, complex multimodal tasks, advanced reasoning"
+    tags: ["gemini-3", "pro", "latest", "multimodal", "reasoning"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    supports_thinking_level: true
+    supports_media_resolution: true
+    supports_thought_signatures: true
+
+    # Pricing (tiered based on token count)
+    input_tiers:
+      - threshold: 200000
+        price: 2.00
+      - threshold: .inf
+        price: 4.00
+    output_tiers:
+      - threshold: 200000
+        price: 12.00
+      - threshold: .inf
+        price: 18.00
+
   gemini-2.5-pro:
     # Model metadata
-    description: "Latest pro model with advanced reasoning and multimodal capabilities"
+    description: "Powerful reasoning model excelling at coding and complex reasoning tasks"
     capabilities: "🎯 Best for: Complex reasoning, analysis, multimodal tasks, long documents"
-    tags: ["gemini-2.5", "pro", "latest", "multimodal"]
+    tags: ["gemini-2.5", "pro", "multimodal"]
     context_window: "2,000,000 tokens"
     output_tokens: 65536
 
@@ -22,6 +49,7 @@ models:
         price: 10.00
       - threshold: .inf
         price: 15.00
+    free_tier: true
 
   gemini-2.5-flash:
     # Model metadata
@@ -61,62 +89,15 @@ models:
       text: 0.10
       image: 0.10
       video: 0.10
-      audio: 0.50
+      audio: 0.30
     output_per_1m: 0.40
     free_tier: true
 
-  gemini-1.5-pro:
+  # Image generation models
+  imagen-4.0-generate-001:
     # Model metadata
-    description: "Advanced pro model with large context window"
-    capabilities: "📚 Best for: Complex analysis, long documents, research tasks"
-    tags: ["gemini-1.5", "pro", "legacy", "multimodal"]
-    context_window: "2,000,000 tokens"
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_grounding: true
-
-    # Pricing (standard per-token)
-    input_per_1m: 1.25
-    output_per_1m: 5.00
-
-  gemini-1.5-flash:
-    # Model metadata
-    description: "Fast, cost-effective model for most tasks"
-    capabilities: "⚡ Best for: Fast responses, everyday tasks"
-    tags: ["gemini-1.5", "flash", "legacy", "multimodal"]
-    context_window: "1,000,000 tokens"
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_grounding: true
-
-    # Pricing (standard per-token)
-    input_per_1m: 0.075
-    output_per_1m: 0.30
-
-  gemini-1.5-flash-8b:
-    # Model metadata
-    description: "Lightweight model for high-volume tasks"
-    capabilities: "🚀 Best for: High-volume, lightweight tasks"
-    tags: ["gemini-1.5", "flash", "legacy", "cost-effective"]
-    context_window: "1,000,000 tokens"
-    output_tokens: 8192
-
-    # Capabilities
-    supports_vision: true
-    supports_grounding: true
-
-    # Pricing (standard per-token)
-    input_per_1m: 0.0375
-    output_per_1m: 0.15
-
-  imagen-4.0-generate-preview-06-06:
-    # Model metadata
-    description: "Latest high-quality image generation model"
-    capabilities: "🎨 Best for: High-quality image generation"
+    description: "High-quality image generation (standard quality)"
+    capabilities: "🎨 Best for: Standard quality image generation"
     tags: ["image-generation", "latest"]
     context_window: "N/A (Image generation)"
 
@@ -129,7 +110,23 @@ models:
     pricing_type: "per_image"
     quality: "standard"
 
-  imagen-4.0-ultra-generate-preview-06-06:
+  imagen-4.0-fast-generate-001:
+    # Model metadata
+    description: "Fast image generation"
+    capabilities: "⚡ Best for: Quick image generation"
+    tags: ["image-generation", "latest", "fast"]
+    context_window: "N/A (Image generation)"
+
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+
+    # Pricing (per image)
+    price_per_image: 0.020
+    pricing_type: "per_image"
+    quality: "fast"
+
+  imagen-4.0-ultra-generate-001:
     # Model metadata
     description: "Ultra-high quality image generation"
     capabilities: "🎨 Best for: Ultra-high quality artistic images"
@@ -145,10 +142,26 @@ models:
     pricing_type: "per_image"
     quality: "ultra"
 
+  imagen-4.0-generate-preview-06-06:
+    # Model metadata
+    description: "Preview version of Imagen 4 (standard quality)"
+    capabilities: "🎨 Best for: Testing Imagen 4 features (preview)"
+    tags: ["image-generation", "preview"]
+    context_window: "N/A (Image generation)"
+
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+
+    # Pricing (per image) - same as standard Imagen 4
+    price_per_image: 0.040
+    pricing_type: "per_image"
+    quality: "standard"
+
   imagen-3.0-generate-002:
     # Model metadata
     description: "Previous generation image model"
-    capabilities: "🎨 Best for: High-quality image generation"
+    capabilities: "🎨 Best for: High-quality image generation (legacy)"
     tags: ["image-generation", "legacy"]
     context_window: "N/A (Image generation)"
 
@@ -162,7 +175,7 @@ models:
     quality: "standard"
 
   # Video generation models
-  veo-2:
+  veo-2.0-generate-001:
     # Model metadata
     description: "High-quality video generation model"
     capabilities: "🎬 Best for: Video content creation"
@@ -179,12 +192,12 @@ models:
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
+  - name: "🌟 Gemini 3 Series"
+    tags: ["gemini-3"]
+    description: "Most advanced generation with state-of-the-art reasoning (recommended)"
   - name: "🚀 Gemini 2.5 Series"
     tags: ["gemini-2.5"]
-    description: "Latest generation with enhanced reasoning and capabilities"
-  - name: "⚡ Gemini 1.5 Series"
-    tags: ["gemini-1.5"]
-    description: "Previous generation with proven performance"
+    description: "Powerful generation with free tiers available"
   - name: "🎨 Image Generation"
     tags: ["image-generation"]
     description: "High-quality image generation models"
@@ -193,16 +206,22 @@ display_categories:
     description: "Video content creation models"
 
 # Default model
-default_model: "gemini-2.5-pro"
+default_model: "gemini-3-pro-preview"
 
 # Usage notes
 usage_notes:
-  - "Gemini 2.5 Flash and Flash-Lite have free tiers available"
-  - "Pro models have 2M token context windows"
-  - "Flash models balance speed and capability"
+  - "Gemini 3 Pro Preview is the recommended default for best performance"
+  - "Gemini 3 Pro supports thinking_level (low/high) for controlling reasoning depth"
+  - "Gemini 3 Pro supports media_resolution for multimodal vision control"
+  - "Gemini 3 Pro uses thought signatures for maintaining reasoning context"
+  - "Gemini 3 Pro has 1M token context window, 64k output tokens"
+  - "Gemini 3 Pro defaults to temperature 1.0 (strongly recommended per documentation)"
+  - "Gemini 2.5 Pro, Flash, and Flash-Lite have free tiers available"
+  - "Pro models have large context windows (1M-2M tokens)"
+  - "Flash models balance speed and capability with lower costs"
   - "All text models support multimodal input (text, images, video)"
-  - "Audio input costs more than text/image/video for Flash models"
-  - "Tiered pricing applies to 2.5 Pro based on token count thresholds"
-  - "Google Search grounding available with additional costs"
-  - "Image generation models charge per image, not per token"
-  - "Video generation models charge per second"
+  - "Audio input has higher costs than text/image/video for Flash models"
+  - "Tiered pricing applies to Pro models based on token count thresholds"
+  - "Google Search grounding: 1,500 RPD free, then additional charges apply"
+  - "Image generation models charge per image ($0.02-$0.06)"
+  - "Video generation models charge per second ($0.35)"

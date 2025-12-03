@@ -18,28 +18,23 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
+            "gpt-5.1",
             "gpt-5",
             "gpt-5-mini",
             "gpt-5-nano",
-            "gpt-5-chat-latest",
+            "gpt-5-pro",
             "o3",
+            "o3-pro",
+            "o3-mini",
             "o4-mini",
             "o1",
-            "o1-preview",
             "o1-mini",
             "gpt-4o",
             "gpt-4o-mini",
-            "gpt-4o-2024-11-20",
-            "gpt-4o-2024-08-06",
-            "gpt-4o-mini-2024-07-18",
             "gpt-4.1",
             "gpt-4.1-mini",
             "gpt-4.1-nano",
-            "gpt-4-turbo",
-            "gpt-4",
-            "gpt-3.5-turbo",
             "dall-e-3",
-            "dall-e-2",
             "gpt-image-1",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
@@ -50,13 +45,16 @@ class TestOpenAIModelConfiguration:
         assert MODEL_CONFIGS["gpt-5"]["output_tokens"] == 128000
         assert MODEL_CONFIGS["gpt-5-mini"]["output_tokens"] == 128000
         assert MODEL_CONFIGS["gpt-5-nano"]["output_tokens"] == 128000
-        assert MODEL_CONFIGS["gpt-5-chat-latest"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5.1"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5-pro"]["output_tokens"] == 128000
 
         # O3/O4 series
         assert MODEL_CONFIGS["o4-mini"]["output_tokens"] == 100000
+        assert MODEL_CONFIGS["o3"]["output_tokens"] == 100000
+        assert MODEL_CONFIGS["o3-mini"]["output_tokens"] == 100000
 
         # O1 series
-        assert MODEL_CONFIGS["o1-preview"]["output_tokens"] == 32768
+        assert MODEL_CONFIGS["o1"]["output_tokens"] == 100000
         assert MODEL_CONFIGS["o1-mini"]["output_tokens"] == 65536
 
         # GPT-4o series
@@ -71,13 +69,16 @@ class TestOpenAIModelConfiguration:
         """Test that model configurations use correct parameter names."""
         # GPT-5 series use max_completion_tokens
         assert MODEL_CONFIGS["gpt-5"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["gpt-5.1"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["gpt-5-mini"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["gpt-5-nano"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["gpt-5-chat-latest"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["gpt-5-pro"]["param"] == "max_completion_tokens"
 
-        # O1/O4 series use max_completion_tokens
+        # O1/O3/O4 series use max_completion_tokens
         assert MODEL_CONFIGS["o4-mini"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["o1-preview"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["o3"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["o3-mini"]["param"] == "max_completion_tokens"
+        assert MODEL_CONFIGS["o1"]["param"] == "max_completion_tokens"
         assert MODEL_CONFIGS["o1-mini"]["param"] == "max_completion_tokens"
 
         # GPT-4o series use max_tokens

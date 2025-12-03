@@ -47,7 +47,9 @@ def _get_client() -> Mistral:
 _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_from_loader = load_provider_models("mistral")
+MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_from_loader = load_provider_models(
+    "mistral"
+)
 
 
 def _get_session_id() -> LLMResult:
@@ -79,18 +81,19 @@ def _resolve_files(files: list[str]) -> list[dict[str, Any]]:
         if is_text_file(file_path):
             # For text files, read directly as text
             content = file_path.read_text(encoding="utf-8")
-            content_parts.append({
-                "type": "text",
-                "text": f"[File: {file_path.name}]\n{content}"
-            })
+            content_parts.append(
+                {"type": "text", "text": f"[File: {file_path.name}]\n{content}"}
+            )
         else:
             # For images, encode as base64
             file_content = file_path.read_bytes()
             encoded_content = base64.b64encode(file_content).decode()
-            content_parts.append({
-                "type": "image_url",
-                "image_url": f"data:image/jpeg;base64,{encoded_content}"
-            })
+            content_parts.append(
+                {
+                    "type": "image_url",
+                    "image_url": f"data:image/jpeg;base64,{encoded_content}",
+                }
+            )
 
     return content_parts
 
@@ -106,31 +109,21 @@ def _mistral_generation_adapter(
     # Extract Mistral-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files", [])
-    max_output_tokens = kwargs.get("max_output_tokens", 0)
 
-    # Get model configuration
+    # Get model configuration for output tokens
     model_config = _get_model_config(model)
-    max_output = model_config.get("output_tokens", 8192)
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config.get("output_tokens", 8192)
 
     # Build messages array
     messages = []
 
     # Add system instruction if provided
     if system_instruction:
-        messages.append({
-            "role": "system",
-            "content": system_instruction
-        })
+        messages.append({"role": "system", "content": system_instruction})
 
     # Add conversation history
     for msg in history:
-        messages.append({
-            "role": msg["role"],
-            "content": msg["content"]
-        })
+        messages.append({"role": msg["role"], "content": msg["content"]})
 
     # Build user message with prompt and files
     user_content = []
@@ -141,10 +134,9 @@ def _mistral_generation_adapter(
         file_parts = _resolve_files(files)
         user_content.extend(file_parts)
 
-    messages.append({
-        "role": "user",
-        "content": user_content if len(user_content) > 1 else prompt
-    })
+    messages.append(
+        {"role": "user", "content": user_content if len(user_content) > 1 else prompt}
+    )
 
     # Generate response
     try:
@@ -185,14 +177,10 @@ def _mistral_image_analysis_adapter(
     """Mistral-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
-    max_output_tokens = kwargs.get("max_output_tokens", 0)
 
-    # Get model configuration
+    # Get model configuration for output tokens
     model_config = _get_model_config(model)
-    max_output = model_config.get("output_tokens", 8192)
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config.get("output_tokens", 8192)
 
     # Build message content with images
     content = [{"type": "text", "text": prompt}]
@@ -201,23 +189,19 @@ def _mistral_image_analysis_adapter(
     for image_item in images:
         image_bytes = resolve_image_data(image_item)
         encoded_image = base64.b64encode(image_bytes).decode()
-        content.append({
-            "type": "image_url",
-            "image_url": f"data:image/jpeg;base64,{encoded_image}"
-        })
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": f"data:image/jpeg;base64,{encoded_image}",
+            }
+        )
 
     # Build messages
     messages = []
     if system_instruction:
-        messages.append({
-            "role": "system",
-            "content": system_instruction
-        })
+        messages.append({"role": "system", "content": system_instruction})
 
-    messages.append({
-        "role": "user",
-        "content": content
-    })
+    messages.append({"role": "user", "content": content})
 
     # Generate response
     try:
@@ -261,8 +245,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Mistral's response. Use '-' for standard output.",
+        ...,
+        description="File path to save Mistral's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -270,19 +254,15 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Mistral model to use for the request (e.g., 'mistral-large-latest').",
+        description="The Mistral model to use for the request. Default is 'mistral-large-latest' (recommended). Other options: 'mistral-small-latest', 'codestral-latest', 'ministral-8b-latest'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic.",
+        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to provide as context to the model.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
     system_prompt: str = Field(
         default=None,
@@ -310,7 +290,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
@@ -326,8 +305,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external Mistral vision AI service.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Mistral's visual analysis. Use '-' for standard output.",
+        ...,
+        description="File path to save Mistral's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -339,15 +318,11 @@ def analyze_image(
     ),
     model: str = Field(
         default="pixtral-large-latest",
-        description="The Mistral vision model to use (e.g., 'pixtral-large-latest', 'pixtral-12b-2409').",
+        description="The Mistral vision model to use. Default is 'pixtral-large-latest' (recommended). Other option: 'pixtral-12b-2409'. Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with Mistral AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -365,7 +340,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 
@@ -379,8 +353,8 @@ def process_ocr(
         description="Path to document file (PDF, image, PPTX, DOCX) or URL. Supports local files, HTTP(S) URLs, or base64 data URIs.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save OCR results as JSON. Use '-' for standard output.",
+        ...,
+        description="File path to save OCR results as JSON.",
     ),
     include_images: bool = Field(
         default=True,
@@ -403,16 +377,10 @@ def process_ocr(
 
         if document_path.startswith(("http://", "https://")):
             # HTTP(S) URL
-            document_input = {
-                "type": "document_url",
-                "document_url": document_path
-            }
+            document_input = {"type": "document_url", "document_url": document_path}
         elif document_path.startswith("data:"):
             # Base64 data URI
-            document_input = {
-                "type": "document_url",
-                "document_url": document_path
-            }
+            document_input = {"type": "document_url", "document_url": document_path}
         else:
             # Local file - convert to base64 data URI
             file_path = Path(document_path)
@@ -439,12 +407,12 @@ def process_ocr(
             if suffix in {".png", ".jpg", ".jpeg"}:
                 document_input = {
                     "type": "image_url",
-                    "image_url": f"data:{mime_type};base64,{encoded_content}"
+                    "image_url": f"data:{mime_type};base64,{encoded_content}",
                 }
             else:
                 document_input = {
                     "type": "document_url",
-                    "document_url": f"data:{mime_type};base64,{encoded_content}"
+                    "document_url": f"data:{mime_type};base64,{encoded_content}",
                 }
 
         # Call Mistral OCR API
@@ -470,17 +438,18 @@ def process_ocr(
 
         result = {
             "pages": to_dict(response.pages) if hasattr(response, "pages") else [],
-            "model": response.model if hasattr(response, "model") else "mistral-ocr-latest",
-            "usage_info": to_dict(response.usage_info) if hasattr(response, "usage_info") else {},
+            "model": response.model
+            if hasattr(response, "model")
+            else "mistral-ocr-latest",
+            "usage_info": to_dict(response.usage_info)
+            if hasattr(response, "usage_info")
+            else {},
         }
 
-        # Write output
-        if output_file == "-":
-            import json
-            print(json.dumps(result, indent=2))
-        else:
-            import json
-            Path(output_file).write_text(json.dumps(result, indent=2))
+        # Write output to file
+        import json
+
+        Path(output_file).write_text(json.dumps(result, indent=2))
 
         return result
 

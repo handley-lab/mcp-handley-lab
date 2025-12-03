@@ -155,10 +155,9 @@ def process_llm_request(
             lambda: actual_agent_name,
         )
 
-    # Handle output
-    if output_file != "-":
-        output_path = Path(output_file)
-        output_path.write_text(metadata["response_text"])
+    # Handle output - always write to file
+    output_path = Path(output_file)
+    output_path.write_text(metadata["response_text"])
 
     from mcp_handley_lab.shared.models import UsageStats
 

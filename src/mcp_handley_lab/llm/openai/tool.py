@@ -266,14 +266,14 @@ def _openai_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external OpenAI GPT service. Can take a prompt directly or load it from a template file with variables. Returns OpenAI's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external OpenAI AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -282,8 +282,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save OpenAI's response. Use '-' for standard output.",
+        ...,
+        description="File path to save OpenAI's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -291,15 +291,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The OpenAI GPT model to use for the request (e.g., 'gpt-5', 'gpt-5-mini', 'o3').",
+        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.1' (recommended). Other options: 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls response randomness (0.0-2.0). Higher is more creative.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Max response tokens. 0 for model's default max.",
+        description="Controls response randomness (0.0-2.0). Higher is more creative. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -313,11 +309,11 @@ def ask(
         default=0,
         description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),
@@ -339,7 +335,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         enable_logprobs=enable_logprobs,
         top_logprobs=top_logprobs,
         system_prompt=system_prompt,
@@ -357,8 +352,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external OpenAI vision AI service.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save OpenAI's visual analysis. Use '-' for standard output.",
+        ...,
+        description="File path to save OpenAI's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -369,15 +364,12 @@ def analyze_image(
         description="The area of focus for the analysis (e.g., 'ocr', 'objects'). This enhances the prompt to guide the model.",
     ),
     model: str = Field(
-        default="gpt-4o", description="The OpenAI vision model to use (e.g., 'gpt-4o')."
+        default="gpt-4o",
+        description="The OpenAI vision model to use (e.g., 'gpt-4o'). Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with OpenAI AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="The maximum number of tokens to generate in the response. 0 means use the model's default maximum.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -395,7 +387,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

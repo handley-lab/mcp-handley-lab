@@ -33,7 +33,6 @@ class TestProviderXORValidation:
                 model="gpt-4o-mini",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
                 enable_logprobs=False,
                 top_logprobs=0,
             )
@@ -58,7 +57,6 @@ class TestProviderXORValidation:
                 model="claude-3-5-haiku-20241022",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
             )
 
     def test_gemini_ask_xor_validation_prompt_raises(self):
@@ -78,7 +76,6 @@ class TestProviderXORValidation:
                 model="gemini-2.5-flash",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
                 grounding=False,
             )
 
@@ -99,7 +96,6 @@ class TestProviderXORValidation:
                 model="grok-3-mini",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
             )
 
 
@@ -127,6 +123,8 @@ class TestProviderParameterConsistency:
 
     def test_parameter_types_are_consistent(self):
         """Test that all providers have consistent parameter types for new parameters."""
+        from typing import get_args, get_origin
+
         providers = [openai_ask, claude_ask, gemini_ask, grok_ask]
         expected_types = {
             "prompt_file": str,
@@ -144,14 +142,12 @@ class TestProviderParameterConsistency:
                 actual_type = param.annotation
 
                 # Handle dict[str, str] type annotations first
-                if (
-                    hasattr(actual_type, "__origin__")
-                    and actual_type.__origin__ is dict
-                ):
+                origin = get_origin(actual_type)
+                if origin is dict:
                     actual_type = dict
-                # Handle Union types (e.g., str | None)
-                elif hasattr(actual_type, "__origin__"):
-                    args = getattr(actual_type, "__args__", ())
+                # Handle Union types (e.g., str | None or Union[str, None])
+                elif origin is not None:
+                    args = get_args(actual_type)
                     # Get the first non-None type
                     actual_type = next(
                         (arg for arg in args if arg is not type(None)), actual_type

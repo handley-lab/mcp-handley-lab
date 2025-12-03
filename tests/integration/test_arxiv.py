@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from mcp_handley_lab.arxiv.tool import download, mcp, server_info
+from mcp_handley_lab.arxiv.tool import download, search, server_info
 
 
 class TestArxivIntegration:
@@ -75,124 +75,138 @@ class TestArxivIntegration:
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_real_arxiv_search(self):
+    def test_real_arxiv_search(self):
         """Test real ArXiv search functionality."""
-        # Search for a specific topic using MCP call_tool
-        content_blocks, response = await mcp.call_tool(
-            "search", {"query": "machine learning", "max_results": 5}
+        # Search for a specific topic using direct function call
+        # Note: Must pass all args explicitly since Field() defaults don't work outside MCP
+        results = search(
+            query="machine learning",
+            max_results=5,
+            start=0,
+            sort_by="relevance",
+            sort_order="descending",
+            include_fields=[],
+            max_authors=5,
+            max_summary_len=1000,
         )
 
-        results = response["result"]
         assert isinstance(results, list)
         assert len(results) <= 5
 
         if len(results) > 0:
             # Check first result structure
             result = results[0]
-            assert "id" in result
-            assert "title" in result
-            assert "authors" in result
-            assert "summary" in result
-            assert "published" in result
-            assert "categories" in result
-            assert "pdf_url" in result
-            assert "abs_url" in result
+            assert result.id is not None
+            assert result.title is not None
+            assert result.authors is not None
+            assert result.summary is not None
+            assert result.published is not None
+            assert result.categories is not None
+            assert result.pdf_url is not None
+            assert result.abs_url is not None
 
             # Check data types
-            assert isinstance(result["id"], str)
-            assert isinstance(result["title"], str)
-            assert isinstance(result["authors"], list)
-            assert isinstance(result["summary"], str)
-            assert isinstance(result["categories"], list)
-            assert result["pdf_url"].startswith("http")
-            assert result["abs_url"].startswith("http")
+            assert isinstance(result.id, str)
+            assert isinstance(result.title, str)
+            assert isinstance(result.authors, list)
+            assert isinstance(result.summary, str)
+            assert isinstance(result.categories, list)
+            assert result.pdf_url.startswith("http")
+            assert result.abs_url.startswith("http")
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_arxiv_search_field_filtering(self):
+    def test_arxiv_search_field_filtering(self):
         """Test include_fields functionality for context window management."""
         # Test minimal fields (just id and title)
-        content_blocks, response = await mcp.call_tool(
-            "search",
-            {
-                "query": "machine learning",
-                "max_results": 2,
-                "include_fields": ["title"],
-            },
+        # Note: Must pass all args explicitly since Field() defaults don't work outside MCP
+        results = search(
+            query="machine learning",
+            max_results=2,
+            start=0,
+            sort_by="relevance",
+            sort_order="descending",
+            include_fields=["title"],
+            max_authors=5,
+            max_summary_len=1000,
         )
 
-        results = response["result"]
         assert len(results) <= 2
         if results:
             result = results[0]
-            assert "id" in result and result["id"]  # Always included
-            assert "title" in result and result["title"]
-            # Other fields should be null
-            assert result.get("authors") is None
-            assert result.get("summary") is None
-            assert result.get("published") is None
+            assert result.id  # Always included
+            assert result.title
+            # Other fields should be None
+            assert result.authors is None
+            assert result.summary is None
+            assert result.published is None
 
         # Test summary fields
-        content_blocks, response = await mcp.call_tool(
-            "search",
-            {
-                "query": "machine learning",
-                "max_results": 2,
-                "include_fields": ["title", "authors", "published"],
-            },
+        results = search(
+            query="machine learning",
+            max_results=2,
+            start=0,
+            sort_by="relevance",
+            sort_order="descending",
+            include_fields=["title", "authors", "published"],
+            max_authors=5,
+            max_summary_len=1000,
         )
 
-        results = response["result"]
         assert len(results) <= 2
         if results:
             result = results[0]
-            assert "id" in result and result["id"]  # Always included
-            assert "title" in result and result["title"]
-            assert "authors" in result
-            assert "published" in result
-            # These should be null (not requested)
-            assert result.get("summary") is None
-            assert result.get("categories") is None
-            assert result.get("pdf_url") is None
+            assert result.id  # Always included
+            assert result.title
+            assert result.authors is not None
+            assert result.published is not None
+            # These should be None (not requested)
+            assert result.summary is None
+            assert result.categories is None
+            assert result.pdf_url is None
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_arxiv_search_truncation(self):
+    def test_arxiv_search_truncation(self):
         """Test author and summary truncation features."""
         # Test summary truncation
-        content_blocks, response = await mcp.call_tool(
-            "search",
-            {"query": "machine learning", "max_results": 1, "max_summary_len": 100},
+        # Note: Must pass all args explicitly since Field() defaults don't work outside MCP
+        results = search(
+            query="machine learning",
+            max_results=1,
+            start=0,
+            sort_by="relevance",
+            sort_order="descending",
+            include_fields=[],
+            max_authors=5,
+            max_summary_len=100,
         )
 
-        results = response["result"]
-        if results and results[0]["summary"]:
-            summary = results[0]["summary"]
+        if results and results[0].summary:
+            summary = results[0].summary
             assert len(summary) <= 103  # 100 + "..."
             if len(summary) > 100:
                 assert summary.endswith("...")
 
         # Test author truncation - need a paper with many authors
-        content_blocks, response = await mcp.call_tool(
-            "search",
-            {
-                "query": "deep learning collaboration",
-                "max_results": 5,
-                "max_authors": 3,
-            },
+        results = search(
+            query="deep learning collaboration",
+            max_results=5,
+            start=0,
+            sort_by="relevance",
+            sort_order="descending",
+            include_fields=[],
+            max_authors=3,
+            max_summary_len=1000,
         )
 
-        results = response["result"]
         for result in results:
-            if result["authors"] and len(result["authors"]) > 3:
+            if result.authors and len(result.authors) > 3:
                 # Check if truncation message is present
-                last_author = result["authors"][-1]
+                last_author = result.authors[-1]
                 assert "... and" in last_author and "more" in last_author
                 # Total should be max_authors + 1 (for the "... and X more" entry)
-                assert len(result["authors"]) == 4
+                assert len(result.authors) == 4
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration

@@ -47,9 +47,9 @@ MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config = load_provider_models("claude")
 def _resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
-        "sonnet": "claude-3-5-sonnet-20241022",
-        "opus": "claude-3-opus-20240229",
-        "haiku": "claude-3-5-haiku-20241022",
+        "sonnet": "claude-sonnet-4-5-20250929",
+        "opus": "claude-opus-4-1-20250805",
+        "haiku": "claude-haiku-4-5-20251001",
     }
     return aliases.get(model, model)
 
@@ -284,14 +284,14 @@ def _claude_image_analysis_adapter(
 
 
 @mcp.tool(
-    description="Delegates a user query to external Anthropic Claude AI service. Can take a prompt directly or load it from a template file with variables. Returns Claude's verbatim response. Use `agent_name` for separate conversation thread. For code reviews, use code2prompt first."
+    description="Delegates a user query to external Anthropic Claude AI service. Can take a prompt directly or load it from a template file with variables. Returns Claude's verbatim response. Use `agent_name` for separate conversation thread."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The user's question to delegate to external Claude AI service.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -300,8 +300,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="Path to save Claude's response. Use '-' to stream the output directly to stdout.",
+        ...,
+        description="File path to save Claude's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -309,25 +309,21 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'.",
+        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic.",
+        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to be read and included as context in the prompt.",
     ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
-    ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external Claude AI service. Remembered for this conversation thread.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions. Cannot be used with 'system_prompt'.",
     ),
@@ -351,7 +347,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
@@ -367,8 +362,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external Claude vision AI service.",
     ),
     output_file: str = Field(
-        "-",
-        description="Path to save Claude's visual analysis. Use '-' to stream the output directly to stdout.",
+        ...,
+        description="File path to save Claude's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -379,16 +374,12 @@ def analyze_image(
         description="Specifies the focus of the analysis (e.g., 'text' to transcribe, 'objects' to identify).",
     ),
     model: str = Field(
-        "claude-3-5-sonnet-20240620",
-        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
+        DEFAULT_MODEL,
+        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs. Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         "session",
         description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        0,
-        description="Maximum number of tokens to generate in the response. If 0, uses the model's default maximum.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -406,7 +397,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 
@@ -444,7 +434,7 @@ def test_connection() -> str:
     """Tests the connection to the Claude API."""
     try:
         _get_client().messages.create(
-            model="claude-3-5-haiku-20241022",
+            model="claude-haiku-4-5-20251001",
             messages=[{"role": "user", "content": "Hello"}],
             max_tokens=10,
         )

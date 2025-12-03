@@ -12,12 +12,13 @@ class TestGrokModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Grok models are in MODEL_CONFIGS."""
         expected_models = {
-            "grok-4",
+            "grok-4-fast-reasoning",
+            "grok-4-fast-non-reasoning",
+            "grok-4-0709",
             "grok-3",
             "grok-3-mini",
             "grok-2-vision-1212",
             "grok-2-image-1212",
-            "grok-2-1212",
             "grok-code-fast-1",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
@@ -25,7 +26,9 @@ class TestGrokModelConfiguration:
     def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
         # Grok 4 series
-        assert MODEL_CONFIGS["grok-4"]["output_tokens"] == 100000
+        assert MODEL_CONFIGS["grok-4-fast-reasoning"]["output_tokens"] == 100000
+        assert MODEL_CONFIGS["grok-4-fast-non-reasoning"]["output_tokens"] == 100000
+        assert MODEL_CONFIGS["grok-4-0709"]["output_tokens"] == 100000
 
         # Grok 3 series
         assert MODEL_CONFIGS["grok-3"]["output_tokens"] == 65536
@@ -33,7 +36,6 @@ class TestGrokModelConfiguration:
 
         # Grok 2 series (text models)
         assert MODEL_CONFIGS["grok-2-vision-1212"]["output_tokens"] == 16384
-        assert MODEL_CONFIGS["grok-2-1212"]["output_tokens"] == 16384
 
         # Grok 2 image generation model has None (doesn't use token limits)
         assert MODEL_CONFIGS["grok-2-image-1212"]["output_tokens"] is None
@@ -50,7 +52,7 @@ class TestGrokModelConfiguration:
 
     def test_get_model_config_valid_model(self):
         """Test _get_model_config with valid model names."""
-        config = _get_model_config("grok-4")
+        config = _get_model_config("grok-4-fast-reasoning")
         assert config["output_tokens"] == 100000
 
     def test_get_model_config_fallback_to_default(self):
@@ -84,5 +86,5 @@ class TestGrokErrorHandling:
 
     def test_model_count_matches_expected(self):
         """Test that we have the expected number of models."""
-        # Ensure we have all 7 expected Grok models
-        assert len(MODEL_CONFIGS) == 7
+        # Ensure we have all 8 expected Grok models
+        assert len(MODEL_CONFIGS) == 8

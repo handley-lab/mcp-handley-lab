@@ -565,10 +565,7 @@ class TestLLMImageAnalysisUnhappyPaths:
         }
 
         # Add provider-specific parameters
-        base_params.update(
-            {
-            }
-        )
+        base_params.update({})
 
         with pytest.raises(
             ToolError,
@@ -602,10 +599,7 @@ class TestLLMImageAnalysisUnhappyPaths:
         }
 
         # Add provider-specific parameters
-        base_params.update(
-            {
-            }
-        )
+        base_params.update({})
 
         with pytest.raises(
             ToolError,

@@ -184,10 +184,7 @@ class TestSystemPromptBasic:
 
         # Add provider-specific parameters
         if provider in ("openai", "gemini", "claude"):
-            base_params.update(
-                {
-                }
-            )
+            base_params.update({})
 
         _, response = await mcp.call_tool("analyze_image", base_params)
         assert "error" not in response, response.get("error")

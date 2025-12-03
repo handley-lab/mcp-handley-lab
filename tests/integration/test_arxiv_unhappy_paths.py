@@ -204,9 +204,7 @@ class TestArxivEdgeCases:
 
         for versioned_id in version_tests:
             try:
-                result = download(
-                    arxiv_id=versioned_id, format="src", output_path="-"
-                )
+                result = download(arxiv_id=versioned_id, format="src", output_path="-")
 
                 # If successful, should handle version correctly
                 assert result.message is not None
@@ -237,9 +235,7 @@ class TestArxivEdgeCases:
                 results.append({"error": str(e)})
 
         # At least some should succeed
-        successful_results = [
-            r for r in results if hasattr(r, 'arxiv_id')
-        ]
+        successful_results = [r for r in results if hasattr(r, "arxiv_id")]
 
         # Should have at least one success
         assert len(successful_results) >= 1

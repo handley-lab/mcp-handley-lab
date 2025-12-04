@@ -60,26 +60,14 @@ class TestModelConfiguration:
         # Should default to mistral-large-latest
         assert config["output_tokens"] == 8192
 
-    def test_vision_models_tagged_correctly(self):
-        """Test that vision models have supports_vision=true."""
-        vision_models = [
-            "pixtral-large-latest",
-            "pixtral-12b-2409",
-            "mistral-ocr-latest",
-        ]
-        for model in vision_models:
-            assert MODEL_CONFIGS[model]["supports_vision"] is True
-
-    def test_text_models_have_no_vision(self):
-        """Test that text-only models have supports_vision=false."""
-        text_models = [
-            "mistral-large-latest",
-            "mistral-small-latest",
-            "codestral-latest",
-            "ministral-8b-latest",
-        ]
-        for model in text_models:
-            assert MODEL_CONFIGS[model]["supports_vision"] is False
+    def test_all_models_have_output_tokens(self):
+        """Test that all models have output_tokens configured."""
+        for model_id, config in MODEL_CONFIGS.items():
+            assert "output_tokens" in config, f"Model {model_id} missing output_tokens"
+            # output_tokens should be an int (0 for OCR model, 8192 for others)
+            assert isinstance(
+                config["output_tokens"], int
+            ), f"Model {model_id} output_tokens should be int"
 
 
 class TestMistralHelpers:

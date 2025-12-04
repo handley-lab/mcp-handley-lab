@@ -65,9 +65,9 @@ class TestModelConfiguration:
         for model_id, config in MODEL_CONFIGS.items():
             assert "output_tokens" in config, f"Model {model_id} missing output_tokens"
             # output_tokens should be an int (0 for OCR model, 8192 for others)
-            assert isinstance(
-                config["output_tokens"], int
-            ), f"Model {model_id} output_tokens should be int"
+            assert isinstance(config["output_tokens"], int), (
+                f"Model {model_id} output_tokens should be int"
+            )
 
 
 class TestMistralHelpers:

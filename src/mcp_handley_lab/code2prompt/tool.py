@@ -74,16 +74,13 @@ def generate_prompt(
         "cl100k",
         description="The name of the tiktoken encoding to use for token counting (e.g., 'cl100k', 'p50k_base').",
     ),
-    tokens: str = Field(
+    token_format: str = Field(
         "format",
-        description="Determines how token counts are displayed. Valid options are 'format', 'only', 'none'.",
+        description="Determines how token counts are displayed. Valid options are 'format' (human readable) or 'raw' (machine parsable).",
     ),
     sort: str = Field(
         "name_asc",
-        description="The sorting order for files. Options: 'name_asc', 'name_desc', 'tokens_asc', 'tokens_desc'.",
-    ),
-    include_priority: bool = Field(
-        False, description="'include' patterns take priority over .gitignore rules."
+        description="The sorting order for files. Options: 'name_asc', 'name_desc', 'date_asc', 'date_desc'.",
     ),
     template: str = Field(
         "", description="Path to a custom Jinja2 template file to format the output."
@@ -116,10 +113,9 @@ def generate_prompt(
         {"name": "--output-file", "value": output_file, "type": "value"},
         {"name": "--output-format", "value": output_format, "type": "value"},
         {"name": "--encoding", "value": encoding, "type": "value"},
-        {"name": "--tokens", "value": tokens, "type": "value"},
+        {"name": "--token-format", "value": token_format, "type": "value"},
         {"name": "--sort", "value": sort, "type": "value"},
         {"name": "--template", "value": template, "type": "optional_value"},
-        {"name": "--include-priority", "condition": include_priority, "type": "flag"},
         {"name": "--no-ignore", "condition": no_ignore, "type": "flag"},
         {"name": "--line-numbers", "condition": line_numbers, "type": "flag"},
         {

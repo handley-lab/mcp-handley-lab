@@ -44,6 +44,7 @@ depends=(
     'python-selectolax'
     'python-email-reply-parser'
     'python-anthropic'
+    'python-mistralai>=1.9.0'
     'python-wolframclient'
     'python-opentelemetry-sdk'
     'python-dateutil>=2.8.0'

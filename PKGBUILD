@@ -37,7 +37,7 @@ depends=(
     'python-pendulum'
     'python-xai-sdk'
     'jupyter-nbformat>=5.0.0'
-    'python-nbclient>=0.8.0'
+    'jupyter-nbclient>=0.8.0'
     'python-dateparser'
     'python-ftfy'
     'python-inscriptis'
@@ -46,9 +46,6 @@ depends=(
     'python-anthropic'
     'python-wolframclient'
     'python-opentelemetry-sdk'
-    'python-chromadb>=1.0.0'
-    'python-mail-parser>=3.15.0'
-    'python-pyfzf>=0.3.1'
     'python-dateutil>=2.8.0'
 )
 makedepends=(
@@ -71,6 +68,7 @@ optdepends=(
     'python-code2prompt: Codebase analysis'
     'python-black: Code formatting'
     'python-ruff: Linting'
+    'python-chromadb: Semantic search features (AUR)'
 )
 source=()
 sha256sums=()

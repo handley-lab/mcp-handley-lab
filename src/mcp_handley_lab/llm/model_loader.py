@@ -157,6 +157,7 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 "supports_audio",
                 "supports_fim",
                 "supports_transcription",
+                "supports_grounding",
                 "embedding_dimensions",
             ]:
                 if flag in model_info:

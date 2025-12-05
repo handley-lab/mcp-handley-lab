@@ -163,9 +163,9 @@ class TestMistralHelpers:
         """Test file processing error in _resolve_files - should fail fast."""
         from mcp_handley_lab.llm.mistral.tool import _resolve_files
 
-        # Use invalid path that will cause stat() to fail
+        # Use invalid path with unknown MIME type
         files = ["/invalid/nonexistent/path"]
 
-        # Should raise FileNotFoundError instead of adding error text
-        with pytest.raises(FileNotFoundError):
+        # Should raise ValueError for unsupported file type
+        with pytest.raises(ValueError, match="Unsupported file type"):
             _resolve_files(files)

@@ -1,9 +1,8 @@
 """Mistral LLM tool for AI interactions via MCP."""
 
 import base64
-import os
+import mimetypes
 import threading
-import time
 from pathlib import Path
 from typing import Any
 
@@ -42,9 +41,6 @@ def _get_client() -> Mistral:
                 raise RuntimeError(f"Failed to initialize Mistral client: {e}") from e
     return _client
 
-
-# Generate session ID once at module load time
-_SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 # Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_from_loader = load_provider_models(
@@ -85,13 +81,19 @@ def _resolve_files(files: list[str]) -> list[dict[str, Any]]:
                 {"type": "text", "text": f"[File: {file_path.name}]\n{content}"}
             )
         else:
-            # For images, encode as base64
+            # For images, encode as base64 with proper MIME type
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            if not mime_type or not mime_type.startswith("image/"):
+                raise ValueError(
+                    f"Unsupported file type for chat/vision: {file_path} "
+                    f"({mime_type or 'unknown'}). Only text and image files are supported."
+                )
             file_content = file_path.read_bytes()
             encoded_content = base64.b64encode(file_content).decode()
             content_parts.append(
                 {
                     "type": "image_url",
-                    "image_url": f"data:image/jpeg;base64,{encoded_content}",
+                    "image_url": f"data:{mime_type};base64,{encoded_content}",
                 }
             )
 
@@ -196,10 +198,14 @@ def _mistral_image_analysis_adapter(
             }
         )
 
-    # Build messages
+    # Build messages (including conversation history for context)
     messages = []
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
+
+    # Add conversation history for multi-turn context
+    for entry in history:
+        messages.append({"role": entry["role"], "content": entry["content"]})
 
     messages.append({"role": "user", "content": content})
 
@@ -613,6 +619,10 @@ def get_embeddings(
     """
     import json
 
+    # Validate input length
+    if len(texts) > 16:
+        raise ValueError(f"Maximum 16 texts per request (got {len(texts)})")
+
     try:
         # Call Mistral embeddings API
         response = _get_client().embeddings.create(
@@ -679,10 +689,17 @@ def moderate_content(
             category_flags = {}
 
             if hasattr(result_data, "categories"):
-                for cat_name, cat_value in vars(result_data.categories).items():
-                    if not cat_name.startswith("_"):
-                        categories[cat_name] = cat_value
-                        category_flags[cat_name] = cat_value is True
+                # Use model_dump for Pydantic models, fall back to vars for others
+                cats = result_data.categories
+                if hasattr(cats, "model_dump"):
+                    cat_dict = cats.model_dump(exclude_none=True)
+                else:
+                    cat_dict = {
+                        k: v for k, v in vars(cats).items() if not k.startswith("_")
+                    }
+                for cat_name, cat_value in cat_dict.items():
+                    categories[cat_name] = cat_value
+                    category_flags[cat_name] = cat_value is True
 
             result = {
                 "flagged": any(category_flags.values()),

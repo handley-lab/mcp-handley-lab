@@ -689,9 +689,11 @@ def moderate_content(
             category_flags = {}
 
             if hasattr(result_data, "categories"):
-                # Use model_dump for Pydantic models, fall back to vars for others
+                # Handle dict, Pydantic model, or other object types
                 cats = result_data.categories
-                if hasattr(cats, "model_dump"):
+                if isinstance(cats, dict):
+                    cat_dict = cats
+                elif hasattr(cats, "model_dump"):
                     cat_dict = cats.model_dump(exclude_none=True)
                 else:
                     cat_dict = {

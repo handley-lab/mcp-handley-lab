@@ -503,3 +503,281 @@ def test_connection() -> str:
         return f"✅ Connection successful. Found {model_count} models."
     except Exception as e:
         return f"❌ Connection failed: {e}"
+
+
+@mcp.tool(
+    description="Transcribe audio to text using Mistral's Voxtral model. Supports various audio formats including MP3, WAV, FLAC, and more. Returns transcription with optional timestamps."
+)
+def transcribe_audio(
+    audio_path: str = Field(
+        ...,
+        description="Path to audio file or URL. Supports MP3, WAV, FLAC, OGG, M4A formats.",
+    ),
+    output_file: str = Field(
+        ...,
+        description="File path to save transcription results.",
+    ),
+    language: str = Field(
+        default="",
+        description="Language code (e.g., 'en', 'fr', 'es'). Leave empty for auto-detection.",
+    ),
+    include_timestamps: bool = Field(
+        default=False,
+        description="Include segment-level timestamps in the output.",
+    ),
+) -> dict[str, Any]:
+    """Transcribe audio using Mistral Voxtral model.
+
+    Returns:
+        dict with 'text' (full transcription) and optionally 'segments' with timestamps.
+    """
+    import json
+
+    try:
+        # Prepare transcription request
+        transcription_params = {
+            "model": "voxtral-mini-latest",
+        }
+
+        # Handle input source
+        if audio_path.startswith(("http://", "https://")):
+            transcription_params["file_url"] = audio_path
+        else:
+            # Local file
+            file_path = Path(audio_path)
+            if not file_path.exists():
+                raise FileNotFoundError(f"Audio file not found: {audio_path}")
+
+            with open(file_path, "rb") as f:
+                transcription_params["file"] = {
+                    "content": f,
+                    "file_name": file_path.name,
+                }
+
+        # Add optional parameters
+        if language:
+            transcription_params["language"] = language
+
+        if include_timestamps:
+            transcription_params["timestamp_granularities"] = ["segment"]
+
+        # Call Mistral transcription API
+        response = _get_client().audio.transcriptions.complete(**transcription_params)
+
+        # Build result
+        result = {
+            "text": response.text if hasattr(response, "text") else str(response),
+        }
+
+        # Add segments if timestamps requested
+        if include_timestamps and hasattr(response, "segments"):
+            result["segments"] = [
+                {
+                    "start": seg.start if hasattr(seg, "start") else 0,
+                    "end": seg.end if hasattr(seg, "end") else 0,
+                    "text": seg.text if hasattr(seg, "text") else "",
+                }
+                for seg in response.segments
+            ]
+
+        # Write to output file
+        Path(output_file).write_text(json.dumps(result, indent=2))
+
+        return result
+
+    except Exception as e:
+        raise ValueError(f"Mistral transcription error: {str(e)}") from e
+
+
+@mcp.tool(
+    description="Generate text or code embeddings using Mistral embedding models. Use 'mistral-embed' for text and 'codestral-embed' for code. Returns vector representations for semantic search, RAG, clustering."
+)
+def get_embeddings(
+    texts: list[str] = Field(
+        ...,
+        description="List of text strings to embed. Max 16 texts per request.",
+    ),
+    model: str = Field(
+        default="mistral-embed",
+        description="Embedding model: 'mistral-embed' for text, 'codestral-embed' for code.",
+    ),
+    output_file: str = Field(
+        default="",
+        description="Optional file path to save embeddings as JSON.",
+    ),
+) -> dict[str, Any]:
+    """Generate embeddings for text or code.
+
+    Returns:
+        dict with 'embeddings' (list of vectors), 'model', 'dimensions', and 'usage'.
+    """
+    import json
+
+    try:
+        # Call Mistral embeddings API
+        response = _get_client().embeddings.create(
+            model=model,
+            inputs=texts,
+        )
+
+        # Extract embeddings
+        embeddings = [item.embedding for item in response.data]
+
+        result = {
+            "embeddings": embeddings,
+            "model": model,
+            "dimensions": len(embeddings[0]) if embeddings else 0,
+            "count": len(embeddings),
+            "usage": {
+                "prompt_tokens": response.usage.prompt_tokens
+                if hasattr(response, "usage")
+                else 0,
+                "total_tokens": response.usage.total_tokens
+                if hasattr(response, "usage")
+                else 0,
+            },
+        }
+
+        # Write to output file if specified
+        if output_file:
+            Path(output_file).write_text(json.dumps(result, indent=2))
+
+        return result
+
+    except Exception as e:
+        raise ValueError(f"Mistral embeddings error: {str(e)}") from e
+
+
+@mcp.tool(
+    description="Analyze text for harmful content using Mistral's moderation model. Detects categories like violence, hate speech, sexual content, and self-harm."
+)
+def moderate_content(
+    text: str = Field(
+        ...,
+        description="Text content to analyze for harmful content.",
+    ),
+) -> dict[str, Any]:
+    """Moderate text content for safety.
+
+    Returns:
+        dict with 'flagged' (bool), 'categories' (dict of category scores),
+        and 'category_flags' (dict of boolean flags per category).
+    """
+    try:
+        # Call Mistral moderation API
+        response = _get_client().classifiers.moderate_chat(
+            model="mistral-moderation-latest",
+            inputs=[{"role": "user", "content": text}],
+        )
+
+        # Extract moderation results
+        if response.results and len(response.results) > 0:
+            result_data = response.results[0]
+
+            # Build category scores and flags
+            categories = {}
+            category_flags = {}
+
+            if hasattr(result_data, "categories"):
+                for cat_name, cat_value in vars(result_data.categories).items():
+                    if not cat_name.startswith("_"):
+                        categories[cat_name] = cat_value
+                        category_flags[cat_name] = cat_value is True
+
+            result = {
+                "flagged": any(category_flags.values()),
+                "categories": categories,
+                "category_flags": category_flags,
+            }
+        else:
+            result = {
+                "flagged": False,
+                "categories": {},
+                "category_flags": {},
+            }
+
+        return result
+
+    except Exception as e:
+        raise ValueError(f"Mistral moderation error: {str(e)}") from e
+
+
+@mcp.tool(
+    description="Fill-in-the-middle code completion using Codestral. Provide code before and after a cursor position to get intelligent completions. Ideal for IDE integrations."
+)
+def fill_in_middle(
+    prefix: str = Field(
+        ...,
+        description="Code before the cursor position.",
+    ),
+    suffix: str = Field(
+        default="",
+        description="Code after the cursor position.",
+    ),
+    output_file: str = Field(
+        ...,
+        description="File path to save the completion result.",
+    ),
+    model: str = Field(
+        default="codestral-latest",
+        description="Model to use: 'codestral-latest' or 'devstral-small-latest'.",
+    ),
+    max_tokens: int = Field(
+        default=256,
+        description="Maximum tokens to generate for the completion.",
+    ),
+    temperature: float = Field(
+        default=0.0,
+        description="Temperature for sampling. Use 0 for deterministic completions.",
+    ),
+    stop: list[str] = Field(
+        default_factory=list,
+        description="Stop sequences to end generation (e.g., ['\\n\\n', '```']).",
+    ),
+) -> dict[str, Any]:
+    """Fill-in-the-middle code completion.
+
+    Returns:
+        dict with 'completion' (generated code), 'full_code' (prefix + completion + suffix),
+        'model', and 'usage' information.
+    """
+    try:
+        # Build FIM request
+        fim_params = {
+            "model": model,
+            "prompt": prefix,
+            "suffix": suffix,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+
+        if stop:
+            fim_params["stop"] = stop
+
+        # Call Mistral FIM API
+        response = _get_client().fim.complete(**fim_params)
+
+        if not response.choices or not response.choices[0].message.content:
+            raise RuntimeError("No completion generated")
+
+        completion = response.choices[0].message.content
+        usage = response.usage
+
+        result = {
+            "completion": completion,
+            "full_code": prefix + completion + suffix,
+            "model": model,
+            "usage": {
+                "prompt_tokens": usage.prompt_tokens if usage else 0,
+                "completion_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0,
+            },
+        }
+
+        # Write to output file
+        Path(output_file).write_text(result["full_code"])
+
+        return result
+
+    except Exception as e:
+        raise ValueError(f"Mistral FIM error: {str(e)}") from e

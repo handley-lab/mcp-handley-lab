@@ -58,11 +58,15 @@ def _get_model_config(model: str) -> dict[str, int]:
     return _get_model_config_from_loader(model)
 
 
-def _extract_text_content(content: str | list) -> str:
+def _extract_text_content(content: str | list, include_thinking: bool = True) -> str:
     """Extract text from Mistral response content.
 
     Handles both simple string responses and structured content
     (ThinkChunk/TextChunk lists from reasoning models like Magistral).
+
+    Args:
+        content: Response content (string or list of chunks)
+        include_thinking: If True, include thinking in <thinking> tags. If False, omit.
     """
     if isinstance(content, str):
         return content
@@ -72,7 +76,7 @@ def _extract_text_content(content: str | list) -> str:
     for chunk in content:
         if hasattr(chunk, "text"):
             text_parts.append(chunk.text)
-        elif hasattr(chunk, "thinking"):
+        elif hasattr(chunk, "thinking") and include_thinking:
             # ThinkChunk contains nested thinking content
             for think_part in chunk.thinking:
                 if hasattr(think_part, "text"):
@@ -133,6 +137,7 @@ def _mistral_generation_adapter(
     # Extract Mistral-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files", [])
+    include_thinking = kwargs.get("include_thinking", True)
 
     # Get model configuration for output tokens
     model_config = _get_model_config(model)
@@ -182,7 +187,7 @@ def _mistral_generation_adapter(
     usage = response.usage
 
     return {
-        "text": _extract_text_content(message.content),
+        "text": _extract_text_content(message.content, include_thinking),
         "input_tokens": usage.prompt_tokens if usage else 0,
         "output_tokens": usage.completion_tokens if usage else 0,
         "finish_reason": choice.finish_reason or "",
@@ -304,6 +309,10 @@ def ask(
         default_factory=dict,
         description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
     ),
+    include_thinking: bool = Field(
+        default=False,
+        description="Include reasoning model thinking in output. Only change if user explicitly requests.",
+    ),
 ) -> LLMResult:
     """Ask Mistral a question with optional persistent memory."""
     return process_llm_request(
@@ -321,6 +330,7 @@ def ask(
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
+        include_thinking=include_thinking,
     )
 
 

@@ -58,6 +58,28 @@ def _get_model_config(model: str) -> dict[str, int]:
     return _get_model_config_from_loader(model)
 
 
+def _extract_text_content(content: str | list) -> str:
+    """Extract text from Mistral response content.
+
+    Handles both simple string responses and structured content
+    (ThinkChunk/TextChunk lists from reasoning models like Magistral).
+    """
+    if isinstance(content, str):
+        return content
+
+    # Handle list of content chunks (reasoning models)
+    text_parts = []
+    for chunk in content:
+        if hasattr(chunk, "text"):
+            text_parts.append(chunk.text)
+        elif hasattr(chunk, "thinking"):
+            # ThinkChunk contains nested thinking content
+            for think_part in chunk.thinking:
+                if hasattr(think_part, "text"):
+                    text_parts.append(f"<thinking>\n{think_part.text}\n</thinking>")
+    return "\n\n".join(text_parts)
+
+
 def _resolve_files(files: list[str]) -> list[dict[str, Any]]:
     """Resolve file inputs to Mistral message content format.
 
@@ -160,7 +182,7 @@ def _mistral_generation_adapter(
     usage = response.usage
 
     return {
-        "text": message.content,
+        "text": _extract_text_content(message.content),
         "input_tokens": usage.prompt_tokens if usage else 0,
         "output_tokens": usage.completion_tokens if usage else 0,
         "finish_reason": choice.finish_reason or "",
@@ -228,7 +250,7 @@ def _mistral_image_analysis_adapter(
     usage = response.usage
 
     return {
-        "text": message.content,
+        "text": _extract_text_content(message.content),
         "input_tokens": usage.prompt_tokens if usage else 0,
         "output_tokens": usage.completion_tokens if usage else 0,
     }
@@ -779,7 +801,7 @@ def fill_in_middle(
         if not response.choices or not response.choices[0].message.content:
             raise RuntimeError("No completion generated")
 
-        completion = response.choices[0].message.content
+        completion = _extract_text_content(response.choices[0].message.content)
         usage = response.usage
 
         result = {

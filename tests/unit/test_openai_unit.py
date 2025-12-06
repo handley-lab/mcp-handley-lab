@@ -66,42 +66,46 @@ class TestOpenAIModelConfiguration:
         assert MODEL_CONFIGS["gpt-4.1-mini"]["output_tokens"] == 16384
 
     def test_model_configs_param_names(self):
-        """Test that model configurations use correct parameter names."""
-        # GPT-5 series use max_completion_tokens
-        assert MODEL_CONFIGS["gpt-5"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["gpt-5.1"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["gpt-5-mini"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["gpt-5-nano"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["gpt-5-pro"]["param"] == "max_completion_tokens"
+        """Test that model configurations use correct parameter names.
 
-        # O1/O3/O4 series use max_completion_tokens
-        assert MODEL_CONFIGS["o4-mini"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["o3"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["o3-mini"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["o1"]["param"] == "max_completion_tokens"
-        assert MODEL_CONFIGS["o1-mini"]["param"] == "max_completion_tokens"
+        Responses API uses max_output_tokens for all reasoning models (GPT-5, o-series).
+        Legacy GPT-4.x models still use max_tokens.
+        """
+        # GPT-5 series use max_output_tokens (Responses API)
+        assert MODEL_CONFIGS["gpt-5"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-5.1"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-5-mini"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-5-nano"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-5-pro"]["param"] == "max_output_tokens"
 
-        # GPT-4o series use max_tokens
-        assert MODEL_CONFIGS["gpt-4o"]["param"] == "max_tokens"
-        assert MODEL_CONFIGS["gpt-4o-mini"]["param"] == "max_tokens"
-        assert MODEL_CONFIGS["gpt-4.1"]["param"] == "max_tokens"
+        # O1/O3/O4 series use max_output_tokens (Responses API)
+        assert MODEL_CONFIGS["o4-mini"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["o3"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["o3-mini"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["o1"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["o1-mini"]["param"] == "max_output_tokens"
+
+        # GPT-4o/4.1 series also use max_output_tokens (Responses API)
+        assert MODEL_CONFIGS["gpt-4o"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-4o-mini"]["param"] == "max_output_tokens"
+        assert MODEL_CONFIGS["gpt-4.1"]["param"] == "max_output_tokens"
 
     def test_get_model_config_known_models(self):
         """Test _get_model_config with known model names."""
         config = _get_model_config("o4-mini")
         assert config["output_tokens"] == 100000
-        assert config["param"] == "max_completion_tokens"
+        assert config["param"] == "max_output_tokens"  # Responses API
 
         config = _get_model_config("gpt-4o")
         assert config["output_tokens"] == 16384
-        assert config["param"] == "max_tokens"
+        assert config["param"] == "max_output_tokens"  # Responses API
 
     def test_get_model_config_unknown_model(self):
         """Test _get_model_config falls back to default for unknown models."""
         config = _get_model_config("unknown-model")
-        # Should default to gpt-5-mini
+        # Should default to gpt-5-mini (Responses API)
         assert config["output_tokens"] == 128000
-        assert config["param"] == "max_completion_tokens"
+        assert config["param"] == "max_output_tokens"
 
 
 class TestOpenAIHelperFunctions:

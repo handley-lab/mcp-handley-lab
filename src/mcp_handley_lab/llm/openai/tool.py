@@ -69,15 +69,17 @@ def _openai_generation_adapter(
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """OpenAI-specific text generation function for the shared processor."""
+    """OpenAI-specific text generation function using the Responses API."""
     # Get model configuration first for validation
     model_config = _get_model_config(model)
 
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    enable_logprobs = kwargs["enable_logprobs"]
-    top_logprobs = kwargs["top_logprobs"]
+    enable_logprobs = kwargs.get("enable_logprobs", False)
+    top_logprobs = kwargs.get("top_logprobs", 0)
+    reasoning_effort = kwargs.get("reasoning_effort", "none")
+    reasoning_summary = kwargs.get("reasoning_summary", "auto")
 
     # Validate temperature parameter
     if not model_config.get("supports_temperature", True) and temperature != 1.0:
@@ -85,33 +87,43 @@ def _openai_generation_adapter(
             f"Model '{model}' does not support the 'temperature' parameter. Please remove it from your request."
         )
 
-    # Build messages
-    messages = []
-
-    # Add system instruction if provided
-    if system_instruction:
-        messages.append({"role": "system", "content": system_instruction})
-
-    # Add history (already in OpenAI format)
-    messages.extend(history)
-
-    # Resolve files
+    # Resolve files and build user content
     inline_content = resolve_files_for_llm(files)
-
-    # Add user message with any inline content
     user_content = prompt
     if inline_content:
         user_content += "\n\n" + "\n\n".join(inline_content)
-    messages.append({"role": "user", "content": user_content})
 
-    param_name = model_config["param"]
-    default_tokens = model_config["output_tokens"]
+    # Build input with conversation history (Responses API supports array format)
+    if history:
+        # Convert history to OpenAI message format
+        input_messages = []
+        for msg in history:
+            role = msg.get("role", "user")
+            # Map 'assistant' to 'assistant' (unchanged), 'user' stays 'user'
+            input_messages.append({"role": role, "content": msg.get("content", "")})
+        # Add current user message
+        input_messages.append({"role": "user", "content": user_content})
+        input_value: str | list = input_messages
+    else:
+        input_value = user_content
 
-    # Build request parameters
-    request_params = {
+    # Build request parameters for Responses API
+    request_params: dict[str, Any] = {
         "model": model,
-        "messages": messages,
+        "input": input_value,
     }
+
+    # Move system instruction to 'instructions' parameter (Responses API)
+    if system_instruction:
+        request_params["instructions"] = system_instruction
+
+    # Add temperature for models that support it
+    if model_config.get("supports_temperature", True):
+        request_params["temperature"] = temperature
+
+    # Add max_output_tokens (Responses API uses this name)
+    default_tokens = model_config["output_tokens"]
+    request_params["max_output_tokens"] = default_tokens
 
     # Add logprobs if requested
     if enable_logprobs:
@@ -119,55 +131,96 @@ def _openai_generation_adapter(
         if top_logprobs > 0:
             request_params["top_logprobs"] = top_logprobs
 
-    # Add temperature for models that support it
-    if model_config.get("supports_temperature", True):
-        request_params["temperature"] = temperature
+    # Add reasoning configuration for models that support it
+    if model_config.get("supports_reasoning", False):
+        reasoning_effort = (reasoning_effort or "none").lower()
+        reasoning_summary = (reasoning_summary or "auto").lower()
 
-    # Add max tokens with correct parameter name
-    request_params[param_name] = default_tokens
+        # Only send reasoning block if effort is not 'none'
+        if reasoning_effort != "none":
+            request_params["reasoning"] = {
+                "effort": reasoning_effort,
+                "summary": reasoning_summary,
+            }
 
-    # Make API call
-    response = _get_client().chat.completions.create(**request_params)
+    # Make Responses API call
+    response = _get_client().responses.create(**request_params)
 
-    # Extract additional OpenAI metadata
-    choice = response.choices[0]
-    finish_reason = choice.finish_reason
+    # Extract primary output text via helper property
+    text = getattr(response, "output_text", None)
+
+    # Fallback if output_text is not present (older SDK versions)
+    if text is None:
+        parts = []
+        for item in getattr(response, "output", []) or []:
+            if getattr(item, "type", None) == "message":
+                for block in getattr(item, "content", []) or []:
+                    if isinstance(block, str):
+                        parts.append(block)
+                    elif hasattr(block, "text"):
+                        parts.append(block.text)
+        text = "\n".join(parts) if parts else ""
+
+    # Extract finish reason - Responses API uses 'status' (e.g., "completed")
+    # Map to Chat Completions terminology for compatibility
+    status = getattr(response, "status", "completed")
+    finish_reason = "stop" if status == "completed" else status
 
     # Extract logprobs for confidence assessment
     avg_logprobs = 0.0
-    if choice.logprobs and choice.logprobs.content:
-        logprobs = [token.logprob for token in choice.logprobs.content]
-        avg_logprobs = sum(logprobs) / len(logprobs)
+    token_logprobs = []
+    for item in getattr(response, "output", []) or []:
+        if getattr(item, "type", None) == "message":
+            for block in getattr(item, "content", []) or []:
+                lp = getattr(block, "logprobs", None)
+                if lp and getattr(lp, "content", None):
+                    for token_info in lp.content:
+                        if hasattr(token_info, "logprob"):
+                            token_logprobs.append(token_info.logprob)
+    if token_logprobs:
+        avg_logprobs = sum(token_logprobs) / len(token_logprobs)
 
-    # Extract token details
+    # Usage mapping: Responses API uses input_tokens/output_tokens
+    usage = getattr(response, "usage", None)
+    input_tokens = getattr(usage, "input_tokens", 0) if usage else 0
+    output_tokens = getattr(usage, "output_tokens", 0) if usage else 0
+
+    # Extract token details with safe attribute access
     completion_tokens_details = {}
-    if response.usage.completion_tokens_details:
-        details = response.usage.completion_tokens_details
-        completion_tokens_details = {
-            "reasoning_tokens": details.reasoning_tokens,
-            "accepted_prediction_tokens": details.accepted_prediction_tokens,
-            "rejected_prediction_tokens": details.rejected_prediction_tokens,
-            "audio_tokens": details.audio_tokens,
-        }
-
     prompt_tokens_details = {}
-    if response.usage.prompt_tokens_details:
-        details = response.usage.prompt_tokens_details
-        prompt_tokens_details = {
-            "cached_tokens": details.cached_tokens,
-            "audio_tokens": details.audio_tokens,
-        }
+
+    if usage and hasattr(usage, "output_tokens_details"):
+        details = usage.output_tokens_details
+        if details:
+            completion_tokens_details = {
+                "reasoning_tokens": getattr(details, "reasoning_tokens", 0),
+                "accepted_prediction_tokens": getattr(
+                    details, "accepted_prediction_tokens", 0
+                ),
+                "rejected_prediction_tokens": getattr(
+                    details, "rejected_prediction_tokens", 0
+                ),
+                "audio_tokens": getattr(details, "audio_tokens", 0),
+            }
+
+    if usage and hasattr(usage, "input_tokens_details"):
+        details = usage.input_tokens_details
+        if details:
+            prompt_tokens_details = {
+                "cached_tokens": getattr(details, "cached_tokens", 0),
+                "audio_tokens": getattr(details, "audio_tokens", 0),
+            }
 
     return {
-        "text": response.choices[0].message.content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
+        "text": text,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
         "finish_reason": finish_reason,
         "avg_logprobs": avg_logprobs,
-        "model_version": response.model,
+        "model_version": getattr(response, "model", model),
         "response_id": response.id,
-        "system_fingerprint": response.system_fingerprint or "",
-        "service_tier": response.service_tier or "",
+        "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
+        "service_tier": getattr(response, "service_tier", "") or "",
         "completion_tokens_details": completion_tokens_details,
         "prompt_tokens_details": prompt_tokens_details,
     }
@@ -180,7 +233,7 @@ def _openai_image_analysis_adapter(
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """OpenAI-specific image analysis function for the shared processor."""
+    """OpenAI-specific image analysis function using the Responses API."""
     # Get model configuration first for validation
     model_config = _get_model_config(model)
 
@@ -204,62 +257,88 @@ def _openai_image_analysis_adapter(
 
     prompt_text, image_blocks = resolve_images_for_multimodal_prompt(prompt, images)
 
-    # Build message content with images in OpenAI format
-    content = [{"type": "text", "text": prompt_text}]
+    # Build content blocks compatible with Responses API multimodal input
+    current_content: list[dict[str, Any]] = [
+        {"type": "input_text", "text": prompt_text}
+    ]
     for image_block in image_blocks:
-        content.append(
+        current_content.append(
             {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:{image_block['mime_type']};base64,{image_block['data']}"
-                },
+                "type": "input_image",
+                "image_url": f"data:{image_block['mime_type']};base64,{image_block['data']}",
             }
         )
 
-    # Build messages
-    messages = []
+    # Build input with conversation history (Responses API supports array format)
+    if history:
+        # Convert history to OpenAI message format for multimodal conversations
+        input_messages: list[dict[str, Any]] = []
+        for msg in history:
+            role = msg.get("role", "user")
+            # For history, content is text only (images from previous turns aren't stored)
+            input_messages.append({"role": role, "content": msg.get("content", "")})
+        # Add current user message with multimodal content
+        input_messages.append({"role": "user", "content": current_content})
+        input_value: Any = input_messages
+    else:
+        input_value = current_content
 
-    # Add system instruction if provided
-    if system_instruction:
-        messages.append({"role": "system", "content": system_instruction})
-
-    # Add history (already in OpenAI format)
-    messages.extend(history)
-
-    # Add current message with images
-    messages.append({"role": "user", "content": content})
-
-    param_name = model_config["param"]
     default_tokens = model_config["output_tokens"]
 
-    # Build request parameters
-    request_params = {
+    # Build request parameters for Responses API
+    request_params: dict[str, Any] = {
         "model": model,
-        "messages": messages,
+        "input": input_value,
     }
+
+    # Move system instruction to 'instructions' parameter (Responses API)
+    if system_instruction:
+        request_params["instructions"] = system_instruction
 
     # Add temperature for models that support it
     if model_config.get("supports_temperature", True):
         request_params["temperature"] = temperature
 
-    # Add max tokens with correct parameter name
-    request_params[param_name] = default_tokens
+    # Add max_output_tokens (Responses API uses this name)
+    request_params["max_output_tokens"] = default_tokens
 
-    # Make API call
-    response = _get_client().chat.completions.create(**request_params)
+    # Make Responses API call
+    response = _get_client().responses.create(**request_params)
+
+    # Extract primary text
+    text = getattr(response, "output_text", None)
+    if text is None:
+        parts = []
+        for item in getattr(response, "output", []) or []:
+            if getattr(item, "type", None) == "message":
+                for block in getattr(item, "content", []) or []:
+                    if isinstance(block, str):
+                        parts.append(block)
+                    elif hasattr(block, "text"):
+                        parts.append(block.text)
+        text = "\n".join(parts) if parts else ""
+
+    # Usage mapping: Responses API uses input_tokens/output_tokens
+    usage = getattr(response, "usage", None)
+    input_tokens = getattr(usage, "input_tokens", 0) if usage else 0
+    output_tokens = getattr(usage, "output_tokens", 0) if usage else 0
+
+    # Extract finish reason - Responses API uses 'status' (e.g., "completed")
+    status = getattr(response, "status", "completed")
+    finish_reason = "stop" if status == "completed" else status
 
     return {
-        "text": response.choices[0].message.content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-        "finish_reason": response.choices[0].finish_reason,
-        "avg_logprobs": 0.0,  # Image analysis doesn't use logprobs
-        "model_version": response.model,
+        "text": text,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "finish_reason": finish_reason,
+        "avg_logprobs": 0.0,  # We do not request logprobs for vision
+        "model_version": getattr(response, "model", model),
         "response_id": response.id,
-        "system_fingerprint": response.system_fingerprint or "",
-        "service_tier": response.service_tier or "",
-        "completion_tokens_details": {},  # Not available for vision models
-        "prompt_tokens_details": {},  # Not available for vision models
+        "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
+        "service_tier": getattr(response, "service_tier", "") or "",
+        "completion_tokens_details": {},  # Not currently exposed for vision
+        "prompt_tokens_details": {},  # Not currently exposed for vision
     }
 
 
@@ -307,6 +386,14 @@ def ask(
         default=0,
         description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
     ),
+    reasoning_effort: str = Field(
+        default="none",
+        description="Controls model reasoning effort. Options: 'none' (default for gpt-5.1), 'minimal', 'low', 'medium' (default for older models), 'high', 'xhigh'. Only supported by reasoning models (gpt-5, o-series).",
+    ),
+    reasoning_summary: str = Field(
+        default="auto",
+        description="Controls reasoning summary format. Options: 'auto', 'concise', 'detailed'. Only used when reasoning_effort is not 'none'.",
+    ),
     system_prompt: str | None = Field(
         default=None,
         description="System instructions to send to external OpenAI AI service. Remembered for this conversation thread.",
@@ -335,6 +422,8 @@ def ask(
         files=files,
         enable_logprobs=enable_logprobs,
         top_logprobs=top_logprobs,
+        reasoning_effort=reasoning_effort,
+        reasoning_summary=reasoning_summary,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,

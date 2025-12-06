@@ -192,7 +192,6 @@ def _gemini_generation_adapter(
     temperature = kwargs.get("temperature", 1.0)
     grounding = kwargs.get("grounding", False)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Configure tools for grounding if requested
     tools = []
@@ -207,10 +206,7 @@ def _gemini_generation_adapter(
 
     # Get model configuration and token limits
     model_config = _get_model_config(model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Prepare config
     config_params = {
@@ -329,17 +325,13 @@ def _gemini_image_analysis_adapter(
     """Gemini-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Load images
     image_list = _resolve_images(images)
 
     # Get model configuration
     model_config = _get_model_config(model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Prepare content with images
     content = [prompt] + image_list

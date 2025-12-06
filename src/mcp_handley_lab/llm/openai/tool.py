@@ -76,7 +76,6 @@ def _openai_generation_adapter(
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
     enable_logprobs = kwargs["enable_logprobs"]
     top_logprobs = kwargs["top_logprobs"]
 
@@ -125,7 +124,7 @@ def _openai_generation_adapter(
         request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
-    request_params[param_name] = max_output_tokens or default_tokens
+    request_params[param_name] = default_tokens
 
     # Make API call
     response = _get_client().chat.completions.create(**request_params)
@@ -188,7 +187,6 @@ def _openai_image_analysis_adapter(
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
-    max_output_tokens = kwargs.get("max_output_tokens")
     temperature = kwargs.get("temperature", 1.0)
 
     # Validate temperature parameter
@@ -245,7 +243,7 @@ def _openai_image_analysis_adapter(
         request_params["temperature"] = temperature
 
     # Add max tokens with correct parameter name
-    request_params[param_name] = max_output_tokens or default_tokens
+    request_params[param_name] = default_tokens
 
     # Make API call
     response = _get_client().chat.completions.create(**request_params)

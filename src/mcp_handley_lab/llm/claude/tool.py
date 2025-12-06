@@ -146,15 +146,11 @@ def _claude_generation_adapter(
     # Extract Claude-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Get model configuration
     resolved_model = _resolve_model_alias(model)
     model_config = _get_model_config(resolved_model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Resolve file contents
     file_content = _resolve_files(files)
@@ -221,7 +217,6 @@ def _claude_image_analysis_adapter(
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Enhance prompt based on focus
     if focus != "general":
@@ -230,10 +225,7 @@ def _claude_image_analysis_adapter(
     # Get model configuration
     resolved_model = _resolve_model_alias(model)
     model_config = _get_model_config(resolved_model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Resolve images to content blocks
     image_blocks = _resolve_images_to_content_blocks(images)

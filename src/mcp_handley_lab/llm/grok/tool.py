@@ -61,7 +61,6 @@ def _grok_generation_adapter(
     # Extract Grok-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Build messages using xai-sdk helpers
     messages = []
@@ -98,10 +97,7 @@ def _grok_generation_adapter(
     }
 
     # Add max tokens
-    if max_output_tokens > 0:
-        request_params["max_tokens"] = max_output_tokens
-    else:
-        request_params["max_tokens"] = default_tokens
+    request_params["max_tokens"] = default_tokens
 
     # Make API call using XAI SDK's two-step process
     chat_session = _get_client().chat.create(**request_params)
@@ -158,7 +154,6 @@ def _grok_image_analysis_adapter(
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Use standardized image processing
     from mcp_handley_lab.llm.common import resolve_images_for_multimodal_prompt
@@ -204,10 +199,7 @@ def _grok_image_analysis_adapter(
     }
 
     # Add max tokens
-    if max_output_tokens > 0:
-        request_params["max_tokens"] = max_output_tokens
-    else:
-        request_params["max_tokens"] = default_tokens
+    request_params["max_tokens"] = default_tokens
 
     # Make API call using XAI SDK's two-step process
     chat_session = _get_client().chat.create(**request_params)

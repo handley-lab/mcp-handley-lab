@@ -1,5 +1,6 @@
 """Groq LLM tool for AI interactions via MCP."""
 
+import os
 import threading
 from typing import Any
 
@@ -30,14 +31,13 @@ def _get_client() -> OpenAI:
     global _client
     with _client_lock:
         if _client is None:
-            if (
-                not settings.groq_api_key
-                or settings.groq_api_key == "YOUR_API_KEY_HERE"
-            ):
+            # Check env var directly (for tests) or fall back to settings
+            api_key = os.environ.get("GROQ_API_KEY") or settings.groq_api_key
+            if not api_key or api_key == "YOUR_API_KEY_HERE":
                 raise RuntimeError("GROQ_API_KEY is not configured.")
             try:
                 _client = OpenAI(
-                    api_key=settings.groq_api_key,
+                    api_key=api_key,
                     base_url="https://api.groq.com/openai/v1",
                 )
             except Exception as e:

@@ -9,15 +9,6 @@ from mcp_handley_lab.llm.groq.tool import mcp
 
 
 @pytest.fixture
-def skip_if_no_api_key(monkeypatch):
-    """Skip test if GROQ_API_KEY is not set."""
-    import os
-
-    if not os.getenv("GROQ_API_KEY"):
-        pytest.skip("GROQ_API_KEY not set")
-
-
-@pytest.fixture
 def test_output_file():
     """Create a temporary output file for test results."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
@@ -27,7 +18,7 @@ def test_output_file():
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_ask_simple(skip_if_no_api_key, test_output_file):
+async def test_groq_ask_simple(test_output_file):
     """Test basic text generation with Groq."""
     _, response = await mcp.call_tool(
         "ask",
@@ -50,7 +41,7 @@ async def test_groq_ask_simple(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_ask_with_files(skip_if_no_api_key, test_output_file):
+async def test_groq_ask_with_files(test_output_file):
     """Test text generation with file input."""
     with tempfile.NamedTemporaryFile(
         mode="w", delete=False, suffix=".txt"
@@ -83,7 +74,7 @@ async def test_groq_ask_with_files(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_list_models(skip_if_no_api_key):
+async def test_groq_list_models():
     """Test listing available Groq models."""
     _, response = await mcp.call_tool("list_models", {})
 
@@ -103,7 +94,7 @@ async def test_groq_server_info():
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_test_connection(skip_if_no_api_key):
+async def test_groq_test_connection():
     """Test API connection."""
     _, response = await mcp.call_tool("test_connection", {})
 
@@ -115,7 +106,7 @@ async def test_groq_test_connection(skip_if_no_api_key):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_ask_with_memory(skip_if_no_api_key, test_output_file):
+async def test_groq_ask_with_memory(test_output_file):
     """Test conversation memory with agent_name."""
     # First message
     _, response1 = await mcp.call_tool(
@@ -148,7 +139,7 @@ async def test_groq_ask_with_memory(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_ask_different_models(skip_if_no_api_key, test_output_file):
+async def test_groq_ask_different_models(test_output_file):
     """Test with different Groq models."""
     models_to_test = [
         "llama-3.1-8b-instant",
@@ -172,7 +163,7 @@ async def test_groq_ask_different_models(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_groq_kimi_model(skip_if_no_api_key, test_output_file):
+async def test_groq_kimi_model(test_output_file):
     """Test Kimi K2 model with large context."""
     _, response = await mcp.call_tool(
         "ask",

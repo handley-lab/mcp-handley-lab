@@ -70,7 +70,7 @@ jobs:
           ~/.cargo/bin/code2prompt
           ~/.cargo/registry/cache
           ~/.cargo/git/db
-        key: ${{ runner.os }}-cargo-bin-code2prompt-v2
+        key: ${{ runner.os }}-cargo-bin-code2prompt-v3
         restore-keys: |
           ${{ runner.os }}-cargo-bin-code2prompt-
           ${{ runner.os }}-cargo-bin-

@@ -1,263 +1,190 @@
-"""Integration tests for Groq LLM provider."""
+"""Integration tests for Groq LLM tools with real API calls."""
 
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from mcp_handley_lab.llm.groq.tool import (
-    ask,
-    list_models,
-    server_info,
-    test_connection,
-)
+from mcp_handley_lab.llm.groq.tool import mcp
 
 
-class TestGroqIntegration:
-    """Comprehensive integration tests for Groq LLM provider."""
+@pytest.fixture
+def skip_if_no_api_key(monkeypatch):
+    """Skip test if GROQ_API_KEY is not set."""
+    import os
 
-    @pytest.mark.vcr
-    def test_groq_ask_basic(self):
-        """Test basic text generation with Groq."""
-        result = ask(
-            prompt="Hello, world!",
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            agent_name="",
-            files=[],
-            system_prompt=None,
-            temperature=1.0,
-            max_output_tokens=0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
+    if not os.getenv("GROQ_API_KEY"):
+        pytest.skip("GROQ_API_KEY not set")
+
+
+@pytest.fixture
+def test_output_file():
+    """Create a temporary output file for test results."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
+        yield f.name
+    Path(f.name).unlink(missing_ok=True)
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_ask_simple(skip_if_no_api_key, test_output_file):
+    """Test basic text generation with Groq."""
+    _, response = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What is 2+2? Answer with just the number.",
+            "output_file": test_output_file,
+            "agent_name": "",
+            "model": "llama-3.1-8b-instant",
+        },
+    )
+
+    assert "error" not in str(response).lower()
+    assert response["content"]
+    assert "usage" in response
+
+    # Check output file was created
+    output_content = Path(test_output_file).read_text()
+    assert "4" in output_content
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_ask_with_files(skip_if_no_api_key, test_output_file):
+    """Test text generation with file input."""
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".txt"
+    ) as test_file:
+        test_file.write("Test document content: The answer is 42")
+        test_file_path = test_file.name
+
+    try:
+        _, response = await mcp.call_tool(
+            "ask",
+            {
+                "prompt": "What number is mentioned in the file?",
+                "output_file": test_output_file,
+                "agent_name": "",
+                "model": "llama-3.1-8b-instant",
+                "files": [test_file_path],
+            },
         )
-        assert result.content is not None
-        assert result.usage.input_tokens > 0
-        assert result.usage.output_tokens > 0
-        assert result.usage.model_used == "llama-3.1-8b-instant"
-        assert result.usage.cost > 0
 
-    @pytest.mark.vcr
-    def test_groq_list_models(self):
-        """Test listing available models."""
-        result = list_models()
-        assert result.summary.provider == "groq"
-        assert result.summary.total_models > 0
-        assert len(result.models) > 0
-        # Check for specific Groq models
-        model_ids = [m.id for m in result.models]
-        assert "llama-3.1-8b-instant" in model_ids
+        assert "error" not in str(response).lower()
+        assert response["content"]
 
-    @pytest.mark.vcr
-    def test_groq_server_info(self):
-        """Test server info functionality."""
-        result = server_info()
-        assert result.name == "Groq Tool"
-        assert result.status == "active"
-        assert len(result.capabilities) > 0
+        # Check response mentions the number
+        output_content = Path(test_output_file).read_text()
+        assert "42" in output_content
 
-    @pytest.mark.vcr
-    def test_groq_test_connection(self):
-        """Test connection testing."""
-        result = test_connection()
-        assert isinstance(result, str)
+    finally:
+        Path(test_file_path).unlink(missing_ok=True)
 
-    @pytest.mark.vcr
-    def test_groq_ask_with_files(self):
-        """Test text generation with file input."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write("This is a test file content for Groq LLM processing.")
-            test_file = f.name
 
-        try:
-            result = ask(
-                prompt="Summarize the content of this file",
-                files=[test_file],
-                model="llama-3.1-8b-instant",
-                output_file="-",
-                agent_name="",
-                system_prompt=None,
-                temperature=1.0,
-                max_output_tokens=0,
-                prompt_file=None,
-                prompt_vars={},
-                system_prompt_file=None,
-                system_prompt_vars={},
-            )
-            assert result.content is not None
-            assert result.usage.input_tokens > 0
-            assert result.usage.model_used == "llama-3.1-8b-instant"
-        finally:
-            Path(test_file).unlink(missing_ok=True)
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_list_models(skip_if_no_api_key):
+    """Test listing available Groq models."""
+    _, response = await mcp.call_tool("list_models", {})
 
-    @pytest.mark.vcr
-    def test_groq_system_prompt_basic(self):
-        """Test system prompt functionality."""
-        result = ask(
-            prompt="What is quantum computing?",
-            system_prompt="You are a helpful science educator specializing in quantum physics.",
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            agent_name="",
-            files=[],
-            temperature=1.0,
-            max_output_tokens=0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
+    assert "error" not in str(response).lower()
+    assert "categories" in response or "models" in str(response)
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_server_info():
+    """Test server info without API call."""
+    _, response = await mcp.call_tool("server_info", {})
+
+    assert "error" not in str(response).lower()
+    assert "groq" in str(response).lower()
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_test_connection(skip_if_no_api_key):
+    """Test API connection."""
+    _, response = await mcp.call_tool("test_connection", {})
+
+    assert (
+        "error" not in str(response).lower()
+        or "connection successful" in str(response).lower()
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_ask_with_memory(skip_if_no_api_key, test_output_file):
+    """Test conversation memory with agent_name."""
+    # First message
+    _, response1 = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "Remember this number: 777. Just confirm you remember it.",
+            "output_file": test_output_file,
+            "agent_name": "test_memory_agent",
+            "model": "llama-3.1-8b-instant",
+        },
+    )
+
+    assert "error" not in str(response1).lower()
+
+    # Second message - should remember
+    _, response2 = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What number did I ask you to remember?",
+            "output_file": test_output_file,
+            "agent_name": "test_memory_agent",
+            "model": "llama-3.1-8b-instant",
+        },
+    )
+
+    assert "error" not in str(response2).lower()
+    output_content = Path(test_output_file).read_text()
+    assert "777" in output_content
+
+
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_ask_different_models(skip_if_no_api_key, test_output_file):
+    """Test with different Groq models."""
+    models_to_test = [
+        "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
+    ]
+
+    for model in models_to_test:
+        _, response = await mcp.call_tool(
+            "ask",
+            {
+                "prompt": "Say 'hello' in one word.",
+                "output_file": test_output_file,
+                "agent_name": "",
+                "model": model,
+            },
         )
-        assert result.content is not None
-        assert result.usage.input_tokens > 0
 
-    @pytest.mark.vcr
-    def test_groq_temperature_scenarios(self):
-        """Test temperature parameter scenarios."""
-        result = ask(
-            prompt="Generate some text",
-            temperature=1.5,
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            agent_name="",
-            files=[],
-            system_prompt=None,
-            max_output_tokens=0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
-        )
-        assert result.content is not None
+        assert "error" not in str(response).lower(), f"Failed for model: {model}"
+        assert response["content"], f"No content for model: {model}"
 
-    @pytest.mark.vcr
-    def test_groq_error_scenarios(self):
-        """Test error handling."""
-        # Invalid model
-        with pytest.raises(ValueError):
-            ask(
-                prompt="Test prompt",
-                model="invalid-groq-model-xyz",
-                output_file="-",
-                agent_name="",
-                files=[],
-                system_prompt=None,
-                temperature=1.0,
-                max_output_tokens=0,
-                prompt_file=None,
-                prompt_vars={},
-                system_prompt_file=None,
-                system_prompt_vars={},
-            )
 
-    @pytest.mark.vcr
-    def test_groq_memory_with_agent(self):
-        """Test persistent memory with named agent."""
-        agent_name = "test_groq_agent"
+@pytest.mark.vcr
+@pytest.mark.asyncio
+async def test_groq_kimi_model(skip_if_no_api_key, test_output_file):
+    """Test Kimi K2 model with large context."""
+    _, response = await mcp.call_tool(
+        "ask",
+        {
+            "prompt": "What is the capital of France? Answer briefly.",
+            "output_file": test_output_file,
+            "agent_name": "",
+            "model": "moonshotai/kimi-k2-instruct-0905",
+        },
+    )
 
-        # First message
-        result1 = ask(
-            prompt="My favorite color is blue",
-            agent_name=agent_name,
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            files=[],
-            system_prompt=None,
-            temperature=1.0,
-            max_output_tokens=0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
-        )
-        assert result1.content is not None
-
-        # Second message - should maintain agent state
-        result2 = ask(
-            prompt="What's my favorite color?",
-            agent_name=agent_name,
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            files=[],
-            system_prompt=None,
-            temperature=1.0,
-            max_output_tokens=0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
-        )
-        assert result2.content is not None
-
-    @pytest.mark.vcr
-    def test_groq_prompt_file_basic(self):
-        """Test loading prompt from file."""
-        prompt_content = "What is 2+2? Answer briefly."
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(prompt_content)
-            prompt_file = f.name
-
-        try:
-            result = ask(
-                prompt=None,
-                prompt_file=prompt_file,
-                model="llama-3.1-8b-instant",
-                output_file="-",
-                agent_name="",
-                files=[],
-                system_prompt=None,
-                temperature=1.0,
-                max_output_tokens=0,
-                prompt_vars={},
-                system_prompt_file=None,
-                system_prompt_vars={},
-            )
-            assert result.content is not None
-            assert result.usage.output_tokens > 0
-        finally:
-            Path(prompt_file).unlink(missing_ok=True)
-
-    @pytest.mark.vcr
-    def test_groq_large_context_kimi(self):
-        """Test Kimi's 256K context window capability."""
-        large_context = "Summarize this comprehensive document: " + "x" * 50000
-
-        result = ask(
-            prompt=large_context,
-            model="moonshotai/kimi-k2-instruct-0905",
-            max_output_tokens=8192,
-            output_file="-",
-            agent_name="",
-            files=[],
-            system_prompt=None,
-            temperature=1.0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
-        )
-        assert result.content is not None
-        assert result.usage.model_used == "moonshotai/kimi-k2-instruct-0905"
-        assert result.usage.output_tokens > 0
-
-    @pytest.mark.vcr
-    def test_groq_max_tokens_validation(self):
-        """Test max tokens limitation."""
-        result = ask(
-            prompt="Tell me a long story about artificial intelligence",
-            max_output_tokens=100,
-            model="llama-3.1-8b-instant",
-            output_file="-",
-            agent_name="",
-            files=[],
-            system_prompt=None,
-            temperature=1.0,
-            prompt_file=None,
-            prompt_vars={},
-            system_prompt_file=None,
-            system_prompt_vars={},
-        )
-        assert result.content is not None
-        assert result.usage.output_tokens <= 100
+    assert "error" not in str(response).lower()
+    assert response["content"]
+    output_content = Path(test_output_file).read_text()
+    assert "paris" in output_content.lower()

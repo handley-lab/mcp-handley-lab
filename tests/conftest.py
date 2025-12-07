@@ -137,6 +137,18 @@ def skip_if_no_api_key():
     return _skip_if_no_key
 
 
+@pytest.fixture(autouse=True)
+def set_dummy_api_keys_for_vcr(monkeypatch):
+    """Set dummy API keys for VCR-backed tests.
+
+    VCR intercepts HTTP requests, but API key validation happens before the request.
+    Setting dummy keys allows the code to proceed to the HTTP call where VCR intercepts.
+    """
+    # Only set if not already set (don't override real keys during recording)
+    if not os.getenv("GROQ_API_KEY"):
+        monkeypatch.setenv("GROQ_API_KEY", "gsk_test_vcr_dummy_key")
+
+
 @pytest.fixture(scope="session")
 def google_calendar_test_config():
     """Configure Google Calendar to use test credentials during testing."""

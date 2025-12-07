@@ -1,0 +1,92 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - api.mistral.ai
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: GET
+    uri: https://api.mistral.ai/v1/models
+  response:
+    body:
+      string: !!binary |
+        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
+        +PP3/wAAAP//AwDpQahIBYYAAA==
+    headers:
+      CF-RAY:
+      - 9aa3576cdebe9491-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:22 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af85b-e022-7193-aeb1-033ab9d4024f
+      x-envoy-upstream-service-time:
+      - '54'
+      x-kong-proxy-latency:
+      - '7'
+      x-kong-request-id:
+      - 019af85b-e022-7193-aeb1-033ab9d4024f
+      x-kong-upstream-latency:
+      - '55'
+    status:
+      code: 200
+      message: OK
+version: 1

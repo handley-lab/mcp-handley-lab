@@ -45,7 +45,11 @@ def sync_status(
     if not config_path.exists():
         raise FileNotFoundError(f"offlineimap configuration not found at {config_path}")
 
-    stdout, stderr = run_command(["offlineimap", "--dry-run", "-o1"])
+    cmd = ["offlineimap", "--dry-run", "-o1"]
+    if config_file:
+        cmd.extend(["-c", config_file])
+
+    stdout, stderr = run_command(cmd, timeout=60)  # 1 minute for dry run
     output = stdout.decode().strip()
     return OperationResult(
         status="success", message=f"Offlineimap configuration valid:\n{output}"

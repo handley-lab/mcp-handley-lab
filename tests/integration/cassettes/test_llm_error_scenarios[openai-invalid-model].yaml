@@ -1,0 +1,80 @@
+interactions:
+- request:
+    body: '{"input": "Test prompt", "max_output_tokens": 128000, "model": "invalid-model-name-that-does-not-exist"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '99'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"message\": \"The requested model 'invalid-model-name-that-does-not-exist'
+        does not exist.\",\n    \"type\": \"invalid_request_error\",\n    \"param\":
+        \"model\",\n    \"code\": \"model_not_found\"\n  }\n}"
+    headers:
+      CF-RAY:
+      - 9aa352d1cf6e63aa-LHR
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '204'
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:26:14 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '940'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '943'
+      x-request-id:
+      - req_691d1724bb0b41d4a4bd7b67072537c4
+    status:
+      code: 400
+      message: Bad Request
+version: 1

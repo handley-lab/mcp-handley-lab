@@ -76,8 +76,6 @@ def _openai_generation_adapter(
     # Extract OpenAI-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    enable_logprobs = kwargs.get("enable_logprobs", False)
-    top_logprobs = kwargs.get("top_logprobs", 0)
     reasoning_effort = kwargs.get("reasoning_effort", "none")
     reasoning_summary = kwargs.get("reasoning_summary", "auto")
 
@@ -125,12 +123,6 @@ def _openai_generation_adapter(
     default_tokens = model_config["output_tokens"]
     request_params["max_output_tokens"] = default_tokens
 
-    # Add logprobs if requested
-    if enable_logprobs:
-        request_params["logprobs"] = True
-        if top_logprobs > 0:
-            request_params["top_logprobs"] = top_logprobs
-
     # Add reasoning configuration for models that support it
     if model_config.get("supports_reasoning", False):
         reasoning_effort = (reasoning_effort or "none").lower()
@@ -165,20 +157,6 @@ def _openai_generation_adapter(
     # Map to Chat Completions terminology for compatibility
     status = getattr(response, "status", "completed")
     finish_reason = "stop" if status == "completed" else status
-
-    # Extract logprobs for confidence assessment
-    avg_logprobs = 0.0
-    token_logprobs = []
-    for item in getattr(response, "output", []) or []:
-        if getattr(item, "type", None) == "message":
-            for block in getattr(item, "content", []) or []:
-                lp = getattr(block, "logprobs", None)
-                if lp and getattr(lp, "content", None):
-                    for token_info in lp.content:
-                        if hasattr(token_info, "logprob"):
-                            token_logprobs.append(token_info.logprob)
-    if token_logprobs:
-        avg_logprobs = sum(token_logprobs) / len(token_logprobs)
 
     # Usage mapping: Responses API uses input_tokens/output_tokens
     usage = getattr(response, "usage", None)
@@ -216,7 +194,6 @@ def _openai_generation_adapter(
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "finish_reason": finish_reason,
-        "avg_logprobs": avg_logprobs,
         "model_version": getattr(response, "model", model),
         "response_id": response.id,
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
@@ -257,7 +234,8 @@ def _openai_image_analysis_adapter(
 
     prompt_text, image_blocks = resolve_images_for_multimodal_prompt(prompt, images)
 
-    # Build content blocks compatible with Responses API multimodal input
+    # Build content blocks for Responses API multimodal input
+    # Content items use 'input_text' and 'input_image' types
     current_content: list[dict[str, Any]] = [
         {"type": "input_text", "text": prompt_text}
     ]
@@ -269,19 +247,28 @@ def _openai_image_analysis_adapter(
             }
         )
 
-    # Build input with conversation history (Responses API supports array format)
+    # Build input with conversation history
+    # Responses API requires 'type': 'message' wrapper for message items
     if history:
-        # Convert history to OpenAI message format for multimodal conversations
         input_messages: list[dict[str, Any]] = []
         for msg in history:
             role = msg.get("role", "user")
-            # For history, content is text only (images from previous turns aren't stored)
-            input_messages.append({"role": role, "content": msg.get("content", "")})
+            # For history, content is text only
+            input_messages.append(
+                {
+                    "type": "message",
+                    "role": role,
+                    "content": [{"type": "input_text", "text": msg.get("content", "")}],
+                }
+            )
         # Add current user message with multimodal content
-        input_messages.append({"role": "user", "content": current_content})
+        input_messages.append(
+            {"type": "message", "role": "user", "content": current_content}
+        )
         input_value: Any = input_messages
     else:
-        input_value = current_content
+        # For multimodal without history, wrap in message structure
+        input_value = [{"type": "message", "role": "user", "content": current_content}]
 
     default_tokens = model_config["output_tokens"]
 
@@ -332,7 +319,6 @@ def _openai_image_analysis_adapter(
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "finish_reason": finish_reason,
-        "avg_logprobs": 0.0,  # We do not request logprobs for vision
         "model_version": getattr(response, "model", model),
         "response_id": response.id,
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
@@ -378,14 +364,6 @@ def ask(
         default_factory=list,
         description="List of file paths to include as context.",
     ),
-    enable_logprobs: bool = Field(
-        default=False,
-        description="Return log probabilities for output tokens for confidence scoring.",
-    ),
-    top_logprobs: int = Field(
-        default=0,
-        description="Number of top-N logprobs to return per token (0-5). Requires enable_logprobs.",
-    ),
     reasoning_effort: str = Field(
         default="none",
         description="Controls model reasoning effort. Options: 'none' (default for gpt-5.1), 'minimal', 'low', 'medium' (default for older models), 'high', 'xhigh'. Only supported by reasoning models (gpt-5, o-series).",
@@ -420,8 +398,6 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        enable_logprobs=enable_logprobs,
-        top_logprobs=top_logprobs,
         reasoning_effort=reasoning_effort,
         reasoning_summary=reasoning_summary,
         system_prompt=system_prompt,

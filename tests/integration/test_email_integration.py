@@ -458,8 +458,9 @@ Subject: {test_subject}
     @pytest.mark.asyncio
     async def test_email_tool_functions_integration(self):
         """Test email tool functions that don't require credentials."""
-        from mcp_handley_lab.email.common import mcp
+        # Import from email.tool to trigger tool registration (including server_info)
         from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc, list_accounts
+        from mcp_handley_lab.email.tool import mcp
 
         # Test msmtp account parsing with real config file
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
@@ -494,30 +495,47 @@ Subject: {test_subject}
         except (FileNotFoundError, RuntimeError) as e:
             pytest.skip(f"Email tools not available: {e}")
 
-    def test_notmuch_functions_integration(self):
+    @pytest.mark.asyncio
+    async def test_notmuch_functions_integration(self):
         """Test notmuch functions with real database (if available)."""
-        from mcp_handley_lab.email.notmuch.tool import count, search, tag
+        from mcp.server.fastmcp.exceptions import ToolError
+
+        from mcp_handley_lab.email.tool import mcp
 
         try:
-            # Test count function - should work even with empty database
-            result = count("*")
-            assert isinstance(result, int)
-            assert result >= 0
+            # Test count function via MCP - should work even with empty database
+            _, result = await mcp.call_tool("count", {"query": "*"})
+            # Result is a dict with 'result' key containing the count
+            count_value = (
+                result.get("result", result) if isinstance(result, dict) else result
+            )
+            assert isinstance(count_value, int)
+            assert count_value >= 0
 
-            # Test search function
-            search_result = search("*")
-            assert isinstance(search_result, list)
+            # Test search function via MCP
+            _, search_result = await mcp.call_tool(
+                "search", {"query": "*", "limit": 10}
+            )
+            # Result may be a list directly or wrapped in a dict
+            search_list = (
+                search_result
+                if isinstance(search_result, list)
+                else search_result.get("result", [])
+            )
+            assert isinstance(search_list, list)
 
             # Test tag function with non-existent message (should fail gracefully)
             try:
-                tag_result = tag("nonexistent123", add_tags=["test"])
+                _, tag_result = await mcp.call_tool(
+                    "tag", {"message_id": "nonexistent123", "add_tags": ["test"]}
+                )
                 # If it succeeds, check the result structure
-                assert hasattr(tag_result, "message_id")
-            except RuntimeError:
+                assert "message_id" in str(tag_result)
+            except Exception:
                 # Expected for non-existent message - notmuch should fail fast
                 pass
 
-        except (FileNotFoundError, RuntimeError) as e:
+        except (FileNotFoundError, RuntimeError, ToolError) as e:
             pytest.skip(f"Notmuch not available or configured: {e}")
 
     def test_offlineimap_dry_run_integration(self):

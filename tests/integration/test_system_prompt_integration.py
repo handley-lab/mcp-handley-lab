@@ -137,8 +137,6 @@ class TestSystemPromptBasic:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -220,8 +218,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -292,8 +288,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -373,8 +367,6 @@ class TestSystemPromptPersistence:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -525,8 +517,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -567,8 +557,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -611,8 +599,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -659,8 +645,6 @@ class TestSystemPromptEdgeCases:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":

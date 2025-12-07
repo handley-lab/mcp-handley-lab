@@ -1,0 +1,154 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 6+4?"}, {"role": "assistant",
+      "content": "6 + 4 equals 10."}, {"role": "user", "content": "What is 6+4?"},
+      {"role": "assistant", "content": "6 + 4 equals 10."}, {"role": "user", "content":
+      "What is 6+4?"}, {"role": "assistant", "content": "6 + 4 equals 10."}, {"role":
+      "user", "content": "What is 6+4?"}, {"role": "assistant", "content": "6 + 4
+      equals 10."}, {"role": "user", "content": "What is 6+4?"}, {"role": "assistant",
+      "content": "6 + 4 equals 10."}, {"role": "user", "content": "What is 6+4?"},
+      {"role": "assistant", "content": "6 + 4 equals 10."}, {"role": "user", "content":
+      "What is 6+4?"}, {"role": "assistant", "content": "6 + 4 equals 10."}, {"role":
+      "user", "content": "What is 6+4?"}, {"role": "assistant", "content": "6 + 4
+      equals 10."}, {"role": "user", "content": "What is 6+4?"}, {"role": "assistant",
+      "content": "6 + 4 equals 10."}, {"role": "user", "content": "What is 6+4?"}],
+      "instructions": "You are a helpful assistant. You are a helpful assistant. You
+      are a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. You are a helpful assistant.
+      You are a helpful assistant. You are a helpful assistant. You are a helpful
+      assistant. You are a helpful assistant. You are a helpful assistant. You are
+      a helpful assistant. You are a helpful assistant. ", "max_output_tokens": 16384,
+      "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3855'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//7JdRjpswEIbfcwrLr92sTAKE5CbVqkIDDFl3je3a42ijKnevMIFAu1Ev
+        wFsy38zPeAYk/783jHHZ8BPjDr0tRQtNViVZITLR5GkuRH7cZ9lhl1fHOi2S4/6Y1m2Wodgd8zYB
+        PPCXXsJUP7GmUcZoj0O8dgiETQk9Sw55loj9/lhE5gko+L6mNp1VSNgMRRXUH2dngu77akF5HMJS
+        KanP/MR+bxhjjFu4ouvrG7ygMhYd3zB2i8nonOmZDkrFgNTjU8oGCaTyS+rJhZqk0bGj7yYwcMiA
+        vaOybVAMvJeeQNMrW+EKV7jCFa5whStc4QpX+F84XO47+CxNIBuoJPOB8bqd5PsinSgZo8oa1PKG
+        3pkGVX81P1vapmbbSS23O7FLt+KwTYq7DYnC/MTeokMYfMLkcDp/fm5wDiKv6t7gFEmFAGmTFdlh
+        L6pBOarQ1WLUQe/hjA/wzMlEWBtNqB9NzRtbyI5TwU+aqmMCaG0IRm/y9mMBlTlbZ6ovSBQ6MZ6z
+        byxl+CuA8iwRr3xKut1/TXXcGRV7mdY2JPeJMYlbcKAUquWWyIXBo1mHF2mCL0cbWMbRT1u0znSW
+        yhrqdyw/8PqUOeyHJo2eZzgEb/TCA2LbGkezpH4doevAjdqTJfTQIl1L2fTCrcSFPfToLrLGkuRo
+        KVsIalgE92Qczo9J2Fl0QCGGk1dxj8aB3ztrjevg8X+26Jg3zPXe8QVdZbyk6/B6NTJ0Dys7TPrd
+        yHpYTSDDJ/DYOydjy9nbIKagnffogq7hPljeSA+VGn13iG/1dACpFx9psctf/gUzMz2dM26weVSK
+        xVn//viPX8W/kp22/0yZDIGaNbzPphkGv1x3hwQNEPT6t83tDwAAAP//AwADJmqVBxEAAA==
+    headers:
+      CF-RAY:
+      - 9aa358517d9cc18a-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:30:00 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2201'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2204'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999155'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_1a92c4f221f945829e63bdb594e97a31
+    status:
+      code: 200
+      message: OK
+version: 1

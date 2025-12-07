@@ -34,7 +34,7 @@ async def test_mistral_ask_simple(skip_if_no_api_key, test_output_file):
         {
             "prompt": "What is 2+2? Answer with just the number.",
             "output_file": test_output_file,
-            "agent_name": False,
+            "agent_name": "",
             "model": "mistral-small-latest",
         },
     )
@@ -65,7 +65,7 @@ async def test_mistral_ask_with_files(skip_if_no_api_key, test_output_file):
             {
                 "prompt": "What number is mentioned in the file?",
                 "output_file": test_output_file,
-                "agent_name": False,
+                "agent_name": "",
                 "model": "mistral-small-latest",
                 "files": [test_file_path],
             },
@@ -103,7 +103,7 @@ async def test_mistral_analyze_image(skip_if_no_api_key, test_output_file):
                 "output_file": test_output_file,
                 "files": [image_path],
                 "model": "pixtral-12b-2409",
-                "agent_name": False,
+                "agent_name": "",
             },
         )
 
@@ -147,7 +147,8 @@ async def test_mistral_process_ocr_image(skip_if_no_api_key, test_output_file):
         assert "error" not in str(response).lower()
         assert "pages" in response
         assert "model" in response
-        assert response["model"] == "mistral-ocr-latest"
+        # Model name may vary (e.g., mistral-ocr-latest, mistral-ocr-2505-completion)
+        assert "mistral-ocr" in response["model"]
 
     finally:
         Path(image_path).unlink(missing_ok=True)
@@ -235,7 +236,7 @@ async def test_mistral_ask_different_models(skip_if_no_api_key, test_output_file
             {
                 "prompt": "Say 'hello' in one word.",
                 "output_file": test_output_file,
-                "agent_name": False,
+                "agent_name": "",
                 "model": model,
             },
         )

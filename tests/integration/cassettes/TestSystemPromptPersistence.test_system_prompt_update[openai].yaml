@@ -1,0 +1,977 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 5+5?"}, {"role": "assistant",
+      "content": "Let\u2019s explore the addition of \\(5 + 5\\) in detail once again,
+      ensuring clarity and a complete understanding of this arithmetic operation.\n\n###
+      Step 1: Identifying the Numbers\nIn the expression \\(5 + 5\\):\n- The first
+      number is **5**.\n- The second number is also **5**.\n\n### Step 2: Understanding
+      Addition\nAddition is a fundamental mathematical operation that combines two
+      or more quantities to find a total. The plus sign (+) indicates that we are
+      to add the numbers.\n\n### Step 3: Visualizing the Numbers\nTo help illustrate
+      this concept, imagine you have:\n- A set of **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n- Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}], "instructions": "You are a verbose math teacher. Explain everything
+      in great detail with examples.", "max_output_tokens": 16384, "model": "gpt-4o-mini",
+      "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15832'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//rFZNj9s2EL3vr5gqh2YdeyHZlu0VUBSLIIdcesgmDYooMEbSyGKXIhVy
+        6F0j2P9ekLJkO80eCvRkmW/45nuG368AIlFFGUSGbLeNN0mxnC/LRb1I4+WyiuPV7SJN13FdY7Xc
+        JLdrjAuiWyrnaZyk69t5NPUUuvibSh5otLLUn5eGkKnaoseS9SpN4sVivQqYZWRn/Z1St50kpqq/
+        VGD5sDPaKW9XjdJSfyykFGoXZfD9CgAg6vBAxt+vaE9Sd2SiK4DnIEzGaI8pJ2U4EGrQsq2IUUh7
+        iVo2rmShVbDoL+0ADQHCnkyhLUGL3AATlg2ZG3j31EkUCmhP5sCNUDsQCnbeW+jp4VFwA/SEXqm9
+        6T1r8WmrHXeOt6wfKOhKVovNckRZa7ktUV6a1+qKpLdr1/FsqWetUGI2j+fLWbyeJZtjDgJxlMGX
+        EJ4+SGN6W7t7MbtJXGBVhuyulguarytM6hQxrQNzYOFDR4GHrMUdnYCX0hjAUismdTLq3LAL2iEq
+        9MTj7SCASmnGITFfvl6AUu86o4ufIIEog+ijhlqoCrghsK4FXUOev07hDaR5fj0FSfyrhcIQPoBg
+        qPSjAsvUQXHof2ttoJRoBB+yXOXq1atXcO+BJINPqiJjGVXlC8Cr+MO1BRmbqxl8bAhqYSyDCocg
+        LEwm6WRyM6CWSq2qMxil1aPMmap5FuTfalVSx96Hu6oSPia5Gr78fW9BZ3RJ1nqhwgi1C5Y9atAG
+        Wm0IvjlULFiQBdY74oYMsIYdMSCwZpQ3QVknnQUrdgpev7kGoSpRIvtLDTI8UugO1tCRqbVpgRth
+        wbdgSNWl+YsM/hTWoYQP1BmypPqE5up9izuhCA7aQYN7ynxoJpMUsPNdM5lkkLtqsyhzV9XL+j9/
+        qxm8rwM7VhWg0sHd/1PBmZvLDN7qthBqKIa7oCNXnxtSwYgywASF5gb8hOtCnnpbslwlN3DPaBhK
+        7RQPNH0RWeIMJpNkCvMpLKawnEI6mcDrk0QgvL7J1TxkUIFvPqEc9aOITxUXJD3bagrrKWymcDuF
+        JB7ozqWuL1OZZnBPHEz71AXKd9/cMZmfCUpUQE8+x/aHigjzk1pk4YdbaKX8S65CI8Jv8Lv///VC
+        1SqDO2PE3utCDro+kHWSc3VXM5lTkFDKAPdxHMt66sv02PzI2dB1ocaHphuj33enj8HosG836Wzw
+        7WNDhmptKJB6N8uAVvSjJ0k8unIsPV/YgOow9B/ZMM18Rz6iYt9F9NRJD/b1WfZ9bqdQE0moDYVW
+        Q/vwSzTOuOfj1zj2IqNlGKVorfBDiXthLxiEog4NSknycsmwcf1+7QzthXZ2O6zwbdgc4xLqjG47
+        3pZ+BW4f6PAiZsjPfKHVuYQhtFpd7G+qa234TMhvE9e2aAbucZ1brIkPW1F54lrQxWq3ZPaipC2L
+        4TlQo5P9Hoksa0PnbjK1oShdOE5u4uNp2BdHy/xIw9P/sz0V5Pq4Hi3uHwiCD/12rIRrT8+QPtKN
+        FmWfGsc6GoHT2opYd9uzZRaPh925jcapEo+BjSphsZDDm8mFpTw6INTFG2NxGy+m/0bOXkKjoyGF
+        1elqfOHsj4+XRZL+DPkZ8VgAL3GHxjyBy3myGePo7GXKW2KskNEreL56/gcAAP//AwDDAnU5xwoA
+        AA==
+    headers:
+      CF-RAY:
+      - 9aa357c34d66b692-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:42 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '6869'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '6873'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149996077'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_516491ce90ed4740a2dc28c7c0e471ec
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 5+5?"}, {"role": "assistant",
+      "content": "Let\u2019s explore the addition of \\(5 + 5\\) in detail once again,
+      ensuring clarity and a complete understanding of this arithmetic operation.\n\n###
+      Step 1: Identifying the Numbers\nIn the expression \\(5 + 5\\):\n- The first
+      number is **5**.\n- The second number is also **5**.\n\n### Step 2: Understanding
+      Addition\nAddition is a fundamental mathematical operation that combines two
+      or more quantities to find a total. The plus sign (+) indicates that we are
+      to add the numbers.\n\n### Step 3: Visualizing the Numbers\nTo help illustrate
+      this concept, imagine you have:\n- A set of **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n- Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "To find the sum of \\(5 +
+      5\\), let''s break it down step by step for clarity:\n\n### Step 1: Understanding
+      the Numbers\n- The first number is **5**.\n- The second number is also **5**.\n\n###
+      Step 2: The Concept of Addition\nAddition is the process of bringing two or
+      more quantities together to get a total. The plus sign (+) indicates that we
+      are to perform this operation.\n\n### Step 3: Visual Representation\nImagine
+      you have:\n- **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\n-
+      If you add another **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\n\n###
+      Step 4: Combining the Apples\nWhen you combine both groups of apples:\n1. Start
+      counting the first set: **1, 2, 3, 4, 5** (the first group).\n2. Then continue
+      with the second group: **6, 7, 8, 9, 10** (the second group).\n\n### Step 5:
+      Setting Up the Equation\nWe can express this operation mathematically:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Arriving at the Result\nAfter counting all the apples
+      together, we find that:\n- The total number of apples is **10**.\n\n### Conclusion\nTherefore,
+      we can conclude:\n\\[\n5 + 5 = 10\n\\]\n\nIf you have any more questions or
+      want to explore other concepts, feel free to ask!"}, {"role": "user", "content":
+      "What is 6+6?"}], "instructions": "You are brief. Give only the answer.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '17013'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xUW47bMAz8zykEfW8CP/K+QM9QLAqDlumsurIoSFS6QZG7F5Zjx253+5dwyCE5
+        Q/n3SgipG3kW0mNwVZZva7Vtyz2cyryoIcv2p3K3O+SHosmOx/y0Ozb1vsUCEDOlIEf50lNQ/RMV
+        jzRkwyOuPAJjU0GP5Yf9Ls/K8lgmLDBwDH2Nos4ZZGyGohrU+8VTtP1cLZiAQ1gbo+1FnsXvlRBC
+        SAc39H19g1c05NDLlRD3lIzeU4/ZaEwKaDt2qRpk0CYs0cA+KtZk00TfKQrwKGqvsd2Ib/qKgqy5
+        CX5DATb8Qr8Zhu3go6LILnLF9I6pPN+Xx+2EMpGpFJhlx44aNH2ri+P1ltadtnpdZMV2nR3W+fEh
+        ayKWZ/GaNh72nhzrwuU/htW707Y3rN5hU6v9rkDMc1QDc2Lhm8PEgyHABZ/AV84kUJFltM+h5oMt
+        aEdV8IOn6pQA1hLDqPXrjwVo6OI81Z8giegsZF5s5BS/P35NqdKTSe0hBB0YLA/JfWJKkg48GINm
+        aQz7OJyZ83jVFEM1XnKV1J6Mc546x5UC9YbVO96+xDz2Ommy8wyPEMguzhjbljzPknoHYteBH7mn
+        qw7QIt8q3fTErcbFhQf0V62wYj2+ihaiGbSXgcnjfE3GzqEHjimcb7JHNGn8mKwl38Hz/8zblDfo
+        +pj4ir6moPk2XFSjY/d8jYPSb6TVYE1kkhPwtFoyuWp2ANkUdPMZfbQKHsLKRgeozfjpiOmQpwW0
+        XbzLbVHsX/5FZh+EadFkYfMszRbL/v3gy8/in9FO9n/FzMRgFhOfJhVjWBreIUMDDH2D++r+BwAA
+        //8DAAgWerPMBQAA
+    headers:
+      CF-RAY:
+      - 9aa357f0283b342f-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:45 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2224'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2245'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149995755'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_0127f6f9990c4b549337f164fbf78715
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 5+5?"}, {"role": "assistant",
+      "content": "Let\u2019s explore the addition of \\(5 + 5\\) in detail once again,
+      ensuring clarity and a complete understanding of this arithmetic operation.\n\n###
+      Step 1: Identifying the Numbers\nIn the expression \\(5 + 5\\):\n- The first
+      number is **5**.\n- The second number is also **5**.\n\n### Step 2: Understanding
+      Addition\nAddition is a fundamental mathematical operation that combines two
+      or more quantities to find a total. The plus sign (+) indicates that we are
+      to add the numbers.\n\n### Step 3: Visualizing the Numbers\nTo help illustrate
+      this concept, imagine you have:\n- A set of **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n- Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "Let\u2019s explore the addition
+      of \\(5 + 5\\) in detail once again, ensuring clarity and a complete understanding
+      of this arithmetic operation.\n\n### Step 1: Identifying the Numbers\nIn the
+      expression \\(5 + 5\\):\n- The first number is **5**.\n- The second number is
+      also **5**.\n\n### Step 2: Understanding Addition\nAddition is a fundamental
+      mathematical operation that combines two or more quantities to find a total.
+      The plus sign (+) indicates that we are to add the numbers.\n\n### Step 3: Visualizing
+      the Numbers\nTo help illustrate this concept, imagine you have:\n- A set of
+      **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f \n-
+      Now, if someone gives you **5 more apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f
+      \n\n### Step 4: Combining the Groups\nTo find the total number of apples you
+      now have, we can combine the two groups:\n1. Count the first group of apples:
+      **1, 2, 3, 4, 5** (this is the first 5 apples).\n2. Then, start counting the
+      second group, beginning from **6**: **6, 7, 8, 9, 10**.\n\n### Step 5: Setting
+      Up the Addition Equation\nWe express our operation mathematically as:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Finding the Result\nAfter counting all the apples
+      together, we realize that:\n**Total = 10 apples**.\n\n### Final Conclusion\nThus,
+      we can conclude that:\n\\[\n5 + 5 = 10\n\\]\n\nThis operation showcases how
+      adding two identical quantities results in a total that is simply double that
+      quantity. If you have any further questions or would like additional explanations
+      or examples, feel free to ask!"}, {"role": "user", "content": "What is 6+6?"},
+      {"role": "assistant", "content": "12."}, {"role": "user", "content": "What is
+      7+7?"}, {"role": "assistant", "content": "14."}, {"role": "user", "content":
+      "What is 5+5?"}, {"role": "assistant", "content": "To find the sum of \\(5 +
+      5\\), let''s break it down step by step for clarity:\n\n### Step 1: Understanding
+      the Numbers\n- The first number is **5**.\n- The second number is also **5**.\n\n###
+      Step 2: The Concept of Addition\nAddition is the process of bringing two or
+      more quantities together to get a total. The plus sign (+) indicates that we
+      are to perform this operation.\n\n### Step 3: Visual Representation\nImagine
+      you have:\n- **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\n-
+      If you add another **5 apples**: \ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\ud83c\udf4f\n\n###
+      Step 4: Combining the Apples\nWhen you combine both groups of apples:\n1. Start
+      counting the first set: **1, 2, 3, 4, 5** (the first group).\n2. Then continue
+      with the second group: **6, 7, 8, 9, 10** (the second group).\n\n### Step 5:
+      Setting Up the Equation\nWe can express this operation mathematically:\n\\[\n5
+      + 5 = ?\n\\]\n\n### Step 6: Arriving at the Result\nAfter counting all the apples
+      together, we find that:\n- The total number of apples is **10**.\n\n### Conclusion\nTherefore,
+      we can conclude:\n\\[\n5 + 5 = 10\n\\]\n\nIf you have any more questions or
+      want to explore other concepts, feel free to ask!"}, {"role": "user", "content":
+      "What is 6+6?"}, {"role": "assistant", "content": "12."}, {"role": "user", "content":
+      "What is 7+7?"}], "instructions": "You are brief. Give only the answer.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '17091'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFRbjtswDPzPKQR9bwI7dp4X6BmKRWHQMp1VVxYFiUo3WOTuheXYsdvd
+        v4RDDskZyp8rIaRu5FlIj8FVGe6PsG1LKOsmK8oiy/anYrc75CfApjzmpz3gocy3qj7Up6JV9VG+
+        9BRU/0bFIw3ZgENceQTGpoIeyw/7XZ4VxXGXsMDAMfQ1ijpnkLEZimpQ7xdP0fZztWACDmFtjLYX
+        eRafKyGEkA5u6Pv6Bq9oyKGXKyHuKRm9px6z0ZgU0HbsUjXIoE1YooF9VKzJpol+UhTgUdReY7sR
+        P/QVBVlzE/yGAmz4g34zDNvBR0WRXeSK6R1Teb4vjuWEMpGpFJhlx44aNH2ri+N1SetOW73eZtty
+        nR3W+ShrIpZn8Zo2HvaeHOvC5XvDIM9QJcNKbI+HAxQ17k9Nu03MiYVvDhMPhgAXfALfOZNARZbR
+        PoeaD7agHVXBD56qUwJYSwyj1q+/FqChi/NUf4EkorOQebmRU/z++DWlSk8mtYcQdGCwPCT3iSlJ
+        OvBgDJqlMezjcGbO41VTDNV4yVVSezLOeeocVwrUG1bvePsW89jrpMnOMzxCILs4Y2xb8jxL6h2I
+        XQd+5J6uOkCLfKt00xO3GhcXHtBftcKK9fgqWohm0F4GJo/zNRk7hx44pnC+yR7RpPFjspZ8B8//
+        M29T3qDrY+Ir+pqC5ttwUY2O3fM1Dkq/kVaDNZFJTsDTasnkqtkBZFPQzWf00Sp4CCsbHaA246cj
+        pkOeFtB28S7LbVm8/I/MPgjTosnC5lmaLZb998EXX8W/op3s/46ZicEsJt5PKsawNLxDhgYY+gb3
+        1f0vAAAA//8DAFzlICPMBQAA
+    headers:
+      CF-RAY:
+      - 9aa357ffeb70bef1-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:47 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2206'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2220'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149995737'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_05c5a55c96e1410699de3f5a0192ef51
+    status:
+      code: 200
+      message: OK
+version: 1

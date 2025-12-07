@@ -1,0 +1,251 @@
+interactions:
+- request:
+    body: '{"model": "mistral-small-latest", "messages": [{"content": "Say ''hello''
+      in one word.", "role": "user"}], "temperature": 1.0, "max_tokens": 8192, "stream":
+      false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '149'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA0SPQW/bMAyF/4rGyy7KEDe1k+rYw9puxx3nIWAk2lZLk4YkIyuC/PdBGdYdePn4
+        gPe9C8QADtr7sPPtfhc6OtzfnXb4gIH84HfNqbvbHgJY8ImwUADX7Lu22bb7prMwayAGB3PMJSFv
+        8ozMG8ZCuYCFNeNI4C6wJJ2Xciz6RpLBNY2FogX5g3QPFrzOC1OJKh+4PVwt6OmVfAEHfsLy5X+q
+        Sk0aPWVwPy8QJdBvcFsLQ5SYp2MizCrgIBddwMJM+Z9PUiZwgDnHXFCqa1Hlo0fmDE5W5uojhaQW
+        9/BMzNqDidkgJ8LwblTInDWFT7308jKYd10/JzKs+hZlNIMmgyZHGZk2NWfGRFTqK4pB0TJRMowy
+        rjiSNRMlMljPDHQ2utSJ2fWyMT8WrIOc6eFZGXuo8Gsi8Tf2qPKqa/qLnyjNKLco3pQr/IYLCmWq
+        +LuKRD/FM/YA1+uv6x8AAAD//wMAhe6oOQMCAAA=
+    headers:
+      CF-RAY:
+      - 9aa390e6981fef27-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:08:36 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=NS3xkUe4Q_cImU99co1EiRsdessEpYsogDxMU1BPuqA-1765105716-1.0.1.1-U7iTgqOVZ8ofXR9Xfqi21qzRg.M9le9FGOXENbWFy7.cl9d_2UgNmwBgXPNEsdHZ2SBaurfzZx2HP5ZGXI8v2.MVtosugGd1kXmE5KOcvXk;
+        path=/; expires=Sun, 07-Dec-25 11:38:36 GMT; domain=.mistral.ai; HttpOnly;
+        Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af87f-cc36-749e-b445-fe8ca4017a59
+      x-envoy-upstream-service-time:
+      - '394'
+      x-kong-proxy-latency:
+      - '7'
+      x-kong-request-id:
+      - 019af87f-cc36-749e-b445-fe8ca4017a59
+      x-kong-upstream-latency:
+      - '394'
+      x-ratelimit-limit-req-minute:
+      - '60'
+      x-ratelimit-limit-tokens-minute:
+      - '500000'
+      x-ratelimit-limit-tokens-month:
+      - '1000000000'
+      x-ratelimit-remaining-req-minute:
+      - '56'
+      x-ratelimit-remaining-tokens-minute:
+      - '499740'
+      x-ratelimit-remaining-tokens-month:
+      - '999999210'
+      x-ratelimit-tokens-query-cost:
+      - '69'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"model": "mistral-large-latest", "messages": [{"content": "Say ''hello''
+      in one word.", "role": "user"}], "temperature": 1.0, "max_tokens": 8192, "stream":
+      false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '149'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA0TOW2qEQBCF4bXkPPcEO94yvYLZQwhSajl20naJVQMBce/Bh2Refw6cb0ccEdBz
+        09ZEV2rba1XR1DfvZVVPhZ+uVLxNJRyGjcl4RPBtU/uibn3jsMjICQFLVNsoXRJtd74kMlaDw0Pp
+        zgg71k2W1TqTb86K4L2DiVF6lsphkGVNbFHyfy4PB+m/eDAEDDPZ63N0mmaJAyvCx46YR/5BKBym
+        mKPO3cakkhGgJiscFtY/ziaJEUCqUY3ySTWR1A2UkiLkR0onJxvn8/gWX3Acn8cvAAAA//8DAFut
+        56QtAQAA
+    headers:
+      CF-RAY:
+      - 9aa390e9c9b1ef42-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:08:37 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af87f-ce5a-7053-9f1f-bff8f957dfc3
+      x-envoy-upstream-service-time:
+      - '279'
+      x-kong-proxy-latency:
+      - '6'
+      x-kong-request-id:
+      - 019af87f-ce5a-7053-9f1f-bff8f957dfc3
+      x-kong-upstream-latency:
+      - '280'
+      x-ratelimit-limit-req-minute:
+      - '60'
+      x-ratelimit-limit-tokens-minute:
+      - '500000'
+      x-ratelimit-limit-tokens-month:
+      - '1000000000'
+      x-ratelimit-remaining-req-minute:
+      - '55'
+      x-ratelimit-remaining-tokens-minute:
+      - '499726'
+      x-ratelimit-remaining-tokens-month:
+      - '999999196'
+      x-ratelimit-tokens-query-cost:
+      - '14'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"model": "pixtral-large-latest", "messages": [{"content": "Say ''hello''
+      in one word.", "role": "user"}], "temperature": 1.0, "max_tokens": 8192, "stream":
+      false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '149'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA0TOUW6DMBCE4bN0np0qJgGKT5A7VFW0mCW4XbwIb6RIEXeveGjz+muk+Z5IAwI4
+        chMr39Vt15yrduy6U0/12NNHX43kGQ5xZTIeEHzb1P5Yt751mHVgQcCSHraSHITWGx+EjIvB4V7o
+        xghPLKvOi11NfzgXBO8dTI3kVc4OUedF2JLm/3zaHLT/5mgIiBPZ+2u0myZNkQvC5xMpD/xAODqM
+        KacyXVemohkBxXSBw8zlj7OqMAKolFSM8k41VblGEikI+S6yc7Jx3o8vLKJv2Lav7RcAAP//AwCF
+        xWGhMAEAAA==
+    headers:
+      CF-RAY:
+      - 9aa390ed9cfe002f-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:08:37 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af87f-d0a2-717b-b0b4-e3444f07a08f
+      x-envoy-upstream-service-time:
+      - '191'
+      x-kong-proxy-latency:
+      - '9'
+      x-kong-request-id:
+      - 019af87f-d0a2-717b-b0b4-e3444f07a08f
+      x-kong-upstream-latency:
+      - '192'
+      x-ratelimit-limit-req-minute:
+      - '60'
+      x-ratelimit-limit-tokens-minute:
+      - '500000'
+      x-ratelimit-limit-tokens-month:
+      - '1000000000'
+      x-ratelimit-remaining-req-minute:
+      - '54'
+      x-ratelimit-remaining-tokens-minute:
+      - '499712'
+      x-ratelimit-remaining-tokens-month:
+      - '999999182'
+      x-ratelimit-tokens-query-cost:
+      - '14'
+    status:
+      code: 200
+      message: OK
+version: 1

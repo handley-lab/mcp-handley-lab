@@ -1,0 +1,86 @@
+interactions:
+- request:
+    body: '{"model": "mistral-small-latest", "messages": [{"content": [{"text": "What
+      number is mentioned in the file?", "type": "text"}, {"text": "[File: tmp_03m3zn6.txt]\nTest
+      document content: The answer is 42", "type": "text"}], "role": "user"}], "temperature":
+      1.0, "max_tokens": 8192, "stream": false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '277'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA0yR3W7CMAyFXyXyJQoVhZafPAd3Y6KhddZsiVPVrsaGePcpDNhuj47P90m+gO/A
+        wNbVrltX5WJVnSq33tktOmfdpt65ras7BA3tiFawA1Nu1nW5qDdlpSGmDgMYiJ5ltGHO0YYwD1aQ
+        BTRMbN8QzAWGMcVBjpI+kBjMqtIgSWx4JrtSQ5viEFB8omdcb64a0ukdWwEDbW+l+GtlqT75FhnM
+        ywU8dXgGs9DgPHnujyNaTgQGWNIAGiLyw2dMAcGAZfYslrKrpBSOrQ2BwdAUQvYhQcrgfY+KpnjC
+        UUWkzMZOeVLSo3I+oGokDsfFKq6+aV3IWRrlWc1m1XI2Kw50oP2jmDetJ76dCp7FHKhpmgPtkUV1
+        qZ0yQN3RRuVDS/yJY16slvd2XpxY31buYr+03MLzEHzrJXwplvyz/6oFXK+v1x8AAAD//wMApp8Z
+        Y/cBAAA=
+    headers:
+      CF-RAY:
+      - 9aa390dd7e57f746-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:08:35 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af87f-c688-7f77-9d13-96ec7fdc215e
+      x-envoy-upstream-service-time:
+      - '400'
+      x-kong-proxy-latency:
+      - '6'
+      x-kong-request-id:
+      - 019af87f-c688-7f77-9d13-96ec7fdc215e
+      x-kong-upstream-latency:
+      - '402'
+      x-ratelimit-limit-req-minute:
+      - '60'
+      x-ratelimit-limit-tokens-minute:
+      - '500000'
+      x-ratelimit-limit-tokens-month:
+      - '1000000000'
+      x-ratelimit-remaining-req-minute:
+      - '58'
+      x-ratelimit-remaining-tokens-minute:
+      - '499891'
+      x-ratelimit-remaining-tokens-month:
+      - '999999361'
+      x-ratelimit-tokens-query-cost:
+      - '91'
+    status:
+      code: 200
+      message: OK
+version: 1

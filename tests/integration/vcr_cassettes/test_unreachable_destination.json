@@ -27,38 +27,8 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "X-XSS-Protection": [
-                        "0"
-                    ],
-                    "Expires": [
-                        "Fri, 01 Jan 1990 00:00:00 GMT"
-                    ],
-                    "X-Frame-Options": [
-                        "SAMEORIGIN"
-                    ],
-                    "Vary": [
-                        "Accept-Language"
-                    ],
-                    "Content-Type": [
-                        "application/json; charset=UTF-8"
-                    ],
-                    "Content-Security-Policy-Report-Only": [
-                        "script-src 'none'; form-action 'none'; frame-src 'none'; report-uri https://csp.withgoogle.com/csp/scaffolding/msaifddsmnwc:188:0"
-                    ],
-                    "Content-Encoding": [
-                        "gzip"
-                    ],
-                    "Date": [
-                        "Wed, 09 Jul 2025 15:58:00 GMT"
-                    ],
-                    "Transfer-Encoding": [
-                        "chunked"
-                    ],
                     "Cross-Origin-Opener-Policy-Report-Only": [
-                        "same-origin; report-to=msaifddsmnwc:188:0"
-                    ],
-                    "Report-To": [
-                        "{\"group\":\"msaifddsmnwc:188:0\",\"max_age\":2592000,\"endpoints\":[{\"url\":\"https://csp.withgoogle.com/csp/report-to/scaffolding/msaifddsmnwc:188:0\"}],}"
+                        "same-origin; report-to=msaifddsmnwc:170:0"
                     ],
                     "Alt-Svc": [
                         "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
@@ -66,17 +36,47 @@
                     "Server": [
                         "mafe"
                     ],
+                    "Server-Timing": [
+                        "gfet4t7; dur=95"
+                    ],
+                    "Vary": [
+                        "Accept-Language"
+                    ],
+                    "Report-To": [
+                        "{\"group\":\"msaifddsmnwc:170:0\",\"max_age\":2592000,\"endpoints\":[{\"url\":\"https://csp.withgoogle.com/csp/report-to/scaffolding/msaifddsmnwc:170:0\"}],}"
+                    ],
+                    "Expires": [
+                        "Fri, 01 Jan 1990 00:00:00 GMT"
+                    ],
                     "Pragma": [
                         "no-cache"
+                    ],
+                    "Content-Type": [
+                        "application/json; charset=UTF-8"
+                    ],
+                    "Content-Security-Policy-Report-Only": [
+                        "script-src 'none'; form-action 'none'; frame-src 'none'; report-uri https://csp.withgoogle.com/csp/scaffolding/msaifddsmnwc:170:0"
+                    ],
+                    "X-Frame-Options": [
+                        "SAMEORIGIN"
+                    ],
+                    "Content-Encoding": [
+                        "gzip"
+                    ],
+                    "Cache-Control": [
+                        "no-cache, must-revalidate"
+                    ],
+                    "Transfer-Encoding": [
+                        "chunked"
                     ],
                     "X-Goog-Maps-Metro-Area": [
                         "New York, NY"
                     ],
-                    "Server-Timing": [
-                        "gfet4t7; dur=122"
+                    "X-XSS-Protection": [
+                        "0"
                     ],
-                    "Cache-Control": [
-                        "no-cache, must-revalidate"
+                    "Date": [
+                        "Sun, 07 Dec 2025 10:00:33 GMT"
                     ]
                 },
                 "body": {

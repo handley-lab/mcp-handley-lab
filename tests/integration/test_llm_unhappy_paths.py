@@ -79,8 +79,6 @@ class TestLLMRateLimitingErrors:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "enable_logprobs": False,
-                            "top_logprobs": 0,
                         }
                     )
                 elif provider == "gemini":
@@ -150,8 +148,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -224,8 +220,6 @@ class TestLLMLargeInputHandling:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -297,8 +291,6 @@ class TestLLMLargeInputHandling:
                     base_params.update(
                         {
                             "temperature": 1.0,
-                            "enable_logprobs": False,
-                            "top_logprobs": 0,
                         }
                     )
                 elif provider == "gemini":
@@ -370,8 +362,6 @@ class TestLLMFileInputErrors:
             base_params.update(
                 {
                     "temperature": 1.0,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 }
             )
         elif provider == "gemini":
@@ -429,8 +419,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -491,8 +479,6 @@ class TestLLMFileInputErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -632,8 +618,6 @@ class TestLLMProviderSpecificErrors:
                 "agent_name": "",
                 "files": [],
                 "temperature": 1.0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
 
             await openai_mcp.call_tool("ask", base_params)
@@ -726,8 +710,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":
@@ -779,8 +761,6 @@ class TestLLMOutputFileErrors:
                 base_params.update(
                     {
                         "temperature": 1.0,
-                        "enable_logprobs": False,
-                        "top_logprobs": 0,
                     }
                 )
             elif provider == "gemini":

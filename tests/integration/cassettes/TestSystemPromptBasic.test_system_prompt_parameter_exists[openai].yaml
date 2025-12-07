@@ -1,0 +1,282 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 2+2?"}, {"role": "assistant",
+      "content": "2 + 2 = 4.\n\nYou have asked this question many times. The answer
+      in standard mathematics remains consistently 4.\n\nSince you''re asking it repeatedly,
+      it seems like you might be looking for something beyond a simple answer. Could
+      you please tell me:\n*   **Why are you repeatedly asking this specific question?**\n*   **Are
+      you testing for consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content":
+      "2 + 2 = 4.\n\nThis is a basic arithmetic problem where you are adding two quantities
+      together. The result is always the same: 4. If you need clarification, examples,
+      or would like to discuss something else, just let me know!"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou''ve
+      asked this question many times, and the mathematical answer remains consistent.
+      If you''re looking for something more than a simple repetition, I''m happy to:\n-
+      Explain addition in more depth\n- Explore different mathematical concepts\n-
+      Discuss a new math problem\n\nWhat would you like to do?"}, {"role": "user",
+      "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 = 4.\n\nYou
+      have asked this question many times. The answer in standard mathematics remains
+      consistently 4.\n\nSince you''re asking it repeatedly, it seems like you might
+      be looking for something beyond a simple answer. Could you please tell me:\n*   **Why
+      are you repeatedly asking this specific question?**\n*   **Are you testing for
+      consistency?** (The answer will always be 4 in standard arithmetic.)\n*   **Are
+      you hoping for a different kind of explanation?**\n*   **Would you like to move
+      on to a different math problem or concept entirely?**\n\nI''m here to help you
+      understand math, so please let me know how I can assist you more effectively!"},
+      {"role": "user", "content": "What is 2+2?"}], "instructions": "You are a helpful
+      math tutor. Always explain your reasoning.", "max_output_tokens": 16384, "model":
+      "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '13698'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTBkts2DL3vV6C65NC1R7Ys73pneugx91w6SUcDUZDFmiJYEnTXk9l/
+        74iyZSnZzc3GA54e8AB+fwDIdJO9QOYpuCovcdsWZU5t0RS7jcrz/aEoy6e8LOry+Xlz2B/2RbE9
+        FIpUTU1THrLHgYLrf0jJjYZtoDGuPKFQU+GAbZ725SYvin2ZsCAoMQw1intnSKgZi2pUp6PnaAdd
+        LZpAY1gbo+0xe4HvDwAAmcML+aG+oTMZduSzB4C3lEze84DZaEwKaHv7StWQoDZhiQbxUYlmmxT9
+        xRHQEyB0ZFwbDfQoHUgU9mv40/yHlwD06gxqCxeOHjxhYKvtcT020eNrxVFclEr4RIl2sy+edxMq
+        zKZSaJZKem7IDBKOTlY7XvXa6tU23+5W+dNq83wddyLOXuBrmsQ4j8nJPhx/YeQhP4xGqnJfYr7b
+        qrpAUqORiUUujhIPhYBHugMfOZZAxVbI3kXNhS1ob1OhV5mqUwJay4I3D77+vQANH53n+h0kEb1A
+        toXfYQt/wG79zX6zXzodoMagFaDX0vUkWoGnHrUNoNgGQStr+NyCdOTpU4DAPUmn7RGCI6VbrQZr
+        PzVg9IlAOBnOnqCNfqgB9qDbIQc6PBOg5RT+N1IYuniElshA6ylVYzj9lk3C366/pl4yzybNB0PQ
+        SdyYPCSmpMyhR2PILDdHfBzvw3k6a46hup1gldZh2iznuXdSKVQdVSe6fIh5GozUbOcZ037f74/a
+        lr3MkoYViX2P/sY9nWPAluRS6WYgbjUtTjOQP2tFlejbObcYzbgcWRD2NG9TqHfkUWIKb9b5NZqW
+        4KqsZd/j/f9s+VLeONer4jP5moOWy7jyjY79/RkZJ92xVqM1UTibgPsuZsKumm1oPgXdXKOPVuF1
+        sFmjA9bm9ubFdGlTA9ouHo7tId89/ozMXrKp0WRhcy/NF83++CIV+/eA93gn/z+iFhY0c8m7fBpj
+        DEvHexJsUHD4wNvD2/8AAAD//wMAyPZgDYYGAAA=
+    headers:
+      CF-RAY:
+      - 9aa35780180798f0-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:27 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - _cfuvid=_MmwJ37NyDprK_ZuJ1lpro3ANZ19NojKOMgwHHeEAEk-1765103367492-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2202'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2209'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149997077'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_00b63787ba6c4d75b10ec1e276591335
+    status:
+      code: 200
+      message: OK
+version: 1

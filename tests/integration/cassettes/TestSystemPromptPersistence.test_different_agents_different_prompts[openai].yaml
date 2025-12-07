@@ -1,0 +1,243 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 8+2?"}, {"role": "assistant",
+      "content": "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore,
+      the result is \\( 10 \\)."}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2
+      = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "The sum of \\( 8 + 2 \\)
+      is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."},
+      {"role": "user", "content": "What is 8+2?"}, {"role": "assistant", "content":
+      "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore,
+      the result is \\( 10 \\)."}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2
+      = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "The sum of \\( 8 + 2 \\)
+      is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."},
+      {"role": "user", "content": "What is 8+2?"}, {"role": "assistant", "content":
+      "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore,
+      the result is \\( 10 \\)."}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "The sum of \\( 8 + 2 \\) is given by:\n\n\\[\n8 + 2
+      = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "The sum of \\( 8 + 2 \\)
+      is given by:\n\n\\[\n8 + 2 = 10\n\\]\n\nTherefore, the result is \\( 10 \\)."},
+      {"role": "user", "content": "What is 8+2?"}], "instructions": "You are a formal
+      mathematics professor. Use proper mathematical terminology.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1796'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTbbtswDH3vVwh+2rAmkGsndgLsK7Y9DPVgMDadaJVFQaKKBkX/fbCc
+        OPbW7s3mIQ8vh9TrnRCJapO9SBx6W8uilMUhlxs8FJBmuZTbXbbZFGmTlVKW6S6HLNsUskzlpix2
+        mcTkfqCgw29s+EpDxl/sjUNgbGsYsLTYblKZZWUZMc/AwQ8xDfVWI2M7Bh2geTo6CmaoqwPtcTQr
+        rZU5JnvxeieEEImFM7ohvsVn1GTRJXdCvEVndI4GzASto0GZa5a6RQal/RL17ELDikys6CcFAQ4F
+        iI5cD1r0wCfsgVXjhXXUoffk1uKHx+HXopt5gBaMrleGNB3P67GpHl5qCmwD10xPGNOk26zMJ5SJ
+        dN2AXlbWU4t6KOloeZXTqldGrR7kQ76SxSotL+OPxMlePMbJjPOZlO398T/C7rZtHoXFtmigbLfF
+        wxa2Mo3MkYXPFiMPeg9HvAEfKRjBhgyjuRU1L2xBe50KvvAUHR3AGGK4avL4awFqOlpHh3eQSLQX
+        yfcTCh96QZ2oqk+iFF/Eg6iqz0L5fWUqU1WPlRmtX0UqB8Ovwf6N7gWfUDj0QbNQPoancohdJ1Om
+        t8vXlDxxpGND4L3yDIZH58ExOiUWHGiNeik1uzAuuHX4rCj4+npDddRvWgXrqLdcN9CcsH7C84eY
+        w2HyiszcwyF4MosDwq4jxzOnQdPQ9+Cu3NM9eeiQz7VqB+JO4eK2PLpn1WDN6nqPHQQ9qpl4Jofz
+        Nhl7iw44RHO6lhdrVO1SWby62/9sW6LfONdLxc/oDuQVn8cdbVXob+/AOOkTqWaUJjAlE3BbnoTJ
+        1rOVkpPRzmt0wTRwGWzSKg8HfX20QjyNqQFlFpee78r7f4HZSzT1GRVsb5Fy0evfL0i2fQ94j3eS
+        /yNqJgZ9AzdZPg0x+KXePTK0wDDwv929/QEAAP//AwD+43Z7RQYAAA==
+    headers:
+      CF-RAY:
+      - 9aa3580f9c8693de-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:50 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2197'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2200'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999485'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_19cc279393ea4720bd923e07957f581e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 8+2?"}, {"role": "assistant",
+      "content": "8 + 2 is 10!"}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content": "What is
+      8+2?"}, {"role": "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "8 + 2 is 10!"}, {"role":
+      "user", "content": "What is 8+2?"}, {"role": "assistant", "content": "8 + 2
+      is 10!"}, {"role": "user", "content": "What is 8+2?"}, {"role": "assistant",
+      "content": "8 + 2 is 10!"}, {"role": "user", "content": "What is 8+2?"}, {"role":
+      "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content": "What is
+      8+2?"}, {"role": "assistant", "content": "8 + 2 is 10!"}, {"role": "user", "content":
+      "What is 8+2?"}, {"role": "assistant", "content": "8 + 2 is 10!"}, {"role":
+      "user", "content": "What is 8+2?"}], "instructions": "You are a friendly buddy.
+      Be casual and use simple words.", "max_output_tokens": 16384, "model": "gpt-4o-mini",
+      "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '976'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFTRjpswEHy/r3D92ssJEgghj/2L6lShjb3k3DNeZK/Ti0759wqTEGgv
+        b7CzO4xn1nw+CSGNlnshPYa+yepa79ocsrYsyqLcZNm23pRllSPka7XL62pXbpSqoNV4qGrYFvJ5
+        oKDDb1R8oyEXcKwrj8CoGxiwvNqWebbZ1FnCAgPHMMwo6nqLjHocOoB6P3qKbtDVgg04lo21xh3l
+        Xnw+CSGE7OGMfpjXeEJLPXr5JMQlNaP3NGAuWpsKxt2+0mhkMDYs0cA+KjbkkqKfFAV4FCBab9Bp
+        exaHqPX5RfxAoSBEsAKcFjGgCGbgFX/I6/AynqCDj4Yi95EbpndMnPl2sysmlIlso8AuZXSk0Q7f
+        P/a8KmjVGWdW62xdrLJqle+uXidiuRevyYbRjCnGLhwfp9hmVZYNKcK6wHKbl7qssVLlyJxY+Nxj
+        4sEQ4Ih34FFcCVTkGN1d1FzYgvbmCn7wNJ0awDliuAXw+msBWjr2ng5fIIloL+ROfBdrYYLIs29y
+        arhcn6YZ6ckmHRCCCQyOx+ahMTXJHjxYi3aZEPs4LmHv8WQohua2502yfUqw99T13ChQb9i84/kh
+        5nEwzJCbd3iEQG6x5Ni25HnWNEQRuw78jXva+QAt8rkxeiBuDS72P6A/GYUNm9udaSHaMQQZmDzO
+        j8nY9eiBYyrnL9m1msy+KmvJd3B/n4Wc+kZfr4pP6A8UDJ/H1dImdve7Ojr9RkaN0UQmOQH3zCVT
+        38w2IZuK/Vyjj07B1VipTYCDvf1YYtro6QDGLS7oerN7/h+Y/S2mc6YE9X0yW5z134tff1X/inZK
+        /xEzE4OdCS6qycMYlnF3yKCBYeC/PF3+AgAA//8DAO/B2TroBQAA
+    headers:
+      CF-RAY:
+      - 9aa3581eed55128a-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:52 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2182'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2185'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999742'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_32ce9ea25db242f0bdbf7bdc5be26f35
+    status:
+      code: 200
+      message: OK
+version: 1

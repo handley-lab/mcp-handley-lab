@@ -1,0 +1,115 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 1+9?"}, {"role": "assistant",
+      "content": "1 + 9 equals 10."}, {"role": "user", "content": "What is 1+9?"},
+      {"role": "assistant", "content": "1 + 9 equals 10."}, {"role": "user", "content":
+      "What is 1+9?"}, {"role": "assistant", "content": "1 + 9 equals 10."}, {"role":
+      "user", "content": "What is 1+9?"}, {"role": "assistant", "content": "1 + 9
+      equals 10."}, {"role": "user", "content": "What is 1+9?"}, {"role": "assistant",
+      "content": "1 + 9 equals 10."}, {"role": "user", "content": "What is 1+9?"},
+      {"role": "assistant", "content": "1 + 9 equals 10."}, {"role": "user", "content":
+      "What is 1+9?"}, {"role": "assistant", "content": "1 + 9 equals 10."}, {"role":
+      "user", "content": "What is 1+9?"}, {"role": "assistant", "content": "1 + 9
+      equals 10."}, {"role": "user", "content": "What is 1+9?"}, {"role": "assistant",
+      "content": "1 + 9 equals 10."}, {"role": "user", "content": "What is 1+9?"}],
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '937'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xU246jMAx971dEed3pKNAr/ZXRCplgOtmGmE2caqpR/31FKBR2Z/YNfOyDfY7N
+        50oIaWp5EtJj6EoFeDhUuyaHvD5AcVRqX2x2u0O+OW5yfcyK7VHtD1g1x12DUO9VI196Cqp+oeaR
+        hlzAIa49AmNdQo9lh/0uU5tNsUtYYOAY+hpNbWeRsR6KKtCXs6fo+r4asAGHsLHWuLM8ic+VEELI
+        Dm7o+/oar2ipQy9XQtxTMnpPPeaitSlg3PiVskYGY8MSDeyjZkNuEW/ho6TIXeSS6YIJzPab43ZC
+        mciWGuySr6Uabd/aueP1ltatcWadq3y7Vod1dnyIlojlSbyleYapJj/acP6PHVVVqGQHKF1orJss
+        19l2myXmxMK3DhMPhgBnfALf6Z5ATY7RPZuaN7agHVXBD56qUwI4Rwyjkm8/F6Clc+ep+gJJRCch
+        M/FDFAJ/R7BBZOpVTkn3x9NUJz3Z1AuEYAKD4yG5T0xJsgMP1qJdusQ+DhvVebwaiqEcl7ZM0k8u
+        dp7ajksN+h3LC96+xTz2ohly8wyPEMgtNhabhjzPkno7YtuCH7mnBQ7QIN9KU/fEjcHFMgf0V6Ox
+        ZDMeQAPRDkbIwORxPiZj26EHjimcvapHNAn+6Kwh38LzfWZ0yht0fXR8RV9RMHwb1qs2sX0e3qD0
+        Oxk9WBOZ5AQ8fZdMXTnbBjUFu3mPPjoND2FlbQJUdvxLxLTV0wDGLY40z7OXf4HZ6U9zJgfrZ6Va
+        zPr38Rdfxb+indz/jpmJwc4a3qhJwxiWdrfIUANDz39f3f8AAAD//wMAZb9Xe7UFAAA=
+    headers:
+      CF-RAY:
+      - 9aa3583d4ef6ba87-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:58 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2844'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2848'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999760'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_6a14169e754747a88cb2742c6dd9665b
+    status:
+      code: 200
+      message: OK
+version: 1

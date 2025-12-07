@@ -209,4 +209,211 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: '{"input": "My favorite number is 123. Remember this.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '119'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFTBktowDL3zFW4uvSw7CQkEuPTcL+hhp5NRHAVcHMtjy+wyO/x7Jw4J
+        pF1uRE96SHpP/lwIkagm2YvEobdVmqdYw3ZXroom3wGk6WaXr9ebQrYrkNtsV9b1piy3u3VeImzz
+        YpW89BRU/0HJIw0Zj0NcOgTGpoIey8rNOkvzbJtGzDNw8H2NpM5qZGyGohrk6eAomL6vFrTHIay0
+        VuaQ7MXnQgghEgsXdH19g2fUZNElCyGuMRmdox4zQesYUGb8l6pBBqX9HPXsgmRFZhbv4KOiwDZw
+        xXTCCGabfFtMKBPpSoKe83XUoO5bO1heFrTslFHLVboqlmm5zLa3pUXiZC/e4jzDVJMenT88l6NZ
+        77KilwPqQqYlbNIctnm+aiNzZOGLxciD3sMB78CzvUdQkmE096YeG5vRjlvBD56qYwIYQwzjJt9+
+        z0BNB+uo/gKJRHuR/BQSzHcWDjvsanTCovNkQAtlWnJdZBbkhHXYokMj0b+IOrCIleKI2ooLBfGu
+        +CjAXPiozEE41L0RBZPgIwoTIne2yr+JX0dg8U5BN7FOqxP2aSdD7z+SqcXr7dfUdeJIx02A98oz
+        GB6S+8SYlFhwoDXquUfYhcHP1uFZUfDVeDJVFH7ykHXUWa4kyCNWJ7w8xRz2kikyjxkOwZOZ3Qu2
+        LTl+SOrNELoO3Mg9nY+HFvlSqaYnbhXOTsmjOyuJFavx/FoIerBB4pkcPo7J2Fl0wCGG09fsFo1y
+        3zobhJ2+H2wW84a93jo+o6vJK74M5m5U6O5nP2z6SEoO0gSmZALurkuYbPXgxXQK2v7AX2/fLhgJ
+        t8UmjfJQ6/GNCvGmpgGUmT8R5cv/8Yd3ZxozCtjcC9PZqP++PHn6FfAV76T+M2omBn0Hi3JaYfBz
+        tTtkaIChp78urn8BAAD//wMAVbxweDIGAAA=
+    headers:
+      CF-RAY:
+      - 9aa353005bca4165-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:26:23 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2168'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2171'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999965'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_d2245e1dcf984bb983c7f470ad6a0bb5
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": "What is my favorite number?", "max_output_tokens": 16384, "model":
+      "gpt-4o-mini", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '105'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3RUy47bMAy85ytUXXppFnZi53XppZd+w6IwaInOqpFFQ6LSDRb598Jy7MTt5iZx
+        yBHJIfWxEEIaLQ9CegxdlZVlud9tsrLQRb1vMMs2+3VZqs2myVHt8n1WZ6udLhqti6YuAAr5raeg
+        +jcqHmnIBRzsyiMw6gp6LN9uyjwrtsUqYYGBY+hjFLWdRUY9BNWgTkdP0fV5NWADDmZjrXFHeRAf
+        CyGEkB1c0PfxGs9oqUMvF0JckzN6Tz3morXJYNz4SqWRwdgwRwP7qNiQm9lbeK8oche5YjphAvPN
+        eldMKBPZSoGd87Wk0fapHTteFrRsjTPLVbYqltl2me9uTUvE8iBeUz1DVZMebTg+l2NbNnmR5Ngq
+        yJtiW2+zUm/3dWJOLHzpMPFgCHDEO/Cs7wlU5BjdPanHxGa0Y1fwnafo5ADOEcPYyddfM9DSsfNU
+        f4IkooOQP4UC95XFydEfcaHoRQNn8oZRuNjW6EV0FkPoMcForWjxi/hB6f4GZxQgQofKNEaNEcaJ
+        1jj9XU4PXm+nKQfpyaa6IAQTGBwPzr1jcpIdeLAW7Vxx9nGYzs7j2VAM1bgAVZJxmojOU9txpUC9
+        YXXCy1PMYy+AIffo4RECudn0Y9OQ5wenXtrYtuBH7mkZAjTIl8ronrgxOFuMgP5sFFZsxmVqINpB
+        VBmYPD6Wydh26IFjMmcv+c2axLtl1pBv4X5/GJrkN/T1lvEZfU3B8GUYVW1ie1/iodNvZNQgTWSS
+        E3CfIcnUVQ+TlU3Grl/Xl9vdR6fg1lipTYDajj9OTBsyFWDcfOHX3/63P/wiU5lJQH0PzGal/vuP
+        rPLPgM94J/WfUTMx2Du4LqYWxjBXu0UGDQw9/XVx/QsAAP//AwAiPzwJAAYAAA==
+    headers:
+      CF-RAY:
+      - 9aa37920d810cd28-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:52:25 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2112'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2114'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999967'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_ab6232572c224ce18f46e815cdbc3ece
+    status:
+      code: 200
+      message: OK
 version: 1

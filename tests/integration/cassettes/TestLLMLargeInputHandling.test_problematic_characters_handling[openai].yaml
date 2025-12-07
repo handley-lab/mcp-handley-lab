@@ -1,0 +1,519 @@
+interactions:
+- request:
+    body: '{"input": "Echo back: Unicode test: \ud83d\ude80 \ud83d\udcbb \ud83e\udd16
+      \u4e2d\u6587 \u0627\u0644\u0639\u0631\u0628\u064a\u0629 \u05e2\u05d1\u05e8\u05d9\u05ea",
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '150'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTbbqMwEH3PVyA/NytuAZL/2KdmhQZ7SL01NrLHUaMq/76yCRDUdl+s
+        4ZzxYa7+3CUJk4KdEmbRjW3a91gBF13O0w6KIk2rY3E4VJyDQN5kx7oB3qTFESDvBXR5yV6ChOn+
+        IqdZxmiHE84tAqFoIXBZXR2ytCjSJnKOgLwLd7gZRoWEYrrUAX+/WON1iKsH5XCCpVJSX9gp+dwl
+        SZKwEW5ow32BV1RmRMt2SXKPzmitCZz2SkVA6vkvrUACqdyWdWQ9J2n0Bh/gozWeRk8tmXeMZFYV
+        TbmwZIxqOait3mAEqhDaZaR9afaD1HKfp3m5T+t91jyKFoXZKXmN+UxZLf0Y3OU/7cCsK0M7Oo68
+        Ece6xkPT5P0hKkcVuo0YddA5uOBK/FT3SHKjCfUa1HNgG9m5KvhBy+3oAFobgrmSr382pDKX0Zru
+        GyYKnRL2W0tuBCaEjk7J2YumEGcvsEnXD9510weevRBZlZx9ibk4++rQ1MnZp1Veh7Msw1kc45lF
+        vIk4RPsYXA+Yh1Nk0W6ifYw2sCW++8NaQmbWqFgGcE46Ak2Tc3CMTmwEC0qh2g4IWT8N82jxKo13
+        7bwvbez6MkCjNcNILQf+hu073n7kLIZ+SaOfPSyCM3qzLNj3xtKTU5gEPwxgZ+1ldxz0SLdWiiDc
+        S9zskUN7lRxbkvPu9eDVNAPMkbH4nCbhMKIF8hHOfqUPNPb6EVlv7ADr99OMRb+pro+Ir2g74yTd
+        pskW0g/rzk+VfjOST63xZNhCrCPHyIzt0yCmCzg+x2i95vAoLBPSQafmB8rHhVoSkHrzPuTFy1f8
+        6dFZ0owNFOvFdJPql2en/I74Tnfp/k/SZAjUShb1UkLvtt0ekEAAQZC/7+7/AAAA//8DAGTApWAv
+        BgAA
+    headers:
+      CF-RAY:
+      - 9aa3561eaee59db6-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:28:30 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2222'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2225'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999960'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_0733f278a1894633b3f8d34c0d9abe23
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": "Echo back: Control chars: \u0000\u0001\u0002\u0003", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '128'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xUy47bMAy85ysMnTeF/Mjz2s/YFgYt01l1ZVGQqGCDIv9eWI4du93tRUhmyDHJ
+        ofR7k2VCt+KcCY/B1VLtqqIrTlV1yttDuZdyfyp3u73q8lNTHfNTdUSUuwYKVZSt3JWNeBkkqPmF
+        iicZsgFHXHkExraGgcsP+10uyzLPExcYOIYhR1HvDDK2Y1ID6v3iKdqhrg5MwBHWxmh7Eefs9ybL
+        skw4uKEf8lu8oiGHXmyy7J6C0XsaOBuNSYC201fqFhm0CWs2sI+KNdkV3sNHTZFd5JrpHROZ78tj
+        NbNMZGoFZq3XU4tmKO3ieFvRttdWbwtZVFt52ObHx9CSsDhnr6mfsavZjz5c/mPHoSrVYMfp0O4h
+        L6GT7WEP+WhHUuGbw6SDIcAFn8RXc0+kIston0UtC1vJTlPBD56zUwBYSwzTJF9/rkhDF+ep+YRJ
+        QudMfCfLnkym3sCHc/YjSillOvN0FuksxZx7f/ya5YQnk0qEEHRgsDwGD4EpSDjwYAyatXns47ho
+        zuNVUwz1tMt1cmQ213nqHdcK1BvW73j7kvM4zFKTXUZ4hEB2tcjYdeR5ETS4FPse/KQ973WADvlW
+        63YQ7jSudjygv2qFNevpXnQQzeiPCEwel20y9g49cExw/k0+0OTDo7KOfA/P/wv/U9w410fFV/QN
+        Bc23cetaHfvnfRwn/UZajdZEJjETz3UQTK5eLImcQbes0Uer4DFY0eoAjZkej5iWfW5A2/XdPb78
+        iy8ehLnNZGD7TJSrVv9+Ek6f4Z/JzuZ/pczEYJ5kcZgnGMPa7B4ZWmAY5O+b+x8AAAD//wMAv9gJ
+        fcoFAAA=
+    headers:
+      CF-RAY:
+      - 9aa3562dd9c36542-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:28:33 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2155'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2158'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999962'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_495e9de6fa714aa0abb049f108cb9e2d
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": "Echo back: Emoji flood: \ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89\ud83c\udf89",
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '4102'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA+yZy27bMBBF9/4KQeu6kKyHJf9KUggjcuSwoUiBHBoxAv97Icp6tU233XB3PXd4
+        PRx65fN5iKJY8PgSxQbt0CQAeZ4nZV5WvAXIkqSss6IoeXrmOavS+gzdua5PvEjKuuTnso6/jRG6
+        /YmM5hitLE51ZhAIeQOjl57LIk2yLM28ZwnI2fEM0/0gkZBPh1pg71ejnRrn6kBanMpCSqGu8SX6
+        PERRFMUD3NGM5zneUOoBTXyIoodvRmP06CknpS8INX9Lw5FASLt3LRnHSGi1q/fw0WhHg6OG9Dt6
+        My2zKl9c0lo2DOQ+r9cc5TjadaBjro+9UOJ4Sk75MTkf0+q5NB8cX6IXf5/pVst79Pb6j+fo6qoa
+        n6MFniS8aIusLDpWtj7Zp9B9QJ+D1sIVV+OrvXuTaUWo1qG2g+1i563gBy2nfQMopQnmTb782JlS
+        Xwej2784PugSxa+OVxl7dbyr6qCDDjrooIMOOuiggw466KCDDjrooIMOOuiggw76P2n+6jgr0nj5
+        M//xVMv/+7HR0jMDsFZYAkVT89jom+IBDEiJck9TyLiJ/AwGb0I728xwqfGIZKEtg9H9QA0D9obN
+        O96/9AyOcENote0wCFarHVnCrtOGNk0jNnF9D2bOXkCThQ7p3gg+BncCd9DJorkJhg2JGVR14OQE
+        TGJL2uD2moT9gAbI+XL6PXlWPRh5TtZp08P6eQNkfN+01+fENzSttoLuEwbiwvUrIJs2/aYFm57G
+        kY4XY+UzMemh2VCbZCkO2xmNUwyei425sNDKmeY5T5+WCwi1g2mnZKKBvzkbRrdc1D8hX48mu8v+
+        QenW4J31t+TlF/BVOGkCuZpZciqXRTq7f/MeCTgQjF/wODx+AQAA//8DAHiar21iHQAA
+    headers:
+      CF-RAY:
+      - 9aa3563cbbf1ed08-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:28:49 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '15620'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '15623'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149997967'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_d6d097997d0842779558fde8e9fdd99c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": "Echo back: Mixed encoding: caf\u00e9 na\u00efve r\u00e9sum\u00e9",
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '126'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xUW47bMAz8zykEfW8K2Y7zukNPsC0MWqJTdWVJkKhgg0XuXliOHbvd7Z/MIcck
+        Z6SPDWNcK35mPGD0jSh30GLRFUpIlKISYn+q6nqPRV224licqhOcilrV5U7IetdBxV8GCtf+RkkT
+        jbMRx7gMCISqgQErDvu6EFVVnjIWCSjFoUa63hskVGNRC/LtElyyQ18dmIhjWBuj7YWf2ceGMca4
+        hxuGoV7hFY3zGPiGsXtOxhDcgNlkTA5oO/2lUUigTVyjkUKSpJ1dxXt4b1win6gh94YZLPbVcTej
+        5JxpJJg1X+8UmqG1i6ftzm17bfW2FOVuKw7b4vhYWibmZ/aa5xmnmvXo4+U/coAqsxxwKNShLY8V
+        7kW9gzYzZxa6ecw8GCNc8Al8tfcMSmcJ7bOpZWMr2mkr+E5zdU4Aax3BtMnXnyvQuIsPrv0EyURn
+        xr/rd1QMrXRK28uZSeh+JCHwxCzkQ3dFFsZQTP144DPT/XGayXlwJjcMMepIYGlMHhJzEvcQwBg0
+        aykppNF2PuBVuxSbydlN1meW2gfXe2okyF/YvOHtSyzgsFnt7DIjIERnV7bGrnOBFkmDZqnvIUzc
+        s8sjdEi3RquBuNO4cnzEcNUSG9LTLekgmVEtHskFXI5J2HsMQCmHi2/iEc2qPDrrXOjh+b1wQ84b
+        9/ro+IqhdVHTbfSg0ql/3s5x07+clqM0iRyfgac5ODnfLCwj5qBf9hiSlfBYLFc6QmumpyRl688D
+        aLu+yYeXf+OL52EeMwuonoViNerfD8Txs/hntLP4XzGTIzBPsKznDaa4FrtHAgUEA/19c/8DAAD/
+        /wMA+foC6NgFAAA=
+    headers:
+      CF-RAY:
+      - 9aa3569fb861d1fe-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:28:51 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2160'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2163'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999962'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_2d74ff297d4a49579c91f81bfb01f806
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": "Echo back: Special symbols: \u2211\u221e\u2206\u2207\u2202\u222b\u222e\u222f\u2230\u2231",
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3RUwY7jIAy99ysiztsVSdqm7W/scXYVOeB02SGAwFRTjfrvK0iTJqPpxUr8zMP2
+        s/ncFAVTkp0L5jG4ljenWmKz56cSZS0k54dTvd8fsO5OsDuWp7prZNntRS2AA6/2DfuRKGz3DwVN
+        NNYEHP3CIxDKFhJWNod9yeu6LjMWCCiGdEbYwWkklOOhDsT7xdtoUl496ICjW2mtzIWdi89NURQF
+        c3BDn85LvKK2Dj3bFMU9B6P3NmEmap0dyky3tBIJlA5rNJCPgpQ1K/8AH62N5CK1ZN8xg+WhPu5m
+        lKzVrQC95husRJ1Suzja7ux2UEZtK17ttrzZlsdH0zIxOxdvuZ6xqlmPIVxey7HjWIskB9TiJJud
+        OPKK86qsM3NmoZvDzIMhwAWfwKu+Z1BYQ2ieSS0TW9FOXcEPmk/nADDGEkydfPuzArW9OG+7b5BM
+        dC7YL4dCgS7CbeisDufid6yqsswWk+WHbJtsq2SrLtuMVn2yNc+2ZPMN98fXfCnzVudCIAQVCAyN
+        wSkwBzEHHrRGvZaYfBzH0Xm8KhtDO018m3WbR8B5OzhqBYi/2L7j7SXmMXVcWbOM8AjBmtW4Y99b
+        T4ugpGUcBvAT9zz9AXqkW6tkIu4VrjYhoL8qgS2paXt6iHpUkQWyHpdlEg4OPVDM7vInf3izWo/M
+        eusHeP4vpiTHjX19ZHxF39mg6DbOplRxeG7t2Om/VolRmkiWzcBzaBhZ1y5Gic9Ot8zRRyPg0Vgm
+        VYBOT09MzCsxF6DMasPHB+qLf/FszGVmAeXzIF+V+vXhqKrvgO94Z/VfUZMl0E9wX88tjGGt9oAE
+        EggS/X1z/w8AAP//AwDx3X9Z8QUAAA==
+    headers:
+      CF-RAY:
+      - 9aa356aebece7733-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:28:53 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2166'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2170'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999950'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_072a99f6e1b94660b7b0d38bc86865ca
+    status:
+      code: 200
+      message: OK
+version: 1

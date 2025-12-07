@@ -32,8 +32,6 @@ class TestGPT5Integration:
                 "model": "gpt-5",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # Don't include temperature for GPT-5 models
             },
         )
@@ -58,8 +56,6 @@ class TestGPT5Integration:
                 "model": "gpt-5-mini",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # Don't include temperature for GPT-5 models
             },
         )
@@ -83,8 +79,6 @@ class TestGPT5Integration:
                 "model": "gpt-5-nano",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # Don't include temperature for GPT-5 models
             },
         )
@@ -108,8 +102,6 @@ class TestGPT5Integration:
                 "agent_name": "false",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # Don't include temperature for GPT-5 models
                 # model parameter omitted to use default
             },
@@ -142,8 +134,6 @@ class TestGPT5Integration:
                 "model": "gpt-5-nano",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # Don't include temperature for GPT-5 models
             },
         )
@@ -190,8 +180,6 @@ class TestGPT5Integration:
                     "temperature": 0.1,  # Should fail
                     "files": [],
                     "system_prompt": None,
-                    "enable_logprobs": False,
-                    "top_logprobs": 0,
                 },
             )
             # If we get here, the test should fail
@@ -215,8 +203,6 @@ class TestGPT5Integration:
                 "model": "gpt-5-nano",
                 "files": [],
                 "system_prompt": None,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
                 # No temperature parameter - should use default
             },
         )

@@ -1,0 +1,268 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}], "instructions": "You
+      are a concise math expert. Give only the answer and one short explanation.",
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2230'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFTBjqMwDL3PV0Scp1VoKS39gf2BvaxGK2SCabMTYpQ43Vaj/vuKUCho
+        pzfws1+e/eJ8vQmR6Do5isSh70qZVVlR7HNVSCzSXEmZF9vdbi8BVSEPaSGr3SbfHmCX52mDjTok
+        7z0FVX9Q8UhD1uMQVw6BsS6hx9J9vkvldruXEfMMHHxfo6jtDDLWQ1EF6vPkKNheVwPG4xDWxmh7
+        So7i600IIZIObuj6+hovaKhDl7wJcY/J6Bz1mA3GxIC24ylljQza+CXq2QXFmmxU9IuCAIcChCKr
+        tEfRAp8FXjt0vBY/9AUFWXMTfEYB1v9FJ8DWgiwKfybHfaoBCz3jemirhWtJgbvAJdMnxoPSfHvI
+        JpSJTKnALLW1VKPpRZ06XmW0arXVq43cZCu5X6WjAZE4OYqPOJthQpO3rT+9traCJhuslTVWab0t
+        UGaHWu4jc2ThW4eRB72HEz6BVx5GUJFltE9Rc2EL2nEqeOWpOiaAtcQwuvLxewEaOnWOqm+QSHQU
+        Sb4WP88ofGgFNYLPDjG6NHxpL7y+rpOp8v74msgSRyYKBO+1Z7A8JPeJMSnpwIExaJbWsQvDle0c
+        XjQFX45bUUY/Jms7R23HpQJ1xvITby8xh/0kNdl5hkPwZBcrgU1DjmdJvUehbcGN3NOGeGiQb6Wu
+        e+JG42JbPLqLVliyHjesgWAGdxLP5HDeJmPboQMOMZyu5SMaXXgoa8i18PyfuR/zhrk+FF/QVeQ1
+        34Y7V+vQPjd7mPSZtBqsCUzJBDwvQ8LUlbMrIqdgN9foglXwGGxSaw+VGZ+hEK/61IC2i83dyc37
+        /8DsbZn6jA7Wz0q56PW/F2HzHfAd72T/K2omBjNTnGbTEINf+t0iQw0MPf/97f4PAAD//wMAD8bg
+        uRcGAAA=
+    headers:
+      CF-RAY:
+      - 9aa3579f3c2f654d-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:33 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2871'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2875'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999477'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_6b5646145f304b579e276fa379fa8550
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}, {"role": "assistant", "content": "8. The sum of four and four
+      is eight."}, {"role": "user", "content": "What is 3+3?"}, {"role": "assistant",
+      "content": "6. The sum of three and three is six."}, {"role": "user", "content":
+      "What is 4+4?"}], "instructions": "You are a concise math expert. Give only
+      the answer and one short explanation.", "max_output_tokens": 16384, "model":
+      "gpt-4o-mini", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2342'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTBjqMwDL33KyLO0yoUWmh/YH9gL6vRCplg2uyEGCVOd6pR/31FaClo
+        ZvYGfvbLs1+cj5UQiW6So0gc+r6S+TZVclfneYG4K2sp94dstytkk0OZl+khOxT7w77MDnXZFrI4
+        ZMnLQEH1H1T8oCHrcYwrh8DYVDBgabHfpTLLiixinoGDH2oUdb1BxmYsqkG9nRwFO+hqwXgcw9oY
+        bU/JUXyshBAi6eGKbqhv8IKGenTJSohbTEbnaMBsMCYGtH2cUjXIoI1fop5dUKzJRkW/KAhwKEAo
+        skp7FB3wWeB7j4434oe+oCBrroLPKMD6v+gE2EaQReHP5HhINWBhYNyMbXXwXlHgPnDF9IbxoHSf
+        lfmEMpGpFJilto4aNIOoU8/rnNadtnq9ldt8LYt1Wt4NiMTJUbzG2YwTmrzt/Ok/1taZlIO1da32
+        +xpkWagGZZpG5sjC1x4jD3oPJ3wC33kYQUWW0T5FzYUtaB9TwXeeqmMCWEsMD1defy9AQ6feUf0F
+        EomOIik34ucZhQ+doFa0FEaT4of2AvXpzJtkqrzdvyayxJGJAsF77Rksj8lDYkxKenBgDJqldezC
+        eGV7hxdNwVePraiiH5O1vaOu50qBOmP1htdvMYfDJDXZeYZD8GQXK4FtS45nSYNHoevAPbinDfHQ
+        Il8r3QzErcbFtnh0F62wYv3YsBaCGd1JPJPDeZuMXY8OOMRwupH3aHThrqwl18Hzf+Z+zBvneld8
+        QVeT13wd71yjQ/fc7HHSZ9JqtCYwJRPwvAwJU1/Nroicgv1cowtWwX2wSaM91ObxDIV41acGtF1s
+        7m5bvnwGZm/L1Gd0sHlWykWvn16E7VfAV7yT/d9RMzGYmeJcTkMMful3hwwNMAz8t9XtHwAAAP//
+        AwDyTHrzFwYAAA==
+    headers:
+      CF-RAY:
+      - 9aa357b28e417dcc-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:35 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2388'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2395'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999452'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_fda9d372551844fb8a8f7ec4661cab57
+    status:
+      code: 200
+      message: OK
+version: 1

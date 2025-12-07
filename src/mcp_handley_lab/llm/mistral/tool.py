@@ -218,10 +218,16 @@ def _mistral_image_analysis_adapter(
     for image_item in images:
         image_bytes = resolve_image_data(image_item)
         encoded_image = base64.b64encode(image_bytes).decode()
+        # Detect MIME type from path or default to jpeg
+        mime_type = "image/jpeg"
+        if isinstance(image_item, str) and not image_item.startswith("data:"):
+            guessed_type, _ = mimetypes.guess_type(image_item)
+            if guessed_type and guessed_type.startswith("image/"):
+                mime_type = guessed_type
         content.append(
             {
                 "type": "image_url",
-                "image_url": f"data:image/jpeg;base64,{encoded_image}",
+                "image_url": f"data:{mime_type};base64,{encoded_image}",
             }
         )
 

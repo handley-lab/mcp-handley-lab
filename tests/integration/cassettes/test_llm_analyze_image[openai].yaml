@@ -1,0 +1,111 @@
+interactions:
+- request:
+    body: '{"input": [{"type": "message", "role": "user", "content": [{"type": "input_text",
+      "text": "What color is this image?"}, {"type": "input_image", "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII="}]}],
+      "max_output_tokens": 16384, "model": "gpt-4o", "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '618'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xUwY6jMAy99yuinKcjKJSWfsfcRitkEtNmJ2CUONVUo/77ilAo7M7sDfzsF/s9
+        J18bIaTR8iSkQ99XiQLV4L4pVbMvE0yTpCizfXHIs11dJMe0LErI8kxjttOlKnSey5eBgurfqHii
+        oc7jGFcOgVFXMGDpodinyWG/yyLmGTj4oUZR21tk1GNRDerj7Ch0Q18NWI9j2FhrurM8ia+NEELI
+        Hm7ohnqNV7TUo5MbIe4xGZ2jAeuCtTFguumUSiODsX6NenZBsaFuFW/hs6LAfeCK6QMjmBbZMZ9R
+        JrKVArvma0mjHVo797zNabtLdvk2OW6T4qFX5JQn8R5HGQearWj9+T9OlGmtBifqLN3lSb5HXRzT
+        5CFeZOFbj5EHvYczPoGfJI+goo6xeza1bGxFOwmCnzxXxwToOmKYRHz/tQItnXtH9TdIJDoJ+XZB
+        ociSE9QIvqAwLZxRGC8c6lc5l9wfXzOLdGRjZ+C98Qwdj8lDYkySPTiwFu3aLnZhXK3e4dVQ8NW0
+        vVU0Yrazd9T2XClQF6w+8PYj5nCQ0FC3zHAInrrV6mLTkONF0mBOaFtwE/e8yR4a5Ftl9EDcGFxt
+        tUd3NQorNtNNaCDY0RbpmRwux2Rse3TAIYbT1+QRjfI/OmvItfD8X9ge80ZdHx1f0dXkDd/GZdMm
+        tM8bOCp9IaNGawKTnIHnFkimvlrsRjIH+2WPLnQKHsJKbTzUdnouQtzxeQDTrW7rrji+/Ass3oB5
+        zuigflYmq1n/fgXK7+Lf0c7u/8TMxGAXDR8Os4bBr+1ukUEDw8B/39z/AAAA//8DAKRVwtC+BQAA
+    headers:
+      CF-RAY:
+      - 9aa3bd034de149c9-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:38:45 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=JjAwf8R8G2ujiWI4V28pdKs_MzWjW555ErHbqli3KGw-1765107525-1.0.1.1-.PrvCz6zid3C9VFxWj2SKbI4WOAPE9KRPdnwF2cJV.saRR5IqLFoy1H96pW91qz4Ricl2der7W0eZy5KHr.2tyKfONuS5bsWGGAiPzvrCuI;
+        path=/; expires=Sun, 07-Dec-25 12:08:45 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=ZF6rjU2cSf4X1tw6icQpQa_9JTod8MZixsRF07gq5RU-1765107525394-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2161'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2164'
+      x-ratelimit-limit-requests:
+      - '10000'
+      x-ratelimit-limit-tokens:
+      - '30000000'
+      x-ratelimit-remaining-requests:
+      - '9999'
+      x-ratelimit-remaining-tokens:
+      - '29999235'
+      x-ratelimit-reset-requests:
+      - 6ms
+      x-ratelimit-reset-tokens:
+      - 1ms
+      x-request-id:
+      - req_903d0a8235ec4c5c808bb7df94c49753
+    status:
+      code: 200
+      message: OK
+version: 1

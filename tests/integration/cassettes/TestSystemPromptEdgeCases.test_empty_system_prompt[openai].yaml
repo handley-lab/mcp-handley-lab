@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 9+1?"}, {"role": "assistant",
+    body: '{"input": [{"role": "user", "content": "What is 9+1?"}, {"role": "assistant",
       "content": "9 + 1 equals 10."}, {"role": "user", "content": "What is 9+1?"},
       {"role": "assistant", "content": "9 + 1 equals 10."}, {"role": "user", "content":
       "What is 9+1?"}, {"role": "assistant", "content": "9 + 1 equals 10."}, {"role":
@@ -9,65 +9,70 @@ interactions:
       "content": "9 + 1 equals 10."}, {"role": "user", "content": "What is 9+1?"},
       {"role": "assistant", "content": "9 + 1 equals 10."}, {"role": "user", "content":
       "What is 9+1?"}, {"role": "assistant", "content": "9 + 1 equals 10."}, {"role":
-      "user", "content": "What is 9+1?"}], "model": "gpt-4o-mini", "max_tokens": 16384,
-      "temperature": 1.0}'
+      "user", "content": "What is 9+1?"}, {"role": "assistant", "content": "9 + 1
+      equals 10."}, {"role": "user", "content": "What is 9+1?"}, {"role": "assistant",
+      "content": "9 + 1 equals 10."}, {"role": "user", "content": "What is 9+1?"}],
+      "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature": 1.0}'
     headers:
-      accept:
+      Accept:
       - application/json
-      accept-encoding:
+      Accept-Encoding:
       - gzip, deflate
-      connection:
+      Connection:
       - keep-alive
-      content-length:
-      - '751'
-      content-type:
+      Content-Length:
+      - '937'
+      Content-Type:
       - application/json
-      host:
+      Host:
       - api.openai.com
-      user-agent:
-      - OpenAI/Python 1.99.1
-      x-stainless-arch:
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
       - x64
-      x-stainless-async:
+      X-Stainless-Async:
       - 'false'
-      x-stainless-lang:
+      X-Stainless-Lang:
       - python
-      x-stainless-os:
+      X-Stainless-OS:
       - Linux
-      x-stainless-package-version:
-      - 1.99.1
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
       - '0'
-      x-stainless-runtime:
-      - CPython
-      x-stainless-runtime-version:
-      - 3.13.5
     method: POST
-    uri: https://api.openai.com/v1/chat/completions
+    uri: https://api.openai.com/v1/responses
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-C4RvjPXqllIWBSyDQO3VgKo1YQLpb\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1755176711,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
-        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"9 + 1 equals 10.\",\n        \"refusal\":
-        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
-        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        175,\n    \"completion_tokens\": 8,\n    \"total_tokens\": 183,\n    \"prompt_tokens_details\":
-        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
-        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
-        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTbbtswDH3PVwh6XVPIcdLE+ZViMGiZTrXKoidRQYMi/z5YvsTe2r3Z
+        POQxeQ7pz40Q0tTyLKTH0JWqULk+QnMsMNfQoFIvRX44HHeZamp9yopjVWenXXWsMtwf8n2O8qmn
+        oOoXap5oyIUxrj0CY11Cj2XHl0Om8rzIExYYOIa+RlPbWWSsh6IK9PvFU3R9Xw3YgEPYWGvcRZ7F
+        50YIIWQHN/R9fY1XtNShlxsh7ikZvacec9HaFDBu+kpZI4OxYY0G9lGzIbeKt/BRUuQucsn0jgnM
+        XvLTfkaZyJYa7JqvpRpt39ql4+2etq1xZrtTu/1WHbfZaRQtEcuzeE3zDFPNfrTh8h87DpCr3o6T
+        0pAXTV41hyw7FYfEnFj41mHiwRDggg/gO90TqMkxukdTy8ZWtJMq+MFzdUoA54hhUvL15wq0dOk8
+        VV8giegsZCF+iEzg7wg2iEw9yznpPj7NddKTTb1ACCYwOB6S+8SUJDvwYC3atUvs47BRnceroRjK
+        aWnLJP3sYuep7bjUoN+wfMfbt5jHXjRDbpnhEQK51cZi05DnRVJvR2xb8BP3vMABGuRbaeqeuDG4
+        WuaA/mo0lmymA2gg2sEIGZg8LsdkbDv0wDGFs2c1RpPgY2cN+RYe7wujU96g69jxFX1FwfBtWK/a
+        xPZxeIPSb2T0YE1kkjPw8F0ydeViG9Qc7JY9+ug0jMLK2gSo7PSXiGmr5wGMWx3pbpc9/QssTn+e
+        MzlYPyrVata/j7/4Kv4V7ez+d8xMDHbRcK5mDWNY290iQw0MPf99c/8DAAD//wMADNkc07UFAAA=
     headers:
       CF-RAY:
-      - 96f0a98eccc27058-LHR
+      - 9aa3582e2876e90a-LHR
       Connection:
       - keep-alive
+      Content-Encoding:
+      - gzip
       Content-Type:
       - application/json
       Date:
-      - Thu, 14 Aug 2025 13:05:12 GMT
+      - Sun, 07 Dec 2025 10:29:55 GMT
       Server:
       - cloudflare
       Strict-Transport-Security:
@@ -76,24 +81,20 @@ interactions:
       - chunked
       X-Content-Type-Options:
       - nosniff
-      access-control-expose-headers:
-      - X-Request-ID
       alt-svc:
       - h3=":443"; ma=86400
       cf-cache-status:
       - DYNAMIC
-      content-length:
-      - '824'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '594'
+      - '2176'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
       x-envoy-upstream-service-time:
-      - '679'
+      - '2178'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -101,13 +102,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999932'
+      - '149999760'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_d8eb197e8d9645999436fa033594e588
+      - req_85e601b455564c87977d890004cc78b4
     status:
       code: 200
       message: OK

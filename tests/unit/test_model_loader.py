@@ -153,12 +153,12 @@ class TestBuildModelConfigsDict:
         # Test reasoning model
         assert "o4-mini" in configs
         assert configs["o4-mini"]["output_tokens"] == 100000
-        assert configs["o4-mini"]["param"] == "max_completion_tokens"
+        assert configs["o4-mini"]["param"] == "max_output_tokens"  # Responses API
 
         # Test general model
         assert "gpt-4.1" in configs
         assert configs["gpt-4.1"]["output_tokens"] == 16384
-        assert configs["gpt-4.1"]["param"] == "max_tokens"
+        assert configs["gpt-4.1"]["param"] == "max_output_tokens"  # Responses API
 
         # Test image generation model
         assert "dall-e-3" in configs

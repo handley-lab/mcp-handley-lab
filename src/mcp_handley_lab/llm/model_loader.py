@@ -154,6 +154,26 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                         f"Missing 'output_tokens' for Grok model {model_id}"
                     )
                 model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
+        elif provider == "mistral":
+            # Mistral format - include capability flags
+            if "output_tokens" not in model_info:
+                raise ValueError(
+                    f"Missing 'output_tokens' for Mistral model {model_id}"
+                )
+            config_entry = {"output_tokens": model_info["output_tokens"]}
+            # Copy capability flags if present
+            for flag in [
+                "supports_vision",
+                "supports_reasoning",
+                "supports_audio",
+                "supports_fim",
+                "supports_transcription",
+                "supports_grounding",
+                "embedding_dimensions",
+            ]:
+                if flag in model_info:
+                    config_entry[flag] = model_info[flag]
+            model_configs[model_id] = config_entry
         # Other providers can be added here as needed
 
     return model_configs

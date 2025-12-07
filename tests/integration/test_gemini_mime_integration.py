@@ -118,7 +118,6 @@ async def test_gemini_file_upload_by_type(
                 "model": "gemini-2.5-flash",
                 "agent_name": "",
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             },
         )
@@ -166,7 +165,6 @@ async def test_gemini_multiple_unsupported_files(skip_if_no_api_key, test_output
                 "model": "gemini-2.5-flash",
                 "agent_name": "",
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             },
         )
@@ -212,7 +210,6 @@ async def test_gemini_supported_file_unchanged(skip_if_no_api_key, test_output_f
                 "model": "gemini-2.5-flash",
                 "agent_name": "",
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             },
         )
@@ -246,7 +243,6 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
             "grounding": True,
             "agent_name": "",  # No agent - test grounding metadata fields only
             "temperature": 1.0,
-            "max_output_tokens": 0,
             "files": [],
         },
     )
@@ -309,7 +305,6 @@ async def test_gemini_without_grounding_no_metadata(
             "grounding": False,
             "agent_name": "test_no_grounding",
             "temperature": 1.0,
-            "max_output_tokens": 0,
             "files": [],
         },
     )
@@ -347,7 +342,6 @@ async def test_gemini_grounding_search_entry_point_structure(
             "grounding": True,
             "agent_name": "",  # No agent - test grounding metadata structure only
             "temperature": 1.0,
-            "max_output_tokens": 0,
             "files": [],
         },
     )

@@ -1,0 +1,248 @@
+models:
+  # === FRONTIER GENERALIST MODELS ===
+  mistral-large-latest:
+    description: "Latest flagship model - Mistral Large 3 (v25.12)"
+    capabilities: "🎯 Best for: Complex reasoning, analysis, multimodal tasks"
+    tags: ["mistral-large", "latest", "frontier", "multimodal"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 2.00
+    output_per_1m: 6.00
+
+  mistral-medium-latest:
+    description: "Mistral Medium 3.1 - frontier multimodal model (v25.08)"
+    capabilities: "🎯 Best for: Complex tasks, balanced cost/performance"
+    tags: ["mistral-medium", "latest", "frontier", "multimodal"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.40
+    output_per_1m: 2.00
+
+  mistral-small-latest:
+    description: "Mistral Small 3.2 - efficient general model (v25.06)"
+    capabilities: "⚡ Best for: Everyday tasks, cost-effective"
+    tags: ["mistral-small", "latest", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.10
+    output_per_1m: 0.30
+
+  # === MINISTRAL EDGE MODELS ===
+  ministral-3b-latest:
+    description: "Ministral 3 3B - tiny efficient model with vision (v25.12)"
+    capabilities: "🚀 Best for: Edge deployment, ultra-low latency"
+    tags: ["ministral", "edge", "cost-effective", "vision"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.04
+    output_per_1m: 0.04
+
+  ministral-8b-latest:
+    description: "Ministral 3 8B - efficient model with vision (v25.12)"
+    capabilities: "🚀 Best for: Fast inference, high-volume tasks"
+    tags: ["ministral", "edge", "cost-effective", "vision"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.10
+    output_per_1m: 0.10
+
+  # === REASONING MODELS (MAGISTRAL) ===
+  magistral-medium-latest:
+    description: "Magistral Medium 1.2 - frontier reasoning model (v25.09)"
+    capabilities: "🧠 Best for: Complex reasoning, step-by-step thinking"
+    tags: ["magistral", "reasoning", "frontier"]
+    context_window: "40,000 tokens"
+    output_tokens: 40000
+    supports_vision: false
+    supports_grounding: false
+    supports_reasoning: true
+    input_per_1m: 2.00
+    output_per_1m: 5.00
+
+  magistral-small-latest:
+    description: "Magistral Small 1.2 - efficient reasoning model (v25.09)"
+    capabilities: "🧠 Best for: Cost-effective reasoning tasks"
+    tags: ["magistral", "reasoning", "cost-effective"]
+    context_window: "40,000 tokens"
+    output_tokens: 40000
+    supports_vision: false
+    supports_grounding: false
+    supports_reasoning: true
+    input_per_1m: 0.50
+    output_per_1m: 1.50
+
+  # === CODING MODELS ===
+  codestral-latest:
+    description: "Codestral - cutting-edge coding model (v25.08)"
+    capabilities: "💻 Best for: Code generation, completion, debugging"
+    tags: ["codestral", "coding", "latest"]
+    context_window: "256,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_fim: true
+    input_per_1m: 0.30
+    output_per_1m: 0.90
+
+  devstral-small-latest:
+    description: "Devstral Small 1.1 - open SWE model (v25.07)"
+    capabilities: "💻 Best for: Software engineering tasks"
+    tags: ["devstral", "coding", "swe"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_fim: true
+    input_per_1m: 0.10
+    output_per_1m: 0.30
+
+  # === VISION MODELS (PIXTRAL) ===
+  pixtral-large-latest:
+    description: "Pixtral Large - multimodal vision model (v24.11)"
+    capabilities: "👁️ Best for: Image analysis, multimodal tasks"
+    tags: ["pixtral", "vision", "multimodal"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 2.00
+    output_per_1m: 6.00
+
+  pixtral-12b-2409:
+    description: "Pixtral 12B - lightweight vision model"
+    capabilities: "👁️ Best for: OCR, cost-effective vision tasks"
+    tags: ["pixtral", "vision", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.15
+    output_per_1m: 0.15
+
+  # === AUDIO MODELS (VOXTRAL) ===
+  voxtral-small-latest:
+    description: "Voxtral Small - audio chat model (v25.07)"
+    capabilities: "🎤 Best for: Audio conversations, voice understanding"
+    tags: ["voxtral", "audio", "chat"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_audio: true
+    input_per_1m: 0.20
+    output_per_1m: 0.60
+
+  voxtral-mini-latest:
+    description: "Voxtral Mini - audio transcription model (v25.07)"
+    capabilities: "🎤 Best for: Speech-to-text, transcription"
+    tags: ["voxtral", "audio", "transcription"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_audio: true
+    supports_transcription: true
+    input_per_1m: 0.10
+    output_per_1m: 0.30
+
+  # === SPECIALIST MODELS ===
+  mistral-ocr-latest:
+    description: "Dedicated OCR model for document text extraction"
+    capabilities: "📄 Best for: OCR, document parsing, PDF extraction"
+    tags: ["ocr", "document-ai"]
+    context_window: "N/A (document processing)"
+    output_tokens: 0
+    supports_vision: true
+    supports_grounding: false
+    # Pricing: $1 per 1,000 pages
+    input_per_1m: 1.00
+    output_per_1m: 0.00
+
+  mistral-moderation-latest:
+    description: "Content moderation model (v24.11)"
+    capabilities: "🛡️ Best for: Content safety, harmful text detection"
+    tags: ["moderation", "safety"]
+    context_window: "8,000 tokens"
+    output_tokens: 0
+    supports_vision: false
+    supports_grounding: false
+    input_per_1m: 0.10
+    output_per_1m: 0.00
+
+  # === EMBEDDING MODELS ===
+  mistral-embed:
+    description: "Text embedding model for semantic search"
+    capabilities: "🔍 Best for: RAG, semantic search, clustering"
+    tags: ["embedding", "text"]
+    context_window: "8,000 tokens"
+    output_tokens: 0
+    supports_vision: false
+    supports_grounding: false
+    embedding_dimensions: 1024
+    input_per_1m: 0.10
+    output_per_1m: 0.00
+
+  codestral-embed:
+    description: "Code embedding model (v25.05)"
+    capabilities: "🔍 Best for: Code search, repository exploration"
+    tags: ["embedding", "code"]
+    context_window: "32,000 tokens"
+    output_tokens: 0
+    supports_vision: false
+    supports_grounding: false
+    embedding_dimensions: 1024
+    input_per_1m: 0.20
+    output_per_1m: 0.00
+
+# Display categories (how to group models by tags for presentation)
+display_categories:
+  - name: "🎯 Frontier Generalist"
+    tags: ["frontier"]
+    description: "Most capable models for complex tasks"
+  - name: "🧠 Reasoning Models"
+    tags: ["magistral", "reasoning"]
+    description: "Step-by-step thinking and complex reasoning"
+  - name: "💻 Coding Models"
+    tags: ["codestral", "devstral", "coding"]
+    description: "Specialized for code generation and SWE"
+  - name: "👁️ Vision Models"
+    tags: ["pixtral", "vision"]
+    description: "Multimodal image understanding"
+  - name: "🎤 Audio Models"
+    tags: ["voxtral", "audio"]
+    description: "Speech-to-text and audio chat"
+  - name: "🚀 Edge Models"
+    tags: ["ministral", "edge"]
+    description: "Efficient models for high-volume tasks"
+  - name: "📄 Document AI"
+    tags: ["ocr", "document-ai"]
+    description: "OCR and document processing"
+  - name: "🔍 Embeddings"
+    tags: ["embedding"]
+    description: "Vector embeddings for search and RAG"
+  - name: "🛡️ Safety"
+    tags: ["moderation", "safety"]
+    description: "Content moderation and safety"
+
+# Default model
+default_model: "mistral-large-latest"
+
+# Usage notes
+usage_notes:
+  - "Mistral Large 3 (v25.12): Latest flagship with vision - best quality"
+  - "Magistral models: Use prompt_mode='reasoning' for step-by-step thinking"
+  - "Codestral: Supports FIM (fill-in-middle) for code completion"
+  - "Voxtral: Audio input for chat and transcription"
+  - "OCR: $1 per 1,000 pages for document extraction"
+  - "All chat models support 128k context (except Magistral: 40k)"
+  - "Free tier available for experimentation"

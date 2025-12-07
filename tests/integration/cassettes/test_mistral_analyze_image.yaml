@@ -1,0 +1,92 @@
+interactions:
+- request:
+    body: '{"model": "pixtral-12b-2409", "messages": [{"content": [{"text": "What
+      color is this image?", "type": "text"}, {"image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAA5klEQVR4nO3QQQkAIADAQLV/Z63gXiLcJRibe3BrvQ74iVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWYFZgVmBWcEBil4Bx/GEGnoAAAAASUVORK5CYII=",
+      "type": "image_url"}], "role": "user"}], "max_tokens": 8192, "stream": false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '595'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA1SP0W7bMAxFf4XgsxokqRO3+oO8720YAlqiY62yKEh0lyDIvw9y2xV7Je7lPeeO
+        waPF43j0veteh56Hbtv7F+52h/3Yj2PfPQ+9Q4OuMCl7tLv+eNht+5dtZ3AWzxEt5nDVQvFptx+e
+        9t32FQ0ulS6M9o65yJz1rPLGqaI9HgyqKMV/l93z3qCTOUfWIOk72T8MyvCbnaJFN5FuvlONaJLg
+        uKL9eceQPF/Rbg2OIYU6nQtTlYQWq0pGgzPXL6AikdEi1RqqUlJsQBLPjmKsaNMSY+NJyqkN/5gY
+        wkwXBsqZqVRQgYGBIEcKyUCVGDw4iVIMDIuCTgx8JacfR3CUkmjreFYuc0jsYSwyr8lc5D149uC5
+        uhJys9vAqZWX6NeldPt6Xxc3AVUo7A0McWEDl8KcDNw4RvljQMqaF524wLTwBk4j3GSBid4ZZikM
+        NbMLY3AQ0ihlprbYeqvzVYEG+bRYvQ2cmgJouTX1T16gj2fk3FJI+T98fDx+Pf4CAAD//wMA3odt
+        pVwCAAA=
+    headers:
+      CF-RAY:
+      - 9aa3c3e29f505e4a-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 11:43:25 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=ILXaHh3SfU_lUA1UPIoxloc.GcGLv4SI4DuBomWf1xc-1765107805-1.0.1.1-8gTpAC0inoKdnvLi2C8FIpSbKVQVjY.MyKir5zS6kd3.3XhCcH_CMV6BF1gLgwZnQux90THRN650aQ6aI4pZcx30UdhWNxQkqGwOiLIXlZA;
+        path=/; expires=Sun, 07-Dec-25 12:13:25 GMT; domain=.mistral.ai; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=xk6HJ.H2yldm0oLdMT.YQMk7HAzJQp31xz6u79Xw8Zc-1765107805341-0.0.1.1-604800000;
+        path=/; domain=.mistral.ai; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af89f-a9be-7cd4-bcd0-0013489a3daf
+      x-envoy-upstream-service-time:
+      - '710'
+      x-kong-proxy-latency:
+      - '6'
+      x-kong-request-id:
+      - 019af89f-a9be-7cd4-bcd0-0013489a3daf
+      x-kong-upstream-latency:
+      - '711'
+      x-ratelimit-limit-req-minute:
+      - '60'
+      x-ratelimit-limit-tokens-minute:
+      - '500000'
+      x-ratelimit-limit-tokens-month:
+      - '1000000000'
+      x-ratelimit-remaining-req-minute:
+      - '58'
+      x-ratelimit-remaining-tokens-minute:
+      - '499780'
+      x-ratelimit-remaining-tokens-month:
+      - '999998962'
+      x-ratelimit-tokens-query-cost:
+      - '132'
+    status:
+      code: 200
+      message: OK
+version: 1

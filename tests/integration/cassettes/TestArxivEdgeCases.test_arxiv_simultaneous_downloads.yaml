@@ -1,0 +1,51 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - arxiv.org
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://arxiv.org/pdf/2301.07041.pdf
+  response:
+    body:
+      string: "\n<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE html PUBLIC
+        \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html>\n
+        \ <head>\n    <title>403 Forbidden</title>\n  </head>\n  <body>\n    <h1>Error
+        403 Forbidden</h1>\n    <p>Forbidden</p>\n    <h3>Error 54113</h3>\n    <p>Details:
+        cache-lcy-eglc8600079-LCY 1764796633 3164017199</p>\n    <hr>\n    <p>Varnish
+        cache server</p>\n  </body>\n</html>\n"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Connection:
+      - close
+      Content-Length:
+      - '425'
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Dec 2025 21:17:12 GMT
+      Retry-After:
+      - '0'
+      Server:
+      - Varnish
+      Via:
+      - 1.1 varnish
+      X-Cache:
+      - MISS
+      X-Served-By:
+      - cache-lcy-eglc8600079-LCY
+      X-Timer:
+      - S1764796633.907430,VS0,VE0
+    status:
+      code: 403
+      message: Forbidden
+version: 1

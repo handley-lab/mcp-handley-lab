@@ -1,97 +1,89 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
-      the number."}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
-      0.0}'
+    body: '{"input": "What is 2+2? Answer with just the number.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 0.0}'
     headers:
-      accept:
+      Accept:
       - application/json
-      accept-encoding:
+      Accept-Encoding:
       - gzip, deflate
-      connection:
+      Connection:
       - keep-alive
-      content-length:
-      - '143'
-      content-type:
+      Content-Length:
+      - '119'
+      Content-Type:
       - application/json
-      host:
+      Host:
       - api.openai.com
-      user-agent:
-      - OpenAI/Python 1.91.0
-      x-stainless-arch:
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
       - x64
-      x-stainless-async:
+      X-Stainless-Async:
       - 'false'
-      x-stainless-lang:
+      X-Stainless-Lang:
       - python
-      x-stainless-os:
+      X-Stainless-OS:
       - Linux
-      x-stainless-package-version:
-      - 1.91.0
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
       - '0'
-      x-stainless-runtime:
-      - CPython
-      x-stainless-runtime-version:
-      - 3.13.7
     method: POST
-    uri: https://api.openai.com/v1/chat/completions
+    uri: https://api.openai.com/v1/responses
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-C7RJ2dQEshb7h3tnoj1gsLv7ZZ5go\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1755889296,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
-        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"4\",\n        \"refusal\": null,\n
-        \       \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\":
-        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 20,\n    \"completion_tokens\":
-        1,\n    \"total_tokens\": 21,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
-        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
-        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
-        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_560af6e559\"\n}\n"
+      string: !!binary |
+        H4sIAAAAAAAAA3RU0Y6jMAx871egPG9PQFta+iurEzKJ6eY2xFHiVFut+u8nQqFwt30Djz3YMzbf
+        mywTWolzJjwG1+T7vIViX1SHti1OpzLPq3p3OFT7rsq706modzXWMi+q+lgrJQ8HEG8DBbV/UPJE
+        QzbgGJcegVE1MGDFsToU+a447RIWGDiGoUZS7wwyqrGoBfl58RTt0FcHJuAY1sZoexHn7HuTZVkm
+        HNzQD/UKr2jIoRebLLunZPSeBsxGY1JA2+krjUIGbcIaDeyjZE12Fe/hq6HILnLD9IkJLKrdaT+j
+        TGQaCWbN15NCM7R2cbzd07bXVm/LvNxv8+O2OD1ES8TinL2necapZj/6cHlpxyGv6zLZ0e7UUUl1
+        rOtCSVmNzImFbw4TD4YAF3wCr3RPoCTLaJ9NLRtb0U6q4BfP1SkBrCWGScn33yvQ0MV5an9AEtE5
+        E3sxR++PpzlReDLp4xCCDgyWx+QhMSUJBx6MQbO2hX0cV8h5vGqKoZm2tElaz7Y5T73jRoL8wOYT
+        by8xj4NKmuwywyMEsqsVxa4jz4ukQf/Y9+An7nljA3TIt0argbjTuNregP6qJTasp43vIJpReRGY
+        PC7HZOwdeuCYwvmv/BFNCj8668j38HxfOJvyRl0fHV/RtxQ038Z9Ujr2z0sblf4gLUdrIpOYgafR
+        gsk1C/vzOeiGm5p69NFKeAgrlA7Qmum3ENMazwNou7rKMn/7P7449XnMZKB6FuarUf899vKn+E+0
+        s/mvmJkYzIK4nBWMYW12jwwKGAb6++b+FwAA//8DAMRIkxWkBQAA
     headers:
       CF-RAY:
-      - 97349ea61e0caff9-LHR
+      - 9aa3530f9de9e8fc-LHR
       Connection:
       - keep-alive
+      Content-Encoding:
+      - gzip
       Content-Type:
       - application/json
       Date:
-      - Fri, 22 Aug 2025 19:01:37 GMT
+      - Sun, 07 Dec 2025 10:26:25 GMT
       Server:
       - cloudflare
-      Set-Cookie:
-      - __cf_bm=w.jr9MG7Eors6IhMMcL89I2GPRhuimPnkK5YBdHUmJ8-1755889297-1.0.1.1-EqfhUuu9liUJcjLWo0LZ.KcHWL_S4lExWP44s9N9.LCI3N3OLuOHkyCyglTNUSxuuuzbIPuLBtAFO6t_QE2pJ1J4cyjObWAXnRHIcz6FbdI;
-        path=/; expires=Fri, 22-Aug-25 19:31:37 GMT; domain=.api.openai.com; HttpOnly;
-        Secure; SameSite=None
-      - _cfuvid=xR9ZYnvkLWkIlfNq59m3ie8HKt1.a6CV6neZzJEh5FY-1755889297247-0.0.1.1-604800000;
-        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Strict-Transport-Security:
       - max-age=31536000; includeSubDomains; preload
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
       - nosniff
-      access-control-expose-headers:
-      - X-Request-ID
       alt-svc:
       - h3=":443"; ma=86400
       cf-cache-status:
       - DYNAMIC
-      content-length:
-      - '807'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '363'
+      - '2153'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
       x-envoy-upstream-service-time:
-      - '546'
+      - '2156'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -99,13 +91,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999985'
+      - '149999960'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_d109bdd9cee745c9b192a99f015fb201
+      - req_38d85cc8284b458cabae3a217f860b13
     status:
       code: 200
       message: OK

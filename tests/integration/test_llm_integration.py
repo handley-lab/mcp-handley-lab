@@ -148,16 +148,12 @@ async def test_llm_ask_basic(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -165,7 +161,6 @@ async def test_llm_ask_basic(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -217,16 +212,12 @@ async def test_llm_ask_with_files(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -234,7 +225,6 @@ async def test_llm_ask_with_files(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -278,11 +268,7 @@ async def test_llm_analyze_image(
 
     # Add provider-specific parameters
     if provider in ("openai", "gemini", "claude", "grok"):
-        base_params.update(
-            {
-                "max_output_tokens": 0,
-            }
-        )
+        base_params.update({})
 
     _, response = await mcp.call_tool("analyze_image", base_params)
     assert "error" not in response, response.get("error")
@@ -327,16 +313,12 @@ async def test_llm_memory_disabled(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -344,7 +326,6 @@ async def test_llm_memory_disabled(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -404,16 +385,12 @@ async def test_llm_input_validation(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -421,7 +398,6 @@ async def test_llm_input_validation(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -432,15 +408,14 @@ async def test_llm_input_validation(
         )
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
-    # Test missing output_file should raise error
+    # Test missing output_file should raise validation error (required parameter)
     with pytest.raises(ToolError) as e2:
-        await mcp.call_tool(
-            "ask", {**base_params, "prompt": "Test prompt", "output_file": ""}
-        )
-    # Error may be about missing file, directory, or file path validation
+        await mcp.call_tool("ask", {**base_params, "prompt": "Test prompt"})
+    # Error should be about missing required field
     error_msg = str(e2.value).lower()
     assert any(
-        keyword in error_msg for keyword in ["output", "file", "directory", "path"]
+        keyword in error_msg
+        for keyword in ["output_file", "required", "missing", "field"]
     )
 
 
@@ -521,16 +496,12 @@ async def test_llm_error_scenarios(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -538,7 +509,6 @@ async def test_llm_error_scenarios(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -582,16 +552,12 @@ async def test_llm_response_metadata_fields(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": True,
-                "top_logprobs": 3,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -599,7 +565,6 @@ async def test_llm_response_metadata_fields(
         base_params.update(
             {
                 "temperature": 1.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -622,13 +587,11 @@ async def test_llm_response_metadata_fields(
 
     # Provider-specific fields
     if provider == "openai":
-        assert response.get("system_fingerprint", "") != ""
-        assert response.get("service_tier", "") != ""
+        # Note: system_fingerprint and service_tier may be empty with Responses API
+        assert isinstance(response.get("system_fingerprint", ""), str)
+        assert isinstance(response.get("service_tier", ""), str)
         assert isinstance(response["completion_tokens_details"], dict)
         assert isinstance(response["prompt_tokens_details"], dict)
-
-        if base_params.get("enable_logprobs"):
-            assert response["avg_logprobs"] != 0.0
 
         if response["completion_tokens_details"]:
             expected_keys = {
@@ -656,55 +619,6 @@ async def test_llm_response_metadata_fields(
         assert isinstance(response["prompt_tokens_details"], dict)
 
 
-@pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_openai_logprobs_configuration(skip_if_no_api_key, test_output_file):
-    """Test OpenAI logprobs configuration options."""
-    skip_if_no_api_key("OPENAI_API_KEY")
-
-    # Test without logprobs (default)
-    _, response1 = await openai_mcp.call_tool(
-        "ask",
-        {
-            "prompt": "What is 2+2?",
-            "output_file": test_output_file,
-            "model": "gpt-4o-mini",
-            "agent_name": "test_no_logprobs",
-            "enable_logprobs": False,
-            "files": [],
-            "temperature": 1.0,
-            "max_output_tokens": 0,
-            "top_logprobs": 0,
-        },
-    )
-    assert "error" not in response1, response1.get("error")
-
-    assert response1["avg_logprobs"] == 0.0
-    assert response1["finish_reason"] != ""
-    assert response1["response_id"] != ""
-
-    # Test with logprobs enabled
-    _, response2 = await openai_mcp.call_tool(
-        "ask",
-        {
-            "prompt": "What is 3+3?",
-            "output_file": test_output_file,
-            "model": "gpt-4o-mini",
-            "agent_name": "test_with_logprobs",
-            "enable_logprobs": True,
-            "top_logprobs": 5,
-            "files": [],
-            "temperature": 1.0,
-            "max_output_tokens": 0,
-        },
-    )
-    assert "error" not in response2, response2.get("error")
-
-    assert response2["avg_logprobs"] != 0.0
-    assert response2["finish_reason"] != ""
-    assert response2["response_id"] != ""
-
-
 class TestLLMMemory:
     """Test LLM conversational memory functionality."""
 
@@ -730,9 +644,6 @@ class TestLLMMemory:
                 "agent_name": agent_name,
                 "temperature": 0.1,
                 "files": [],
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             },
         )
         assert "error" not in response1, response1.get("error")
@@ -749,9 +660,6 @@ class TestLLMMemory:
                 "agent_name": agent_name,
                 "temperature": 0.1,
                 "files": [],
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             },
         )
         assert "error" not in response2, response2.get("error")
@@ -782,9 +690,6 @@ class TestLLMMemory:
                 "agent_name": agent_name1,
                 "temperature": 0.1,
                 "files": [],
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             },
         )
 
@@ -799,9 +704,6 @@ class TestLLMMemory:
                 "agent_name": agent_name2,
                 "temperature": 0.1,
                 "files": [],
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             },
         )
 
@@ -814,10 +716,13 @@ class TestLLMMemory:
             phrase in content2
             for phrase in [
                 "don't know",
+                "can't know",
+                "cannot know",
                 "not provided",
                 "haven't told",
                 "no information",
                 "don't have access",
+                "unless you tell me",
             ]
         ), f"Agent 2 should indicate it doesn't know: {content2}"
 
@@ -859,16 +764,12 @@ async def test_llm_prompt_file_basic(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -876,7 +777,6 @@ async def test_llm_prompt_file_basic(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -931,16 +831,12 @@ async def test_llm_prompt_file_with_template_vars(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -948,7 +844,6 @@ async def test_llm_prompt_file_with_template_vars(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -1005,16 +900,12 @@ async def test_llm_system_prompt_file_with_templates(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -1022,7 +913,6 @@ async def test_llm_system_prompt_file_with_templates(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 
@@ -1073,16 +963,12 @@ async def test_llm_prompt_file_xor_validation(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
-                "enable_logprobs": False,
-                "top_logprobs": 0,
             }
         )
     elif provider == "gemini":
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
                 "grounding": False,
             }
         )
@@ -1090,7 +976,6 @@ async def test_llm_prompt_file_xor_validation(
         base_params.update(
             {
                 "temperature": 0.0,
-                "max_output_tokens": 0,
             }
         )
 

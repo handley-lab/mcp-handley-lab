@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     xai_api_key: str = Field(
         default="YOUR_API_KEY_HERE", description="API key for xAI Grok services."
     )
+    mistral_api_key: str = Field(
+        default="YOUR_API_KEY_HERE", description="API key for Mistral AI services."
+    )
     google_maps_api_key: str = Field(
         default="YOUR_API_KEY_HERE", description="API key for Google Maps services."
     )

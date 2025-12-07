@@ -1,9 +1,32 @@
+import asyncio
 import os
 import re
 import tempfile
 from pathlib import Path
 
+import nest_asyncio
 import pytest
+
+# Apply nest_asyncio to allow nested event loops.
+# Required for VCR 8.0.0's httpcore stubs compatibility with pytest-asyncio.
+nest_asyncio.apply()
+
+
+# Patch VCR 8.0.0's broken _run_async_function.
+# The original uses ensure_future() which returns a Future without awaiting it.
+# This patch uses asyncio.run() with nest_asyncio to properly execute the coroutine.
+def _fixed_run_async_function(sync_func, *args, **kwargs):
+    """Fixed version that properly runs async code from sync context."""
+    return asyncio.run(sync_func(*args, **kwargs))
+
+
+# Apply the patch to VCR's httpcore stubs
+try:
+    from vcr.stubs import httpcore_stubs
+
+    httpcore_stubs._run_async_function = _fixed_run_async_function
+except ImportError:
+    pass  # VCR not installed
 
 
 def scrub_oauth_tokens(response):

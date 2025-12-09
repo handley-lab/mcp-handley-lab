@@ -33,9 +33,6 @@ class TestProviderXORValidation:
                 model="gpt-4o-mini",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
-                enable_logprobs=False,
-                top_logprobs=0,
             )
 
     def test_claude_ask_xor_validation_prompt_raises(self, tmp_path):
@@ -58,7 +55,6 @@ class TestProviderXORValidation:
                 model="claude-3-5-haiku-20241022",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
             )
 
     def test_gemini_ask_xor_validation_prompt_raises(self):
@@ -78,7 +74,6 @@ class TestProviderXORValidation:
                 model="gemini-2.5-flash",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
                 grounding=False,
             )
 
@@ -99,7 +94,6 @@ class TestProviderXORValidation:
                 model="grok-3-mini",
                 files=[],
                 temperature=1.0,
-                max_output_tokens=0,
             )
 
 

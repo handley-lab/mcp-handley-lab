@@ -214,4 +214,220 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: '{"input": "My user ID is 789. Remember this important number.", "max_output_tokens":
+      16384, "model": "gpt-4o-mini", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '128'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3xUwXKbQAy9+ytULrnEGbAxmJx7yTdkOowMWmfrZUV3tZ54Ovn3DovBpk16Az3p
+        raQn6fcKINFt8gyJI9/XadvuC5UrKiu1qahM06La7nZFjuWmyvdZVSKWuVJZhRlmmBZV8jhQ8OEn
+        NTLRsPU02htHKNTWOGBZWeyydJuV+4h5QQl+iGm46w0JtWPQAZvT0XGwQ14KjafRrI3R9pg8w+8V
+        AEDS44XcEN/SmQz35JIVwEd0Jud4wGwwJhq0nV6pWxLUxi9RLy40otku7B2+1xykD1ILnyiCWbHd
+        5zMqzKZu0Cz5Om7JDKkde1nnvO601etNusnXabnO9temReLkGV5jPWNVsx6dP/5HDlXsRjk2GW3y
+        YrcvdsU2RRWZI4tceoo85D0e6QZ81fcINmyF7C2p+8QWtFNX6F3m6OiA1rLg1MnXHwvQ8LF3fPgE
+        iUTPkLw8dODZucsjHILACzRoHwS8sCPoyXm2aEBbxa6Lr4DRJ4LgycHLd/8ELwouHOANzwRoL/Ar
+        kI/ZADuwRC2g99oL2oYeQREZUI4IhAH96VsyJ/Vx/ZrzTBybWPtEIKPz4Bidkh4dGkNmORXiwjjB
+        vaOz5uDraUnqKPU8Nb3jrpe6weaN6hNdvsQcDSJptvcejtCzXWwIKcVO7pwG+UPXoZu454XxqEgu
+        tW4HYqVpsTye3Fk3VIueFk5hMKPwSZTmvkyhrieHEqI5fcqu1ijwNbNRvvn/brCi39jXa8Zncgf2
+        Wi7jOLc6dLdFHzv9xroZpQnCyQzc5iwR7uu76UtnYz+s9NP13wXb4LWxSas9Hsx0lULcorkAbZdH
+        oXr81353aeYyo4DtLTBdlPr3rdnsPwM+453V/4paWNDcwLycWzjszuJ4kWCLggP9x+rjDwAAAP//
+        AwC4O+/PJAYAAA==
+    headers:
+      CF-RAY:
+      - 9aa352f03b7f63f7-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:26:20 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2156'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2244'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999960'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_fb7e8d56f31847cebe1c855bf497c711
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"input": [{"role": "user", "content": "My user ID is 789. Remember this
+      important number."}, {"role": "assistant", "content": "I''m sorry, but I can''t
+      store personal information like user IDs. If you have any questions or need
+      assistance, feel free to ask!"}, {"role": "user", "content": "What was my user
+      ID that I told you?"}], "max_output_tokens": 16384, "model": "gpt-4o-mini",
+      "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '383'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFTBcts6DLznK1BeeokzUiTZss/vkk940+loIAmy2VCEhgTTejr59w4p
+        W7ba5GZhgTWwWPD3A4DSvTqAcuSnJmuHOmvLvNtmdU/VNsu2+6Kqum1ZtFjX+b7aD+3Q1vRc7qpd
+        i1WuHiMFtz+okysNW09zvHOEQn2DEct32yrPyl2ZJcwLSvCxpuNxMiTUz0Utdq9Hx8HGvgY0nuaw
+        NkbbozrA7wcAADXhmVys7+mNDE/k1APAe0om5zhiNhiTAtpe/6XpSVAbv0a9uNCJZruKj/ir4SBT
+        kEb4lRKYb4u6XFBhNk2HZs03ck8mtnacZFPyZtRWb56z53KT7TZ5fREtEasDfEvzzFMt+xj98fN1
+        VFmep3XUeVm2+2IodsO2qKsiMScWOU+UeMh7PNIN+Ez3BHZsheytqfvGVrRXVeiXLNUpAa1lwauS
+        376vQMPHyXH7AZKIDqD+5wAj2VhPPcgJBc4cHARPDl7+A+1hV+8foQ0CL9Ch/SrgaKSxJQdaYGAH
+        Q5DgCBwN5Mh29AQvQ2QBS9TDicwEP7WcwPNIctL2CBRNBj+CFzAkMBK8Wv75RS0dvl9+LU0rxyYJ
+        gd5rL2hlTo6JKUlN6NAYMmuLiAuznSdHb5qDb64X06S9LxaaHI+TNB12J2pe6fwp5khmve4zHKFn
+        uzoXGgZ2cpcUvRDGEd2Ve7kejwPJudF9JB40rS7Jk3vTHTWir9c3YDCzC5QXdnQ/ptA4kcO4EHWA
+        7Cm/RNO2L50N7Ea8fd+5LOXNul46fiPXstdynr3d6zDern5W+sS6m1cThNUC3EynhKfmzorZEpzi
+        fT9dvl2wHV6EVb322JrrExXSSS0DaLt6Ibbl47/xu2dnGTMtsL8VZqtR/354iuIj4CPeZfufUQsL
+        mhu43y0SxjtbvWQk2KNgpH9/eP8DAAD//wMATG2fwDEGAAA=
+    headers:
+      CF-RAY:
+      - 9aa3790fffa52561-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:52:22 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=iIRQpVAo_AXxZf7iGGfFZc3q7hRM1IYLnp92GtIdJUw-1765104742-1.0.1.1-lXeL0ZFIMmbKoZIwMrC7SUFnjUqN_XmZwbB1TFKc3SJiCbft2ZErsFIHVcUbtHDDO8jiobrSXWQKhqaI38CLrDHfkbKAFh4yW5lyMEa_0NE;
+        path=/; expires=Sun, 07-Dec-25 11:22:22 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2159'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2163'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999917'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_a097d2aeb1964198a0e8a64459d1d8f3
+    status:
+      code: 200
+      message: OK
 version: 1

@@ -1,0 +1,101 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 2+2? Answer with just
+      the number."}], "model": "llama-3.1-8b-instant", "max_tokens": 131072, "temperature":
+      1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '153'
+      Content-Type:
+      - application/json
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.groq.com/openai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/1VRQY6jMBC87zP6DJEBA4avrFbIxp3EwdjEdjaZifj7NNEEzZwsd1eVqrqeYDT0
+        MJ5lGufF5ogd8q5R+bFhOueIVa6EqvJji51UqFmFCBl4dcExfRMPoycqJuMdrcaAMiGJFm1TF2VV
+        8C6D2Wu0BLdWzjKvDkUuVG5cTNKljXP2ZsQI/d8nGKfxAT0jEsYoTwj9E4K39IKM0ewc7xK6zQOH
+        NQPrT0vwijTczdoMjsaZeB7ITCRbPcTkF1j/ZXB7a15veMMhmZl+7MC6smB1XYsMSGde0pD8hI70
+        +I/RG8xKwaqG883GO/tOKH9Pdw7vBBc1bZNP0u7wmu2THdq2QlAN67fdQVGOSfu7e8eLHzHhPFDK
+        E4YlmNchjsvAK9HqCrVSdKLHcAr+umV9lRzwOrBiUvcwTTzgQ0X9Ga8XxT7u94sgfMRXb3XXsLbs
+        ym7dRuE/VUPWMJAE5dE4S6dh/fMFDTw8jzsCAAA=
+    headers:
+      CF-RAY:
+      - 9aa53a80df9c9407-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:09 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=o909msZuorb0gWJ3xzjy6HzeEiUMBrDc_tYlN82mR.4-1765123148.9350069-1.0.1.1-9xdDLzLzS44Yeq91Kxyt8.PlrLKeQoYasamILqxQwcPzEAGQdyWp9CVFBYNrrnqh4pg.vmPqNlov2CW3lM2K5EfejG8Kl91d.abVNx8Dljy_2BBMDlvGqro.tXnch_xU;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:09
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - fra
+      x-ratelimit-limit-requests:
+      - '14400'
+      x-ratelimit-limit-tokens:
+      - '6000'
+      x-ratelimit-remaining-requests:
+      - '14399'
+      x-ratelimit-remaining-tokens:
+      - '5951'
+      x-ratelimit-reset-requests:
+      - 6s
+      x-ratelimit-reset-tokens:
+      - 489ms
+      x-request-id:
+      - req_01kbwrkk4rexbsdzsqjb0ywwj8
+    status:
+      code: 200
+      message: OK
+version: 1

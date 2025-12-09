@@ -20,6 +20,7 @@ from google.genai.types import (
     GoogleSearch,
     GoogleSearchRetrieval,
     Part,
+    ThinkingConfig,
     Tool,
     UploadFileConfig,
 )
@@ -192,7 +193,9 @@ def _gemini_generation_adapter(
     temperature = kwargs.get("temperature", 1.0)
     grounding = kwargs.get("grounding", False)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
+    include_thoughts = kwargs.get("include_thoughts", False)
+    thinking_level = kwargs.get("thinking_level")
+    thinking_budget = kwargs.get("thinking_budget")
 
     # Configure tools for grounding if requested
     tools = []
@@ -207,13 +210,22 @@ def _gemini_generation_adapter(
 
     # Get model configuration and token limits
     model_config = _get_model_config(model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
+
+    # Build thinking config if requested
+    thinking_config = None
+    if include_thoughts or thinking_level or thinking_budget is not None:
+        thinking_params: dict[str, Any] = {"include_thoughts": include_thoughts}
+        # Gemini 3 uses thinking_level (LOW/HIGH)
+        if thinking_level:
+            thinking_params["thinking_level"] = thinking_level.upper()
+        # Gemini 2.5 uses thinking_budget (token count, -1=dynamic, 0=disable)
+        if thinking_budget is not None:
+            thinking_params["thinking_budget"] = thinking_budget
+        thinking_config = ThinkingConfig(**thinking_params)
 
     # Prepare config
-    config_params = {
+    config_params: dict[str, Any] = {
         "temperature": temperature,
         "max_output_tokens": output_tokens,
     }
@@ -221,6 +233,8 @@ def _gemini_generation_adapter(
         config_params["system_instruction"] = system_instruction
     if tools:
         config_params["tools"] = tools
+    if thinking_config:
+        config_params["thinking_config"] = thinking_config
 
     config = GenerateContentConfig(**config_params)
 
@@ -259,7 +273,26 @@ def _gemini_generation_adapter(
         # Convert all API errors to ValueError for consistent error handling
         raise ValueError(f"Gemini API error: {str(e)}") from e
 
-    if not response.text:
+    # Extract text, separating thinking from answer
+    text_parts = []
+    thinking_parts = []
+    if response.candidates and response.candidates[0].content:
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, "thought") and part.thought:
+                thinking_parts.append(part.text)
+            elif hasattr(part, "text") and part.text:
+                text_parts.append(part.text)
+
+    # Format output with thinking if present
+    if thinking_parts and include_thoughts:
+        thinking_text = "\n".join(thinking_parts)
+        answer_text = "\n".join(text_parts) if text_parts else ""
+        text = f"<thinking>\n{thinking_text}\n</thinking>\n\n{answer_text}"
+    elif text_parts:
+        text = "\n".join(text_parts)
+    elif response.text:
+        text = response.text
+    else:
         raise RuntimeError("No response text generated")
 
     # Extract grounding metadata - SDK converts to snake_case, fail fast on API changes
@@ -306,10 +339,16 @@ def _gemini_generation_adapter(
             dur_part = server_timing.split("dur=")[1].split(";")[0].split(",")[0]
             generation_time_ms = int(float(dur_part))
 
+    # Extract thinking token count if available
+    thoughts_token_count = (
+        getattr(response.usage_metadata, "thoughts_token_count", 0) or 0
+    )
+
     return {
-        "text": response.text,
+        "text": text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
+        "thoughts_token_count": thoughts_token_count,
         "grounding_metadata": grounding_metadata,
         "finish_reason": finish_reason,
         "avg_logprobs": avg_logprobs,
@@ -329,17 +368,13 @@ def _gemini_image_analysis_adapter(
     """Gemini-specific image analysis function for the shared processor."""
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Load images
     image_list = _resolve_images(images)
 
     # Get model configuration
     model_config = _get_model_config(model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Prepare content with images
     content = [prompt] + image_list
@@ -387,8 +422,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Gemini's response. Use '-' for standard output.",
+        ...,
+        description="File path to save Gemini's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -396,11 +431,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'.",
+        description="The Gemini model to use for the request. Default is 'gemini-3-pro-preview' (recommended). Other options: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic.",
+        description="Controls randomness in the response. Higher values (e.g., 1.0) are more creative, lower values are more deterministic. Only change if user explicitly requests.",
     ),
     grounding: bool = Field(
         default=False,
@@ -409,10 +444,6 @@ def ask(
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to provide as context to the model.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -425,6 +456,18 @@ def ask(
     system_prompt_vars: dict[str, str] = Field(
         default_factory=dict,
         description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
+    ),
+    include_thoughts: bool = Field(
+        default=False,
+        description="Include model's thinking/reasoning in the output wrapped in <thinking> tags.",
+    ),
+    thinking_level: str | None = Field(
+        default=None,
+        description="Thinking effort level for Gemini 3 models: 'low' or 'high'. Higher levels provide deeper reasoning.",
+    ),
+    thinking_budget: int | None = Field(
+        default=None,
+        description="Token budget for thinking in Gemini 2.5 models. Use -1 for dynamic, 0 to disable. Range: 128-32768.",
     ),
 ) -> LLMResult:
     """Ask Gemini a question with optional persistent memory."""
@@ -441,10 +484,12 @@ def ask(
         temperature=temperature,
         grounding=grounding,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
+        include_thoughts=include_thoughts,
+        thinking_level=thinking_level,
+        thinking_budget=thinking_budget,
     )
 
 
@@ -457,8 +502,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external Gemini vision AI service.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save Gemini's visual analysis. Use '-' for standard output.",
+        ...,
+        description="File path to save Gemini's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -470,15 +515,11 @@ def analyze_image(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding).",
+        description="The Gemini vision model to use. Default is 'gemini-3-pro-preview' (recommended for best multimodal understanding). Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         default="session",
         description="Separate conversation thread with Gemini AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -496,7 +537,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

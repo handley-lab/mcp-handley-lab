@@ -146,15 +146,13 @@ def _claude_generation_adapter(
     # Extract Claude-specific parameters
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files")
-    max_output_tokens = kwargs.get("max_output_tokens")
+    enable_thinking = kwargs.get("enable_thinking", False)
+    thinking_budget = kwargs.get("thinking_budget", 10000)
 
     # Get model configuration
     resolved_model = _resolve_model_alias(model)
     model_config = _get_model_config(resolved_model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Resolve file contents
     file_content = _resolve_files(files)
@@ -172,13 +170,22 @@ def _claude_generation_adapter(
 
     # Resolve model alias and prepare request parameters
     resolved_model = _resolve_model_alias(model)
-    request_params = {
+    request_params: dict[str, Any] = {
         "model": resolved_model,
         "messages": claude_history,
         "max_tokens": output_tokens,
-        "temperature": temperature,
         "timeout": 599,
     }
+
+    # Add thinking configuration if enabled (temperature not allowed with thinking)
+    if enable_thinking:
+        request_params["thinking"] = {
+            "type": "enabled",
+            "budget_tokens": thinking_budget,
+        }
+        # Temperature must be 1.0 when thinking is enabled
+    else:
+        request_params["temperature"] = temperature
 
     # Add system instruction if provided
     if system_instruction:
@@ -191,12 +198,28 @@ def _claude_generation_adapter(
         # Convert all API errors to ValueError for consistent error handling
         raise ValueError(f"Claude API error: {str(e)}") from e
 
-    if not response.content or not response.content[0].text:
+    # Extract text and thinking from response content blocks
+    text_parts = []
+    thinking_parts = []
+    for block in response.content:
+        if block.type == "thinking":
+            thinking_parts.append(block.thinking)
+        elif block.type == "text":
+            text_parts.append(block.text)
+
+    # Format output with thinking if present
+    if thinking_parts and enable_thinking:
+        thinking_text = "\n".join(thinking_parts)
+        answer_text = "\n".join(text_parts) if text_parts else ""
+        text = f"<thinking>\n{thinking_text}\n</thinking>\n\n{answer_text}"
+    elif text_parts:
+        text = "\n".join(text_parts)
+    else:
         raise RuntimeError("No response text generated")
 
     # Extract additional Claude metadata
     return {
-        "text": response.content[0].text,
+        "text": text,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
         "finish_reason": response.stop_reason,
@@ -221,7 +244,6 @@ def _claude_image_analysis_adapter(
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
-    max_output_tokens = kwargs.get("max_output_tokens")
 
     # Enhance prompt based on focus
     if focus != "general":
@@ -230,10 +252,7 @@ def _claude_image_analysis_adapter(
     # Get model configuration
     resolved_model = _resolve_model_alias(model)
     model_config = _get_model_config(resolved_model)
-    max_output = model_config["output_tokens"]
-    output_tokens = (
-        min(max_output_tokens, max_output) if max_output_tokens > 0 else max_output
-    )
+    output_tokens = model_config["output_tokens"]
 
     # Resolve images to content blocks
     image_blocks = _resolve_images_to_content_blocks(images)
@@ -300,8 +319,8 @@ def ask(
         description="A dictionary of variables for template substitution in the prompt using ${var} syntax (e.g., {'topic': 'API design'}).",
     ),
     output_file: str = Field(
-        default="-",
-        description="Path to save Claude's response. Use '-' to stream the output directly to stdout.",
+        ...,
+        description="File path to save Claude's response.",
     ),
     agent_name: str = Field(
         default="session",
@@ -309,19 +328,15 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'.",
+        description="The Claude model to use (e.g., 'claude-3-5-sonnet-20240620'). Can also use aliases like 'sonnet', 'opus', or 'haiku'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic.",
+        description="Controls randomness (0.0 to 2.0). Higher values like 1.0 are more creative, while lower values are more deterministic. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
         description="A list of file paths to be read and included as context in the prompt.",
-    ),
-    max_output_tokens: int = Field(
-        default=0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -334,6 +349,14 @@ def ask(
     system_prompt_vars: dict[str, str] = Field(
         default_factory=dict,
         description="A dictionary of variables for template substitution in the system prompt using ${var} syntax.",
+    ),
+    enable_thinking: bool = Field(
+        default=False,
+        description="Enable extended thinking mode for deeper reasoning. Output includes <thinking> tags with model's reasoning process.",
+    ),
+    thinking_budget: int = Field(
+        default=10000,
+        description="Maximum tokens for thinking when enable_thinking is True. Minimum 1024. Higher values allow more thorough reasoning.",
     ),
 ) -> LLMResult:
     """Ask Claude a question with optional persistent memory."""
@@ -351,10 +374,11 @@ def ask(
         mcp_instance=mcp,
         temperature=temperature,
         files=files,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
+        enable_thinking=enable_thinking,
+        thinking_budget=thinking_budget,
     )
 
 
@@ -367,8 +391,8 @@ def analyze_image(
         description="The user's question about the images to delegate to external Claude vision AI service.",
     ),
     output_file: str = Field(
-        "-",
-        description="Path to save Claude's visual analysis. Use '-' to stream the output directly to stdout.",
+        ...,
+        description="File path to save Claude's visual analysis.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -380,15 +404,11 @@ def analyze_image(
     ),
     model: str = Field(
         DEFAULT_MODEL,
-        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs.",
+        description="The vision-capable Claude model to use for the analysis. Must be a model that supports image inputs. Only change if user explicitly requests a different model.",
     ),
     agent_name: str = Field(
         "session",
         description="Separate conversation thread with Claude AI service (distinct from your conversation with the user).",
-    ),
-    max_output_tokens: int = Field(
-        0,
-        description="Rarely needed - leave at 0 to use model's maximum output. Only set if you specifically need to limit response length.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -406,7 +426,6 @@ def analyze_image(
         mcp_instance=mcp,
         images=files,
         focus=focus,
-        max_output_tokens=max_output_tokens,
         system_prompt=system_prompt,
     )
 

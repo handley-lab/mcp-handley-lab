@@ -1,0 +1,105 @@
+interactions:
+- request:
+    body: '{"input": "What is 1+1? Answer with just the number.", "max_output_tokens":
+      128000, "model": "gpt-5-nano"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//dFTLbuMwDLznKwydm4Xs+BHnV4rCoGU61VaWBIkKGhT594XlxI9tcrM5
+        5IicofSzSxImO3ZKmENvG54fRdZiDW3fZy1mnJf1oSgKPGBZ5se0zts+hUOO0PG6LZB37G2kMO1f
+        FPSgMdrjFBcOgbBrYMTSqixSfuBVETFPQMGPNcIMViHhnawF8XV2Juixrx6UxykslZL6zE7Jzy5J
+        koRZuKIb6zu8oDIWHdslyS0mo3NmxHRQKgakfpzSdEggld+inlwQJI3exAf4bkwgG6gh84URTLMj
+        53yGyRjVCFBbwsF0qMbezpb2xV6DNvuMZ8WeH/e8uosWidkpeY/zTFMtfvjXbuRQFWJ04wh5UbZl
+        X4oOMcuKSBxJ6Gpx8gO80aNuM+TDMIC7jgd/xNjt7VkDgz+/7qAQRRU7gI6Luq4OZVvmpThUvzsY
+        0Hs44+r8F8ZHUBhNqBdV1o1taB+24DfN1TEBtDYEDyvfPzagMmfrTPsEiUSnhGVsjt7uX3Mic0bF
+        w8F76Qk0TcljYkxiFhwohWq7FuTCtMPW4UWa4JvHNWmi1vPaWGcGS40A8YnNF15fYg5HlaTR64zF
+        6/mOYN8bR5MNnQzDXarVDozV87Xx0CNdG9mN5L3EzRXy6C5SYEPyce16CGpSn3kyDtejEg4WHVCI
+        4fQPv0ejyvfueuMGWP5X7sa89XKyC7rWeEnX1TBz35Pan0aKyZ5Ahs3AYjYjY5vVCvA5aNc9uqAF
+        3MVlnfTQqsfbFOIqzwNIvX0a6rff8dV7M48ZTeyWQr4Z9f8Xp0qfAc945w1Yist8w02GQC1ozWcN
+        g9/aPSBBBwQj/213+wcAAP//AwBNJAR3KwYAAA==
+    headers:
+      CF-RAY:
+      - 9aa3506fcb94d874-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:24:38 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2183'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2186'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '180000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '180000000'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_86a7b5730f3d4d05a51a60e4b52bc462
+    status:
+      code: 200
+      message: OK
+version: 1

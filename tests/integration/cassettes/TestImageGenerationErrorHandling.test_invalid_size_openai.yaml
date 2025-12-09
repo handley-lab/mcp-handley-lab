@@ -3,38 +3,38 @@ interactions:
     body: '{"prompt": "Test", "model": "dall-e-3", "n": 1, "quality": "standard",
       "size": "100x100"}'
     headers:
-      accept:
+      Accept:
       - application/json
-      accept-encoding:
+      Accept-Encoding:
       - gzip, deflate
-      connection:
+      Connection:
       - keep-alive
-      content-length:
+      Content-Length:
       - '80'
-      content-type:
+      Content-Type:
       - application/json
-      host:
+      Host:
       - api.openai.com
-      user-agent:
-      - OpenAI/Python 1.99.1
-      x-stainless-arch:
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
       - x64
-      x-stainless-async:
+      X-Stainless-Async:
       - 'false'
-      x-stainless-lang:
+      X-Stainless-Lang:
       - python
-      x-stainless-os:
+      X-Stainless-OS:
       - Linux
-      x-stainless-package-version:
-      - 1.99.1
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
       - '0'
-      x-stainless-runtime:
-      - CPython
-      x-stainless-runtime-version:
-      - 3.13.5
     method: POST
     uri: https://api.openai.com/v1/images/generations
   response:
@@ -44,7 +44,7 @@ interactions:
         \   \"param\": \"size\",\n    \"code\": \"invalid_value\"\n  }\n}"
     headers:
       CF-RAY:
-      - 96f218ee5e438a91-LHR
+      - 9aa32d7d7ed9bd82-LHR
       Connection:
       - keep-alive
       Content-Length:
@@ -52,15 +52,17 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 14 Aug 2025 17:16:01 GMT
+      - Sun, 07 Dec 2025 10:00:45 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=zTno71vQP99xPciw_exxXmkHVIIpJPFSMvWYFsGv3UQ-1755191761-1.0.1.1-6JocN7XPsDzZeD6N2rxdsVPYXP8_r4_kmVjK8a9L3NgSq1rwKUaUeyv5486FYdBEWBiGLKco31FcsDKdmGkPXvWb7PHyKkO9zVAhif6QrbI;
-        path=/; expires=Thu, 14-Aug-25 17:46:01 GMT; domain=.api.openai.com; HttpOnly;
+      - __cf_bm=fIcj2Fdj_MAZ97u_ZBglX64C3EUr.MNgkYvvaEzli14-1765101645-1.0.1.1-51C8CXWQWuWUI8ogsN.T7qi2naB_VoyKh4ARhNantiBGxrRm9P98hRPouXuQ5KrwzINns_6IlMSRAgliUbMyaiPoueSH9wGChZ64KVxSGyg;
+        path=/; expires=Sun, 07-Dec-25 10:30:45 GMT; domain=.api.openai.com; HttpOnly;
         Secure; SameSite=None
-      - _cfuvid=ltcxFvnXOfTRANvKyDawEmYjifG29oCJjrGFmdjkztE-1755191761142-0.0.1.1-604800000;
+      - _cfuvid=Sna1rqClBJH3lTjrMFqn5pyuoqMzJBTpD7mcC3JNJdU-1765101645016-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
       X-Content-Type-Options:
       - nosniff
       alt-svc:
@@ -70,17 +72,15 @@ interactions:
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '13'
+      - '8'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
-      strict-transport-security:
-      - max-age=31536000; includeSubDomains; preload
       x-envoy-upstream-service-time:
-      - '17'
+      - '10'
       x-request-id:
-      - req_00c01837a7fb1bfe270ec2334fb4f7c1
+      - req_ebeda214fedb464da1bc131c264d7293
     status:
       code: 400
       message: Bad Request

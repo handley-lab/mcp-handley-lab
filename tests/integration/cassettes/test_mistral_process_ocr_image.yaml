@@ -1,0 +1,73 @@
+interactions:
+- request:
+    body: '{"model": "mistral-ocr-latest", "document": {"image_url": "data:image/png;base64,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",
+      "type": "image_url"}, "include_image_base64": false}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2248'
+      Host:
+      - api.mistral.ai
+      content-type:
+      - application/json
+      user-agent:
+      - mistral-client-python/1.9.11
+    method: POST
+    uri: https://api.mistral.ai/v1/ocr
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAAyyPQWuEMBSE/4rMOUK09dBce+mtsPRWFknNqz6avCcmsrsV/3tRepyBj29mw+xH
+        ynCfG1gC3eGsQfLLT9CbwOGNYtTq/fVSfVAuVdM+wYDTP3Q1CJxIMqtkuA1hZrjWWoOJeJwKXHOE
+        G4cywT1bu+9Xg6SBIhwS57L4WOuw1G1nu3rQNEcqrAKDoMOaSErvRbT4s3WyxmiwZj9Sz/Kth/S8
+        0M+LDpQzBbjmhPvMv9R/Pcoxtele7L7/AQAA//8DAOi0JaLvAAAA
+    headers:
+      CF-RAY:
+      - 9aa357634be14170-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:29:21 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=bN1tjKWxFWeMxFU4I4nL88INMd6gKXGyl40azdMN.XI-1765103361-1.0.1.1-SWweHeojl_xu748o3ifENlFB3fp1pgdBWcQwD4_xlvFWX2CIsunpYycqjpX.DVHohXrShFIaB_6AmvhjZcaBKQndZqyBOUUqpgzifC6wpj0;
+        path=/; expires=Sun, 07-Dec-25 10:59:21 GMT; domain=.mistral.ai; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=oe91QEv5o.pSHxRUXi4dfgceLALdfVuugVm_UwMdweo-1765103361882-0.0.1.1-604800000;
+        path=/; domain=.mistral.ai; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=15552000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      mistral-correlation-id:
+      - 019af85b-da29-7d73-ab55-98d169484797
+      x-envoy-upstream-service-time:
+      - '1306'
+      x-kong-proxy-latency:
+      - '9'
+      x-kong-request-id:
+      - 019af85b-da29-7d73-ab55-98d169484797
+      x-kong-upstream-latency:
+      - '1306'
+    status:
+      code: 200
+      message: OK
+version: 1

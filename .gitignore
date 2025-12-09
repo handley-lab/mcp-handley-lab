@@ -71,3 +71,6 @@ uv.lock
 claude-code/
 gemini-cli/
 tags
+
+# macOS system files
+.DS_Store

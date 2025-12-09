@@ -1,0 +1,102 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What number is mentioned in
+      the file?\n\n[File: tmp94e_arv4.txt]\nTest document content: The answer is 42"}],
+      "model": "llama-3.1-8b-instant", "max_tokens": 131072, "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '217'
+      Content-Type:
+      - application/json
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.groq.com/openai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/1VS266kIBB8368wPOsEBC/4Hfu22RjUnpGViwN4Ljvx37c9mXFznghFVVPV3Q+i
+        J9KRcVZptKspmlFKTvlQKKCiEByaopVSFVPdqKsoeVkJRnLihz8wpqfwMnqUQtLe4dMYQCXAoqyp
+        K1ZyJmROrJ/AIN0YZVXBL6xoh0K7mJRLh2b2eoRIul8Pot0EH6SjKIIY1Q1I9yDBGzyJilGfGu8S
+        uMPDzxkyt9kBQmYRQRswZdplCfGrNpDpmInyQvacGH9bgx/wJ7cZk5OrdjrOPVqOaL4jMfmV7L9z
+        sr1+vm+wQZ+0xRu9sEZyLhjDSFjHrqlPfgGH9Wr+H3qSKa04rxsqD7OvDp0CVn6HT5GsW8l4nZPk
+        kzInv6lO5EVlFS2rVlT7028/YJBl8u/ulS9+xgS2x5g3CGvQX/26rn09ypY2jYARO/nR34K/H2G/
+        diHAvadsGd7DsgwtLLN6+7QxOPhb4WogP8IxXtHyum1LTvcDCW84QHQGAStgnAmschPZf/wDrisc
+        /2ECAAA=
+    headers:
+      CF-RAY:
+      - 9aa53a820df179ba-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:09 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=noiQhN35YRj4YBW265zX0P1dMbhvPBgD42QXVsQf99c-1765123149.1310506-1.0.1.1-jAqX8GQuhlFQjkn5Uwv7w7Fwp2wF7Q0Ic8iexQuxTatH5jPKUWZwqiqp6x0eeaLOOnZ5ZMhC1SB56UXrCAMp2tI_KVAc4eEsafLKtyMEr2yHzNuS2Ze7Kg1KY6Pq_HsT;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:09
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - hel
+      x-ratelimit-limit-requests:
+      - '14400'
+      x-ratelimit-limit-tokens:
+      - '6000'
+      x-ratelimit-remaining-requests:
+      - '14398'
+      x-ratelimit-remaining-tokens:
+      - '5904'
+      x-ratelimit-reset-requests:
+      - 12s
+      x-ratelimit-reset-tokens:
+      - 960ms
+      x-request-id:
+      - req_01kbwrkkb8ekhavymsrnez5930
+    status:
+      code: 200
+      message: OK
+version: 1

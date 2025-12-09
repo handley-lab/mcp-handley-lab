@@ -1,0 +1,155 @@
+models:
+  # Production Models
+  llama-3.1-8b-instant:
+    description: "Meta's Llama 3.1 8B model optimized for speed with 131K context window."
+    capabilities: "Best for: Fast inference, general chat, summarization, cost-effective tasks."
+    tags: ["llama", "fast", "cost-effective", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 131072
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.05
+    output_per_1m: 0.08
+
+  llama-3.3-70b-versatile:
+    description: "Meta's Llama 3.3 70B versatile model with 131K context window, delivering quality comparable to larger models."
+    capabilities: "Best for: Complex reasoning, code generation, nuanced text understanding, multilingual tasks."
+    tags: ["llama", "reasoning", "powerful", "versatile", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 32768
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.59
+    output_per_1m: 0.79
+
+  meta-llama/llama-guard-4-12b:
+    description: "Meta's Llama Guard 4 12B model for content moderation and safety classification."
+    capabilities: "Best for: Content moderation, safety checks, policy compliance, guardrails."
+    tags: ["llama", "safety", "moderation", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 1024
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: false
+    supports_system_prompt: true
+    input_per_1m: 0.20
+    output_per_1m: 0.20
+
+  openai/gpt-oss-120b:
+    description: "OpenAI's open-weight GPT-OSS 120B flagship model with exceptional performance across diverse tasks."
+    capabilities: "Best for: Advanced reasoning, complex problem-solving, high-quality code generation, comprehensive analysis."
+    tags: ["gpt-oss", "powerful", "reasoning", "flagship", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 65536
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.15
+    output_per_1m: 0.60
+
+  openai/gpt-oss-20b:
+    description: "OpenAI's open-weight GPT-OSS 20B model delivering excellent speed-to-quality balance."
+    capabilities: "Best for: Balanced performance, general-purpose tasks, cost-effective high-quality output."
+    tags: ["gpt-oss", "balanced", "fast", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 65536
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.075
+    output_per_1m: 0.30
+
+  # Preview Models
+  meta-llama/llama-4-maverick-17b-128e-instruct:
+    description: "Meta's Llama 4 Maverick 17B with 128 experts - latest generation multimodal model."
+    capabilities: "Best for: Multimodal tasks, vision + text, complex reasoning, cutting-edge performance."
+    tags: ["llama4", "multimodal", "vision", "powerful", "preview"]
+    context_window: "131,072 tokens"
+    output_tokens: 8192
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.20
+    output_per_1m: 0.60
+
+  meta-llama/llama-4-scout-17b-16e-instruct:
+    description: "Meta's Llama 4 Scout 17B with 16 experts - efficient multimodal model."
+    capabilities: "Best for: Fast multimodal inference, vision tasks, cost-effective latest-gen model."
+    tags: ["llama4", "multimodal", "vision", "fast", "preview"]
+    context_window: "131,072 tokens"
+    output_tokens: 8192
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.11
+    output_per_1m: 0.34
+
+  moonshotai/kimi-k2-instruct-0905:
+    description: "Moonshot AI's Kimi K2 - 262K context, strong bilingual reasoning and production-grade code generation."
+    capabilities: "Best for: Long-context coding, cross-language debugging, deep reasoning, document-to-code workflows."
+    tags: ["kimi", "long-context", "reasoning", "powerful", "bilingual", "preview"]
+    context_window: "262,144 tokens"
+    output_tokens: 16384
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 1.00
+    output_per_1m: 3.00
+
+  qwen/qwen3-32b:
+    description: "Alibaba's Qwen3 32B model with strong multilingual and reasoning capabilities."
+    capabilities: "Best for: Multilingual tasks, reasoning, code generation, Chinese language support."
+    tags: ["qwen", "multilingual", "reasoning", "preview"]
+    context_window: "131,072 tokens"
+    output_tokens: 40960
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: true
+    supports_system_prompt: true
+    input_per_1m: 0.29
+    output_per_1m: 0.59
+
+display_categories:
+  - name: "Llama 4 Models (Preview)"
+    tags: ["llama4"]
+    description: "Meta's latest Llama 4 multimodal models with vision support."
+  - name: "Llama 3.x Models (Production)"
+    tags: ["llama"]
+    description: "Meta's production-ready Llama 3.x generation models."
+  - name: "OpenAI GPT-OSS Models"
+    tags: ["gpt-oss"]
+    description: "OpenAI's open-weight GPT models."
+  - name: "Moonshot Kimi Models"
+    tags: ["kimi"]
+    description: "Moonshot AI's long-context reasoning models."
+  - name: "Qwen Models"
+    tags: ["qwen"]
+    description: "Alibaba's Qwen multilingual models."
+
+default_model: "moonshotai/kimi-k2-instruct-0905"
+
+usage_notes:
+  - "Groq models are served via an OpenAI-compatible API."
+  - "All models support the 'temperature' parameter."
+  - "Pricing is per million tokens (input/output)."
+  - "Llama 4 models support vision/multimodal inputs."
+  - "Context windows: Most models support 131K tokens, Kimi supports 262K tokens."
+  - "Preview models may be deprecated with short notice."

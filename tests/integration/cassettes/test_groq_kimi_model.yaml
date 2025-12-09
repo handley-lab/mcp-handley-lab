@@ -1,0 +1,101 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer briefly."}], "model": "moonshotai/kimi-k2-instruct-0905", "max_tokens":
+      16384, "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '169'
+      Content-Type:
+      - application/json
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.groq.com/openai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/1WRzZKbMBCE73mMOcNGP0bYPEXuqRQlpMFoAQlLIuuNi3fP4LK9tSeK0fRX3T03
+        cBYaMIPOZl6mEpXoTMfrUtTsVB46bUtt9aE0qI9M9lop20MBoXtHkx/CNxNIitkFT08mos5IUF6r
+        igvJK17AHCxOtD6H4NMQsnY/Rze7chSl8ynH1eSSnVi164fgDCZoft/AeYtXaBgBMCV9RmhuEMNE
+        X9ApuZS1z7sm+Ix+9/NLR5dgK2AK5yWGjjh+naYCeuddGloyl8hmAymHBbY/BaxP7mXFFdvsZvpj
+        b1wJXp2EOBZAnHnJbQ4jeuJJ9TV6LDPOpGL8UO9Wnl28BOL79KlhNaOSq6qATIVMX/zja/LC1/JY
+        Cya2h922oxyjDR/+GS99poxzSynPGJfo7mX0SyslnYAdlFRU07U9x3DZs96PHvHSMj52H3H0Fe+H
+        Pqv3f9fa2BN+8oX2E97vSOGkqmV13PZR/EvnIWsYCUF5LM7aW9h+/AdrOdLWSwIAAA==
+    headers:
+      CF-RAY:
+      - 9aa53a8dbf72b78a-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:11 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=xB69CsGPmn9fodBREDaW776Lxd7k7Kx3UV8OEPGqgJU-1765123150.994935-1.0.1.1-apnf0_cDDxVNzYJlj1Erz8MtR8w0b6w1wPxNpidjANDsMu4XI4Wj3PUMQkH_psrQ402TP3CBur7aclQkG0ZLhjsH_qFbrs9g7sVbiUY54Oet3eAiQjc.Mae.FeVw_YQ8;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:11
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - fra
+      x-ratelimit-limit-requests:
+      - '1000'
+      x-ratelimit-limit-tokens:
+      - '10000'
+      x-ratelimit-remaining-requests:
+      - '999'
+      x-ratelimit-remaining-tokens:
+      - '9963'
+      x-ratelimit-reset-requests:
+      - 1m26.4s
+      x-ratelimit-reset-tokens:
+      - 222ms
+      x-request-id:
+      - req_01kbwrkn51fhft6jzx7cd9ey1p
+    status:
+      code: 200
+      message: OK
+version: 1

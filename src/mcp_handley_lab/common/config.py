@@ -22,8 +22,14 @@ class Settings(BaseSettings):
         default="YOUR_API_KEY_HERE",
         description="API key for Anthropic Claude services.",
     )
+    groq_api_key: str = Field(
+        default="YOUR_API_KEY_HERE", description="API key for Groq services."
+    )
     xai_api_key: str = Field(
         default="YOUR_API_KEY_HERE", description="API key for xAI Grok services."
+    )
+    mistral_api_key: str = Field(
+        default="YOUR_API_KEY_HERE", description="API key for Mistral AI services."
     )
     google_maps_api_key: str = Field(
         default="YOUR_API_KEY_HERE", description="API key for Google Maps services."

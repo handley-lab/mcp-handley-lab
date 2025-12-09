@@ -1,0 +1,88 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: GET
+    uri: https://api.groq.com/openai/v1/models
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/8WWX2vbMBTF3/cpip+jRf8syXkLG4w+jA32OEaQbS3VIkuuLSctpd99cpOlOKPI
+        CcR98YNzdfPz4dxz9ZS4/I8qfLJIjG59MktK6WWy+PmU6DK8rJSXwBhZyfnLE1BQya1qdLEBiOcA
+        YaGAtq1vuqI/fexWuVKZ8KJolPQqtEKcEsE5SkWo2llVrvLHUPc1/EEok4XXW5UsQh8VDjnr1YNf
+        7bQt3S6cJQhyPEvqLje6WMm6bpOF7YyZJZV8WBWuqo3y2tmVdxtlw48CZfh5dvgIVysr9Xxde+Da
+        NjDDPIKaUgoFxnSA+i20Wd5eAZalKWFH2r3O5CMBHOYgaN1Kr42KEBNCKQ/cU4hLMGfiyLu7022t
+        GmBks1ZgS4DvmtxFcLGgiEAhLhGYUnEObSg/slbO2fbO+eCGja402OCx5k0xJSnN0FDfQ7ubq9gC
+        MSLoK/rpJK472ZRhHhGOuZmyfvYon8IbCGI6Rm4AM5jGNOeQMpiRizXHDCNKL9f8JDjG5QbPUv4e
+        ubFu3P28r3KdLUGlrY7BsoxmHA5hv4Qu187j+52y8/5BAImbV5CMMcoGlEujc5nLm0/GdeUVcCnM
+        GDzy1kY+Sg28b4FsZK6LGDJkAnMx9O330GSEC3qhLhb23+pAQOQvkyZtJNdYRjgOz0mW8v7Em4vj
+        EtLrr4zBWI2ZqJTAySfqJKha+Vvt10M8shjiUHCRvUdk/bfT6iYc8YfVhgHGVTQdGMEIovPtm6Kz
+        wEP529gUtIXr/P5GzM66EFOB6eQX4tdAG5VkHE2eZLIXNjiAx+xLOOMYw2HW/vi8vF3GQyGE/LlL
+        YbR1BRtnXZZOYt1fzx/+An9Bd0brDQAA
+    headers:
+      CF-RAY:
+      - 9aa53a842c419858-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:09 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=fQR2ySll3d1TPkwwna5Wq4UfY0hijaONXHlFq3OPpJU-1765123149.4688962-1.0.1.1-bsreJnvO3uIGMCrg9tWzOkINaTTVPwU4ymIn3.ScKToyuBCHLO2n.GuSFIOWFvxoOVwhlBZ70a6PQ8_zLSZ.tnatIjnykx2CpbcJZgX7KFc0MI.Bv_WvGaiCBukiOXj2;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:09
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - dls
+      x-request-id:
+      - req_01kbwrkkq5f00s34ed2w6ma85n
+    status:
+      code: 200
+      message: OK
+version: 1

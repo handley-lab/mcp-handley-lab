@@ -1,0 +1,117 @@
+interactions:
+- request:
+    body: '{"input": [{"role": "user", "content": "What is 2+2?"}, {"role": "assistant",
+      "content": "2 + 2 equals 4."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "2 + 2 equals 4."}, {"role": "user", "content":
+      "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 equals 4."}, {"role":
+      "user", "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2
+      equals 4."}, {"role": "user", "content": "What is 2+2?"}, {"role": "assistant",
+      "content": "2 + 2 equals 4."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "2 + 2 equals 4."}, {"role": "user", "content":
+      "What is 2+2?"}, {"role": "assistant", "content": "2 + 2 equals 4."}, {"role":
+      "user", "content": "What is 2+2?"}, {"role": "assistant", "content": "2 + 2
+      equals 4."}, {"role": "user", "content": "What is 2+2?"}, {"role": "assistant",
+      "content": "2 + 2 equals 4."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "2 + 2 equals 4."}, {"role": "user", "content":
+      "What is 2+2?"}], "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature":
+      1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1018'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA3RUXW/iMBB851dYfr1SOV9A+CvVKVriDfXVsV17jYoq/vspDgnJXXmDnd1hdmbN
+        94YxriQ/Mu4xuEZUAotSdllxKkSVH4TY1UVV7cp9l9WHQ1YX0FYSDlUtAKHoih1/GSjs6Q+2NNFY
+        E3Cstx6BUDYwYNl+V2WiyPZVwgIBxTDMtLZ3GgnlOHSC9uPsbTSDrg50wLGstFbmzI/se8MYY9zB
+        Ff0wL/GC2jr0fMPYLTWj93bATNQ6FZSZfqWRSKB0WKOBfGxJWbOq9/DV2EguUkP2AxOY7YpDOaNk
+        rW5a0Gu+3krUg7Szo21pt70yapuLvNyK/TY73E1LxPzI3tI+41ZzHn04P4/jsCtFO8RR72UpxB7y
+        XJa1rPeJObHQ1WHiwRDgjA/gme8JbK0hNA9RS2Er2skV/KJ5OjWAMZZgcvLt9wrU9uy8Pf2AJKIj
+        4zn7xXKGnxF0YOUrn3tu90/zGPdWJykQggoEhsbmoTE1cQcetEa9Dol8HA/KebwoG0Mz3WyTnJ9D
+        dN72jpoW2ndsPvD6FPM4eKasWXZ4hGDN6mCx66ynRdOQRux78BP3fL8BOqRro+RA3Clc3XJAf1Et
+        NqSm++8g6jEHHsh6XK5J2Dv0QDGVs1dxrya/78o663t4fF/knPpGX++KL+hPNii6jtclVewf7250
+        +t2qdowmkuUz8Iidk3XN4hjEXHRLjT6aFu7GcqkCnPT0JxHTUc8LKLN6o3lZvvwPLF7+vGdKUD4m
+        xWrXf99+/VP9J9o5/WfMZAn0QnBVzB7GsI67RwIJBAP/bXP7CwAA//8DANdVt6K0BQAA
+    headers:
+      CF-RAY:
+      - 9aa352e11f57df16-LHR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 10:26:18 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - handley-8bq6ws
+      openai-processing-ms:
+      - '2189'
+      openai-project:
+      - proj_kbC53WfwHWl267JuvHfOY149
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '2193'
+      x-ratelimit-limit-requests:
+      - '30000'
+      x-ratelimit-limit-tokens:
+      - '150000000'
+      x-ratelimit-remaining-requests:
+      - '29999'
+      x-ratelimit-remaining-tokens:
+      - '149999737'
+      x-ratelimit-reset-requests:
+      - 2ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_6c1405efb0534b928160b713c12e5b5c
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,339 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Remember this number: 777. Just
+      confirm you remember it."}, {"role": "assistant", "content": "Understood! I
+      remember the number: **777**.\n\nLet me know if you''d like to use it for anything
+      or if you need further assistance. \ud83d\ude0a"}, {"role": "user", "content":
+      "What number did I ask you to remember?"}, {"role": "assistant", "content":
+      "You asked me to remember the number **777**.\n\nGot it! Let me know if you
+      need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}], "model": "llama-3.1-8b-instant",
+      "max_tokens": 131072, "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5184'
+      Content-Type:
+      - application/json
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.groq.com/openai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/1VSTY/bIBC991cgLpUi2wJ/Yecf7L2XqltZGI9jagMO4M2uVvnvHUdJuj3BDPMe
+        783MJ9UDPVI1yajMuqRyZLnse5FyIeu0ZKxMpWA8hbHMlWKyahSjCXX9H1DxDsyUQyhE7Sw+KQ8y
+        ApJyUVc8L3jFEmrcAAuWL4s0Mi0ynjZ9qm2I0sYdMzmtINDjr0+q7QDv9LiDIAR5Anr8pN4teFIZ
+        gn5inI1gdw0/Jh2IxshLtYsgGHpYUVDUb5CRnxAS8oIpA6YHTyJqJh9uIxdkIgZIdF8fgdjtdj0c
+        hBCHQ/ZqX+3LuCO+D2TR8w2wBSA6ktF5EpyBOGl7IhhYgIGMm0ceTx56FSQEG7T/NVt3yeg1oYs7
+        rd71aNpuy5LQUVsdpg67F7CPRxqiW+n1d0K3RxPOG2zQRW0wYhkv2kaIuikTijxmjV10M1jk47xq
+        /yUf5TwXomyF2Dv3GNcTUrL/03cQa5oyr+qiSGh0US5fvmjbZ+5enDOeM1bz611y16OXeXAX+7AY
+        PkIE06HTE/jV69v0xrVjOYO8KfKG41zfu5N3593vbTM9nDvG5/7iZ1N4mKdWKDPX08RZfq6wPsBt
+        2eqybPK6qsR1T/k33CdUBh4p0NAARtqBXr/9BT8XLTzwAgAA
+    headers:
+      CF-RAY:
+      - 9aa53a86fde863ea-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:10 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=fLI1dNXViUSLBtezY.7jYZhb5lyGb3b4c8w2jnSOdJI-1765123149.9167812-1.0.1.1-B5Ca1fCBihIdT9bOdVuHyxeYtS643nBaZS0NePL8VdqZ5PMPRy87oR6Y0bkN4yK7me0tZLdqmILlpbtpBZcFM01HBmi93vl.f_B_atsOz3yPu.KYQXLZX6Hw4n3TM7IY;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:10
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - hel
+      x-ratelimit-limit-requests:
+      - '14400'
+      x-ratelimit-limit-tokens:
+      - '6000'
+      x-ratelimit-remaining-requests:
+      - '14397'
+      x-ratelimit-remaining-tokens:
+      - '4811'
+      x-ratelimit-reset-requests:
+      - 18s
+      x-ratelimit-reset-tokens:
+      - 11.889s
+      x-request-id:
+      - req_01kbwrkm3rekh97cmk6hh102q5
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Remember this number: 777. Just
+      confirm you remember it."}, {"role": "assistant", "content": "Understood! I
+      remember the number: **777**.\n\nLet me know if you''d like to use it for anything
+      or if you need further assistance. \ud83d\ude0a"}, {"role": "user", "content":
+      "What number did I ask you to remember?"}, {"role": "assistant", "content":
+      "You asked me to remember the number **777**.\n\nGot it! Let me know if you
+      need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "Understood! I remember the number: **777**.\n\nLet me know if you''d like to
+      use it for anything or if you need further assistance. \ud83d\ude0a"}, {"role":
+      "user", "content": "What number did I ask you to remember?"}, {"role": "assistant",
+      "content": "You asked me to remember the number **777**.\n\nGot it! Let me know
+      if you need it for anything. \ud83d\ude0a"}, {"role": "user", "content": "Remember
+      this number: 777. Just confirm you remember it."}, {"role": "assistant", "content":
+      "This interaction is repetitive. Yes, I remember that you want me to remember
+      the number **777**.\n\nIf you''d like to use it for something or need further
+      assistance, let me know."}, {"role": "user", "content": "What number did I ask
+      you to remember?"}], "model": "llama-3.1-8b-instant", "max_tokens": 131072,
+      "temperature": 1.0}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5463'
+      Content-Type:
+      - application/json
+      Host:
+      - api.groq.com
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
+      - x64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - Linux
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
+      x-stainless-read-timeout:
+      - '600'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.groq.com/openai/v1/chat/completions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/1VS266kIBB8368w/TjRiYgj6p9sNhsj2o4cBRzAPbOZ+O+nnYzn8gQ0VUVVNw9Q
+        PdTQjW3o9DInXT5wFAVLOuRlkmM1JKUUIqk4S4tukLLCDmKw8g278CKeO0tUDMoauuoctgFJlIni
+        wjLOLmkM2vY4E3yeW90m/MxINVHGh9aEnTNa1aGH+s8DlOnxDvVOQu/bK0L9AGdnWqH1Xn1yrAlo
+        dg+/7Rq1fsI+0hgFGznUqCW6KIwYmfW5PZ2EEKfTGbYYZntdnJX0nFnnOYZBGeXHhnx7SlCDD3aB
+        7W8M6/H8bcUVm6A0ndJzWhVFlhZZGQPp6CU0wU5oSI9lTHwVD3hZiqzIL9nu+WjUN8rP8kFieZFW
+        QrAYgg3t/A2fVZ+1F5ilnPMiy/j28txICjP19t0cGf1/H1A3FPWKbnHq2bhhaXJeip5jLyW19N5c
+        nb3tgZ+fwuGtSdkk392kxwLvKCvP3hajUXAaEYniPucsJaN5fhHptpfcPxolWUNHEpSoR92aHrZf
+        H6FkE/trAgAA
+    headers:
+      CF-RAY:
+      - 9aa53a89cf9b472f-LHR
+      Cache-Control:
+      - private, max-age=0, no-store, no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 07 Dec 2025 15:59:10 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=2592000
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      set-cookie:
+      - __cf_bm=5Fj5KayQ9xZXtIHNiZ1pVJRrsKSjK.6t7pAxUYVjCuY-1765123150.3627346-1.0.1.1-wC8TVXeriHN.w9wlX22uip2k9tr6AVbJ75uwdw0gEQcja4lQZafaDnXx7EHJe_RWtHtCjLG9ZK1AXWCRZ90lPJzD8gWjRofnkQ8Psl23lAXz5GCN_dZ_eerS.OANmtt5;
+        HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Sun, 07 Dec 2025 16:29:10
+        GMT
+      vary:
+      - Origin
+      via:
+      - 1.1 google
+      x-groq-region:
+      - fra
+      x-ratelimit-limit-requests:
+      - '14400'
+      x-ratelimit-limit-tokens:
+      - '6000'
+      x-ratelimit-remaining-requests:
+      - '14396'
+      x-ratelimit-remaining-tokens:
+      - '3596'
+      x-ratelimit-reset-requests:
+      - 24s
+      x-ratelimit-reset-tokens:
+      - 24.04s
+      x-request-id:
+      - req_01kbwrkmh6exeb9s1jpnme73ex
+    status:
+      code: 200
+      message: OK
+version: 1

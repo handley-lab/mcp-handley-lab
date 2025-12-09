@@ -39,6 +39,7 @@ pip install -e .
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export ANTHROPIC_API_KEY="sk-ant-..."
+export GROQ_API_KEY="gsk_..."
 export GROK_API_KEY="grok-..."
 export GOOGLE_MAPS_API_KEY="AIza..."
 # Note: Google Calendar requires OAuth setup (see tool description below)
@@ -54,6 +55,7 @@ claude mcp add word --scope user mcp-word
 
 # Add additional tools as needed:
 # claude mcp add claude --scope user mcp-claude
+# claude mcp add groq --scope user mcp-groq
 # claude mcp add grok --scope user mcp-grok
 # claude mcp add py2nb --scope user mcp-py2nb
 # claude mcp add code2prompt --scope user mcp-code2prompt
@@ -118,11 +120,12 @@ claude mcp add word --scope user mcp-word
 
 ## Available Tools
 
-### 🤖 **AI Integration** (`gemini`, `openai`, `claude`, `grok`)
+### 🤖 **AI Integration** (`gemini`, `openai`, `claude`, `groq`, `grok`)
 Connect with major AI providers
   - Persistent conversations with memory
   - Image analysis and generation
-  - Claude, Gemini, OpenAI, and Grok support
+  - Claude, Gemini, OpenAI, Groq, and Grok support
+  - Groq uses LPUs to deliver fast inference for Moonshot Kimi-k2 model (as well as a selection of other open source models)
   - _Claude example_: `> ask gemini to review the changes you just made`
 
 ### 📚 **ArXiv** (`arxiv`)

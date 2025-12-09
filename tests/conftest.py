@@ -1,9 +1,32 @@
+import asyncio
 import os
 import re
 import tempfile
 from pathlib import Path
 
+import nest_asyncio
 import pytest
+
+# Apply nest_asyncio to allow nested event loops.
+# Required for VCR 8.0.0's httpcore stubs compatibility with pytest-asyncio.
+nest_asyncio.apply()
+
+
+# Patch VCR 8.0.0's broken _run_async_function.
+# The original uses ensure_future() which returns a Future without awaiting it.
+# This patch uses asyncio.run() with nest_asyncio to properly execute the coroutine.
+def _fixed_run_async_function(sync_func, *args, **kwargs):
+    """Fixed version that properly runs async code from sync context."""
+    return asyncio.run(sync_func(*args, **kwargs))
+
+
+# Apply the patch to VCR's httpcore stubs
+try:
+    from vcr.stubs import httpcore_stubs
+
+    httpcore_stubs._run_async_function = _fixed_run_async_function
+except ImportError:
+    pass  # VCR not installed
 
 
 def scrub_oauth_tokens(response):
@@ -112,6 +135,18 @@ def skip_if_no_api_key():
             pytest.skip(f"Skipping test - {env_var} not set")
 
     return _skip_if_no_key
+
+
+@pytest.fixture(autouse=True)
+def set_dummy_api_keys_for_vcr(monkeypatch):
+    """Set dummy API keys for VCR-backed tests.
+
+    VCR intercepts HTTP requests, but API key validation happens before the request.
+    Setting dummy keys allows the code to proceed to the HTTP call where VCR intercepts.
+    """
+    # Only set if not already set (don't override real keys during recording)
+    if not os.getenv("GROQ_API_KEY"):
+        monkeypatch.setenv("GROQ_API_KEY", "gsk_test_vcr_dummy_key")
 
 
 @pytest.fixture(scope="session")

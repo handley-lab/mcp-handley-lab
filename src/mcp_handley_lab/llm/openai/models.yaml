@@ -6,9 +6,10 @@ models:
     tags: ["flagship", "latest", "general", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
+    supports_reasoning: true  # Supports none, low, medium, high (defaults to none)
 
     # Pricing
     input_per_1m: 1.25
@@ -23,9 +24,10 @@ models:
     tags: ["flagship", "general", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 1.25
@@ -40,9 +42,10 @@ models:
     tags: ["flagship", "latest", "general", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 0.25
@@ -57,9 +60,10 @@ models:
     tags: ["flagship", "latest", "general", "fast", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 0.05
@@ -74,9 +78,10 @@ models:
     tags: ["flagship", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
+    supports_reasoning: true  # Defaults to and only supports high
 
     # Pricing
     input_per_1m: 15.00
@@ -90,8 +95,9 @@ models:
     tags: ["reasoning", "latest"]
     context_window: "128,000 tokens"
     output_tokens: 100000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 2.00
@@ -106,8 +112,9 @@ models:
     tags: ["reasoning", "premium"]
     context_window: "128,000 tokens"
     output_tokens: 100000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to and only supports high
 
     # Pricing
     input_per_1m: 20.00
@@ -121,8 +128,9 @@ models:
     tags: ["reasoning", "cost-effective"]
     context_window: "128,000 tokens"
     output_tokens: 100000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 1.10
@@ -137,8 +145,9 @@ models:
     tags: ["reasoning", "cost-effective"]
     context_window: "128,000 tokens"
     output_tokens: 100000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to medium, supports minimal, low, medium, high
 
     # Pricing
     input_per_1m: 1.10
@@ -153,8 +162,9 @@ models:
     tags: ["reasoning", "legacy"]
     context_window: "128,000 tokens"
     output_tokens: 100000
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to medium, doesn't support none
 
     # Pricing
     input_per_1m: 15.00
@@ -169,8 +179,9 @@ models:
     tags: ["reasoning", "cost-effective", "legacy"]
     context_window: "128,000 tokens"
     output_tokens: 65536
-    param: "max_completion_tokens"
+    param: "max_output_tokens"
     supports_temperature: false
+    supports_reasoning: true  # Defaults to medium, doesn't support none
 
     # Pricing
     input_per_1m: 1.10
@@ -185,7 +196,7 @@ models:
     tags: ["latest", "general", "premium"]
     context_window: "128,000 tokens"
     output_tokens: 16384
-    param: "max_tokens"
+    param: "max_output_tokens"
     supports_temperature: true
 
     # Pricing
@@ -201,7 +212,7 @@ models:
     tags: ["latest", "general", "cost-effective"]
     context_window: "128,000 tokens"
     output_tokens: 16384
-    param: "max_tokens"
+    param: "max_output_tokens"
     supports_temperature: true
 
     # Pricing
@@ -217,7 +228,7 @@ models:
     tags: ["latest", "general", "fast", "cost-effective"]
     context_window: "128,000 tokens"
     output_tokens: 16384
-    param: "max_tokens"
+    param: "max_output_tokens"
     supports_temperature: true
 
     # Pricing
@@ -233,7 +244,7 @@ models:
     tags: ["multimodal", "vision", "general"]
     context_window: "128,000 tokens"
     output_tokens: 16384
-    param: "max_tokens"
+    param: "max_output_tokens"
     supports_temperature: true
 
     # Pricing
@@ -249,7 +260,7 @@ models:
     tags: ["multimodal", "vision", "cost-effective"]
     context_window: "128,000 tokens"
     output_tokens: 16384
-    param: "max_tokens"
+    param: "max_output_tokens"
     supports_temperature: true
 
     # Pricing

@@ -1,76 +1,84 @@
 interactions:
 - request:
-    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
-      \ud83e\udd16. Use emojis: \u2211, \u220f, \u2206, \u2207, \u2208, \u2209, \u2200,
-      \u2203"}, {"role": "user", "content": "What is 3+7?"}, {"role": "assistant",
-      "content": "3 + 7 = 10 \ud83d\ude0a."}, {"role": "user", "content": "What is
-      3+7?"}, {"role": "assistant", "content": "3 + 7 = 10. \u2728"}, {"role": "user",
-      "content": "What is 3+7?"}, {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude0a"},
+    body: '{"input": [{"role": "user", "content": "What is 3+7?"}, {"role": "assistant",
+      "content": "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role": "user", "content": "What
+      is 3+7?"}, {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude04"},
       {"role": "user", "content": "What is 3+7?"}, {"role": "assistant", "content":
-      "3 + 7 = 10. \u2211\ud83d\ude03"}, {"role": "user", "content": "What is 3+7?"},
-      {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83c\udf89"}, {"role":
+      "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role": "user", "content": "What is 3+7?"},
+      {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role":
       "user", "content": "What is 3+7?"}, {"role": "assistant", "content": "3 + 7
-      = 10. \u2211\u2728"}, {"role": "user", "content": "What is 3+7?"}, {"role":
-      "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude0a"}, {"role": "user",
-      "content": "What is 3+7?"}], "model": "gpt-4o-mini", "max_tokens": 16384, "temperature":
+      = 10. \u2211\ud83d\ude04"}, {"role": "user", "content": "What is 3+7?"}, {"role":
+      "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role": "user",
+      "content": "What is 3+7?"}, {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude04"},
+      {"role": "user", "content": "What is 3+7?"}, {"role": "assistant", "content":
+      "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role": "user", "content": "What is 3+7?"},
+      {"role": "assistant", "content": "3 + 7 = 10. \u2211\ud83d\ude04"}, {"role":
+      "user", "content": "What is 3+7?"}], "instructions": "You are a helpful assistant
+      \ud83e\udd16. Use emojis: \u2211, \u220f, \u2206, \u2207, \u2208, \u2209, \u2200,
+      \u2203", "max_output_tokens": 16384, "model": "gpt-4o-mini", "temperature":
       1.0}'
     headers:
-      accept:
+      Accept:
       - application/json
-      accept-encoding:
+      Accept-Encoding:
       - gzip, deflate
-      connection:
+      Connection:
       - keep-alive
-      content-length:
-      - '879'
-      content-type:
+      Content-Length:
+      - '1066'
+      Content-Type:
       - application/json
-      host:
+      Host:
       - api.openai.com
-      user-agent:
-      - OpenAI/Python 1.99.1
-      x-stainless-arch:
+      User-Agent:
+      - OpenAI/Python 2.8.1
+      X-Stainless-Arch:
       - x64
-      x-stainless-async:
+      X-Stainless-Async:
       - 'false'
-      x-stainless-lang:
+      X-Stainless-Lang:
       - python
-      x-stainless-os:
+      X-Stainless-OS:
       - Linux
-      x-stainless-package-version:
-      - 1.99.1
+      X-Stainless-Package-Version:
+      - 2.8.1
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.13.7
       x-stainless-read-timeout:
       - '600'
       x-stainless-retry-count:
       - '0'
-      x-stainless-runtime:
-      - CPython
-      x-stainless-runtime-version:
-      - 3.13.5
     method: POST
-    uri: https://api.openai.com/v1/chat/completions
+    uri: https://api.openai.com/v1/responses
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-C4RvqqTtkhJBfNwdwTCA6eFO1jfa6\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1755176718,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n
-        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
-        \"assistant\",\n        \"content\": \"3 + 7 = 10. \u2211\U0001F604\",\n        \"refusal\":
-        null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n
-        \     \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
-        233,\n    \"completion_tokens\": 12,\n    \"total_tokens\": 245,\n    \"prompt_tokens_details\":
-        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
-        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
-        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
-        \"default\",\n  \"system_fingerprint\": \"fp_34a54ae93c\"\n}\n"
+      string: !!binary |
+        H4sIAAAAAAAAAwAAAP//fFTbbtswDH3PVwh6XVPIt8QOsM/Yw9AMhmzRqVpZEiQqaFDk3wfLl9hY
+        uycmPOQxyUPqc0cIlYKeCHXgbc3SrEyOeZ4XhzTp0pSxQ5UVxTGt0qbLy6TKeJanqSgOVVk1XZcc
+        6dNAYZo3aHGmMdrD6G8dcARR8wFLjociYVnOkoh55Bj8kNOa3ipAEGNSw9v3izNBD3V1XHkY3VIp
+        qS/0RD53hBBCLb+BG/IFXEEZC47uCLnHYHDODJgOSkWH1PNXagHIpfJb1KMLLUqjY0W/TSDcAeHk
+        FZTtgiLce+mRayTnIMoMzkGI5PBMfnkg0Js36U/kHNI0SZ6iZd1kD5M9TracbDVZNtlsbL7nH7UJ
+        aAPWaN4hlpMcsjJfUDRG1S1X2w56I0ANpV8s7nOz76WW+5Sl+Z4d90k5yRSJ6Ym8xAmOc1w2oPeX
+        /yxAW+VxASqWdFB0adOmkBdZE5kjC94sRB7wnl/gAXyndARboxH0o6h1YRvaeSrwgUt2DOBaG+Sz
+        di9/NqAyF+tM8wUSiU6EZuQHOZKfJGHPk4JRYXEOAlhOl5T79Gthoc6oWNmyG2PwEBiDqOWOKwVq
+        qxm6MG60dXCVJvh6Ppo6CrFoap3pLdYtb1+hfofbt5iDYYTS6HWEA+6N3lwMdJ1xuAoaxAl9z93M
+        vRyQ5x3grZZiIO4kbI7Jg7vKFmqU8wF2PKhRFurROFi3idBbcBxDdCfPbPLG8U+Vdcb1/PF/JXuM
+        G+c6VXwF1xgv8TYum5Chfxz+OOlXI9tRmoCGLsBjCygaW692gy1Ou67RBd3yabBUSM8bNb9SIe74
+        0oDUm5NNq+LpX2D19Cx9RgXFI5Ntev3nKci+Ar7iXeT/jhoNcvUAM1YuQwx+q3cPyAVHPvDfd/e/
+        AAAA//8DAAS8UHI2BgAA
     headers:
       CF-RAY:
-      - 96f0a9b7dc837058-LHR
+      - 9aa35860cbd6414c-LHR
       Connection:
       - keep-alive
+      Content-Encoding:
+      - gzip
       Content-Type:
       - application/json
       Date:
-      - Thu, 14 Aug 2025 13:05:18 GMT
+      - Sun, 07 Dec 2025 10:30:03 GMT
       Server:
       - cloudflare
       Strict-Transport-Security:
@@ -79,24 +87,20 @@ interactions:
       - chunked
       X-Content-Type-Options:
       - nosniff
-      access-control-expose-headers:
-      - X-Request-ID
       alt-svc:
       - h3=":443"; ma=86400
       cf-cache-status:
       - DYNAMIC
-      content-length:
-      - '828'
       openai-organization:
       - handley-8bq6ws
       openai-processing-ms:
-      - '580'
+      - '2202'
       openai-project:
       - proj_kbC53WfwHWl267JuvHfOY149
       openai-version:
       - '2020-10-01'
       x-envoy-upstream-service-time:
-      - '607'
+      - '2206'
       x-ratelimit-limit-requests:
       - '30000'
       x-ratelimit-limit-tokens:
@@ -104,13 +108,13 @@ interactions:
       x-ratelimit-remaining-requests:
       - '29999'
       x-ratelimit-remaining-tokens:
-      - '149999905'
+      - '149999685'
       x-ratelimit-reset-requests:
       - 2ms
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_57081fa89b8e4567b2bdb48acc183c37
+      - req_c8c4cfab66b14924bcc3326dcb312882
     status:
       code: 200
       message: OK

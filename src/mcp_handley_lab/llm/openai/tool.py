@@ -78,6 +78,7 @@ def _openai_generation_adapter(
     files = kwargs.get("files")
     reasoning_effort = kwargs.get("reasoning_effort", "none")
     reasoning_summary = kwargs.get("reasoning_summary", "auto")
+    verbosity = kwargs.get("verbosity")
 
     # Validate temperature parameter
     if not model_config.get("supports_temperature", True) and temperature != 1.0:
@@ -134,6 +135,12 @@ def _openai_generation_adapter(
                 "effort": reasoning_effort,
                 "summary": reasoning_summary,
             }
+
+    # Add verbosity configuration for models that support it (GPT-5.1+)
+    if model_config.get("supports_verbosity", False) and verbosity:
+        verbosity = verbosity.lower()
+        if verbosity in ("low", "medium", "high"):
+            request_params["text"] = {"verbosity": verbosity}
 
     # Make Responses API call
     response = _get_client().responses.create(**request_params)
@@ -354,11 +361,11 @@ def ask(
     ),
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.1' (recommended). Other options: 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'. Only change if user explicitly requests a different model.",
+        description="The OpenAI GPT model to use for the request. Default is 'gpt-5.2' (recommended). Other options: 'gpt-5.2-pro', 'gpt-5.1', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'o3', 'o4-mini'. Only change if user explicitly requests a different model.",
     ),
     temperature: float = Field(
         default=1.0,
-        description="Controls response randomness (0.0-2.0). Higher is more creative. Only change if user explicitly requests.",
+        description="Controls response randomness (0.0-2.0). Higher is more creative. Only supported when reasoning_effort='none'. Only change if user explicitly requests.",
     ),
     files: list[str] = Field(
         default_factory=list,
@@ -366,11 +373,15 @@ def ask(
     ),
     reasoning_effort: str = Field(
         default="none",
-        description="Controls model reasoning effort. Options: 'none' (default for gpt-5.1), 'minimal', 'low', 'medium' (default for older models), 'high', 'xhigh'. Only supported by reasoning models (gpt-5, o-series).",
+        description="Controls model reasoning effort. Options: 'none' (default for gpt-5.2), 'low', 'medium', 'high', 'xhigh' (new in GPT-5.2). Only supported by reasoning models (gpt-5.x, o-series).",
     ),
     reasoning_summary: str = Field(
         default="auto",
         description="Controls reasoning summary format. Options: 'auto', 'concise', 'detailed'. Only used when reasoning_effort is not 'none'.",
+    ),
+    verbosity: str | None = Field(
+        default=None,
+        description="Controls output verbosity/length. Options: 'low' (concise), 'medium' (default), 'high' (thorough). Only supported by GPT-5.1+ models.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -400,6 +411,7 @@ def ask(
         files=files,
         reasoning_effort=reasoning_effort,
         reasoning_summary=reasoning_summary,
+        verbosity=verbosity,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,

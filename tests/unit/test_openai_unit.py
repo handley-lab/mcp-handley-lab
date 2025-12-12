@@ -18,6 +18,8 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
+            "gpt-5.2",
+            "gpt-5.2-pro",
             "gpt-5.1",
             "gpt-5",
             "gpt-5-mini",
@@ -42,6 +44,8 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
         # GPT-5 series
+        assert MODEL_CONFIGS["gpt-5.2"]["output_tokens"] == 128000
+        assert MODEL_CONFIGS["gpt-5.2-pro"]["output_tokens"] == 128000
         assert MODEL_CONFIGS["gpt-5"]["output_tokens"] == 128000
         assert MODEL_CONFIGS["gpt-5-mini"]["output_tokens"] == 128000
         assert MODEL_CONFIGS["gpt-5-nano"]["output_tokens"] == 128000

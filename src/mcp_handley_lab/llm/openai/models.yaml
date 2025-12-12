@@ -1,15 +1,53 @@
 models:
+  gpt-5.2:
+    # Model metadata
+    description: "The best model for coding and agentic tasks across industries"
+    capabilities: "🌟 Best for: Complex reasoning, broad world knowledge, code-heavy tasks, multi-step agentic workflows"
+    tags: ["flagship", "latest", "general", "premium", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false  # Only supported when reasoning.effort = none
+    supports_vision: true
+    supports_reasoning: true  # Supports none (default), low, medium, high, xhigh
+    supports_verbosity: true  # Supports low, medium (default), high
+
+    # Pricing
+    input_per_1m: 1.75
+    output_per_1m: 14.00
+    cached_input_per_1m: 0.175
+    supports_caching: true
+
+  gpt-5.2-pro:
+    # Model metadata
+    description: "Version of GPT-5.2 that produces smarter and more precise responses"
+    capabilities: "🎯 Best for: Tough problems requiring harder thinking, highest precision tasks"
+    tags: ["flagship", "premium", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_vision: true
+    supports_reasoning: true
+    supports_verbosity: true
+
+    # Pricing
+    input_per_1m: 21.00
+    output_per_1m: 168.00
+    supports_caching: false
+
   gpt-5.1:
     # Model metadata
     description: "The best model for coding and agentic tasks with configurable reasoning effort"
     capabilities: "🌟 Best for: Agentic workflows, autonomous coding, complex multimodal tasks, advanced reasoning"
-    tags: ["flagship", "latest", "general", "premium", "vision"]
+    tags: ["flagship", "general", "premium", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_output_tokens"
     supports_temperature: false
     supports_vision: true
     supports_reasoning: true  # Supports none, low, medium, high (defaults to none)
+    supports_verbosity: true  # Supports low, medium, high
 
     # Pricing
     input_per_1m: 1.25
@@ -367,13 +405,16 @@ display_categories:
     description: "Previous generation models for established workflows"
 
 # Default model
-default_model: "gpt-5.1"
+default_model: "gpt-5.2"
 
 # Usage notes
 usage_notes:
+  - "GPT-5.2 is the flagship model with improved reasoning, instruction following, and coding capabilities"
+  - "GPT-5.2 supports reasoning effort levels: none (default), low, medium, high, xhigh"
+  - "GPT-5.1+ models support verbosity control: low (concise), medium (default), high (thorough)"
   - "GPT-5 flagship models have 400K context window and support vision (image analysis)"
   - "GPT-5 models support cached input pricing for cost optimization (90% discount)"
-  - "Flagship models (GPT-5 series) don't support temperature parameter"
+  - "Flagship models (GPT-5 series) support temperature only when reasoning_effort='none'"
   - "Reasoning models (o1, o3, o4) don't support temperature parameter"
   - "Vision models (gpt-4o series, gpt-5 series) support image analysis"
   - "Image generation models charge per image quality tier, not per token"

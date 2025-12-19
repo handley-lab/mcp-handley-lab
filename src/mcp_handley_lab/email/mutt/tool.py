@@ -521,10 +521,14 @@ def send(
             raise ValueError("'message_id' is required for forward mode")
 
         # Import notmuch function to get original message data
-        from mcp_handley_lab.email.notmuch.tool import _show_email
+        from mcp_handley_lab.email.notmuch.tool import (
+            _get_message_from_raw_source,
+            _show_email,
+        )
 
         result = _show_email(f"id:{message_id}")
         original_msg = result[0]
+        raw_msg = _get_message_from_raw_source(message_id)
 
         # Build forward subject with Fwd: prefix
         original_subject = original_msg.subject
@@ -538,17 +542,28 @@ def send(
             )
         )
 
-        # Build forward body
-        forwarded_content = "\n".join(original_msg.body_markdown.splitlines())
+        # Build forward header block
         forward_intro = (
             f"----- Forwarded message from {original_msg.from_address} -----"
         )
+        header_lines = [f"\nDate: {original_msg.date}"]
+        header_lines.append(f"From: {original_msg.from_address}")
+        if original_msg.to_address and original_msg.to_address != "[Unknown Recipient]":
+            header_lines.append(f"To: {original_msg.to_address}")
+        original_cc = raw_msg.get("Cc")
+        if original_cc:
+            header_lines.append(f"CC: {original_cc}")
+        header_lines.append(f"Subject: {original_subject}")
+        header_block = "\n".join(header_lines)
+
+        # Build forward body
+        forwarded_content = "\n".join(original_msg.body_markdown.splitlines())
         forward_trailer = "----- End forwarded message -----"
 
         complete_forward_body = (
-            f"{body}\n\n{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+            f"{body}\n\n{forward_intro}\n{header_block}\n\n{forwarded_content}\n\n{forward_trailer}"
             if body
-            else f"{forward_intro}\n{forwarded_content}\n{forward_trailer}"
+            else f"{forward_intro}\n{header_block}\n\n{forwarded_content}\n\n{forward_trailer}"
         )
 
         return _compose_email(

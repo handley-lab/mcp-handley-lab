@@ -526,7 +526,7 @@ Subject: {test_subject}
 
     @pytest.mark.asyncio
     async def test_offlineimap_dry_run_integration(self):
-        """Test offlineimap sync_mail with status mode."""
+        """Test offlineimap sync with status mode."""
         from mcp_handley_lab.email.tool import mcp
 
         # Test with real config file
@@ -543,7 +543,7 @@ Subject: {test_subject}
 
             # Test dry run - should validate config without connecting
             _, result = await mcp.call_tool(
-                "sync_mail",
+                "sync",
                 {"mode": "status", "config_file": str(offlineimaprc_path)},
             )
             assert "error" not in result, result.get("error")

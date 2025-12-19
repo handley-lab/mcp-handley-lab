@@ -13,7 +13,7 @@ from mcp_handley_lab.shared.models import OperationResult
 @mcp.tool(
     description="""Unified email synchronization tool. Modes: 'full' (complete sync), 'quick' (new messages only), 'preview' (dry-run), 'status' (validate config), 'info' (show repo details). Use 'folders' param to sync specific folders only."""
 )
-def sync_mail(
+def sync(
     mode: Literal["full", "quick", "preview", "status", "info"] = Field(
         default="full",
         description="Sync mode: 'full' (complete), 'quick' (fast, new only), 'preview' (dry-run), 'status' (validate config), 'info' (repo details).",

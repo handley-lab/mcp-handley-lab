@@ -78,6 +78,10 @@ class TestEmailMoveIntegration:
             ),
             # notmuch config get database.path
             (str(mock_maildir).encode(), b""),
+            # notmuch tag for msg1 (archive policy: -inbox -unread)
+            (b"", b""),
+            # notmuch tag for msg2
+            (b"", b""),
         ]
 
         # Call the move function via MCP
@@ -123,6 +127,8 @@ class TestEmailMoveIntegration:
             (f"{sample_emails['gmail_email']}\n".encode(), b""),
             # notmuch config get database.path
             (str(mock_maildir).encode(), b""),
+            # notmuch tag for gmail_msg (trash policy: +deleted -inbox -unread)
+            (b"", b""),
         ]
 
         _, result = await mcp.call_tool(
@@ -217,6 +223,10 @@ class TestEmailMoveIntegration:
             (f"{sample_emails['hermes_email1']}\n".encode(), b""),
             # notmuch config get database.path
             (str(mock_maildir).encode(), b""),
+            # notmuch tag for msg1 (archive policy: -inbox -unread)
+            (b"", b""),
+            # notmuch tag for missing msg (still called even though file not found)
+            (b"", b""),
         ]
 
         _, result = await mcp.call_tool(

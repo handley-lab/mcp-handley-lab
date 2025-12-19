@@ -1,10 +1,7 @@
 """Integration tests for Mutt tools using real filesystem operations."""
 
-import shutil
-
 import pytest
 
-from mcp_handley_lab.email.mutt.tool import mcp as mutt_mcp
 from mcp_handley_lab.email.mutt_aliases.tool import mcp as aliases_mcp
 
 
@@ -46,13 +43,18 @@ class TestMuttContactManagement:
     async def test_add_contact_individual(self, temp_mutt_config):
         """Test adding an individual contact to real file."""
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "john_doe", "email": "john@example.com", "name": "John Doe"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "john_doe",
+                "email": "john@example.com",
+                "name": "John Doe",
+            },
         )
         assert "error" not in response, response.get("error")
         result = response
 
-        assert "Added contact: john_doe (John Doe)" in result["message"]
+        assert "Added contact: john_doe" in result["message"]
 
         # Verify the contact was actually written to the file
         addressbook_content = temp_mutt_config["addressbook"].read_text()
@@ -62,9 +64,10 @@ class TestMuttContactManagement:
     async def test_add_contact_group(self, temp_mutt_config):
         """Test adding a group contact to real file."""
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "gw_team",
+                "action": "add",
+                "query": "gw_team",
                 "email": "alice@cam.ac.uk,bob@cam.ac.uk",
                 "name": "GW Project Team",
             },
@@ -72,7 +75,7 @@ class TestMuttContactManagement:
         assert "error" not in response, response.get("error")
         result = response
 
-        assert "Added contact: gw_team (GW Project Team)" in result["message"]
+        assert "Added contact: gw_team" in result["message"]
 
         # Verify the group contact was written correctly
         addressbook_content = temp_mutt_config["addressbook"].read_text()
@@ -85,12 +88,13 @@ class TestMuttContactManagement:
     async def test_add_contact_no_name(self, temp_mutt_config):
         """Test adding contact without name to real file."""
         _, response = await aliases_mcp.call_tool(
-            "add_contact", {"alias": "simple", "email": "test@example.com"}
+            "contacts",
+            {"action": "add", "query": "simple", "email": "test@example.com"},
         )
         assert "error" not in response, response.get("error")
         result = response
 
-        assert "Added contact: simple (test@example.com)" in result["message"]
+        assert "Added contact: simple" in result["message"]
 
         # Verify the simple contact format
         addressbook_content = temp_mutt_config["addressbook"].read_text()
@@ -106,7 +110,7 @@ class TestMuttContactManagement:
         )
 
         _, response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "john_doe"}
+            "contacts", {"action": "remove", "query": "john_doe"}
         )
         assert "error" not in response, response.get("error")
         result = response
@@ -129,44 +133,9 @@ class TestMuttContactManagement:
         )
 
         with pytest.raises(ToolError, match="Contact 'nonexistent' not found"):
-            await aliases_mcp.call_tool("remove_contact", {"alias": "nonexistent"})
-
-
-@pytest.mark.integration
-class TestMuttFolderManagement:
-    """Integration tests for Mutt folder management."""
-
-    @pytest.mark.asyncio
-    async def test_list_folders_success(self, temp_mutt_config):
-        """Test successfully listing folders."""
-        _, response = await mutt_mcp.call_tool("list_folders", {})
-        assert "error" not in response, response.get("error")
-        result = response["result"]
-
-        # Should return the mocked folder list
-        assert isinstance(result, list)
-        assert "INBOX" in result
-        assert "Sent" in result
-        assert "Drafts" in result
-        assert "Trash" in result
-
-
-@pytest.mark.integration
-class TestMuttServerInfo:
-    """Integration tests for Mutt server info."""
-
-    @pytest.mark.asyncio
-    async def test_server_info_success(self, temp_mutt_config):
-        """Test successful server info retrieval."""
-        _, response = await mutt_mcp.call_tool("server_info", {})
-        assert "error" not in response, response.get("error")
-        result = response
-
-        assert result["name"] == "Mutt Tool"
-        assert "Mutt 2.2.14" in result["version"]
-        assert result["status"] == "active"
-        assert "compose" in result["capabilities"]
-        assert "server_info" in result["capabilities"]
+            await aliases_mcp.call_tool(
+                "contacts", {"action": "remove", "query": "nonexistent"}
+            )
 
 
 @pytest.mark.integration
@@ -177,9 +146,10 @@ class TestMuttContactWorkflows:
     async def test_gw_project_workflow(self, temp_mutt_config):
         """Test adding GW project team contact workflow."""
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "gw_team",
+                "action": "add",
+                "query": "gw_team",
                 "email": "alice@cam.ac.uk,bob@cam.ac.uk,carol@cam.ac.uk",
                 "name": "GW Project Team",
             },
@@ -187,7 +157,7 @@ class TestMuttContactWorkflows:
         assert "error" not in response, response.get("error")
         result = response
 
-        assert "Added contact: gw_team (GW Project Team)" in result["message"]
+        assert "Added contact: gw_team" in result["message"]
 
         # Verify the alias format is correct for mutt
         addressbook_content = temp_mutt_config["addressbook"].read_text()
@@ -199,8 +169,13 @@ class TestMuttContactWorkflows:
         """Test complete contact lifecycle: add, verify, update, remove."""
         # Add initial contact
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "test_user", "email": "test@example.com", "name": "Test User"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "test_user",
+                "email": "test@example.com",
+                "name": "Test User",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -210,9 +185,10 @@ class TestMuttContactWorkflows:
 
         # Add another contact
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "another_user",
+                "action": "add",
+                "query": "another_user",
                 "email": "another@example.com",
                 "name": "Another User",
             },
@@ -226,7 +202,7 @@ class TestMuttContactWorkflows:
 
         # Remove the first contact
         _, response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "test_user"}
+            "contacts", {"action": "remove", "query": "test_user"}
         )
         assert "error" not in response, response.get("error")
 
@@ -242,50 +218,26 @@ class TestMuttErrorHandling:
 
     @pytest.mark.asyncio
     async def test_add_contact_validation_errors(self, temp_mutt_config):
-        """Test input validation for add_contact."""
+        """Test input validation for add action."""
         from mcp.server.fastmcp.exceptions import ToolError
 
         # Test empty alias
-        with pytest.raises(ToolError, match="Both alias and email are required"):
+        with pytest.raises(ToolError, match="Alias .* and email required"):
             await aliases_mcp.call_tool(
-                "add_contact", {"alias": "", "email": "test@example.com"}
+                "contacts", {"action": "add", "query": "", "email": "test@example.com"}
             )
 
         # Test empty email
-        with pytest.raises(ToolError, match="Both alias and email are required"):
-            await aliases_mcp.call_tool("add_contact", {"alias": "test", "email": ""})
+        with pytest.raises(ToolError, match="Alias .* and email required"):
+            await aliases_mcp.call_tool(
+                "contacts", {"action": "add", "query": "test", "email": ""}
+            )
 
     @pytest.mark.asyncio
     async def test_remove_contact_validation_errors(self, temp_mutt_config):
-        """Test input validation for remove_contact."""
+        """Test input validation for remove action."""
         from mcp.server.fastmcp.exceptions import ToolError
 
         # Test empty alias
-        with pytest.raises(ToolError, match="Alias is required"):
-            await aliases_mcp.call_tool("remove_contact", {"alias": ""})
-
-
-@pytest.mark.skipif(not shutil.which("mutt"), reason="mutt CLI not found")
-@pytest.mark.integration
-class TestMuttRealCLI:
-    """Integration tests using the real mutt CLI when available."""
-
-    @pytest.mark.asyncio
-    async def test_server_info_real_mutt(self):
-        """Test server info with real mutt installation."""
-        # Remove mocking for this test - use real mutt
-        # This will only run if mutt is actually installed
-        try:
-            _, response = await mutt_mcp.call_tool("server_info", {})
-            assert "error" not in response, response.get("error")
-            result = response
-
-            assert result["name"] == "Mutt Tool"
-            assert result["status"] == "active"
-            assert "Mutt" in result["version"]  # Should contain actual mutt version
-        except Exception as e:
-            # If mutt isn't properly configured, that's OK for this test
-            if "not found" in str(e) or "configuration" in str(e).lower():
-                pytest.skip(f"Mutt not properly configured: {e}")
-            else:
-                raise
+        with pytest.raises(ToolError, match="Alias .* required for remove"):
+            await aliases_mcp.call_tool("contacts", {"action": "remove", "query": ""})

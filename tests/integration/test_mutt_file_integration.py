@@ -45,8 +45,13 @@ class TestMuttFileOperations:
         assert real_temp_addressbook.read_text().strip() == ""
 
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "test_user", "email": "test@example.com", "name": "Test User"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "test_user",
+                "email": "test@example.com",
+                "name": "Test User",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -66,8 +71,13 @@ class TestMuttFileOperations:
         real_temp_addressbook.write_text(existing_content)
 
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "new_user", "email": "new@example.com", "name": "New User"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "new_user",
+                "email": "new@example.com",
+                "name": "New User",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -95,8 +105,13 @@ alias friend "Best Friend" <friend@personal.com>
         real_temp_addressbook.write_text(existing_content)
 
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "new_contact", "email": "new@example.com", "name": "New Contact"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "new_contact",
+                "email": "new@example.com",
+                "name": "New Contact",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -120,7 +135,7 @@ alias keep2 "Keep Two" <keep2@example.com>
         real_temp_addressbook.write_text(initial_content)
 
         _, response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "remove_me"}
+            "contacts", {"action": "remove", "query": "remove_me"}
         )
         assert "error" not in response, response.get("error")
 
@@ -146,7 +161,7 @@ alias also_keep "Also Keep" <also@example.com>
         real_temp_addressbook.write_text(initial_content)
 
         _, response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "remove_me"}
+            "contacts", {"action": "remove", "query": "remove_me"}
         )
         assert "error" not in response, response.get("error")
 
@@ -167,9 +182,10 @@ alias also_keep "Also Keep" <also@example.com>
 
         # Add first contact
         _, response1 = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "contact1",
+                "action": "add",
+                "query": "contact1",
                 "email": "contact1@example.com",
                 "name": "Contact One",
             },
@@ -178,9 +194,10 @@ alias also_keep "Also Keep" <also@example.com>
 
         # Immediately add second contact (tests file consistency)
         _, response2 = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "contact2",
+                "action": "add",
+                "query": "contact2",
                 "email": "contact2@example.com",
                 "name": "Contact Two",
             },
@@ -211,7 +228,8 @@ class TestMuttFileErrorHandling:
 
         try:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": "test", "email": "test@example.com"}
+                "contacts",
+                {"action": "add", "query": "test", "email": "test@example.com"},
             )
 
             # Should handle read-only file gracefully
@@ -248,7 +266,7 @@ class TestMuttFileErrorHandling:
         )
 
         _, response = await aliases_mcp.call_tool(
-            "add_contact", {"alias": "test", "email": "test@example.com"}
+            "contacts", {"action": "add", "query": "test", "email": "test@example.com"}
         )
 
         # Should handle missing directory appropriately
@@ -275,7 +293,8 @@ More invalid content here
 
         # Should handle corrupted file gracefully
         _, response = await aliases_mcp.call_tool(
-            "add_contact", {"alias": "new_contact", "email": "new@example.com"}
+            "contacts",
+            {"action": "add", "query": "new_contact", "email": "new@example.com"},
         )
 
         # Should either handle corruption gracefully or report error
@@ -300,7 +319,8 @@ More invalid content here
 
         # Should handle large files appropriately
         _, response = await aliases_mcp.call_tool(
-            "add_contact", {"alias": "final_contact", "email": "final@example.com"}
+            "contacts",
+            {"action": "add", "query": "final_contact", "email": "final@example.com"},
         )
 
         # Should succeed with large files
@@ -331,9 +351,10 @@ alias another_simple another@example.com
 
         # Should handle mixed formats correctly
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "new_mixed",
+                "action": "add",
+                "query": "new_mixed",
                 "email": "mixed@example.com",
                 "name": "Mixed Format",
             },
@@ -360,8 +381,13 @@ alias unicode_email "Regular Name" <münchen@example.de>
         real_temp_addressbook.write_text(unicode_content, encoding="utf-8")
 
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "new_unicode", "email": "test@example.com", "name": "François"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "new_unicode",
+                "email": "test@example.com",
+                "name": "François",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -385,7 +411,7 @@ alias spaced   "Spaced Entry"   <spaced@example.com>
         real_temp_addressbook.write_text(spaced_content)
 
         _, response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "indented"}
+            "contacts", {"action": "remove", "query": "indented"}
         )
         assert "error" not in response, response.get("error")
 

@@ -11,7 +11,7 @@ from pydantic import Field
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.common.terminal import launch_interactive
 from mcp_handley_lab.email.common import mcp
-from mcp_handley_lab.shared.models import OperationResult, ServerInfo
+from mcp_handley_lab.shared.models import OperationResult
 
 
 def _execute_mutt_command(cmd: list[str], input_text: str = None) -> str:
@@ -463,9 +463,22 @@ def reply(
     original_msg = result[0]
     raw_msg = _get_message_from_raw_source(message_id)
 
-    # Extract reply data
-    reply_to = original_msg.from_address
-    reply_cc = original_msg.to_address if reply_all else None
+    # Extract reply data - use Reply-To if available, otherwise From
+    reply_to_header = raw_msg.get("Reply-To")
+    reply_to = reply_to_header if reply_to_header else original_msg.from_address
+
+    # For reply-all, CC should be original To + original Cc recipients (minus sender)
+    reply_cc = None
+    if reply_all:
+        cc_recipients = []
+        # Add original To recipients
+        if original_msg.to_address and original_msg.to_address != "[Unknown Recipient]":
+            cc_recipients.append(original_msg.to_address)
+        # Add original Cc recipients
+        original_cc = raw_msg.get("Cc")
+        if original_cc:
+            cc_recipients.append(original_cc)
+        reply_cc = ", ".join(cc_recipients) if cc_recipients else None
 
     # Build subject with Re: prefix
     original_subject = original_msg.subject
@@ -568,22 +581,6 @@ def forward(
         body=complete_forward_body,
         attachments=attachments,
     )
-
-
-@mcp.tool(
-    description="""Lists all configured mailboxes from Mutt configuration. Useful for discovering folder names for move operations and understanding your email folder structure."""
-)
-def list_folders() -> list[str]:
-    """List available mailboxes from mutt configuration."""
-    result = _execute_mutt_command(["mutt", "-Q", "mailboxes"])
-
-    if not result or "mailboxes=" not in result:
-        return []
-
-    folders_part = result.split("mailboxes=", 1)[1].strip('"')
-    folders = [f.strip() for f in folders_part.split() if f.strip()]
-
-    return folders
 
 
 @mcp.tool(
@@ -705,26 +702,3 @@ def open(
         return OperationResult(status="error", message=str(e))
     except Exception as e:  # Catch other errors (e.g., from run_command)
         return OperationResult(status="error", message=f"Failed to open: {str(e)}")
-
-
-@mcp.tool(description="Checks Mutt Tool server status and mutt command availability.")
-def server_info() -> ServerInfo:
-    """Get server status and mutt version."""
-    result = _execute_mutt_command(["mutt", "-v"])
-    version_lines = result.split("\n")
-    version_line = version_lines[0] if version_lines else "Unknown version"
-
-    return ServerInfo(
-        name="Mutt Tool",
-        version=version_line,
-        status="active",
-        capabilities=[
-            "compose",
-            "reply",
-            "forward",
-            "list_folders",
-            "open",
-            "server_info",
-        ],
-        dependencies={"mutt": version_line},
-    )

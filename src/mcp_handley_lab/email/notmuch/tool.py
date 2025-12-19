@@ -137,6 +137,21 @@ class MoveResult(BaseModel):
     status: str = Field(..., description="A summary of the move operation.")
 
 
+class SearchResult(BaseModel):
+    """Structured search result for a single email."""
+
+    id: str = Field(..., description="The unique message ID of the email.")
+    subject: str = Field(..., description="The subject line of the email.")
+    from_address: str = Field(..., description="The sender's email address and name.")
+    to_address: str | None = Field(
+        default=None, description="The primary recipient's email address."
+    )
+    date: str | None = Field(default=None, description="The date the email was sent.")
+    tags: list[str] = Field(
+        default_factory=list, description="Tags associated with this email."
+    )
+
+
 @mcp.tool(
     description="""Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 )
@@ -150,12 +165,58 @@ def search(
         description="The maximum number of message IDs to return.",
         gt=0,
     ),
-) -> list[str]:
-    """Search emails using notmuch query syntax."""
-    cmd = ["notmuch", "search", "--limit", str(limit), query]
-    stdout, stderr = run_command(cmd)
-    output = stdout.decode().strip()
-    return [line.strip() for line in output.split("\n") if line.strip()]
+    offset: int = Field(
+        default=0,
+        description="Number of results to skip for pagination.",
+        ge=0,
+    ),
+    include_excluded: bool = Field(
+        default=False,
+        description="Include emails with excluded tags (spam, deleted) that are normally hidden.",
+    ),
+) -> list[SearchResult]:
+    """Search emails using notmuch query syntax.
+
+    Returns structured search results with id, subject, from, date, and tags.
+    Use show() for full email content including body.
+    """
+    cmd = [
+        "notmuch",
+        "search",
+        "--format=json",
+        "--output=messages",
+        "--limit",
+        str(limit),
+        "--offset",
+        str(offset),
+    ]
+    if include_excluded:
+        cmd.append("--exclude=false")
+    cmd.append(query)
+    stdout, _ = run_command(cmd)
+    message_ids = json.loads(stdout.decode().strip())
+
+    results = []
+    for message_id in message_ids:
+        msg = _get_message_from_raw_source(message_id)
+
+        # Get tags
+        tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
+        tag_stdout, _ = run_command(tag_cmd)
+        tags = [t.strip() for t in tag_stdout.decode().strip().split("\n") if t.strip()]
+
+        results.append(
+            SearchResult(
+                id=message_id,
+                subject=msg.get("Subject", "") or "[No Subject]",
+                from_address=msg.get("From", "") or "[Unknown Sender]",
+                to_address=msg.get("To", "") or None,
+                date=msg.get("Date", "") or None,
+                tags=tags,
+            )
+        )
+
+    return results
 
 
 def _get_message_from_raw_source(message_id: str) -> EmailMessage:
@@ -330,13 +391,18 @@ def process_html_content(html_content: str) -> str:
 
 
 def _show_email(
-    query: str, mode: str = "full", limit: int = None
+    query: str,
+    mode: str = "full",
+    limit: int | None = None,
+    include_excluded: bool = False,
 ) -> list[EmailContent]:
     """Internal implementation of email display."""
-    cmd = ["notmuch", "search", "--format=json", "--output=messages", query]
-    stdout, stderr = run_command(cmd)
-    output = stdout.decode().strip()
-    message_ids = json.loads(output)
+    cmd = ["notmuch", "search", "--format=json", "--output=messages"]
+    if include_excluded:
+        cmd.append("--exclude=false")
+    cmd.append(query)
+    stdout, _ = run_command(cmd)
+    message_ids = json.loads(stdout.decode().strip())
 
     # Apply limit to prevent token overflow if specified
     if limit is not None and len(message_ids) > limit:
@@ -399,9 +465,13 @@ def show(
         default=None,
         description="Maximum number of emails to return (helps prevent token overflow). If None, returns all emails.",
     ),
+    include_excluded: bool = Field(
+        default=False,
+        description="Include emails with excluded tags (spam, deleted) that are normally hidden by notmuch.",
+    ),
 ) -> list[EmailContent]:
     """Show email content with optimized token-efficient processing."""
-    return _show_email(query, mode, limit)
+    return _show_email(query, mode, limit, include_excluded)
 
 
 @mcp.tool(
@@ -419,9 +489,30 @@ def new() -> str:
 )
 def list_tags() -> list[str]:
     """List all tags in the notmuch database."""
-    stdout, stderr = run_command(["notmuch", "search", "--output=tags", "*"])
+    stdout, _ = run_command(["notmuch", "search", "--output=tags", "*"])
     output = stdout.decode().strip()
     return sorted([tag.strip() for tag in output.split("\n") if tag.strip()])
+
+
+@mcp.tool(
+    description="""List all maildir folders by scanning the mail directory structure. Returns folder paths like 'Hermes/INBOX', 'Gmail/Archive' that can be used with folder: queries and move operations."""
+)
+def list_folders() -> list[str]:
+    """List all maildir folders from the notmuch database path."""
+    db_path_stdout, _ = run_command(["notmuch", "config", "get", "database.path"])
+    maildir_root = Path(db_path_stdout.decode().strip())
+
+    folders = set()
+    for subdir in ("cur", "new"):
+        for path in maildir_root.rglob(subdir):
+            if path.is_dir():
+                # Parent of cur/new is the folder
+                folder = path.parent.relative_to(maildir_root)
+                folder_str = str(folder)
+                if folder_str != ".":
+                    folders.add(folder_str)
+
+    return sorted(folders)
 
 
 @mcp.tool(
@@ -611,16 +702,24 @@ def move(
     )
     destination_dir = smart_destination / "new"
 
+    # Create the destination 'new' directory if needed (this is safe)
+    destination_dir.mkdir(parents=True, exist_ok=True)
+
+    moved_count = 0
     for file_path in source_files:
         source_path = Path(file_path)
         destination_path = destination_dir / source_path.name
 
-        # Use os.rename instead of os.renames to avoid creating directories
-        # Create the destination 'new' directory if needed (this is safe)
-        destination_dir.mkdir(parents=True, exist_ok=True)
+        # Handle filename collisions (similar to extract_attachments)
+        counter = 1
+        stem, suffix = destination_path.stem, destination_path.suffix
+        while destination_path.exists():
+            destination_path = destination_dir / f"{stem}_{counter}{suffix}"
+            counter += 1
 
         try:
             os.rename(source_path, destination_path)
+            moved_count += 1
         except OSError as e:
             raise OSError(
                 f"Failed to move {source_path} to {destination_path}: {e}"
@@ -628,6 +727,29 @@ def move(
 
     # Update the notmuch index to discover the moved files
     new()
+
+    # Apply destination-based tag policies using resolved folder name
+    tag_policies = {
+        "archive": {"add": [], "remove": ["inbox"]},  # Keep unread status
+        "trash": {"add": ["deleted"], "remove": ["inbox", "unread"]},
+        "bin": {"add": ["deleted"], "remove": ["inbox", "unread"]},
+        "deleted": {"add": ["deleted"], "remove": ["inbox", "unread"]},
+        "spam": {"add": ["spam"], "remove": ["inbox", "unread"]},
+        "junk": {"add": ["spam"], "remove": ["inbox", "unread"]},
+        "junk email": {"add": ["spam"], "remove": ["inbox", "unread"]},
+        "sent": {"add": [], "remove": ["inbox"]},
+        "drafts": {"add": ["draft"], "remove": ["inbox"]},
+    }
+
+    # Use resolved folder name for policy matching (handles Hermes/Archive -> archive)
+    dest_key = smart_destination.name.lower()
+    if policy := tag_policies.get(dest_key):
+        for mid in message_ids:
+            tag_changes = [f"+{t}" for t in policy["add"]] + [
+                f"-{t}" for t in policy["remove"]
+            ]
+            if tag_changes:
+                run_command(["notmuch", "tag"] + tag_changes + [f"id:{mid}"])
 
     # Construct and return a structured result
     moved_count = len(source_files)

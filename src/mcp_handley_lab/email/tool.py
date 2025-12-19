@@ -20,8 +20,6 @@ def discover_and_register_tools():
     package_dir = Path(__file__).parent
     package_name = package_dir.name
 
-    print(f"Discovering tools in '{package_name}' sub-packages...")
-
     for sub_dir in package_dir.iterdir():
         # Look for subdirectories that are valid packages (have __init__.py)
         # and contain a tool.py file.
@@ -31,12 +29,8 @@ def discover_and_register_tools():
                 # Construct the full module path for importlib
                 # e.g., 'mcp_handley_lab.email.msmtp.tool'
                 module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
-                try:
-                    # This import triggers the @mcp.tool decorators
-                    importlib.import_module(module_name)
-                    print(f"  ✓ Registered tools from: {sub_dir.name}")
-                except ImportError as e:
-                    print(f"  ✗ Failed to import {module_name}: {e}")
+                # This import triggers the @mcp.tool decorators
+                importlib.import_module(module_name)
 
 
 # Run the discovery process when this module is loaded

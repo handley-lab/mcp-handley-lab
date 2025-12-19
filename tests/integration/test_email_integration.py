@@ -538,9 +538,10 @@ Subject: {test_subject}
         except (FileNotFoundError, RuntimeError, ToolError) as e:
             pytest.skip(f"Notmuch not available or configured: {e}")
 
-    def test_offlineimap_dry_run_integration(self):
-        """Test offlineimap sync_status with real config."""
-        from mcp_handley_lab.email.offlineimap.tool import sync_status
+    @pytest.mark.asyncio
+    async def test_offlineimap_dry_run_integration(self):
+        """Test offlineimap sync_mail with status mode."""
+        from mcp_handley_lab.email.tool import mcp
 
         # Test with real config file
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
@@ -555,9 +556,13 @@ Subject: {test_subject}
             os.chdir(str(fixtures_dir))
 
             # Test dry run - should validate config without connecting
-            result = sync_status(str(offlineimaprc_path))
-            assert hasattr(result, "message")
-            assert len(result.message) > 0
+            _, result = await mcp.call_tool(
+                "sync_mail",
+                {"mode": "status", "config_file": str(offlineimaprc_path)},
+            )
+            assert "error" not in result, result.get("error")
+            assert "message" in result
+            assert len(result["message"]) > 0
 
         except (FileNotFoundError, RuntimeError) as e:
             pytest.skip(f"Offlineimap not available: {e}")

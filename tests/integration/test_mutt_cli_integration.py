@@ -8,7 +8,6 @@ import shutil
 
 import pytest
 
-from mcp_handley_lab.email.mutt.tool import mcp as mutt_mcp
 from mcp_handley_lab.email.mutt.tool import run_command
 
 
@@ -163,53 +162,6 @@ class TestMuttCLIProcessManagement:
 
 
 @pytest.mark.integration
-class TestMuttServerInfoCLI:
-    """Test server info functionality with CLI focus."""
-
-    @pytest.mark.asyncio
-    async def test_server_info_cli_version_detection(
-        self, minimal_mutt_config, monkeypatch
-    ):
-        """Test that server_info correctly detects mutt CLI version."""
-        if not shutil.which("mutt"):
-            pytest.skip("mutt CLI not available")
-
-        # Mock configuration queries to focus on CLI version detection
-        def mock_run_command(cmd, timeout=None, input_data=None):
-            if "mutt -v" in " ".join(cmd):
-                return (b"Mutt 2.2.14 (2025-01-01)\n", b"")
-            elif "mutt -Q" in " ".join(cmd):
-                # Return minimal config responses
-                if "alias_file" in " ".join(cmd):
-                    return (b'alias_file=""', b"")
-                elif "mailboxes" in " ".join(cmd):
-                    return (b'mailboxes=""', b"")
-                else:
-                    return (b"", b"")
-            else:
-                # Fall back to real command execution for version query
-                from mcp_handley_lab.email.mutt.tool import (
-                    run_command as real_run_command,
-                )
-
-                return real_run_command(cmd, timeout, input_data)
-
-        monkeypatch.setattr(
-            "mcp_handley_lab.common.process.run_command", mock_run_command
-        )
-
-        _, response = await mutt_mcp.call_tool("server_info", {})
-        assert "error" not in response, response.get("error")
-        result = response
-
-        assert result["name"] == "Mutt Tool"
-        assert result["status"] == "active"
-        # Should contain actual or mocked mutt version
-        assert "Mutt" in result["version"]
-        assert "2." in result["version"]  # Version number format
-
-
-@pytest.mark.integration
 class TestMuttCLIErrorScenarios:
     """Test CLI error handling and edge cases."""
 
@@ -232,28 +184,6 @@ class TestMuttCLIErrorScenarios:
             (RuntimeError, FileNotFoundError)
         ):  # Should raise appropriate error
             run_command(["mutt-nonexistent", "-v"], timeout=5)
-
-    @pytest.mark.asyncio
-    async def test_server_info_with_mutt_unavailable(self, monkeypatch):
-        """Test server_info when mutt CLI is unavailable."""
-
-        def mock_run_command(cmd, timeout=None, input_data=None):
-            # Simulate mutt command failing
-            raise RuntimeError("mutt: command not found")
-
-        monkeypatch.setattr(
-            "mcp_handley_lab.common.process.run_command", mock_run_command
-        )
-
-        from mcp.server.fastmcp.exceptions import ToolError
-
-        try:
-            _, response = await mutt_mcp.call_tool("server_info", {})
-            # If no exception raised, should be an error response
-            assert "error" in response or "mutt" in str(response).lower()
-        except ToolError as exc_info:
-            # Should handle unavailable mutt with error
-            assert "mutt" in str(exc_info).lower()
 
     def test_mutt_cli_malformed_output_handling(self, monkeypatch):
         """Test handling of unexpected mutt CLI output formats."""

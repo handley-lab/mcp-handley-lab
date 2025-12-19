@@ -6,7 +6,6 @@ Focuses on real-world usage scenarios and cross-component integration.
 
 import pytest
 
-from mcp_handley_lab.email.mutt.tool import mcp as mutt_mcp
 from mcp_handley_lab.email.mutt_aliases.tool import mcp as aliases_mcp
 
 
@@ -75,15 +74,21 @@ class TestMuttContactWorkflows:
 
         for alias, email, name in team_members:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": alias, "email": email, "name": name}
+                "contacts",
+                {"action": "add", "query": alias, "email": email, "name": name},
             )
             assert "error" not in response, response.get("error")
 
         # Step 2: Create team distribution list
         team_emails = ",".join([email for _, email, _ in team_members])
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "gw_team", "email": team_emails, "name": "GW Project Team"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "gw_team",
+                "email": team_emails,
+                "name": "GW Project Team",
+            },
         )
         assert "error" not in response, response.get("error")
 
@@ -100,7 +105,7 @@ class TestMuttContactWorkflows:
 
         # Step 4: Test contact lookup/search workflow
         _, search_response = await aliases_mcp.call_tool(
-            "find_contact", {"query": "gw"}
+            "contacts", {"action": "find", "query": "gw"}
         )
         assert "error" not in search_response, search_response.get("error")
         results = search_response["matches"]
@@ -126,13 +131,14 @@ class TestMuttContactWorkflows:
 
         for alias, email, name in initial_contacts:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": alias, "email": email, "name": name}
+                "contacts",
+                {"action": "add", "query": alias, "email": email, "name": name},
             )
             assert "error" not in response, response.get("error")
 
         # Phase 2: Verify searchability
         _, search_response = await aliases_mcp.call_tool(
-            "find_contact", {"query": "company"}
+            "contacts", {"action": "find", "query": "company"}
         )
         assert "error" not in search_response, search_response.get("error")
         results = search_response["matches"]
@@ -146,7 +152,7 @@ class TestMuttContactWorkflows:
 
         # Phase 3: Remove individual contact (simulating person leaving)
         _, remove_response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "john_doe"}
+            "contacts", {"action": "remove", "query": "john_doe"}
         )
         assert "error" not in remove_response, remove_response.get("error")
 
@@ -158,15 +164,16 @@ class TestMuttContactWorkflows:
 
         # Phase 5: Update group to remove departed member
         _, update_response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "project_leads"}
+            "contacts", {"action": "remove", "query": "project_leads"}
         )
         assert "error" not in update_response, update_response.get("error")
 
         # Re-add updated group
         _, add_response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "project_leads",
+                "action": "add",
+                "query": "project_leads",
                 "email": "jane@company.com",
                 "name": "Project Leads",
             },
@@ -186,36 +193,17 @@ class TestMuttContactWorkflows:
 
         # Step 1: Set up contacts for email workflow
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
+            "contacts",
             {
-                "alias": "support",
+                "action": "add",
+                "query": "support",
                 "email": "support@company.com",
                 "name": "Support Team",
             },
         )
         assert "error" not in response, response.get("error")
 
-        # Step 2: Test server info integration
-        _, server_response = await mutt_mcp.call_tool("server_info", {})
-        assert "error" not in server_response, server_response.get("error")
-        server_info = server_response
-
-        assert server_info["name"] == "Mutt Tool"
-        assert server_info["status"] == "active"
-        assert "Mutt" in server_info["version"]
-
-        # Step 3: Test folder listing integration
-        _, folder_response = await mutt_mcp.call_tool("list_folders", {})
-        assert "error" not in folder_response, folder_response.get("error")
-        folders = folder_response["result"]
-
-        # Should include configured folders
-        assert isinstance(folders, list)
-        assert "INBOX" in folders
-        assert "Sent" in folders
-        assert "Drafts" in folders
-
-        # Step 4: Verify contact is available for email workflows
+        # Step 2: Verify contact is available for email workflows
         addressbook_content = env["addressbook"].read_text()
         assert (
             'alias support "Support Team" <support@company.com>' in addressbook_content
@@ -235,15 +223,25 @@ class TestMuttErrorRecoveryWorkflows:
 
         # Step 1: Add initial contact
         _, response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "john", "email": "john@oldcompany.com", "name": "John Old"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "john",
+                "email": "john@oldcompany.com",
+                "name": "John Old",
+            },
         )
         assert "error" not in response, response.get("error")
 
         # Step 2: Try to add conflicting contact with same alias
         _, conflict_response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "john", "email": "john@newcompany.com", "name": "John New"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "john",
+                "email": "john@newcompany.com",
+                "name": "John New",
+            },
         )
 
         # Should handle conflict (either error or update)
@@ -261,14 +259,19 @@ class TestMuttErrorRecoveryWorkflows:
 
         # Step 3: Resolution - remove old contact first
         _, remove_response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "john"}
+            "contacts", {"action": "remove", "query": "john"}
         )
         assert "error" not in remove_response, remove_response.get("error")
 
         # Step 4: Add new contact
         _, new_response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "john", "email": "john@newcompany.com", "name": "John New"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "john",
+                "email": "john@newcompany.com",
+                "name": "John New",
+            },
         )
         assert "error" not in new_response, new_response.get("error")
 
@@ -296,7 +299,8 @@ class TestMuttErrorRecoveryWorkflows:
         added_contacts = []
         for alias, email, name in contacts_to_add:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": alias, "email": email, "name": name}
+                "contacts",
+                {"action": "add", "query": alias, "email": email, "name": name},
             )
             if "error" not in response:
                 added_contacts.append(alias)
@@ -311,7 +315,7 @@ class TestMuttErrorRecoveryWorkflows:
 
         # Step 3: Batch search verification
         _, search_response = await aliases_mcp.call_tool(
-            "find_contact", {"query": "dept"}
+            "contacts", {"action": "find", "query": "dept"}
         )
         assert "error" not in search_response, search_response.get("error")
         results = search_response["matches"]
@@ -327,8 +331,13 @@ class TestMuttErrorRecoveryWorkflows:
         # Step 4: Create department distribution list
         dept_emails = ",".join([email for _, email, _ in contacts_to_add])
         _, group_response = await aliases_mcp.call_tool(
-            "add_contact",
-            {"alias": "dept_all", "email": dept_emails, "name": "Department All"},
+            "contacts",
+            {
+                "action": "add",
+                "query": "dept_all",
+                "email": dept_emails,
+                "name": "Department All",
+            },
         )
         assert "error" not in group_response, group_response.get("error")
 
@@ -358,7 +367,8 @@ class TestMuttCrossComponentWorkflows:
 
         for alias, email, name in email_contacts:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": alias, "email": email, "name": name}
+                "contacts",
+                {"action": "add", "query": alias, "email": email, "name": name},
             )
             assert "error" not in response, response.get("error")
 
@@ -368,24 +378,6 @@ class TestMuttCrossComponentWorkflows:
             assert alias in addressbook_content
             assert email in addressbook_content
             assert name in addressbook_content
-
-        # Step 3: Test that folder structure is ready
-        _, folder_response = await mutt_mcp.call_tool("list_folders", {})
-        assert "error" not in folder_response, folder_response.get("error")
-        folders = folder_response["result"]
-
-        # Essential folders should be available
-        essential_folders = ["INBOX", "Sent", "Drafts"]
-        for folder in essential_folders:
-            assert folder in folders
-
-        # Step 4: Test server readiness for email operations
-        _, server_response = await mutt_mcp.call_tool("server_info", {})
-        assert "error" not in server_response, server_response.get("error")
-        server_info = server_response
-
-        assert server_info["status"] == "active"
-        assert "compose" in server_info["capabilities"]
 
     @pytest.mark.asyncio
     async def test_contact_backup_recovery_workflow(
@@ -403,7 +395,8 @@ class TestMuttCrossComponentWorkflows:
 
         for alias, email, name in important_contacts:
             _, response = await aliases_mcp.call_tool(
-                "add_contact", {"alias": alias, "email": email, "name": name}
+                "contacts",
+                {"action": "add", "query": alias, "email": email, "name": name},
             )
             assert "error" not in response, response.get("error")
 
@@ -413,7 +406,7 @@ class TestMuttCrossComponentWorkflows:
 
         # Step 3: Simulate accidental deletion
         _, remove_response = await aliases_mcp.call_tool(
-            "remove_contact", {"alias": "critical1"}
+            "contacts", {"action": "remove", "query": "critical1"}
         )
         assert "error" not in remove_response, remove_response.get("error")
 
@@ -434,7 +427,7 @@ class TestMuttCrossComponentWorkflows:
 
         # Step 6: Test that tools still work after recovery
         _, search_response = await aliases_mcp.call_tool(
-            "find_contact", {"query": "critical"}
+            "contacts", {"action": "find", "query": "critical"}
         )
         assert "error" not in search_response, search_response.get("error")
         results = search_response["matches"]

@@ -481,23 +481,6 @@ def show(
 
 
 @mcp.tool(
-    description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes."""
-)
-def count(
-    query: str = Field(
-        ...,
-        description="A valid notmuch search query to count matching emails. Example: 'tag:unread'.",
-    ),
-) -> int:
-    """Count emails matching a notmuch query."""
-    cmd = ["notmuch", "count", query]
-
-    stdout, stderr = run_command(cmd)
-    count_result = stdout.decode().strip()
-    return int(count_result)
-
-
-@mcp.tool(
     description="""Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch."""
 )
 def tag(

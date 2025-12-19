@@ -194,9 +194,10 @@ Comprehensive email workflow integration
   - Send emails with msmtp
   - Compose, reply, and forward with Mutt
   - Search and manage emails with Notmuch
-  - Contact management and OAuth2 setup
+  - Contact management
   - _Claude example_: `> compose an email to the team about the project update`
-  - **Requires**: `msmtp`, `mutt`, and `notmuch` installed and configured
+  - **Requires**: `msmtp`, `mutt`, `notmuch`, and `offlineimap` installed and configured
+  - **Microsoft 365 accounts**: [OAuth2 setup guide](docs/email-oauth2-setup.md)
 
 
 

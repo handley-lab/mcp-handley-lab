@@ -64,7 +64,7 @@ class TestEmailMoveIntegration:
         }
 
     @patch("mcp_handley_lab.email.notmuch.tool.run_command")
-    @patch("mcp_handley_lab.email.notmuch.tool.new")
+    @patch("mcp_handley_lab.email.notmuch.tool._new")
     async def test_move_hermes_inbox_to_archive(
         self, mock_new, mock_run_command, mock_maildir, sample_emails
     ):
@@ -117,7 +117,7 @@ class TestEmailMoveIntegration:
         mock_new.assert_called_once()
 
     @patch("mcp_handley_lab.email.notmuch.tool.run_command")
-    @patch("mcp_handley_lab.email.notmuch.tool.new")
+    @patch("mcp_handley_lab.email.notmuch.tool._new")
     async def test_move_gmail_inbox_to_trash(
         self, mock_new, mock_run_command, mock_maildir, sample_emails
     ):
@@ -212,7 +212,7 @@ class TestEmailMoveIntegration:
         assert "List should have at least 1 item" in str(exc_info.value)
 
     @patch("mcp_handley_lab.email.notmuch.tool.run_command")
-    @patch("mcp_handley_lab.email.notmuch.tool.new")
+    @patch("mcp_handley_lab.email.notmuch.tool._new")
     async def test_move_handles_partial_success(
         self, mock_new, mock_run_command, mock_maildir, sample_emails
     ):

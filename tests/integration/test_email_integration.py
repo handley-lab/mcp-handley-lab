@@ -458,42 +458,28 @@ Subject: {test_subject}
     @pytest.mark.asyncio
     async def test_email_tool_functions_integration(self):
         """Test email tool functions that don't require credentials."""
-        # Import from email.tool to trigger tool registration (including server_info)
-        from mcp_handley_lab.email.msmtp.tool import _parse_msmtprc, list_accounts
-        from mcp_handley_lab.email.tool import mcp
+        from mcp_handley_lab.email.tool import _list_accounts, mcp
 
         # Test msmtp account parsing with real config file
         fixtures_dir = Path(__file__).parent.parent / "fixtures" / "email"
         msmtprc_path = fixtures_dir / "msmtprc"
 
-        # Test parsing real msmtprc file
+        # Test _list_accounts internal function
         try:
-            accounts = _parse_msmtprc(str(msmtprc_path))
+            accounts = _list_accounts(str(msmtprc_path))
             assert "HandleyLab" in accounts
             assert len(accounts) >= 1
         except FileNotFoundError:
             pytest.skip("Test msmtprc file not found")
 
-        # Test list_accounts function
+        # Test list tool via MCP for accounts
         try:
-            accounts = list_accounts(str(msmtprc_path))
-            assert "HandleyLab" in accounts
+            _, response = await mcp.call_tool("list", {"type": "accounts"})
+            # MCP wraps response in {'result': [...]}
+            result = response.get("result") if isinstance(response, dict) else response
+            assert isinstance(result, list)
         except FileNotFoundError:
-            pytest.skip("Test msmtprc file not found")
-
-        # Test server_info function using MCP call_tool
-        try:
-            _, response = await mcp.call_tool("server_info", {})
-            assert "error" not in response, response.get("error")
-            info = response
-
-            # Accept any of the email-related tool servers due to MCP tool conflicts
-            assert "Tool" in info["name"]
-            assert info["status"] == "active"
-            # Since there are multiple email tools, just check that we get a valid response
-            assert "capabilities" in info
-        except (FileNotFoundError, RuntimeError) as e:
-            pytest.skip(f"Email tools not available: {e}")
+            pytest.skip("msmtp config not found")
 
     @pytest.mark.asyncio
     async def test_notmuch_functions_integration(self):

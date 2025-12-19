@@ -18,6 +18,12 @@ from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
 
+def _new() -> str:
+    """Index newly received emails into notmuch database (internal helper)."""
+    stdout, _ = run_command(["notmuch", "new"], timeout=60)
+    return stdout.decode().strip()
+
+
 def _find_smart_destination(
     source_files: list[str], maildir_root: Path, destination_folder: str
 ) -> Path:
@@ -475,69 +481,6 @@ def show(
 
 
 @mcp.tool(
-    description="""Index newly received emails into notmuch database. Required after email sync to make new messages searchable. Updates tags per initial rules."""
-)
-def new() -> str:
-    """Index newly received emails with notmuch new."""
-    stdout, stderr = run_command(["notmuch", "new"])
-    output = stdout.decode().strip()
-    return f"Notmuch database updated:\n{output}"
-
-
-@mcp.tool(
-    description="""List all tags in notmuch database. Shows system tags (inbox, unread, sent) and custom tags. Useful for understanding organization and planning searches."""
-)
-def list_tags() -> list[str]:
-    """List all tags in the notmuch database."""
-    stdout, _ = run_command(["notmuch", "search", "--output=tags", "*"])
-    output = stdout.decode().strip()
-    return sorted([tag.strip() for tag in output.split("\n") if tag.strip()])
-
-
-@mcp.tool(
-    description="""List all maildir folders by scanning the mail directory structure. Returns folder paths like 'Hermes/INBOX', 'Gmail/Archive' that can be used with folder: queries and move operations."""
-)
-def list_folders() -> list[str]:
-    """List all maildir folders from the notmuch database path."""
-    db_path_stdout, _ = run_command(["notmuch", "config", "get", "database.path"])
-    maildir_root = Path(db_path_stdout.decode().strip())
-
-    folders = set()
-    for subdir in ("cur", "new"):
-        for path in maildir_root.rglob(subdir):
-            if path.is_dir():
-                # Parent of cur/new is the folder
-                folder = path.parent.relative_to(maildir_root)
-                folder_str = str(folder)
-                if folder_str != ".":
-                    folders.add(folder_str)
-
-    return sorted(folders)
-
-
-@mcp.tool(
-    description="""Retrieve notmuch configuration settings. Shows all settings or specific key. Useful for troubleshooting database path, user info, and tagging rules."""
-)
-def config(
-    key: str = Field(
-        default="",
-        description="An optional specific configuration key to retrieve (e.g., 'database.path'). If omitted, all configurations are listed.",
-    ),
-) -> str:
-    """Get notmuch configuration values."""
-    cmd = ["notmuch", "config", "list"]
-
-    if key:
-        cmd = ["notmuch", "config", "get", key]
-
-    stdout, stderr = run_command(cmd)
-    output = stdout.decode().strip()
-    if key:
-        return f"{key} = {output}"
-    return f"Notmuch configuration:\n{output}"
-
-
-@mcp.tool(
     description="""Count emails matching notmuch query without retrieving content. Fast way to validate queries and monitor email volumes."""
 )
 def count(
@@ -726,7 +669,7 @@ def move(
             ) from e
 
     # Update the notmuch index to discover the moved files
-    new()
+    _new()
 
     # Apply destination-based tag policies using resolved folder name
     tag_policies = {

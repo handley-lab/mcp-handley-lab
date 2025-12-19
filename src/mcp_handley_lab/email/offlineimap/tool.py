@@ -94,9 +94,19 @@ def sync_mail(
     stdout, _ = run_command(cmd, timeout=timeout)
     output = stdout.decode().strip()
 
+    # Index new messages after actual sync (not preview mode)
+    notmuch_output = ""
+    if mode in ("full", "quick"):
+        notmuch_stdout, _ = run_command(["notmuch", "new"], timeout=60)
+        notmuch_output = notmuch_stdout.decode().strip()
+
     mode_desc = {"full": "Full", "quick": "Quick", "preview": "Preview"}
+    message = f"{mode_desc.get(mode, mode)} sync completed:\n{output}"
+    if notmuch_output:
+        message += f"\n\nIndexing:\n{notmuch_output}"
+
     return OperationResult(
         status="success",
-        message=f"{mode_desc.get(mode, mode)} sync completed:\n{output}",
-        data={"raw": output, "mode": mode},
+        message=message,
+        data={"raw": output, "mode": mode, "indexed": notmuch_output},
     )

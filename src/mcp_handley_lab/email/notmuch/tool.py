@@ -17,11 +17,28 @@ from selectolax.parser import HTMLParser
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 
+MAILDIR_LEAFS = {"cur", "new", "tmp"}
+
 
 def _new() -> str:
     """Index newly received emails into notmuch database (internal helper)."""
     stdout, _ = run_command(["notmuch", "new"], timeout=60)
     return stdout.decode().strip()
+
+
+def _get_account_folders(maildir_root: Path, account_name: str) -> dict[str, Path]:
+    """Get folders for a specific account using shallow directory scan (fast; skips cur/new/tmp)."""
+    account_path = maildir_root / account_name
+    folders: dict[str, Path] = {}
+
+    if not account_path.is_dir():
+        return folders
+
+    for child in account_path.iterdir():
+        if child.is_dir() and child.name not in MAILDIR_LEAFS:
+            folders[child.name] = child
+
+    return folders
 
 
 def _find_smart_destination(
@@ -43,33 +60,32 @@ def _find_smart_destination(
     rel_path = first_source.relative_to(maildir_root)
 
     # Determine account path - handles both root and account-specific folders
-    # Root level emails are in structure: maildir/cur/file.eml or maildir/new/file.eml
-    # Account emails are in structure: maildir/Account/INBOX/cur/file.eml
     if len(rel_path.parts) > 2:  # Account/folder/cur/file.eml
-        account_path = maildir_root / rel_path.parts[0]
+        account_name = rel_path.parts[0]
+        account_path = maildir_root / account_name
     else:  # cur/file.eml or new/file.eml (root level)
         account_path = maildir_root
-    account_name = account_path.name
+        account_name = account_path.name
 
     # Try exact match first
     exact_match = account_path / destination_folder
     if exact_match.is_dir():
         return exact_match
 
+    # Get folders from notmuch index (fast, no filesystem scan)
+    account_folders = _get_account_folders(maildir_root, account_name)
+
     # Try common name variations (case-insensitive)
     destination_lower = destination_folder.lower()
     if potential_names := folder_map.get(destination_lower):
-        for folder in account_path.iterdir():
-            if folder.is_dir() and any(
-                name in folder.name.lower() for name in potential_names
-            ):
-                return folder
+        for folder_name, folder_path in account_folders.items():
+            if any(name in folder_name.lower() for name in potential_names):
+                return folder_path
 
     # No match found - fail with helpful error
-    available_folders = [f.name for f in account_path.iterdir() if f.is_dir()]
     raise FileNotFoundError(
         f"No existing folder matching '{destination_folder}' found in account '{account_name}'. "
-        f"Available folders: {available_folders}"
+        f"Available folders: {list(account_folders.keys())}"
     )
 
 

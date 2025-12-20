@@ -38,18 +38,25 @@ def _list_tags() -> list[str]:
     return sorted([tag.strip() for tag in output.split("\n") if tag.strip()])
 
 
+MAILDIR_LEAFS = {"cur", "new", "tmp"}
+
+
 def _list_folders() -> list[str]:
-    """List all maildir folders from the notmuch database path."""
+    """List maildir folders using shallow directory scan (fast; skips cur/new/tmp)."""
     db_path_stdout, _ = run_command(["notmuch", "config", "get", "database.path"])
     maildir_root = Path(db_path_stdout.decode().strip())
 
-    folders = set()
-    for subdir in ("cur", "new"):
-        for path in maildir_root.rglob(subdir):
-            if path.is_dir():
-                folder = path.parent.relative_to(maildir_root)
-                if str(folder) != ".":
-                    folders.add(str(folder))
+    folders: set[str] = set()
+    for account in maildir_root.iterdir():
+        if not account.is_dir():
+            continue
+        for child in account.iterdir():
+            if (
+                child.is_dir()
+                and child.name not in MAILDIR_LEAFS
+                and (child / "cur").is_dir()
+            ):
+                folders.add(f"{account.name}/{child.name}")
     return sorted(folders)
 
 

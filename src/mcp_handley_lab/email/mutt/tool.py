@@ -29,21 +29,22 @@ def _query_mutt_var(var: str) -> str | None:
     return None
 
 
+MAILDIR_LEAFS = {"cur", "new", "tmp"}
+
+
 def _is_maildir(path: Path) -> bool:
     """Check if a path is a valid Maildir directory."""
-    return path.is_dir() and all(
-        (path / subdir).exists() for subdir in ["cur", "new", "tmp"]
-    )
+    return path.is_dir() and (path / "cur").is_dir()
 
 
 def _find_account_folders(root: Path, mailbox: str) -> list[tuple[str, str]]:
-    """Find all account folders containing a specific mailbox."""
+    """Find all account folders containing a specific mailbox using shallow directory scan."""
     if not root.is_dir():
         return []
 
     candidates = []
     for account_dir in root.iterdir():
-        if not account_dir.is_dir():
+        if not account_dir.is_dir() or account_dir.name in MAILDIR_LEAFS:
             continue
 
         # Case 1: Mailbox is the account root itself (e.g., for INBOX)

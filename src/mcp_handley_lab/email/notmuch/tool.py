@@ -100,6 +100,10 @@ class EmailContent(BaseModel):
         default_factory=list,
         description="A list of filenames for any attachments in the email.",
     )
+    saved_files: list[str] = Field(
+        default_factory=list,
+        description="Paths to saved files when save_attachments_to is used (body + attachments).",
+    )
 
 
 class TagResult(BaseModel):
@@ -111,20 +115,6 @@ class TagResult(BaseModel):
     )
     removed_tags: list[str] = Field(
         ..., description="A list of tags that were removed from the message."
-    )
-
-
-class AttachmentExtractionResult(BaseModel):
-    """Result of a successful attachment extraction operation."""
-
-    message_id: str = Field(
-        ..., description="The notmuch message ID from which attachments were extracted."
-    )
-    saved_files: list[str] = Field(
-        ..., description="A list of absolute paths to the saved attachment files."
-    )
-    message: str = Field(
-        ..., description="Status message describing the extraction result."
     )
 
 
@@ -396,11 +386,48 @@ def process_html_content(html_content: str) -> str:
         return html_content
 
 
+def _save_email_files(
+    msg, message_id: str, body_content: str, body_format: str, save_path: Path
+) -> list[str]:
+    """Save email body and attachments to files."""
+    saved_files = []
+    save_path.mkdir(parents=True, exist_ok=True)
+
+    # Create safe base filename from message_id
+    safe_id = re.sub(r'[\\/*?:"<>|@]', "_", message_id)[:50]
+
+    # Save body as txt or html
+    body_ext = ".html" if body_format == "html" else ".txt"
+    body_file = save_path / f"{safe_id}_body{body_ext}"
+    body_file.write_text(body_content)
+    saved_files.append(str(body_file))
+
+    # Save attachments
+    for part in msg.walk():
+        if part_filename := part.get_filename():
+            clean_filename = re.sub(r'[\\/*?:"<>|]', "_", Path(part_filename).name)
+            file_path = save_path / clean_filename
+
+            # Handle filename collisions
+            counter = 1
+            stem, suffix = file_path.stem, file_path.suffix
+            while file_path.exists():
+                file_path = save_path / f"{stem}_{counter}{suffix}"
+                counter += 1
+
+            if payload := part.get_payload(decode=True):
+                file_path.write_bytes(payload)
+                saved_files.append(str(file_path))
+
+    return saved_files
+
+
 def _show_email(
     query: str,
     mode: str = "full",
     limit: int | None = None,
     include_excluded: bool = False,
+    save_to: str = "",
 ) -> list[EmailContent]:
     """Internal implementation of email display."""
     cmd = ["notmuch", "search", "--format=json", "--output=messages"]
@@ -413,6 +440,8 @@ def _show_email(
     # Apply limit to prevent token overflow if specified
     if limit is not None and len(message_ids) > limit:
         message_ids = message_ids[:limit]
+
+    save_path = Path(save_to).expanduser() if save_to else None
 
     results = []
     for message_id in message_ids:
@@ -439,6 +468,13 @@ def _show_email(
             if tag.strip()
         ]
 
+        # Save files if requested
+        saved_files = []
+        if save_path:
+            saved_files = _save_email_files(
+                reconstructed_msg, message_id, body_content, body_format, save_path
+            )
+
         results.append(
             EmailContent(
                 id=message_id,
@@ -450,13 +486,14 @@ def _show_email(
                 body_markdown=body_content,
                 body_format=body_format,
                 attachments=attachments,
+                saved_files=saved_files,
             )
         )
     return results
 
 
 @mcp.tool(
-    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity."""
+    description="""Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity. Optionally saves body and attachments to files."""
 )
 def show(
     query: str = Field(
@@ -475,9 +512,15 @@ def show(
         default=False,
         description="Include emails with excluded tags (spam, deleted) that are normally hidden by notmuch.",
     ),
+    save_attachments_to: str = Field(
+        default="",
+        description="Directory to save email body and attachments to. Body saved as .txt/.html, attachments saved with original filenames. Paths returned in saved_files field.",
+    ),
 ) -> list[EmailContent]:
     """Show email content with optimized token-efficient processing."""
-    return _show_email(query, mode, limit, include_excluded)
+    return _show_email(
+        query, mode, limit, include_excluded, save_to=save_attachments_to
+    )
 
 
 @mcp.tool(
@@ -506,77 +549,6 @@ def tag(
 
     return TagResult(
         message_id=message_id, added_tags=add_tags, removed_tags=remove_tags
-    )
-
-
-@mcp.tool(
-    description="Extracts and saves one or all attachments from a specific email. If 'filename' is provided, only that attachment is saved. Files are saved to 'output_dir', which defaults to the current directory. Returns a result object with a list of absolute paths to the saved files."
-)
-def extract_attachments(
-    message_id: str = Field(
-        ...,
-        description="The notmuch message ID of the email containing the attachments.",
-    ),
-    output_dir: str = Field(
-        default="",
-        description="The directory to save attachments to. Defaults to the current directory.",
-    ),
-    filename: str = Field(
-        default="",
-        description="The specific filename of the attachment to extract. If omitted, all attachments are extracted.",
-    ),
-) -> AttachmentExtractionResult:
-    """
-    Extracts attachments from an email, failing loudly if the email or attachment isn't found.
-    """
-    msg = _get_message_from_raw_source(message_id)
-
-    if filename and (match := re.match(r"(.+?)\s+\(.+\)", filename)):
-        filename = match.group(1)
-
-    save_path = Path(output_dir or ".").expanduser()
-    save_path.mkdir(parents=True, exist_ok=True)
-
-    saved_files = []
-    found_attachments = []
-
-    for part in msg.walk():
-        if (part_filename := part.get_filename()) and (
-            not filename or part_filename == filename
-        ):
-            found_attachments.append(part)
-
-    if filename and not found_attachments:
-        raise FileNotFoundError(
-            f"Attachment '{filename}' not found in email id:{message_id}."
-        )
-
-    if not found_attachments:
-        return AttachmentExtractionResult(
-            message_id=message_id,
-            saved_files=[],
-            message="No attachments found in the email.",
-        )
-
-    for part in found_attachments:
-        part_filename = part.get_filename()
-        clean_filename = re.sub(r'[\\/*?:"<>|]', "_", Path(part_filename).name)
-        file_path = save_path / clean_filename
-
-        counter = 1
-        stem, suffix = file_path.stem, file_path.suffix
-        while file_path.exists():
-            file_path = save_path / f"{stem}_{counter}{suffix}"
-            counter += 1
-
-        if payload := part.get_payload(decode=True):
-            file_path.write_bytes(payload)
-            saved_files.append(str(file_path))
-
-    return AttachmentExtractionResult(
-        message_id=message_id,
-        saved_files=saved_files,
-        message=f"Successfully saved {len(saved_files)} attachment(s) to {save_path}.",
     )
 
 

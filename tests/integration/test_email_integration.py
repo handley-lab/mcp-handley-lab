@@ -472,14 +472,13 @@ Subject: {test_subject}
         except FileNotFoundError:
             pytest.skip("Test msmtprc file not found")
 
-        # Test list tool via MCP for accounts
-        try:
-            _, response = await mcp.call_tool("list", {"type": "accounts"})
-            # MCP wraps response in {'result': [...]}
-            result = response.get("result") if isinstance(response, dict) else response
-            assert isinstance(result, list)
-        except FileNotFoundError:
-            pytest.skip("msmtp config not found")
+        # Test list tool via MCP for accounts (skip if msmtprc not available)
+        msmtprc_default = Path.home() / ".msmtprc"
+        if not msmtprc_default.exists():
+            pytest.skip("~/.msmtprc not found")
+        _, response = await mcp.call_tool("list", {"type": "accounts"})
+        result = response.get("result") if isinstance(response, dict) else response
+        assert isinstance(result, list)
 
     @pytest.mark.asyncio
     async def test_notmuch_functions_integration(self):

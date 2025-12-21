@@ -45,8 +45,8 @@ def get_model_config(model: str) -> dict:
 def resolve_model_alias(model: str) -> str:
     """Resolve model aliases to full model names."""
     aliases = {
+        "opus": "claude-opus-4-5-20251101",
         "sonnet": "claude-sonnet-4-5-20250929",
-        "opus": "claude-opus-4-1-20250805",
         "haiku": "claude-haiku-4-5-20251001",
     }
     return aliases.get(model, model)

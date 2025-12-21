@@ -1,9 +1,43 @@
 models:
+  grok-4-1-fast-reasoning:
+    # Model metadata
+    description: "Latest Grok 4.1 lightning-fast reasoning model with 2M context"
+    capabilities: "🌟 Best for: Fast reasoning, large context tasks, cost-effective complex analysis"
+    tags: ["latest", "reasoning", "fast", "cost-effective"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 0.20
+    output_per_1m: 0.50
+
+  grok-4-1-fast-non-reasoning:
+    # Model metadata
+    description: "Latest Grok 4.1 lightning-fast non-reasoning model with 2M context"
+    capabilities: "⚡ Best for: Fast responses, large context tasks, high-throughput processing"
+    tags: ["latest", "fast", "cost-effective"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 0.20
+    output_per_1m: 0.50
+
   grok-4-fast-reasoning:
     # Model metadata
     description: "Lightning-fast reasoning model with massive 2M context window"
     capabilities: "🎯 Best for: Fast reasoning, large context tasks, cost-effective complex analysis"
-    tags: ["latest", "reasoning", "fast", "cost-effective"]
+    tags: ["reasoning", "fast", "cost-effective"]
     context_window: "2,000,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
@@ -20,7 +54,7 @@ models:
     # Model metadata
     description: "Lightning-fast non-reasoning model with massive 2M context window"
     capabilities: "⚡ Best for: Fast responses, large context tasks, high-throughput processing"
-    tags: ["latest", "fast", "cost-effective"]
+    tags: ["fast", "cost-effective"]
     context_window: "2,000,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
@@ -105,8 +139,8 @@ models:
     description: "Multimodal Grok model capable of analyzing images and responding to text prompts"
     capabilities: "👁️ Best for: Image analysis, multimodal tasks, visual content understanding"
     tags: ["multimodal", "vision", "general", "legacy"]
-    context_window: "131,072 tokens"
-    output_tokens: 16384
+    context_window: "8,192 tokens"
+    output_tokens: 8192
     param: "max_tokens"
     supports_temperature: true
     supports_vision: true
@@ -115,8 +149,7 @@ models:
 
     # Pricing
     input_per_1m: 2.00
-    output_per_1m: 10.00
-    image_input_per_1m: 2.00  # Text and image inputs same price
+    output_per_1m: 1.00
 
   grok-2-image-1212:
     # Model metadata
@@ -159,18 +192,18 @@ display_categories:
     description: "Previous generation Grok models"
 
 # Default model (most capable reasoning model)
-default_model: "grok-4-fast-reasoning"
+default_model: "grok-4-1-fast-reasoning"
 
 # Usage notes
 usage_notes:
   - "All Grok models support function calling, tool use, and structured outputs"
-  - "Grok-4-fast models have massive 2M context windows for large-scale analysis"
+  - "Grok-4.1-fast models are the latest with 2M context windows ($0.20/$0.50 per 1M tokens)"
   - "Grok-3, Grok-3-mini, and Grok-4 fast models support vision (image analysis)"
   - "grok-code-fast-1 is optimized for lightning-fast agentic coding tasks"
-  - "grok-4-fast-reasoning and grok-4-fast-non-reasoning offer best cost/performance"
-  - "Image generation models charge per image, not per token"
+  - "grok-4-1-fast-reasoning and grok-4-1-fast-non-reasoning offer best cost/performance"
+  - "Image generation models charge per image ($0.07), not per token"
   - "Grok has less restrictive moderation compared to other providers"
   - "API is compatible with OpenAI and Anthropic SDKs for easy migration"
   - "Real-time search integration available with live web data from X"
-  - "Context windows: Grok-4-fast (2M), grok-code-fast-1 (256K), others (131K)"
+  - "Context windows: Grok-4.1-fast (2M), grok-code-fast-1 (256K), others (131K)"
   - "Image constraints: max 20MB, JPG/JPEG and PNG formats only"

@@ -14,20 +14,18 @@ class TestClaudeModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Claude models are in MODEL_CONFIGS."""
         expected_models = {
+            "claude-opus-4-5-20251101",
             "claude-sonnet-4-5-20250929",
             "claude-haiku-4-5-20251001",
-            "claude-opus-4-1-20250805",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
 
     def test_model_configs_token_limits(self):
         """Test that model configurations have correct token limits."""
-        # Claude 4.5 series
+        # Claude 4.5 series - all have 64K output tokens
+        assert MODEL_CONFIGS["claude-opus-4-5-20251101"]["output_tokens"] == 64000
         assert MODEL_CONFIGS["claude-sonnet-4-5-20250929"]["output_tokens"] == 64000
         assert MODEL_CONFIGS["claude-haiku-4-5-20251001"]["output_tokens"] == 64000
-
-        # Claude 4.1 series
-        assert MODEL_CONFIGS["claude-opus-4-1-20250805"]["output_tokens"] == 32000
 
     def test_model_configs_context_windows(self):
         """Test that model configurations have correct context windows."""
@@ -58,8 +56,8 @@ class TestClaudeModelConfiguration:
 
     def test_resolve_model_alias(self):
         """Test model alias resolution."""
+        assert resolve_model_alias("opus") == "claude-opus-4-5-20251101"
         assert resolve_model_alias("sonnet") == "claude-sonnet-4-5-20250929"
-        assert resolve_model_alias("opus") == "claude-opus-4-1-20250805"
         assert resolve_model_alias("haiku") == "claude-haiku-4-5-20251001"
 
         # Test that non-alias models pass through unchanged

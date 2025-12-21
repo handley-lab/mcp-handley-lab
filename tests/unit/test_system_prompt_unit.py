@@ -1,116 +1,129 @@
 """Simplified unit tests for system prompt functionality."""
 
-import tempfile
+import json
 from unittest.mock import Mock, patch
 
-from mcp_handley_lab.llm.memory import MemoryManager
+from mcp_handley_lab.llm.memory import GlobalMemoryManager
 
 
 class TestSystemPromptMemoryOperations:
     """Test system prompt operations in memory management."""
 
-    def test_agent_creation_with_system_prompt(self):
+    def test_agent_creation_with_system_prompt(self, tmp_path, monkeypatch):
         """Test that agents are created with system prompts."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent with system prompt
-            agent = manager.create_agent("test_agent", "You are helpful")
+        # Create agent with system prompt
+        agent = manager.create_agent("test_agent", "You are helpful")
 
-            assert agent.system_prompt == "You are helpful"
-            assert manager.get_agent("test_agent").system_prompt == "You are helpful"
+        assert agent.system_prompt == "You are helpful"
+        assert manager.get_agent("test_agent").system_prompt == "You are helpful"
 
-    def test_agent_creation_without_system_prompt(self):
+    def test_agent_creation_without_system_prompt(self, tmp_path, monkeypatch):
         """Test that agents can be created without system prompts."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent without system prompt
-            agent = manager.create_agent("test_agent")
+        # Create agent without system prompt
+        agent = manager.create_agent("test_agent")
 
-            assert agent.system_prompt is None
-            assert manager.get_agent("test_agent").system_prompt is None
+        assert agent.system_prompt is None
+        assert manager.get_agent("test_agent").system_prompt is None
 
-    def test_system_prompt_update_and_persistence(self):
-        """Test that system prompt updates are persisted."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+    def test_system_prompt_update_and_persistence(self, tmp_path, monkeypatch):
+        """Test that system prompt updates are persisted via JSONL events."""
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent with initial system prompt
-            agent = manager.create_agent("test_agent", "Original prompt")
-            assert agent.system_prompt == "Original prompt"
+        # Create agent with initial system prompt
+        agent = manager.create_agent("test_agent", "Original prompt")
+        assert agent.system_prompt == "Original prompt"
 
-            # Update system prompt
-            agent.system_prompt = "Updated prompt"
-            manager._save_agent(agent)
+        # Update system prompt (auto-persisted via property setter)
+        agent.system_prompt = "Updated prompt"
 
-            # Verify update persisted
-            updated_agent = manager.get_agent("test_agent")
-            assert updated_agent.system_prompt == "Updated prompt"
+        # Verify update persisted in JSONL
+        jsonl_file = manager._agents_dir / "test_agent.jsonl"
+        lines = jsonl_file.read_text().strip().split("\n")
 
-    def test_system_prompt_file_persistence(self):
-        """Test that system prompts are saved to and loaded from disk."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create first manager and agent
-            manager1 = MemoryManager(temp_dir)
-            manager1.create_agent("persistent_agent", "Persistent system prompt")
+        # Should have system_prompt_set events
+        events = [json.loads(line) for line in lines]
+        prompt_events = [e for e in events if e["type"] == "system_prompt_set"]
+        assert len(prompt_events) == 2
+        assert prompt_events[0]["content"] == "Original prompt"
+        assert prompt_events[1]["content"] == "Updated prompt"
 
-            # Verify file contains system prompt
-            agent_file = manager1.agents_dir / "persistent_agent.json"
-            assert agent_file.exists()
+    def test_system_prompt_file_persistence(self, tmp_path, monkeypatch):
+        """Test that system prompts are loaded from JSONL on restart."""
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
 
-            import json
+        # Create first manager and agent
+        manager1 = GlobalMemoryManager(tmp_path)
+        manager1.create_agent("persistent_agent", "Persistent system prompt")
 
-            agent_data = json.loads(agent_file.read_text())
-            assert agent_data["system_prompt"] == "Persistent system prompt"
+        # Verify JSONL file contains system prompt event
+        agent_file = manager1._agents_dir / "persistent_agent.jsonl"
+        assert agent_file.exists()
 
-            # Create second manager (simulates restart)
-            manager2 = MemoryManager(temp_dir)
+        events = [
+            json.loads(line) for line in agent_file.read_text().strip().split("\n")
+        ]
+        prompt_events = [e for e in events if e["type"] == "system_prompt_set"]
+        assert len(prompt_events) == 1
+        assert prompt_events[0]["content"] == "Persistent system prompt"
 
-            # Verify agent and system prompt were loaded
-            loaded_agent = manager2.get_agent("persistent_agent")
-            assert loaded_agent is not None
-            assert loaded_agent.system_prompt == "Persistent system prompt"
+        # Create second manager (simulates restart) - need to clear cached manager
+        from mcp_handley_lab.llm import memory
 
-    def test_system_prompt_stats(self):
+        memory._memory_manager = None
+
+        manager2 = GlobalMemoryManager(tmp_path)
+
+        # Verify agent and system prompt were loaded
+        loaded_agent = manager2.get_agent("persistent_agent")
+        assert loaded_agent is not None
+        assert loaded_agent.system_prompt == "Persistent system prompt"
+
+    def test_system_prompt_stats(self, tmp_path, monkeypatch):
         """Test that system prompts appear in agent statistics."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent with system prompt
-            agent = manager.create_agent("test_agent", "Test system prompt")
-            agent.add_message("user", "Hello", tokens=5, cost=0.001)
+        # Create agent with system prompt
+        agent = manager.create_agent("test_agent", "Test system prompt")
+        agent.add_message("user", "Hello", input_tokens=5, cost=0.001)
 
-            stats = agent.get_stats()
-            assert stats["system_prompt"] == "Test system prompt"
-            assert stats["name"] == "test_agent"
-            assert stats["message_count"] == 1
+        stats = agent.get_stats()
+        assert stats["system_prompt"] == "Test system prompt"
+        assert stats["name"] == "test_agent"
+        assert stats["message_count"] == 1
 
-    def test_empty_system_prompt(self):
+    def test_empty_system_prompt(self, tmp_path, monkeypatch):
         """Test handling of empty system prompts."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent with empty system prompt
-            agent = manager.create_agent("test_agent", "")
-            assert agent.system_prompt == ""
+        # Create agent with empty system prompt
+        agent = manager.create_agent("test_agent", "")
+        assert agent.system_prompt == ""
 
-            # Verify stats show empty prompt
-            stats = agent.get_stats()
-            assert stats["system_prompt"] == ""
+        # Verify stats show empty prompt
+        stats = agent.get_stats()
+        assert stats["system_prompt"] == ""
 
-    def test_none_system_prompt(self):
+    def test_none_system_prompt(self, tmp_path, monkeypatch):
         """Test handling of None system prompts."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            manager = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        manager = GlobalMemoryManager(tmp_path)
 
-            # Create agent with None system prompt
-            agent = manager.create_agent("test_agent", None)
-            assert agent.system_prompt is None
+        # Create agent with None system prompt
+        agent = manager.create_agent("test_agent", None)
+        assert agent.system_prompt is None
 
-            # Verify stats show None prompt
-            stats = agent.get_stats()
-            assert stats["system_prompt"] is None
+        # Verify stats show None prompt
+        stats = agent.get_stats()
+        assert stats["system_prompt"] is None
 
 
 class TestSystemPromptSharedLogic:
@@ -119,7 +132,7 @@ class TestSystemPromptSharedLogic:
     @patch("mcp_handley_lab.llm.shared.calculate_cost", return_value=0.001)
     @patch("mcp_handley_lab.llm.shared.handle_agent_memory")
     def test_system_prompt_extracted_from_kwargs(
-        self, mock_handle_memory, mock_calculate_cost
+        self, mock_handle_memory, mock_calculate_cost, tmp_path, monkeypatch
     ):
         """Test that system_prompt is extracted from kwargs and passed to generation function."""
         from mcp_handley_lab.llm.shared import process_llm_request
@@ -134,36 +147,36 @@ class TestSystemPromptSharedLogic:
 
         mock_mcp = Mock()
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_memory = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        temp_memory = GlobalMemoryManager(tmp_path)
 
-            with (
-                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
-                patch(
-                    "mcp_handley_lab.llm.shared.get_session_id",
-                    return_value="session_123",
-                ),
-            ):
-                process_llm_request(
-                    prompt="Test prompt",
-                    output_file="-",
-                    agent_name="test_agent",
-                    model="gemini-2.5-flash",  # Use real model to avoid pricing issues
-                    provider="gemini",  # Use real provider
-                    generation_func=mock_generation_func,
-                    mcp_instance=mock_mcp,
-                    system_prompt="You are helpful",
-                )
+        with (
+            patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+            patch(
+                "mcp_handley_lab.llm.shared.get_session_id",
+                return_value="session_123",
+            ),
+        ):
+            process_llm_request(
+                prompt="Test prompt",
+                output_file="-",
+                agent_name="test_agent",
+                model="gemini-2.5-flash",
+                provider="gemini",
+                generation_func=mock_generation_func,
+                mcp_instance=mock_mcp,
+                system_prompt="You are helpful",
+            )
 
-                # Verify generation function was called with system_instruction
-                mock_generation_func.assert_called_once()
-                call_kwargs = mock_generation_func.call_args[1]
-                assert call_kwargs["system_instruction"] == "You are helpful"
+            # Verify generation function was called with system_instruction
+            mock_generation_func.assert_called_once()
+            call_kwargs = mock_generation_func.call_args[1]
+            assert call_kwargs["system_instruction"] == "You are helpful"
 
     @patch("mcp_handley_lab.llm.shared.calculate_cost", return_value=0.001)
     @patch("mcp_handley_lab.llm.shared.handle_agent_memory")
     def test_system_prompt_creates_new_agent(
-        self, mock_handle_memory, mock_calculate_cost
+        self, mock_handle_memory, mock_calculate_cost, tmp_path, monkeypatch
     ):
         """Test that new agents are created with provided system prompt."""
         from mcp_handley_lab.llm.shared import process_llm_request
@@ -178,36 +191,36 @@ class TestSystemPromptSharedLogic:
 
         mock_mcp = Mock()
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_memory = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        temp_memory = GlobalMemoryManager(tmp_path)
 
-            with (
-                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
-                patch(
-                    "mcp_handley_lab.llm.shared.get_session_id",
-                    return_value="session_123",
-                ),
-            ):
-                process_llm_request(
-                    prompt="Test prompt",
-                    output_file="-",
-                    agent_name="new_agent",
-                    model="gemini-2.5-flash",
-                    provider="gemini",
-                    generation_func=mock_generation_func,
-                    mcp_instance=mock_mcp,
-                    system_prompt="You are a helpful assistant",
-                )
+        with (
+            patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+            patch(
+                "mcp_handley_lab.llm.shared.get_session_id",
+                return_value="session_123",
+            ),
+        ):
+            process_llm_request(
+                prompt="Test prompt",
+                output_file="-",
+                agent_name="new_agent",
+                model="gemini-2.5-flash",
+                provider="gemini",
+                generation_func=mock_generation_func,
+                mcp_instance=mock_mcp,
+                system_prompt="You are a helpful assistant",
+            )
 
-                # Verify agent was created with system prompt
-                agent = temp_memory.get_agent("new_agent")
-                assert agent is not None
-                assert agent.system_prompt == "You are a helpful assistant"
+            # Verify agent was created with system prompt
+            agent = temp_memory.get_agent("new_agent")
+            assert agent is not None
+            assert agent.system_prompt == "You are a helpful assistant"
 
     @patch("mcp_handley_lab.llm.shared.calculate_cost", return_value=0.001)
     @patch("mcp_handley_lab.llm.shared.handle_agent_memory")
     def test_system_prompt_updates_existing_agent(
-        self, mock_handle_memory, mock_calculate_cost
+        self, mock_handle_memory, mock_calculate_cost, tmp_path, monkeypatch
     ):
         """Test that existing agent's system prompt is updated."""
         from mcp_handley_lab.llm.shared import process_llm_request
@@ -222,31 +235,31 @@ class TestSystemPromptSharedLogic:
 
         mock_mcp = Mock()
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_memory = MemoryManager(temp_dir)
+        monkeypatch.setenv("MCP_HANDLEY_LAB_MEMORY_DIR", str(tmp_path))
+        temp_memory = GlobalMemoryManager(tmp_path)
 
-            # Create agent with initial system prompt
-            agent = temp_memory.create_agent("existing_agent", "Original prompt")
-            assert agent.system_prompt == "Original prompt"
+        # Create agent with initial system prompt
+        agent = temp_memory.create_agent("existing_agent", "Original prompt")
+        assert agent.system_prompt == "Original prompt"
 
-            with (
-                patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
-                patch(
-                    "mcp_handley_lab.llm.shared.get_session_id",
-                    return_value="session_123",
-                ),
-            ):
-                process_llm_request(
-                    prompt="Test prompt",
-                    output_file="-",
-                    agent_name="existing_agent",
-                    model="gemini-2.5-flash",
-                    provider="gemini",
-                    generation_func=mock_generation_func,
-                    mcp_instance=mock_mcp,
-                    system_prompt="Updated prompt",
-                )
+        with (
+            patch("mcp_handley_lab.llm.shared.memory_manager", temp_memory),
+            patch(
+                "mcp_handley_lab.llm.shared.get_session_id",
+                return_value="session_123",
+            ),
+        ):
+            process_llm_request(
+                prompt="Test prompt",
+                output_file="-",
+                agent_name="existing_agent",
+                model="gemini-2.5-flash",
+                provider="gemini",
+                generation_func=mock_generation_func,
+                mcp_instance=mock_mcp,
+                system_prompt="Updated prompt",
+            )
 
-                # Verify agent's system prompt was updated
-                updated_agent = temp_memory.get_agent("existing_agent")
-                assert updated_agent.system_prompt == "Updated prompt"
+            # Verify agent's system prompt was updated
+            updated_agent = temp_memory.get_agent("existing_agent")
+            assert updated_agent.system_prompt == "Updated prompt"

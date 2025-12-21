@@ -26,6 +26,55 @@ models:
       - threshold: .inf
         price: 18.00
 
+  gemini-3-flash-preview:
+    # Model metadata
+    description: "Fast, efficient Gemini 3 model balancing speed and intelligence"
+    capabilities: "⚡ Best for: Fast inference, general tasks, cost-effective multimodal"
+    tags: ["gemini-3", "flash", "fast", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    supports_thinking_level: true
+
+    # Pricing (by modality)
+    input_by_modality:
+      text: 0.50
+      image: 0.50
+      video: 0.50
+      audio: 1.00
+    output_per_1m: 3.00
+
+  gemini-3-pro-image-preview:
+    # Model metadata
+    description: "Gemini 3 Pro with native multimodal image generation capabilities"
+    capabilities: "🎨 Best for: Native image generation, multimodal creation, text-to-image"
+    tags: ["gemini-3", "pro", "image-generation", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: true
+    supports_thinking_level: true
+    supports_image_generation: true
+
+    # Pricing (tiered for text, per-image for generated images)
+    input_tiers:
+      - threshold: 200000
+        price: 2.00
+      - threshold: .inf
+        price: 4.00
+    output_tiers:
+      - threshold: 200000
+        price: 12.00
+      - threshold: .inf
+        price: 18.00
+    # Image generation: $0.134-$0.24 per image (~$120/1M output tokens)
+    image_output_per_1m: 120.00
+
   gemini-2.5-pro:
     # Model metadata
     description: "Powerful reasoning model excelling at coding and complex reasoning tasks"
@@ -198,8 +247,10 @@ usage_notes:
   - "Gemini 3 Pro supports thinking_level (low/high) for controlling reasoning depth"
   - "Gemini 3 Pro supports media_resolution for multimodal vision control"
   - "Gemini 3 Pro uses thought signatures for maintaining reasoning context"
-  - "Gemini 3 Pro has 1M token context window, 64k output tokens"
-  - "Gemini 3 Pro defaults to temperature 1.0 (strongly recommended per documentation)"
+  - "Gemini 3 Flash Preview offers fast inference with Gemini 3 capabilities"
+  - "Gemini 3 Pro Image Preview supports native multimodal image generation"
+  - "All Gemini 3 models have 1M token context window, 64k output tokens"
+  - "Gemini 3 models default to temperature 1.0 (strongly recommended per documentation)"
   - "Gemini 2.5 Pro, Flash, and Flash-Lite have free tiers available"
   - "Pro models have large context windows (1M-2M tokens)"
   - "Flash models balance speed and capability with lower costs"
@@ -207,5 +258,5 @@ usage_notes:
   - "Audio input has higher costs than text/image/video for Flash models"
   - "Tiered pricing applies to Pro models based on token count thresholds"
   - "Google Search grounding: 1,500 RPD free, then additional charges apply"
-  - "Image generation models charge per image ($0.02-$0.06)"
+  - "Imagen 4 models charge per image ($0.02-$0.06)"
   - "Video generation models charge per second ($0.35)"

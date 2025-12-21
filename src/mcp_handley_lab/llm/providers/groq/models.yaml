@@ -70,6 +70,20 @@ models:
     input_per_1m: 0.075
     output_per_1m: 0.30
 
+  openai/gpt-oss-safeguard-20b:
+    description: "OpenAI's GPT-OSS 20B Safeguard model for content moderation and safety classification."
+    capabilities: "Best for: Content moderation, safety filtering, policy compliance, input/output guardrails."
+    tags: ["gpt-oss", "safety", "moderation", "production"]
+    context_window: "131,072 tokens"
+    output_tokens: 65536
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: false
+    supports_tool_calling: false
+    supports_system_prompt: true
+    input_per_1m: 0.075
+    output_per_1m: 0.30
+
   # Preview Models
   meta-llama/llama-4-maverick-17b-128e-instruct:
     description: "Meta's Llama 4 Maverick 17B with 128 experts - latest generation multimodal model."
@@ -127,6 +141,72 @@ models:
     input_per_1m: 0.29
     output_per_1m: 0.59
 
+  # Text-to-Speech Models
+  playai-tts:
+    description: "PlayAI Dialog v1.0 - high-quality text-to-speech model."
+    capabilities: "Best for: Natural speech synthesis, conversational audio generation."
+    tags: ["tts", "audio", "speech"]
+    context_window: "N/A (TTS)"
+    output_tokens: 0  # TTS outputs audio, not tokens
+    param: "max_tokens"  # Not used for TTS
+    supports_temperature: false
+    supports_vision: false
+    supports_tool_calling: false
+    supports_system_prompt: false
+    # Pricing: $50.00 per million characters
+    price_per_1m_chars: 50.00
+    pricing_type: "per_character"
+    # NOTE: Audio output handling not fully implemented
+
+  canopylabs/orpheus-arabic-saudi:
+    description: "Canopy Labs Orpheus Arabic Saudi - Arabic TTS model."
+    capabilities: "Best for: Arabic speech synthesis, Saudi dialect."
+    tags: ["tts", "audio", "speech", "arabic"]
+    context_window: "N/A (TTS)"
+    output_tokens: 0  # TTS outputs audio, not tokens
+    param: "max_tokens"  # Not used for TTS
+    supports_temperature: false
+    supports_vision: false
+    supports_tool_calling: false
+    supports_system_prompt: false
+    # Pricing: $40.00 per million characters
+    price_per_1m_chars: 40.00
+    pricing_type: "per_character"
+    # NOTE: Audio output handling not fully implemented
+
+  # Automatic Speech Recognition (ASR) Models
+  whisper-large-v3:
+    description: "Whisper V3 Large - high-accuracy speech-to-text model."
+    capabilities: "Best for: Accurate transcription, multilingual audio."
+    tags: ["asr", "audio", "transcription", "whisper"]
+    context_window: "N/A (ASR)"
+    output_tokens: 0  # ASR outputs text, not tokens
+    param: "max_tokens"  # Not used for ASR
+    supports_temperature: false
+    supports_vision: false
+    supports_tool_calling: false
+    supports_system_prompt: false
+    # Pricing: $0.111 per hour (billed at minimum 10s per request)
+    price_per_hour: 0.111
+    pricing_type: "per_hour"
+    # NOTE: Audio input handling not fully implemented
+
+  whisper-large-v3-turbo:
+    description: "Whisper Large v3 Turbo - fast speech-to-text model."
+    capabilities: "Best for: Fast transcription, high-throughput audio processing."
+    tags: ["asr", "audio", "transcription", "whisper", "fast"]
+    context_window: "N/A (ASR)"
+    output_tokens: 0  # ASR outputs text, not tokens
+    param: "max_tokens"  # Not used for ASR
+    supports_temperature: false
+    supports_vision: false
+    supports_tool_calling: false
+    supports_system_prompt: false
+    # Pricing: $0.04 per hour (billed at minimum 10s per request)
+    price_per_hour: 0.04
+    pricing_type: "per_hour"
+    # NOTE: Audio input handling not fully implemented
+
 display_categories:
   - name: "Llama 4 Models (Preview)"
     tags: ["llama4"]
@@ -143,13 +223,22 @@ display_categories:
   - name: "Qwen Models"
     tags: ["qwen"]
     description: "Alibaba's Qwen multilingual models."
+  - name: "🎤 Text-to-Speech"
+    tags: ["tts"]
+    description: "Speech synthesis models (output handling not fully implemented)."
+  - name: "🎧 Speech Recognition"
+    tags: ["asr", "whisper"]
+    description: "Automatic speech recognition models (input handling not fully implemented)."
 
 default_model: "moonshotai/kimi-k2-instruct-0905"
 
 usage_notes:
   - "Groq models are served via an OpenAI-compatible API."
-  - "All models support the 'temperature' parameter."
-  - "Pricing is per million tokens (input/output)."
+  - "All LLM models support the 'temperature' parameter."
+  - "Pricing is per million tokens (input/output) for LLMs."
   - "Llama 4 models support vision/multimodal inputs."
   - "Context windows: Most models support 131K tokens, Kimi supports 262K tokens."
   - "Preview models may be deprecated with short notice."
+  - "TTS models: PlayAI ($50/M chars), Orpheus Arabic ($40/M chars)"
+  - "ASR models: Whisper v3 ($0.111/hr), Whisper Turbo ($0.04/hr) - billed min 10s"
+  - "⚠️ Audio I/O handling not fully implemented - models listed for completeness"

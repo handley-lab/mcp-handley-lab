@@ -13,6 +13,8 @@ class TestGrokModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Grok models are in MODEL_CONFIGS."""
         expected_models = {
+            "grok-4-1-fast-reasoning",
+            "grok-4-1-fast-non-reasoning",
             "grok-4-fast-reasoning",
             "grok-4-fast-non-reasoning",
             "grok-4-0709",
@@ -35,8 +37,8 @@ class TestGrokModelConfiguration:
         assert MODEL_CONFIGS["grok-3"]["output_tokens"] == 65536
         assert MODEL_CONFIGS["grok-3-mini"]["output_tokens"] == 65536
 
-        # Grok 2 series (text models)
-        assert MODEL_CONFIGS["grok-2-vision-1212"]["output_tokens"] == 16384
+        # Grok 2 series (text models) - 8K context per official pricing
+        assert MODEL_CONFIGS["grok-2-vision-1212"]["output_tokens"] == 8192
 
         # Grok 2 image generation model has None (doesn't use token limits)
         assert MODEL_CONFIGS["grok-2-image-1212"]["output_tokens"] is None
@@ -85,5 +87,5 @@ class TestGrokErrorHandling:
 
     def test_model_count_matches_expected(self):
         """Test that we have the expected number of models."""
-        # Ensure we have all 8 expected Grok models
-        assert len(MODEL_CONFIGS) == 8
+        # Ensure we have all 10 expected Grok models (added grok-4-1-fast models)
+        assert len(MODEL_CONFIGS) == 10

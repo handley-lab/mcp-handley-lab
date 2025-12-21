@@ -64,7 +64,7 @@ class TestLoadModelConfig:
 
         # Verify some expected models
         assert "claude-sonnet-4-5-20250929" in config["models"]
-        assert "claude-opus-4-1-20250805" in config["models"]
+        assert "claude-opus-4-5-20251101" in config["models"]
 
         # Verify default model
         assert config["default_model"] == "claude-sonnet-4-5-20250929"
@@ -240,11 +240,10 @@ class TestFormatModelListing:
 
         # Check model categories
         assert "🚀 Claude 4.5 Series" in listing
-        assert "🎯 Claude 4 Series" in listing
 
         # Check specific models
         assert "claude-sonnet-4-5-20250929" in listing
-        assert "claude-opus-4-1-20250805" in listing
+        assert "claude-opus-4-5-20251101" in listing
 
     def test_format_model_listing_with_api_models(self):
         """Test formatting with API model availability."""

@@ -15,6 +15,7 @@ class TestOpenAIModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
+            # GPT-5 series
             "gpt-5.2",
             "gpt-5.2-pro",
             "gpt-5.1",
@@ -22,19 +23,33 @@ class TestOpenAIModelConfiguration:
             "gpt-5-mini",
             "gpt-5-nano",
             "gpt-5-pro",
+            # O-series reasoning
             "o3",
             "o3-pro",
             "o3-mini",
+            "o3-deep-research",
             "o4-mini",
+            "o4-mini-deep-research",
             "o1",
             "o1-mini",
+            # GPT-4 series
             "gpt-4o",
             "gpt-4o-mini",
             "gpt-4.1",
             "gpt-4.1-mini",
             "gpt-4.1-nano",
+            # Image generation
             "dall-e-3",
+            "gpt-image-1.5",
             "gpt-image-1",
+            "gpt-image-1-mini",
+            # Audio models (ASR/TTS)
+            "whisper-1",
+            "tts-1",
+            "tts-1-hd",
+            # Realtime API
+            "gpt-4o-realtime-preview",
+            "gpt-4o-mini-realtime-preview",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
 

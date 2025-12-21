@@ -176,6 +176,23 @@ models:
     cached_input_per_1m: 0.55
     supports_caching: true
 
+  o3-deep-research:
+    # Model metadata
+    description: "o3 optimized for deep research and analysis tasks"
+    capabilities: "🔬 Best for: Deep research, comprehensive analysis, multi-step investigations"
+    tags: ["reasoning", "research"]
+    context_window: "128,000 tokens"
+    output_tokens: 100000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_reasoning: true
+
+    # Pricing
+    input_per_1m: 10.00
+    output_per_1m: 40.00
+    cached_input_per_1m: 2.50
+    supports_caching: true
+
   o4-mini:
     # Model metadata
     description: "Fast, cost-efficient reasoning model, succeeded by GPT-5 mini"
@@ -191,6 +208,23 @@ models:
     input_per_1m: 1.10
     output_per_1m: 4.40
     cached_input_per_1m: 0.275
+    supports_caching: true
+
+  o4-mini-deep-research:
+    # Model metadata
+    description: "o4-mini optimized for deep research tasks"
+    capabilities: "🔬 Best for: Cost-effective research, analysis tasks"
+    tags: ["reasoning", "research", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 100000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_reasoning: true
+
+    # Pricing
+    input_per_1m: 2.00
+    output_per_1m: 8.00
+    cached_input_per_1m: 0.50
     supports_caching: true
 
   o1:
@@ -307,11 +341,35 @@ models:
     cached_input_per_1m: 0.075
     supports_caching: true
 
+  gpt-image-1.5:
+    # Model metadata
+    description: "Latest multimodal image generation model with improved quality and speed"
+    capabilities: "🎨 Best for: High-quality image creation, artistic generation, image editing"
+    tags: ["image-generation", "latest", "multimodal"]
+    context_window: "N/A (Image generation)"
+    output_tokens: 16384
+    param: "max_tokens"
+    supports_temperature: true
+
+    # Complex pricing (per modality and per image)
+    text_input_per_1m: 5.00
+    image_input_per_1m: 8.00
+    cached_text_input_per_1m: 1.25
+    cached_image_input_per_1m: 2.00
+    text_output_per_1m: 10.00
+    image_output_per_1m: 32.00
+    image_output_pricing:
+      low: 0.009
+      medium: 0.034
+      high: 0.133
+    supports_caching: true
+    pricing_type: "complex"
+
   gpt-image-1:
     # Model metadata
-    description: "Latest multimodal model for precise, high-fidelity image generation"
+    description: "Multimodal model for precise, high-fidelity image generation"
     capabilities: "🎨 Best for: High-quality image creation, artistic generation"
-    tags: ["image-generation", "latest", "multimodal"]
+    tags: ["image-generation", "multimodal"]
     context_window: "N/A (Image generation)"
     output_tokens: 16384
     param: "max_tokens"
@@ -322,10 +380,34 @@ models:
     image_input_per_1m: 10.00
     cached_text_input_per_1m: 1.25
     cached_image_input_per_1m: 2.50
+    image_output_per_1m: 40.00
     image_output_pricing:
-      low: 0.01
-      medium: 0.04
-      high: 0.17
+      low: 0.011
+      medium: 0.042
+      high: 0.167
+    supports_caching: true
+    pricing_type: "complex"
+
+  gpt-image-1-mini:
+    # Model metadata
+    description: "Cost-effective image generation model for everyday use"
+    capabilities: "🎨 Best for: Quick image generation, cost-sensitive workflows"
+    tags: ["image-generation", "cost-effective", "multimodal"]
+    context_window: "N/A (Image generation)"
+    output_tokens: 16384
+    param: "max_tokens"
+    supports_temperature: true
+
+    # Complex pricing (per modality and per image)
+    text_input_per_1m: 2.00
+    image_input_per_1m: 2.50
+    cached_text_input_per_1m: 0.20
+    cached_image_input_per_1m: 0.25
+    image_output_per_1m: 8.00
+    image_output_pricing:
+      low: 0.005
+      medium: 0.011
+      high: 0.036
     supports_caching: true
     pricing_type: "complex"
 
@@ -339,6 +421,93 @@ models:
     # Pricing
     price_per_image: 0.040
     pricing_type: "per_image"
+
+  # Audio Models - Speech Recognition (ASR)
+  whisper-1:
+    # Model metadata
+    description: "Whisper large-v2 model for speech-to-text transcription"
+    capabilities: "🎧 Best for: Audio transcription, multilingual speech recognition"
+    tags: ["asr", "audio", "transcription"]
+    context_window: "N/A (ASR)"
+    output_tokens: 0  # ASR outputs text, not tokens
+    param: "max_output_tokens"  # Not used for ASR
+
+    # Pricing: $0.006 per minute
+    price_per_minute: 0.006
+    pricing_type: "per_minute"
+    # NOTE: Audio input handling not fully implemented
+
+  # Audio Models - Text-to-Speech (TTS)
+  tts-1:
+    # Model metadata
+    description: "Standard text-to-speech model optimized for speed"
+    capabilities: "🎤 Best for: Real-time speech synthesis, fast audio generation"
+    tags: ["tts", "audio", "speech"]
+    context_window: "N/A (TTS)"
+    output_tokens: 0  # TTS outputs audio, not tokens
+    param: "max_output_tokens"  # Not used for TTS
+
+    # Pricing: $15.00 per million characters
+    price_per_1m_chars: 15.00
+    pricing_type: "per_character"
+    # NOTE: Audio output handling not fully implemented
+
+  tts-1-hd:
+    # Model metadata
+    description: "High-definition text-to-speech model for quality audio"
+    capabilities: "🎤 Best for: High-quality speech synthesis, professional audio"
+    tags: ["tts", "audio", "speech", "premium"]
+    context_window: "N/A (TTS)"
+    output_tokens: 0  # TTS outputs audio, not tokens
+    param: "max_output_tokens"  # Not used for TTS
+
+    # Pricing: $30.00 per million characters
+    price_per_1m_chars: 30.00
+    pricing_type: "per_character"
+    # NOTE: Audio output handling not fully implemented
+
+  # Realtime API Models
+  gpt-4o-realtime-preview:
+    # Model metadata
+    description: "Realtime API model for low-latency multimodal experiences"
+    capabilities: "🔴 Best for: Voice assistants, real-time audio/text interaction"
+    tags: ["realtime", "audio", "multimodal"]
+    context_window: "128,000 tokens"
+    output_tokens: 4096
+    param: "max_output_tokens"
+    supports_temperature: true
+    supports_vision: true
+
+    # Pricing (per token)
+    text_input_per_1m: 5.00
+    text_output_per_1m: 20.00
+    audio_input_per_1m: 40.00
+    audio_output_per_1m: 80.00
+    cached_text_input_per_1m: 2.50
+    cached_audio_input_per_1m: 20.00
+    pricing_type: "realtime"
+    # NOTE: Realtime API handling not fully implemented
+
+  gpt-4o-mini-realtime-preview:
+    # Model metadata
+    description: "Cost-effective realtime model for voice applications"
+    capabilities: "🔴 Best for: Budget voice assistants, real-time audio"
+    tags: ["realtime", "audio", "multimodal", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 4096
+    param: "max_output_tokens"
+    supports_temperature: true
+    supports_vision: true
+
+    # Pricing (per token)
+    text_input_per_1m: 0.60
+    text_output_per_1m: 2.40
+    audio_input_per_1m: 10.00
+    audio_output_per_1m: 20.00
+    cached_text_input_per_1m: 0.30
+    cached_audio_input_per_1m: 5.00
+    pricing_type: "realtime"
+    # NOTE: Realtime API handling not fully implemented
 
 # Fine-tuning models
 fine_tuning:
@@ -394,11 +563,20 @@ display_categories:
     description: "Newest general-purpose language models"
   - name: "👁️ Multimodal Models"
     tags: ["multimodal", "vision"]
-    exclude_tags: ["image-generation", "flagship"]
+    exclude_tags: ["image-generation", "flagship", "realtime"]
     description: "Models with vision and text capabilities"
   - name: "🎨 Image Generation"
     tags: ["image-generation"]
     description: "Models for creating images from text"
+  - name: "🎤 Text-to-Speech"
+    tags: ["tts"]
+    description: "Speech synthesis models (output handling not fully implemented)"
+  - name: "🎧 Speech Recognition"
+    tags: ["asr"]
+    description: "Whisper transcription models (input handling not fully implemented)"
+  - name: "🔴 Realtime API"
+    tags: ["realtime"]
+    description: "Low-latency voice/audio models (not fully implemented)"
   - name: "📜 Legacy Models"
     tags: ["legacy"]
     exclude_tags: ["reasoning"]
@@ -426,3 +604,6 @@ usage_notes:
   - "Realtime API available for low-latency, multimodal experiences"
   - "Priority processing offers reliable, high-speed performance with pay-as-you-go"
   - "Web search content tokens: free for gpt-4o/4.1 preview, fixed 8K block for mini models"
+  - "TTS models: tts-1 ($15/M chars), tts-1-hd ($30/M chars)"
+  - "ASR: whisper-1 ($0.006/min)"
+  - "⚠️ Audio I/O handling not fully implemented - models listed for completeness"

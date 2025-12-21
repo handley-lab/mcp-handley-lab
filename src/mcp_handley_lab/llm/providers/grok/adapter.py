@@ -96,37 +96,37 @@ def generation_adapter(
     chat_session = get_client().chat.create(**request_params)
     response = chat_session.sample()
 
-    if not response or not response.proto or not response.proto.choices:
+    if not response or not response.content:
         raise RuntimeError("No response generated")
-
-    # Extract response data from proto
-    choice = response.proto.choices[0]
-    finish_reason = choice.finish_reason
 
     # Extract logprobs if available
     avg_logprobs = 0.0
-    if hasattr(choice, "logprobs") and choice.logprobs:
-        logprobs = [token.logprob for token in choice.logprobs.content]
+    if response.logprobs and response.logprobs.content:
+        logprobs = [
+            item.logprob
+            for item in response.logprobs.content
+            if item.logprob > -1e30  # Filter out sentinel values
+        ]
         avg_logprobs = sum(logprobs) / len(logprobs) if logprobs else 0.0
 
-    # Get message content - Grok uses reasoning_content for its responses
-    message_content = ""
-    if hasattr(choice.message, "content") and choice.message.content:
-        message_content = choice.message.content
-    elif (
-        hasattr(choice.message, "reasoning_content")
-        and choice.message.reasoning_content
-    ):
-        message_content = choice.message.reasoning_content
+    # Get message content - check both content and reasoning_content
+    message_content = response.content or ""
+    if not message_content and getattr(response, "reasoning_content", None):
+        message_content = response.reasoning_content
+
+    # Extract usage with fallbacks for optional fields
+    usage = getattr(response, "usage", None)
+    input_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
+    output_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
 
     return {
         "text": message_content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-        "finish_reason": str(finish_reason),
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "finish_reason": str(getattr(response, "finish_reason", "") or ""),
         "avg_logprobs": avg_logprobs,
-        "model_version": response.proto.model,
-        "response_id": getattr(response, "id", ""),
+        "model_version": model,
+        "response_id": getattr(response, "id", "") or "",
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
         "service_tier": "",  # Grok doesn't have service tiers
         "completion_tokens_details": {},
@@ -193,30 +193,27 @@ def image_analysis_adapter(
     chat_session = get_client().chat.create(**request_params)
     response = chat_session.sample()
 
-    if not response or not response.proto or not response.proto.choices:
+    if not response or not response.content:
         raise RuntimeError("No response generated")
 
-    # Extract response data from proto
-    choice = response.proto.choices[0]
+    # Get message content - check both content and reasoning_content
+    message_content = response.content or ""
+    if not message_content and getattr(response, "reasoning_content", None):
+        message_content = response.reasoning_content
 
-    # Get message content
-    message_content = ""
-    if hasattr(choice.message, "content") and choice.message.content:
-        message_content = choice.message.content
-    elif (
-        hasattr(choice.message, "reasoning_content")
-        and choice.message.reasoning_content
-    ):
-        message_content = choice.message.reasoning_content
+    # Extract usage with fallbacks for optional fields
+    usage = getattr(response, "usage", None)
+    input_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
+    output_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
 
     return {
         "text": message_content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-        "finish_reason": str(choice.finish_reason),
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "finish_reason": str(getattr(response, "finish_reason", "") or ""),
         "avg_logprobs": 0.0,
-        "model_version": response.proto.model,
-        "response_id": getattr(response, "id", ""),
+        "model_version": model,
+        "response_id": getattr(response, "id", "") or "",
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
         "service_tier": "",
         "completion_tokens_details": {},

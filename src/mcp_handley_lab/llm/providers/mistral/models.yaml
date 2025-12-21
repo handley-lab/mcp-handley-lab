@@ -8,8 +8,8 @@ models:
     output_tokens: 8192
     supports_vision: true
     supports_grounding: false
-    input_per_1m: 2.00
-    output_per_1m: 6.00
+    input_per_1m: 0.50
+    output_per_1m: 1.50
 
   mistral-medium-latest:
     description: "Mistral Medium 3.1 - frontier multimodal model (v25.08)"
@@ -42,8 +42,8 @@ models:
     output_tokens: 8192
     supports_vision: true
     supports_grounding: false
-    input_per_1m: 0.04
-    output_per_1m: 0.04
+    input_per_1m: 0.10
+    output_per_1m: 0.10
 
   ministral-8b-latest:
     description: "Ministral 3 8B - efficient model with vision (v25.12)"
@@ -53,8 +53,19 @@ models:
     output_tokens: 8192
     supports_vision: true
     supports_grounding: false
-    input_per_1m: 0.10
-    output_per_1m: 0.10
+    input_per_1m: 0.15
+    output_per_1m: 0.15
+
+  ministral-14b-latest:
+    description: "Ministral 3 14B - mid-size efficient model (v25.12)"
+    capabilities: "🚀 Best for: Balanced edge performance, moderate complexity"
+    tags: ["ministral", "edge", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    input_per_1m: 0.20
+    output_per_1m: 0.20
 
   # === REASONING MODELS (MAGISTRAL) ===
   magistral-medium-latest:
@@ -94,17 +105,31 @@ models:
     input_per_1m: 0.30
     output_per_1m: 0.90
 
-  devstral-small-latest:
-    description: "Devstral Small 1.1 - open SWE model (v25.07)"
-    capabilities: "💻 Best for: Software engineering tasks"
-    tags: ["devstral", "coding", "swe"]
+  devstral-medium-latest:
+    description: "Devstral 2 Medium - advanced open SWE model (v25.12)"
+    capabilities: "💻 Best for: Complex software engineering, agentic coding"
+    tags: ["devstral", "coding", "swe", "free"]
     context_window: "128,000 tokens"
     output_tokens: 8192
     supports_vision: false
     supports_grounding: false
     supports_fim: true
-    input_per_1m: 0.10
-    output_per_1m: 0.30
+    input_per_1m: 0.00
+    output_per_1m: 0.00
+    free_tier: true
+
+  devstral-small-latest:
+    description: "Devstral Small 2 - efficient open SWE model (v25.12)"
+    capabilities: "💻 Best for: Software engineering tasks, cost-effective"
+    tags: ["devstral", "coding", "swe", "free"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_fim: true
+    input_per_1m: 0.00
+    output_per_1m: 0.00
+    free_tier: true
 
   # === VISION MODELS (PIXTRAL) ===
   pixtral-large-latest:
@@ -239,10 +264,12 @@ default_model: "mistral-large-latest"
 
 # Usage notes
 usage_notes:
-  - "Mistral Large 3 (v25.12): Latest flagship with vision - best quality"
+  - "Mistral Large 3 (v25.12): Latest flagship with vision ($0.50/$1.50 per 1M tokens)"
+  - "Devstral models (Medium/Small): FREE open-weight SWE models for coding"
   - "Magistral models: Use prompt_mode='reasoning' for step-by-step thinking"
   - "Codestral: Supports FIM (fill-in-middle) for code completion"
   - "Voxtral: Audio input for chat and transcription"
+  - "Ministral: Edge-optimized models (3B, 8B, 14B) for high-volume tasks"
   - "OCR: $1 per 1,000 pages for document extraction"
   - "All chat models support 128k context (except Magistral: 40k)"
   - "Free tier available for experimentation"

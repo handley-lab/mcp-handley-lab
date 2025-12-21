@@ -50,11 +50,13 @@ class TestModelConfiguration:
             # Ministral edge
             "ministral-3b-latest",
             "ministral-8b-latest",
+            "ministral-14b-latest",
             # Reasoning (Magistral)
             "magistral-medium-latest",
             "magistral-small-latest",
             # Coding
             "codestral-latest",
+            "devstral-medium-latest",
             "devstral-small-latest",
             # Vision (Pixtral)
             "pixtral-large-latest",

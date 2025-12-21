@@ -57,8 +57,9 @@ def agent_stats(agent_name: str) -> str:
         result += "\n**Recent Messages:**\n"
         recent_messages = agent.messages[-5:]
         for i, msg in enumerate(recent_messages, 1):
-            role = msg.role
-            content = msg.content
+            # Messages are dicts, not objects
+            role = msg.get("role", "unknown")
+            content = msg.get("content", "")
 
             # Truncate long messages
             if len(content) > 100:

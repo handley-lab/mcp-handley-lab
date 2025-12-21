@@ -9,6 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
+from mcp_handley_lab.llm.memory import get_memory_manager
 from mcp_handley_lab.llm.registry import (
     get_adapter,
     resolve_model,
@@ -27,11 +28,11 @@ mcp = FastMCP("Chat Tool")
     "Use options dict for provider-specific features. Run list_models() to see options."
 )
 def ask(
-    prompt: str = Field(
+    prompt: str | None = Field(
         default=None,
         description="The message to send to the LLM.",
     ),
-    prompt_file: str = Field(
+    prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
     ),
@@ -40,12 +41,16 @@ def ask(
         description="Variables for template substitution using ${var} syntax.",
     ),
     output_file: str = Field(
-        ...,
-        description="File path to save the response. Use '-' for stdout only.",
+        default="-",
+        description="File path to save the response. Defaults to '-' (stdout only). "
+        "With global memory, responses are stored in ~/.mcp-handley-lab/ and can be "
+        "retrieved later via get_response().",
     ),
     agent_name: str = Field(
         default="session",
-        description="Conversation thread name. Use 'session' for temporary, custom name for persistent, 'false' to disable.",
+        description="Conversation thread name. 'session' uses a shared auto-generated ID "
+        "(WARNING: collides across sub-agents). Use unique names for isolated conversations, "
+        "'false' to disable memory.",
     ),
     model: str = Field(
         default="gemini",
@@ -61,11 +66,11 @@ def ask(
         default_factory=list,
         description="File paths to include as context.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions for the conversation.",
     ),
-    system_prompt_file: str = Field(
+    system_prompt_file: str | None = Field(
         default=None,
         description="Path to a file containing system instructions.",
     ),
@@ -119,8 +124,9 @@ def analyze_image(
         description="Image file paths or base64 strings to analyze.",
     ),
     output_file: str = Field(
-        ...,
-        description="File path to save analysis. Use '-' for stdout only.",
+        default="-",
+        description="File path to save analysis. Defaults to '-' (stdout only). "
+        "With global memory, responses are stored and retrievable via get_response().",
     ),
     model: str = Field(
         default="gemini",
@@ -133,9 +139,10 @@ def analyze_image(
     ),
     agent_name: str = Field(
         default="session",
-        description="Conversation thread name.",
+        description="Conversation thread name. 'session' uses a shared auto-generated ID "
+        "(WARNING: collides across sub-agents). Use unique names for isolated conversations.",
     ),
-    system_prompt: str = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System instructions for the analysis.",
     ),
@@ -163,3 +170,44 @@ def analyze_image(
         system_prompt=system_prompt,
         options=options,
     )
+
+
+@mcp.tool(
+    description="Retrieve a past assistant response from an agent's conversation history. "
+    "Only returns assistant messages (LLM responses), not user messages. "
+    "Useful for accessing responses when output_file was not specified."
+)
+def get_response(
+    agent_name: str = Field(
+        ...,
+        description="The agent name to retrieve the response from. "
+        "Use 'session' with provider param to get current session's responses.",
+    ),
+    index: int = Field(
+        default=-1,
+        description="Response index among assistant messages only. "
+        "Use -1 for last response, -2 for second-to-last, 0 for first, etc.",
+    ),
+    provider: str = Field(
+        default="",
+        description="Provider name (gemini, openai, etc.) to resolve 'session' agent name. "
+        "Required when agent_name is 'session'.",
+    ),
+) -> str:
+    """Retrieve an assistant response from an agent's conversation history.
+
+    Returns the content of the assistant message at the specified index.
+    Raises ValueError if agent not found, IndexError if no assistant responses or out of range.
+    """
+    from mcp_handley_lab.llm.common import get_session_id
+
+    actual_agent_name = agent_name
+    if agent_name == "session":
+        if not provider:
+            raise ValueError(
+                "provider parameter is required when agent_name is 'session'"
+            )
+        actual_agent_name = get_session_id(mcp, provider)
+
+    memory_manager = get_memory_manager()
+    return memory_manager.get_response(actual_agent_name, index)

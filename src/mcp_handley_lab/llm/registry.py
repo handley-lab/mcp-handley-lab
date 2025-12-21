@@ -42,8 +42,8 @@ MODEL_PREFIXES = [
 # Model aliases (shorthand → full model ID)
 MODEL_ALIASES = {
     # Claude shorthand aliases
+    "opus": "claude-opus-4-5-20251101",
     "sonnet": "claude-sonnet-4-5-20250929",
-    "opus": "claude-opus-4-1-20250805",
     "haiku": "claude-haiku-4-5-20251001",
 }
 

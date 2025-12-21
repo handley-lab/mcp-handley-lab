@@ -167,7 +167,7 @@ class TestPricingCalculator:
             images_generated=2,
         )
         expected_text_input = (1000 / 1_000_000) * 5.00  # Text input per 1M
-        expected_image_output = 2 * 0.04  # 2 images at medium quality
+        expected_image_output = 2 * 0.042  # 2 images at medium quality
         expected = expected_text_input + expected_image_output
         assert cost == expected
 
@@ -184,7 +184,7 @@ class TestPricingCalculator:
         )
         expected_image_input = (500 / 1_000_000) * 10.00  # Image input per 1M
         expected_cached_image = (100 / 1_000_000) * 2.50  # Cached image input
-        expected_image_output = 1 * 0.17  # 1 image at high quality
+        expected_image_output = 1 * 0.167  # 1 image at high quality
         expected = expected_image_input + expected_cached_image + expected_image_output
         assert cost == expected
 

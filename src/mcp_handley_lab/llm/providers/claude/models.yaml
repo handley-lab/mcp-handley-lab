@@ -1,9 +1,9 @@
 models:
-  claude-sonnet-4-5-20250929:
+  claude-opus-4-5-20251101:
     # Model metadata
-    description: "Smartest Claude model for complex agents and coding"
-    capabilities: "🌟 Best for: Complex agents, coding, agentic workflows, extended thinking"
-    tags: ["claude-4.5", "sonnet", "general", "latest"]
+    description: "Most powerful Claude model for complex reasoning and analysis"
+    capabilities: "🌟 Best for: Complex reasoning, research, detailed analysis, extended thinking"
+    tags: ["claude-4.5", "opus", "premium", "latest"]
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 64000
@@ -14,8 +14,34 @@ models:
     supports_extended_thinking: true
 
     # Pricing
-    input_per_1m: 3.00
-    output_per_1m: 15.00
+    input_per_1m: 5.00
+    output_per_1m: 25.00
+
+  claude-sonnet-4-5-20250929:
+    # Model metadata
+    description: "Smartest Claude model for complex agents and coding"
+    capabilities: "🎯 Best for: Complex agents, coding, agentic workflows, extended thinking"
+    tags: ["claude-4.5", "sonnet", "general", "latest"]
+    context_window: "200,000 tokens (~150,000 words)"
+    input_tokens: 200000
+    output_tokens: 64000
+
+    # Capabilities
+    supports_vision: true
+    supports_system_prompt: true
+    supports_extended_thinking: true
+
+    # Pricing (tiered based on prompt token count)
+    input_tiers:
+      - threshold: 200000
+        price: 3.00
+      - threshold: .inf
+        price: 6.00
+    output_tiers:
+      - threshold: 200000
+        price: 15.00
+      - threshold: .inf
+        price: 22.50
 
   claude-haiku-4-5-20251001:
     # Model metadata
@@ -35,59 +61,46 @@ models:
     input_per_1m: 1.00
     output_per_1m: 5.00
 
-  claude-opus-4-1-20250805:
-    # Model metadata
-    description: "Exceptional Claude model for specialized reasoning tasks"
-    capabilities: "🎯 Best for: Specialized reasoning, complex analysis, critical tasks"
-    tags: ["claude-4", "opus", "premium", "latest"]
-    context_window: "200,000 tokens (~150,000 words)"
-    input_tokens: 200000
-    output_tokens: 32000
-
-    # Capabilities
-    supports_vision: true
-    supports_system_prompt: true
-    supports_extended_thinking: true
-
-    # Pricing
-    input_per_1m: 15.00
-    output_per_1m: 75.00
-
 # Cache pricing (optional feature)
 cache_pricing:
-  5_minute_cache:
-    claude-opus-4-1-20250805: 18.75
-    claude-sonnet-4-5-20250929: 3.75
-    claude-haiku-4-5-20251001: 1.00
+  cache_write:
+    claude-opus-4-5-20251101: 6.25
+    claude-sonnet-4-5-20250929:
+      - threshold: 200000
+        price: 3.75
+      - threshold: .inf
+        price: 7.50
+    claude-haiku-4-5-20251001: 1.25
 
-  1_hour_cache:
-    claude-opus-4-1-20250805: 30.00
-    claude-sonnet-4-5-20250929: 6.00
-    claude-haiku-4-5-20251001: 1.60
+  cache_read:
+    claude-opus-4-5-20251101: 0.50
+    claude-sonnet-4-5-20250929:
+      - threshold: 200000
+        price: 0.30
+      - threshold: .inf
+        price: 0.60
+    claude-haiku-4-5-20251001: 0.10
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
   - name: "🚀 Claude 4.5 Series"
     tags: ["claude-4.5"]
     description: "Latest generation Claude models with extended thinking and enhanced capabilities"
-  - name: "🎯 Claude 4 Series"
-    tags: ["claude-4"]
-    description: "Exceptional Claude models for specialized reasoning tasks"
 
 # Default model
 default_model: "claude-sonnet-4-5-20250929"
 
 # Usage notes
 usage_notes:
-  - "All Claude models have 200,000 token context windows"
+  - "All Claude 4.5 models have 200,000 token context windows and 64K output"
   - "Claude Sonnet 4.5 supports 1M token context window with beta header"
   - "All models support vision and image analysis capabilities"
   - "All models support extended thinking for complex reasoning tasks"
   - "System prompts supported via separate parameter"
-  - "Prompt caching available with 5-minute TTL (extended caching with 1-hour TTL)"
-  - "Claude Sonnet 4.5 recommended for most use cases (best balance of intelligence and cost)"
-  - "Claude Haiku 4.5 offers near-frontier intelligence with fastest latency"
-  - "Claude Opus 4.1 for specialized reasoning requiring maximum precision"
+  - "Prompt caching: cache_write on first request, cache_read on subsequent hits"
+  - "Claude Opus 4.5: Most powerful for complex reasoning ($5/$25 per 1M tokens)"
+  - "Claude Sonnet 4.5: Recommended for most use cases (best balance of intelligence and cost)"
+  - "Claude Haiku 4.5: Near-frontier intelligence with fastest latency and lowest cost"
   - "Web search costs $10 per 1,000 searches"
   - "Code execution: $0.05/hour with 50 free hours daily per organization"
   - "Batch processing offers 50% discount for asynchronous workloads"

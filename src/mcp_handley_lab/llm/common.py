@@ -62,9 +62,9 @@ TEXT_BASED_APPLICATION_TYPES = {
 
 
 def load_prompt_text(
-    prompt: str,
-    prompt_file: str,
-    prompt_vars: dict[str, str],
+    prompt: str | None,
+    prompt_file: str | None,
+    prompt_vars: dict[str, str] | None,
 ) -> str:
     """Resolve and render prompt from either string or file with optional templating.
 
@@ -87,7 +87,7 @@ def load_prompt_text(
     if prompt_file:
         final_prompt = Path(prompt_file).read_text(encoding="utf-8")
     else:
-        final_prompt = prompt
+        final_prompt = prompt  # type: ignore[assignment]  # XOR ensures non-None
 
     # Apply template substitution if variables provided
     if prompt_vars:
@@ -240,65 +240,55 @@ def resolve_image_data(image_item: str | dict[str, str]) -> bytes:
     raise ValueError(f"Invalid image format: {image_item}")
 
 
-def handle_output(
-    response_text: str,
-    output_file: str,
-    model: str,
-    input_tokens: int,
-    output_tokens: int,
-    cost: float,
-    provider: str,
-) -> str:
-    """Handle file output and return formatted response."""
-    from mcp_handley_lab.common.pricing import format_usage
-
-    usage_info = format_usage(input_tokens, output_tokens, cost)
-
-    if output_file != "-":
-        output_path = Path(output_file)
-        output_path.write_text(response_text)
-        char_count = len(response_text)
-        line_count = response_text.count("\n") + 1
-        return f"Response saved to: {output_file}\nContent: {char_count} characters, {line_count} lines\n{usage_info}"
-    else:
-        return f"{response_text}\n\n{usage_info}"
-
-
 def handle_agent_memory(
-    agent_name: str | bool | None,
+    agent_name: str,
     user_prompt: str,
     response_text: str,
     input_tokens: int,
     output_tokens: int,
     cost: float,
-    session_id_func,
-) -> str | None:
-    """Handle agent memory storage. Returns actual agent name used."""
-    # Handle memory disable patterns
-    if isinstance(agent_name, str) and (
-        agent_name.lower() == "false" or agent_name == ""
-    ):
-        agent_name = False
+    provider: str | None = None,
+    model: str | None = None,
+) -> None:
+    """Store conversation messages in agent memory with provider attribution.
 
-    # Use session-specific agent for "session" or if no agent_name provided (and memory not disabled)
-    if agent_name == "session" or agent_name is None:
-        agent_name = session_id_func()
+    IMPORTANT: This function assumes agent_name is already resolved (not "session")
+    and memory is enabled. The caller (e.g., process_llm_request) should use
+    should_use_memory() to check if memory is enabled, and resolve "session" to
+    actual session ID before calling this function.
 
-    # Store in agent memory (only if memory not disabled)
-    if agent_name is not False:
-        agent = memory_manager.get_agent(agent_name)
-        if not agent:
-            agent = memory_manager.create_agent(agent_name)
-
-        memory_manager.add_message(
-            agent_name, "user", user_prompt, input_tokens, cost / 2
-        )
-        memory_manager.add_message(
-            agent_name, "assistant", response_text, output_tokens, cost / 2
-        )
-        return agent_name
-
-    return None
+    Args:
+        agent_name: Resolved agent name (must be a valid string, not "session")
+        user_prompt: The user's prompt
+        response_text: The assistant's response
+        input_tokens: Number of input tokens
+        output_tokens: Number of output tokens
+        cost: Total cost in USD
+        provider: Provider name (e.g., "openai", "gemini")
+        model: Model name (e.g., "gpt-4o", "gemini-2.5-pro")
+    """
+    # Store user message (no usage attribution - input counted on assistant message)
+    memory_manager.add_message(
+        agent_name,
+        "user",
+        user_prompt,
+        input_tokens=0,
+        output_tokens=0,
+        cost=0.0,
+        provider=provider,
+        model=model,
+    )
+    # Store assistant message with full usage attribution
+    memory_manager.add_message(
+        agent_name,
+        "assistant",
+        response_text,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cost=cost,
+        provider=provider,
+        model=model,
+    )
 
 
 def resolve_images_for_multimodal_prompt(

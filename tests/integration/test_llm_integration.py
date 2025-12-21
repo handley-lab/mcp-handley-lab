@@ -355,15 +355,8 @@ async def test_llm_input_validation(
         )
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
 
-    # Test missing output_file should raise validation error (required parameter)
-    with pytest.raises(ToolError) as e2:
-        await mcp.call_tool("ask", {**base_params, "prompt": "Test prompt"})
-    # Error should be about missing required field
-    error_msg = str(e2.value).lower()
-    assert any(
-        keyword in error_msg
-        for keyword in ["output_file", "required", "missing", "field"]
-    )
+    # Note: output_file now has a default of "-" in the unified tool,
+    # so missing output_file is valid (uses stdout)
 
 
 # Error scenario test parameters (unified MCP, model determines provider)

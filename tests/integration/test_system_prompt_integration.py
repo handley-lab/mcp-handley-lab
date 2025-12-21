@@ -8,7 +8,6 @@ import pytest
 from PIL import Image
 
 from mcp_handley_lab.llm.chat.tool import mcp
-from mcp_handley_lab.llm.memory import memory_manager
 
 # Skip all API-requiring tests if API keys not available
 gemini_available = bool(os.getenv("GEMINI_API_KEY"))
@@ -407,77 +406,43 @@ class TestSystemPromptMemoryIntegration:
 
     def test_agent_creation_with_system_prompt(self):
         """Test that agents are created with system prompts in memory."""
+        from mcp_handley_lab.llm.memory import GlobalMemoryManager
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            original_storage_dir = memory_manager.storage_dir
+            # Create fresh memory manager with temp directory
+            mgr = GlobalMemoryManager(cwd=Path(temp_dir))
 
-            try:
-                # Temporarily change storage directory
-                memory_manager.storage_dir = Path(temp_dir)
-                memory_manager.agents_dir = Path(temp_dir) / "agents"
-                memory_manager.agents_dir.mkdir(parents=True, exist_ok=True)
-                memory_manager._agents = {}
+            # Create agent with system prompt
+            agent = mgr.create_agent("test_agent", "You are helpful")
 
-                # Create agent with system prompt
-                agent = memory_manager.create_agent("test_agent", "You are helpful")
+            assert agent.system_prompt == "You are helpful"
+            assert mgr.get_agent("test_agent").system_prompt == "You are helpful"
 
-                assert agent.system_prompt == "You are helpful"
-                assert (
-                    memory_manager.get_agent("test_agent").system_prompt
-                    == "You are helpful"
-                )
-
-                # Check file persistence
-                agent_file = memory_manager.agents_dir / "test_agent.json"
-                assert agent_file.exists()
-
-                # Verify file content
-                import json
-
-                agent_data = json.loads(agent_file.read_text())
-                assert agent_data["system_prompt"] == "You are helpful"
-
-            finally:
-                # Restore original storage
-                memory_manager.storage_dir = original_storage_dir
-                memory_manager.agents_dir = original_storage_dir / "agents"
-                memory_manager._load_agents()
+            # Check file persistence
+            agent_file = mgr._agents_dir / "test_agent.jsonl"
+            assert agent_file.exists()
 
     def test_system_prompt_update_in_memory(self):
         """Test that system prompt updates are persisted in memory."""
+        from mcp_handley_lab.llm.memory import GlobalMemoryManager
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            original_storage_dir = memory_manager.storage_dir
+            # Create fresh memory manager with temp directory
+            mgr = GlobalMemoryManager(cwd=Path(temp_dir))
 
-            try:
-                # Setup temporary storage
-                memory_manager.storage_dir = Path(temp_dir)
-                memory_manager.agents_dir = Path(temp_dir) / "agents"
-                memory_manager.agents_dir.mkdir(parents=True, exist_ok=True)
-                memory_manager._agents = {}
+            # Create agent
+            agent = mgr.create_agent("test_agent", "Original prompt")
+            assert agent.system_prompt == "Original prompt"
 
-                # Create agent
-                agent = memory_manager.create_agent("test_agent", "Original prompt")
-                assert agent.system_prompt == "Original prompt"
+            # Update system prompt (AgentMemory auto-saves on property set)
+            agent.system_prompt = "Updated prompt"
 
-                # Update system prompt
-                agent.system_prompt = "Updated prompt"
-                memory_manager._save_agent(agent)
+            # Create new manager to test persistence
+            mgr2 = GlobalMemoryManager(cwd=Path(temp_dir))
+            reloaded_agent = mgr2.get_agent("test_agent")
 
-                # Verify update
-                updated_agent = memory_manager.get_agent("test_agent")
-                assert updated_agent.system_prompt == "Updated prompt"
-
-                # Check file persistence
-                agent_file = memory_manager.agents_dir / "test_agent.json"
-                import json
-
-                agent_data = json.loads(agent_file.read_text())
-                assert agent_data["system_prompt"] == "Updated prompt"
-
-            finally:
-                # Restore original storage
-                memory_manager.storage_dir = original_storage_dir
-                memory_manager.agents_dir = original_storage_dir / "agents"
-                memory_manager._load_agents()
+            assert reloaded_agent is not None
+            assert reloaded_agent.system_prompt == "Updated prompt"
 
 
 class TestSystemPromptEdgeCases:

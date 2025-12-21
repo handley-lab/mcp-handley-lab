@@ -35,7 +35,7 @@ def get_client() -> Client:
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("grok")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("grok")
 
 
 def get_model_config(model: str) -> dict:
@@ -55,7 +55,7 @@ def generation_adapter(
 
     # Extract Grok-specific parameters
     temperature = kwargs.get("temperature", 1.0)
-    files = kwargs.get("files")
+    files = kwargs.get("files", [])
 
     # Build messages using xai-sdk helpers
     messages = []

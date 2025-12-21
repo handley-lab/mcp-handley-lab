@@ -1,4 +1,4 @@
-"""Integration tests for OpenAI embedding functionality."""
+"""Integration tests for OpenAI embedding functionality via MCP protocol."""
 
 import json
 import os
@@ -6,14 +6,9 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from openai import BadRequestError
+from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.llm.embeddings.tool import (
-    calculate_similarity,
-    get_embeddings,
-    index_documents,
-    search_documents,
-)
+from mcp_handley_lab.llm.embeddings.tool import mcp
 
 
 def skip_if_no_openai_key():
@@ -24,15 +19,19 @@ def skip_if_no_openai_key():
 
 @pytest.mark.vcr
 class TestOpenAIEmbeddings:
-    """Test OpenAI embedding functionality."""
+    """Test OpenAI embedding functionality via MCP protocol."""
 
-    def test_get_embeddings_single_text(self):
+    @pytest.mark.asyncio
+    async def test_get_embeddings_single_text(self):
         """Test getting embeddings for a single text."""
         skip_if_no_openai_key()
 
-        result = get_embeddings(
-            texts=["Hello, world!"],
-            model="text-embedding-3-small",
+        _, result = await mcp.call_tool(
+            "get_embeddings",
+            {
+                "texts": ["Hello, world!"],
+                "model": "text-embedding-3-small",
+            },
         )
 
         assert result["count"] == 1
@@ -41,29 +40,40 @@ class TestOpenAIEmbeddings:
         assert len(result["embeddings"][0]) == 1536
         assert all(isinstance(x, float) for x in result["embeddings"][0])
 
-    def test_get_embeddings_multiple_texts(self):
+    @pytest.mark.asyncio
+    async def test_get_embeddings_multiple_texts(self):
         """Test getting embeddings for multiple texts."""
         skip_if_no_openai_key()
 
         texts = ["Hello, world!", "Goodbye, world!", "Python programming"]
-        result = get_embeddings(texts=texts, model="text-embedding-3-small")
+        _, result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": texts, "model": "text-embedding-3-small"},
+        )
 
         assert result["count"] == 3
         for embedding in result["embeddings"]:
             assert len(embedding) == 1536
             assert all(isinstance(x, float) for x in embedding)
 
-    def test_get_embeddings_different_models(self):
+    @pytest.mark.asyncio
+    async def test_get_embeddings_different_models(self):
         """Test embeddings with different models."""
         skip_if_no_openai_key()
 
         text = "Machine learning is fascinating"
 
         # Test text-embedding-3-small (default)
-        small_result = get_embeddings(texts=[text], model="text-embedding-3-small")
+        _, small_result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-3-small"},
+        )
 
         # Test text-embedding-3-large
-        large_result = get_embeddings(texts=[text], model="text-embedding-3-large")
+        _, large_result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-3-large"},
+        )
 
         assert small_result["count"] == 1
         assert large_result["count"] == 1
@@ -72,60 +82,71 @@ class TestOpenAIEmbeddings:
         # Embeddings should be different between models
         assert small_result["embeddings"][0] != large_result["embeddings"][0]
 
-    def test_get_embeddings_with_large_model(self):
+    @pytest.mark.asyncio
+    async def test_get_embeddings_with_large_model(self):
         """Test embeddings with text-embedding-3-large model."""
         skip_if_no_openai_key()
 
         text = "Test large model"
 
         # Test with text-embedding-3-large
-        result = get_embeddings(texts=[text], model="text-embedding-3-large")
+        _, result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-3-large"},
+        )
 
         assert result["count"] == 1
         # text-embedding-3-large has 3072 dimensions by default
         assert len(result["embeddings"][0]) == 3072
         assert all(isinstance(x, float) for x in result["embeddings"][0])
 
-    def test_calculate_similarity_identical_texts(self):
+    @pytest.mark.asyncio
+    async def test_calculate_similarity_identical_texts(self):
         """Test similarity calculation for identical texts."""
         skip_if_no_openai_key()
 
         text = "This is a test sentence."
-        result = calculate_similarity(
-            text1=text, text2=text, model="text-embedding-3-small"
+        _, result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text, "text2": text, "model": "text-embedding-3-small"},
         )
 
         # Identical texts should have similarity very close to 1.0
         assert 0.99 <= result["similarity"] <= 1.0
 
-    def test_calculate_similarity_different_texts(self):
+    @pytest.mark.asyncio
+    async def test_calculate_similarity_different_texts(self):
         """Test similarity calculation for different texts."""
         skip_if_no_openai_key()
 
         text1 = "I love programming in Python."
         text2 = "Cats are wonderful pets."
-        result = calculate_similarity(
-            text1=text1, text2=text2, model="text-embedding-3-small"
+        _, result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text1, "text2": text2, "model": "text-embedding-3-small"},
         )
 
         # Different texts should have lower similarity
         assert -1.0 <= result["similarity"] <= 1.0
         assert result["similarity"] < 0.8  # Should be reasonably different
 
-    def test_calculate_similarity_related_texts(self):
+    @pytest.mark.asyncio
+    async def test_calculate_similarity_related_texts(self):
         """Test similarity calculation for related texts."""
         skip_if_no_openai_key()
 
         text1 = "Machine learning is a subset of artificial intelligence."
         text2 = "AI and machine learning are closely related fields."
-        result = calculate_similarity(
-            text1=text1, text2=text2, model="text-embedding-3-small"
+        _, result = await mcp.call_tool(
+            "calculate_similarity",
+            {"text1": text1, "text2": text2, "model": "text-embedding-3-small"},
         )
 
         # Related texts should have higher similarity
         assert result["similarity"] > 0.5
 
-    def test_index_documents_and_search(self):
+    @pytest.mark.asyncio
+    async def test_index_documents_and_search(self):
         """Test document indexing and search functionality."""
         skip_if_no_openai_key()
 
@@ -144,10 +165,13 @@ class TestOpenAIEmbeddings:
 
             # Create index
             index_path = temp_path / "test_index.json"
-            index_result = index_documents(
-                document_paths=[str(doc1_path), str(doc2_path), str(doc3_path)],
-                output_index_path=str(index_path),
-                model="text-embedding-3-small",
+            _, index_result = await mcp.call_tool(
+                "index_documents",
+                {
+                    "document_paths": [str(doc1_path), str(doc2_path), str(doc3_path)],
+                    "output_index_path": str(index_path),
+                    "model": "text-embedding-3-small",
+                },
             )
 
             # Verify index creation
@@ -164,11 +188,14 @@ class TestOpenAIEmbeddings:
                 assert len(item["embedding"]) == 1536  # OpenAI default dimensions
 
             # Test search functionality
-            search_result = search_documents(
-                query="programming language",
-                index_path=str(index_path),
-                top_k=2,
-                model="text-embedding-3-small",
+            _, search_result = await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "programming language",
+                    "index_path": str(index_path),
+                    "top_k": 2,
+                    "model": "text-embedding-3-small",
+                },
             )
 
             assert len(search_result["results"]) <= 2
@@ -177,37 +204,49 @@ class TestOpenAIEmbeddings:
             assert search_result["results"][0]["similarity"] > 0.0
 
             # Search for different topic
-            search_result2 = search_documents(
-                query="animals pets",
-                index_path=str(index_path),
-                top_k=1,
-                model="text-embedding-3-small",
+            _, search_result2 = await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "animals pets",
+                    "index_path": str(index_path),
+                    "top_k": 1,
+                    "model": "text-embedding-3-small",
+                },
             )
 
             assert len(search_result2["results"]) == 1
             # Should find the cats document
             assert str(doc3_path) in search_result2["results"][0]["path"]
 
-    def test_get_embeddings_empty_input_error(self):
+    @pytest.mark.asyncio
+    async def test_get_embeddings_empty_input_error(self):
         """Test that empty input raises appropriate error."""
         skip_if_no_openai_key()
 
-        with pytest.raises((ValueError, RuntimeError, BadRequestError)):
-            get_embeddings(texts=[], model="text-embedding-3-small")
+        with pytest.raises(ToolError):
+            await mcp.call_tool(
+                "get_embeddings",
+                {"texts": [], "model": "text-embedding-3-small"},
+            )
 
-    def test_search_documents_nonexistent_index_error(self):
+    @pytest.mark.asyncio
+    async def test_search_documents_nonexistent_index_error(self):
         """Test that searching non-existent index fails fast."""
         skip_if_no_openai_key()
 
-        with pytest.raises(FileNotFoundError):
-            search_documents(
-                query="test",
-                index_path="/nonexistent/path/index.json",
-                top_k=5,
-                model="text-embedding-3-small",
+        with pytest.raises(ToolError, match="Index not found"):
+            await mcp.call_tool(
+                "search_documents",
+                {
+                    "query": "test",
+                    "index_path": "/nonexistent/path/index.json",
+                    "top_k": 5,
+                    "model": "text-embedding-3-small",
+                },
             )
 
-    def test_index_documents_nonexistent_file_error(self):
+    @pytest.mark.asyncio
+    async def test_index_documents_nonexistent_file_error(self):
         """Test that indexing non-existent files fails fast."""
         skip_if_no_openai_key()
 
@@ -215,29 +254,42 @@ class TestOpenAIEmbeddings:
             index_path = Path(temp_dir) / "index.json"
 
             # This should fail fast when trying to read the non-existent file
-            with pytest.raises(FileNotFoundError):
-                index_documents(
-                    document_paths=["/nonexistent/file.txt"],
-                    output_index_path=str(index_path),
-                    model="text-embedding-3-small",
+            with pytest.raises(ToolError, match="Document not found"):
+                await mcp.call_tool(
+                    "index_documents",
+                    {
+                        "document_paths": ["/nonexistent/file.txt"],
+                        "output_index_path": str(index_path),
+                        "model": "text-embedding-3-small",
+                    },
                 )
 
-    def test_different_models_compatibility(self):
+    @pytest.mark.asyncio
+    async def test_different_models_compatibility(self):
         """Test that different embedding models work correctly."""
         skip_if_no_openai_key()
 
         text = "Test model compatibility"
 
         # Test legacy ada-002 model
-        ada_result = get_embeddings(texts=[text], model="text-embedding-ada-002")
+        _, ada_result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-ada-002"},
+        )
         assert len(ada_result["embeddings"][0]) == 1536
 
         # Test new v3 small model
-        small_result = get_embeddings(texts=[text], model="text-embedding-3-small")
+        _, small_result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-3-small"},
+        )
         assert len(small_result["embeddings"][0]) == 1536
 
         # Test new v3 large model
-        large_result = get_embeddings(texts=[text], model="text-embedding-3-large")
+        _, large_result = await mcp.call_tool(
+            "get_embeddings",
+            {"texts": [text], "model": "text-embedding-3-large"},
+        )
         assert len(large_result["embeddings"][0]) == 3072
 
         # Verify all embeddings are different

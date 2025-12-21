@@ -1,4 +1,4 @@
-"""Integration tests for image generation functionality.
+"""Integration tests for image generation functionality via MCP protocol.
 
 VCR cassettes enable these tests to run without real API keys.
 The dummy API keys fixture in conftest.py allows the code to proceed
@@ -9,21 +9,26 @@ import os
 from pathlib import Path
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.llm.image.tool import generate as generate_image
+from mcp_handley_lab.llm.image.tool import mcp
 
 
 class TestOpenAIImageGeneration:
-    """Test OpenAI image generation functionality."""
+    """Test OpenAI image generation functionality via MCP protocol."""
 
     @pytest.mark.vcr
-    def test_dalle3_basic_generation(self):
+    @pytest.mark.asyncio
+    async def test_dalle3_basic_generation(self):
         """Test DALL-E 3 basic image generation."""
-        result = generate_image(
-            prompt="A simple red circle",
-            model="dall-e-3",
-            quality="standard",
-            size="1024x1024",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A simple red circle",
+                "model": "dall-e-3",
+                "quality": "standard",
+                "size": "1024x1024",
+            },
         )
 
         # Verify core fields
@@ -35,13 +40,17 @@ class TestOpenAIImageGeneration:
         assert result["cost"] > 0
 
     @pytest.mark.vcr
-    def test_dalle3_enhanced_prompt(self):
+    @pytest.mark.asyncio
+    async def test_dalle3_enhanced_prompt(self):
         """Test DALL-E 3 prompt enhancement."""
-        result = generate_image(
-            prompt="A futuristic city",
-            model="dall-e-3",
-            quality="hd",
-            size="1024x1024",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A futuristic city",
+                "model": "dall-e-3",
+                "quality": "hd",
+                "size": "1024x1024",
+            },
         )
 
         # Verify core fields
@@ -53,13 +62,17 @@ class TestOpenAIImageGeneration:
         assert result["enhanced_prompt"] != ""
 
     @pytest.mark.vcr
-    def test_dalle3_portrait_size(self):
+    @pytest.mark.asyncio
+    async def test_dalle3_portrait_size(self):
         """Test DALL-E 3 with portrait orientation."""
-        result = generate_image(
-            prompt="A mountain landscape",
-            model="dall-e-3",
-            size="1024x1792",  # Portrait orientation
-            quality="standard",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A mountain landscape",
+                "model": "dall-e-3",
+                "size": "1024x1792",  # Portrait orientation
+                "quality": "standard",
+            },
         )
 
         # Verify image was generated
@@ -69,14 +82,18 @@ class TestOpenAIImageGeneration:
 
 
 class TestGeminiImageGeneration:
-    """Test Gemini image generation functionality."""
+    """Test Gemini image generation functionality via MCP protocol."""
 
     @pytest.mark.vcr
-    def test_imagen3_basic_generation(self):
+    @pytest.mark.asyncio
+    async def test_imagen3_basic_generation(self):
         """Test Imagen 3 basic image generation."""
-        result = generate_image(
-            prompt="A peaceful garden",
-            model="imagen-4.0-generate-001",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A peaceful garden",
+                "model": "imagen-4.0-generate-001",
+            },
         )
 
         # Verify core fields
@@ -88,12 +105,16 @@ class TestGeminiImageGeneration:
         assert result["cost"] >= 0
 
     @pytest.mark.vcr
-    def test_imagen3_with_aspect_ratio(self):
+    @pytest.mark.asyncio
+    async def test_imagen3_with_aspect_ratio(self):
         """Test Imagen 3 with custom aspect ratio."""
-        result = generate_image(
-            prompt="A safe, family-friendly cartoon character",
-            model="imagen-4.0-generate-001",
-            aspect_ratio="16:9",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A safe, family-friendly cartoon character",
+                "model": "imagen-4.0-generate-001",
+                "aspect_ratio": "16:9",
+            },
         )
 
         # Verify image was generated
@@ -102,11 +123,15 @@ class TestGeminiImageGeneration:
         assert result["provider"] == "gemini"
 
     @pytest.mark.vcr
-    def test_imagen_model_variants(self):
+    @pytest.mark.asyncio
+    async def test_imagen_model_variants(self):
         """Test different Imagen model variants."""
-        result = generate_image(
-            prompt="A modern abstract art piece",
-            model="imagen-4.0-generate-001",
+        _, result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": "A modern abstract art piece",
+                "model": "imagen-4.0-generate-001",
+            },
         )
 
         # Verify model is correctly used
@@ -116,23 +141,30 @@ class TestGeminiImageGeneration:
 
 
 class TestImageGenerationComparison:
-    """Test comparing functionality across providers."""
+    """Test comparing functionality across providers via MCP protocol."""
 
     @pytest.mark.vcr
-    def test_response_structure_consistency(self):
+    @pytest.mark.asyncio
+    async def test_response_structure_consistency(self):
         """Test that both providers return consistent response structure."""
         prompt = "A simple test image"
 
-        openai_result = generate_image(
-            prompt=prompt,
-            model="dall-e-3",
-            size="1024x1024",
-            quality="standard",
+        _, openai_result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": prompt,
+                "model": "dall-e-3",
+                "size": "1024x1024",
+                "quality": "standard",
+            },
         )
 
-        gemini_result = generate_image(
-            prompt=prompt,
-            model="imagen-4.0-generate-001",
+        _, gemini_result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": prompt,
+                "model": "imagen-4.0-generate-001",
+            },
         )
 
         # Both should have the same core structure
@@ -150,20 +182,27 @@ class TestImageGenerationComparison:
         assert gemini_result["provider"] == "gemini"
 
     @pytest.mark.vcr
-    def test_prompt_enhancement_differences(self):
+    @pytest.mark.asyncio
+    async def test_prompt_enhancement_differences(self):
         """Test how different providers handle prompt enhancement."""
         prompt = "A cat wearing a hat"
 
-        openai_result = generate_image(
-            prompt=prompt,
-            model="dall-e-3",
-            size="1024x1024",
-            quality="standard",
+        _, openai_result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": prompt,
+                "model": "dall-e-3",
+                "size": "1024x1024",
+                "quality": "standard",
+            },
         )
 
-        gemini_result = generate_image(
-            prompt=prompt,
-            model="imagen-4.0-generate-001",
+        _, gemini_result = await mcp.call_tool(
+            "generate",
+            {
+                "prompt": prompt,
+                "model": "imagen-4.0-generate-001",
+            },
         )
 
         # Both should preserve original prompt
@@ -179,33 +218,49 @@ class TestImageGenerationComparison:
 
 
 class TestImageGenerationErrorHandling:
-    """Test error handling in image generation."""
+    """Test error handling in image generation via MCP protocol."""
 
-    def test_empty_prompt(self):
+    @pytest.mark.asyncio
+    async def test_empty_prompt(self):
         """Test image generation with empty prompt."""
-        with pytest.raises(ValueError, match="Prompt is required and cannot be empty"):
-            generate_image(prompt="")
+        with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
+            await mcp.call_tool("generate", {"prompt": ""})
 
     @pytest.mark.vcr
-    def test_invalid_size_openai(self):
+    @pytest.mark.asyncio
+    async def test_invalid_size_openai(self):
         """Test OpenAI with invalid size parameter."""
-        with pytest.raises((ValueError, RuntimeError)):
-            generate_image(
-                prompt="Test",
-                model="dall-e-3",
-                size="100x100",  # Invalid size
-                quality="standard",
+        with pytest.raises(ToolError):
+            await mcp.call_tool(
+                "generate",
+                {
+                    "prompt": "Test",
+                    "model": "dall-e-3",
+                    "size": "100x100",  # Invalid size
+                    "quality": "standard",
+                },
             )
 
 
 if __name__ == "__main__":
-    # Run basic smoke test
-    if os.getenv("OPENAI_API_KEY"):
-        print("Testing OpenAI...")
-        result = generate_image(prompt="Test", model="dall-e-3", size="1024x1024")
-        print(f"Generated: {result['file_path']}")
+    import asyncio
 
-    if os.getenv("GEMINI_API_KEY"):
-        print("Testing Gemini...")
-        result = generate_image(prompt="Test", model="imagen-4.0-generate-001")
-        print(f"Generated: {result['file_path']}")
+    async def main():
+        # Run basic smoke test
+        if os.getenv("OPENAI_API_KEY"):
+            print("Testing OpenAI...")
+            _, result = await mcp.call_tool(
+                "generate",
+                {"prompt": "Test", "model": "dall-e-3", "size": "1024x1024"},
+            )
+            print(f"Generated: {result['file_path']}")
+
+        if os.getenv("GEMINI_API_KEY"):
+            print("Testing Gemini...")
+            _, result = await mcp.call_tool(
+                "generate",
+                {"prompt": "Test", "model": "imagen-4.0-generate-001"},
+            )
+            print(f"Generated: {result['file_path']}")
+
+    asyncio.run(main())

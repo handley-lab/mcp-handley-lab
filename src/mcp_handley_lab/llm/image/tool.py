@@ -10,7 +10,6 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
-from pydantic.fields import FieldInfo
 
 from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm.registry import get_adapter, resolve_model
@@ -45,15 +44,6 @@ def generate(
     ),
 ) -> dict[str, Any]:
     """Generate an image from a text prompt."""
-    # Resolve Field defaults for direct calls (non-MCP)
-    # When called directly, Field() defaults are FieldInfo objects, not values
-    if isinstance(size, FieldInfo):
-        size = size.default or ""
-    if isinstance(quality, FieldInfo):
-        quality = quality.default or ""
-    if isinstance(aspect_ratio, FieldInfo):
-        aspect_ratio = aspect_ratio.default or ""
-
     if not prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
 

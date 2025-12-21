@@ -6,6 +6,7 @@ with JSONL format for append-only durability.
 
 import fcntl
 import json
+import logging
 import os
 import re
 import uuid
@@ -14,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 # Valid agent name pattern: alphanumeric, underscores, hyphens, dots
 VALID_AGENT_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+$")
@@ -132,7 +135,7 @@ class AgentMemory:
         events = []
 
         with open(self._file_path, encoding="utf-8") as f:
-            for line in f:
+            for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
                     continue
@@ -142,8 +145,14 @@ class AgentMemory:
                     # Track clear boundary using parsed-event index
                     if event.get("type") == "agent_cleared":
                         last_clear_idx = len(events) - 1
-                except json.JSONDecodeError:
-                    # Stop at first corrupted line (standard crash recovery)
+                except json.JSONDecodeError as e:
+                    # Crash recovery: log and stop at first corrupted line
+                    logger.warning(
+                        "JSONL truncation at line %s in %s: %s. History truncated (crash recovery).",
+                        line_num,
+                        self._file_path,
+                        e,
+                    )
                     break
 
         for i, event in enumerate(events):
@@ -378,9 +387,11 @@ class GlobalMemoryManager:
                         self._agents[name] = AgentMemory(
                             name, self._agents_dir, self.cwd
                         )
-                    except ValueError:
-                        # Skip files with invalid agent names (stray files, legacy, temp)
-                        pass
+                    except ValueError as e:
+                        # Log skipped invalid agent files for visibility
+                        logger.debug(
+                            "Skipping invalid agent file '%s': %s", agent_file.name, e
+                        )
 
         return list(self._agents.values())
 

@@ -338,6 +338,9 @@ def resolve_files_for_llm(
 
     Returns:
         List of formatted content strings with file headers
+
+    Raises:
+        ValueError: If any file exceeds max_file_size (fail-fast, no silent truncation)
     """
     if not files:
         return []
@@ -345,25 +348,9 @@ def resolve_files_for_llm(
     inline_content = []
     for file_path_str in files:
         file_path = Path(file_path_str)
-        try:
-            content, is_text = read_file_smart(file_path, max_file_size)
-            inline_content.append(content)
-        except ValueError as e:
-            if "too large" in str(e):
-                # File too large - read truncated version
-                if is_text_file(file_path):
-                    content = file_path.read_text(encoding="utf-8")[
-                        :100000
-                    ]  # 100KB limit
-                    inline_content.append(
-                        f"[File: {file_path.name} (truncated)]\n{content}..."
-                    )
-                else:
-                    inline_content.append(
-                        f"[File: {file_path.name} - too large to include]"
-                    )
-            else:
-                raise
+        # Fail-fast: let ValueError propagate for files too large
+        content, is_text = read_file_smart(file_path, max_file_size)
+        inline_content.append(content)
 
     return inline_content
 
@@ -426,11 +413,11 @@ def build_server_info(
     )
 
 
-def load_provider_models(provider: str) -> tuple[dict, str, callable]:
-    """Load model configurations and return configs, default model, and config getter.
+def load_provider_models(provider: str) -> tuple[dict, str]:
+    """Load model configurations and return configs and default model.
 
     Returns:
-        tuple: (MODEL_CONFIGS dict, DEFAULT_MODEL str, _get_model_config function)
+        tuple: (MODEL_CONFIGS dict, DEFAULT_MODEL str)
     """
     from mcp_handley_lab.llm.model_loader import (
         build_model_configs_dict,
@@ -444,9 +431,4 @@ def load_provider_models(provider: str) -> tuple[dict, str, callable]:
     config = load_model_config(provider)
     default_model = config["default_model"]
 
-    # Return a closure for getting model config with fallback
-    def get_model_config(model: str) -> dict:
-        """Get model configuration with fallback to default."""
-        return model_configs.get(model, model_configs[default_model])
-
-    return model_configs, default_model, get_model_config
+    return model_configs, default_model

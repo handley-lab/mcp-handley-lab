@@ -193,26 +193,15 @@ def process_llm_request(
     )
 
 
-def should_use_memory(agent_name: str | bool | None) -> bool:
+def should_use_memory(agent_name: str) -> bool:
     """Determines if agent memory should be used based on the agent_name parameter.
 
-    Returns False (disable memory) when:
-    - agent_name is boolean False
-    - agent_name is None
-    - agent_name is empty string or "false" (case-insensitive)
+    Returns False when agent_name is empty or "false" (case-insensitive).
+    Returns True for any other non-empty string.
 
-    Returns True (enable memory) for:
-    - agent_name is boolean True
-    - agent_name is a non-empty string other than "false"
+    Note: MCP layer handles type validation - we trust the input is a string.
     """
-    if agent_name is None:
-        return False
-    if isinstance(agent_name, bool):
-        return agent_name
-    if isinstance(agent_name, str):
-        return bool(agent_name) and agent_name.lower() != "false"
-    # Fallback for unexpected types
-    return bool(agent_name)
+    return bool(agent_name) and agent_name.lower() != "false"
 
 
 def process_image_generation(

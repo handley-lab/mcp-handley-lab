@@ -105,13 +105,6 @@ PROVIDER_OPTIONS = {
 }
 
 
-def _load_models_yaml(provider: str) -> dict[str, Any]:
-    """Load models from a provider's models.yaml using model_loader."""
-    from mcp_handley_lab.llm.model_loader import load_model_config
-
-    return load_model_config(provider).get("models", {})
-
-
 def build_model_registry() -> dict[str, tuple[str, dict[str, Any]]]:
     """Build unified model registry from all providers' models.yaml files.
 
@@ -183,11 +176,14 @@ def resolve_model(model: str) -> tuple[str, str, dict[str, Any]]:
             canonical_id = model
         return provider, canonical_id, config
 
-    # 2. Prefix fallback (sorted by length, longest first)
+    # 2. Prefix match - fail-fast for unknown model variants
     for prefix, provider in sorted(MODEL_PREFIXES, key=lambda x: -len(x[0])):
         if model.startswith(prefix):
-            # Unknown model variant - return with empty config
-            return provider, model, {}
+            raise ValueError(
+                f"Unknown model '{model}' for provider '{provider}'. "
+                f"Model matches prefix '{prefix}' but is not in the registry. "
+                f"Check spelling or add to providers/{provider}/models.yaml"
+            )
 
     # 3. Error with helpful message
     available_providers = ", ".join(PROVIDERS)

@@ -36,7 +36,7 @@ def get_client() -> OpenAI:
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("openai")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("openai")
 
 
 def get_model_config(model: str) -> dict:

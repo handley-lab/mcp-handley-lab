@@ -156,23 +156,28 @@ class TestUnifiedChatParameterConsistency:
 
 
 class TestModelResolution:
-    """Test model name resolution and prefix matching."""
+    """Test model name resolution and prefix matching (fail-fast behavior)."""
 
-    def test_prefix_matching_gemini(self):
-        """Test prefix matching for Gemini models."""
-        provider, model, _ = resolve_model("gemini-unknown-model")
-        assert provider == "gemini"
-        assert model == "gemini-unknown-model"
+    def test_prefix_matching_gemini_raises(self):
+        """Test that unknown Gemini models fail-fast with helpful error."""
+        with pytest.raises(
+            ValueError, match="Unknown model.*gemini.*not in the registry"
+        ):
+            resolve_model("gemini-unknown-model")
 
-    def test_prefix_matching_openai(self):
-        """Test prefix matching for OpenAI models."""
-        provider, model, _ = resolve_model("gpt-future-model")
-        assert provider == "openai"
+    def test_prefix_matching_openai_raises(self):
+        """Test that unknown OpenAI models fail-fast with helpful error."""
+        with pytest.raises(
+            ValueError, match="Unknown model.*openai.*not in the registry"
+        ):
+            resolve_model("gpt-future-model")
 
-    def test_prefix_matching_claude(self):
-        """Test prefix matching for Claude models."""
-        provider, model, _ = resolve_model("claude-future-version")
-        assert provider == "claude"
+    def test_prefix_matching_claude_raises(self):
+        """Test that unknown Claude models fail-fast with helpful error."""
+        with pytest.raises(
+            ValueError, match="Unknown model.*claude.*not in the registry"
+        ):
+            resolve_model("claude-future-version")
 
     def test_unknown_model_raises(self):
         """Test that completely unknown models raise ValueError."""

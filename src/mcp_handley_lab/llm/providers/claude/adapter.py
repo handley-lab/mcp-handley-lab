@@ -34,7 +34,7 @@ def get_client() -> Anthropic:
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("claude")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("claude")
 
 
 def get_model_config(model: str) -> dict:

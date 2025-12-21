@@ -41,7 +41,7 @@ def get_client() -> OpenAI:
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("groq")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("groq")
 
 
 def get_model_config(model: str) -> dict:
@@ -62,7 +62,7 @@ def generation_adapter(
     # Extract Groq-specific parameters from options dict
     options = kwargs.get("options", {})
     temperature = kwargs.get("temperature", 1.0)
-    files = kwargs.get("files")
+    files = kwargs.get("files", [])
     max_output_tokens = options.get("max_output_tokens")
 
     # Build messages

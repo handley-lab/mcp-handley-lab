@@ -67,7 +67,7 @@ _SESSION_ID = f"_session_{os.getpid()}_{int(time.time())}"
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("gemini")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("gemini")
 
 
 def get_model_config(model: str) -> dict[str, int]:

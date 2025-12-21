@@ -37,7 +37,7 @@ def get_client() -> Mistral:
 
 
 # Load model configurations using shared loader
-MODEL_CONFIGS, DEFAULT_MODEL, _get_model_config_func = load_provider_models("mistral")
+MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("mistral")
 
 
 def get_model_config(model: str) -> dict[str, int]:

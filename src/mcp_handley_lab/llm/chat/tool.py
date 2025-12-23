@@ -24,8 +24,8 @@ mcp = FastMCP("Chat Tool")
 @mcp.tool(
     description="Send a message to an LLM. Provider is auto-detected from model name. "
     "Supports Gemini, OpenAI, Claude, Mistral, Grok, and Groq. "
-    "Use provider names (gemini, openai, claude, mistral, grok, groq) for latest defaults. "
-    "Use options dict for provider-specific features. Run list_models() to see options."
+    "Use provider names for latest defaults (e.g., model='gemini'). "
+    "Returns: {content, usage: {input_tokens, output_tokens, cost, model_used}, agent_name}."
 )
 def ask(
     prompt: str | None = Field(
@@ -41,10 +41,10 @@ def ask(
         description="Variables for template substitution using ${var} syntax.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save the response. Defaults to '-' (stdout only). "
-        "With global memory, responses are stored in ~/.mcp-handley-lab/ and can be "
-        "retrieved later via get_response().",
+        default="",
+        description="File path to save the response. Empty string means no file output. "
+        "Responses are always stored in memory (~/.mcp-handley-lab/) and can be "
+        "retrieved via get_response().",
     ),
     agent_name: str = Field(
         default="session",
@@ -64,7 +64,9 @@ def ask(
     ),
     files: list[str] = Field(
         default_factory=list,
-        description="File paths to include as context.",
+        description="Files to include as context. Accepts: local paths, URLs, "
+        "or data URIs (data:mime/type;base64,...). Text files read as content, "
+        "images/PDFs sent to multimodal models.",
     ),
     system_prompt: str | None = Field(
         default=None,
@@ -112,21 +114,22 @@ def ask(
 @mcp.tool(
     description="Analyze images with vision-capable LLMs. Provider auto-detected from model. "
     "Supports Gemini, OpenAI, Claude, Mistral, and Grok vision models. "
-    "Use provider names for latest defaults."
+    "Returns: {content, usage: {input_tokens, output_tokens, cost, model_used}, agent_name}."
 )
 def analyze_image(
     prompt: str = Field(
         ...,
         description="Question about the image(s).",
     ),
-    files: list[str] = Field(
+    images: list[str] = Field(
         ...,
-        description="Image file paths or base64 strings to analyze.",
+        description="Images to analyze. Accepts: local paths, URLs, "
+        "data URIs (data:image/png;base64,...), or raw base64 strings.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save analysis. Defaults to '-' (stdout only). "
-        "With global memory, responses are stored and retrievable via get_response().",
+        default="",
+        description="File path to save analysis. Empty string means no file output. "
+        "Responses stored in memory and retrievable via get_response().",
     ),
     model: str = Field(
         default="gemini",
@@ -165,7 +168,7 @@ def analyze_image(
         provider=provider,
         generation_func=analysis_func,
         mcp_instance=mcp,
-        images=files,
+        images=images,
         focus=focus,
         system_prompt=system_prompt,
         options=options,
@@ -175,7 +178,7 @@ def analyze_image(
 @mcp.tool(
     description="Retrieve a past assistant response from an agent's conversation history. "
     "Only returns assistant messages (LLM responses), not user messages. "
-    "Returns full message including content and usage metadata (tokens, cost, etc.)."
+    "Returns: {content, usage: {input_tokens, output_tokens, cost, model_used}, agent_name, ...metadata}."
 )
 def get_response(
     agent_name: str = Field(
@@ -194,8 +197,8 @@ def get_response(
         "Required when agent_name is 'session'.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save response content. '-' for stdout only.",
+        default="",
+        description="File path to save response content. Empty string means no file output.",
     ),
 ) -> dict[str, Any]:
     """Retrieve an assistant response from an agent's conversation history.
@@ -218,7 +221,7 @@ def get_response(
     memory_manager = get_memory_manager()
     response = memory_manager.get_response(actual_agent_name, index)
 
-    if output_file != "-":
+    if output_file:
         Path(output_file).write_text(response["content"])
 
     return response
@@ -227,7 +230,7 @@ def get_response(
 @mcp.tool(
     description="Review conversation histories in JSON format. "
     "Shows user questions in full and abbreviated assistant responses. "
-    "Use response_index with get_response() to retrieve full messages."
+    "Returns: {project, agents: [{name, stats, messages: [{role, content, timestamp, response_index?}]}]}."
 )
 def review_conversations(
     agent_name: str = Field(
@@ -235,8 +238,8 @@ def review_conversations(
         description="Filter to specific agent. Empty for all agents.",
     ),
     output_file: str = Field(
-        default="-",
-        description="File path to save review. '-' for stdout only.",
+        default="",
+        description="File path to save review. Empty string means no file output.",
     ),
     max_response_chars: int = Field(
         default=200,
@@ -265,7 +268,7 @@ def review_conversations(
         "agents": [a.get_conversation_summary(max_response_chars) for a in agents],
     }
 
-    if output_file != "-":
+    if output_file:
         Path(output_file).write_text(json.dumps(result, indent=2))
 
     return result

@@ -17,7 +17,7 @@ mcp = FastMCP("Audio Tool")
 @mcp.tool(
     description="Transcribe audio to text using Mistral Voxtral. "
     "Supports MP3, WAV, FLAC, OGG, M4A. "
-    "Returns text with optional segment timestamps."
+    "Returns: {text, segments?: [{start, end, text}]}. Segments included if include_timestamps=true."
 )
 def transcribe(
     audio_path: str = Field(
@@ -25,8 +25,8 @@ def transcribe(
         description="Path to audio file or URL.",
     ),
     output_file: str = Field(
-        ...,
-        description="File path to save transcription results.",
+        default="",
+        description="File path to save transcription as JSON. Empty means no file output.",
     ),
     language: str = Field(
         default="",
@@ -34,7 +34,7 @@ def transcribe(
     ),
     include_timestamps: bool = Field(
         default=False,
-        description="Include segment-level timestamps.",
+        description="Include segment-level timestamps in output.",
     ),
 ) -> dict[str, Any]:
     """Transcribe audio using Mistral Voxtral model."""
@@ -47,5 +47,7 @@ def transcribe(
         include_timestamps=include_timestamps,
     )
 
-    Path(output_file).write_text(json.dumps(result, indent=2))
+    if output_file:
+        Path(output_file).write_text(json.dumps(result, indent=2))
+
     return result

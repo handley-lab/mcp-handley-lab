@@ -17,7 +17,7 @@ mcp = FastMCP("OCR Tool")
 @mcp.tool(
     description="Extract text from documents using Mistral OCR. "
     "Supports PDFs, images (PNG, JPG), PPTX, and DOCX. "
-    "Returns structured markdown with optional bounding box data."
+    "Returns: {status, pages, output_file?, message}. Full OCR JSON saved to output_file if provided."
 )
 def process(
     document_path: str = Field(
@@ -25,8 +25,8 @@ def process(
         description="Path to document file or URL. Supports PDF, images, PPTX, DOCX.",
     ),
     output_file: str = Field(
-        ...,
-        description="File path to save OCR results as JSON.",
+        default="",
+        description="File path to save full OCR results as JSON. Empty means no file output.",
     ),
     include_images: bool = Field(
         default=False,
@@ -39,13 +39,16 @@ def process(
     adapter = get_adapter("mistral", "ocr")
     result = adapter(document_path, include_images)
 
-    Path(output_file).write_text(json.dumps(result, indent=2))
-
-    # Return summary only to avoid overwhelming context
     pages = result.get("pages", [])
-    return {
+    response: dict[str, Any] = {
         "status": "success",
         "pages": len(pages),
-        "output_file": output_file,
-        "message": f"OCR complete. {len(pages)} page(s) extracted. Full results saved to {output_file}",
+        "message": f"OCR complete. {len(pages)} page(s) extracted.",
     }
+
+    if output_file:
+        Path(output_file).write_text(json.dumps(result, indent=2))
+        response["output_file"] = output_file
+        response["message"] += f" Full results saved to {output_file}"
+
+    return response

@@ -57,7 +57,8 @@ def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
 @mcp.tool(
     description="Generate embedding vectors for text. "
     "Supports OpenAI (text-embedding-*), Gemini (gemini-embedding-*), "
-    "Mistral (mistral-embed, codestral-embed)."
+    "Mistral (mistral-embed, codestral-embed). "
+    "Returns: {embeddings: [[float]], model, provider, dimensions, count}."
 )
 def get_embeddings(
     texts: list[str] = Field(
@@ -70,7 +71,7 @@ def get_embeddings(
     ),
     output_file: str = Field(
         default="",
-        description="Optional file path to save embeddings as JSON.",
+        description="File path to save embeddings as JSON. Empty means no file output.",
     ),
 ) -> dict[str, Any]:
     """Generate embeddings for text or code."""
@@ -98,7 +99,7 @@ def get_embeddings(
 
 @mcp.tool(
     description="Calculate semantic similarity between two texts. "
-    "Returns cosine similarity score from -1.0 to 1.0."
+    "Returns: {similarity: float (-1.0 to 1.0), model, provider}."
 )
 def calculate_similarity(
     text1: str = Field(
@@ -128,7 +129,8 @@ def calculate_similarity(
 
 @mcp.tool(
     description="Create a searchable semantic index from document files. "
-    "Reads files, generates embeddings, and saves as JSON index."
+    "Reads files, generates embeddings, and saves as JSON index. "
+    "Returns: {message, index_path, model, document_count}."
 )
 def index_documents(
     document_paths: list[str] = Field(
@@ -181,7 +183,8 @@ def index_documents(
 
 @mcp.tool(
     description="Search a document index for relevant documents. "
-    "Returns ranked list by semantic similarity."
+    "Returns: {query, model, results: [{path, similarity}]}. "
+    "Model defaults to index model if not specified."
 )
 def search_documents(
     query: str = Field(
@@ -193,8 +196,8 @@ def search_documents(
         description="Path to the JSON document index.",
     ),
     model: str = Field(
-        default="text-embedding-3-small",
-        description="Embedding model. Should match the index model.",
+        default="",
+        description="Embedding model. Defaults to index model. Must match index dimensions.",
     ),
     top_k: int = Field(
         default=5,
@@ -209,8 +212,19 @@ def search_documents(
 
     index = json.loads(index_file.read_text())
 
+    # Use index model if not specified
+    search_model = model if model else index.get("model", "text-embedding-3-small")
+
+    # Validate model matches index if both specified
+    index_model = index.get("model")
+    if model and index_model and model != index_model:
+        raise ValueError(
+            f"Model mismatch: query model '{model}' differs from index model '{index_model}'. "
+            f"Use the same model or omit model param to use index model."
+        )
+
     # Get query embedding
-    query_embedding = _get_embeddings([query], model)[0]
+    query_embedding = _get_embeddings([query], search_model)[0]
 
     # Calculate similarities
     results = []
@@ -223,6 +237,6 @@ def search_documents(
 
     return {
         "query": query,
-        "model": model,
+        "model": search_model,
         "results": results[:top_k],
     }

@@ -153,8 +153,8 @@ def process_llm_request(
             metadata=metadata,
         )
 
-    # Handle output - write to file unless "-" sentinel
-    if output_file != "-":
+    # Handle output - write to file if path provided
+    if output_file:
         output_path = Path(output_file)
         output_path.write_text(metadata["response_text"])
 

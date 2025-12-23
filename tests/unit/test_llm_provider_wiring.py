@@ -143,7 +143,7 @@ class TestUnifiedChatParameterConsistency:
         sig = inspect.signature(analyze_image)
         required_params = {
             "prompt",
-            "files",
+            "images",
             "output_file",
             "model",
             "focus",

@@ -3,8 +3,6 @@
 Provides image generation using multiple providers (Gemini, OpenAI, Grok).
 """
 
-import tempfile
-import uuid
 from pathlib import Path
 from typing import Any
 
@@ -19,12 +17,17 @@ mcp = FastMCP("Image Tool")
 
 @mcp.tool(
     description="Generate an image from a text prompt. "
-    "Supports Gemini (imagen-*), OpenAI (dall-e-*), and Grok (grok-*-image) models."
+    "Supports Gemini (imagen-*), OpenAI (dall-e-*), and Grok (grok-*-image) models. "
+    "Returns: {file_path, file_size_bytes, model, provider, cost, enhanced_prompt?, original_prompt}."
 )
 def generate(
     prompt: str = Field(
         ...,
         description="Text description of the image to generate.",
+    ),
+    output_file: str = Field(
+        ...,
+        description="File path to save the generated image (PNG format).",
     ),
     model: str = Field(
         default="imagen-4.0-generate-001",
@@ -73,10 +76,9 @@ def generate(
     input_tokens = response_data.get("input_tokens", 0)
     output_tokens = response_data.get("output_tokens", 1)
 
-    # Save to temp file
-    file_id = str(uuid.uuid4())[:8]
-    filename = f"{provider}_generated_{file_id}.png"
-    filepath = Path(tempfile.gettempdir()) / filename
+    # Save to specified file
+    filepath = Path(output_file)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     filepath.write_bytes(image_bytes)
 
     cost = calculate_cost(

@@ -175,7 +175,7 @@ def analyze_image(
 @mcp.tool(
     description="Retrieve a past assistant response from an agent's conversation history. "
     "Only returns assistant messages (LLM responses), not user messages. "
-    "Useful for accessing responses when output_file was not specified."
+    "Returns full message including content and usage metadata (tokens, cost, etc.)."
 )
 def get_response(
     agent_name: str = Field(
@@ -193,12 +193,18 @@ def get_response(
         description="Provider name (gemini, openai, etc.) to resolve 'session' agent name. "
         "Required when agent_name is 'session'.",
     ),
-) -> str:
+    output_file: str = Field(
+        default="-",
+        description="File path to save response content. '-' for stdout only.",
+    ),
+) -> dict[str, Any]:
     """Retrieve an assistant response from an agent's conversation history.
 
-    Returns the content of the assistant message at the specified index.
+    Returns the full message dict including content and usage metadata.
     Raises ValueError if agent not found, IndexError if no assistant responses or out of range.
     """
+    from pathlib import Path
+
     from mcp_handley_lab.llm.common import get_session_id
 
     actual_agent_name = agent_name
@@ -210,4 +216,56 @@ def get_response(
         actual_agent_name = get_session_id(mcp, provider)
 
     memory_manager = get_memory_manager()
-    return memory_manager.get_response(actual_agent_name, index)
+    response = memory_manager.get_response(actual_agent_name, index)
+
+    if output_file != "-":
+        Path(output_file).write_text(response["content"])
+
+    return response
+
+
+@mcp.tool(
+    description="Review conversation histories in JSON format. "
+    "Shows user questions in full and abbreviated assistant responses. "
+    "Use response_index with get_response() to retrieve full messages."
+)
+def review_conversations(
+    agent_name: str = Field(
+        default="",
+        description="Filter to specific agent. Empty for all agents.",
+    ),
+    output_file: str = Field(
+        default="-",
+        description="File path to save review. '-' for stdout only.",
+    ),
+    max_response_chars: int = Field(
+        default=200,
+        description="Max characters per assistant response (truncated with ...).",
+    ),
+) -> dict[str, Any]:
+    """Review all agents' conversation histories with truncated assistant responses.
+
+    Returns JSON with agent stats, system prompts, and messages.
+    Assistant responses show response_index for use with get_response().
+    """
+    import json
+    from pathlib import Path
+
+    memory_manager = get_memory_manager()
+    agents = memory_manager.list_agents()
+
+    # Filter to specific agent if requested
+    if agent_name:
+        agents = [a for a in agents if a.name == agent_name]
+        if not agents:
+            raise ValueError(f"Agent '{agent_name}' not found")
+
+    result = {
+        "project": str(memory_manager.cwd),
+        "agents": [a.get_conversation_summary(max_response_chars) for a in agents],
+    }
+
+    if output_file != "-":
+        Path(output_file).write_text(json.dumps(result, indent=2))
+
+    return result

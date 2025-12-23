@@ -29,8 +29,8 @@ def process(
         description="File path to save OCR results as JSON.",
     ),
     include_images: bool = Field(
-        default=True,
-        description="Include base64-encoded images with bounding boxes.",
+        default=False,
+        description="Include base64-encoded images with bounding boxes in output.",
     ),
 ) -> dict[str, Any]:
     """Process document with Mistral OCR for text extraction."""
@@ -40,4 +40,12 @@ def process(
     result = adapter(document_path, include_images)
 
     Path(output_file).write_text(json.dumps(result, indent=2))
-    return result
+
+    # Return summary only to avoid overwhelming context
+    pages = result.get("pages", [])
+    return {
+        "status": "success",
+        "pages": len(pages),
+        "output_file": output_file,
+        "message": f"OCR complete. {len(pages)} page(s) extracted. Full results saved to {output_file}",
+    }

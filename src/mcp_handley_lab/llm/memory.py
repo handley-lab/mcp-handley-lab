@@ -204,20 +204,34 @@ class AgentMemory:
         cost: float = 0.0,
         provider: str | None = None,
         model: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Add a message to the agent's memory.
 
         Args:
             role: Message role (user/assistant)
             content: Message content
-            input_tokens: Number of input/prompt tokens
-            output_tokens: Number of output/completion tokens
-            cost: Cost in USD
+            input_tokens: Number of input/prompt tokens (deprecated, use metadata)
+            output_tokens: Number of output/completion tokens (deprecated, use metadata)
+            cost: Cost in USD (deprecated, use metadata)
             provider: Provider name (e.g., "openai", "gemini")
             model: Model name (e.g., "gpt-4o", "gemini-2.5-pro")
+            metadata: Full response metadata (tokens, cost, timing, etc.)
         """
         usage = None
-        if input_tokens > 0 or output_tokens > 0 or cost > 0 or provider or model:
+
+        # Prefer metadata dict, fall back to individual args for backward compat
+        if metadata:
+            # Filter out response_text - it's already stored in content
+            filtered_metadata = {
+                k: v for k, v in metadata.items() if k != "response_text"
+            }
+            usage = {
+                "provider": provider,
+                "model": model,
+                **filtered_metadata,
+            }
+        elif input_tokens > 0 or output_tokens > 0 or cost > 0 or provider or model:
             usage = {
                 "provider": provider,
                 "model": model,
@@ -293,16 +307,115 @@ class AgentMemory:
         """Get all messages (for backward compatibility)."""
         return self._messages
 
-    def get_response(self, index: int = -1) -> str:
+    def get_response(self, index: int = -1) -> dict[str, Any]:
         """Get an assistant response by index. Raises IndexError if not found.
 
         Only considers assistant messages. Index 0 is the first response,
         -1 is the last, -2 is second-to-last, etc.
+
+        Returns a dict matching the LLMResult structure that ask() returns:
+        - content: The response text
+        - usage: Token/cost info (input_tokens, output_tokens, cost, model_used)
+        - Plus any additional metadata from the original response
         """
         responses = [msg for msg in self._messages if msg["role"] == "assistant"]
         if not responses:
             raise IndexError("Cannot get response: agent has no assistant responses")
-        return responses[index]["content"]
+
+        msg = responses[index]
+        stored_usage = msg.get("usage") or {}
+
+        # Build result in LLMResult format
+        result: dict[str, Any] = {"content": msg["content"]}
+
+        # Build usage dict matching UsageStats structure
+        usage = {
+            "input_tokens": stored_usage.get("input_tokens", 0),
+            "output_tokens": stored_usage.get("output_tokens", 0),
+            "cost": stored_usage.get("cost", 0.0),
+            "model_used": stored_usage.get("model", ""),
+        }
+        result["usage"] = usage
+
+        # Add other LLMResult fields if present in stored metadata
+        llm_result_fields = [
+            "finish_reason",
+            "avg_logprobs",
+            "model_version",
+            "generation_time_ms",
+            "response_id",
+            "system_fingerprint",
+            "service_tier",
+            "completion_tokens_details",
+            "prompt_tokens_details",
+            "stop_sequence",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "grounding_metadata",
+        ]
+        for field in llm_result_fields:
+            if field in stored_usage:
+                result[field] = stored_usage[field]
+
+        # Add agent_name from stored message if present
+        result["agent_name"] = self.name
+
+        return result
+
+    def get_conversation_summary(self, max_response_chars: int = 200) -> dict[str, Any]:
+        """Get conversation data for LLM review with truncated assistant responses.
+
+        Returns a dict with agent stats, system prompt, and messages.
+        Assistant responses are truncated to max_response_chars with metadata.
+        The `response_index` field on assistant messages is the index to pass
+        to get_response() (-1 for the last response).
+
+        Output is minimal - only includes fields that have meaningful values.
+        """
+        messages = []
+        assistant_count = 0
+        total_assistants = sum(1 for m in self._messages if m["role"] == "assistant")
+
+        for msg in self._messages:
+            content = msg["content"]
+            full_length = len(content)
+
+            entry: dict[str, Any] = {"role": msg["role"]}
+
+            if msg.get("timestamp"):
+                entry["timestamp"] = msg["timestamp"]
+
+            if msg["role"] == "assistant":
+                # Track the response index for get_response() calls
+                # Use negative indexing (-1 = last, -2 = second-to-last)
+                entry["response_index"] = assistant_count - total_assistants
+                assistant_count += 1
+
+                if len(content) > max_response_chars:
+                    content = content[:max_response_chars] + "..."
+                    entry["truncated"] = True
+                    entry["full_length"] = full_length
+
+            entry["content"] = content
+            messages.append(entry)
+
+        # Build minimal stats (exclude redundant name, null system_prompt)
+        stats = self.get_stats()
+        summary_stats = {
+            "messages": stats["message_count"],
+            "tokens": stats["total_tokens"],
+            "cost": stats["total_cost"],
+        }
+
+        result: dict[str, Any] = {
+            "name": self.name,
+            "stats": summary_stats,
+            "messages": messages,
+        }
+        if self._system_prompt:
+            result["system_prompt"] = self._system_prompt
+
+        return result
 
 
 class GlobalMemoryManager:
@@ -414,6 +527,7 @@ class GlobalMemoryManager:
         cost: float = 0.0,
         provider: str | None = None,
         model: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Add a message to an agent's memory.
 
@@ -424,7 +538,14 @@ class GlobalMemoryManager:
             # Auto-create agent if it doesn't exist
             agent = self.create_agent(agent_name)
         agent.add_message(
-            role, content, input_tokens, output_tokens, cost, provider, model
+            role,
+            content,
+            input_tokens,
+            output_tokens,
+            cost,
+            provider,
+            model,
+            metadata,
         )
 
     def clear_agent_history(self, agent_name: str) -> None:
@@ -434,8 +555,8 @@ class GlobalMemoryManager:
             raise ValueError(f"Agent '{agent_name}' not found")
         agent.clear_history()
 
-    def get_response(self, agent_name: str, index: int = -1) -> str:
-        """Get a message content from an agent by index."""
+    def get_response(self, agent_name: str, index: int = -1) -> dict[str, Any]:
+        """Get a full message from an agent by index, including usage metadata."""
         agent = self.get_agent(agent_name)
         if not agent:
             raise ValueError(f"Agent '{agent_name}' not found")

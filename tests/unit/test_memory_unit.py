@@ -164,14 +164,14 @@ class TestAgentMemory:
         agent.add_message("assistant", "I'm fine!")
 
         # Test default (-1, last assistant message)
-        assert agent.get_response() == "I'm fine!"
-        assert agent.get_response(-1) == "I'm fine!"
+        assert agent.get_response()["content"] == "I'm fine!"
+        assert agent.get_response(-1)["content"] == "I'm fine!"
 
         # Test first assistant message (index 0)
-        assert agent.get_response(0) == "Hi there"
+        assert agent.get_response(0)["content"] == "Hi there"
 
         # Test second-to-last assistant message
-        assert agent.get_response(-2) == "Hi there"
+        assert agent.get_response(-2)["content"] == "Hi there"
 
     def test_get_response_empty_raises(self, tmp_path):
         """Test getting response from empty message list raises IndexError."""
@@ -232,6 +232,110 @@ class TestAgentMemory:
         assert len(agent2.messages) == 2
         assert agent2.messages[0]["content"] == "Hello"
         assert agent2.messages[1]["content"] == "Hi"
+
+    def test_get_conversation_summary_basic(self, tmp_path):
+        """Test conversation summary with basic messages."""
+        agents_dir = tmp_path / "agents"
+        agent = AgentMemory("test", agents_dir)
+        agent.system_prompt = "You are helpful."
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi there!")
+        agent.add_message("user", "How are you?")
+        agent.add_message("assistant", "I'm doing great!")
+
+        summary = agent.get_conversation_summary()
+
+        assert summary["name"] == "test"
+        assert summary["system_prompt"] == "You are helpful."
+        assert len(summary["messages"]) == 4
+        assert summary["stats"]["messages"] == 4
+
+    def test_get_conversation_summary_no_system_prompt(self, tmp_path):
+        """Test that system_prompt is omitted when None."""
+        agents_dir = tmp_path / "agents"
+        agent = AgentMemory("test", agents_dir)
+        agent.add_message("user", "Hello")
+        agent.add_message("assistant", "Hi!")
+
+        summary = agent.get_conversation_summary()
+
+        assert "system_prompt" not in summary
+
+    def test_get_conversation_summary_truncation(self, tmp_path):
+        """Test that assistant responses are truncated."""
+        agents_dir = tmp_path / "agents"
+        agent = AgentMemory("test", agents_dir)
+
+        short_response = "Short"
+        long_response = "A" * 500  # 500 chars, will be truncated
+
+        agent.add_message("user", "Question 1")
+        agent.add_message("assistant", short_response)
+        agent.add_message("user", "Question 2")
+        agent.add_message("assistant", long_response)
+
+        summary = agent.get_conversation_summary(max_response_chars=200)
+
+        # First assistant message - not truncated (no truncated/full_length keys)
+        msg1 = summary["messages"][1]
+        assert msg1["role"] == "assistant"
+        assert "truncated" not in msg1
+        assert "full_length" not in msg1
+        assert msg1["content"] == short_response
+
+        # Second assistant message - truncated
+        msg2 = summary["messages"][3]
+        assert msg2["role"] == "assistant"
+        assert msg2["truncated"] is True
+        assert msg2["full_length"] == 500
+        assert len(msg2["content"]) == 203  # 200 + "..."
+        assert msg2["content"].endswith("...")
+
+    def test_get_conversation_summary_response_index(self, tmp_path):
+        """Test that response_index matches get_response() indexing."""
+        agents_dir = tmp_path / "agents"
+        agent = AgentMemory("test", agents_dir)
+
+        agent.add_message("user", "Q1")
+        agent.add_message("assistant", "A1")
+        agent.add_message("user", "Q2")
+        agent.add_message("assistant", "A2")
+        agent.add_message("user", "Q3")
+        agent.add_message("assistant", "A3")
+
+        summary = agent.get_conversation_summary()
+
+        # User messages have no response_index key
+        assert "response_index" not in summary["messages"][0]  # user
+        assert "response_index" not in summary["messages"][2]  # user
+        assert "response_index" not in summary["messages"][4]  # user
+
+        # Assistant messages have negative indices matching get_response()
+        assert summary["messages"][1]["response_index"] == -3  # first assistant
+        assert summary["messages"][3]["response_index"] == -2  # second assistant
+        assert summary["messages"][5]["response_index"] == -1  # last assistant
+
+        # Verify indices work with get_response()
+        assert agent.get_response(-3)["content"] == "A1"
+        assert agent.get_response(-2)["content"] == "A2"
+        assert agent.get_response(-1)["content"] == "A3"
+
+    def test_get_conversation_summary_user_not_truncated(self, tmp_path):
+        """Test that user messages are never truncated."""
+        agents_dir = tmp_path / "agents"
+        agent = AgentMemory("test", agents_dir)
+
+        long_user_msg = "B" * 500
+
+        agent.add_message("user", long_user_msg)
+        agent.add_message("assistant", "Short response")
+
+        summary = agent.get_conversation_summary(max_response_chars=50)
+
+        user_msg = summary["messages"][0]
+        assert user_msg["role"] == "user"
+        assert "truncated" not in user_msg  # No truncated key for users
+        assert user_msg["content"] == long_user_msg  # Full content
 
 
 class TestGlobalMemoryManager:
@@ -357,11 +461,11 @@ class TestGlobalMemoryManager:
 
         # Default: last assistant response
         response = manager.get_response("test_agent")
-        assert response == "I'm fine!"
+        assert response["content"] == "I'm fine!"
 
         # Index 0: first assistant response
         response = manager.get_response("test_agent", 0)
-        assert response == "Hi there"
+        assert response["content"] == "Hi there"
 
     def test_get_response_nonexistent_raises(self, tmp_path, monkeypatch):
         """Test getting response from non-existing agent raises."""

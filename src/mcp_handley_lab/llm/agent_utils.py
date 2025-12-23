@@ -82,6 +82,9 @@ def delete_agent(agent_name: str) -> str:
     return f"✅ Agent '{agent_name}' deleted permanently!"
 
 
-def get_response(agent_name: str, index: int = -1) -> str:
-    """Get a message from an agent's conversation history by index."""
+def get_response(agent_name: str, index: int = -1) -> dict:
+    """Get a full message from an agent's conversation history by index.
+
+    Returns the full message dict including content and usage metadata.
+    """
     return memory_manager.get_response(agent_name, index)

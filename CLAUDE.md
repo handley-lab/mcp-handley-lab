@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **NEVER MODIFY FILES OUTSIDE THE PROJECT DIRECTORY**
 
-- NEVER copy, move, overwrite, or delete files outside `/home/will/code/mcp.3/`
+- NEVER copy, move, overwrite, or delete files outside the project directory
 - NEVER modify credential files in `~/` (home directory)
 - NEVER touch system files, config files, or user data outside the project
 - If testing requires different credentials, configure within the codebase using fixtures/environment variables
@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is an MCP (Model Context Protocol) framework project designed to bridge various external services and command-line utilities into a unified API. The framework provides a comprehensive toolkit for:
 
 - **Code & Git Interaction**: Converting, flattening, and diffing codebases via `code2prompt`
-- **AI Model Integration**: Managing interactions with Google Gemini and OpenAI models
+- **AI Model Integration**: Unified LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, and Groq
 - **Productivity & Scheduling**: Google Calendar management
 - **Academic Research**: ArXiv paper source code retrieval and analysis
 - **Interactive Editing**: Programmatic `vim` invocation
@@ -163,52 +163,51 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 
 ## Completed Implementations
 
-### Vim Tool ✓ **100% Test Coverage**
+### Unified LLM Tools ✓
+Provider-agnostic LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, and Groq.
+
+#### mcp-llm-chat
+- **Location**: `src/mcp_handley_lab/llm/chat/`
+- **Functions**: `ask`, `analyze_image`, `get_response`
+- **Features**: Text generation, vision analysis, persistent memory via `agent_name`, file input support
+- **Model Selection**: Use `model` parameter with provider name (gemini, openai, claude, grok, mistral, groq) or specific model ID
+
+#### mcp-llm-image
+- **Location**: `src/mcp_handley_lab/llm/image/`
+- **Functions**: `generate`
+- **Features**: Image generation via DALL-E, Imagen, etc.
+
+#### mcp-llm-audio
+- **Location**: `src/mcp_handley_lab/llm/audio/`
+- **Functions**: `transcribe`
+- **Features**: Audio transcription
+
+#### mcp-llm-ocr
+- **Location**: `src/mcp_handley_lab/llm/ocr/`
+- **Functions**: `process`
+- **Features**: OCR text extraction from images
+
+#### mcp-llm-embeddings
+- **Location**: `src/mcp_handley_lab/llm/embeddings/`
+- **Functions**: `get_embeddings`, `calculate_similarity`, `index_documents`, `search_documents`
+- **Features**: Text embeddings, semantic search, document indexing
+
+#### mcp-llm-models
+- **Location**: `src/mcp_handley_lab/llm/models/`
+- **Functions**: `list_models`
+- **Features**: List all available models across providers with pricing and capabilities
+
+### Vim Tool ✓
 - **Location**: `src/mcp_handley_lab/vim/`
 - **Functions**: `prompt_user_edit`, `quick_edit`, `open_file`, `server_info`
-- **Features**: Instructions support, diff output, backup creation, file extension detection
-- **Tests**: 24 test cases covering all functionality and edge cases
-- **Status**: Production ready with comprehensive error handling
 
-### Google Calendar Tool ✓ **100% Test Coverage**
+### Google Calendar Tool ✓
 - **Location**: `src/mcp_handley_lab/google_calendar/`
-- **Functions**: `search_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`, `server_info`
-- **Features**: OAuth2 authentication, unified search/listing interface, event CRUD operations, free time finding, advanced filtering
-- **Tests**: 51 test cases covering all functionality, error handling, and edge cases
-- **Status**: Production ready with comprehensive API integration and consolidated search interface
+- **Functions**: `search_events`, `get_event`, `create_event`, `update_event`, `delete_event`, `list_calendars`, `find_time`
 
-### LLM Memory Management ✓ **100% Test Coverage**
-- **Location**:
-  - Backend: `src/mcp_handley_lab/llm/memory.py`
-  - Utilities: `src/mcp_handley_lab/llm/agent_utils.py`
-- **Purpose**: Core LLM module feature providing persistent, provider-agnostic conversational memory
-- **Internal Functions**: `create_agent`, `list_agents`, `agent_stats`, `get_response`, `clear_agent`, `delete_agent` (available as internal utilities only)
-- **Integration**: All LLM provider tools (`gemini`, `openai`, `claude`) use the memory system via the `agent_name` parameter
-- **Status**: Production ready
-
-### Gemini LLM Tool ✓ **100% Test Coverage**
-- **Location**: `src/mcp_handley_lab/llm/gemini/`
-- **Functions**: `ask`, `analyze_image`, `generate_image`, `list_models`, `server_info`
-- **Features**: Text generation, image analysis, image generation with Imagen 3, Google Search grounding, file input support. Uses the separate `agent` tool for persistent conversation memory
-- **SDK**: Migrated to official `google-genai` SDK (replacing deprecated `google-generativeai`)
-- **Tests**: 56 unit tests + 9 integration tests covering all functionality and API compatibility
-- **Status**: Production ready with full google-genai integration
-
-### OpenAI LLM Tool ✓ **100% Test Coverage**
-- **Location**: `src/mcp_handley_lab/llm/openai/`
-- **Functions**: `ask`, `analyze_image`, `generate_image`, `list_models`, `server_info`
-- **Features**: Text generation, image analysis, image generation with DALL-E, file input support. Uses the separate `agent` tool for persistent conversation memory
-- **Tests**: 6 integration tests covering all functionality and API compatibility
-- **Status**: Production ready with full OpenAI integration
-
-
-### ArXiv Tool ✓ **100% Test Coverage**
+### ArXiv Tool ✓
 - **Location**: `src/mcp_handley_lab/arxiv/`
-- **Functions**: `download`, `list_files`, `server_info`
-- **Features**: Multi-format ArXiv download (src/pdf/tex), file listing, caching in /tmp
-- **Formats**: 'src' (full source), 'pdf' (PDF file), 'tex' (LaTeX files: .tex/.bib/.bbl only)
-- **Tests**: 16 test cases covering all formats, caching, error handling, and integration tests
-- **Status**: Production ready with comprehensive caching and output control
+- **Functions**: `download`, `list_files`
 
 ## Running Tools
 
@@ -217,37 +216,28 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 The project provides a unified entry point for all tools:
 
 ```bash
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install the package in development mode (with dev dependencies)
+# Install the package
 pip install -e .[dev]
 
-# Use unified entry point
-python -m mcp_handley_lab --help                # Show available tools
-python -m mcp_handley_lab vim                   # Run Vim tool
-python -m mcp_handley_lab code2prompt           # Run Code2Prompt tool
-python -m mcp_handley_lab llm.gemini            # Run Gemini LLM tool
-python -m mcp_handley_lab llm.openai          # Run OpenAI LLM tool
-python -m mcp_handley_lab google_calendar       # Run Google Calendar tool
-python -m mcp_handley_lab arxiv                 # Run ArXiv tool
+# LLM Tools (unified, provider-agnostic)
+mcp-llm-chat                                    # Chat/text generation
+mcp-llm-image                                   # Image generation
+mcp-llm-audio                                   # Audio transcription
+mcp-llm-ocr                                     # OCR text extraction
+mcp-llm-embeddings                              # Text embeddings & search
+mcp-llm-models                                  # List available models
 
-# Or use direct script entries
-mcp-handley-lab --help                          # Unified entry point
-mcp-vim                                         # Direct Vim tool
-mcp-code2prompt                                 # Direct Code2Prompt tool
-mcp-arxiv                                       # Direct ArXiv tool
-mcp-google-calendar                             # Direct Google Calendar tool
-mcp-gemini                                      # Direct Gemini tool
-mcp-openai                                      # Direct OpenAI tool
-mcp-claude                                      # Direct Claude tool
-mcp-grok                                        # Direct Grok tool
-mcp-google-maps                                 # Direct Google Maps tool
-mcp-email                                       # Direct Email tool
-mcp-mutt-aliases                                # Direct Mutt Aliases tool
-mcp-py2nb                                       # Direct Notebook Converter tool
-mcp-cli                                         # Direct CLI tool
+# Other Tools
+mcp-vim                                         # Vim editing
+mcp-code2prompt                                 # Codebase summarization
+mcp-arxiv                                       # ArXiv paper download
+mcp-google-calendar                             # Calendar management
+mcp-google-maps                                 # Directions/routes
+mcp-email                                       # Email via notmuch
+mcp-github                                      # GitHub integration
+mcp-jq                                          # JSON querying
+mcp-py2nb                                       # Python/notebook conversion
+mcp-word                                        # Word document processing
 ```
 
 ### JSON-RPC MCP Server Usage
@@ -257,9 +247,8 @@ Each tool runs as a JSON-RPC server following the Model Context Protocol (MCP) s
 #### 1. Basic MCP Protocol Sequence
 
 ```bash
-# Start any tool server (example with Gemini)
-source venv/bin/activate
-mcp-gemini
+# Start any tool server (example with LLM chat)
+mcp-llm-chat
 ```
 
 #### 2. JSON-RPC Message Flow
@@ -300,8 +289,7 @@ Send these JSON-RPC messages in sequence:
     "name": "ask",
     "arguments": {
       "prompt": "What is 2+2?",
-      "output_file": "/tmp/result.txt",
-      "agent_name": false
+      "model": "gemini"
     }
   }
 }
@@ -310,15 +298,13 @@ Send these JSON-RPC messages in sequence:
 #### 3. Complete Working Example
 
 ```bash
-source venv/bin/activate
-
-# Test Gemini tool via JSON-RPC
+# Test LLM chat tool via JSON-RPC
 (
 echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}'
 echo '{"jsonrpc": "2.0", "method": "notifications/initialized"}'
 echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}'
-echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 5+5?", "output_file": "/tmp/test.txt", "agent_name": false}}}'
-) | mcp-gemini
+echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 5+5?", "model": "gemini"}}}'
+) | mcp-llm-chat
 ```
 
 #### 4. Expected Responses
@@ -331,7 +317,7 @@ echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "as
   "result": {
     "protocolVersion": "2024-11-05",
     "capabilities": {...},
-    "serverInfo": {"name": "Gemini Tool", "version": "1.9.4"}
+    "serverInfo": {"name": "Chat Tool", "version": "..."}
   }
 }
 ```
@@ -345,7 +331,7 @@ echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "as
     "tools": [
       {
         "name": "ask",
-        "description": "Asks a question to a Gemini model...",
+        "description": "Send a message to an LLM. Provider is auto-detected from model name...",
         "inputSchema": {...}
       },
       ...
@@ -386,36 +372,30 @@ For integration with MCP clients like Claude Desktop:
 
 ```bash
 # Test with official MCP client tools
-mcp-cli connect stdio mcp-gemini
+mcp-cli connect stdio mcp-llm-chat
 ```
 
 #### 6. Testing and Debugging JSON-RPC
 
-**CRITICAL**: Always test tool functions via JSON-RPC, not just server startup. Starting a server (e.g., `mcp-gemini`) only validates imports and initialization - it doesn't test actual tool execution.
+**CRITICAL**: Always test tool functions via JSON-RPC, not just server startup. Starting a server only validates imports and initialization - it doesn't test actual tool execution.
 
 **Common Testing Mistake:**
 ```bash
 # ❌ This only tests server startup, NOT tool function execution
-mcp-gemini  # Server starts successfully but tool calls may still fail
+mcp-llm-chat  # Server starts successfully but tool calls may still fail
 ```
 
 **Proper Testing Approach:**
 ```bash
 # ✅ Test actual tool execution via JSON-RPC
-source venv/bin/activate
-
-# Method 1: Automated test script
-python /tmp/test_jsonrpc.py
-
-# Method 2: Manual JSON-RPC commands
 (
 echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}'
 echo '{"jsonrpc": "2.0", "method": "notifications/initialized"}'
-echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "output_file": "/tmp/test.txt"}}}'
-) | mcp-gemini
+echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "model": "gemini"}}}'
+) | mcp-llm-chat
 ```
 
-**Automated Test Script (`/tmp/test_jsonrpc.py`):**
+**Automated Test Script:**
 ```python
 #!/usr/bin/env python3
 import subprocess
@@ -423,7 +403,7 @@ import json
 
 def test_mcp_jsonrpc():
     process = subprocess.Popen(
-        ['mcp-gemini'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        ['mcp-llm-chat'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, text=True, bufsize=0)
 
     try:
@@ -445,7 +425,7 @@ def test_mcp_jsonrpc():
         # Test tool call
         ask_request = {
             "jsonrpc": "2.0", "id": 2, "method": "tools/call",
-            "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "output_file": "/tmp/test.txt"}}
+            "params": {"name": "ask", "arguments": {"prompt": "What is 2+2?", "model": "gemini"}}
         }
         process.stdin.write(json.dumps(ask_request) + '\n')
         process.stdin.flush()
@@ -492,10 +472,10 @@ if __name__ == "__main__": test_mcp_jsonrpc()
 **Error Examples to Watch For:**
 ```json
 // Missing import error
-{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: name 'memory_manager' is not defined"}],"isError":true}}
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: name 'some_module' is not defined"}],"isError":true}}
 
 // API key missing
-{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: Gemini API error: GEMINI_API_KEY not found"}],"isError":true}}
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"Error executing tool ask: API key not found for provider"}],"isError":true}}
 ```
 
 #### 7. Tool-Specific Examples
@@ -564,16 +544,16 @@ Leverage persistent agents as intelligent helpers for code review and brainstorm
 
 1. **Generate code summary**: Use `mcp__code2prompt__generate_prompt` to create a structured representation of the code
 2. **Initialize or select agent**: Create a new agent with the dedicated `agent` management system
-3. **Review and ideate**: Use any LLM tool (Gemini, OpenAI, etc.) with the agent for persistent memory
+3. **Review and ideate**: Use `mcp__llm-chat__ask` with the agent for persistent memory
 
 Example workflow:
 ```bash
 # Generate code summary
 mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_review.md"
 
-# Get review and suggestions from Gemini with persistent memory
+# Get review and suggestions with persistent memory
 # The agent will be created automatically on first use
-mcp__gemini__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini-2.5-pro" files=[{"path": "/tmp/code_review.md"}]
+mcp__llm-chat__ask prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini" files=["/tmp/code_review.md"]
 ```
 
 
@@ -601,10 +581,9 @@ Always verify pricing and model specifications from official sources before upda
 **Previous Issue**: ESC interruption could break MCP connections, requiring reconnection.
 
 **Solution Implemented**: Added graceful `asyncio.CancelledError` handling to all long-running tools:
-- **LLM tools** (Gemini, OpenAI): Convert cancellation to `RuntimeError` with agent memory recording
+- **LLM tools**: Convert cancellation to `RuntimeError` with agent memory recording
 - **Code2prompt**: Graceful cancellation during codebase analysis
 - **Vim tools**: Process cleanup with graceful termination
-- **Tool chainer**: Subprocess cleanup during tool execution
 
 ### Usage Recommendations
 
@@ -770,5 +749,6 @@ Integration tests are **essential** for tools that interact with external CLIs o
 
 ## Key Files
 
-- `greenfield.md`: Comprehensive specification of all tools, their methods, parameters, and implementation strategy
+- `pyproject.toml`: Package configuration and entry points
+- `src/mcp_handley_lab/llm/providers/*/models.yaml`: Model configurations per provider
 - `.claude/settings.local.json`: Local Claude settings for bash command permissions

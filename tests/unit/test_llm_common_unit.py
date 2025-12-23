@@ -422,62 +422,55 @@ class TestHandleAgentMemory:
     @patch("mcp_handley_lab.llm.common.memory_manager")
     def test_handle_agent_memory_stores_messages(self, mock_memory_manager):
         """Test that handle_agent_memory stores user and assistant messages."""
+        metadata = {"input_tokens": 100, "output_tokens": 50, "cost": 0.001}
         handle_agent_memory(
             agent_name="test_agent",
             user_prompt="Test prompt",
             response_text="Test response",
-            input_tokens=100,
-            output_tokens=50,
-            cost=0.001,
+            provider="gemini",
+            model="gemini-2.5-pro",
+            metadata=metadata,
         )
 
-        # User message: no usage attribution
+        # User message: no metadata
         mock_memory_manager.add_message.assert_any_call(
             "test_agent",
             "user",
             "Test prompt",
-            input_tokens=0,
-            output_tokens=0,
-            cost=0.0,
-            provider=None,
-            model=None,
+            provider="gemini",
+            model="gemini-2.5-pro",
         )
-        # Assistant message: full usage attribution
+        # Assistant message: full metadata
         mock_memory_manager.add_message.assert_any_call(
             "test_agent",
             "assistant",
             "Test response",
-            input_tokens=100,
-            output_tokens=50,
-            cost=0.001,
-            provider=None,
-            model=None,
+            provider="gemini",
+            model="gemini-2.5-pro",
+            metadata=metadata,
         )
 
     @patch("mcp_handley_lab.llm.common.memory_manager")
     def test_handle_agent_memory_with_provider_attribution(self, mock_memory_manager):
         """Test that provider and model are stored with messages."""
+        metadata = {"input_tokens": 100, "output_tokens": 50, "cost": 0.001}
         handle_agent_memory(
             agent_name="test_agent",
             user_prompt="Test prompt",
             response_text="Test response",
-            input_tokens=100,
-            output_tokens=50,
-            cost=0.001,
             provider="openai",
             model="gpt-4o",
+            metadata=metadata,
         )
 
-        # Check assistant message has provider/model
+        # Check assistant message has provider/model and metadata
         mock_memory_manager.add_message.assert_any_call(
             "test_agent",
             "assistant",
             "Test response",
-            input_tokens=100,
-            output_tokens=50,
-            cost=0.001,
             provider="openai",
             model="gpt-4o",
+            metadata=metadata,
         )
 
 

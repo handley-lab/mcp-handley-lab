@@ -244,13 +244,11 @@ def handle_agent_memory(
     agent_name: str,
     user_prompt: str,
     response_text: str,
-    input_tokens: int,
-    output_tokens: int,
-    cost: float,
-    provider: str | None = None,
-    model: str | None = None,
+    provider: str,
+    model: str,
+    metadata: dict | None = None,
 ) -> None:
-    """Store conversation messages in agent memory with provider attribution.
+    """Store conversation messages in agent memory with full response metadata.
 
     IMPORTANT: This function assumes agent_name is already resolved (not "session")
     and memory is enabled. The caller (e.g., process_llm_request) should use
@@ -261,33 +259,26 @@ def handle_agent_memory(
         agent_name: Resolved agent name (must be a valid string, not "session")
         user_prompt: The user's prompt
         response_text: The assistant's response
-        input_tokens: Number of input tokens
-        output_tokens: Number of output tokens
-        cost: Total cost in USD
         provider: Provider name (e.g., "openai", "gemini")
         model: Model name (e.g., "gpt-4o", "gemini-2.5-pro")
+        metadata: Full response metadata dict (tokens, cost, timing, etc.)
     """
     # Store user message (no usage attribution - input counted on assistant message)
     memory_manager.add_message(
         agent_name,
         "user",
         user_prompt,
-        input_tokens=0,
-        output_tokens=0,
-        cost=0.0,
         provider=provider,
         model=model,
     )
-    # Store assistant message with full usage attribution
+    # Store assistant message with full metadata
     memory_manager.add_message(
         agent_name,
         "assistant",
         response_text,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cost=cost,
         provider=provider,
         model=model,
+        metadata=metadata,
     )
 
 

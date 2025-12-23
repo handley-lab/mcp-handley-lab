@@ -142,17 +142,15 @@ def process_llm_request(
     # Extract response metadata
     metadata = _extract_response_metadata(response_data, model, provider)
 
-    # Handle memory with provider attribution
+    # Handle memory with full response metadata
     if use_memory:
         handle_agent_memory(
             actual_agent_name,
             user_prompt,
             metadata["response_text"],
-            metadata["input_tokens"],
-            metadata["output_tokens"],
-            metadata["cost"],
             provider=provider,
             model=model,
+            metadata=metadata,
         )
 
     # Handle output - write to file unless "-" sentinel
@@ -241,15 +239,21 @@ def process_image_generation(
         if agent_name == "session":
             actual_agent_name = get_session_id(mcp_instance, provider)
 
+        # Build metadata for image generation
+        image_metadata = {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "cost": cost,
+            "file_path": str(filepath),
+            "file_size_bytes": len(image_bytes),
+        }
         handle_agent_memory(
             actual_agent_name,
             f"Generate image: {prompt}",
             f"Generated image saved to {filepath}",
-            input_tokens,
-            output_tokens,
-            cost,
             provider=provider,
             model=model,
+            metadata=image_metadata,
         )
 
     file_size = len(image_bytes)

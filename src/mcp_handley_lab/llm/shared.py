@@ -55,7 +55,7 @@ def _extract_response_metadata(response_data: dict, model: str, provider: str) -
         "output_tokens": output_tokens,
         "cost": calculate_cost(model, input_tokens, output_tokens, provider),
         "finish_reason": response_data.get("finish_reason", ""),
-        "avg_logprobs": response_data.get("avg_logprobs", 0.0),
+        "avg_logprobs": response_data.get("avg_logprobs"),
         "model_version": response_data.get("model_version", ""),
         "generation_time_ms": response_data.get("generation_time_ms", 0),
         "response_id": response_data.get("response_id", ""),
@@ -69,6 +69,17 @@ def _extract_response_metadata(response_data: dict, model: str, provider: str) -
         ),
         "cache_read_input_tokens": response_data.get("cache_read_input_tokens", 0),
         "grounding_metadata_dict": response_data.get("grounding_metadata"),
+        # Enhanced metadata fields (from GPT-5 review)
+        "total_tokens": response_data.get("total_tokens", input_tokens + output_tokens),
+        "reasoning_text": response_data.get("reasoning_text", ""),
+        "created_at": response_data.get("created_at") or None,
+        "completed_at": response_data.get("completed_at") or None,
+        "timing": response_data.get("timing", {}),
+        "token_modalities": response_data.get("token_modalities", {}),
+        "cache_creation_details": response_data.get("cache_creation_details", {}),
+        "groq_metadata": response_data.get("groq_metadata", {}),
+        "citations": response_data.get("citations", []),
+        "refusal": response_data.get("refusal"),
     }
 
 
@@ -188,6 +199,17 @@ def process_llm_request(
         stop_sequence=metadata["stop_sequence"],
         cache_creation_input_tokens=metadata["cache_creation_input_tokens"],
         cache_read_input_tokens=metadata["cache_read_input_tokens"],
+        # Enhanced metadata fields
+        total_tokens=metadata["total_tokens"],
+        reasoning_text=metadata["reasoning_text"],
+        created_at=metadata["created_at"],
+        completed_at=metadata["completed_at"],
+        timing=metadata["timing"],
+        token_modalities=metadata["token_modalities"],
+        cache_creation_details=metadata["cache_creation_details"],
+        groq_metadata=metadata["groq_metadata"],
+        citations=metadata["citations"],
+        refusal=metadata["refusal"],
     )
 
 

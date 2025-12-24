@@ -178,9 +178,13 @@ def generation_adapter(
         "text": extract_text_content(message.content, include_thinking),
         "input_tokens": usage.prompt_tokens if usage else 0,
         "output_tokens": usage.completion_tokens if usage else 0,
+        "total_tokens": usage.total_tokens if usage else 0,
         "finish_reason": choice.finish_reason or "",
         "model_version": model,
         "response_id": response.id or "",
+        "created_at": float(getattr(response, "created", 0))
+        if getattr(response, "created", None)
+        else None,
     }
 
 
@@ -257,6 +261,10 @@ def image_analysis_adapter(
         "text": extract_text_content(message.content),
         "input_tokens": usage.prompt_tokens if usage else 0,
         "output_tokens": usage.completion_tokens if usage else 0,
+        "total_tokens": usage.total_tokens if usage else 0,
+        "created_at": float(getattr(response, "created", 0))
+        if getattr(response, "created", None)
+        else None,
     }
 
 

@@ -100,37 +100,73 @@ def generation_adapter(
         raise RuntimeError("No response generated")
 
     # Extract logprobs if available
-    avg_logprobs = 0.0
+    avg_logprobs = None
     if response.logprobs and response.logprobs.content:
         logprobs = [
             item.logprob
             for item in response.logprobs.content
             if item.logprob > -1e30  # Filter out sentinel values
         ]
-        avg_logprobs = sum(logprobs) / len(logprobs) if logprobs else 0.0
+        if logprobs:
+            avg_logprobs = sum(logprobs) / len(logprobs)
 
-    # Get message content - check both content and reasoning_content
+    # Get message content and reasoning content separately
     message_content = response.content or ""
-    if not message_content and getattr(response, "reasoning_content", None):
-        message_content = response.reasoning_content
+    reasoning_text = getattr(response, "reasoning_content", "") or ""
 
     # Extract usage with fallbacks for optional fields
     usage = getattr(response, "usage", None)
     input_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
     output_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
+    total_tokens = getattr(usage, "total_tokens", 0) if usage else 0
+
+    # Extract token details from usage
+    completion_tokens_details = {}
+    prompt_tokens_details = {}
+    if usage:
+        comp_details = getattr(usage, "completion_tokens_details", None)
+        if comp_details:
+            completion_tokens_details = {
+                "reasoning_tokens": getattr(comp_details, "reasoning_tokens", 0) or 0,
+                "accepted_prediction_tokens": getattr(
+                    comp_details, "accepted_prediction_tokens", 0
+                )
+                or 0,
+                "audio_tokens": getattr(comp_details, "audio_tokens", 0) or 0,
+                "rejected_prediction_tokens": getattr(
+                    comp_details, "rejected_prediction_tokens", 0
+                )
+                or 0,
+            }
+        prompt_details = getattr(usage, "prompt_tokens_details", None)
+        if prompt_details:
+            prompt_tokens_details = {
+                "cached_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
+                "text_tokens": getattr(prompt_details, "text_tokens", 0) or 0,
+                "image_tokens": getattr(prompt_details, "image_tokens", 0) or 0,
+                "audio_tokens": getattr(prompt_details, "audio_tokens", 0) or 0,
+            }
 
     return {
         "text": message_content,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
         "finish_reason": str(getattr(response, "finish_reason", "") or ""),
         "avg_logprobs": avg_logprobs,
         "model_version": model,
         "response_id": getattr(response, "id", "") or "",
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",
         "service_tier": "",  # Grok doesn't have service tiers
-        "completion_tokens_details": {},
-        "prompt_tokens_details": {},
+        "completion_tokens_details": completion_tokens_details,
+        "prompt_tokens_details": prompt_tokens_details,
+        "reasoning_text": reasoning_text,
+        "refusal": str(getattr(response, "refusal", ""))
+        if getattr(response, "refusal", None)
+        else None,
+        "created_at": float(getattr(response, "created", 0))
+        if getattr(response, "created", None)
+        else None,
     }
 
 
@@ -211,7 +247,7 @@ def image_analysis_adapter(
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "finish_reason": str(getattr(response, "finish_reason", "") or ""),
-        "avg_logprobs": 0.0,
+        "avg_logprobs": None,
         "model_version": model,
         "response_id": getattr(response, "id", "") or "",
         "system_fingerprint": getattr(response, "system_fingerprint", "") or "",

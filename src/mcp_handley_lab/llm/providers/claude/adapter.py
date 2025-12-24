@@ -204,18 +204,48 @@ def generation_adapter(
     else:
         raise RuntimeError("No response text generated")
 
+    # Extract citations from content blocks
+    citations = []
+    for block in response.content:
+        if hasattr(block, "citations") and block.citations:
+            citations.extend(
+                [
+                    c.model_dump() if hasattr(c, "model_dump") else c
+                    for c in block.citations
+                ]
+            )
+
+    # Extract cache creation details
+    cache_creation_details = {}
+    if hasattr(response.usage, "cache_creation") and response.usage.cache_creation:
+        cache_creation_details = {
+            "ephemeral_1h_input_tokens": getattr(
+                response.usage.cache_creation, "ephemeral_1h_input_tokens", 0
+            )
+            or 0,
+            "ephemeral_5m_input_tokens": getattr(
+                response.usage.cache_creation, "ephemeral_5m_input_tokens", 0
+            )
+            or 0,
+        }
+
     return {
         "text": text,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
+        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
         "finish_reason": response.stop_reason,
-        "avg_logprobs": 0.0,
         "model_version": response.model,
         "response_id": response.id,
         "stop_sequence": response.stop_sequence or "",
         "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
         "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
         "service_tier": response.usage.service_tier or "",
+        "cache_creation_details": cache_creation_details,
+        "citations": citations,
+        "created_at": float(getattr(response, "created_at", 0))
+        if getattr(response, "created_at", None)
+        else None,
     }
 
 
@@ -268,16 +298,46 @@ def image_analysis_adapter(
     except Exception as e:
         raise ValueError(f"Claude API error: {str(e)}") from e
 
+    # Extract citations from content blocks
+    citations = []
+    for block in response.content:
+        if hasattr(block, "citations") and block.citations:
+            citations.extend(
+                [
+                    c.model_dump() if hasattr(c, "model_dump") else c
+                    for c in block.citations
+                ]
+            )
+
+    # Extract cache creation details
+    cache_creation_details = {}
+    if hasattr(response.usage, "cache_creation") and response.usage.cache_creation:
+        cache_creation_details = {
+            "ephemeral_1h_input_tokens": getattr(
+                response.usage.cache_creation, "ephemeral_1h_input_tokens", 0
+            )
+            or 0,
+            "ephemeral_5m_input_tokens": getattr(
+                response.usage.cache_creation, "ephemeral_5m_input_tokens", 0
+            )
+            or 0,
+        }
+
     return {
         "text": response.content[0].text,
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
+        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
         "finish_reason": response.stop_reason,
-        "avg_logprobs": 0.0,
         "model_version": response.model,
         "response_id": response.id,
         "stop_sequence": response.stop_sequence or "",
         "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
         "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
         "service_tier": response.usage.service_tier or "",
+        "cache_creation_details": cache_creation_details,
+        "citations": citations,
+        "created_at": float(getattr(response, "created_at", 0))
+        if getattr(response, "created_at", None)
+        else None,
     }

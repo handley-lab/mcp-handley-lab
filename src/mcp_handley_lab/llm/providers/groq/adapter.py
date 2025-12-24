@@ -95,15 +95,39 @@ def generation_adapter(
     except Exception as e:
         raise ValueError(f"Groq API error: {str(e)}") from e
 
+    # Extract timing information from usage (Groq-specific latency breakdown)
+    timing = {}
+    if response.usage:
+        timing = {
+            "queue_time": getattr(response.usage, "queue_time", 0) or 0,
+            "prompt_time": getattr(response.usage, "prompt_time", 0) or 0,
+            "completion_time": getattr(response.usage, "completion_time", 0) or 0,
+            "total_time": getattr(response.usage, "total_time", 0) or 0,
+        }
+
+    # Extract Groq-specific metadata
+    groq_metadata = {}
+    if hasattr(response, "x_groq") and response.x_groq:
+        groq_metadata = {
+            "request_id": getattr(response.x_groq, "id", "") or "",
+            "seed": getattr(response.x_groq, "seed", None),
+        }
+
     return {
         "text": response.choices[0].message.content or "",
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
+        "total_tokens": getattr(response.usage, "total_tokens", 0) or 0,
         "finish_reason": response.choices[0].finish_reason,
         "model_version": response.model,
         "response_id": response.id,
         "system_fingerprint": response.system_fingerprint or "",
         "grounding_metadata": None,  # Groq doesn't support grounding
+        "created_at": float(getattr(response, "created", 0))
+        if getattr(response, "created", None)
+        else None,
+        "timing": timing,
+        "groq_metadata": groq_metadata,
     }
 
 

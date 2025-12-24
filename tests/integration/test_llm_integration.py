@@ -511,7 +511,9 @@ async def test_llm_response_metadata_fields(
     # Check common metadata fields
     assert response["finish_reason"] != ""
     assert response["model_version"] != ""
-    assert isinstance(response["avg_logprobs"], float)
+    assert response["avg_logprobs"] is None or isinstance(
+        response["avg_logprobs"], float
+    )
 
     # Check response_id (provider-specific)
     if provider in ("openai", "claude"):

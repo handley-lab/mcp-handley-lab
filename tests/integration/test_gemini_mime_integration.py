@@ -258,7 +258,7 @@ async def test_gemini_grounding_metadata_fields(skip_if_no_api_key, test_output_
     assert result["finish_reason"] != ""
     assert result["model_version"] != ""
     assert result["generation_time_ms"] > 0
-    assert isinstance(result["avg_logprobs"], float)
+    assert result["avg_logprobs"] is None or isinstance(result["avg_logprobs"], float)
 
     # Check grounding metadata exists
     assert result["grounding_metadata"] is not None
@@ -319,7 +319,7 @@ async def test_gemini_without_grounding_no_metadata(
     assert result["finish_reason"] != ""
     assert result["model_version"] != ""
     assert result["generation_time_ms"] > 0
-    assert isinstance(result["avg_logprobs"], float)
+    assert result["avg_logprobs"] is None or isinstance(result["avg_logprobs"], float)
 
     # Check grounding metadata is None when not using grounding
     assert result["grounding_metadata"] is None

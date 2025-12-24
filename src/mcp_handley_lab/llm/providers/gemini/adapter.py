@@ -236,16 +236,21 @@ def generation_adapter(
     thinking_parts = []
     if response.candidates and response.candidates[0].content:
         for part in response.candidates[0].content.parts:
-            if hasattr(part, "thought") and part.thought:
-                thinking_parts.append(part.text)
-            elif hasattr(part, "text") and part.text:
+            if getattr(part, "thought", None):
+                # Thought parts contain reasoning content - extract the text
+                thought_text = getattr(part, "text", "") or str(part.thought)
+                if thought_text:
+                    thinking_parts.append(thought_text)
+            elif getattr(part, "text", None):
                 text_parts.append(part.text)
+
+    # Build reasoning_text from thinking parts
+    reasoning_text = "\n".join(thinking_parts) if thinking_parts else ""
 
     # Format output with thinking if present
     if thinking_parts and include_thoughts:
-        thinking_text = "\n".join(thinking_parts)
         answer_text = "\n".join(text_parts) if text_parts else ""
-        text = f"<thinking>\n{thinking_text}\n</thinking>\n\n{answer_text}"
+        text = f"<thinking>\n{reasoning_text}\n</thinking>\n\n{answer_text}"
     elif text_parts:
         text = "\n".join(text_parts)
     elif response.text:
@@ -275,7 +280,7 @@ def generation_adapter(
 
     # Extract additional response metadata
     finish_reason = ""
-    avg_logprobs = 0.0
+    avg_logprobs = None
     if response.candidates and len(response.candidates) > 0:
         candidate = response.candidates[0]
         if candidate.finish_reason:
@@ -285,10 +290,10 @@ def generation_adapter(
 
     # Extract generation time from server-timing header
     generation_time_ms = 0
-    if not used_files_api and response.sdk_http_response:
+    if not used_files_api and getattr(response, "sdk_http_response", None):
         http_dict = response.sdk_http_response.to_json_dict()
-        headers = http_dict["headers"]
-        server_timing = headers["server-timing"]
+        headers = http_dict.get("headers", {})
+        server_timing = headers.get("server-timing", "")
         if "dur=" in server_timing:
             dur_part = server_timing.split("dur=")[1].split(";")[0].split(",")[0]
             generation_time_ms = int(float(dur_part))
@@ -298,17 +303,43 @@ def generation_adapter(
         getattr(response.usage_metadata, "thoughts_token_count", 0) or 0
     )
 
+    # Extract token modality breakdown (Gemini-specific)
+    token_modalities = {}
+    usage = response.usage_metadata
+    if usage:
+        prompt_details = getattr(usage, "prompt_tokens_details", None)
+        if prompt_details:
+            token_modalities["prompt"] = [
+                {
+                    "modality": getattr(d, "modality", ""),
+                    "count": getattr(d, "token_count", 0),
+                }
+                for d in prompt_details
+            ]
+        candidates_details = getattr(usage, "candidates_tokens_details", None)
+        if candidates_details:
+            token_modalities["output"] = [
+                {
+                    "modality": getattr(d, "modality", ""),
+                    "count": getattr(d, "token_count", 0),
+                }
+                for d in candidates_details
+            ]
+
     return {
         "text": text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
+        "total_tokens": getattr(response.usage_metadata, "total_token_count", 0) or 0,
         "thoughts_token_count": thoughts_token_count,
         "grounding_metadata": grounding_metadata,
         "finish_reason": finish_reason,
         "avg_logprobs": avg_logprobs,
         "model_version": response.model_version,
         "generation_time_ms": generation_time_ms,
-        "response_id": "",
+        "response_id": response.response_id or "",
+        "token_modalities": token_modalities,
+        "reasoning_text": reasoning_text,
     }
 
 
@@ -355,6 +386,7 @@ def image_analysis_adapter(
         "text": response.text,
         "input_tokens": response.usage_metadata.prompt_token_count,
         "output_tokens": response.usage_metadata.candidates_token_count,
+        "total_tokens": getattr(response.usage_metadata, "total_token_count", 0) or 0,
     }
 
 

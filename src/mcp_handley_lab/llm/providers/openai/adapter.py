@@ -176,6 +176,9 @@ def generation_adapter(
         "text": text,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
+        "total_tokens": getattr(usage, "total_tokens", input_tokens + output_tokens)
+        if usage
+        else input_tokens + output_tokens,
         "finish_reason": finish_reason,
         "model_version": getattr(response, "model", model),
         "response_id": response.id,
@@ -183,6 +186,12 @@ def generation_adapter(
         "service_tier": getattr(response, "service_tier", "") or "",
         "completion_tokens_details": completion_tokens_details,
         "prompt_tokens_details": prompt_tokens_details,
+        "created_at": float(getattr(response, "created_at", 0))
+        if getattr(response, "created_at", None)
+        else None,
+        "completed_at": float(getattr(response, "completed_at", 0))
+        if getattr(response, "completed_at", None)
+        else None,
     }
 
 
@@ -284,6 +293,7 @@ def image_analysis_adapter(
         "text": text,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
+        "total_tokens": input_tokens + output_tokens,
         "finish_reason": finish_reason,
         "model_version": getattr(response, "model", model),
         "response_id": response.id,
@@ -291,6 +301,12 @@ def image_analysis_adapter(
         "service_tier": getattr(response, "service_tier", "") or "",
         "completion_tokens_details": {},
         "prompt_tokens_details": {},
+        "created_at": float(getattr(response, "created_at", 0))
+        if getattr(response, "created_at", None)
+        else None,
+        "completed_at": float(getattr(response, "completed_at", 0))
+        if getattr(response, "completed_at", None)
+        else None,
     }
 
 

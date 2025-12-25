@@ -128,32 +128,45 @@ class AgentMemory:
         Uses classic append-only crash recovery: stop at first JSON decode error.
         This handles the common case of a partial/corrupted trailing line from a crash.
         """
-        if not self._file_path.exists():
+        events: list[dict[str, Any]] = []
+
+        try:
+            with open(self._file_path, encoding="utf-8") as f:
+                self._load_from_file(f, events)
+        except FileNotFoundError:
             return
 
-        last_clear_idx = -1
-        events = []
+        self._process_events(events)
 
-        with open(self._file_path, encoding="utf-8") as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    event = json.loads(line)
-                    events.append(event)
-                    # Track clear boundary using parsed-event index
-                    if event.get("type") == "agent_cleared":
-                        last_clear_idx = len(events) - 1
-                except json.JSONDecodeError as e:
-                    # Crash recovery: log and stop at first corrupted line
-                    logger.warning(
-                        "JSONL truncation at line %s in %s: %s. History truncated (crash recovery).",
-                        line_num,
-                        self._file_path,
-                        e,
-                    )
-                    break
+    def _load_from_file(self, f, events: list) -> int:
+        """Load events from file, returns index of last clear event."""
+        last_clear_idx = -1
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+                events.append(event)
+                if event.get("type") == "agent_cleared":
+                    last_clear_idx = len(events) - 1
+            except json.JSONDecodeError as e:
+                logger.warning(
+                    "JSONL truncation at line %s in %s: %s. History truncated (crash recovery).",
+                    line_num,
+                    self._file_path,
+                    e,
+                )
+                break
+        return last_clear_idx
+
+    def _process_events(self, events: list):
+        """Process loaded events to reconstruct state."""
+        # Find last clear boundary
+        last_clear_idx = -1
+        for i, event in enumerate(events):
+            if event.get("type") == "agent_cleared":
+                last_clear_idx = i
 
         for i, event in enumerate(events):
             if i <= last_clear_idx:

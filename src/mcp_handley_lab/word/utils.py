@@ -11,15 +11,6 @@ def detect_word_format(file_path: str) -> FormatDetectionResult:
     """Detect Word document format and validate if processable."""
     file_path_obj = Path(file_path)
 
-    if not file_path_obj.exists():
-        return FormatDetectionResult(
-            file_path=file_path,
-            detected_format="unknown",
-            is_valid=False,
-            can_process=False,
-            message=f"File not found: {file_path}",
-        )
-
     # Check file extension first
     suffix = file_path_obj.suffix.lower()
 

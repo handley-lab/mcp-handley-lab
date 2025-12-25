@@ -262,26 +262,14 @@ def open_file(
 
 
 @mcp.tool(
-    description="Checks the status of the Vim server and vim command availability. Returns version info and available functions."
+    description="Checks the status of the Vim server. Returns available functions."
 )
 def server_info() -> ServerInfo:
-    """Get server status and vim version."""
-    try:
-        result = subprocess.run(
-            ["vim", "--version"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except FileNotFoundError:
-        raise RuntimeError("vim command not found") from None
-
-    version_line = result.stdout.split("\n")[0]
-
+    """Get server status information."""
     return ServerInfo(
         name="Vim Tool",
         version="1.0.0",
         status="active",
         capabilities=["prompt_user_edit", "quick_edit", "open_file"],
-        dependencies={"vim": version_line},
+        dependencies={"vim": "required"},
     )

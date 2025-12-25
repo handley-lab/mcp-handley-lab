@@ -344,65 +344,58 @@ def process_html_content(html_content: str) -> str:
     if not html_content:
         return ""
 
-    try:
-        # Parse with selectolax (faster than BeautifulSoup)
-        tree = HTMLParser(html_content)
+    # Parse with selectolax (faster than BeautifulSoup)
+    tree = HTMLParser(html_content)
 
-        # Remove common email cruft
-        selectors_to_remove = [
-            "script",
-            "style",
-            "meta",
-            "link",
-            "head",
-            "noscript",
-            "iframe",
-            # Hidden content
-            '[style*="display:none"]',
-            '[style*="visibility:hidden"]',
-            '[style*="opacity:0"]',
-            '[style*="font-size:0"]',
-            "[hidden]",
-            '[aria-hidden="true"]',
-            # Tracking and marketing
-            'img[width="1"]',
-            'img[height="1"]',
-            'img[src*="tracking"]',
-            'img[src*="open"]',
-            'img[src*="fls.doubleclick.net"]',
-            'img[src*="googletagmanager"]',
-            # Email client quote blocks
-            ".gmail_quote",
-            ".OutlookMessageHeader",
-            ".yahoo_quoted",
-            'blockquote[type="cite"]',
-            'div[style*="border-left:1px #ccc solid"]',
-            # Unsubscribe and footer content
-            ".unsubscribe",
-            ".unsubscribe-link",
-            'a[href*="unsubscribe"]',
-            'a[href*="optout"]',
-            ".disclaimer",
-            ".legal",
-            "footer",
-            "nav",
-        ]
+    # Remove common email cruft
+    selectors_to_remove = [
+        "script",
+        "style",
+        "meta",
+        "link",
+        "head",
+        "noscript",
+        "iframe",
+        # Hidden content
+        '[style*="display:none"]',
+        '[style*="visibility:hidden"]',
+        '[style*="opacity:0"]',
+        '[style*="font-size:0"]',
+        "[hidden]",
+        '[aria-hidden="true"]',
+        # Tracking and marketing
+        'img[width="1"]',
+        'img[height="1"]',
+        'img[src*="tracking"]',
+        'img[src*="open"]',
+        'img[src*="fls.doubleclick.net"]',
+        'img[src*="googletagmanager"]',
+        # Email client quote blocks
+        ".gmail_quote",
+        ".OutlookMessageHeader",
+        ".yahoo_quoted",
+        'blockquote[type="cite"]',
+        'div[style*="border-left:1px #ccc solid"]',
+        # Unsubscribe and footer content
+        ".unsubscribe",
+        ".unsubscribe-link",
+        'a[href*="unsubscribe"]',
+        'a[href*="optout"]',
+        ".disclaimer",
+        ".legal",
+        "footer",
+        "nav",
+    ]
 
-        for selector in selectors_to_remove:
-            for node in tree.css(selector):
-                node.decompose()
+    for selector in selectors_to_remove:
+        for node in tree.css(selector):
+            node.decompose()
 
-        # Get cleaned HTML
-        cleaned_html = tree.body.html if tree.body else tree.html
+    # Get cleaned HTML
+    cleaned_html = tree.body.html if tree.body else tree.html
 
-        # Convert to clean text with inscriptis
-        text_content = get_text(cleaned_html)
-
-        return text_content
-
-    except Exception:
-        # Fallback to basic text extraction
-        return html_content
+    # Convert to clean text with inscriptis
+    return get_text(cleaned_html)
 
 
 def _save_email_files(

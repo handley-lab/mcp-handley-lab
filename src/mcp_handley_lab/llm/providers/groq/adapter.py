@@ -28,15 +28,10 @@ def get_client() -> OpenAI:
         if _client is None:
             # Check env var directly (for tests) or fall back to settings
             api_key = os.environ.get("GROQ_API_KEY") or settings.groq_api_key
-            if not api_key or api_key == "YOUR_API_KEY_HERE":
-                raise RuntimeError("GROQ_API_KEY is not configured.")
-            try:
-                _client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://api.groq.com/openai/v1",
-                )
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize Groq client: {e}") from e
+            _client = OpenAI(
+                api_key=api_key,
+                base_url="https://api.groq.com/openai/v1",
+            )
     return _client
 
 

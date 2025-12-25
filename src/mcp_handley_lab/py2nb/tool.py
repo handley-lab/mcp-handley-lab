@@ -1,7 +1,6 @@
 """py2nb conversion tool for MCP - bidirectional Python script ↔ Jupyter notebook conversion."""
 
 import json
-import subprocess
 import time
 from pathlib import Path
 
@@ -272,28 +271,11 @@ def test_roundtrip(
 
 
 @mcp.tool(
-    description="Checks the status of the Notebook Conversion Tool server and nbformat dependency. Returns structured server information with versions and capabilities."
+    description="Checks the status of the Notebook Conversion Tool server. Returns structured server information with capabilities."
 )
 def server_info() -> ServerInfo:
     """Get server status and dependency information."""
-    try:
-        import nbformat
-
-        nbformat_version = nbformat.__version__
-    except ImportError:
-        nbformat_version = "Not installed"
-
-    # Check if jupyter is available for optional execution
-    try:
-        result = subprocess.run(
-            ["jupyter", "--version"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        jupyter_info = result.stdout.strip().split("\n")[0]
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        jupyter_info = "Not available"
+    import nbformat
 
     available_tools = [
         "py_to_notebook",
@@ -318,8 +300,8 @@ def server_info() -> ServerInfo:
         status="active",
         capabilities=available_tools,
         dependencies={
-            "nbformat": nbformat_version,
-            "jupyter": jupyter_info,
+            "nbformat": nbformat.__version__,
+            "jupyter": "required",
             "comment_syntax": str(comment_syntax),
         },
     )

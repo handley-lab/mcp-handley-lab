@@ -218,24 +218,7 @@ def server_info() -> ServerInfo:
     )
 
 
-@mcp.tool(
-    description="Actively checks Word tool dependencies by running version commands."
-)
+@mcp.tool(description="Lists Word tool dependencies.")
 def check_dependencies() -> str:
-    """Actively tests Word tool dependencies by running external commands."""
-    results = []
-
-    try:
-        import subprocess
-
-        result = subprocess.run(
-            ["pandoc", "--version"], capture_output=True, text=True, check=True
-        )
-        pandoc_version = (
-            result.stdout.split("\n")[0].strip() if result.stdout else "Available"
-        )
-        results.append(f"✅ pandoc: {pandoc_version}")
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        results.append(f"❌ pandoc: {e}")
-
-    return "\n".join(results)
+    """Lists required dependencies for Word tool operations."""
+    return "Required dependencies:\n- pandoc: for document format conversions"

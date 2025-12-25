@@ -39,9 +39,6 @@ def _is_maildir(path: Path) -> bool:
 
 def _find_account_folders(root: Path, mailbox: str) -> list[tuple[str, str]]:
     """Find all account folders containing a specific mailbox using shallow directory scan."""
-    if not root.is_dir():
-        return []
-
     candidates = []
     for account_dir in root.iterdir():
         if not account_dir.is_dir() or account_dir.name in MAILDIR_LEAFS:

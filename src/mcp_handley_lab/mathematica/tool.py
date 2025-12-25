@@ -117,15 +117,11 @@ def _to_input_form(expr_obj) -> str:
     # Use the session to convert to InputForm string
     with _session_lock:
         if _session is not None:
-            try:
-                # Use ToString with InputForm to get a proper string representation
-                input_form_str = _session.evaluate(
-                    wlexpr(f"ToString[{expr_obj}, InputForm]")
-                )
-                return str(input_form_str)
-            except Exception as e:
-                logger.warning(f"Failed to convert to InputForm: {e}")
-                return str(expr_obj)
+            # Use ToString with InputForm to get a proper string representation
+            input_form_str = _session.evaluate(
+                wlexpr(f"ToString[{expr_obj}, InputForm]")
+            )
+            return str(input_form_str)
     return str(expr_obj)
 
 

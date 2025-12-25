@@ -185,12 +185,8 @@ def _resolve_calendar_id(calendar_id: str, service) -> str:
 
 def _get_calendar_timezone(service: Any, calendar_id: str) -> str:
     """Gets the timezone of a specific calendar, falling back to the default."""
-    try:
-        calendar = service.calendars().get(calendarId=calendar_id).execute()
-        return calendar.get("timeZone", DEFAULT_TIMEZONE)
-    except Exception:
-        # Fallback if the calendar isn't found or another error occurs
-        return DEFAULT_TIMEZONE
+    calendar = service.calendars().get(calendarId=calendar_id).execute()
+    return calendar.get("timeZone", DEFAULT_TIMEZONE)
 
 
 def _parse_user_datetime(dt_str: str, default_tz: str = None) -> pendulum.DateTime:

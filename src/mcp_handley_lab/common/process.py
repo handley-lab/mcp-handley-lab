@@ -17,22 +17,15 @@ def run_command(
         Tuple of (stdout, stderr) as bytes
 
     Raises:
-        RuntimeError: If command fails, is not found, or times out
+        subprocess.CalledProcessError: If command fails with non-zero exit code
+        subprocess.TimeoutExpired: If command times out
+        FileNotFoundError: If command is not found
     """
-    try:
-        result = subprocess.run(
-            cmd,
-            input=input_data,
-            capture_output=True,
-            timeout=timeout,
-            check=True,
-        )
-        return result.stdout, result.stderr
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(
-            f"Command failed with exit code {e.returncode}: {e.stderr.decode()}"
-        ) from e
-    except subprocess.TimeoutExpired as e:
-        raise RuntimeError(f"Command timed out after {timeout} seconds") from e
-    except FileNotFoundError as e:
-        raise RuntimeError(f"Command not found: {cmd[0]}") from e
+    result = subprocess.run(
+        cmd,
+        input=input_data,
+        capture_output=True,
+        timeout=timeout,
+        check=True,
+    )
+    return result.stdout, result.stderr

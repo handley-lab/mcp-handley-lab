@@ -52,17 +52,16 @@ class WordDocumentParser:
 
     def _load_xml_directory(self) -> None:
         """Load XML content from extracted DOCX directory."""
-        # Load main document
+        # Load main document (required - let FileNotFoundError propagate)
         document_file = self.document_path / "word" / "document.xml"
-        with contextlib.suppress(FileNotFoundError):
-            self.document_root = ElementTree.parse(document_file).getroot()
+        self.document_root = ElementTree.parse(document_file).getroot()
 
-        # Load comments if they exist
+        # Load comments if they exist (optional)
         comments_file = self.document_path / "word" / "comments.xml"
         with contextlib.suppress(FileNotFoundError):
             self.comments_root = ElementTree.parse(comments_file).getroot()
 
-        # Load core properties if they exist
+        # Load core properties if they exist (optional)
         core_props_file = self.document_path / "docProps" / "core.xml"
         with contextlib.suppress(FileNotFoundError):
             self.core_props_root = ElementTree.parse(core_props_file).getroot()

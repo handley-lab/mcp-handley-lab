@@ -389,7 +389,7 @@ def _compose_email(
 
 
 @mcp.tool(
-    description="""Send an email via Mutt. Supports compose (new), reply, and forward modes. All emails open in Mutt for user sign-off before sending."""
+    description="""Send an email via Mutt. Supports compose (new), reply, and forward modes. For replying, prefer using 'reply' mode with a message_id to maintain thread context - the full conversation thread will be included in quotes. All emails open in Mutt for user sign-off before sending."""
 )
 def send(
     to: str = Field(
@@ -423,6 +423,10 @@ def send(
         default=False,
         description="For reply mode: if True, reply to all recipients (To and Cc).",
     ),
+    thread_context: int = Field(
+        default=5,
+        description="For reply mode: number of previous thread messages to include (0 to disable, -1 for all).",
+    ),
 ) -> OperationResult:
     """Send an email using mutt's interactive interface."""
     if mode == "compose":
@@ -444,6 +448,8 @@ def send(
         # Import notmuch functions to get original message data
         from mcp_handley_lab.email.notmuch.tool import (
             _get_message_from_raw_source,
+            _get_thread_messages,
+            _is_sent_message,
             _show_email,
         )
 
@@ -452,9 +458,14 @@ def send(
         original_msg = result[0]
         raw_msg = _get_message_from_raw_source(message_id)
 
-        # Extract reply data - use Reply-To if available, otherwise From
+        # Extract reply data - for sent emails, reply to recipient; otherwise use Reply-To/From
         reply_to_header = raw_msg.get("Reply-To")
-        reply_to = reply_to_header if reply_to_header else original_msg.from_address
+        if _is_sent_message(message_id):
+            # Replying to my own sent email - use original recipient
+            reply_to = original_msg.to_address
+        else:
+            # Normal reply - use Reply-To or From
+            reply_to = reply_to_header if reply_to_header else original_msg.from_address
 
         # For reply-all, CC should be original To + original Cc recipients
         reply_cc = cc  # Start with user-provided cc
@@ -493,18 +504,38 @@ def send(
             else in_reply_to
         )
 
-        # Build reply body
+        # Get thread context (excluding the message being replied to)
+        max_msgs = None if thread_context < 0 else thread_context
+        thread_messages = _get_thread_messages(message_id, max_messages=max_msgs)
+
+        # Build thread history (older messages first)
+        thread_parts = []
+        for msg_date, from_addr, _subj, msg_body in thread_messages:
+            separator = f"\n--- On {msg_date}, {from_addr} wrote ---\n"
+            quoted = "\n".join(f"> {line}" for line in msg_body.splitlines())
+            thread_parts.append(f"{separator}{quoted}")
+
+        thread_history = "\n".join(thread_parts)
+
+        # Build reply with immediate parent at top, then thread history
         reply_separator = f"On {original_msg.date}, {original_msg.from_address} wrote:"
         quoted_body_lines = [
             f"> {line}" for line in original_msg.body_markdown.splitlines()
         ]
         quoted_body = "\n".join(quoted_body_lines)
 
-        complete_reply_body = (
-            f"{body}\n\n{reply_separator}\n{quoted_body}"
-            if body
-            else f"{reply_separator}\n{quoted_body}"
-        )
+        if thread_history:
+            complete_reply_body = (
+                f"{body}\n\n{reply_separator}\n{quoted_body}\n\n--- Previous messages in thread ---{thread_history}"
+                if body
+                else f"{reply_separator}\n{quoted_body}\n\n--- Previous messages in thread ---{thread_history}"
+            )
+        else:
+            complete_reply_body = (
+                f"{body}\n\n{reply_separator}\n{quoted_body}"
+                if body
+                else f"{reply_separator}\n{quoted_body}"
+            )
 
         return _compose_email(
             to=reply_to,

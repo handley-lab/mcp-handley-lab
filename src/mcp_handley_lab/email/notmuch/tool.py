@@ -677,3 +677,97 @@ def move(
         moved_files_count=moved_count,
         status=status_message,
     )
+
+
+def _is_sent_message(message_id: str) -> bool:
+    """Check if message is from Sent folder. Uses tags first, path fallback."""
+    # Check for 'sent' tag (most reliable)
+    stdout, _ = run_command(["notmuch", "search", "--output=tags", f"id:{message_id}"])
+    tags = stdout.decode().strip().lower().split("\n")
+    if "sent" in tags:
+        return True
+
+    # Fallback: check file paths (handles multiple files)
+    stdout, _ = run_command(["notmuch", "search", "--output=files", f"id:{message_id}"])
+    file_paths = stdout.decode().strip().lower().split("\n")
+    sent_patterns = ["/sent/", "/sent items/", "/outbox/", "/.sent/", "/sent messages/"]
+    return any(
+        any(pattern in path for pattern in sent_patterns) for path in file_paths if path
+    )
+
+
+def _get_thread_message_ids(message_id: str) -> list[str]:
+    """Get all message IDs in the same thread, oldest first."""
+    # Get thread ID for this message
+    stdout, _ = run_command(
+        ["notmuch", "search", "--output=threads", f"id:{message_id}"]
+    )
+    thread_id = stdout.decode().strip()
+
+    if not thread_id:
+        return []
+
+    # Normalize thread ID format (ensure it starts with "thread:")
+    if not thread_id.startswith("thread:"):
+        thread_id = f"thread:{thread_id}"
+
+    # Get all message IDs in thread, oldest first
+    stdout, _ = run_command(
+        ["notmuch", "search", "--output=messages", "--sort=oldest-first", thread_id]
+    )
+    return [m.strip() for m in stdout.decode().strip().split("\n") if m.strip()]
+
+
+def _get_thread_messages(
+    message_id: str,
+    max_messages: int = 5,
+) -> list[tuple[str, str, str, str]]:
+    """Get messages in thread for reply context.
+
+    Args:
+        message_id: The message being replied to (will be excluded)
+        max_messages: Max previous messages to include (0=none, -1=all, default 5)
+
+    Returns: List of (date, from_address, subject, body) tuples, oldest first
+    """
+    thread_message_ids = _get_thread_message_ids(message_id)
+
+    # Exclude the message being replied to
+    thread_message_ids = [m for m in thread_message_ids if m != message_id]
+
+    if not thread_message_ids:
+        return []
+
+    # Limit to most recent N messages (take from end since sorted oldest-first)
+    if max_messages == 0:
+        return []
+    if max_messages > 0 and len(thread_message_ids) > max_messages:
+        thread_message_ids = thread_message_ids[-max_messages:]
+
+    # Fetch each message directly (more efficient than _show_email)
+    messages = []
+    for mid in thread_message_ids:
+        try:
+            msg = _get_message_from_raw_source(mid)
+            # Get body without quote stripping for full thread context
+            body_part = msg.get_body(preferencelist=("plain", "html"))
+            if body_part:
+                content = body_part.get_content()
+                if body_part.get_content_type() == "text/html":
+                    content = process_html_content(content)
+                body = normalize_whitespace(ftfy.fix_text(content))
+            else:
+                body = ""
+
+            messages.append(
+                (
+                    msg.get("Date", "[Unknown Date]"),
+                    msg.get("From", "[Unknown Sender]"),
+                    msg.get("Subject", "[No Subject]"),
+                    body,
+                )
+            )
+        except Exception:
+            continue  # Skip messages that fail to parse
+
+    return messages

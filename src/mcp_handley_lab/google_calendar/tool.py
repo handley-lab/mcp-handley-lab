@@ -1,5 +1,6 @@
 """Google Calendar tool for calendar management via MCP."""
 
+import logging
 import pickle
 import zoneinfo
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,8 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Application-level default timezone as final fallback
 DEFAULT_TIMEZONE = "Europe/London"
@@ -101,10 +104,14 @@ class CreatedEventResult(BaseModel):
 
 
 class UpdateEventResult(BaseModel):
-    """Result of a successful event update operation."""
+    """Result of a successful event update or move operation."""
 
     event_id: str = Field(
         ..., description="The unique identifier of the updated event."
+    )
+    new_event_id: str = Field(
+        default="",
+        description="For move operations: the new event ID (may differ from original). Empty for updates.",
     )
     html_link: str = Field(
         ..., description="A direct link to the event in the Google Calendar UI."
@@ -131,7 +138,6 @@ class CalendarInfo(BaseModel):
 
 
 mcp = FastMCP("Google Calendar Tool")
-
 
 # Google Calendar API scopes
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -518,36 +524,179 @@ def _client_side_filter(
     return filtered_events
 
 
+# =============================================================================
+# MCP Resource: Calendars
+# =============================================================================
+
+
+@mcp.resource("calendar://list")
+def calendar_list() -> list[CalendarInfo]:
+    """All accessible calendars with IDs, names, and access levels."""
+    service = _get_calendar_service()
+    calendar_list_response = service.calendarList().list().execute()
+    return [
+        CalendarInfo(
+            id=cal["id"],
+            summary=cal.get("summary", "Unknown"),
+            accessRole=cal.get("accessRole", "unknown"),
+            colorId=cal.get("colorId", "default"),
+        )
+        for cal in calendar_list_response.get("items", [])
+    ]
+
+
+# =============================================================================
+# MCP Tools: CRUD Operations
+# =============================================================================
+
+
 @mcp.tool(
-    description="Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps. Automatically detects timezone inconsistencies."
+    description="Read calendar events. Get single event by ID (returns singleton list), or search/list events in date range. Use calendar://list resource to discover available calendar IDs."
 )
-def get_event(
-    event_id: str = Field(
-        ..., description="The unique identifier of the event to retrieve."
+def read(
+    event_id: str | None = Field(
+        None,
+        description="If provided, get single event by ID (returns singleton list). Cannot use with calendar_id='all'.",
     ),
     calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar containing the event. Use 'list_calendars' to see available options. Defaults to the user's primary calendar.",
+        description="ID or name of the calendar. Use 'all' to search all calendars (only for search, not get-by-id).",
     ),
-) -> CalendarEvent:
-    """Get detailed information about a specific event."""
+    search_text: str = Field(
+        "",
+        description="Text to search for. If empty, lists all events in the date range.",
+    ),
+    start_date: str = Field(
+        "",
+        description="Start date (YYYY-MM-DD) for search. Defaults to today.",
+    ),
+    end_date: str = Field(
+        "",
+        description="End date (YYYY-MM-DD) for search. Defaults to 7 days from start.",
+    ),
+    max_results: int = Field(100, description="Maximum events to return per calendar."),
+    search_fields: list[str] | None = Field(
+        None,
+        description="Client-side filter fields (e.g., 'summary', 'description'). None=API search only, []=search all fields.",
+    ),
+    case_sensitive: bool = Field(
+        False,
+        description="If True, search is case-sensitive.",
+    ),
+    match_all_terms: bool = Field(
+        True,
+        description="If True (AND), all words must match. If False (OR), any can match.",
+    ),
+) -> list[CalendarEvent]:
+    """Read calendar events - either get by ID or search."""
     service = _get_calendar_service()
-    resolved_id = _resolve_calendar_id(calendar_id, service)
-    event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
 
-    if _has_timezone_inconsistency(event):
-        print(
-            f"⚠️  Timezone inconsistency detected in event '{event.get('summary', 'Unknown')}'. "
-            f"To fix: update_event(event_id='{event_id}', calendar_id='{calendar_id}', normalize_timezone=True)"
+    # Get single event by ID
+    if event_id:
+        if calendar_id == "all":
+            raise ValueError("Cannot use calendar_id='all' when fetching by event_id")
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+        event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+
+        if _has_timezone_inconsistency(event):
+            logger.warning(
+                "Timezone inconsistency detected in event '%s'. "
+                "To fix: update(event_id='%s', calendar_id='%s', normalize_timezone=True)",
+                event.get("summary", "Unknown"),
+                event_id,
+                calendar_id,
+            )
+
+        return [_build_event_model(event)]
+
+    # Search/list events
+    if not start_date:
+        start_date = _parse_datetime_to_utc("")
+    else:
+        start_date = _parse_datetime_to_utc(start_date)
+
+    if not end_date:
+        days = 7 if not search_text else 365
+        # Compute end_date from start_date, not from now
+        start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+        end_dt = start_dt + timedelta(days=days)
+        end_date = end_dt.isoformat().replace("+00:00", "Z")
+    else:
+        if "T" not in end_date:
+            end_date = end_date + "T23:59:59Z"
+        else:
+            end_date = _parse_datetime_to_utc(end_date)
+
+    events_list = []
+
+    if calendar_id == "all":
+        calendar_list_response = service.calendarList().list().execute()
+
+        for calendar in calendar_list_response.get("items", []):
+            cal_id = calendar["id"]
+
+            params = {
+                "calendarId": cal_id,
+                "timeMin": start_date,
+                "timeMax": end_date,
+                "maxResults": max_results,
+                "singleEvents": True,
+                "orderBy": "startTime",
+            }
+            if search_text:
+                params["q"] = search_text
+            events_result = service.events().list(**params).execute()
+
+            cal_events = events_result.get("items", [])
+            for event in cal_events:
+                event["calendar_name"] = calendar.get("summary", cal_id)
+            events_list.extend(cal_events)
+    else:
+        resolved_id = _resolve_calendar_id(calendar_id, service)
+
+        params = {
+            "calendarId": resolved_id,
+            "timeMin": start_date,
+            "timeMax": end_date,
+            "maxResults": max_results,
+            "singleEvents": True,
+            "orderBy": "startTime",
+        }
+        if search_text:
+            params["q"] = search_text
+        events_result = service.events().list(**params).execute()
+        events_list = events_result.get("items", [])
+
+    # Client-side filtering: None=skip, []=default fields, ['field1',...]=specific fields
+    if search_fields is not None or case_sensitive or not match_all_terms:
+        filtered_events = _client_side_filter(
+            events_list,
+            search_text=search_text,
+            search_fields=search_fields
+            if search_fields
+            else None,  # [] -> use defaults
+            case_sensitive=case_sensitive,
+            match_all_terms=match_all_terms,
         )
+    else:
+        filtered_events = events_list
 
-    return _build_event_model(event)
+    if not filtered_events:
+        return []
+
+    filtered_events.sort(
+        key=lambda x: x.get("start", {}).get(
+            "dateTime", x.get("start", {}).get("date", "")
+        )
+    )
+
+    return [_build_event_model(event) for event in filtered_events]
 
 
 @mcp.tool(
-    description="Creates a new event. Supports natural language datetimes (e.g., 'tomorrow at 2pm') and mixed timezones."
+    description="Create a new calendar event. Supports natural language datetimes (e.g., 'tomorrow at 2pm') and mixed timezones."
 )
-def create_event(
+def create(
     summary: str = Field(..., description="The title or summary for the new event."),
     start_datetime: str = Field(
         ...,
@@ -565,7 +714,7 @@ def create_event(
     ),
     calendar_id: str = Field(
         ...,
-        description="The ID or name of the calendar to add the event to. Use 'list_calendars' to see available options. Required parameter - no default.",
+        description="The ID or name of the calendar to add the event to. Use calendar://list resource to discover options. Required parameter - no default.",
     ),
     start_timezone: str = Field(
         "",
@@ -642,61 +791,98 @@ def create_event(
 
 
 @mcp.tool(
-    description="Updates an event. Supports natural language rescheduling and can fix timezone inconsistencies."
+    description="Update or move a calendar event. If destination_calendar_id provided, moves event (may change event ID). Otherwise updates event properties."
 )
-def update_event(
+def update(
     event_id: str = Field(
-        ..., description="The unique identifier of the event to update."
+        ..., description="The unique identifier of the event to update or move."
     ),
     calendar_id: str = Field(
         "primary",
-        description="The calendar where the event is located. Use 'list_calendars' to see available options. Defaults to the primary calendar.",
+        description="The calendar where the event is located. Defaults to primary.",
     ),
-    summary: str = Field(
-        "", description="New title for the event. If empty, the summary is not changed."
+    destination_calendar_id: str | None = Field(
+        None,
+        description="If provided, move event to this calendar instead of updating. Cannot combine with update fields.",
     ),
-    start_datetime: str = Field(
-        "",
-        description="New start time for the event. Supports natural language. If empty, not changed.",
+    summary: str | None = Field(
+        None, description="New title. None=no change, ''=clear field."
     ),
-    end_datetime: str = Field(
-        "",
-        description="New end time for the event. Supports natural language. If empty, not changed.",
+    start_datetime: str | None = Field(
+        None,
+        description="New start time. Supports natural language. None=no change.",
     ),
-    description: str = Field(
-        "", description="New description for the event. If empty, not changed."
+    end_datetime: str | None = Field(
+        None,
+        description="New end time. Supports natural language. None=no change.",
     ),
-    location: str = Field(
-        "", description="New location for the event. If empty, not changed."
+    description: str | None = Field(
+        None, description="New description. None=no change, ''=clear field."
+    ),
+    location: str | None = Field(
+        None, description="New location. None=no change, ''=clear field."
     ),
     start_timezone: str = Field(
         "",
-        description="New IANA timezone for the start time. If empty, preserves existing timezone.",
+        description="New IANA timezone for start. If empty, preserves existing.",
     ),
     end_timezone: str = Field(
         "",
-        description="New IANA timezone for the end time. If empty, preserves existing timezone.",
+        description="New IANA timezone for end. If empty, preserves existing.",
     ),
     normalize_timezone: bool = Field(
         False,
-        description="Set to True to fix timezone inconsistencies (e.g., UTC time with a non-UTC timezone label) on the event.",
+        description="Fix timezone inconsistencies (UTC time with non-UTC label).",
     ),
 ) -> UpdateEventResult:
-    """Update an existing event, with automatic timezone handling for new times.
-
-    Examples:
-    - Natural language: start_datetime="tomorrow at 3pm", end_datetime="tomorrow at 4pm"
-    - Reschedule with timezone: start_datetime="10am", start_timezone="Europe/London"
-    - Relative time: start_datetime="in 1 hour" (keeps existing end time)
-    - Mixed timezones: start_timezone="America/Los_Angeles", end_timezone="America/New_York"
-    """
+    """Update or move an event. Move and update are mutually exclusive."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
+
+    # Handle move operation
+    if destination_calendar_id:
+        # Validate mutual exclusivity - include ALL update-related fields
+        # Check str|None fields for not-None, check str fields for non-empty
+        has_update_fields = any(
+            f is not None
+            for f in [summary, start_datetime, end_datetime, description, location]
+        ) or any(f.strip() for f in [start_timezone, end_timezone])
+        if has_update_fields:
+            raise ValueError(
+                "Cannot combine move (destination_calendar_id) with update fields. "
+                "Move first, then update in a separate call."
+            )
+        if normalize_timezone:
+            raise ValueError(
+                "Cannot combine move (destination_calendar_id) with normalize_timezone. "
+                "Move first, then normalize in a separate call."
+            )
+
+        dest_resolved_id = _resolve_calendar_id(destination_calendar_id, service)
+        moved_event = (
+            service.events()
+            .move(
+                calendarId=resolved_id,
+                eventId=event_id,
+                destination=dest_resolved_id,
+            )
+            .execute()
+        )
+
+        return UpdateEventResult(
+            event_id=event_id,
+            new_event_id=moved_event["id"],
+            html_link=moved_event.get("htmlLink", ""),
+            updated_fields=["moved"],
+            message=f"Event moved from '{calendar_id}' to '{destination_calendar_id}'. New ID: {moved_event['id']}",
+        )
+
+    # Handle update operation
     update_body = {}
     updated_fields = []
 
     current_event = None
-    if normalize_timezone or start_datetime.strip() or end_datetime.strip():
+    if normalize_timezone or start_datetime or end_datetime:
         current_event = (
             service.events().get(calendarId=resolved_id, eventId=event_id).execute()
         )
@@ -707,40 +893,34 @@ def update_event(
         if normalization_patch:
             updated_fields.append("timezone_normalization")
 
-    # Build update from provided arguments
-    if summary.strip():
+    if summary is not None:
         update_body["summary"] = summary
         updated_fields.append("summary")
-    if description is not None:  # Allow clearing the description
+    if description is not None:
         update_body["description"] = description
         updated_fields.append("description")
-    if location is not None:  # Allow clearing the location
+    if location is not None:
         update_body["location"] = location
         updated_fields.append("location")
 
-    # If start or end times are being updated, use intelligent preparation logic
-    if start_datetime.strip() or end_datetime.strip():
-        # Get fallback timezone context
+    if start_datetime or end_datetime:
         calendar_tz = _get_calendar_timezone(service, resolved_id)
         existing_start_tz = (
             current_event.get("start", {}).get("timeZone") or calendar_tz
         )
         existing_end_tz = current_event.get("end", {}).get("timeZone") or calendar_tz
 
-        if start_datetime.strip():
-            # Use explicit timezone or preserve existing event's start timezone
+        if start_datetime:
             target_tz = start_timezone or existing_start_tz
             update_body["start"] = _prepare_event_datetime(start_datetime, target_tz)
             updated_fields.append("start_datetime")
 
-        if end_datetime.strip():
-            # Use explicit timezone or preserve existing event's end timezone
+        if end_datetime:
             target_tz = end_timezone or existing_end_tz
             update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)
             updated_fields.append("end_datetime")
 
     if not update_body:
-        # Return a minimal result for no updates case
         return UpdateEventResult(
             event_id=event_id,
             html_link="",
@@ -768,195 +948,19 @@ def update_event(
     )
 
 
-@mcp.tool(
-    description="Deletes a calendar event permanently by event ID. WARNING: This action is irreversible. Returns confirmation of deletion."
-)
-def delete_event(
+@mcp.tool(description="Delete a calendar event permanently. WARNING: Irreversible.")
+def delete(
     event_id: str = Field(
-        ..., description="The unique identifier of the event to be permanently deleted."
+        ..., description="The unique identifier of the event to delete."
     ),
     calendar_id: str = Field(
         "primary",
-        description="The calendar where the event is located. Use 'list_calendars' to see available options. Defaults to the primary calendar.",
+        description="The calendar where the event is located. Defaults to primary.",
     ),
 ) -> str:
-    """Delete a calendar event. Trusts the provided event_id."""
+    """Delete a calendar event permanently."""
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
     service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
     return f"Event (ID: {event_id}) has been permanently deleted."
-
-
-@mcp.tool(
-    description="Moves a calendar event from one calendar to another. This is the proper way to transfer events between calendars, preserving event metadata and attendee information."
-)
-def move_event(
-    event_id: str = Field(
-        ..., description="The unique identifier of the event to move."
-    ),
-    source_calendar_id: str = Field(
-        "primary",
-        description="The ID or name of the calendar the event is currently in. Use 'list_calendars' to see available options. Defaults to primary.",
-    ),
-    destination_calendar_id: str = Field(
-        "primary",
-        description="The ID or name of the calendar to move the event to. Use 'list_calendars' to see available options. Defaults to primary.",
-    ),
-) -> str:
-    """Move an event from one calendar to another using the Google Calendar API move endpoint."""
-    service = _get_calendar_service()
-    source_resolved_id = _resolve_calendar_id(source_calendar_id, service)
-    dest_resolved_id = _resolve_calendar_id(destination_calendar_id, service)
-
-    # Use the Google Calendar API's move endpoint
-    moved_event = (
-        service.events()
-        .move(
-            calendarId=source_resolved_id,
-            eventId=event_id,
-            destination=dest_resolved_id,
-        )
-        .execute()
-    )
-
-    return f"Event (ID: {moved_event['id']}) moved successfully from '{source_calendar_id}' to '{destination_calendar_id}'."
-
-
-@mcp.tool(
-    description="Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools."
-)
-def list_calendars() -> list[CalendarInfo]:
-    """List all accessible calendars."""
-    service = _get_calendar_service()
-
-    calendar_list = service.calendarList().list().execute()
-    calendars = calendar_list.get("items", [])
-
-    return [
-        CalendarInfo(
-            id=cal["id"],
-            summary=cal.get("summary", "Unknown"),
-            accessRole=cal.get("accessRole", "unknown"),
-            colorId=cal.get("colorId", "default"),
-        )
-        for cal in calendars
-    ]
-
-
-@mcp.tool(
-    description="Searches for events in a date range. Filter by text, specific fields ('search_fields'), and case sensitivity."
-)
-def search_events(
-    search_text: str = Field(
-        "",
-        description="Text to search for. If empty, lists all events in the date range. Can be a simple string or use Google Calendar's advanced search operators.",
-    ),
-    calendar_id: str = Field(
-        "all",
-        description="ID or name of the calendar to search. Use 'all' to search every accessible calendar, or use 'list_calendars' to see available options.",
-    ),
-    start_date: str = Field(
-        "",
-        description="The start date (YYYY-MM-DD) for the search range. Defaults to today.",
-    ),
-    end_date: str = Field(
-        "",
-        description="The end date (YYYY-MM-DD) for the search range. Defaults to 7 days from start (or 365 if search_text is provided).",
-    ),
-    max_results: int = Field(
-        100, description="The maximum number of events to return per calendar."
-    ),
-    search_fields: list[str] = Field(
-        default_factory=list,
-        description="Client-side filter: specific fields to search within (e.g., 'summary', 'description', 'attendees'). If empty, defaults to API search.",
-    ),
-    case_sensitive: bool = Field(
-        False,
-        description="Client-side filter: If True, the search_text match will be case-sensitive.",
-    ),
-    match_all_terms: bool = Field(
-        True,
-        description="Client-side filter: If True (AND logic), all words in search_text must match. If False (OR logic), any can match.",
-    ),
-) -> list[CalendarEvent]:
-    """Advanced hybrid search for calendar events."""
-    service = _get_calendar_service()
-
-    if not start_date:
-        start_date = _parse_datetime_to_utc("")
-    else:
-        start_date = _parse_datetime_to_utc(start_date)
-
-    if not end_date:
-        days = 7 if not search_text else 365
-        end_dt = datetime.now(timezone.utc) + timedelta(days=days)
-        end_date = end_dt.isoformat().replace("+00:00", "Z")
-    else:
-        if "T" not in end_date:
-            end_date = end_date + "T23:59:59Z"
-        else:
-            end_date = _parse_datetime_to_utc(end_date)
-
-    events_list = []
-
-    if calendar_id == "all":
-        calendar_list = service.calendarList().list().execute()
-
-        for calendar in calendar_list.get("items", []):
-            cal_id = calendar["id"]
-
-            params = {
-                "calendarId": cal_id,
-                "timeMin": start_date,
-                "timeMax": end_date,
-                "maxResults": max_results,
-                "singleEvents": True,
-                "orderBy": "startTime",
-            }
-            if search_text:
-                params["q"] = search_text
-            events_result = service.events().list(**params).execute()
-
-            cal_events = events_result.get("items", [])
-            for event in cal_events:
-                event["calendar_name"] = calendar.get("summary", cal_id)
-            events_list.extend(cal_events)
-    else:
-        resolved_id = _resolve_calendar_id(calendar_id, service)
-
-        params = {
-            "calendarId": resolved_id,
-            "timeMin": start_date,
-            "timeMax": end_date,
-            "maxResults": max_results,
-            "singleEvents": True,
-            "orderBy": "startTime",
-        }
-        if search_text:
-            params["q"] = search_text
-        events_result = service.events().list(**params).execute()
-        events_list = events_result.get("items", [])
-
-    if search_fields or case_sensitive or not match_all_terms:
-        filtered_events = _client_side_filter(
-            events_list,
-            search_text=search_text,
-            search_fields=search_fields,
-            case_sensitive=case_sensitive,
-            match_all_terms=match_all_terms,
-        )
-    else:
-        filtered_events = events_list
-
-    if not filtered_events:
-        return []
-
-    filtered_events.sort(
-        key=lambda x: x.get("start", {}).get(
-            "dateTime", x.get("start", {}).get("date", "")
-        )
-    )
-
-    # Convert filtered events to CalendarEvent objects
-    return [_build_event_model(event) for event in filtered_events]

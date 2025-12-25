@@ -13,7 +13,7 @@ interactions:
       x-goog-api-client:
       - gdcl/2.187.0 gl-python/3.13.7 cred-type/u
     method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2035-08-12T23%3A59%3A59Z&timeMin=2035-08-11T00%3A00%3A00Z
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2035-08-12T23%3A59%3A59Z&timeMin=2035-08-10T23%3A00%3A00Z
   response:
     body:
       string: !!binary |
@@ -121,7 +121,7 @@ interactions:
       x-goog-api-client:
       - gdcl/2.187.0 gl-python/3.13.7 cred-type/u
     method: GET
-    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2035-08-12T23%3A59%3A59Z&timeMin=2035-08-11T00%3A00%3A00Z
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json&maxResults=100&orderBy=startTime&singleEvents=true&timeMax=2035-08-12T23%3A59%3A59Z&timeMin=2035-08-10T23%3A00%3A00Z
   response:
     body:
       string: !!binary |

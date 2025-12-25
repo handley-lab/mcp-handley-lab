@@ -10,6 +10,9 @@ from mcp_handley_lab.google_calendar.tool import (
     _build_event_model,
     _get_normalization_patch,
     _has_timezone_inconsistency,
+    _is_all_day_event,
+    _parse_datetime_to_utc,
+    _would_be_timed_event,
 )
 
 
@@ -239,3 +242,99 @@ class TestEdgeCases:
         assert result.id == "event_bad"
         assert isinstance(result.start, EventDateTime)
         assert isinstance(result.end, EventDateTime)
+
+
+class TestAllDayEventDetection:
+    """Test _is_all_day_event() function."""
+
+    def test_detects_all_day_event(self):
+        """Should detect all-day events using date field."""
+        event = {"start": {"date": "2024-07-21"}}
+        assert _is_all_day_event(event) is True
+
+    def test_rejects_timed_event(self):
+        """Should not flag timed events."""
+        event = {"start": {"dateTime": "2024-07-21T10:00:00Z"}}
+        assert _is_all_day_event(event) is False
+
+    def test_rejects_event_with_both_fields(self):
+        """Should not flag events with both date and dateTime."""
+        event = {"start": {"date": "2024-07-21", "dateTime": "2024-07-21T10:00:00Z"}}
+        assert _is_all_day_event(event) is False
+
+    def test_handles_empty_event(self):
+        """Should handle events with empty start."""
+        event = {"start": {}}
+        assert _is_all_day_event(event) is False
+
+    def test_handles_missing_start(self):
+        """Should handle events with missing start."""
+        event = {}
+        assert _is_all_day_event(event) is False
+
+
+class TestWouldBeTimedEvent:
+    """Test _would_be_timed_event() function."""
+
+    def test_detects_iso_datetime(self):
+        """Should detect ISO datetime as timed."""
+        assert _would_be_timed_event("2024-07-21T10:00:00") is True
+        assert _would_be_timed_event("2024-07-21T10:00:00Z") is True
+        assert _would_be_timed_event("2024-07-21T10:00:00+01:00") is True
+
+    def test_rejects_date_only(self):
+        """Should not flag date-only as timed."""
+        assert _would_be_timed_event("2024-07-21") is False
+
+    def test_detects_natural_language_with_time(self):
+        """Should detect natural language with time as timed."""
+        assert _would_be_timed_event("tomorrow at 3pm") is True
+        assert _would_be_timed_event("10:00") is True
+        assert _would_be_timed_event("3:30pm") is True
+
+    def test_handles_empty_string(self):
+        """Should handle empty string."""
+        assert _would_be_timed_event("") is False
+        assert _would_be_timed_event("   ") is False
+
+    def test_handles_none_like_values(self):
+        """Should handle None-like values."""
+        assert _would_be_timed_event(None) is False
+
+
+class TestParseDatetimeToUtc:
+    """Test _parse_datetime_to_utc() function with naive datetime handling."""
+
+    def test_handles_utc_datetime(self):
+        """Should pass through UTC datetime unchanged."""
+        result = _parse_datetime_to_utc("2024-07-21T10:00:00Z")
+        assert result == "2024-07-21T10:00:00Z"
+
+    def test_converts_timezone_offset_to_utc(self):
+        """Should convert timezone offset to UTC."""
+        result = _parse_datetime_to_utc("2024-07-21T11:00:00+01:00")
+        assert result == "2024-07-21T10:00:00Z"
+
+    def test_interprets_naive_datetime_in_default_timezone(self):
+        """Should interpret naive datetime in default timezone."""
+        # With Europe/London default, 11:00 local in summer (BST) = 10:00 UTC
+        result = _parse_datetime_to_utc("2024-07-21T11:00:00", "Europe/London")
+        assert result == "2024-07-21T10:00:00Z"
+
+    def test_interprets_naive_datetime_in_custom_timezone(self):
+        """Should interpret naive datetime in custom timezone."""
+        # With America/New_York, 10:00 local in summer (EDT, -04:00) = 14:00 UTC
+        result = _parse_datetime_to_utc("2024-07-21T10:00:00", "America/New_York")
+        assert result == "2024-07-21T14:00:00Z"
+
+    def test_interprets_date_only_in_default_timezone(self):
+        """Should interpret date-only in default timezone."""
+        # With Europe/London default, midnight local in summer (BST) = 23:00 previous day UTC
+        result = _parse_datetime_to_utc("2024-07-21", "Europe/London")
+        assert result == "2024-07-20T23:00:00Z"
+
+    def test_handles_empty_string(self):
+        """Should handle empty string by returning current UTC time."""
+        result = _parse_datetime_to_utc("")
+        assert result.endswith("Z")
+        assert "T" in result

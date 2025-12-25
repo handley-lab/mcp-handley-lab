@@ -408,6 +408,31 @@ def _get_normalization_patch(event_data: dict) -> dict:
     return patch
 
 
+def _is_all_day_event(event_data: dict) -> bool:
+    """Check if an event is an all-day event (uses date instead of dateTime)."""
+    start = event_data.get("start", {})
+    return "date" in start and "dateTime" not in start
+
+
+def _would_be_timed_event(dt_str: str | None) -> bool:
+    """Check if a datetime string would result in a timed event (not all-day).
+
+    Uses the actual _prepare_event_datetime() logic to determine whether the input
+    would create a timed event (has 'dateTime') vs all-day event (has 'date').
+
+    Raises:
+        ValueError: If the datetime string cannot be parsed (surfaced from _prepare_event_datetime)
+    """
+    if not dt_str or not dt_str.strip():
+        return False
+
+    # Use the actual formatter to determine result type
+    # Let parsing errors propagate so they're surfaced properly
+    result = _prepare_event_datetime(dt_str.strip())
+    # If result has 'dateTime', it's a timed event; if 'date', it's all-day
+    return "dateTime" in result
+
+
 def _has_timezone_inconsistency(event_data: dict) -> bool:
     """Check if an event has conflicting UTC time and timezone label."""
     start = event_data.get("start", {})
@@ -427,29 +452,63 @@ def _has_timezone_inconsistency(event_data: dict) -> bool:
     return has_utc_suffix and has_specific_timezone
 
 
-def _parse_datetime_to_utc(dt_str: str) -> str:
+def _parse_datetime_to_utc(dt_str: str, default_tz: str = DEFAULT_TIMEZONE) -> str:
     """
     Parse datetime string and convert to UTC with proper timezone handling.
+
+    Uses pendulum for DST-safe localization of naive datetimes.
 
     Handles:
     - ISO 8601 with timezone: "2024-06-30T14:00:00+01:00" -> "2024-06-30T13:00:00Z"
     - ISO 8601 with Z: "2024-06-30T14:00:00Z" -> "2024-06-30T14:00:00Z"
-    - ISO 8601 naive: "2024-06-30T14:00:00" -> "2024-06-30T14:00:00Z" (assumes UTC)
-    - Date only: "2024-06-30" -> "2024-06-30T00:00:00Z"
+    - ISO 8601 naive: "2024-06-30T14:00:00" -> interpreted in default_tz, then converted to UTC
+    - Date only: "2024-06-30" -> start of day in default_tz, converted to UTC
+
+    For ambiguous DST times (e.g., "2024-10-27T01:30:00" in Europe/London which occurs twice),
+    pendulum uses the later occurrence (post-transition). For non-existent times (spring forward),
+    pendulum adjusts to the nearest valid time.
+
+    Args:
+        dt_str: The datetime string to parse
+        default_tz: IANA timezone for interpreting naive datetimes (default: Europe/London)
     """
     if not dt_str:
         return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
+    # Date only: interpret as start of day in default timezone using pendulum for DST safety
     if "T" not in dt_str:
-        return dt_str + "T00:00:00Z"
+        try:
+            # Use pendulum for DST-safe localization
+            local_dt = pendulum.parse(dt_str, tz=default_tz)
+            utc_dt = local_dt.in_tz("UTC")
+            return utc_dt.format("YYYY-MM-DDTHH:mm:ss") + "Z"
+        except Exception:
+            # Fallback if pendulum parsing fails
+            return dt_str + "T00:00:00Z"
 
+    # Handle UTC suffix explicitly
     if dt_str.endswith("Z"):
         return dt_str
-    elif "+" in dt_str or dt_str.count("-") > 2:
+
+    # Parse the datetime and check if it has tzinfo
+    try:
         dt = datetime.fromisoformat(dt_str)
-        utc_dt = dt.astimezone(timezone.utc)
-        return utc_dt.isoformat().replace("+00:00", "Z")
-    else:
+        if dt.tzinfo is not None:
+            # Has explicit timezone - convert to UTC
+            utc_dt = dt.astimezone(timezone.utc)
+            return utc_dt.isoformat().replace("+00:00", "Z")
+        else:
+            # Naive datetime - use pendulum for DST-safe localization
+            local_dt = pendulum.instance(dt, tz=default_tz)
+            utc_dt = local_dt.in_tz("UTC")
+            return utc_dt.format("YYYY-MM-DDTHH:mm:ss") + "Z"
+    except Exception:
+        # Fallback if parsing fails - assume UTC
+        logger.warning(
+            "Failed to parse datetime '%s' in timezone '%s', assuming UTC",
+            dt_str,
+            default_tz,
+        )
         return dt_str + "Z"
 
 
@@ -909,6 +968,20 @@ def update(
             current_event.get("start", {}).get("timeZone") or calendar_tz
         )
         existing_end_tz = current_event.get("end", {}).get("timeZone") or calendar_tz
+
+        # Prevent silent conversion of all-day events to timed events
+        is_all_day = _is_all_day_event(current_event)
+        if is_all_day:
+            would_convert_start = start_datetime and _would_be_timed_event(
+                start_datetime
+            )
+            would_convert_end = end_datetime and _would_be_timed_event(end_datetime)
+            if would_convert_start or would_convert_end:
+                raise ValueError(
+                    "Cannot convert all-day event to timed event. "
+                    "Use date-only format (YYYY-MM-DD) to update all-day events, "
+                    "or delete and recreate as a timed event."
+                )
 
         if start_datetime:
             target_tz = start_timezone or existing_start_tz

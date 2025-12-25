@@ -171,9 +171,7 @@ def contacts(
         alias = query.lower()
         alias_file = _get_alias_file(config_file)
 
-        if not alias_file.exists():
-            raise FileNotFoundError("No mutt alias file found")
-
+        # Let FileNotFoundError propagate if file doesn't exist
         lines = alias_file.read_text().splitlines(keepends=True)
         target = f"alias {alias} "
         filtered = [line for line in lines if not line.strip().startswith(target)]

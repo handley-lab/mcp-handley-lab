@@ -58,30 +58,36 @@ def detect_word_format(file_path: str) -> FormatDetectionResult:
             pass
 
     # Check if it's a directory with extracted DOCX XML files
-    if file_path_obj.is_dir():
+    try:
         word_dir = file_path_obj / "word"
-        if (word_dir / "document.xml").exists() and (
-            file_path_obj / "[Content_Types].xml"
-        ).exists():
-            return FormatDetectionResult(
-                file_path=file_path,
-                detected_format="xml",
-                is_valid=True,
-                format_version="Extracted DOCX XML",
-                can_process=True,
-                message="Valid extracted DOCX XML structure detected",
-            )
-
-    # Check if it's a standalone document.xml file
-    if file_path_obj.name == "document.xml" and file_path_obj.exists():
+        # Try to read both required files to verify format
+        (word_dir / "document.xml").read_bytes()
+        (file_path_obj / "[Content_Types].xml").read_bytes()
         return FormatDetectionResult(
             file_path=file_path,
             detected_format="xml",
             is_valid=True,
-            format_version="DOCX document.xml",
+            format_version="Extracted DOCX XML",
             can_process=True,
-            message="Valid DOCX document.xml file detected",
+            message="Valid extracted DOCX XML structure detected",
         )
+    except (FileNotFoundError, OSError):
+        pass
+
+    # Check if it's a standalone document.xml file
+    if file_path_obj.name == "document.xml":
+        try:
+            file_path_obj.read_bytes()
+            return FormatDetectionResult(
+                file_path=file_path,
+                detected_format="xml",
+                is_valid=True,
+                format_version="DOCX document.xml",
+                can_process=True,
+                message="Valid DOCX document.xml file detected",
+            )
+        except FileNotFoundError:
+            pass
 
     return FormatDetectionResult(
         file_path=file_path,

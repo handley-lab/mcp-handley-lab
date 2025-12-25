@@ -1,5 +1,6 @@
 """Word document parser for comments, track changes, and content analysis."""
 
+import contextlib
 import xml.etree.ElementTree as ElementTree
 import zipfile
 from pathlib import Path
@@ -53,17 +54,17 @@ class WordDocumentParser:
         """Load XML content from extracted DOCX directory."""
         # Load main document
         document_file = self.document_path / "word" / "document.xml"
-        if document_file.exists():
+        with contextlib.suppress(FileNotFoundError):
             self.document_root = ElementTree.parse(document_file).getroot()
 
         # Load comments if they exist
         comments_file = self.document_path / "word" / "comments.xml"
-        if comments_file.exists():
+        with contextlib.suppress(FileNotFoundError):
             self.comments_root = ElementTree.parse(comments_file).getroot()
 
         # Load core properties if they exist
         core_props_file = self.document_path / "docProps" / "core.xml"
-        if core_props_file.exists():
+        with contextlib.suppress(FileNotFoundError):
             self.core_props_root = ElementTree.parse(core_props_file).getroot()
 
     def _load_single_xml(self) -> None:
@@ -73,7 +74,7 @@ class WordDocumentParser:
 
             # Try to find comments.xml in the same directory
             comments_file = self.document_path.parent / "comments.xml"
-            if comments_file.exists():
+            with contextlib.suppress(FileNotFoundError):
                 self.comments_root = ElementTree.parse(comments_file).getroot()
 
     def load(self) -> None:

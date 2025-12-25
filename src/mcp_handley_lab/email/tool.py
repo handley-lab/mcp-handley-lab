@@ -20,11 +20,12 @@ def discover_and_register_tools():
     package_name = package_dir.name
 
     for sub_dir in package_dir.iterdir():
-        if sub_dir.is_dir() and (sub_dir / "__init__.py").exists():
-            tool_module_path = sub_dir / "tool.py"
-            if tool_module_path.exists():
-                module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
-                importlib.import_module(module_name)
+        # Try to import tool module from each subdirectory
+        module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
+        try:
+            importlib.import_module(module_name)
+        except (ImportError, ModuleNotFoundError):
+            continue
 
 
 # Run the discovery process when this module is loaded
@@ -48,15 +49,18 @@ def _list_folders() -> list[str]:
 
     folders: set[str] = set()
     for account in maildir_root.iterdir():
-        if not account.is_dir():
+        try:
+            children = list(account.iterdir())
+        except NotADirectoryError:
             continue
-        for child in account.iterdir():
-            if (
-                child.is_dir()
-                and child.name not in MAILDIR_LEAFS
-                and (child / "cur").is_dir()
-            ):
+        for child in children:
+            if child.name in MAILDIR_LEAFS:
+                continue
+            try:
+                list((child / "cur").iterdir())
                 folders.add(f"{account.name}/{child.name}")
+            except (NotADirectoryError, FileNotFoundError):
+                continue
     return sorted(folders)
 
 

@@ -6,6 +6,7 @@ to HTTP calls, where VCR intercepts and replays recorded responses.
 """
 
 import os
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -14,12 +15,20 @@ from mcp.server.fastmcp.exceptions import ToolError
 from mcp_handley_lab.llm.image.tool import mcp
 
 
+@pytest.fixture
+def test_image_file():
+    """Create a temporary file path for generated images."""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f:
+        yield f.name
+    Path(f.name).unlink(missing_ok=True)
+
+
 class TestOpenAIImageGeneration:
     """Test OpenAI image generation functionality via MCP protocol."""
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_dalle3_basic_generation(self):
+    async def test_dalle3_basic_generation(self, test_image_file):
         """Test DALL-E 3 basic image generation."""
         _, result = await mcp.call_tool(
             "generate",
@@ -28,6 +37,7 @@ class TestOpenAIImageGeneration:
                 "model": "dall-e-3",
                 "quality": "standard",
                 "size": "1024x1024",
+                "output_file": test_image_file,
             },
         )
 
@@ -41,7 +51,7 @@ class TestOpenAIImageGeneration:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_dalle3_enhanced_prompt(self):
+    async def test_dalle3_enhanced_prompt(self, test_image_file):
         """Test DALL-E 3 prompt enhancement."""
         _, result = await mcp.call_tool(
             "generate",
@@ -50,6 +60,7 @@ class TestOpenAIImageGeneration:
                 "model": "dall-e-3",
                 "quality": "hd",
                 "size": "1024x1024",
+                "output_file": test_image_file,
             },
         )
 
@@ -63,7 +74,7 @@ class TestOpenAIImageGeneration:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_dalle3_portrait_size(self):
+    async def test_dalle3_portrait_size(self, test_image_file):
         """Test DALL-E 3 with portrait orientation."""
         _, result = await mcp.call_tool(
             "generate",
@@ -72,6 +83,7 @@ class TestOpenAIImageGeneration:
                 "model": "dall-e-3",
                 "size": "1024x1792",  # Portrait orientation
                 "quality": "standard",
+                "output_file": test_image_file,
             },
         )
 
@@ -86,13 +98,14 @@ class TestGeminiImageGeneration:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_imagen3_basic_generation(self):
+    async def test_imagen3_basic_generation(self, test_image_file):
         """Test Imagen 3 basic image generation."""
         _, result = await mcp.call_tool(
             "generate",
             {
                 "prompt": "A peaceful garden",
                 "model": "imagen-4.0-generate-001",
+                "output_file": test_image_file,
             },
         )
 
@@ -106,7 +119,7 @@ class TestGeminiImageGeneration:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_imagen3_with_aspect_ratio(self):
+    async def test_imagen3_with_aspect_ratio(self, test_image_file):
         """Test Imagen 3 with custom aspect ratio."""
         _, result = await mcp.call_tool(
             "generate",
@@ -114,6 +127,7 @@ class TestGeminiImageGeneration:
                 "prompt": "A safe, family-friendly cartoon character",
                 "model": "imagen-4.0-generate-001",
                 "aspect_ratio": "16:9",
+                "output_file": test_image_file,
             },
         )
 
@@ -124,13 +138,14 @@ class TestGeminiImageGeneration:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_imagen_model_variants(self):
+    async def test_imagen_model_variants(self, test_image_file):
         """Test different Imagen model variants."""
         _, result = await mcp.call_tool(
             "generate",
             {
                 "prompt": "A modern abstract art piece",
                 "model": "imagen-4.0-generate-001",
+                "output_file": test_image_file,
             },
         )
 
@@ -149,37 +164,48 @@ class TestImageGenerationComparison:
         """Test that both providers return consistent response structure."""
         prompt = "A simple test image"
 
-        _, openai_result = await mcp.call_tool(
-            "generate",
-            {
-                "prompt": prompt,
-                "model": "dall-e-3",
-                "size": "1024x1024",
-                "quality": "standard",
-            },
-        )
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f1:
+            openai_file = f1.name
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f2:
+            gemini_file = f2.name
 
-        _, gemini_result = await mcp.call_tool(
-            "generate",
-            {
-                "prompt": prompt,
-                "model": "imagen-4.0-generate-001",
-            },
-        )
+        try:
+            _, openai_result = await mcp.call_tool(
+                "generate",
+                {
+                    "prompt": prompt,
+                    "model": "dall-e-3",
+                    "size": "1024x1024",
+                    "quality": "standard",
+                    "output_file": openai_file,
+                },
+            )
 
-        # Both should have the same core structure
-        for result in [openai_result, gemini_result]:
-            assert "file_path" in result
-            assert "file_size_bytes" in result
-            assert "model" in result
-            assert "provider" in result
-            assert "cost" in result
-            assert "original_prompt" in result
-            assert "enhanced_prompt" in result
+            _, gemini_result = await mcp.call_tool(
+                "generate",
+                {
+                    "prompt": prompt,
+                    "model": "imagen-4.0-generate-001",
+                    "output_file": gemini_file,
+                },
+            )
 
-        # Verify correct providers
-        assert openai_result["provider"] == "openai"
-        assert gemini_result["provider"] == "gemini"
+            # Both should have the same core structure
+            for result in [openai_result, gemini_result]:
+                assert "file_path" in result
+                assert "file_size_bytes" in result
+                assert "model" in result
+                assert "provider" in result
+                assert "cost" in result
+                assert "original_prompt" in result
+                assert "enhanced_prompt" in result
+
+            # Verify correct providers
+            assert openai_result["provider"] == "openai"
+            assert gemini_result["provider"] == "gemini"
+        finally:
+            Path(openai_file).unlink(missing_ok=True)
+            Path(gemini_file).unlink(missing_ok=True)
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
@@ -187,48 +213,61 @@ class TestImageGenerationComparison:
         """Test how different providers handle prompt enhancement."""
         prompt = "A cat wearing a hat"
 
-        _, openai_result = await mcp.call_tool(
-            "generate",
-            {
-                "prompt": prompt,
-                "model": "dall-e-3",
-                "size": "1024x1024",
-                "quality": "standard",
-            },
-        )
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f1:
+            openai_file = f1.name
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f2:
+            gemini_file = f2.name
 
-        _, gemini_result = await mcp.call_tool(
-            "generate",
-            {
-                "prompt": prompt,
-                "model": "imagen-4.0-generate-001",
-            },
-        )
+        try:
+            _, openai_result = await mcp.call_tool(
+                "generate",
+                {
+                    "prompt": prompt,
+                    "model": "dall-e-3",
+                    "size": "1024x1024",
+                    "quality": "standard",
+                    "output_file": openai_file,
+                },
+            )
 
-        # Both should preserve original prompt
-        assert openai_result["original_prompt"] == prompt
-        assert gemini_result["original_prompt"] == prompt
+            _, gemini_result = await mcp.call_tool(
+                "generate",
+                {
+                    "prompt": prompt,
+                    "model": "imagen-4.0-generate-001",
+                    "output_file": gemini_file,
+                },
+            )
 
-        # DALL-E 3 should enhance prompts significantly
-        assert openai_result["enhanced_prompt"] != ""
-        assert len(openai_result["enhanced_prompt"]) > len(prompt)
+            # Both should preserve original prompt
+            assert openai_result["original_prompt"] == prompt
+            assert gemini_result["original_prompt"] == prompt
 
-        # Gemini may or may not enhance prompts
-        assert isinstance(gemini_result["enhanced_prompt"], str)
+            # DALL-E 3 should enhance prompts significantly
+            assert openai_result["enhanced_prompt"] != ""
+            assert len(openai_result["enhanced_prompt"]) > len(prompt)
+
+            # Gemini may or may not enhance prompts
+            assert isinstance(gemini_result["enhanced_prompt"], str)
+        finally:
+            Path(openai_file).unlink(missing_ok=True)
+            Path(gemini_file).unlink(missing_ok=True)
 
 
 class TestImageGenerationErrorHandling:
     """Test error handling in image generation via MCP protocol."""
 
     @pytest.mark.asyncio
-    async def test_empty_prompt(self):
+    async def test_empty_prompt(self, test_image_file):
         """Test image generation with empty prompt."""
         with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
-            await mcp.call_tool("generate", {"prompt": ""})
+            await mcp.call_tool(
+                "generate", {"prompt": "", "output_file": test_image_file}
+            )
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_invalid_size_openai(self):
+    async def test_invalid_size_openai(self, test_image_file):
         """Test OpenAI with invalid size parameter."""
         with pytest.raises(ToolError):
             await mcp.call_tool(
@@ -238,6 +277,7 @@ class TestImageGenerationErrorHandling:
                     "model": "dall-e-3",
                     "size": "100x100",  # Invalid size
                     "quality": "standard",
+                    "output_file": test_image_file,
                 },
             )
 

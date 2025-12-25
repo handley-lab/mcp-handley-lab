@@ -18,6 +18,7 @@ def detect_word_format(file_path: str) -> FormatDetectionResult:
     mime_type, _ = mimetypes.guess_type(file_path)
 
     # Detect DOCX format (ZIP-based OpenXML)
+    # Let FileNotFoundError propagate if file doesn't exist
     if (
         suffix == ".docx"
         or mime_type
@@ -36,26 +37,24 @@ def detect_word_format(file_path: str) -> FormatDetectionResult:
                         can_process=True,
                         message="Valid DOCX document detected",
                     )
-        except (zipfile.BadZipFile, FileNotFoundError):
+        except zipfile.BadZipFile:
             pass
 
     # Detect DOC format (older binary format)
+    # Let FileNotFoundError propagate if file doesn't exist
     if suffix == ".doc" or mime_type == "application/msword":
-        try:
-            # Check for OLE header signature
-            with open(file_path, "rb") as f:
-                header = f.read(8)
-                if header.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
-                    return FormatDetectionResult(
-                        file_path=file_path,
-                        detected_format="doc",
-                        is_valid=True,
-                        format_version="Binary DOC",
-                        can_process=True,
-                        message="Valid DOC document detected",
-                    )
-        except OSError:
-            pass
+        # Check for OLE header signature
+        with open(file_path, "rb") as f:
+            header = f.read(8)
+            if header.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+                return FormatDetectionResult(
+                    file_path=file_path,
+                    detected_format="doc",
+                    is_valid=True,
+                    format_version="Binary DOC",
+                    can_process=True,
+                    message="Valid DOC document detected",
+                )
 
     # Check if it's a directory with extracted DOCX XML files
     try:
@@ -71,23 +70,21 @@ def detect_word_format(file_path: str) -> FormatDetectionResult:
             can_process=True,
             message="Valid extracted DOCX XML structure detected",
         )
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, NotADirectoryError, OSError):
         pass
 
     # Check if it's a standalone document.xml file
     if file_path_obj.name == "document.xml":
-        try:
-            file_path_obj.read_bytes()
-            return FormatDetectionResult(
-                file_path=file_path,
-                detected_format="xml",
-                is_valid=True,
-                format_version="DOCX document.xml",
-                can_process=True,
-                message="Valid DOCX document.xml file detected",
-            )
-        except FileNotFoundError:
-            pass
+        # Let FileNotFoundError propagate if file doesn't exist
+        file_path_obj.read_bytes()
+        return FormatDetectionResult(
+            file_path=file_path,
+            detected_format="xml",
+            is_valid=True,
+            format_version="DOCX document.xml",
+            can_process=True,
+            message="Valid DOCX document.xml file detected",
+        )
 
     return FormatDetectionResult(
         file_path=file_path,

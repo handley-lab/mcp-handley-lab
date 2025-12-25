@@ -28,11 +28,8 @@ def _run_pandoc(
     ]
 
     start_time = time.time()
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    subprocess.run(cmd, capture_output=True, text=True, check=True)
     end_time = time.time()
-
-    if result.returncode != 0:
-        raise ValueError(f"Pandoc conversion failed: {result.stderr}")
 
     return ConversionResult(
         success=True,

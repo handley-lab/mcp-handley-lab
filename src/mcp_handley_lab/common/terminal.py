@@ -94,14 +94,10 @@ def launch_interactive(
 
             xterm_cmd.extend(["-e", command])
 
-            try:
-                print(
-                    f"Waiting for user input from {window_title or 'xterm window'}..."
-                )
-                result = subprocess.run(xterm_cmd)
-                return f"Completed in xterm: {command}", result.returncode
-            except FileNotFoundError as e:
-                raise RuntimeError("xterm not available for interactive launch") from e
+            print(f"Waiting for user input from {window_title or 'xterm window'}...")
+            # Let FileNotFoundError propagate if xterm is not installed
+            result = subprocess.run(xterm_cmd)
+            return f"Completed in xterm: {command}", result.returncode
         else:
             xterm_cmd = ["xterm"]
 
@@ -110,13 +106,9 @@ def launch_interactive(
 
             xterm_cmd.extend(["-e", command])
 
-            try:
-                subprocess.Popen(xterm_cmd)
-                return f"Launched in xterm: {command}"
-            except FileNotFoundError as e:
-                raise RuntimeError(
-                    "Neither tmux nor xterm available for interactive launch"
-                ) from e
+            # Let FileNotFoundError propagate if xterm is not installed
+            subprocess.Popen(xterm_cmd)
+            return f"Launched in xterm: {command}"
 
 
 def check_interactive_support() -> dict:

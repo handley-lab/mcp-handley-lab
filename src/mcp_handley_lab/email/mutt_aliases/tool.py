@@ -63,11 +63,14 @@ def _get_alias_file(config_file: str = "") -> Path:
 def _get_all_contacts(config_file: str = "") -> list[Contact]:
     """Get all contacts from mutt address book."""
     alias_file = _get_alias_file(config_file)
-    if not alias_file.exists():
+
+    try:
+        content = alias_file.read_text()
+    except FileNotFoundError:
         return []
 
     contacts = []
-    for line in alias_file.read_text().splitlines():
+    for line in content.splitlines():
         if line.strip().startswith("alias "):
             contacts.append(_parse_alias_line(line))
     return contacts

@@ -237,13 +237,10 @@ def test_roundtrip(
         # Cleanup temporary files
         cleaned = True
         if cleanup:
-            try:
-                if notebook_path.exists():
-                    notebook_path.unlink()
-                if roundtrip_path.exists():
-                    roundtrip_path.unlink()
-            except Exception:
-                cleaned = False
+            if notebook_path.exists():
+                notebook_path.unlink()
+            if roundtrip_path.exists():
+                roundtrip_path.unlink()
 
         message = (
             "Round-trip conversion successful"

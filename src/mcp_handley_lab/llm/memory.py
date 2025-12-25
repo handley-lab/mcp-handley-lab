@@ -4,6 +4,7 @@ Stores conversation history in global ~/.mcp-handley-lab/projects/<encoded-path>
 with JSONL format for append-only durability.
 """
 
+import contextlib
 import fcntl
 import json
 import logging
@@ -298,11 +299,12 @@ class AgentMemory:
         created_at = None
         if self._messages:
             created_at = self._messages[0].get("timestamp")
-        elif self._file_path.exists():
-            mtime = self._file_path.stat().st_mtime
-            created_at = datetime.fromtimestamp(mtime).isoformat()
         else:
-            created_at = datetime.now().isoformat()
+            try:
+                mtime = self._file_path.stat().st_mtime
+                created_at = datetime.fromtimestamp(mtime).isoformat()
+            except FileNotFoundError:
+                created_at = datetime.now().isoformat()
 
         return {
             "name": self.name,
@@ -494,30 +496,34 @@ class GlobalMemoryManager:
         validate_agent_name(name)
         if name not in self._agents:
             agent_file = self._agents_dir / f"{name}.jsonl"
-            if agent_file.exists():
+            try:
+                agent_file.stat()  # Check if file exists
                 agent = AgentMemory(name, self._agents_dir, self.cwd)
                 self._agents[name] = agent
                 return agent
-            return None
+            except FileNotFoundError:
+                return None
         return self._agents[name]
 
     def list_agents(self) -> list[AgentMemory]:
         """List all agents for this project (both in-memory and on disk)."""
         # Load agents from disk that aren't already in memory
-        if self._agents_dir.exists():
-            for agent_file in self._agents_dir.glob("*.jsonl"):
-                name = agent_file.stem
-                if name not in self._agents:
-                    try:
-                        validate_agent_name(name)
-                        self._agents[name] = AgentMemory(
-                            name, self._agents_dir, self.cwd
-                        )
-                    except ValueError as e:
-                        # Log skipped invalid agent files for visibility
-                        logger.debug(
-                            "Skipping invalid agent file '%s': %s", agent_file.name, e
-                        )
+        try:
+            agent_files = list(self._agents_dir.glob("*.jsonl"))
+        except FileNotFoundError:
+            agent_files = []
+
+        for agent_file in agent_files:
+            name = agent_file.stem
+            if name not in self._agents:
+                try:
+                    validate_agent_name(name)
+                    self._agents[name] = AgentMemory(name, self._agents_dir, self.cwd)
+                except ValueError as e:
+                    # Log skipped invalid agent files for visibility
+                    logger.debug(
+                        "Skipping invalid agent file '%s': %s", agent_file.name, e
+                    )
 
         return list(self._agents.values())
 
@@ -527,7 +533,7 @@ class GlobalMemoryManager:
         if name in self._agents:
             del self._agents[name]
         agent_file = self._agents_dir / f"{name}.jsonl"
-        if agent_file.exists():
+        with contextlib.suppress(FileNotFoundError):
             agent_file.unlink()
 
     def add_message(

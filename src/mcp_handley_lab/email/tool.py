@@ -63,8 +63,6 @@ def _list_folders() -> list[str]:
 def _list_accounts(config_file: str = "") -> list[str]:
     """List available msmtp accounts by parsing msmtp config."""
     msmtprc_path = Path(config_file) if config_file else Path.home() / ".msmtprc"
-    if not msmtprc_path.exists():
-        raise FileNotFoundError(f"msmtp configuration not found at {msmtprc_path}")
 
     accounts = []
     with open(msmtprc_path) as f:

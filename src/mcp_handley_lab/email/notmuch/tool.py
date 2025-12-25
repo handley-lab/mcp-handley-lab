@@ -31,10 +31,12 @@ def _get_account_folders(maildir_root: Path, account_name: str) -> dict[str, Pat
     account_path = maildir_root / account_name
     folders: dict[str, Path] = {}
 
-    if not account_path.is_dir():
+    try:
+        children = list(account_path.iterdir())
+    except (FileNotFoundError, NotADirectoryError):
         return folders
 
-    for child in account_path.iterdir():
+    for child in children:
         if child.is_dir() and child.name not in MAILDIR_LEAFS:
             folders[child.name] = child
 

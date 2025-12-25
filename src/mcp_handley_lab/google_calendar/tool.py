@@ -149,9 +149,11 @@ def _get_calendar_service():
     token_file = settings.google_token_path
     credentials_file = settings.google_credentials_path
 
-    if token_file.exists():
+    try:
         with open(token_file, "rb") as f:
             creds = pickle.load(f)
+    except FileNotFoundError:
+        pass
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -325,19 +327,15 @@ def _normalize_datetime_for_output(dt_info: dict) -> dict:
     if not dt_str.endswith("Z") or tz_str.lower() == "utc":
         return dt_info
 
-    try:
-        # Parse UTC datetime
-        utc_dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+    # Parse UTC datetime
+    utc_dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
 
-        # Convert to target timezone
-        target_tz = zoneinfo.ZoneInfo(tz_str)
-        local_dt = utc_dt.astimezone(target_tz)
+    # Convert to target timezone
+    target_tz = zoneinfo.ZoneInfo(tz_str)
+    local_dt = utc_dt.astimezone(target_tz)
 
-        # Return with explicit offset format
-        return {"dateTime": local_dt.isoformat(), "timeZone": tz_str}
-    except Exception:
-        # If conversion fails, return original
-        return dt_info
+    # Return with explicit offset format
+    return {"dateTime": local_dt.isoformat(), "timeZone": tz_str}
 
 
 def _build_event_model(event_data: dict) -> CalendarEvent:

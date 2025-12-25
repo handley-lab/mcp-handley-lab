@@ -229,7 +229,7 @@ async def test_llm_analyze_image(
     base_params = {
         "prompt": "What color is this image?",
         "output_file": test_output_file,
-        "files": [str(image_path)],
+        "images": [str(image_path)],
         "model": model,
         "agent_name": "",
     }

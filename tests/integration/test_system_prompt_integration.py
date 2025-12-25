@@ -164,7 +164,7 @@ class TestSystemPromptBasic:
             "output_file": "/tmp/test_image_system_prompt.txt",
             "agent_name": "test_image_system_prompt",
             "model": model,
-            "files": [str(sample_image_path)],
+            "images": [str(sample_image_path)],
             "system_prompt": "You are a professional art critic. Provide detailed, sophisticated analysis.",
         }
 

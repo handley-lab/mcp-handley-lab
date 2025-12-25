@@ -532,7 +532,7 @@ class TestLLMImageAnalysisUnhappyPaths:
         base_params = {
             "prompt": "What's in this image?",
             "output_file": test_output_file,
-            "files": [str(corrupted_image)],
+            "images": [str(corrupted_image)],
             "model": model,
             "agent_name": "",
         }
@@ -565,7 +565,7 @@ class TestLLMImageAnalysisUnhappyPaths:
         base_params = {
             "prompt": "Analyze this missing image.",
             "output_file": test_output_file,
-            "files": [nonexistent_image],
+            "images": [nonexistent_image],
             "model": model,
             "agent_name": "",
         }

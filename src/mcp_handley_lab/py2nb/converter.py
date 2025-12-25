@@ -91,9 +91,6 @@ def python_to_notebook(script_path: str, output_path: str | None = None) -> str:
     """Convert Python script to Jupyter notebook."""
     script_path = Path(script_path)
 
-    if not script_path.exists():
-        raise FileNotFoundError(f"Script file not found: {script_path}")
-
     # Determine output path
     if output_path:
         notebook_path = Path(output_path)
@@ -178,9 +175,6 @@ def notebook_to_python(notebook_path: str, output_path: str | None = None) -> st
     """Convert Jupyter notebook to Python script."""
     notebook_path = Path(notebook_path)
 
-    if not notebook_path.exists():
-        raise FileNotFoundError(f"Notebook file not found: {notebook_path}")
-
     # Determine output path
     if output_path:
         script_path = Path(output_path)
@@ -226,32 +220,37 @@ def notebook_to_python(notebook_path: str, output_path: str | None = None) -> st
 
 
 def validate_notebook_file(notebook_path: str) -> bool:
-    """Validate a notebook file can be loaded and has valid structure."""
-    try:
-        with open(notebook_path, encoding="utf-8") as f:
-            notebook_data = json.load(f)
+    """Validate a notebook file can be loaded and has valid structure.
 
-        # Basic structure validation
-        if "cells" not in notebook_data:
-            return False
+    Raises:
+        json.JSONDecodeError: If JSON is malformed
+        FileNotFoundError: If file doesn't exist
+        ValueError: If notebook structure is invalid
+    """
+    with open(notebook_path, encoding="utf-8") as f:
+        notebook_data = json.load(f)
 
-        for cell in notebook_data["cells"]:
-            if "cell_type" not in cell or "source" not in cell:
-                return False
+    # Basic structure validation
+    if "cells" not in notebook_data:
+        raise ValueError(f"Notebook missing 'cells' key: {notebook_path}")
 
-        return True
-    except (json.JSONDecodeError, FileNotFoundError):
-        return False
+    for i, cell in enumerate(notebook_data["cells"]):
+        if "cell_type" not in cell or "source" not in cell:
+            raise ValueError(f"Cell {i} missing required keys: {notebook_path}")
+
+    return True
 
 
 def validate_python_file(script_path: str) -> bool:
-    """Validate a Python file can be read and parsed."""
-    try:
-        with open(script_path, encoding="utf-8") as f:
-            content = f.read()
+    """Validate a Python file can be read and parsed.
 
-        # Try to compile the Python code (basic syntax check)
-        compile(content, script_path, "exec")
-        return True
-    except (SyntaxError, FileNotFoundError):
-        return False
+    Raises:
+        SyntaxError: If Python syntax is invalid
+        FileNotFoundError: If file doesn't exist
+    """
+    with open(script_path, encoding="utf-8") as f:
+        content = f.read()
+
+    # Try to compile the Python code (basic syntax check)
+    compile(content, script_path, "exec")
+    return True

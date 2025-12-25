@@ -245,7 +245,7 @@ print(f"Std: {np.std(data):.3f}")
             assert "error" not in response, response.get("error")
             result = response
             assert result["valid"] is False
-            assert "File not found" in result["message"]
+            assert "No such file or directory" in result.get("error_details", "")
 
         finally:
             Path(notebook_file).unlink(missing_ok=True)
@@ -471,13 +471,13 @@ result"""
         """Test error handling in integration scenarios."""
         from mcp.server.fastmcp.exceptions import ToolError
 
-        # Test non-existent file - MCP should raise ToolError
-        with pytest.raises(ToolError, match="Script file not found"):
+        # Test non-existent file - MCP should raise ToolError with native Python message
+        with pytest.raises(ToolError, match="No such file or directory"):
             await mcp.call_tool(
                 "py_to_notebook", {"script_path": "/non/existent/file.py"}
             )
 
-        with pytest.raises(ToolError, match="Notebook file not found"):
+        with pytest.raises(ToolError, match="No such file or directory"):
             await mcp.call_tool(
                 "notebook_to_py", {"notebook_path": "/non/existent/file.ipynb"}
             )
@@ -488,7 +488,7 @@ result"""
             invalid_notebook = f.name
 
         try:
-            with pytest.raises(ToolError, match="Invalid notebook file"):
+            with pytest.raises(ToolError, match="Expecting value"):
                 await mcp.call_tool(
                     "notebook_to_py", {"notebook_path": invalid_notebook}
                 )

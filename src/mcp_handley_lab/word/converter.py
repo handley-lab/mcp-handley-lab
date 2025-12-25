@@ -5,8 +5,8 @@ import time
 from pathlib import Path
 from typing import Literal
 
-from .models import ConversionResult
-from .utils import detect_word_format
+from mcp_handley_lab.word.models import ConversionResult
+from mcp_handley_lab.word.utils import detect_word_format
 
 
 def _run_pandoc(
@@ -62,8 +62,6 @@ def docx_to_markdown(input_path: str, output_path: str = "") -> ConversionResult
 def markdown_to_docx(input_path: str, output_path: str = "") -> ConversionResult:
     """Convert Markdown to DOCX using pandoc."""
     input_p = Path(input_path)
-    if not input_p.exists():
-        raise FileNotFoundError(f"Input file not found: {input_path}")
     output_p = Path(output_path) if output_path else input_p.with_suffix(".docx")
     return _run_pandoc(input_p, output_p, "markdown", "docx")
 

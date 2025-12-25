@@ -1,5 +1,6 @@
 """py2nb conversion tool for MCP - bidirectional Python script ↔ Jupyter notebook conversion."""
 
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -7,20 +8,19 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from mcp_handley_lab.shared.models import ServerInfo
-
-from .converter import (
+from mcp_handley_lab.py2nb.converter import (
     notebook_to_python,
     python_to_notebook,
     validate_notebook_file,
     validate_python_file,
 )
-from .models import (
+from mcp_handley_lab.py2nb.models import (
     ConversionResult,
     ExecutionResult,
     RoundtripResult,
     ValidationResult,
 )
+from mcp_handley_lab.shared.models import ServerInfo
 
 mcp = FastMCP("py2nb Conversion Tool")
 
@@ -45,9 +45,6 @@ def py_to_notebook(
     """Convert Python script to Jupyter notebook."""
     script_path = Path(script_path)
 
-    if not script_path.exists():
-        raise FileNotFoundError(f"Script file not found: {script_path}")
-
     backup_path_str = None
     # Create backup if requested
     if backup:
@@ -58,9 +55,8 @@ def py_to_notebook(
     # Convert to notebook
     notebook_path = python_to_notebook(str(script_path), output_path)
 
-    # Validate the created notebook
-    if not validate_notebook_file(notebook_path):
-        raise RuntimeError(f"Generated notebook failed validation: {notebook_path}")
+    # Validate the created notebook (raises on failure)
+    validate_notebook_file(notebook_path)
 
     message = f"Successfully converted {script_path} to {notebook_path}"
     if backup:
@@ -99,12 +95,9 @@ def notebook_to_py(
     """Convert Jupyter notebook to Python script."""
     notebook_path = Path(notebook_path)
 
-    if not notebook_path.exists():
-        raise FileNotFoundError(f"Notebook file not found: {notebook_path}")
-
-    # Validate input notebook
-    if validate_files and not validate_notebook_file(str(notebook_path)):
-        raise ValueError(f"Invalid notebook file: {notebook_path}")
+    # Validate input notebook (raises on failure)
+    if validate_files:
+        validate_notebook_file(str(notebook_path))
 
     backup_path_str = None
     # Create backup if requested
@@ -116,9 +109,9 @@ def notebook_to_py(
     # Convert to Python script
     script_path = notebook_to_python(str(notebook_path), output_path)
 
-    # Validate the created script
-    if validate_files and not validate_python_file(script_path):
-        raise RuntimeError(f"Generated script failed validation: {script_path}")
+    # Validate the created script (raises on failure)
+    if validate_files:
+        validate_python_file(script_path)
 
     message = f"Successfully converted {notebook_path} to {script_path}"
     if backup:
@@ -143,30 +136,14 @@ def validate_notebook(
     ),
 ) -> ValidationResult:
     """Validate notebook file structure."""
-    if not Path(notebook_path).exists():
-        return ValidationResult(
-            valid=False,
-            file_path=notebook_path,
-            message="File not found",
-            error_details=f"File does not exist: {notebook_path}",
-        )
-
     try:
-        is_valid = validate_notebook_file(notebook_path)
-        if is_valid:
-            return ValidationResult(
-                valid=True,
-                file_path=notebook_path,
-                message="Notebook validation passed",
-            )
-        else:
-            return ValidationResult(
-                valid=False,
-                file_path=notebook_path,
-                message="Notebook validation failed",
-                error_details="Invalid notebook structure",
-            )
-    except Exception as e:
+        validate_notebook_file(notebook_path)
+        return ValidationResult(
+            valid=True,
+            file_path=notebook_path,
+            message="Notebook validation passed",
+        )
+    except (json.JSONDecodeError, ValueError, FileNotFoundError) as e:
         return ValidationResult(
             valid=False,
             file_path=notebook_path,
@@ -185,30 +162,14 @@ def validate_python(
     ),
 ) -> ValidationResult:
     """Validate Python script file syntax."""
-    if not Path(script_path).exists():
-        return ValidationResult(
-            valid=False,
-            file_path=script_path,
-            message="File not found",
-            error_details=f"File does not exist: {script_path}",
-        )
-
     try:
-        is_valid = validate_python_file(script_path)
-        if is_valid:
-            return ValidationResult(
-                valid=True,
-                file_path=script_path,
-                message="Python script validation passed",
-            )
-        else:
-            return ValidationResult(
-                valid=False,
-                file_path=script_path,
-                message="Python script validation failed",
-                error_details="Python syntax error detected",
-            )
-    except Exception as e:
+        validate_python_file(script_path)
+        return ValidationResult(
+            valid=True,
+            file_path=script_path,
+            message="Python script validation passed",
+        )
+    except (SyntaxError, FileNotFoundError) as e:
         return ValidationResult(
             valid=False,
             file_path=script_path,
@@ -232,15 +193,6 @@ def test_roundtrip(
 ) -> RoundtripResult:
     """Test round-trip conversion fidelity."""
     script_path = Path(script_path)
-
-    if not script_path.exists():
-        return RoundtripResult(
-            success=False,
-            input_path=str(script_path),
-            differences_found=False,
-            message="Script file not found",
-            temporary_files_cleaned=True,
-        )
 
     try:
         # Original content
@@ -397,19 +349,10 @@ def execute_notebook(
     """Execute all cells in a notebook and populate outputs."""
     notebook_path = Path(notebook_path)
 
-    if not notebook_path.exists():
-        return ExecutionResult(
-            success=False,
-            notebook_path=str(notebook_path),
-            cells_executed=0,
-            cells_with_errors=0,
-            execution_time_seconds=0.0,
-            message="Notebook file not found",
-            error_details=f"File does not exist: {notebook_path}",
-        )
-
-    # Validate notebook first
-    if not validate_notebook_file(str(notebook_path)):
+    # Validate notebook first (raises on failure)
+    try:
+        validate_notebook_file(str(notebook_path))
+    except (json.JSONDecodeError, ValueError) as e:
         return ExecutionResult(
             success=False,
             notebook_path=str(notebook_path),
@@ -417,7 +360,7 @@ def execute_notebook(
             cells_with_errors=0,
             execution_time_seconds=0.0,
             message="Invalid notebook file",
-            error_details="Notebook file has invalid structure",
+            error_details=str(e),
         )
 
     try:

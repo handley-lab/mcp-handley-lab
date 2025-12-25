@@ -44,7 +44,7 @@ async def event_creator(
         # Merge user params with defaults
         full_params = {**default_params, **params}
 
-        _, response = await mcp.call_tool("create_event", full_params)
+        _, response = await mcp.call_tool("create", full_params)
         assert "error" not in response, (
             f"Failed to create event: {response.get('error')}"
         )
@@ -62,7 +62,7 @@ async def event_creator(
     for event_id in created_event_ids:
         try:
             await mcp.call_tool(
-                "delete_event", {"event_id": event_id, "calendar_id": "primary"}
+                "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
         except Exception as e:
             print(f"  - Warning: Failed to delete event {event_id}: {e}")

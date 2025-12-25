@@ -4,17 +4,16 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
 from mcp_handley_lab.shared.models import ServerInfo
-
-from . import converter
-from .models import (
+from mcp_handley_lab.word import converter
+from mcp_handley_lab.word.models import (
     CommentExtractionResult,
     ConversionResult,
     DocumentAnalysisResult,
     FormatDetectionResult,
     TrackedChangesResult,
 )
-from .parser import WordDocumentParser
-from .utils import detect_word_format
+from mcp_handley_lab.word.parser import WordDocumentParser
+from mcp_handley_lab.word.utils import detect_word_format
 
 mcp = FastMCP("Word Documents Tool")
 

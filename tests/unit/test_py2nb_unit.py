@@ -529,25 +529,28 @@ class TestValidation:
         assert validate_notebook_file(str(notebook_file))
 
     def test_validate_notebook_file_invalid_json(self, tmp_path):
-        """Test validation of invalid JSON file."""
+        """Test validation of invalid JSON file raises JSONDecodeError."""
         notebook_file = tmp_path / "invalid.ipynb"
         notebook_file.write_text("invalid json content")
 
-        assert not validate_notebook_file(str(notebook_file))
+        with pytest.raises(json.JSONDecodeError):
+            validate_notebook_file(str(notebook_file))
 
     def test_validate_notebook_file_missing_cells(self, tmp_path):
-        """Test validation of notebook missing cells."""
+        """Test validation of notebook missing cells raises ValueError."""
         notebook_data = {"nbformat": 4, "nbformat_minor": 2}
 
         notebook_file = tmp_path / "missing_cells.ipynb"
         with open(notebook_file, "w") as f:
             json.dump(notebook_data, f)
 
-        assert not validate_notebook_file(str(notebook_file))
+        with pytest.raises(ValueError, match="missing 'cells'"):
+            validate_notebook_file(str(notebook_file))
 
     def test_validate_notebook_file_not_found(self):
-        """Test validation of non-existent file."""
-        assert not validate_notebook_file("/non/existent/file.ipynb")
+        """Test validation of non-existent file raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            validate_notebook_file("/non/existent/file.ipynb")
 
     def test_validate_python_file_valid(self, tmp_path):
         """Test validation of valid Python file."""
@@ -557,12 +560,14 @@ class TestValidation:
         assert validate_python_file(str(python_file))
 
     def test_validate_python_file_syntax_error(self, tmp_path):
-        """Test validation of Python file with syntax error."""
+        """Test validation of Python file with syntax error raises SyntaxError."""
         python_file = tmp_path / "invalid.py"
         python_file.write_text("print('Hello, World!'\n# Missing closing parenthesis")
 
-        assert not validate_python_file(str(python_file))
+        with pytest.raises(SyntaxError):
+            validate_python_file(str(python_file))
 
     def test_validate_python_file_not_found(self):
-        """Test validation of non-existent Python file."""
-        assert not validate_python_file("/non/existent/file.py")
+        """Test validation of non-existent Python file raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            validate_python_file("/non/existent/file.py")

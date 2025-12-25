@@ -282,8 +282,6 @@ def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, An
     else:
         # Local file - convert to base64 data URI
         file_path = Path(document_path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"Document not found: {document_path}")
 
         # Read file and encode
         file_content = file_path.read_bytes()
@@ -360,9 +358,6 @@ def audio_transcription_adapter(
     else:
         # Local file
         file_path = Path(audio_path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"Audio file not found: {audio_path}")
-
         with open(file_path, "rb") as f:
             transcription_params["file"] = {
                 "content": f,

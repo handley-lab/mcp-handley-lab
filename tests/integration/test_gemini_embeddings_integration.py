@@ -214,7 +214,7 @@ class TestGeminiEmbeddings:
         """Test that searching non-existent index fails fast."""
         skip_if_no_gemini_key()
 
-        with pytest.raises(ToolError, match="Index not found"):
+        with pytest.raises(ToolError, match="No such file or directory"):
             await mcp.call_tool(
                 "search_documents",
                 {
@@ -234,7 +234,7 @@ class TestGeminiEmbeddings:
             index_path = Path(temp_dir) / "index.json"
 
             # This should fail fast when trying to read the non-existent file
-            with pytest.raises(ToolError, match="Document not found"):
+            with pytest.raises(ToolError, match="No such file or directory"):
                 await mcp.call_tool(
                     "index_documents",
                     {

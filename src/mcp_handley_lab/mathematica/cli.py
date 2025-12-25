@@ -8,7 +8,7 @@ Command-line interface for the Mathematica MCP server.
 import logging
 import sys
 
-from .tool import mcp
+from mcp_handley_lab.mathematica.tool import mcp
 
 
 def main():

@@ -49,7 +49,10 @@ class MCPToolClient:
             self._initialized = True
             return True
 
-        except Exception as e:
+        except FileNotFoundError:
+            click.echo(f"Command not found: {self.command}", err=True)
+            return False
+        except OSError as e:
             click.echo(f"Failed to start {self.tool_name} server: {e}", err=True)
             return False
 
@@ -106,7 +109,7 @@ class MCPToolClient:
 
             return True
 
-        except Exception as e:
+        except (BrokenPipeError, OSError) as e:
             click.echo(f"Failed to initialize {self.tool_name}: {e}", err=True)
             stderr = (
                 self.process.stderr.read()

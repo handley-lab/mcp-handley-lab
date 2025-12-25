@@ -225,8 +225,8 @@ def search(
                 id=message_id,
                 subject=msg.get("Subject", "") or "[No Subject]",
                 from_address=msg.get("From", "") or "[Unknown Sender]",
-                to_address=msg.get("To", "") or None,
-                date=msg.get("Date", "") or None,
+                to_address=msg.get("To", ""),
+                date=msg.get("Date", ""),
                 tags=tags,
             )
         )

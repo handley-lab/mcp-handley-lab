@@ -136,10 +136,10 @@ class TestArxivIntegration:
             result = results[0]
             assert result.id  # Always included
             assert result.title
-            # Other fields should be None
-            assert result.authors is None
-            assert result.summary is None
-            assert result.published is None
+            # Other fields should be empty (not populated when not included)
+            assert result.authors == []
+            assert result.summary == ""
+            assert result.published == ""
 
         # Test summary fields
         results = search(
@@ -158,12 +158,12 @@ class TestArxivIntegration:
             result = results[0]
             assert result.id  # Always included
             assert result.title
-            assert result.authors is not None
-            assert result.published is not None
-            # These should be None (not requested)
-            assert result.summary is None
-            assert result.categories is None
-            assert result.pdf_url is None
+            assert result.authors  # Should have values (requested)
+            assert result.published  # Should have value (requested)
+            # These should be empty (not requested)
+            assert result.summary == ""
+            assert result.categories == []
+            assert result.pdf_url == ""
 
     @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
     @pytest.mark.integration

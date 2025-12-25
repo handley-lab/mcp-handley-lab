@@ -151,8 +151,6 @@ def index_documents(
     documents = []
     for path in document_paths:
         file_path = Path(path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"Document not found: {path}")
         content = file_path.read_text(encoding="utf-8")
         documents.append({"path": path, "content": content})
 
@@ -207,9 +205,6 @@ def search_documents(
     """Search documents by semantic similarity."""
     # Load index
     index_file = Path(index_path)
-    if not index_file.exists():
-        raise FileNotFoundError(f"Index not found: {index_path}")
-
     index = json.loads(index_file.read_text())
 
     # Use index model if not specified

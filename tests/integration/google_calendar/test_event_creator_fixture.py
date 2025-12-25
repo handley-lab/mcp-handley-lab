@@ -24,9 +24,10 @@ async def test_event_creator_fixture_basic(event_creator):
     )
 
     # Verify event was created and can be retrieved
-    _, get_response = await mcp.call_tool("get_event", {"event_id": event_id})
-    assert "error" not in get_response, get_response.get("error")
-    event = get_response
+    _, get_response = await mcp.call_tool("read", {"event_id": event_id})
+    assert "error" not in get_response, get_response
+    # read returns {"result": [...]} with list (singleton for get-by-id)
+    event = get_response["result"][0]
 
     assert event["summary"] == "Fixture Test Event"
     assert event["description"] == "Testing the event creator fixture"
@@ -59,13 +60,13 @@ async def test_event_creator_fixture_multiple_events(event_creator):
     )
 
     # Verify both events exist
-    _, get_response1 = await mcp.call_tool("get_event", {"event_id": event_id1})
+    _, get_response1 = await mcp.call_tool("read", {"event_id": event_id1})
     assert "error" not in get_response1
-    assert get_response1["summary"] == "First Test Event"
+    assert get_response1["result"][0]["summary"] == "First Test Event"
 
-    _, get_response2 = await mcp.call_tool("get_event", {"event_id": event_id2})
+    _, get_response2 = await mcp.call_tool("read", {"event_id": event_id2})
     assert "error" not in get_response2
-    assert get_response2["summary"] == "Second Test Event"
+    assert get_response2["result"][0]["summary"] == "Second Test Event"
 
     # Both events will be automatically cleaned up
 
@@ -85,9 +86,9 @@ async def test_event_creator_with_natural_language(event_creator):
     )
 
     # Verify it was created properly
-    _, get_response = await mcp.call_tool("get_event", {"event_id": event_id})
+    _, get_response = await mcp.call_tool("read", {"event_id": event_id})
     assert "error" not in get_response
-    event = get_response
+    event = get_response["result"][0]
 
     assert event["summary"] == "Natural Language Event"
     assert event["description"] == "Created with natural language"

@@ -193,10 +193,7 @@ def resolve_file_content(
         if "content" in file_item:
             return file_item["content"], None
         elif "path" in file_item:
-            file_path = Path(file_item["path"])
-            if not file_path.exists():
-                raise FileNotFoundError(f"File not found: {file_path}")
-            return None, file_path
+            return None, Path(file_item["path"])
     return None, None
 
 

@@ -1,6 +1,5 @@
 """OfflineIMAP email synchronization provider."""
 
-from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -37,8 +36,6 @@ def sync(
     ),
 ) -> OperationResult:
     """Unified email synchronization with multiple modes."""
-    config_path = Path(config_file) if config_file else Path.home() / ".offlineimaprc"
-
     if mode == "info":
         timeout = timeout_seconds or 120
         cmd = ["offlineimap", "--info"]
@@ -59,8 +56,6 @@ def sync(
         )
 
     if mode == "status":
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config not found at {config_path}")
         timeout = timeout_seconds or 60
         cmd = ["offlineimap", "--dry-run", "-o1"]
         if config_file:

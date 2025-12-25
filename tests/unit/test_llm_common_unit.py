@@ -274,24 +274,14 @@ class TestResolveFileContent:
         assert content == "Dict content"
         assert path is None
 
-    @patch("pathlib.Path.exists")
-    def test_resolve_file_content_dict_with_existing_path(self, mock_exists):
-        """Test resolving dict with existing file path."""
-        mock_exists.return_value = True
+    def test_resolve_file_content_dict_with_path(self):
+        """Test resolving dict with file path.
 
+        Returns path without checking existence - errors happen at read time.
+        """
         content, path = resolve_file_content({"path": "/tmp/test.txt"})
         assert content is None
         assert path == Path("/tmp/test.txt")
-
-    @patch("pathlib.Path.exists")
-    def test_resolve_file_content_dict_with_nonexistent_path(self, mock_exists):
-        """Test resolving dict with non-existent file path."""
-        mock_exists.return_value = False
-
-        with pytest.raises(
-            FileNotFoundError, match="File not found: /tmp/nonexistent.txt"
-        ):
-            resolve_file_content({"path": "/tmp/nonexistent.txt"})
 
     def test_resolve_file_content_invalid_input(self):
         """Test resolving invalid input types."""

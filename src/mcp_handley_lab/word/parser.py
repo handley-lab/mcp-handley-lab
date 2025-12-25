@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ElementTree
 import zipfile
 from pathlib import Path
 
-from .models import (
+from mcp_handley_lab.word.models import (
     DocumentMetadata,
     DocumentStructure,
     Heading,
@@ -31,79 +31,68 @@ class WordDocumentParser:
         self.comments_root = None
         self.core_props_root = None
 
-    def _load_docx_xml(self) -> bool:
+    def _load_docx_xml(self) -> None:
         """Load XML content from DOCX file."""
-        try:
-            with zipfile.ZipFile(self.document_path, "r") as zip_file:
-                # Load main document
-                if "word/document.xml" in zip_file.namelist():
-                    document_content = zip_file.read("word/document.xml")
-                    self.document_root = ElementTree.fromstring(document_content)
-
-                # Load comments if they exist
-                if "word/comments.xml" in zip_file.namelist():
-                    comments_content = zip_file.read("word/comments.xml")
-                    self.comments_root = ElementTree.fromstring(comments_content)
-
-                # Load core properties if they exist
-                if "docProps/core.xml" in zip_file.namelist():
-                    core_props_content = zip_file.read("docProps/core.xml")
-                    self.core_props_root = ElementTree.fromstring(core_props_content)
-
-                return True
-        except (zipfile.BadZipFile, ElementTree.ParseError, FileNotFoundError):
-            return False
-
-    def _load_xml_directory(self) -> bool:
-        """Load XML content from extracted DOCX directory."""
-        try:
+        with zipfile.ZipFile(self.document_path, "r") as zip_file:
             # Load main document
-            document_file = self.document_path / "word" / "document.xml"
-            if document_file.exists():
-                self.document_root = ElementTree.parse(document_file).getroot()
+            if "word/document.xml" in zip_file.namelist():
+                document_content = zip_file.read("word/document.xml")
+                self.document_root = ElementTree.fromstring(document_content)
 
             # Load comments if they exist
-            comments_file = self.document_path / "word" / "comments.xml"
+            if "word/comments.xml" in zip_file.namelist():
+                comments_content = zip_file.read("word/comments.xml")
+                self.comments_root = ElementTree.fromstring(comments_content)
+
+            # Load core properties if they exist
+            if "docProps/core.xml" in zip_file.namelist():
+                core_props_content = zip_file.read("docProps/core.xml")
+                self.core_props_root = ElementTree.fromstring(core_props_content)
+
+    def _load_xml_directory(self) -> None:
+        """Load XML content from extracted DOCX directory."""
+        # Load main document
+        document_file = self.document_path / "word" / "document.xml"
+        if document_file.exists():
+            self.document_root = ElementTree.parse(document_file).getroot()
+
+        # Load comments if they exist
+        comments_file = self.document_path / "word" / "comments.xml"
+        if comments_file.exists():
+            self.comments_root = ElementTree.parse(comments_file).getroot()
+
+        # Load core properties if they exist
+        core_props_file = self.document_path / "docProps" / "core.xml"
+        if core_props_file.exists():
+            self.core_props_root = ElementTree.parse(core_props_file).getroot()
+
+    def _load_single_xml(self) -> None:
+        """Load single document.xml file."""
+        if self.document_path.name == "document.xml":
+            self.document_root = ElementTree.parse(self.document_path).getroot()
+
+            # Try to find comments.xml in the same directory
+            comments_file = self.document_path.parent / "comments.xml"
             if comments_file.exists():
                 self.comments_root = ElementTree.parse(comments_file).getroot()
 
-            # Load core properties if they exist
-            core_props_file = self.document_path / "docProps" / "core.xml"
-            if core_props_file.exists():
-                self.core_props_root = ElementTree.parse(core_props_file).getroot()
-
-            return self.document_root is not None
-        except (ElementTree.ParseError, FileNotFoundError):
-            return False
-
-    def _load_single_xml(self) -> bool:
-        """Load single document.xml file."""
-        try:
-            if self.document_path.name == "document.xml":
-                self.document_root = ElementTree.parse(self.document_path).getroot()
-
-                # Try to find comments.xml in the same directory
-                comments_file = self.document_path.parent / "comments.xml"
-                if comments_file.exists():
-                    self.comments_root = ElementTree.parse(comments_file).getroot()
-
-                return True
-        except (ElementTree.ParseError, FileNotFoundError):
-            return False
-        return False
-
     def load(self) -> None:
-        """Load document content based on file type."""
-        success = False
-        if self.document_path.suffix.lower() == ".docx":
-            success = self._load_docx_xml()
-        elif self.document_path.is_dir():
-            success = self._load_xml_directory()
-        elif self.document_path.name == "document.xml":
-            success = self._load_single_xml()
+        """Load document content based on file type.
 
-        if not success:
-            raise ValueError(f"Failed to load or parse document: {self.document_path}")
+        Raises:
+            zipfile.BadZipFile: If DOCX is not a valid ZIP file
+            xml.etree.ElementTree.ParseError: If XML content is malformed
+            FileNotFoundError: If document file doesn't exist
+            ValueError: If file type is not supported
+        """
+        if self.document_path.suffix.lower() == ".docx":
+            self._load_docx_xml()
+        elif self.document_path.is_dir():
+            self._load_xml_directory()
+        elif self.document_path.name == "document.xml":
+            self._load_single_xml()
+        else:
+            raise ValueError(f"Unsupported document type: {self.document_path}")
 
     def extract_text_from_run(self, run_elem) -> str:
         """Extract text from a Word run element."""

@@ -9,7 +9,7 @@ from mcp_handley_lab.google_calendar.tool import mcp
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_update_event_simplified_with_fixture(event_creator):
+async def test_update_simplified_with_fixture(event_creator):
     """Demonstrate how the fixture simplifies event update tests."""
     tomorrow = datetime.now() + timedelta(days=1)
 
@@ -31,7 +31,7 @@ async def test_update_event_simplified_with_fixture(event_creator):
 
     # Focus on the actual test logic
     _, update_response = await mcp.call_tool(
-        "update_event",
+        "update",
         {
             "event_id": event_id,
             "description": "Updated description only",
@@ -55,10 +55,10 @@ async def test_update_event_simplified_with_fixture(event_creator):
 
     # Verify the update was applied
     _, event_response = await mcp.call_tool(
-        "get_event", {"event_id": event_id, "calendar_id": "primary"}
+        "read", {"event_id": event_id, "calendar_id": "primary"}
     )
-    assert "error" not in event_response, event_response.get("error")
-    updated_event = event_response
+    assert "error" not in event_response, event_response
+    updated_event = event_response["result"][0]
 
     assert updated_event["description"] == "Updated description only"
     assert updated_event["start"]["timeZone"]
@@ -104,8 +104,8 @@ async def test_multiple_events_with_fixture(event_creator):
         (event_id2, "Meeting 2"),
         (event_id3, "Meeting 3"),
     ]:
-        _, response = await mcp.call_tool("get_event", {"event_id": event_id})
+        _, response = await mcp.call_tool("read", {"event_id": event_id})
         assert "error" not in response
-        assert response["summary"] == expected_summary
+        assert response["result"][0]["summary"] == expected_summary
 
     # All three events will be automatically cleaned up by the fixture!

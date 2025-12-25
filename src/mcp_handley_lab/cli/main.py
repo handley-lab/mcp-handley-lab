@@ -6,10 +6,13 @@ import sys
 
 import click
 
-from .completion import install_completion_script, show_completion_install
-from .config import create_default_config, get_config_file
-from .discovery import get_available_tools, get_tool_info
-from .rpc_client import cleanup_clients, get_tool_client
+from mcp_handley_lab.cli.completion import (
+    install_completion_script,
+    show_completion_install,
+)
+from mcp_handley_lab.cli.config import create_default_config, get_config_file
+from mcp_handley_lab.cli.discovery import get_available_tools, get_tool_info
+from mcp_handley_lab.cli.rpc_client import cleanup_clients, get_tool_client
 
 
 def _get_validated_tool_info(tool_name: str) -> tuple[str, dict]:

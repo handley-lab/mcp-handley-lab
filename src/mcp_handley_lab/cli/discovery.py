@@ -5,7 +5,7 @@ from typing import Any
 
 import click
 
-from .rpc_client import get_tool_client
+from mcp_handley_lab.cli.rpc_client import get_tool_client
 
 
 def get_available_tools() -> dict[str, str]:

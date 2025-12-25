@@ -25,13 +25,13 @@ def run_command(
             input=input_data,
             capture_output=True,
             timeout=timeout,
-            check=False,
+            check=True,
         )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Command failed with exit code {result.returncode}: {result.stderr.decode()}"
-            )
         return result.stdout, result.stderr
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"Command failed with exit code {e.returncode}: {e.stderr.decode()}"
+        ) from e
     except subprocess.TimeoutExpired as e:
         raise RuntimeError(f"Command timed out after {timeout} seconds") from e
     except FileNotFoundError as e:

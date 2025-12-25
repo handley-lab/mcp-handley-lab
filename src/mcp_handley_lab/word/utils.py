@@ -4,7 +4,7 @@ import mimetypes
 import zipfile
 from pathlib import Path
 
-from .models import FormatDetectionResult
+from mcp_handley_lab.word.models import FormatDetectionResult
 
 
 def detect_word_format(file_path: str) -> FormatDetectionResult:

@@ -27,27 +27,23 @@ def _run_pandoc(
         str(output_path),
     ]
 
-    try:
-        start_time = time.time()
-        subprocess.run(cmd, capture_output=True, text=True, check=True)
-        end_time = time.time()
+    start_time = time.time()
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    end_time = time.time()
 
-        return ConversionResult(
-            success=True,
-            input_path=str(input_path),
-            output_path=str(output_path),
-            input_format=from_format,
-            output_format=to_format if to_format != "plain" else "text",
-            file_size_bytes=output_path.stat().st_size,
-            conversion_time_ms=int((end_time - start_time) * 1000),
-            message=f"Successfully converted {from_format} to {to_format}",
-        )
-    except FileNotFoundError as e:
-        raise RuntimeError(
-            "Pandoc not found. Please install pandoc to use conversion features."
-        ) from e
-    except subprocess.CalledProcessError as e:
-        raise ValueError(f"Pandoc conversion failed: {e.stderr}") from e
+    if result.returncode != 0:
+        raise ValueError(f"Pandoc conversion failed: {result.stderr}")
+
+    return ConversionResult(
+        success=True,
+        input_path=str(input_path),
+        output_path=str(output_path),
+        input_format=from_format,
+        output_format=to_format if to_format != "plain" else "text",
+        file_size_bytes=output_path.stat().st_size,
+        conversion_time_ms=int((end_time - start_time) * 1000),
+        message=f"Successfully converted {from_format} to {to_format}",
+    )
 
 
 def docx_to_markdown(input_path: str, output_path: str = "") -> ConversionResult:

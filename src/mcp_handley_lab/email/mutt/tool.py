@@ -173,7 +173,7 @@ def _get_msmtp_log_size() -> int:
     """Get current size of msmtp log file."""
     log_path = os.path.expanduser("~/.msmtp.log")
     try:
-        return os.path.getsize(log_path) if os.path.exists(log_path) else 0
+        return os.path.getsize(log_path)
     except OSError:
         return 0
 
@@ -254,9 +254,6 @@ def _check_recent_send() -> tuple[bool, bool, dict]:
     """
     log_path = os.path.expanduser("~/.msmtp.log")
     try:
-        if not os.path.exists(log_path):
-            return False, False, {}
-
         with builtins.open(log_path) as f:
             lines = f.readlines()
             if not lines:

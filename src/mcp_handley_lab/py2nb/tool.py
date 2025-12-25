@@ -4,7 +4,10 @@ import json
 import time
 from pathlib import Path
 
+import nbformat
 from mcp.server.fastmcp import FastMCP
+from nbclient import NotebookClient
+from nbclient.exceptions import CellExecutionError
 from pydantic import Field
 
 from mcp_handley_lab.py2nb.converter import (
@@ -272,8 +275,6 @@ def test_roundtrip(
 )
 def server_info() -> ServerInfo:
     """Get server status and dependency information."""
-    import nbformat
-
     available_tools = [
         "py_to_notebook",
         "notebook_to_py",
@@ -340,21 +341,6 @@ def execute_notebook(
             execution_time_seconds=0.0,
             message="Invalid notebook file",
             error_details=str(e),
-        )
-
-    try:
-        import nbformat
-        from nbclient import NotebookClient
-        from nbclient.exceptions import CellExecutionError
-    except ImportError as e:
-        return ExecutionResult(
-            success=False,
-            notebook_path=str(notebook_path),
-            cells_executed=0,
-            cells_with_errors=0,
-            execution_time_seconds=0.0,
-            message="Missing dependencies",
-            error_details=f"Required libraries not installed: {e}",
         )
 
     try:

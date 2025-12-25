@@ -94,19 +94,6 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_google_calendar_find_time(google_calendar_test_config):
-    _, response = await mcp.call_tool(
-        "find_time", {"duration_minutes": 30, "work_hours_only": True}
-    )
-    assert "error" not in response, response.get("error")
-    result = response["result"]
-
-    assert isinstance(result, list)
-    # May return 0 or more time slots - both are valid
-
-
-@pytest.mark.vcr
-@pytest.mark.asyncio
 async def test_google_calendar_search_events(google_calendar_test_config):
     # Use fixed dates to avoid VCR timestamp mismatches
     start_date = "2024-06-01T00:00:00Z"
@@ -236,15 +223,3 @@ async def test_google_calendar_move_event(google_calendar_test_config):
         await mcp.call_tool(
             "delete_event", {"event_id": event_id, "calendar_id": other_calendar}
         )
-
-
-@pytest.mark.live
-@pytest.mark.asyncio
-async def test_google_calendar_server_info(google_calendar_test_config):
-    _, response = await mcp.call_tool("server_info", {})
-    assert "error" not in response, response.get("error")
-    result = response
-
-    assert result["name"] == "Google Calendar Tool"
-    assert result["status"] == "active"
-    assert "search_events" in str(result["capabilities"])

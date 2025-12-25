@@ -14,7 +14,6 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.shared.models import ServerInfo
 
 # Application-level default timezone as final fallback
 DEFAULT_TIMEZONE = "Europe/London"
@@ -128,20 +127,6 @@ class CalendarInfo(BaseModel):
     )
     colorId: str = Field(
         ..., description="The color identifier used to display the calendar."
-    )
-
-
-class FreeTimeSlot(BaseModel):
-    """Available time slot."""
-
-    start: str = Field(
-        ..., description="The start time of the free slot in ISO 8601 format."
-    )
-    end: str = Field(
-        ..., description="The end time of the free slot in ISO 8601 format."
-    )
-    duration_minutes: int = Field(
-        ..., description="The duration of the free time slot in minutes."
     )
 
 
@@ -860,104 +845,6 @@ def list_calendars() -> list[CalendarInfo]:
 
 
 @mcp.tool(
-    description="Finds available free time slots within a calendar for scheduling meetings. Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes. Set `work_hours_only=False` to include evenings/weekends."
-)
-def find_time(
-    calendar_id: str = Field(
-        "primary",
-        description="The ID or name of the calendar to search for free time. Use 'list_calendars' to see available options. Defaults to primary.",
-    ),
-    start_date: str = Field(
-        "", description="The start date (YYYY-MM-DD) for the search. Defaults to now."
-    ),
-    end_date: str = Field(
-        "",
-        description="The end date (YYYY-MM-DD) for the search. Defaults to 7 days from the start date.",
-    ),
-    duration_minutes: int = Field(
-        60, description="The desired duration of the free time slot in minutes."
-    ),
-    work_hours_only: bool = Field(
-        True, description="If True, only searches for slots between 9 AM and 5 PM."
-    ),
-) -> list[FreeTimeSlot]:
-    """Find free time slots in a calendar."""
-    service = _get_calendar_service()
-    resolved_id = _resolve_calendar_id(calendar_id, service)
-
-    start_dt = datetime.now() if not start_date else datetime.fromisoformat(start_date)
-
-    if not end_date:
-        end_dt = start_dt + timedelta(days=7)
-    else:
-        end_dt = datetime.fromisoformat(end_date)
-
-    freebusy_request = {
-        "timeMin": _parse_datetime_to_utc(start_dt.isoformat()),
-        "timeMax": _parse_datetime_to_utc(end_dt.isoformat()),
-        "items": [{"id": resolved_id}],
-    }
-
-    freebusy_result = service.freebusy().query(body=freebusy_request).execute()
-    busy_times = freebusy_result["calendars"][resolved_id].get("busy", [])
-
-    slots = []
-    if start_dt.tzinfo:
-        current = start_dt.astimezone(timezone.utc).replace(tzinfo=None)
-    else:
-        current = start_dt
-
-    if end_dt.tzinfo:
-        end_dt_utc = end_dt.astimezone(timezone.utc).replace(tzinfo=None)
-    else:
-        end_dt_utc = end_dt
-
-    slot_duration = timedelta(minutes=duration_minutes)
-
-    while current + slot_duration <= end_dt_utc:
-        if work_hours_only and (current.hour < 9 or current.hour >= 17):
-            current += timedelta(hours=1)
-            continue
-
-        slot_end = current + slot_duration
-
-        is_free = True
-        for busy in busy_times:
-            busy_start = datetime.fromisoformat(busy["start"].replace("Z", "+00:00"))
-            busy_end = datetime.fromisoformat(busy["end"].replace("Z", "+00:00"))
-
-            if busy_start.tzinfo:
-                busy_start = busy_start.astimezone(timezone.utc).replace(tzinfo=None)
-            if busy_end.tzinfo:
-                busy_end = busy_end.astimezone(timezone.utc).replace(tzinfo=None)
-
-            if current < busy_end and slot_end > busy_start:
-                is_free = False
-                break
-
-        if is_free:
-            slots.append((current, slot_end))
-
-        current += timedelta(minutes=30)
-
-    if not slots:
-        return []
-
-    # Convert to FreeTimeSlot objects
-    free_slots = []
-    for start_time, end_time in slots[:20]:  # Limit to first 20 slots
-        free_slots.append(
-            FreeTimeSlot(
-                start=start_time.strftime("%Y-%m-%d %H:%M"),
-                end=end_time.strftime("%Y-%m-%d %H:%M"),
-                duration_minutes=duration_minutes,
-            )
-        )
-
-    return free_slots
-
-
-@mcp.tool(
     description="Searches for events in a date range. Filter by text, specific fields ('search_fields'), and case sensitivity."
 )
 def search_events(
@@ -1073,55 +960,3 @@ def search_events(
 
     # Convert filtered events to CalendarEvent objects
     return [_build_event_model(event) for event in filtered_events]
-
-
-@mcp.tool(
-    description="Checks the status of the Google Calendar server and API connectivity. Returns version info and available functions."
-)
-def server_info() -> ServerInfo:
-    """Get server status and Google Calendar API connection info without making a network call."""
-    # This version does not make a network call. It checks for credentials.
-    token_file = settings.google_token_path
-    credentials_file = settings.google_credentials_path
-
-    status = (
-        "active"
-        if token_file.exists() or credentials_file.exists()
-        else "inactive (no credentials)"
-    )
-
-    return ServerInfo(
-        name="Google Calendar Tool",
-        version="1.9.4",
-        status=status,
-        capabilities=[
-            "search_events",
-            "get_event",
-            "create_event",
-            "update_event",
-            "delete_event",
-            "move_event",
-            "list_calendars",
-            "find_time",
-            "server_info",
-        ],
-        dependencies={
-            "google_api_credentials": "configured"
-            if status == "active"
-            else "not found",
-        },
-    )
-
-
-@mcp.tool(
-    description="Tests the connection to the Google Calendar API by listing calendars."
-)
-def test_connection() -> str:
-    """Tests the connection to the Google Calendar API."""
-    try:
-        service = _get_calendar_service()
-        calendar_list = service.calendarList().list(maxResults=1).execute()
-        calendar_count = len(calendar_list.get("items", []))
-        return f"✅ Connection successful. Can access {calendar_count}+ calendars."
-    except Exception as e:
-        return f"❌ Connection failed: {e}"

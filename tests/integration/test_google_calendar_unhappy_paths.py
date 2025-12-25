@@ -285,36 +285,6 @@ class TestGoogleCalendarZeroResultsScenarios:
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
-    async def test_find_time_no_availability(self, google_calendar_test_config):
-        """Test find_time when no slots are available."""
-        # Try to find time in the past (should have no availability or error)
-        past_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-
-        try:
-            _, response = await mcp.call_tool(
-                "find_time",
-                {
-                    "start_date": past_date,
-                    "end_date": past_date,
-                    "duration_minutes": 60,
-                    "work_hours_only": True,
-                    "calendar_id": "primary",
-                },
-            )
-
-            # Should return empty list
-            free_times = response.get("free_times", [])
-            assert isinstance(free_times, list)
-
-        except Exception as e:
-            # Past dates may cause "time range empty" error - this is acceptable
-            assert any(
-                keyword in str(e).lower()
-                for keyword in ["time range", "empty", "past", "invalid"]
-            )
-
-    @pytest.mark.vcr
-    @pytest.mark.asyncio
     async def test_search_events_empty_date_range(self, google_calendar_test_config):
         """Test search with date range that contains no events."""
         # Use fixed future dates to match VCR cassette

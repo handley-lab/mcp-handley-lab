@@ -155,10 +155,13 @@ class SearchResult(BaseModel):
     id: str = Field(..., description="The unique message ID of the email.")
     subject: str = Field(..., description="The subject line of the email.")
     from_address: str = Field(..., description="The sender's email address and name.")
-    to_address: str | None = Field(
-        default=None, description="The primary recipient's email address."
+    to_address: str = Field(
+        default="",
+        description="The primary recipient's email address (empty if not available).",
     )
-    date: str | None = Field(default=None, description="The date the email was sent.")
+    date: str = Field(
+        default="", description="The date the email was sent (empty if not available)."
+    )
     tags: list[str] = Field(
         default_factory=list, description="Tags associated with this email."
     )

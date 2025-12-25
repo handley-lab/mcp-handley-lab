@@ -42,8 +42,12 @@ class MathematicaResult(BaseModel):
     evaluation_count: int = Field(description="Number of evaluations in this session")
     expression: str = Field(description="The original expression that was evaluated")
     format_used: str = Field(description="The output format that was used")
-    error: str | None = Field(None, description="Error message if evaluation failed")
-    note: str | None = Field(None, description="Additional notes about the evaluation")
+    error: str = Field(
+        default="", description="Error message if evaluation failed (empty if none)"
+    )
+    note: str = Field(
+        default="", description="Additional notes about the evaluation (empty if none)"
+    )
 
 
 class SessionInfo(BaseModel):
@@ -51,12 +55,22 @@ class SessionInfo(BaseModel):
 
     active: bool = Field(description="Whether the kernel session is active")
     evaluation_count: int = Field(description="Number of evaluations performed")
-    version: str | None = Field(None, description="Wolfram kernel version")
-    memory_used: str | None = Field(None, description="Memory currently in use")
-    kernel_id: str | None = Field(None, description="Kernel process ID")
+    version: str = Field(
+        default="", description="Wolfram kernel version (empty if unknown)"
+    )
+    memory_used: str = Field(
+        default="", description="Memory currently in use (empty if unknown)"
+    )
+    kernel_id: str = Field(
+        default="", description="Kernel process ID (empty if unknown)"
+    )
     kernel_path: str = Field(description="Path to the Wolfram kernel")
-    uptime_seconds: float | None = Field(None, description="Session uptime in seconds")
-    last_evaluation: str | None = Field(None, description="Last expression evaluated")
+    uptime_seconds: float = Field(
+        default=0.0, description="Session uptime in seconds (0.0 if unknown)"
+    )
+    last_evaluation: str = Field(
+        default="", description="Last expression evaluated (empty if none)"
+    )
 
 
 def _get_session() -> WolframLanguageSession:

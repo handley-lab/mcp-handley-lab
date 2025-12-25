@@ -13,9 +13,9 @@ class ConversionResult(BaseModel):
     output_path: str = Field(
         ..., description="The absolute path of the newly created destination file."
     )
-    backup_path: str | None = Field(
-        default=None,
-        description="The path to the backup of the original file, if one was created.",
+    backup_path: str = Field(
+        default="",
+        description="The path to the backup of the original file (empty if none created).",
     )
     message: str = Field(
         ..., description="A human-readable summary of the conversion result."
@@ -28,8 +28,9 @@ class ValidationResult(BaseModel):
     valid: bool = Field(..., description="Indicates if the file passed validation.")
     file_path: str = Field(..., description="The path to the file that was validated.")
     message: str = Field(..., description="A summary of the validation result.")
-    error_details: str | None = Field(
-        default=None, description="Detailed error information if validation failed."
+    error_details: str = Field(
+        default="",
+        description="Detailed error information if validation failed (empty if none).",
     )
 
 
@@ -48,8 +49,9 @@ class RoundtripResult(BaseModel):
         description="Whether any differences were detected between original and round-trip result.",
     )
     message: str = Field(..., description="A summary of the round-trip test result.")
-    diff_output: str | None = Field(
-        default=None, description="Detailed diff output if differences were found."
+    diff_output: str = Field(
+        default="",
+        description="Detailed diff output if differences were found (empty if none).",
     )
     temporary_files_cleaned: bool = Field(
         default=True,
@@ -76,9 +78,11 @@ class ExecutionResult(BaseModel):
         ..., description="The total time taken to execute the notebook in seconds."
     )
     message: str = Field(..., description="A summary of the execution result.")
-    error_details: str | None = Field(
-        default=None, description="Detailed error information if execution failed."
+    error_details: str = Field(
+        default="",
+        description="Detailed error information if execution failed (empty if none).",
     )
-    kernel_name: str | None = Field(
-        default=None, description="The name of the Jupyter kernel used for execution."
+    kernel_name: str = Field(
+        default="",
+        description="The name of the Jupyter kernel used for execution (empty if unknown).",
     )

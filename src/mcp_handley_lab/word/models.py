@@ -16,8 +16,9 @@ class WordComment(BaseModel):
     paragraph_context: str = Field(
         ..., description="Full paragraph containing the referenced text."
     )
-    reply_to: str | None = Field(
-        default=None, description="ID of parent comment if this is a reply."
+    reply_to: str = Field(
+        default="",
+        description="ID of parent comment if this is a reply (empty if not a reply).",
     )
 
 

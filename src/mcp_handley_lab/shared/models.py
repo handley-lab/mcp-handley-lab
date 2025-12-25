@@ -78,9 +78,9 @@ class LLMResult(BaseModel):
         default="",
         description="Reason why generation stopped (e.g., 'stop', 'length').",
     )
-    avg_logprobs: float | None = Field(
-        default=None,
-        description="Average log probability of the generated tokens (None if not provided).",
+    avg_logprobs: float = Field(
+        default=0.0,
+        description="Average log probability of the generated tokens (0.0 if not provided).",
     )
     model_version: str = Field(
         default="", description="Specific version identifier of the model used."
@@ -124,13 +124,13 @@ class LLMResult(BaseModel):
         default="",
         description="Reasoning/thinking content from models like Grok (separate from main response).",
     )
-    created_at: float | None = Field(
-        default=None,
-        description="Request creation timestamp (Unix epoch, None if not provided).",
+    created_at: float = Field(
+        default=0.0,
+        description="Request creation timestamp (Unix epoch, 0.0 if not provided).",
     )
-    completed_at: float | None = Field(
-        default=None,
-        description="Request completion timestamp (Unix epoch, None if not provided).",
+    completed_at: float = Field(
+        default=0.0,
+        description="Request completion timestamp (Unix epoch, 0.0 if not provided).",
     )
     # Provider-specific metadata buckets
     timing: dict[str, Any] = Field(
@@ -153,8 +153,9 @@ class LLMResult(BaseModel):
         default_factory=list,
         description="Citations from Claude responses.",
     )
-    refusal: str | None = Field(
-        default=None, description="Refusal reason if model refused to respond."
+    refusal: str = Field(
+        default="",
+        description="Refusal reason if model refused to respond (empty if none).",
     )
 
 

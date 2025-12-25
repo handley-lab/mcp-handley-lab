@@ -52,24 +52,31 @@ class ArxivPaper(BaseModel):
     """
 
     id: str = Field(..., description="The ArXiv ID of the paper (e.g., '2301.07041').")
-    title: str | None = Field(default=None, description="The title of the paper.")
-    authors: list[str] | None = Field(
-        default=None, description="List of authors' names. May be truncated."
+    title: str = Field(
+        default="", description="The title of the paper (empty if not fetched)."
     )
-    summary: str | None = Field(
-        default=None, description="Abstract or summary of the paper. May be truncated."
+    authors: list[str] = Field(
+        default_factory=list, description="List of authors' names. May be truncated."
     )
-    published: str | None = Field(
-        default=None, description="Publication date in YYYY-MM-DD format."
+    summary: str = Field(
+        default="",
+        description="Abstract or summary of the paper. May be truncated (empty if not fetched).",
     )
-    categories: list[str] | None = Field(
-        default=None, description="ArXiv subject categories (e.g., ['cs.AI', 'cs.LG'])."
+    published: str = Field(
+        default="",
+        description="Publication date in YYYY-MM-DD format (empty if not fetched).",
     )
-    pdf_url: str | None = Field(
-        default=None, description="Direct URL to download the PDF version."
+    categories: list[str] = Field(
+        default_factory=list,
+        description="ArXiv subject categories (e.g., ['cs.AI', 'cs.LG']).",
     )
-    abs_url: str | None = Field(
-        default=None, description="URL to the ArXiv abstract page."
+    pdf_url: str = Field(
+        default="",
+        description="Direct URL to download the PDF version (empty if not available).",
+    )
+    abs_url: str = Field(
+        default="",
+        description="URL to the ArXiv abstract page (empty if not available).",
     )
 
 

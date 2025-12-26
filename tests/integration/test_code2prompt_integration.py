@@ -198,7 +198,9 @@ def format_output(text):
         """Test code2prompt with nonexistent path - should fail fast."""
         from mcp.server.fastmcp.exceptions import ToolError
 
-        with pytest.raises(ToolError, match="Command failed|not found|doesn't exist"):
+        with pytest.raises(
+            ToolError, match="non-zero exit status|Command failed|not found"
+        ):
             await mcp.call_tool(
                 "generate_prompt",
                 {

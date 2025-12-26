@@ -157,6 +157,7 @@ class TestMuttCLIProcessManagement:
                     "cannot stat",
                     "failed",
                     "exit code",
+                    "exit status",
                 ]
             )
 

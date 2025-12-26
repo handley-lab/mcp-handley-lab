@@ -56,9 +56,9 @@ output_format = "human"
 # output_file = "-"  # stdout by default
 """
 
-    if not config_file.exists():
-        with open(config_file, "w") as f:
+    try:
+        with open(config_file, "x") as f:
             f.write(default_config)
         click.echo(f"Created default configuration at: {config_file}")
-    else:
+    except FileExistsError:
         click.echo(f"Configuration file already exists at: {config_file}")

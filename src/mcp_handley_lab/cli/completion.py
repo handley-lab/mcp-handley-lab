@@ -84,8 +84,7 @@ compdef _mcp_cli mcp-cli
 
     # Try to install in user's zsh completion directory
     zsh_completion_dir = Path.home() / ".zsh" / "completions"
-    if not zsh_completion_dir.exists():
-        zsh_completion_dir.mkdir(parents=True, exist_ok=True)
+    zsh_completion_dir.mkdir(parents=True, exist_ok=True)
 
     completion_file = zsh_completion_dir / "_mcp-cli"
 

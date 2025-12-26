@@ -36,9 +36,10 @@ def get_tool_info_from_cache() -> dict[str, dict[str, Any]]:
     from importlib.resources import files
 
     schema_file = files("mcp_handley_lab") / "tool_schemas.json"
-    if schema_file.is_file():
+    try:
         return json.loads(schema_file.read_text()).get("tools", {})
-    return {}
+    except FileNotFoundError:
+        return {}
 
 
 def get_tool_info(tool_name: str, command: str) -> dict[str, Any] | None:

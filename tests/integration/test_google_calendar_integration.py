@@ -16,7 +16,7 @@ def test_google_calendar_list_calendars_resource(google_calendar_test_config):
     assert any("primary" in cal.id or "gmail.com" in cal.id for cal in result)
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_read_events_basic_listing(google_calendar_test_config):
     """Test read() for listing events (was search_events)."""
@@ -34,7 +34,7 @@ async def test_google_calendar_read_events_basic_listing(google_calendar_test_co
     # This test may return events or empty list - both are valid
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_event_lifecycle(google_calendar_test_config):
     """Test full CRUD lifecycle: create, read, update, delete."""
@@ -92,7 +92,7 @@ async def test_google_calendar_event_lifecycle(google_calendar_test_config):
     assert "deleted" in delete_result.lower()
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_read_with_search(google_calendar_test_config):
     """Test read() with search_text parameter."""
@@ -118,7 +118,7 @@ async def test_google_calendar_read_with_search(google_calendar_test_config):
     # Result is a list of CalendarEvent objects or empty list
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_read_search_text(google_calendar_test_config):
     """Test read() with search_text parameter."""
@@ -137,7 +137,7 @@ async def test_google_calendar_read_search_text(google_calendar_test_config):
     # Result is a list of CalendarEvent objects or empty list
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_google_calendar_update_with_move(google_calendar_test_config):
     """Test moving an event via update() with destination_calendar_id."""

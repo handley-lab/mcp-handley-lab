@@ -10,7 +10,7 @@ from mcp_handley_lab.google_calendar.tool import mcp
 class TestEnhancedCreateEvent:
     """Test enhanced create functionality with natural language and mixed timezones."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_natural_language_event_creation(self, google_calendar_test_config):
         """Test creating events with natural language datetime input."""
@@ -44,7 +44,7 @@ class TestEnhancedCreateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            event = event_response
+            event = event_response["result"][0]
 
             assert event["summary"] == "Natural Language Meeting"
             assert event["description"] == "Created with natural language input"
@@ -59,7 +59,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_mixed_timezone_flight_event(self, google_calendar_test_config):
         """Test creating flight event with different start and end timezones."""
@@ -95,7 +95,7 @@ class TestEnhancedCreateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            event = event_response
+            event = event_response["result"][0]
 
             assert event["summary"] == "Flight LAX → JFK"
             assert (
@@ -112,7 +112,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_cross_timezone_meeting_event(self, google_calendar_test_config):
         """Test creating meeting that spans multiple timezones."""
@@ -148,7 +148,7 @@ class TestEnhancedCreateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            event = event_response
+            event = event_response["result"][0]
 
             assert event["summary"] == "Global Team Sync"
             assert "London time" in event["description"]
@@ -163,7 +163,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_iso_with_timezone_preservation(self, google_calendar_test_config):
         """Test that ISO datetime with timezone offset is preserved."""
@@ -199,7 +199,7 @@ class TestEnhancedCreateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            event = event_response
+            event = event_response["result"][0]
 
             assert event["summary"] == "ISO Timezone Test"
             assert event["description"] == "Testing ISO datetime with timezone offset"
@@ -217,7 +217,7 @@ class TestEnhancedCreateEvent:
 class TestEnhancedUpdateEvent:
     """Test enhanced update functionality with natural language and mixed timezones."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_update_with_natural_language(self, google_calendar_test_config):
         """Test updating event times with natural language input."""
@@ -276,7 +276,7 @@ class TestEnhancedUpdateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            updated_event = event_response
+            updated_event = event_response["result"][0]
 
             assert updated_event["description"] == "Updated with natural language"
 
@@ -289,7 +289,7 @@ class TestEnhancedUpdateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_update_with_mixed_timezones(self, google_calendar_test_config):
         """Test updating event with different start and end timezones."""
@@ -348,7 +348,7 @@ class TestEnhancedUpdateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            updated_event = event_response
+            updated_event = event_response["result"][0]
 
             assert updated_event["description"] == "Updated with mixed timezones"
 
@@ -361,7 +361,7 @@ class TestEnhancedUpdateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_update_partial_with_timezone(self, google_calendar_test_config):
         """Test updating only description without changing times."""
@@ -417,7 +417,7 @@ class TestEnhancedUpdateEvent:
                 "read", {"event_id": event_id, "calendar_id": "primary"}
             )
             assert "error" not in event_response, event_response.get("error")
-            updated_event = event_response
+            updated_event = event_response["result"][0]
 
             assert updated_event["description"] == "Updated description only"
 
@@ -434,7 +434,7 @@ class TestEnhancedUpdateEvent:
 class TestEnhancedRealWorldWorkflows:
     """Test complete real-world workflows with enhanced functionality."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_travel_itinerary_workflow(self, google_calendar_test_config):
         """Test creating a complete travel itinerary with mixed timezones."""
@@ -493,7 +493,7 @@ class TestEnhancedRealWorldWorkflows:
             assert "error" not in outbound_event_response, outbound_event_response.get(
                 "error"
             )
-            outbound_event = outbound_event_response
+            outbound_event = outbound_event_response["result"][0]
 
             _, return_event_response = await mcp.call_tool(
                 "read", {"event_id": return_id, "calendar_id": "primary"}
@@ -501,7 +501,7 @@ class TestEnhancedRealWorldWorkflows:
             assert "error" not in return_event_response, return_event_response.get(
                 "error"
             )
-            return_event = return_event_response
+            return_event = return_event_response["result"][0]
 
             # Verify outbound flight details
             assert outbound_event["summary"] == "Outbound Flight LAX → JFK"
@@ -527,7 +527,7 @@ class TestEnhancedRealWorldWorkflows:
                 "delete", {"event_id": return_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_international_meeting_series_workflow(
         self, google_calendar_test_config
@@ -586,7 +586,7 @@ class TestEnhancedRealWorldWorkflows:
             assert "error" not in planning_event_response, planning_event_response.get(
                 "error"
             )
-            planning_event = planning_event_response
+            planning_event = planning_event_response["result"][0]
 
             _, followup_event_response = await mcp.call_tool(
                 "read", {"event_id": followup_id, "calendar_id": "primary"}
@@ -594,7 +594,7 @@ class TestEnhancedRealWorldWorkflows:
             assert "error" not in followup_event_response, followup_event_response.get(
                 "error"
             )
-            followup_event = followup_event_response
+            followup_event = followup_event_response["result"][0]
 
             # Verify planning meeting details
             assert planning_event["summary"] == "Project Planning Meeting"
@@ -644,7 +644,7 @@ class TestEnhancedRealWorldWorkflows:
             assert "error" not in updated_planning_response, (
                 updated_planning_response.get("error")
             )
-            updated_planning = updated_planning_response
+            updated_planning = updated_planning_response["result"][0]
 
             assert "moved to 10am" in updated_planning["description"]
 
@@ -660,7 +660,7 @@ class TestEnhancedRealWorldWorkflows:
 class TestEnhancedErrorHandling:
     """Test error handling for enhanced functionality."""
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_invalid_natural_language_handling(self, google_calendar_test_config):
         """Test handling of invalid natural language input."""
@@ -685,7 +685,7 @@ class TestEnhancedErrorHandling:
                 },
             )
 
-    @pytest.mark.vcr
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_invalid_timezone_handling(self, google_calendar_test_config):
         """Test handling of invalid timezone specifications."""

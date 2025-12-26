@@ -7,7 +7,7 @@ import pytest
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_event_creator_fixture_basic(event_creator):
     """Test that the event_creator fixture creates and cleans up events properly."""
@@ -35,7 +35,7 @@ async def test_event_creator_fixture_basic(event_creator):
     # The fixture will automatically delete the event after this test
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_event_creator_fixture_multiple_events(event_creator):
     """Test creating multiple events with the fixture."""
@@ -71,7 +71,7 @@ async def test_event_creator_fixture_multiple_events(event_creator):
     # Both events will be automatically cleaned up
 
 
-@pytest.mark.vcr
+@pytest.mark.live
 @pytest.mark.asyncio
 async def test_event_creator_with_natural_language(event_creator):
     """Test event creator with natural language datetime inputs."""

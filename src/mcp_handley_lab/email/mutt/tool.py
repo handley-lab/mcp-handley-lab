@@ -249,33 +249,32 @@ def _parse_msmtp_log_entry(log_line: str) -> dict:
 def _check_recent_send() -> tuple[bool, bool, dict]:
     """Check if a recent send occurred and extract detailed information.
 
+    Only call after confirming log file exists and grew (via _get_msmtp_log_size).
+
     Returns:
         (send_occurred, send_successful, data_dict)
     """
     log_path = os.path.expanduser("~/.msmtp.log")
-    try:
-        with builtins.open(log_path) as f:
-            lines = f.readlines()
-            if not lines:
-                return False, False, {}
+    with builtins.open(log_path) as f:
+        lines = f.readlines()
+        if not lines:
+            return False, False, {}
 
-            # Get the last line (most recent entry)
-            last_line = lines[-1].strip()
-            if not last_line:
-                return False, False, {}
+        # Get the last line (most recent entry)
+        last_line = lines[-1].strip()
+        if not last_line:
+            return False, False, {}
 
-            # Check if it contains exitcode info (indicates a send attempt)
-            if "exitcode=" in last_line:
-                # Parse the log entry for detailed data
-                data = _parse_msmtp_log_entry(last_line)
+        # Check if it contains exitcode info (indicates a send attempt)
+        if "exitcode=" in last_line:
+            # Parse the log entry for detailed data
+            data = _parse_msmtp_log_entry(last_line)
 
-                # Check if it was successful (EX_OK = 0)
-                send_successful = "exitcode=EX_OK" in last_line
-                return True, send_successful, data
+            # Check if it was successful (EX_OK = 0)
+            send_successful = "exitcode=EX_OK" in last_line
+            return True, send_successful, data
 
-        return False, False, {}
-    except FileNotFoundError:
-        return False, False, {}  # No log file yet
+    return False, False, {}
 
 
 def _execute_mutt_interactive(

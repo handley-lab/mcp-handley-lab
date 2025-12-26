@@ -24,7 +24,8 @@ def discover_and_register_tools():
         module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
         try:
             importlib.import_module(module_name)
-        except (ImportError, ModuleNotFoundError):
+        except ModuleNotFoundError:
+            # No tool module in this subdirectory - expected for utility dirs
             continue
 
 

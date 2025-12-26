@@ -174,8 +174,8 @@ def _get_msmtp_log_size() -> int:
     log_path = os.path.expanduser("~/.msmtp.log")
     try:
         return os.path.getsize(log_path)
-    except OSError:
-        return 0
+    except FileNotFoundError:
+        return 0  # No log file yet - first email
 
 
 def _parse_msmtp_log_entry(log_line: str) -> dict:

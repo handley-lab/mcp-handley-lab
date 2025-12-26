@@ -7,7 +7,7 @@ import pytest
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_normalize_timezone_integration(google_calendar_test_config):
     """Test end-to-end timezone normalization workflow."""
@@ -66,7 +66,7 @@ async def test_normalize_timezone_integration(google_calendar_test_config):
         assert "error" not in delete_response, delete_response.get("error")
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
     """Test normalize_timezone=True on event without inconsistency does nothing."""
@@ -118,7 +118,7 @@ async def test_normalize_timezone_no_inconsistency(google_calendar_test_config):
         assert "error" not in delete_response, delete_response.get("error")
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_create_without_timezone_uses_api_defaults(
     google_calendar_test_config,
@@ -159,7 +159,7 @@ async def test_create_without_timezone_uses_api_defaults(
         assert "error" not in delete_response, delete_response.get("error")
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_update_datetime_without_timezone(google_calendar_test_config):
     """Test updating event datetime without timezone (should work cleanly)."""
@@ -220,7 +220,7 @@ async def test_update_datetime_without_timezone(google_calendar_test_config):
         assert "error" not in delete_response, delete_response.get("error")
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_all_day_event_unaffected_by_timezone_normalization(
     google_calendar_test_config,

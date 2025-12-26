@@ -10,7 +10,7 @@ from mcp_handley_lab.google_calendar.tool import mcp
 class TestRealWorldEventCreation:
     """Test real-world event creation scenarios with various datetime formats."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_us_website_event_creation(self, google_calendar_test_config):
         """Test creating event from US website datetime (with timezone offset)."""
@@ -61,7 +61,7 @@ class TestRealWorldEventCreation:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_international_utc_event_creation(self, google_calendar_test_config):
         """Test creating event from international website with UTC time."""
@@ -110,7 +110,7 @@ class TestRealWorldEventCreation:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_local_naive_time_event_creation(self, google_calendar_test_config):
         """Test creating event with naive datetime (no timezone info)."""
@@ -159,7 +159,7 @@ class TestRealWorldEventCreation:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_european_timezone_event_creation(self, google_calendar_test_config):
         """Test creating event from European website with CET/CEST timezone."""
@@ -208,7 +208,7 @@ class TestRealWorldEventCreation:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_all_day_event_creation(self, google_calendar_test_config):
         """Test creating all-day event with date-only input."""
@@ -261,7 +261,7 @@ class TestRealWorldEventCreation:
 class TestRealWorldEventUpdates:
     """Test real-world event update scenarios with timezone handling."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_with_timezone_conversion(self, google_calendar_test_config):
         """Test updating event time with automatic timezone conversion."""
@@ -335,7 +335,7 @@ class TestRealWorldEventUpdates:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_with_naive_time(self, google_calendar_test_config):
         """Test updating event with naive datetime (no timezone info)."""
@@ -406,7 +406,7 @@ class TestRealWorldEventUpdates:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_description_only(self, google_calendar_test_config):
         """Test updating event description without changing times."""
@@ -483,7 +483,7 @@ class TestRealWorldEventUpdates:
 class TestComplexScenarios:
     """Test complex real-world scenarios involving multiple timezone operations."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_multi_timezone_event_workflow(self, google_calendar_test_config):
         """Test complete workflow with multiple timezone conversions."""
@@ -518,12 +518,6 @@ class TestComplexScenarios:
                     "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T16:00:00+01:00",  # CET
                     "end_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T17:00:00+01:00",
                     "description": "Rescheduled to better time for European team",
-                    "calendar_id": "primary",
-                    "summary": "",
-                    "location": "",
-                    "start_timezone": "",
-                    "end_timezone": "",
-                    "normalize_timezone": False,
                 },
             )
             assert "error" not in update_response, update_response.get("error")
@@ -545,12 +539,6 @@ class TestComplexScenarios:
                     "start_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T14:00:00Z",  # UTC
                     "end_datetime": f"{tomorrow.strftime('%Y-%m-%d')}T15:00:00Z",
                     "description": "Final time in UTC for global accessibility",
-                    "calendar_id": "primary",
-                    "summary": "",
-                    "location": "",
-                    "start_timezone": "",
-                    "end_timezone": "",
-                    "normalize_timezone": False,
                 },
             )
             assert "error" not in final_update_response, final_update_response.get(
@@ -587,7 +575,7 @@ class TestComplexScenarios:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_cross_calendar_timezone_consistency(
         self, google_calendar_test_config
@@ -672,7 +660,7 @@ class TestComplexScenarios:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_seasonal_time_change_handling(self, google_calendar_test_config):
         """Test handling of seasonal time changes (DST transitions)."""

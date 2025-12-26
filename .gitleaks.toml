@@ -10,6 +10,7 @@ regex = '''REDACTED_OAUTH_TOKEN'''
 [rules.allowlist]
 paths = [
     '''tests/integration/cassettes/.*\.yaml$''',
+    '''tests/integration/.*/cassettes/.*\.yaml$''',
     '''scripts/scrub_vcr_tokens\.py$''',
     '''tests/conftest\.py$'''
 ]
@@ -29,6 +30,7 @@ regexes = [
 ]
 paths = [
     '''tests/integration/cassettes/.*\.yaml$''',
+    '''tests/integration/.*/cassettes/.*\.yaml$''',
     '''tests/integration/test_.*\.py$''',
     '''scripts/scrub_vcr_tokens\.py$''',
     '''tests/conftest\.py$'''

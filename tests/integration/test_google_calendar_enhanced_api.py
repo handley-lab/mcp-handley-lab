@@ -10,7 +10,7 @@ from mcp_handley_lab.google_calendar.tool import mcp
 class TestEnhancedCreateEvent:
     """Test enhanced create functionality with natural language and mixed timezones."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_natural_language_event_creation(self, google_calendar_test_config):
         """Test creating events with natural language datetime input."""
@@ -59,7 +59,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_mixed_timezone_flight_event(self, google_calendar_test_config):
         """Test creating flight event with different start and end timezones."""
@@ -112,7 +112,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_cross_timezone_meeting_event(self, google_calendar_test_config):
         """Test creating meeting that spans multiple timezones."""
@@ -163,7 +163,7 @@ class TestEnhancedCreateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_iso_with_timezone_preservation(self, google_calendar_test_config):
         """Test that ISO datetime with timezone offset is preserved."""
@@ -217,7 +217,7 @@ class TestEnhancedCreateEvent:
 class TestEnhancedUpdateEvent:
     """Test enhanced update functionality with natural language and mixed timezones."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_with_natural_language(self, google_calendar_test_config):
         """Test updating event times with natural language input."""
@@ -289,7 +289,7 @@ class TestEnhancedUpdateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_with_mixed_timezones(self, google_calendar_test_config):
         """Test updating event with different start and end timezones."""
@@ -361,7 +361,7 @@ class TestEnhancedUpdateEvent:
                 "delete", {"event_id": event_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_update_partial_with_timezone(self, google_calendar_test_config):
         """Test updating only description without changing times."""
@@ -434,7 +434,7 @@ class TestEnhancedUpdateEvent:
 class TestEnhancedRealWorldWorkflows:
     """Test complete real-world workflows with enhanced functionality."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_travel_itinerary_workflow(self, google_calendar_test_config):
         """Test creating a complete travel itinerary with mixed timezones."""
@@ -527,7 +527,7 @@ class TestEnhancedRealWorldWorkflows:
                 "delete", {"event_id": return_id, "calendar_id": "primary"}
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_international_meeting_series_workflow(
         self, google_calendar_test_config
@@ -660,7 +660,7 @@ class TestEnhancedRealWorldWorkflows:
 class TestEnhancedErrorHandling:
     """Test error handling for enhanced functionality."""
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_invalid_natural_language_handling(self, google_calendar_test_config):
         """Test handling of invalid natural language input."""
@@ -685,7 +685,7 @@ class TestEnhancedErrorHandling:
                 },
             )
 
-    @pytest.mark.live
+    @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_invalid_timezone_handling(self, google_calendar_test_config):
         """Test handling of invalid timezone specifications."""

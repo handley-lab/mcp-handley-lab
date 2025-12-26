@@ -7,7 +7,7 @@ import pytest
 from mcp_handley_lab.google_calendar.tool import mcp
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_update_simplified_with_fixture(event_creator):
     """Demonstrate how the fixture simplifies event update tests."""
@@ -67,7 +67,7 @@ async def test_update_simplified_with_fixture(event_creator):
     # No cleanup needed - fixture handles it automatically!
 
 
-@pytest.mark.live
+@pytest.mark.vcr
 @pytest.mark.asyncio
 async def test_multiple_events_with_fixture(event_creator):
     """Test creating multiple events with the fixture - demonstrates automatic cleanup."""

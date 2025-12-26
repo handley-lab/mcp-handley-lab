@@ -1,6 +1,5 @@
 """Unified email client MCP tool integrating all email providers."""
 
-import importlib
 from pathlib import Path
 
 from pydantic import Field
@@ -10,30 +9,12 @@ from mcp_handley_lab.common.process import run_command
 # Import the shared mcp instance
 from mcp_handley_lab.email.common import mcp
 
-
-def discover_and_register_tools():
-    """
-    Automatically discovers and imports tool modules from subdirectories
-    to trigger their @mcp.tool decorators for registration.
-    """
-    package_dir = Path(__file__).parent
-    package_name = package_dir.name
-
-    for sub_dir in package_dir.iterdir():
-        # Try to import tool module from each subdirectory
-        module_name = f"mcp_handley_lab.{package_name}.{sub_dir.name}.tool"
-        try:
-            importlib.import_module(module_name)
-        except ModuleNotFoundError as e:
-            # Only skip if this specific module doesn't exist
-            # Let transitive import failures propagate
-            if e.name == module_name or (e.name and module_name.endswith(e.name)):
-                continue
-            raise
-
-
-# Run the discovery process when this module is loaded
-discover_and_register_tools()
+# Import tool modules to register their @mcp.tool decorators
+from mcp_handley_lab.email.msmtp import tool as _msmtp  # noqa: F401
+from mcp_handley_lab.email.mutt import tool as _mutt  # noqa: F401
+from mcp_handley_lab.email.mutt_aliases import tool as _mutt_aliases  # noqa: F401
+from mcp_handley_lab.email.notmuch import tool as _notmuch  # noqa: F401
+from mcp_handley_lab.email.offlineimap import tool as _offlineimap  # noqa: F401
 
 
 def _list_tags() -> list[str]:

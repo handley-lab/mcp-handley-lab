@@ -274,8 +274,8 @@ def _check_recent_send() -> tuple[bool, bool, dict]:
                 return True, send_successful, data
 
         return False, False, {}
-    except OSError:
-        return False, False, {}
+    except FileNotFoundError:
+        return False, False, {}  # No log file yet
 
 
 def _execute_mutt_interactive(

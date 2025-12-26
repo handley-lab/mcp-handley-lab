@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Literal
 
 from mcp_handley_lab.word.models import ConversionResult
-from mcp_handley_lab.word.utils import detect_word_format
 
 
 def _run_pandoc(
@@ -46,8 +45,6 @@ def _run_pandoc(
 def docx_to_markdown(input_path: str, output_path: str = "") -> ConversionResult:
     """Convert DOCX to Markdown using pandoc."""
     input_p = Path(input_path)
-    if not detect_word_format(input_path).can_process:
-        raise ValueError(f"Input file is not a processable Word document: {input_path}")
     output_p = Path(output_path) if output_path else input_p.with_suffix(".md")
     return _run_pandoc(input_p, output_p, "docx", "markdown")
 
@@ -62,8 +59,6 @@ def markdown_to_docx(input_path: str, output_path: str = "") -> ConversionResult
 def docx_to_html(input_path: str, output_path: str = "") -> ConversionResult:
     """Convert DOCX to HTML using pandoc."""
     input_p = Path(input_path)
-    if not detect_word_format(input_path).can_process:
-        raise ValueError(f"Input file is not a processable Word document: {input_path}")
     output_p = Path(output_path) if output_path else input_p.with_suffix(".html")
     return _run_pandoc(input_p, output_p, "docx", "html")
 
@@ -71,7 +66,5 @@ def docx_to_html(input_path: str, output_path: str = "") -> ConversionResult:
 def docx_to_text(input_path: str, output_path: str = "") -> ConversionResult:
     """Convert DOCX to plain text using pandoc."""
     input_p = Path(input_path)
-    if not detect_word_format(input_path).can_process:
-        raise ValueError(f"Input file is not a processable Word document: {input_path}")
     output_p = Path(output_path) if output_path else input_p.with_suffix(".txt")
     return _run_pandoc(input_p, output_p, "docx", "plain")

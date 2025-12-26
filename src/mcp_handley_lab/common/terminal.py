@@ -44,33 +44,28 @@ def launch_interactive(
             sync_command = f"{command}; tmux rename-window '{done_name}'"
             tmux_cmd = ["tmux", "new-window", "-n", window_name, sync_command]
 
-            try:
-                current_window = subprocess.check_output(
-                    ["tmux", "display-message", "-p", "#{window_index}"], text=True
-                ).strip()
+            current_window = subprocess.check_output(
+                ["tmux", "display-message", "-p", "#{window_index}"], text=True
+            ).strip()
 
-                subprocess.run(tmux_cmd, check=True)
-                print(f"Waiting for user input from {window_title or 'tmux window'}...")
+            subprocess.run(tmux_cmd, check=True)
+            print(f"Waiting for user input from {window_title or 'tmux window'}...")
 
-                while True:
-                    output = subprocess.check_output(
-                        ["tmux", "list-windows"], text=True
+            while True:
+                output = subprocess.check_output(["tmux", "list-windows"], text=True)
+                if re.search(rf"{done_name}", output):
+                    break
+                if not re.search(rf"{window_name}", output):
+                    break
+                time.sleep(0.1)
+
+            if current_window:
+                with contextlib.suppress(subprocess.CalledProcessError):
+                    subprocess.run(
+                        ["tmux", "select-window", "-t", current_window], check=True
                     )
-                    if re.search(rf"{done_name}", output):
-                        break
-                    if not re.search(rf"{window_name}", output):
-                        break
-                    time.sleep(0.1)
 
-                if current_window:
-                    with contextlib.suppress(subprocess.CalledProcessError):
-                        subprocess.run(
-                            ["tmux", "select-window", "-t", current_window], check=True
-                        )
-
-                return f"Completed in tmux window: {command}", 0
-            except subprocess.CalledProcessError as e:
-                raise RuntimeError(f"Failed to run command in tmux: {e}") from e
+            return f"Completed in tmux window: {command}", 0
         else:
             tmux_cmd = ["tmux", "new-window"]
 
@@ -79,11 +74,8 @@ def launch_interactive(
 
             tmux_cmd.append(command)
 
-            try:
-                subprocess.run(tmux_cmd, check=True)
-                return f"Launched in new tmux window: {command}"
-            except subprocess.CalledProcessError as e:
-                raise RuntimeError(f"Failed to create tmux window: {e}") from e
+            subprocess.run(tmux_cmd, check=True)
+            return f"Launched in new tmux window: {command}"
 
     else:
         if wait:

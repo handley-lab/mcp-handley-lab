@@ -450,13 +450,13 @@ class GlobalMemoryManager:
 
         now = datetime.now().isoformat()
 
-        # Read existing metadata if present
+        # Read existing metadata if present (first run = no file)
         data = None
         try:
             with open(metadata_file, encoding="utf-8") as f:
                 data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
-            pass
+        except FileNotFoundError:
+            pass  # First run - expected
 
         # Build metadata
         if data:

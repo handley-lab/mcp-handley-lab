@@ -159,7 +159,7 @@ class TestSystemPromptSharedLogic:
         ):
             process_llm_request(
                 prompt="Test prompt",
-                output_file="-",
+                output_file="",
                 agent_name="test_agent",
                 model="gemini-2.5-flash",
                 provider="gemini",
@@ -203,7 +203,7 @@ class TestSystemPromptSharedLogic:
         ):
             process_llm_request(
                 prompt="Test prompt",
-                output_file="-",
+                output_file="",
                 agent_name="new_agent",
                 model="gemini-2.5-flash",
                 provider="gemini",
@@ -251,7 +251,7 @@ class TestSystemPromptSharedLogic:
         ):
             process_llm_request(
                 prompt="Test prompt",
-                output_file="-",
+                output_file="",
                 agent_name="existing_agent",
                 model="gemini-2.5-flash",
                 provider="gemini",

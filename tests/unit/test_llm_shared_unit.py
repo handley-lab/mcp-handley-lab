@@ -37,7 +37,7 @@ class TestProcessLLMRequestPromptResolution:
 
         result = process_llm_request(
             prompt="",
-            output_file="-",
+            output_file="",
             agent_name="",
             model="gpt-4o-mini",
             provider="openai",
@@ -82,7 +82,7 @@ class TestProcessLLMRequestPromptResolution:
 
         result = process_llm_request(
             prompt="Test prompt",
-            output_file="-",
+            output_file="",
             agent_name="",
             model="gpt-4o-mini",
             provider="openai",
@@ -109,7 +109,7 @@ class TestProcessLLMRequestPromptResolution:
         ):
             process_llm_request(
                 prompt="Direct prompt",
-                output_file="-",
+                output_file="",
                 agent_name="",
                 model="gpt-4o-mini",
                 provider="openai",
@@ -132,7 +132,7 @@ class TestProcessLLMRequestPromptResolution:
         ):
             process_llm_request(
                 prompt="",
-                output_file="-",
+                output_file="",
                 agent_name="",
                 model="gpt-4o-mini",
                 provider="openai",
@@ -155,7 +155,7 @@ class TestProcessLLMRequestPromptResolution:
         ):
             process_llm_request(
                 prompt="Test prompt",
-                output_file="-",
+                output_file="",
                 agent_name="",
                 model="gpt-4o-mini",
                 provider="openai",
@@ -179,7 +179,7 @@ class TestProcessLLMRequestPromptResolution:
         with pytest.raises(KeyError):
             process_llm_request(
                 prompt="",
-                output_file="-",
+                output_file="",
                 agent_name="",
                 model="gpt-4o-mini",
                 provider="openai",
@@ -203,7 +203,7 @@ class TestProcessLLMRequestPromptResolution:
         with pytest.raises(KeyError):
             process_llm_request(
                 prompt="Test prompt",
-                output_file="-",
+                output_file="",
                 agent_name="",
                 model="gpt-4o-mini",
                 provider="openai",
@@ -249,7 +249,7 @@ class TestProcessLLMRequestPromptResolution:
 
         process_llm_request(
             prompt="Test prompt",
-            output_file="-",
+            output_file="",
             agent_name="test_agent",
             model="gpt-4o-mini",
             provider="openai",

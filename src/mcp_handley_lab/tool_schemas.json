@@ -1,267 +1,7 @@
 {
   "version": "1.0",
-  "generated_at": "2025-07-06T22:49:45.252693Z",
+  "generated_at": "2026-01-01T10:15:50.380029Z",
   "tools": {
-    "jq": {
-      "name": "jq",
-      "functions": {
-        "query": {
-          "name": "query",
-          "description": "Applies a `jq` filter expression to JSON data. The `data` can be a JSON string, a file path, or a parsed object. The `filter` uses standard jq syntax (e.g., '.users[0].name'). Use `raw_output=True` to get a plain string without quotes, or `compact=True` for single-line JSON output.",
-          "inputSchema": {
-            "properties": {
-              "data": {
-                "anyOf": [
-                  {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  {
-                    "items": {},
-                    "type": "array"
-                  }
-                ],
-                "title": "Data"
-              },
-              "filter": {
-                "default": ".",
-                "title": "Filter",
-                "type": "string"
-              },
-              "compact": {
-                "default": false,
-                "title": "Compact",
-                "type": "boolean"
-              },
-              "raw_output": {
-                "default": false,
-                "title": "Raw Output",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "data"
-            ],
-            "title": "queryArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "queryOutput",
-            "type": "object"
-          }
-        },
-        "edit": {
-          "name": "edit",
-          "description": "Edits a JSON file in-place using a jq transformation `filter` (e.g., '.debug = true'). WARNING: This modifies the original file. A backup file with a .bak extension is created by default; set `backup=False` to disable this.",
-          "inputSchema": {
-            "properties": {
-              "file_path": {
-                "minLength": 1,
-                "title": "File Path",
-                "type": "string"
-              },
-              "filter": {
-                "minLength": 1,
-                "title": "Filter",
-                "type": "string"
-              },
-              "backup": {
-                "default": true,
-                "title": "Backup",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "file_path",
-              "filter"
-            ],
-            "title": "editArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "editOutput",
-            "type": "object"
-          }
-        },
-        "read": {
-          "name": "read",
-          "description": "Reads and pretty-prints a JSON file with optional jq filtering. Useful for exploring JSON file structure before processing. The `filter` parameter allows extracting specific parts of the file.",
-          "inputSchema": {
-            "properties": {
-              "file_path": {
-                "title": "File Path",
-                "type": "string"
-              },
-              "filter": {
-                "default": ".",
-                "title": "Filter",
-                "type": "string"
-              }
-            },
-            "required": [
-              "file_path"
-            ],
-            "title": "readArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "readOutput",
-            "type": "object"
-          }
-        },
-        "validate": {
-          "name": "validate",
-          "description": "Validates JSON syntax for strings or files. Returns 'JSON is valid' for well-formed JSON. Provides detailed error messages with line and character positions for syntax errors.",
-          "inputSchema": {
-            "properties": {
-              "data": {
-                "anyOf": [
-                  {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  {
-                    "items": {},
-                    "type": "array"
-                  }
-                ],
-                "title": "Data"
-              }
-            },
-            "required": [
-              "data"
-            ],
-            "title": "validateArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "validateOutput",
-            "type": "object"
-          }
-        },
-        "format": {
-          "name": "format",
-          "description": "Formats JSON data for readability or compactness. Takes JSON string or file path. Use `compact=True` for single-line format or `sort_keys=True` to alphabetically sort object keys.",
-          "inputSchema": {
-            "properties": {
-              "data": {
-                "anyOf": [
-                  {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  {
-                    "items": {},
-                    "type": "array"
-                  }
-                ],
-                "title": "Data"
-              },
-              "compact": {
-                "default": false,
-                "title": "Compact",
-                "type": "boolean"
-              },
-              "sort_keys": {
-                "default": false,
-                "title": "Sort Keys",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "data"
-            ],
-            "title": "formatArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "formatOutput",
-            "type": "object"
-          }
-        },
-        "server_info": {
-          "name": "server_info",
-          "description": "Checks the status of the JQ tool server and verifies `jq` command availability. Returns server status, jq version, and list of available tools. Use this to verify the tool is operational before making other requests.",
-          "inputSchema": {
-            "properties": {},
-            "title": "server_infoArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "server_infoOutput",
-            "type": "object"
-          }
-        }
-      },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/jq/tool.py",
-      "source_hash": "ef973490a8ba6bb556c1ae58145bdea5000d0644b4bd4356de3c40c011f19433"
-    },
     "vim": {
       "name": "vim",
       "functions": {
@@ -271,26 +11,31 @@
           "inputSchema": {
             "properties": {
               "content": {
+                "description": "The initial text content to be edited. This is a required field.",
                 "title": "Content",
                 "type": "string"
               },
               "file_extension": {
                 "default": ".txt",
+                "description": "The file extension to use for the temporary file (e.g., '.py', '.md'). Determines syntax highlighting in Vim.",
                 "title": "File Extension",
                 "type": "string"
               },
               "instructions": {
-                "default": null,
+                "default": "",
+                "description": "Optional instructions to display as comments at the top of the file for the user.",
                 "title": "Instructions",
                 "type": "string"
               },
               "show_diff": {
                 "default": true,
+                "description": "If True, return a diff of the changes. If False, return the full edited content.",
                 "title": "Show Diff",
                 "type": "boolean"
               },
               "keep_file": {
                 "default": false,
+                "description": "If True, the temporary file will not be deleted after editing. Useful for debugging.",
                 "title": "Keep File",
                 "type": "boolean"
               }
@@ -302,16 +47,36 @@
             "type": "object"
           },
           "outputSchema": {
+            "description": "Generic operation result.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "status": {
+                "description": "The outcome status of the operation.",
+                "enum": [
+                  "success",
+                  "error",
+                  "warning",
+                  "cancelled"
+                ],
+                "title": "Status",
                 "type": "string"
+              },
+              "message": {
+                "description": "Human-readable description of the operation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "data": {
+                "additionalProperties": true,
+                "description": "Additional structured data related to the operation.",
+                "title": "Data",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "status",
+              "message"
             ],
-            "title": "prompt_user_editOutput",
+            "title": "OperationResult",
             "type": "object"
           }
         },
@@ -322,16 +87,19 @@
             "properties": {
               "file_extension": {
                 "default": ".txt",
+                "description": "The file extension for the new file (e.g., '.py', '.sh'). Determines syntax highlighting.",
                 "title": "File Extension",
                 "type": "string"
               },
               "instructions": {
-                "default": null,
+                "default": "",
+                "description": "Optional instructions to display as comments at the top of the file for the user to follow.",
                 "title": "Instructions",
                 "type": "string"
               },
               "initial_content": {
                 "default": "",
+                "description": "Optional initial content to populate the file with before editing begins.",
                 "title": "Initial Content",
                 "type": "string"
               }
@@ -340,16 +108,36 @@
             "type": "object"
           },
           "outputSchema": {
+            "description": "Generic operation result.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "status": {
+                "description": "The outcome status of the operation.",
+                "enum": [
+                  "success",
+                  "error",
+                  "warning",
+                  "cancelled"
+                ],
+                "title": "Status",
                 "type": "string"
+              },
+              "message": {
+                "description": "Human-readable description of the operation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "data": {
+                "additionalProperties": true,
+                "description": "Additional structured data related to the operation.",
+                "title": "Data",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "status",
+              "message"
             ],
-            "title": "quick_editOutput",
+            "title": "OperationResult",
             "type": "object"
           }
         },
@@ -359,21 +147,25 @@
           "inputSchema": {
             "properties": {
               "file_path": {
+                "description": "The absolute or relative path to the existing file to be opened for editing.",
                 "title": "File Path",
                 "type": "string"
               },
               "instructions": {
-                "default": null,
+                "default": "",
+                "description": "Optional instructions shown to the user in a read-only buffer before they can edit the file.",
                 "title": "Instructions",
                 "type": "string"
               },
               "show_diff": {
                 "default": true,
+                "description": "If True, return a diff of the changes. If False, just return a confirmation message.",
                 "title": "Show Diff",
                 "type": "boolean"
               },
               "backup": {
                 "default": true,
+                "description": "If True, create a backup of the original file with a '.bak' extension before editing.",
                 "title": "Backup",
                 "type": "boolean"
               }
@@ -385,290 +177,345 @@
             "type": "object"
           },
           "outputSchema": {
+            "description": "Generic operation result.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "status": {
+                "description": "The outcome status of the operation.",
+                "enum": [
+                  "success",
+                  "error",
+                  "warning",
+                  "cancelled"
+                ],
+                "title": "Status",
                 "type": "string"
+              },
+              "message": {
+                "description": "Human-readable description of the operation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "data": {
+                "additionalProperties": true,
+                "description": "Additional structured data related to the operation.",
+                "title": "Data",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "status",
+              "message"
             ],
-            "title": "open_fileOutput",
+            "title": "OperationResult",
             "type": "object"
           }
         },
         "server_info": {
           "name": "server_info",
-          "description": "Checks Vim Tool server status and vim command availability. Returns vim version information and available tool functions. Use this to verify vim is installed and accessible before using other vim tools.",
+          "description": "Checks the status of the Vim server. Returns available functions.",
           "inputSchema": {
             "properties": {},
             "title": "server_infoArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Standardized server information across all tools.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "name": {
+                "description": "The name of the MCP tool server.",
+                "title": "Name",
                 "type": "string"
+              },
+              "version": {
+                "description": "The version of the tool or its primary dependency.",
+                "title": "Version",
+                "type": "string"
+              },
+              "status": {
+                "description": "The operational status of the server (e.g., 'active', 'error').",
+                "title": "Status",
+                "type": "string"
+              },
+              "capabilities": {
+                "description": "A list of functions or features the tool provides.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Capabilities",
+                "type": "array"
+              },
+              "dependencies": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "A dictionary of dependencies and their versions or statuses.",
+                "title": "Dependencies",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "name",
+              "version",
+              "status"
             ],
-            "title": "server_infoOutput",
+            "title": "ServerInfo",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/vim/tool.py",
-      "source_hash": "c982f9c9b5114044caa8239169c5135c995124e59de787a818e172f444b3afc2"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/vim/tool.py",
+      "source_hash": "2b2e1f729869fb776247082fa87326bd2f03ee3d7fa51beb1471cd00517c1c05"
     },
     "code2prompt": {
       "name": "code2prompt",
       "functions": {
         "generate_prompt": {
           "name": "generate_prompt",
-          "description": "Analyzes a source code directory and generates a structured, token-counted summary, saving it to a file. Useful for preparing a large codebase for LLM analysis. Key inputs are the `path` to the code and an `output_file`. Supports filtering files with `include`/`exclude` patterns and can incorporate a `git diff`. Returns the path to the generated summary file.",
+          "description": "Generates a structured, token-counted summary of a codebase for LLM analysis. Supports include/exclude, git diffs, and formatting options.",
           "inputSchema": {
             "properties": {
               "path": {
+                "description": "The source directory or file path to analyze.",
                 "title": "Path",
                 "type": "string"
               },
               "output_file": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Output File"
+                "description": "The path where the generated summary file will be saved.",
+                "title": "Output File",
+                "type": "string"
               },
               "include": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Include"
+                "description": "A list of glob patterns to explicitly include files (e.g., '*.py', 'src/**/*').",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Include",
+                "type": "array"
               },
               "exclude": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Exclude"
+                "description": "A list of glob patterns to exclude files (e.g., '*_test.py', 'dist/*').",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Exclude",
+                "type": "array"
               },
               "output_format": {
                 "default": "markdown",
+                "description": "The output format for the summary. Valid options include 'markdown', 'json'.",
                 "title": "Output Format",
                 "type": "string"
               },
               "line_numbers": {
                 "default": false,
+                "description": "Include line numbers in code blocks.",
                 "title": "Line Numbers",
                 "type": "boolean"
               },
               "full_directory_tree": {
                 "default": false,
+                "description": "Display full directory tree including empty directories.",
                 "title": "Full Directory Tree",
                 "type": "boolean"
               },
               "follow_symlinks": {
                 "default": false,
+                "description": "Follow symbolic links when scanning.",
                 "title": "Follow Symlinks",
                 "type": "boolean"
               },
               "hidden": {
                 "default": false,
+                "description": "Include hidden files and directories.",
                 "title": "Hidden",
                 "type": "boolean"
               },
               "no_codeblock": {
                 "default": false,
+                "description": "Omit markdown code block fences around file content.",
                 "title": "No Codeblock",
                 "type": "boolean"
               },
               "absolute_paths": {
                 "default": false,
+                "description": "Use absolute paths instead of relative paths.",
                 "title": "Absolute Paths",
                 "type": "boolean"
               },
               "encoding": {
                 "default": "cl100k",
+                "description": "The name of the tiktoken encoding to use for token counting (e.g., 'cl100k', 'p50k_base').",
                 "title": "Encoding",
                 "type": "string"
               },
-              "tokens": {
+              "token_format": {
                 "default": "format",
-                "title": "Tokens",
+                "description": "Determines how token counts are displayed. Valid options are 'format' (human readable) or 'raw' (machine parsable).",
+                "title": "Token Format",
                 "type": "string"
               },
               "sort": {
                 "default": "name_asc",
+                "description": "The sorting order for files. Options: 'name_asc', 'name_desc', 'date_asc', 'date_desc'.",
                 "title": "Sort",
                 "type": "string"
               },
-              "include_priority": {
-                "default": false,
-                "title": "Include Priority",
-                "type": "boolean"
-              },
               "template": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Template"
+                "default": "",
+                "description": "Path to a custom Jinja2 template file to format the output.",
+                "title": "Template",
+                "type": "string"
               },
               "include_git_diff": {
                 "default": false,
+                "description": "Generate content from git diff instead of full directory.",
                 "title": "Include Git Diff",
                 "type": "boolean"
               },
               "git_diff_branch1": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Git Diff Branch1"
+                "default": "",
+                "description": "The first branch or commit for git diff comparison. Requires git_diff_branch2.",
+                "title": "Git Diff Branch1",
+                "type": "string"
               },
               "git_diff_branch2": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Git Diff Branch2"
+                "default": "",
+                "description": "The second branch or commit for git diff comparison. Requires git_diff_branch1.",
+                "title": "Git Diff Branch2",
+                "type": "string"
               },
               "git_log_branch1": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Git Log Branch1"
+                "default": "",
+                "description": "The first branch or commit for git log comparison. Requires git_log_branch2.",
+                "title": "Git Log Branch1",
+                "type": "string"
               },
               "git_log_branch2": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Git Log Branch2"
+                "default": "",
+                "description": "The second branch or commit for git log comparison. Requires git_log_branch1.",
+                "title": "Git Log Branch2",
+                "type": "string"
               },
               "no_ignore": {
                 "default": false,
+                "description": "Disable .gitignore and .c2pignore file processing.",
                 "title": "No Ignore",
                 "type": "boolean"
               }
             },
             "required": [
-              "path"
+              "path",
+              "output_file"
             ],
             "title": "generate_promptArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Result of code2prompt generation.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "message": {
+                "description": "A confirmation message indicating the result of the generation.",
+                "title": "Message",
                 "type": "string"
+              },
+              "output_file_path": {
+                "description": "The absolute path to the generated prompt summary file.",
+                "title": "Output File Path",
+                "type": "string"
+              },
+              "file_size_bytes": {
+                "description": "The size of the generated file in bytes.",
+                "title": "File Size Bytes",
+                "type": "integer"
               }
             },
             "required": [
-              "result"
+              "message",
+              "output_file_path",
+              "file_size_bytes"
             ],
-            "title": "generate_promptOutput",
+            "title": "GenerationResult",
             "type": "object"
           }
         },
         "server_info": {
           "name": "server_info",
-          "description": "Verifies the Code2Prompt tool is operational. Checks for the `code2prompt` CLI and returns its version information and a list of available commands. Use this to confirm the server is ready before generating a codebase summary.",
+          "description": "Checks the status of the Code2Prompt server and its CLI dependency. Returns version info and available functions.",
           "inputSchema": {
             "properties": {},
             "title": "server_infoArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Standardized server information across all tools.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "name": {
+                "description": "The name of the MCP tool server.",
+                "title": "Name",
                 "type": "string"
+              },
+              "version": {
+                "description": "The version of the tool or its primary dependency.",
+                "title": "Version",
+                "type": "string"
+              },
+              "status": {
+                "description": "The operational status of the server (e.g., 'active', 'error').",
+                "title": "Status",
+                "type": "string"
+              },
+              "capabilities": {
+                "description": "A list of functions or features the tool provides.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Capabilities",
+                "type": "array"
+              },
+              "dependencies": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "A dictionary of dependencies and their versions or statuses.",
+                "title": "Dependencies",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "name",
+              "version",
+              "status"
             ],
-            "title": "server_infoOutput",
+            "title": "ServerInfo",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/code2prompt/tool.py",
-      "source_hash": "47163dc78c1696b74827ee5867b269c3573e81995ebca8cfa1aa04f259f34cb2"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/code2prompt/tool.py",
+      "source_hash": "c152b42c2dd97a5436443ddfda06b8247c6db0b04ddb5112147bb2e9214fb653"
     },
     "arxiv": {
       "name": "arxiv",
       "functions": {
         "download": {
           "name": "download",
-          "description": "Downloads an ArXiv paper by its ID. Can fetch the full source ('src'), just the PDF ('pdf'), or only LaTeX files ('tex'). Saves the content to a specified `output_path`. If `output_path` is '-', it lists file information to stdout instead of saving. Returns a status message.",
+          "description": "Downloads an ArXiv paper by ID in various formats ('src', 'pdf', 'tex') or lists its source files.",
           "inputSchema": {
             "properties": {
               "arxiv_id": {
+                "description": "The unique ArXiv identifier for the paper (e.g., '2301.07041').",
                 "title": "Arxiv Id",
                 "type": "string"
               },
               "format": {
                 "default": "src",
+                "description": "The format of the paper to download. Valid options are 'src', 'pdf', or 'tex'.",
                 "title": "Format",
                 "type": "string"
               },
               "output_path": {
-                "default": null,
+                "default": "",
+                "description": "Path to save the content. For 'pdf' format: saves as a single file. For 'src' and 'tex' formats: creates a directory with this name and extracts files into it. If empty, defaults to '<arxiv_id>.pdf' for pdf or '<arxiv_id>' for source formats. Use '-' to list file info to stdout instead of saving.",
                 "title": "Output Path",
                 "type": "string"
               }
@@ -680,80 +527,141 @@
             "type": "object"
           },
           "outputSchema": {
+            "description": "Result of downloading an ArXiv paper.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "message": {
+                "description": "A summary message describing the result of the download operation.",
+                "title": "Message",
                 "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "downloadOutput",
-            "type": "object"
-          }
-        },
-        "list_files": {
-          "name": "list_files",
-          "description": "Fetches the source archive for a given ArXiv paper ID and lists all the file names contained within it. This is useful for inspecting the contents of a paper's source code before downloading the entire archive. Returns a list of file paths.",
-          "inputSchema": {
-            "properties": {
+              },
               "arxiv_id": {
+                "description": "The ArXiv ID of the paper that was downloaded.",
                 "title": "Arxiv Id",
                 "type": "string"
-              }
-            },
-            "required": [
-              "arxiv_id"
-            ],
-            "title": "list_filesArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
+              },
+              "format": {
+                "description": "The format of the downloaded content (e.g., 'src', 'pdf', 'tex').",
+                "title": "Format",
+                "type": "string"
+              },
+              "output_path": {
+                "description": "The path where the content was saved, or '-' if printed to stdout.",
+                "title": "Output Path",
+                "type": "string"
+              },
+              "size_bytes": {
+                "description": "The total size of the downloaded content in bytes.",
+                "title": "Size Bytes",
+                "type": "integer"
+              },
+              "files": {
+                "description": "A list of file names included in the downloaded archive.",
                 "items": {
                   "type": "string"
                 },
-                "title": "Result",
+                "title": "Files",
                 "type": "array"
               }
             },
             "required": [
-              "result"
+              "message",
+              "arxiv_id",
+              "format",
+              "output_path",
+              "size_bytes"
             ],
-            "title": "list_filesOutput",
+            "title": "DownloadResult",
             "type": "object"
           }
         },
         "search": {
           "name": "search",
-          "description": "Searches ArXiv for papers matching a query. Supports advanced syntax like field prefixes (e.g., 'au:Hinton', 'ti:attention') and boolean operators ('AND', 'OR'). Results can be sorted by relevance or date. Returns a list of papers, each containing metadata like title, authors, and summary.",
+          "description": "Searches ArXiv for papers. Supports advanced syntax (e.g., 'au:Hinton', 'ti:attention'). Use include_fields to limit output for context window management.",
           "inputSchema": {
             "properties": {
               "query": {
+                "description": "The search query. Supports field prefixes (au, ti, abs, co) and boolean operators (AND, OR, ANDNOT).",
                 "title": "Query",
                 "type": "string"
               },
               "max_results": {
-                "default": 10,
+                "default": 50,
+                "description": "The maximum number of results to return.",
                 "title": "Max Results",
                 "type": "integer"
               },
               "start": {
                 "default": 0,
+                "description": "The starting index for the search results, used for pagination.",
                 "title": "Start",
                 "type": "integer"
               },
               "sort_by": {
                 "default": "relevance",
+                "description": "Sorting criteria. Options: 'relevance', 'lastUpdatedDate', 'submittedDate'.",
+                "enum": [
+                  "relevance",
+                  "lastUpdatedDate",
+                  "submittedDate"
+                ],
                 "title": "Sort By",
                 "type": "string"
               },
               "sort_order": {
                 "default": "descending",
+                "description": "Sorting order. Options: 'ascending' or 'descending'.",
+                "enum": [
+                  "ascending",
+                  "descending"
+                ],
                 "title": "Sort Order",
                 "type": "string"
+              },
+              "include_fields": {
+                "description": "Specific fields to include in results. If empty, all fields are included. Available: id, title, authors, summary, published, categories, pdf_url, abs_url.",
+                "items": {
+                  "enum": [
+                    "id",
+                    "title",
+                    "authors",
+                    "summary",
+                    "published",
+                    "categories",
+                    "pdf_url",
+                    "abs_url"
+                  ],
+                  "type": "string"
+                },
+                "title": "Include Fields",
+                "type": "array"
+              },
+              "max_authors": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": 5,
+                "description": "Max authors to return per paper. If more, a summary is added. Set to null for no limit.",
+                "title": "Max Authors"
+              },
+              "max_summary_len": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": 1000,
+                "description": "Max summary length (characters). Truncates with '...'. Set to null for no limit.",
+                "title": "Max Summary Len"
               }
             },
             "required": [
@@ -763,11 +671,73 @@
             "type": "object"
           },
           "outputSchema": {
+            "$defs": {
+              "ArxivPaper": {
+                "description": "ArXiv paper metadata.\nFields may be omitted or truncated depending on the parameters used in the search tool.",
+                "properties": {
+                  "id": {
+                    "description": "The ArXiv ID of the paper (e.g., '2301.07041').",
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "title": {
+                    "default": "",
+                    "description": "The title of the paper (empty if not fetched).",
+                    "title": "Title",
+                    "type": "string"
+                  },
+                  "authors": {
+                    "description": "List of authors' names. May be truncated.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Authors",
+                    "type": "array"
+                  },
+                  "summary": {
+                    "default": "",
+                    "description": "Abstract or summary of the paper. May be truncated (empty if not fetched).",
+                    "title": "Summary",
+                    "type": "string"
+                  },
+                  "published": {
+                    "default": "",
+                    "description": "Publication date in YYYY-MM-DD format (empty if not fetched).",
+                    "title": "Published",
+                    "type": "string"
+                  },
+                  "categories": {
+                    "description": "ArXiv subject categories (e.g., ['cs.AI', 'cs.LG']).",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Categories",
+                    "type": "array"
+                  },
+                  "pdf_url": {
+                    "default": "",
+                    "description": "Direct URL to download the PDF version (empty if not available).",
+                    "title": "Pdf Url",
+                    "type": "string"
+                  },
+                  "abs_url": {
+                    "default": "",
+                    "description": "URL to the ArXiv abstract page (empty if not available).",
+                    "title": "Abs Url",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "title": "ArxivPaper",
+                "type": "object"
+              }
+            },
             "properties": {
               "result": {
                 "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+                  "$ref": "#/$defs/ArxivPaper"
                 },
                 "title": "Result",
                 "type": "array"
@@ -782,387 +752,108 @@
         },
         "server_info": {
           "name": "server_info",
-          "description": "Provides metadata about the ArXiv tool itself. Returns a dictionary containing a list of available functions (search, download, etc.), supported formats, and example usage. Use this to discover the server's capabilities.",
+          "description": "Checks ArXiv tool status and lists available functions. Use this to discover server capabilities.",
           "inputSchema": {
             "properties": {},
             "title": "server_infoArguments",
             "type": "object"
           },
           "outputSchema": {
-            "additionalProperties": true,
-            "title": "server_infoDictOutput",
+            "description": "Standardized server information across all tools.",
+            "properties": {
+              "name": {
+                "description": "The name of the MCP tool server.",
+                "title": "Name",
+                "type": "string"
+              },
+              "version": {
+                "description": "The version of the tool or its primary dependency.",
+                "title": "Version",
+                "type": "string"
+              },
+              "status": {
+                "description": "The operational status of the server (e.g., 'active', 'error').",
+                "title": "Status",
+                "type": "string"
+              },
+              "capabilities": {
+                "description": "A list of functions or features the tool provides.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Capabilities",
+                "type": "array"
+              },
+              "dependencies": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "A dictionary of dependencies and their versions or statuses.",
+                "title": "Dependencies",
+                "type": "object"
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "status"
+            ],
+            "title": "ServerInfo",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/arxiv/tool.py",
-      "source_hash": "146c4a7fab72c46225dd4e8982d9758d35dd352296a18b928fc2b101ac6e73b1"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/arxiv/tool.py",
+      "source_hash": "07cbda193339a8b05347e8200463296c887b933e39b8ce78be0307fdd90d3f3c"
     },
     "google-calendar": {
       "name": "google-calendar",
       "functions": {
-        "get_event": {
-          "name": "get_event",
-          "description": "Retrieves detailed information about a specific calendar event by its ID. Returns comprehensive event details including attendees, location, and timestamps.",
+        "read": {
+          "name": "read",
+          "description": "Read calendar events. Get single event by ID (returns singleton list), or search/list events in date range. Use calendar://list resource to discover available calendar IDs.",
           "inputSchema": {
             "properties": {
               "event_id": {
-                "title": "Event Id",
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "If provided, get single event by ID (returns singleton list). Cannot use with calendar_id='all'.",
+                "title": "Event Id"
               },
               "calendar_id": {
                 "default": "primary",
-                "title": "Calendar Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "event_id"
-            ],
-            "title": "get_eventArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "get_eventOutput",
-            "type": "object"
-          }
-        },
-        "create_event": {
-          "name": "create_event",
-          "description": "Creates a new event in a Google Calendar. Requires a `summary` (title), `start_datetime`, and `end_datetime`. Datetimes must be in ISO 8601 format (e.g., '2024-10-26T10:00:00Z' for timed events, or '2024-10-26' for all-day events). Optionally include `attendees`, a `description`, and a `calendar_id`.",
-          "inputSchema": {
-            "properties": {
-              "summary": {
-                "title": "Summary",
-                "type": "string"
-              },
-              "start_datetime": {
-                "title": "Start Datetime",
-                "type": "string"
-              },
-              "end_datetime": {
-                "title": "End Datetime",
-                "type": "string"
-              },
-              "description": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Description"
-              },
-              "calendar_id": {
-                "default": "primary",
+                "description": "ID or name of the calendar. Use 'all' to search all calendars (only for search, not get-by-id).",
                 "title": "Calendar Id",
                 "type": "string"
               },
-              "timezone": {
-                "default": "UTC",
-                "title": "Timezone",
-                "type": "string"
-              },
-              "attendees": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Attendees"
-              }
-            },
-            "required": [
-              "summary",
-              "start_datetime",
-              "end_datetime"
-            ],
-            "title": "create_eventArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "create_eventOutput",
-            "type": "object"
-          }
-        },
-        "update_event": {
-          "name": "update_event",
-          "description": "Updates an existing calendar event by event ID. Only provided parameters will be updated - omit parameters to leave them unchanged. Pass empty strings to clear fields. Returns confirmation of the update.",
-          "inputSchema": {
-            "properties": {
-              "event_id": {
-                "title": "Event Id",
-                "type": "string"
-              },
-              "calendar_id": {
-                "default": "primary",
-                "title": "Calendar Id",
-                "type": "string"
-              },
-              "summary": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Summary"
-              },
-              "start_datetime": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Start Datetime"
-              },
-              "end_datetime": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "End Datetime"
-              },
-              "description": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Description"
-              }
-            },
-            "required": [
-              "event_id"
-            ],
-            "title": "update_eventArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "update_eventOutput",
-            "type": "object"
-          }
-        },
-        "delete_event": {
-          "name": "delete_event",
-          "description": "Deletes a calendar event permanently by event ID. WARNING: This action is irreversible. Returns confirmation of deletion.",
-          "inputSchema": {
-            "properties": {
-              "event_id": {
-                "title": "Event Id",
-                "type": "string"
-              },
-              "calendar_id": {
-                "default": "primary",
-                "title": "Calendar Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "event_id"
-            ],
-            "title": "delete_eventArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "delete_eventOutput",
-            "type": "object"
-          }
-        },
-        "list_calendars": {
-          "name": "list_calendars",
-          "description": "Lists all calendars accessible to the authenticated user with their IDs, access levels, and colors. Use this to discover calendar IDs before using other calendar tools.",
-          "inputSchema": {
-            "properties": {},
-            "title": "list_calendarsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "list_calendarsOutput",
-            "type": "object"
-          }
-        },
-        "find_time": {
-          "name": "find_time",
-          "description": "Finds available free time slots within a calendar for scheduling meetings. Defaults to next 7 days if no date range specified. Returns up to 20 slots, checking every 30 minutes. Set `work_hours_only=False` to include evenings/weekends.",
-          "inputSchema": {
-            "properties": {
-              "calendar_id": {
-                "default": "primary",
-                "title": "Calendar Id",
-                "type": "string"
-              },
-              "start_date": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Start Date"
-              },
-              "end_date": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "End Date"
-              },
-              "duration_minutes": {
-                "default": 60,
-                "title": "Duration Minutes",
-                "type": "integer"
-              },
-              "work_hours_only": {
-                "default": true,
-                "title": "Work Hours Only",
-                "type": "boolean"
-              }
-            },
-            "title": "find_timeArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "find_timeOutput",
-            "type": "object"
-          }
-        },
-        "search_events": {
-          "name": "search_events",
-          "description": "Searches for events across one or all calendars within a specified date range. Provide a `search_text` to find events with matching text in the title, description, or location. If no search text is given, it lists all events. Supports advanced client-side filtering by `search_fields` and `case_sensitive` options.",
-          "inputSchema": {
-            "properties": {
               "search_text": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Search Text"
-              },
-              "calendar_id": {
-                "default": "all",
-                "title": "Calendar Id",
+                "default": "",
+                "description": "Text to search for. If empty, lists all events in the date range.",
+                "title": "Search Text",
                 "type": "string"
               },
               "start_date": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Start Date"
+                "default": "",
+                "description": "Start date (YYYY-MM-DD) for search. Defaults to today.",
+                "title": "Start Date",
+                "type": "string"
               },
               "end_date": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "End Date"
+                "default": "",
+                "description": "End date (YYYY-MM-DD) for search. Defaults to 7 days from start.",
+                "title": "End Date",
+                "type": "string"
               },
               "max_results": {
                 "default": 100,
+                "description": "Maximum events to return per calendar.",
                 "title": "Max Results",
                 "type": "integer"
               },
@@ -1179,1296 +870,2086 @@
                   }
                 ],
                 "default": null,
+                "description": "Client-side filter fields (e.g., 'summary', 'description'). None=API search only, []=search all fields.",
                 "title": "Search Fields"
               },
               "case_sensitive": {
                 "default": false,
+                "description": "If True, search is case-sensitive.",
                 "title": "Case Sensitive",
                 "type": "boolean"
               },
               "match_all_terms": {
                 "default": true,
+                "description": "If True (AND), all words must match. If False (OR), any can match.",
                 "title": "Match All Terms",
                 "type": "boolean"
               }
             },
-            "title": "search_eventsArguments",
+            "title": "readArguments",
             "type": "object"
           },
           "outputSchema": {
+            "$defs": {
+              "Attendee": {
+                "description": "Calendar event attendee.",
+                "properties": {
+                  "email": {
+                    "description": "The email address of the attendee.",
+                    "title": "Email",
+                    "type": "string"
+                  },
+                  "responseStatus": {
+                    "default": "needsAction",
+                    "description": "The attendee's response status (e.g., 'accepted', 'declined', 'needsAction').",
+                    "title": "Responsestatus",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email"
+                ],
+                "title": "Attendee",
+                "type": "object"
+              },
+              "CalendarEvent": {
+                "description": "Calendar event details.",
+                "properties": {
+                  "id": {
+                    "description": "The unique identifier for the event.",
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "description": "The title or summary of the event.",
+                    "title": "Summary",
+                    "type": "string"
+                  },
+                  "description": {
+                    "default": "",
+                    "description": "A detailed description or notes for the event.",
+                    "title": "Description",
+                    "type": "string"
+                  },
+                  "location": {
+                    "default": "",
+                    "description": "The physical location or meeting link for the event.",
+                    "title": "Location",
+                    "type": "string"
+                  },
+                  "start": {
+                    "$ref": "#/$defs/EventDateTime",
+                    "description": "The start time of the event, including timezone."
+                  },
+                  "end": {
+                    "$ref": "#/$defs/EventDateTime",
+                    "description": "The end time of the event, including timezone."
+                  },
+                  "attendees": {
+                    "description": "A list of people attending the event.",
+                    "items": {
+                      "$ref": "#/$defs/Attendee"
+                    },
+                    "title": "Attendees",
+                    "type": "array"
+                  },
+                  "calendar_name": {
+                    "default": "",
+                    "description": "The name of the calendar this event belongs to.",
+                    "title": "Calendar Name",
+                    "type": "string"
+                  },
+                  "created": {
+                    "default": "",
+                    "description": "The creation time of the event as an ISO 8601 string.",
+                    "title": "Created",
+                    "type": "string"
+                  },
+                  "updated": {
+                    "default": "",
+                    "description": "The last modification time of the event as an ISO 8601 string.",
+                    "title": "Updated",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "summary",
+                  "start",
+                  "end"
+                ],
+                "title": "CalendarEvent",
+                "type": "object"
+              },
+              "EventDateTime": {
+                "description": "Event date/time information.",
+                "properties": {
+                  "dateTime": {
+                    "default": "",
+                    "description": "The timestamp for timed events in RFC3339 format (e.g., '2023-12-25T10:00:00Z').",
+                    "title": "Datetime",
+                    "type": "string"
+                  },
+                  "date": {
+                    "default": "",
+                    "description": "The date for all-day events in YYYY-MM-DD format (e.g., '2023-12-25').",
+                    "title": "Date",
+                    "type": "string"
+                  },
+                  "timeZone": {
+                    "default": "",
+                    "description": "The timezone identifier (e.g., 'America/New_York', 'Europe/London').",
+                    "title": "Timezone",
+                    "type": "string"
+                  }
+                },
+                "title": "EventDateTime",
+                "type": "object"
+              }
+            },
             "properties": {
               "result": {
+                "items": {
+                  "$ref": "#/$defs/CalendarEvent"
+                },
                 "title": "Result",
-                "type": "string"
+                "type": "array"
               }
             },
             "required": [
               "result"
             ],
-            "title": "search_eventsOutput",
+            "title": "readOutput",
             "type": "object"
           }
         },
-        "server_info": {
-          "name": "server_info",
-          "description": "Checks the status of the Google Calendar Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests.",
+        "create": {
+          "name": "create",
+          "description": "Create a new calendar event. Supports natural language datetimes (e.g., 'tomorrow at 2pm') and mixed timezones.",
           "inputSchema": {
-            "properties": {},
-            "title": "server_infoArguments",
-            "type": "object"
-          },
-          "outputSchema": {
             "properties": {
-              "result": {
-                "title": "Result",
+              "summary": {
+                "description": "The title or summary for the new event.",
+                "title": "Summary",
                 "type": "string"
+              },
+              "start_datetime": {
+                "description": "The start time of the event. Supports natural language (e.g., 'tomorrow at 2pm').",
+                "title": "Start Datetime",
+                "type": "string"
+              },
+              "end_datetime": {
+                "description": "The end time of the event. Supports natural language (e.g., 'in 3 hours').",
+                "title": "End Datetime",
+                "type": "string"
+              },
+              "description": {
+                "default": "",
+                "description": "A detailed description or notes for the event.",
+                "title": "Description",
+                "type": "string"
+              },
+              "location": {
+                "default": "",
+                "description": "The physical location or meeting link for the event.",
+                "title": "Location",
+                "type": "string"
+              },
+              "calendar_id": {
+                "description": "The ID or name of the calendar to add the event to. Use calendar://list resource to discover options. Required parameter - no default.",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "start_timezone": {
+                "default": "",
+                "description": "Explicit IANA timezone for the start time (e.g., 'America/Los_Angeles'). Overrides calendar's default.",
+                "title": "Start Timezone",
+                "type": "string"
+              },
+              "end_timezone": {
+                "default": "",
+                "description": "Explicit IANA timezone for the end time. Essential for events spanning timezones, like flights.",
+                "title": "End Timezone",
+                "type": "string"
+              },
+              "attendees": {
+                "description": "A list of attendee email addresses to invite to the event.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Attendees",
+                "type": "array"
               }
             },
             "required": [
-              "result"
+              "summary",
+              "start_datetime",
+              "end_datetime",
+              "calendar_id"
             ],
-            "title": "server_infoOutput",
+            "title": "createArguments",
             "type": "object"
-          }
-        }
-      },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/google_calendar/tool.py",
-      "source_hash": "d472c2b5acdce9e6eb079c79520353818b39352678534b86e990312d5892ea0a"
-    },
-    "gemini": {
-      "name": "gemini",
-      "functions": {
-        "ask": {
-          "name": "ask",
-          "description": "Sends your prompt and files to a Google Gemini model for conversational response. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Set `grounding=True` for current information via Google Search. Response saved to required `output_file` ('-' for stdout). Key models: 'gemini-2.5-flash' (fast), 'gemini-2.5-pro' (advanced).",
-          "inputSchema": {
+          },
+          "outputSchema": {
+            "description": "Result of creating a calendar event.",
             "properties": {
-              "prompt": {
-                "title": "Prompt",
+              "status": {
+                "description": "The status of the event creation (e.g., 'confirmed', 'tentative').",
+                "title": "Status",
                 "type": "string"
               },
-              "output_file": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": "-",
-                "title": "Output File"
+              "event_id": {
+                "description": "The unique identifier assigned to the newly created event.",
+                "title": "Event Id",
+                "type": "string"
               },
-              "agent_name": {
+              "title": {
+                "description": "The title of the created event.",
+                "title": "Title",
+                "type": "string"
+              },
+              "time": {
+                "description": "A human-readable summary of when the event occurs.",
+                "title": "Time",
+                "type": "string"
+              },
+              "calendar": {
+                "description": "The name or ID of the calendar where the event was created.",
+                "title": "Calendar",
+                "type": "string"
+              },
+              "attendees": {
+                "description": "A list of attendee email addresses for the event.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Attendees",
+                "type": "array"
+              }
+            },
+            "required": [
+              "status",
+              "event_id",
+              "title",
+              "time",
+              "calendar",
+              "attendees"
+            ],
+            "title": "CreatedEventResult",
+            "type": "object"
+          }
+        },
+        "update": {
+          "name": "update",
+          "description": "Update or move a calendar event. If destination_calendar_id provided, moves event (may change event ID). Otherwise updates event properties.",
+          "inputSchema": {
+            "properties": {
+              "event_id": {
+                "description": "The unique identifier of the event to update or move.",
+                "title": "Event Id",
+                "type": "string"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "description": "The calendar where the event is located. Defaults to primary.",
+                "title": "Calendar Id",
+                "type": "string"
+              },
+              "destination_calendar_id": {
                 "anyOf": [
                   {
                     "type": "string"
-                  },
-                  {
-                    "type": "boolean"
                   },
                   {
                     "type": "null"
                   }
                 ],
                 "default": null,
-                "title": "Agent Name"
+                "description": "If provided, move event to this calendar instead of updating. Cannot combine with update fields.",
+                "title": "Destination Calendar Id"
               },
-              "model": {
-                "default": "gemini-2.5-pro",
-                "title": "Model",
+              "summary": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "New title. None=no change, ''=clear field.",
+                "title": "Summary"
+              },
+              "start_datetime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "New start time. Supports natural language. None=no change.",
+                "title": "Start Datetime"
+              },
+              "end_datetime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "New end time. Supports natural language. None=no change.",
+                "title": "End Datetime"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "New description. None=no change, ''=clear field.",
+                "title": "Description"
+              },
+              "location": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "New location. None=no change, ''=clear field.",
+                "title": "Location"
+              },
+              "start_timezone": {
+                "default": "",
+                "description": "New IANA timezone for start. If empty, preserves existing.",
+                "title": "Start Timezone",
                 "type": "string"
               },
-              "temperature": {
-                "default": 0.7,
-                "title": "Temperature",
-                "type": "number"
+              "end_timezone": {
+                "default": "",
+                "description": "New IANA timezone for end. If empty, preserves existing.",
+                "title": "End Timezone",
+                "type": "string"
               },
-              "grounding": {
+              "normalize_timezone": {
                 "default": false,
-                "title": "Grounding",
+                "description": "Fix timezone inconsistencies (UTC time with non-UTC label).",
+                "title": "Normalize Timezone",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "event_id"
+            ],
+            "title": "updateArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of a successful event update or move operation.",
+            "properties": {
+              "event_id": {
+                "description": "The unique identifier of the updated event.",
+                "title": "Event Id",
+                "type": "string"
+              },
+              "new_event_id": {
+                "default": "",
+                "description": "For move operations: the new event ID (may differ from original). Empty for updates.",
+                "title": "New Event Id",
+                "type": "string"
+              },
+              "html_link": {
+                "description": "A direct link to the event in the Google Calendar UI.",
+                "title": "Html Link",
+                "type": "string"
+              },
+              "updated_fields": {
+                "description": "A list of the fields that were modified in this update operation.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Updated Fields",
+                "type": "array"
+              },
+              "message": {
+                "description": "A human-readable confirmation message.",
+                "title": "Message",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "html_link",
+              "updated_fields",
+              "message"
+            ],
+            "title": "UpdateEventResult",
+            "type": "object"
+          }
+        },
+        "delete": {
+          "name": "delete",
+          "description": "Delete a calendar event permanently. WARNING: Irreversible.",
+          "inputSchema": {
+            "properties": {
+              "event_id": {
+                "description": "The unique identifier of the event to delete.",
+                "title": "Event Id",
+                "type": "string"
+              },
+              "calendar_id": {
+                "default": "primary",
+                "description": "The calendar where the event is located. Defaults to primary.",
+                "title": "Calendar Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id"
+            ],
+            "title": "deleteArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "title": "Result",
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "deleteOutput",
+            "type": "object"
+          }
+        }
+      },
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/google_calendar/tool.py",
+      "source_hash": "1872f5abb32e166d69e4eaa47ca82ca7f515064a397f8f432d59144fa87c84ea"
+    },
+    "google-maps": {
+      "name": "google-maps",
+      "functions": {
+        "get_directions": {
+          "name": "get_directions",
+          "description": "Gets directions between an origin and destination, supporting multiple travel modes, waypoints, and route preferences. For transit, supports specific transport modes and routing preferences.",
+          "inputSchema": {
+            "properties": {
+              "origin": {
+                "description": "The starting address, place name, or coordinates (e.g., '1600 Amphitheatre Parkway, Mountain View, CA').",
+                "title": "Origin",
+                "type": "string"
+              },
+              "destination": {
+                "description": "The ending address, place name, or coordinates (e.g., 'San Francisco, CA').",
+                "title": "Destination",
+                "type": "string"
+              },
+              "mode": {
+                "default": "driving",
+                "description": "The mode of transport to use for the directions.",
+                "enum": [
+                  "driving",
+                  "walking",
+                  "bicycling",
+                  "transit"
+                ],
+                "title": "Mode",
+                "type": "string"
+              },
+              "departure_time": {
+                "default": "",
+                "description": "The desired departure time. Supports natural language ('17:00', '5pm', 'tomorrow 5pm'), relative times ('in 2 hours'), or ISO 8601 formats. Times are interpreted as UK local time unless explicitly specified. Cannot be used with arrival_time.",
+                "title": "Departure Time",
+                "type": "string"
+              },
+              "arrival_time": {
+                "default": "",
+                "description": "The desired arrival time. Supports natural language ('17:00', '5pm', 'tomorrow 5pm'), relative times ('in 2 hours'), or ISO 8601 formats. Times are interpreted as UK local time unless explicitly specified. Cannot be used with departure_time.",
+                "title": "Arrival Time",
+                "type": "string"
+              },
+              "user_timezone": {
+                "default": "Europe/London",
+                "description": "The timezone to use for interpreting departure/arrival times when not explicitly specified (e.g., 'Europe/London', 'America/New_York'). Defaults to UK timezone.",
+                "title": "User Timezone",
+                "type": "string"
+              },
+              "avoid": {
+                "description": "A list of route features to avoid (e.g., 'tolls', 'highways'). Only for 'driving' mode.",
+                "items": {
+                  "enum": [
+                    "tolls",
+                    "highways",
+                    "ferries"
+                  ],
+                  "type": "string"
+                },
+                "title": "Avoid",
+                "type": "array"
+              },
+              "alternatives": {
+                "default": false,
+                "description": "If True, requests that alternative routes be provided in the response.",
+                "title": "Alternatives",
                 "type": "boolean"
               },
-              "files": {
-                "anyOf": [
-                  {
+              "waypoints": {
+                "description": "A list of addresses or coordinates to route through between the origin and destination.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Waypoints",
+                "type": "array"
+              },
+              "transit_mode": {
+                "description": "Preferred modes of public transit. Only for 'transit' mode.",
+                "items": {
+                  "enum": [
+                    "bus",
+                    "subway",
+                    "train",
+                    "tram",
+                    "rail"
+                  ],
+                  "type": "string"
+                },
+                "title": "Transit Mode",
+                "type": "array"
+              },
+              "transit_routing_preference": {
+                "default": "",
+                "description": "Specifies preferences for transit routes, such as fewer transfers or less walking. Only for 'transit' mode.",
+                "enum": [
+                  "",
+                  "less_walking",
+                  "fewer_transfers"
+                ],
+                "title": "Transit Routing Preference",
+                "type": "string"
+              }
+            },
+            "required": [
+              "origin",
+              "destination"
+            ],
+            "title": "get_directionsArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "$defs": {
+              "DirectionLeg": {
+                "description": "A leg of a route (origin to destination or waypoint).",
+                "properties": {
+                  "distance": {
+                    "description": "The total distance for this leg of the journey.",
+                    "title": "Distance",
+                    "type": "string"
+                  },
+                  "duration": {
+                    "description": "The estimated total time for this leg of the journey.",
+                    "title": "Duration",
+                    "type": "string"
+                  },
+                  "start_address": {
+                    "description": "The human-readable address where this leg begins.",
+                    "title": "Start Address",
+                    "type": "string"
+                  },
+                  "end_address": {
+                    "description": "The human-readable address where this leg ends.",
+                    "title": "End Address",
+                    "type": "string"
+                  },
+                  "steps": {
+                    "description": "The individual navigation steps that make up this leg.",
                     "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
+                      "$ref": "#/$defs/DirectionStep"
                     },
+                    "title": "Steps",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "distance",
+                  "duration",
+                  "start_address",
+                  "end_address",
+                  "steps"
+                ],
+                "title": "DirectionLeg",
+                "type": "object"
+              },
+              "DirectionRoute": {
+                "description": "A complete route with all legs and steps.",
+                "properties": {
+                  "summary": {
+                    "description": "A short textual description of the route (e.g., 'via I-95 N').",
+                    "title": "Summary",
+                    "type": "string"
+                  },
+                  "legs": {
+                    "description": "The individual legs that make up this complete route.",
+                    "items": {
+                      "$ref": "#/$defs/DirectionLeg"
+                    },
+                    "title": "Legs",
                     "type": "array"
                   },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Files"
-              },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Max Output Tokens"
-              }
-            },
-            "required": [
-              "prompt"
-            ],
-            "title": "askArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "askOutput",
-            "type": "object"
-          }
-        },
-        "analyze_image": {
-          "name": "analyze_image",
-          "description": "Analyzes images using a Gemini vision model. Requires a `prompt` and image data (via `image_data` or `images` parameters). Supports persistent memory via `agent_name`. Use the `focus` parameter ('objects', 'text', etc.) to guide the analysis. Returns the analysis to the required `output_file` ('-' for stdout).",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "output_file": {
-                "anyOf": [
-                  {
+                  "distance": {
+                    "description": "The total distance for the entire route.",
+                    "title": "Distance",
                     "type": "string"
                   },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": "-",
-                "title": "Output File"
-              },
-              "image_data": {
-                "anyOf": [
-                  {
+                  "duration": {
+                    "description": "The estimated total time for the entire route.",
+                    "title": "Duration",
                     "type": "string"
                   },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Image Data"
-              },
-              "images": {
-                "anyOf": [
-                  {
+                  "polyline": {
+                    "description": "An encoded polyline representation of the route path.",
+                    "title": "Polyline",
+                    "type": "string"
+                  },
+                  "warnings": {
+                    "description": "Any warnings about the route (e.g., tolls, traffic).",
                     "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
+                      "type": "string"
                     },
+                    "title": "Warnings",
                     "type": "array"
-                  },
-                  {
-                    "type": "null"
                   }
+                },
+                "required": [
+                  "summary",
+                  "legs",
+                  "distance",
+                  "duration",
+                  "polyline"
                 ],
-                "default": null,
-                "title": "Images"
+                "title": "DirectionRoute",
+                "type": "object"
               },
-              "focus": {
-                "default": "general",
-                "title": "Focus",
-                "type": "string"
-              },
-              "model": {
-                "default": "gemini-2.5-pro",
-                "title": "Model",
-                "type": "string"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
+              "DirectionStep": {
+                "description": "A single step in a route.",
+                "properties": {
+                  "instruction": {
+                    "description": "Human-readable navigation instruction for this step.",
+                    "title": "Instruction",
                     "type": "string"
                   },
-                  {
-                    "type": "boolean"
+                  "distance": {
+                    "description": "The distance for this step (e.g., '0.5 km', '500 ft').",
+                    "title": "Distance",
+                    "type": "string"
                   },
-                  {
-                    "type": "null"
+                  "duration": {
+                    "description": "The estimated time for this step (e.g., '5 mins', '2 hours').",
+                    "title": "Duration",
+                    "type": "string"
+                  },
+                  "start_location": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "The latitude and longitude coordinates where this step begins.",
+                    "title": "Start Location",
+                    "type": "object"
+                  },
+                  "end_location": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "The latitude and longitude coordinates where this step ends.",
+                    "title": "End Location",
+                    "type": "object"
+                  },
+                  "travel_mode": {
+                    "default": "",
+                    "description": "The mode of transport for this step (e.g., 'WALKING', 'DRIVING', 'TRANSIT').",
+                    "title": "Travel Mode",
+                    "type": "string"
+                  },
+                  "transit_details": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/TransitDetails"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Additional details if this step involves public transit."
                   }
+                },
+                "required": [
+                  "instruction",
+                  "distance",
+                  "duration",
+                  "start_location",
+                  "end_location"
                 ],
-                "default": null,
-                "title": "Agent Name"
+                "title": "DirectionStep",
+                "type": "object"
               },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
+              "TransitDetails": {
+                "description": "Transit-specific information for a step.",
+                "properties": {
+                  "departure_time": {
+                    "description": "The scheduled departure time for this transit step in UK local time (BST/GMT with proper offset).",
+                    "format": "date-time",
+                    "title": "Departure Time",
+                    "type": "string"
+                  },
+                  "arrival_time": {
+                    "description": "The scheduled arrival time for this transit step in UK local time (BST/GMT with proper offset).",
+                    "format": "date-time",
+                    "title": "Arrival Time",
+                    "type": "string"
+                  },
+                  "line_name": {
+                    "description": "The full name of the transit line (e.g., 'Red Line', 'Route 101').",
+                    "title": "Line Name",
+                    "type": "string"
+                  },
+                  "line_short_name": {
+                    "default": "",
+                    "description": "The short name or number of the transit line.",
+                    "title": "Line Short Name",
+                    "type": "string"
+                  },
+                  "vehicle_type": {
+                    "description": "The type of transit vehicle (e.g., 'BUS', 'SUBWAY', 'TRAIN').",
+                    "title": "Vehicle Type",
+                    "type": "string"
+                  },
+                  "headsign": {
+                    "default": "",
+                    "description": "The destination sign displayed on the transit vehicle.",
+                    "title": "Headsign",
+                    "type": "string"
+                  },
+                  "num_stops": {
+                    "description": "The number of stops between boarding and alighting.",
+                    "title": "Num Stops",
                     "type": "integer"
-                  },
-                  {
-                    "type": "null"
                   }
+                },
+                "required": [
+                  "departure_time",
+                  "arrival_time",
+                  "line_name",
+                  "vehicle_type",
+                  "num_stops"
                 ],
-                "default": null,
-                "title": "Max Output Tokens"
+                "title": "TransitDetails",
+                "type": "object"
               }
             },
-            "required": [
-              "prompt"
-            ],
-            "title": "analyze_imageArguments",
-            "type": "object"
-          },
-          "outputSchema": {
+            "description": "Result of a directions request.",
             "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "analyze_imageOutput",
-            "type": "object"
-          }
-        },
-        "generate_image": {
-          "name": "generate_image",
-          "description": "Generates high-quality images using Google's Imagen 3 model. Provide creative prompts and the AI generates visual content. Supports persistent memory via `agent_name` parameter. Generated images are saved as PNG files to temporary locations.",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
+              "routes": {
+                "description": "A list of possible routes from origin to destination.",
+                "items": {
+                  "$ref": "#/$defs/DirectionRoute"
+                },
+                "title": "Routes",
+                "type": "array"
+              },
+              "status": {
+                "description": "The status of the API request (e.g., 'OK', 'ZERO_RESULTS').",
+                "title": "Status",
                 "type": "string"
               },
-              "model": {
-                "default": "imagen-3",
-                "title": "Model",
+              "origin": {
+                "description": "The address or coordinates of the starting point.",
+                "title": "Origin",
                 "type": "string"
               },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              }
-            },
-            "required": [
-              "prompt"
-            ],
-            "title": "generate_imageArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
+              "destination": {
+                "description": "The address or coordinates of the ending point.",
+                "title": "Destination",
+                "type": "string"
+              },
+              "mode": {
+                "description": "The travel mode used for the directions (e.g., 'driving', 'transit').",
+                "title": "Mode",
+                "type": "string"
+              },
+              "departure_time": {
+                "default": "",
+                "description": "The requested departure time as an ISO 8601 string, if provided.",
+                "title": "Departure Time",
+                "type": "string"
+              },
+              "maps_url": {
+                "default": "",
+                "description": "A direct URL to Google Maps with the requested route.",
+                "title": "Maps Url",
                 "type": "string"
               }
             },
             "required": [
-              "result"
+              "routes",
+              "status",
+              "origin",
+              "destination",
+              "mode"
             ],
-            "title": "generate_imageOutput",
-            "type": "object"
-          }
-        },
-        "list_models": {
-          "name": "list_models",
-          "description": "Lists all available Gemini models with pricing, capabilities, and context windows. Helps compare models for cost, performance, and features to select the best model for specific tasks.",
-          "inputSchema": {
-            "properties": {},
-            "title": "list_modelsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "list_modelsOutput",
+            "title": "DirectionsResult",
             "type": "object"
           }
         },
         "server_info": {
           "name": "server_info",
-          "description": "Checks the status of the Gemini Tool server and API connectivity.\n\nUse this to verify that the tool is operational before making other requests.\n\n**Input/Output:**\n- **Input**: None.\n- **Output**: A string containing the server status, API connection status, and a list of available tools.\n\n**Error Handling:**\n- Raises `RuntimeError` if the Gemini API is not configured correctly.\n\n**Examples:**\n```python\n# Check the server status.\nserver_info()\n```",
+          "description": "Get Google Maps Tool server information and capabilities.",
           "inputSchema": {
             "properties": {},
             "title": "server_infoArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Standardized server information across all tools.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "name": {
+                "description": "The name of the MCP tool server.",
+                "title": "Name",
                 "type": "string"
+              },
+              "version": {
+                "description": "The version of the tool or its primary dependency.",
+                "title": "Version",
+                "type": "string"
+              },
+              "status": {
+                "description": "The operational status of the server (e.g., 'active', 'error').",
+                "title": "Status",
+                "type": "string"
+              },
+              "capabilities": {
+                "description": "A list of functions or features the tool provides.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Capabilities",
+                "type": "array"
+              },
+              "dependencies": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "A dictionary of dependencies and their versions or statuses.",
+                "title": "Dependencies",
+                "type": "object"
               }
             },
             "required": [
-              "result"
+              "name",
+              "version",
+              "status"
             ],
-            "title": "server_infoOutput",
+            "title": "ServerInfo",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/gemini/tool.py",
-      "source_hash": "0a695b9a7c500a8c7aad36b83c4dca1a83381c834997392b69bc546d06d885f0"
-    },
-    "openai": {
-      "name": "openai",
-      "functions": {
-        "ask": {
-          "name": "ask",
-          "description": "Start or continue a conversation with an OpenAI GPT model. This tool sends your prompt and any provided files directly to the selected GPT model and returns its response.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` before starting conversations. This allows you to define the agent's expertise and personality for more focused interactions.\n\n**Memory Behavior**: Conversations with OpenAI are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Handling**: The `output_file` parameter is REQUIRED. Use:\n- A file path to save the response for future processing (recommended for large responses)\n- '-' to output directly to stdout (use sparingly, as large responses may exceed MCP message limits)\n\n**File Input Formats**:\n- `{\"path\": \"/path/to/file\"}` - Reads file from filesystem\n- `{\"content\": \"text content\"}` - Uses provided text directly\n- `\"direct string\"` - Treats string as literal content\n\n**Key Parameters**:\n- `model`: \"o3-mini\" (default, fast reasoning), \"o3\" (best reasoning), \"gpt-4o\" (multimodal), \"gpt-4o-mini\" (fast multimodal)\n- `temperature`: Creativity level 0.0 (deterministic) to 2.0 (very creative, default: 0.7). Note: Not supported by reasoning models (o1, o3 series)\n- `max_output_tokens`: Override model's default output token limit\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n\n**Token Limits by Model**:\n- o3/o3-mini: 100,000 tokens (default)\n- o1-mini: 65,536 tokens (default)\n- o1-preview: 32,768 tokens (default)\n- gpt-4o/gpt-4o-mini: 4,096 tokens (default)\n- Use max_output_tokens parameter to override defaults\n\n**Model Selection Guide**:\n- o3-mini: Fast reasoning for most tasks, cost-effective (200k context, default)\n- o3: Best reasoning for complex problems (200k context)\n- gpt-4o: Best for multimodal tasks, file analysis, vision (128k context)\n- gpt-4o-mini: Fast multimodal, cost-effective for simple vision tasks (128k context)\n\n**Error Handling**:\n- Raises RuntimeError for OpenAI API errors (authentication, quota, rate limits)\n- Raises ValueError for invalid file paths or unsupported content\n- Agent memory automatically handles conversation context limits\n- Large responses automatically saved to avoid MCP message size limits\n\n**Examples**:\n```python\n# Basic question with file context\nask(\n    prompt=\"Explain this code and suggest improvements\",\n    output_file=\"/tmp/analysis.md\",\n    files=[{\"path\": \"/path/to/code.py\"}],\n    model=\"o3-mini\"\n)\n\n# Persistent agent conversation\nask(\n    prompt=\"Continue reviewing the codebase\",\n    output_file=\"/tmp/review.md\",\n    agent_name=\"code_reviewer\",\n    model=\"o3-mini\",\n    temperature=0.3\n)\n\n# Complex reasoning task\nask(\n    prompt=\"Solve this algorithmic problem step by step\",\n    output_file=\"/tmp/solution.md\",\n    model=\"o1-preview\",\n    files=[{\"content\": \"Problem description here\"}]\n)\n\n# Multiple file analysis\nask(\n    prompt=\"Compare these implementations\",\n    output_file=\"/tmp/comparison.md\",\n    files=[\n        {\"path\": \"/path/to/impl1.py\"},\n        {\"path\": \"/path/to/impl2.py\"},\n        {\"content\": \"Additional context\"}\n    ],\n    max_output_tokens=2000\n)\n```",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "output_file": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": "-",
-                "title": "Output File"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              },
-              "model": {
-                "default": "o4-mini",
-                "title": "Model",
-                "type": "string"
-              },
-              "temperature": {
-                "default": 0.7,
-                "title": "Temperature",
-                "type": "number"
-              },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Max Output Tokens"
-              },
-              "files": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Files"
-              }
-            },
-            "required": [
-              "prompt"
-            ],
-            "title": "askArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "askOutput",
-            "type": "object"
-          }
-        },
-        "analyze_image": {
-          "name": "analyze_image",
-          "description": "Engage an OpenAI vision model in a conversation about one or more images. This tool sends your prompt and images to the model, allowing you to ask questions, get descriptions, or perform detailed multimodal analysis.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image analysis tasks. This enables focused conversations about visual content with appropriate expertise.\n\n**Memory Behavior**: Image analysis conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Handling**: The `output_file` parameter is REQUIRED. Use:\n- A file path to save the analysis for future processing (recommended)\n- '-' to output directly to stdout (use sparingly for large analyses)\n\n**Image Input Formats**:\n- `{\"path\": \"/path/to/image.jpg\"}` - Read from filesystem (preferred)\n- `{\"data\": \"base64_encoded_data\"}` - Base64 encoded image data\n- `\"data:image/jpeg;base64,/9j/4AAQ...\"` - Data URL format\n- `\"/path/to/image.jpg\"` - Direct path string (legacy, use dict format instead)\n\n**Analysis Focus Options**:\n- \"general\" (default) - Overall image description\n- \"objects\" - Focus on object detection and identification\n- \"colors\" - Analyze color palette and composition\n- \"composition\" - Focus on artistic composition and layout\n- \"text\" - Extract and analyze text within images (OCR)\n- \"technical\" - Focus on technical aspects, quality, metadata\n- \"medical\" - Medical image analysis (disclaimer: not for diagnosis)\n- \"code\" - Analyze screenshots of code or diagrams\n\n**Model Options**:\n- \"gpt-4o\" (default) - Best vision capabilities, handles complex visual reasoning\n- \"gpt-4o-mini\" - Faster, cost-effective vision analysis for simple tasks\n\n**Key Parameters**:\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n- `max_output_tokens`: Override model's default output token limit\n\n**Error Handling**:\n- Raises ValueError for missing images or unsupported formats\n- Raises RuntimeError for OpenAI API errors (quota, rate limits, content policy)\n- Supports: JPEG, PNG, GIF, WebP (max 20MB per image)\n- Multiple images increase token usage significantly\n\n**Examples**:\n```python\n# Analyze single image\nanalyze_image(\n    prompt=\"Describe what you see in this screenshot\",\n    output_file=\"/tmp/analysis.md\",\n    image_data=\"/path/to/screenshot.png\",\n    focus=\"general\"\n)\n\n# Multiple images comparison\nanalyze_image(\n    prompt=\"Compare these two UI designs and suggest improvements\",\n    output_file=\"/tmp/comparison.md\",\n    images=[\n        {\"path\": \"/path/to/design1.png\"},\n        {\"path\": \"/path/to/design2.png\"}\n    ],\n    focus=\"composition\"\n)\n\n# Extract text from image\nanalyze_image(\n    prompt=\"Extract and transcribe all text from this document\",\n    output_file=\"/tmp/extracted_text.md\",\n    image_data={\"path\": \"/path/to/document.jpg\"},\n    focus=\"text\",\n    model=\"o3-mini\"\n)\n\n# Code analysis from screenshot\nanalyze_image(\n    prompt=\"Review this code for potential bugs and improvements\",\n    output_file=\"/tmp/code_review.md\",\n    image_data=\"data:image/png;base64,iVBORw0KGgoAAAA...\",\n    focus=\"code\",\n    agent_name=\"code_reviewer\"\n)\n```",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "output_file": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": "-",
-                "title": "Output File"
-              },
-              "image_data": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Image Data"
-              },
-              "images": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Images"
-              },
-              "focus": {
-                "default": "general",
-                "title": "Focus",
-                "type": "string"
-              },
-              "model": {
-                "default": "gpt-4o",
-                "title": "Model",
-                "type": "string"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Max Output Tokens"
-              }
-            },
-            "required": [
-              "prompt"
-            ],
-            "title": "analyze_imageArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "analyze_imageOutput",
-            "type": "object"
-          }
-        },
-        "generate_image": {
-          "name": "generate_image",
-          "description": "Generate images using OpenAI's DALL-E models. You provide the detailed description, and the AI creates the image.\n\n**Agent Recommendation**: For best results, consider creating a specialized agent with `create_agent()` for image generation projects. This enables iterative creative work and maintains context for related image requests.\n\n**Memory Behavior**: Image generation conversations are automatically stored in persistent memory by default. Each MCP session gets its own conversation thread. Use a named `agent_name` for cross-session persistence, or `agent_name=False` to disable memory entirely.\n\n**Output Format**: Generated images are automatically downloaded and saved to temporary files. The file path is returned for further processing.\n\n**Model Options**:\n- \"dall-e-3\" (default) - Latest model with best quality and prompt adherence\n- \"dall-e-2\" - Previous generation, faster and more cost-effective\n\n**Quality Settings**:\n- \"standard\" (default) - Good quality, faster generation\n- \"hd\" - Higher resolution and detail (DALL-E 3 only)\n\n**Size Options**:\n- DALL-E 3: \"1024x1024\" (default), \"1024x1792\" (portrait), \"1792x1024\" (landscape)\n- DALL-E 2: \"256x256\", \"512x512\", \"1024x1024\" (default)\n\n**Prompt Guidelines**:\n- Be descriptive and specific for best results\n- Include style, mood, lighting, and composition details\n- DALL-E 3 follows prompts more precisely than DALL-E 2\n- Avoid requesting copyrighted characters or inappropriate content\n\n**Key Parameters**:\n- `agent_name`: Store conversation in named agent (string), use session memory (None/default), or disable memory (False)\n- `model`: DALL-E model to use (default: \"dall-e-3\")\n- `quality`: Quality setting for DALL-E 3 (default: \"standard\")\n- `size`: Image dimensions (default: \"1024x1024\")\n\n**Error Handling**:\n- Raises RuntimeError for DALL-E API errors (quota exceeded, content policy violations)\n- Raises ValueError for prompts violating OpenAI's usage policies\n- Image download may fail due to network issues; temporary URLs expire quickly\n- DALL-E 3 may revise prompts for safety compliance\n\n**Examples**:\n```python\n# High-quality artistic image\ngenerate_image(\n    prompt=\"A serene mountain landscape at sunset with golden light reflecting on a crystal-clear lake, painted in impressionist style with visible brushstrokes\",\n    model=\"dall-e-3\",\n    quality=\"hd\",\n    size=\"1792x1024\"\n)\n\n# Technical diagram\ngenerate_image(\n    prompt=\"Clean, minimalist flowchart showing a software deployment pipeline with rounded rectangles and arrow connections, professional blue and white colors\",\n    model=\"dall-e-3\",\n    size=\"1024x1792\"\n)\n\n# Portrait with specific style\ngenerate_image(\n    prompt=\"Professional headshot of a confident software engineer in modern office setting, natural lighting, shallow depth of field, photorealistic style\",\n    model=\"dall-e-3\",\n    quality=\"hd\",\n    agent_name=\"design_assistant\"\n)\n\n# Cost-effective generation\ngenerate_image(\n    prompt=\"Simple icon design for a mobile app, minimalist style, single color\",\n    model=\"dall-e-2\",\n    size=\"512x512\"\n)\n```",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "model": {
-                "default": "dall-e-3",
-                "title": "Model",
-                "type": "string"
-              },
-              "quality": {
-                "default": "standard",
-                "title": "Quality",
-                "type": "string"
-              },
-              "size": {
-                "default": "1024x1024",
-                "title": "Size",
-                "type": "string"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              }
-            },
-            "required": [
-              "prompt"
-            ],
-            "title": "generate_imageArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "generate_imageOutput",
-            "type": "object"
-          }
-        },
-        "list_models": {
-          "name": "list_models",
-          "description": "Retrieves a comprehensive catalog of all available OpenAI models to aid in model discovery and selection.\n\n**Purpose & Benefits:**\nThis tool helps users:\n- Discover all models offered by OpenAI (GPT, DALL-E, reasoning models)\n- Compare models based on cost, performance, context windows, and capabilities\n- Identify the most suitable OpenAI model for specific tasks or budget constraints\n- Understand model generations and specialized features (reasoning, vision, etc.)\n\n**Returns:**\nFormatted listing with detailed information including:\n- Model IDs and descriptions\n- Context windows and token limits\n- Pricing per 1M tokens (including cached input pricing)\n- Capabilities (text generation, vision, reasoning, image generation, etc.)\n- Model categories (reasoning, multimodal, legacy, etc.)\n- API availability status\n\n**Examples:**\n```python\n# Discover all available models\nlist_models()\n\n# Use cases this enables:\n# - \"Which models can reason?\" \u2192 o3, o4-mini, o1 series\n# - \"What's the cheapest multimodal model?\" \u2192 gpt-4o-mini ($0.15/M input)\n# - \"Which model is best for coding?\" \u2192 o4-mini, gpt-4.1\n# - \"Show me image generation models\" \u2192 dall-e-3, dall-e-2, gpt-image-1\n# - \"What models support vision?\" \u2192 gpt-4o series, gpt-image-1\n# - \"Which models support caching?\" \u2192 gpt-4.1 series, gpt-4o series\n```",
-          "inputSchema": {
-            "properties": {},
-            "title": "list_modelsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "list_modelsOutput",
-            "type": "object"
-          }
-        },
-        "server_info": {
-          "name": "server_info",
-          "description": "Checks the status of the OpenAI Tool server and API connectivity.\n\nUse this to verify that the tool is operational before making other requests.\n\n**Input/Output:**\n- **Input**: None.\n- **Output**: A string containing the server status, API connection status, and a list of available tools.\n\n**Error Handling:**\n- Raises `RuntimeError` if the OpenAI API is not configured correctly.\n\n**Examples:**\n```python\n# Check the server status.\nserver_info()\n```",
-          "inputSchema": {
-            "properties": {},
-            "title": "server_infoArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "server_infoOutput",
-            "type": "object"
-          }
-        }
-      },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/openai/tool.py",
-      "source_hash": "0d425e971de8dc3c3ce87c49705e6ef06b6ae6d4b5551ec9d565dcd634c9bc15"
-    },
-    "claude": {
-      "name": "claude",
-      "functions": {
-        "ask": {
-          "name": "ask",
-          "description": "Sends a text prompt to a Claude model for a conversational response. Use an `agent_name` for persistent memory or `agent_name=False` to disable it. Include context via the `files` parameter. The response is saved to the required `output_file` ('-' for stdout). Key models: 'sonnet' (default), 'opus' (powerful), 'haiku' (fast).",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "output_file": {
-                "title": "Output File",
-                "type": "string"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              },
-              "model": {
-                "default": "claude-sonnet-3.7",
-                "title": "Model",
-                "type": "string"
-              },
-              "temperature": {
-                "default": 0.7,
-                "title": "Temperature",
-                "type": "number"
-              },
-              "files": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Files"
-              },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Max Output Tokens"
-              }
-            },
-            "required": [
-              "prompt",
-              "output_file"
-            ],
-            "title": "askArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "askOutput",
-            "type": "object"
-          }
-        },
-        "analyze_image": {
-          "name": "analyze_image",
-          "description": "Analyzes images using Claude's vision capabilities. Send your prompt and images to get descriptions, extract text, or analyze visual content. Use `agent_name` for persistent memory or `agent_name=False` to disable it. Response saved to required `output_file` ('-' for stdout). Supports multiple image formats and analysis focus options.",
-          "inputSchema": {
-            "properties": {
-              "prompt": {
-                "title": "Prompt",
-                "type": "string"
-              },
-              "output_file": {
-                "title": "Output File",
-                "type": "string"
-              },
-              "image_data": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Image Data"
-              },
-              "images": {
-                "anyOf": [
-                  {
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "additionalProperties": {
-                            "type": "string"
-                          },
-                          "type": "object"
-                        }
-                      ]
-                    },
-                    "type": "array"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Images"
-              },
-              "focus": {
-                "default": "general",
-                "title": "Focus",
-                "type": "string"
-              },
-              "model": {
-                "default": "claude-3-5-sonnet-20240620",
-                "title": "Model",
-                "type": "string"
-              },
-              "agent_name": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Agent Name"
-              },
-              "max_output_tokens": {
-                "anyOf": [
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Max Output Tokens"
-              }
-            },
-            "required": [
-              "prompt",
-              "output_file"
-            ],
-            "title": "analyze_imageArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "analyze_imageOutput",
-            "type": "object"
-          }
-        },
-        "list_models": {
-          "name": "list_models",
-          "description": "Retrieves a comprehensive catalog of all available Claude models with pricing, capabilities, and performance information. Helps compare models and select the most suitable one for specific tasks or budget constraints.",
-          "inputSchema": {
-            "properties": {},
-            "title": "list_modelsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "list_modelsOutput",
-            "type": "object"
-          }
-        },
-        "server_info": {
-          "name": "server_info",
-          "description": "Checks the status of the Claude Tool server and API connectivity. Returns connection status and list of available tools. Use this to verify the tool is operational before making other requests.",
-          "inputSchema": {
-            "properties": {},
-            "title": "server_infoArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "server_infoOutput",
-            "type": "object"
-          }
-        }
-      },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/claude/tool.py",
-      "source_hash": "8165187c728c87dcd3482824a73a20c7249a48e0c3aa8fded7b36db095f917b6"
-    },
-    "agent": {
-      "name": "agent",
-      "functions": {
-        "create_agent": {
-          "name": "create_agent",
-          "description": "Creates a new persistent conversation agent with optional personality. Agents maintain conversation history across sessions and can be used with any LLM tool by specifying the agent_name parameter.",
-          "inputSchema": {
-            "properties": {
-              "agent_name": {
-                "minLength": 1,
-                "title": "Agent Name",
-                "type": "string"
-              },
-              "personality": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Personality"
-              }
-            },
-            "required": [
-              "agent_name"
-            ],
-            "title": "create_agentArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "create_agentOutput",
-            "type": "object"
-          }
-        },
-        "list_agents": {
-          "name": "list_agents",
-          "description": "Lists all persistent agents with statistics: creation date, message count, token usage, and cost. Essential for managing agent resources and monitoring usage across projects.",
-          "inputSchema": {
-            "properties": {},
-            "title": "list_agentsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "list_agentsOutput",
-            "type": "object"
-          }
-        },
-        "agent_stats": {
-          "name": "agent_stats",
-          "description": "Retrieves detailed statistics and recent conversation history for a specific agent. Shows total tokens, cost, and last 5 messages for usage analysis.",
-          "inputSchema": {
-            "properties": {
-              "agent_name": {
-                "title": "Agent Name",
-                "type": "string"
-              }
-            },
-            "required": [
-              "agent_name"
-            ],
-            "title": "agent_statsArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "agent_statsOutput",
-            "type": "object"
-          }
-        },
-        "clear_agent": {
-          "name": "clear_agent",
-          "description": "Clears all conversation history for an agent while preserving the agent and its personality. Useful for starting fresh conversations without recreating the agent.",
-          "inputSchema": {
-            "properties": {
-              "agent_name": {
-                "title": "Agent Name",
-                "type": "string"
-              }
-            },
-            "required": [
-              "agent_name"
-            ],
-            "title": "clear_agentArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "clear_agentOutput",
-            "type": "object"
-          }
-        },
-        "delete_agent": {
-          "name": "delete_agent",
-          "description": "Permanently deletes an agent and all conversation data. WARNING: Irreversible action. Use clear_agent() to only reset conversation history instead.",
-          "inputSchema": {
-            "properties": {
-              "agent_name": {
-                "minLength": 1,
-                "title": "Agent Name",
-                "type": "string"
-              }
-            },
-            "required": [
-              "agent_name"
-            ],
-            "title": "delete_agentArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "delete_agentOutput",
-            "type": "object"
-          }
-        },
-        "get_response": {
-          "name": "get_response",
-          "description": "Retrieves a specific message from an agent's conversation history by index. Use -1 for latest message (default), 0 for first message, or positive integers for specific positions.",
-          "inputSchema": {
-            "properties": {
-              "agent_name": {
-                "title": "Agent Name",
-                "type": "string"
-              },
-              "index": {
-                "default": -1,
-                "title": "Index",
-                "type": "integer"
-              }
-            },
-            "required": [
-              "agent_name"
-            ],
-            "title": "get_responseArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "get_responseOutput",
-            "type": "object"
-          }
-        },
-        "server_info": {
-          "name": "server_info",
-          "description": "Checks the status of the Agent Tool server and displays total agent count with available functions.",
-          "inputSchema": {
-            "properties": {},
-            "title": "server_infoArguments",
-            "type": "object"
-          },
-          "outputSchema": {
-            "properties": {
-              "result": {
-                "title": "Result",
-                "type": "string"
-              }
-            },
-            "required": [
-              "result"
-            ],
-            "title": "server_infoOutput",
-            "type": "object"
-          }
-        }
-      },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/llm/agent/tool.py",
-      "source_hash": "78d69a12a58a281bdf6cb60edee40eea91e9f703548d77b48337189d2f36a25e"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/google_maps/tool.py",
+      "source_hash": "2b0a8678599f6d8ffc58a46e92e747d02d8e71712db3708b84a808d49e7766a6"
     },
     "email": {
       "name": "email",
       "functions": {
-        "email_server_info": {
-          "name": "email_server_info",
-          "description": "Check email tool server status and verify tool availability.",
+        "send": {
+          "name": "send",
+          "description": "Send an email via Mutt. Supports compose (new), reply, and forward modes. For replying, prefer using 'reply' mode with a message_id to maintain thread context - the full conversation thread will be included in quotes. All emails open in Mutt for user sign-off before sending.",
           "inputSchema": {
             "properties": {
-              "config_file": {
+              "to": {
+                "default": "",
+                "description": "Recipient email address. Required for compose/forward, auto-populated for reply.",
+                "title": "To",
+                "type": "string"
+              },
+              "subject": {
+                "default": "",
+                "description": "The subject line of the email.",
+                "title": "Subject",
+                "type": "string"
+              },
+              "body": {
+                "default": "",
+                "description": "Email body text. For reply/forward, added above quoted/forwarded content.",
+                "title": "Body",
+                "type": "string"
+              },
+              "cc": {
                 "default": null,
+                "description": "Email address for the 'Cc' (carbon copy) field.",
+                "title": "Cc",
+                "type": "string"
+              },
+              "bcc": {
+                "default": null,
+                "description": "Email address for the 'Bcc' (blind carbon copy) field.",
+                "title": "Bcc",
+                "type": "string"
+              },
+              "attachments": {
+                "default": null,
+                "description": "A list of local file paths to attach to the email.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Attachments",
+                "type": "array"
+              },
+              "message_id": {
+                "default": null,
+                "description": "For reply/forward: the notmuch message ID of the email to reply to or forward.",
+                "title": "Message Id",
+                "type": "string"
+              },
+              "mode": {
+                "default": "compose",
+                "description": "Email mode: 'compose' (new email), 'reply', or 'forward'.",
+                "title": "Mode",
+                "type": "string"
+              },
+              "reply_all": {
+                "default": false,
+                "description": "For reply mode: if True, reply to all recipients (To and Cc).",
+                "title": "Reply All",
+                "type": "boolean"
+              },
+              "thread_context": {
+                "default": 5,
+                "description": "For reply mode: number of previous thread messages to include (0 to disable, -1 for all).",
+                "title": "Thread Context",
+                "type": "integer"
+              }
+            },
+            "title": "sendArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Generic operation result.",
+            "properties": {
+              "status": {
+                "description": "The outcome status of the operation.",
+                "enum": [
+                  "success",
+                  "error",
+                  "warning",
+                  "cancelled"
+                ],
+                "title": "Status",
+                "type": "string"
+              },
+              "message": {
+                "description": "Human-readable description of the operation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "data": {
+                "additionalProperties": true,
+                "description": "Additional structured data related to the operation.",
+                "title": "Data",
+                "type": "object"
+              }
+            },
+            "required": [
+              "status",
+              "message"
+            ],
+            "title": "OperationResult",
+            "type": "object"
+          }
+        },
+        "contacts": {
+          "name": "contacts",
+          "description": "Manage Mutt address book contacts. Actions: 'find' (search), 'add' (create), 'remove' (delete). Find uses fuzzy matching on alias/name/email.",
+          "inputSchema": {
+            "properties": {
+              "action": {
+                "description": "Action: 'find' (search contacts), 'add' (create contact), 'remove' (delete contact).",
+                "enum": [
+                  "find",
+                  "add",
+                  "remove"
+                ],
+                "title": "Action",
+                "type": "string"
+              },
+              "query": {
+                "default": "",
+                "description": "For 'find': search term. For 'add'/'remove': the alias.",
+                "title": "Query",
+                "type": "string"
+              },
+              "email": {
+                "default": "",
+                "description": "For 'add': the email address.",
+                "title": "Email",
+                "type": "string"
+              },
+              "name": {
+                "default": "",
+                "description": "For 'add': optional display name.",
+                "title": "Name",
+                "type": "string"
+              },
+              "max_results": {
+                "default": 10,
+                "description": "For 'find': maximum results to return.",
+                "exclusiveMinimum": 0,
+                "title": "Max Results",
+                "type": "integer"
+              },
+              "config_file": {
+                "default": "",
+                "description": "Optional path to mutt config file.",
                 "title": "Config File",
                 "type": "string"
               }
             },
-            "title": "server_infoArguments",
+            "required": [
+              "action"
+            ],
+            "title": "contactsArguments",
             "type": "object"
           },
           "outputSchema": {
+            "$defs": {
+              "Contact": {
+                "description": "Contact information.",
+                "properties": {
+                  "alias": {
+                    "title": "Alias",
+                    "type": "string"
+                  },
+                  "email": {
+                    "title": "Email",
+                    "type": "string"
+                  },
+                  "name": {
+                    "default": "",
+                    "title": "Name",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "alias",
+                  "email"
+                ],
+                "title": "Contact",
+                "type": "object"
+              }
+            },
+            "description": "Result of contact operation.",
+            "properties": {
+              "action": {
+                "title": "Action",
+                "type": "string"
+              },
+              "message": {
+                "title": "Message",
+                "type": "string"
+              },
+              "matches": {
+                "items": {
+                  "$ref": "#/$defs/Contact"
+                },
+                "title": "Matches",
+                "type": "array"
+              }
+            },
+            "required": [
+              "action",
+              "message"
+            ],
+            "title": "ContactResult",
+            "type": "object"
+          }
+        },
+        "search": {
+          "name": "search",
+          "description": "Search emails using notmuch query language. Supports sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators.",
+          "inputSchema": {
+            "properties": {
+              "query": {
+                "description": "A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'.",
+                "title": "Query",
+                "type": "string"
+              },
+              "limit": {
+                "default": 100,
+                "description": "The maximum number of message IDs to return.",
+                "exclusiveMinimum": 0,
+                "title": "Limit",
+                "type": "integer"
+              },
+              "offset": {
+                "default": 0,
+                "description": "Number of results to skip for pagination.",
+                "minimum": 0,
+                "title": "Offset",
+                "type": "integer"
+              },
+              "include_excluded": {
+                "default": false,
+                "description": "Include emails with excluded tags (spam, deleted) that are normally hidden.",
+                "title": "Include Excluded",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "searchArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "$defs": {
+              "SearchResult": {
+                "description": "Structured search result for a single email.",
+                "properties": {
+                  "id": {
+                    "description": "The unique message ID of the email.",
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "subject": {
+                    "description": "The subject line of the email.",
+                    "title": "Subject",
+                    "type": "string"
+                  },
+                  "from_address": {
+                    "description": "The sender's email address and name.",
+                    "title": "From Address",
+                    "type": "string"
+                  },
+                  "to_address": {
+                    "default": "",
+                    "description": "The primary recipient's email address (empty if not available).",
+                    "title": "To Address",
+                    "type": "string"
+                  },
+                  "date": {
+                    "default": "",
+                    "description": "The date the email was sent (empty if not available).",
+                    "title": "Date",
+                    "type": "string"
+                  },
+                  "tags": {
+                    "description": "Tags associated with this email.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Tags",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "id",
+                  "subject",
+                  "from_address"
+                ],
+                "title": "SearchResult",
+                "type": "object"
+              }
+            },
             "properties": {
               "result": {
+                "items": {
+                  "$ref": "#/$defs/SearchResult"
+                },
                 "title": "Result",
-                "type": "string"
+                "type": "array"
               }
             },
             "required": [
               "result"
             ],
-            "title": "server_infoOutput",
+            "title": "searchOutput",
+            "type": "object"
+          }
+        },
+        "show": {
+          "name": "show",
+          "description": "Display email content with optimized token efficiency. Uses advanced libraries (email-reply-parser, selectolax, inscriptis) for clean text extraction with minimal token usage. Supports progressive rendering modes to control output verbosity. Optionally saves body and attachments to files.",
+          "inputSchema": {
+            "properties": {
+              "query": {
+                "description": "A notmuch query to select the email(s) to display. Typically an 'id:<message-id>' query for a single email.",
+                "title": "Query",
+                "type": "string"
+              },
+              "mode": {
+                "default": "full",
+                "description": "Rendering mode: 'headers' (metadata only), 'summary' (first 2000 chars), or 'full' (complete optimized content)",
+                "title": "Mode",
+                "type": "string"
+              },
+              "limit": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum number of emails to return (helps prevent token overflow). If None, returns all emails.",
+                "title": "Limit"
+              },
+              "include_excluded": {
+                "default": false,
+                "description": "Include emails with excluded tags (spam, deleted) that are normally hidden by notmuch.",
+                "title": "Include Excluded",
+                "type": "boolean"
+              },
+              "save_attachments_to": {
+                "default": "",
+                "description": "Directory to save email body and attachments to. Body saved as .txt/.html, attachments saved with original filenames. Paths returned in saved_files field.",
+                "title": "Save Attachments To",
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "showArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "$defs": {
+              "EmailContent": {
+                "description": "Structured representation of a single email's content.",
+                "properties": {
+                  "id": {
+                    "description": "The unique message ID of the email.",
+                    "title": "Id",
+                    "type": "string"
+                  },
+                  "subject": {
+                    "description": "The subject line of the email.",
+                    "title": "Subject",
+                    "type": "string"
+                  },
+                  "from_address": {
+                    "description": "The sender's email address and name.",
+                    "title": "From Address",
+                    "type": "string"
+                  },
+                  "to_address": {
+                    "description": "The primary recipient's email address and name.",
+                    "title": "To Address",
+                    "type": "string"
+                  },
+                  "date": {
+                    "description": "The date the email was sent, in a human-readable format.",
+                    "title": "Date",
+                    "type": "string"
+                  },
+                  "tags": {
+                    "description": "A list of notmuch tags associated with the email.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Tags",
+                    "type": "array"
+                  },
+                  "body_markdown": {
+                    "description": "The body of the email, converted to Markdown for best LLM comprehension. Preserves lists, tables, links, and formatting.",
+                    "title": "Body Markdown",
+                    "type": "string"
+                  },
+                  "body_format": {
+                    "description": "The original format of the body ('html' or 'text'). Indicates if the markdown was converted or is original plain text.",
+                    "title": "Body Format",
+                    "type": "string"
+                  },
+                  "attachments": {
+                    "description": "A list of filenames for any attachments in the email.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Attachments",
+                    "type": "array"
+                  },
+                  "saved_files": {
+                    "description": "Paths to saved files when save_attachments_to is used (body + attachments).",
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "Saved Files",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "id",
+                  "subject",
+                  "from_address",
+                  "to_address",
+                  "date",
+                  "tags",
+                  "body_markdown",
+                  "body_format"
+                ],
+                "title": "EmailContent",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "result": {
+                "items": {
+                  "$ref": "#/$defs/EmailContent"
+                },
+                "title": "Result",
+                "type": "array"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "showOutput",
+            "type": "object"
+          }
+        },
+        "tag": {
+          "name": "tag",
+          "description": "Add or remove tags from emails by message ID. Primary method for organizing emails in notmuch.",
+          "inputSchema": {
+            "properties": {
+              "message_id": {
+                "description": "The notmuch message ID of the email to modify.",
+                "title": "Message Id",
+                "type": "string"
+              },
+              "add_tags": {
+                "description": "A list of tags to add to the email.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Add Tags",
+                "type": "array"
+              },
+              "remove_tags": {
+                "description": "A list of tags to remove from the email.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Remove Tags",
+                "type": "array"
+              }
+            },
+            "required": [
+              "message_id"
+            ],
+            "title": "tagArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of tag operation.",
+            "properties": {
+              "message_id": {
+                "description": "The notmuch message ID that was tagged.",
+                "title": "Message Id",
+                "type": "string"
+              },
+              "added_tags": {
+                "description": "A list of tags that were added to the message.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Added Tags",
+                "type": "array"
+              },
+              "removed_tags": {
+                "description": "A list of tags that were removed from the message.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Removed Tags",
+                "type": "array"
+              }
+            },
+            "required": [
+              "message_id",
+              "added_tags",
+              "removed_tags"
+            ],
+            "title": "TagResult",
+            "type": "object"
+          }
+        },
+        "move": {
+          "name": "move",
+          "description": "Moves emails to an existing maildir folder (e.g., 'Trash', 'Archive'). Automatically finds the correct folder within the same email account (e.g., 'Hermes/Archive' for emails from 'Hermes/INBOX'). Will not create new folders - only moves to existing ones.",
+          "inputSchema": {
+            "properties": {
+              "message_ids": {
+                "description": "A list of notmuch message IDs for the emails to be moved.",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "title": "Message Ids",
+                "type": "array"
+              },
+              "destination_folder": {
+                "description": "The destination maildir folder name (e.g., 'Trash', 'Archive'). Must be an existing folder. The tool will find the appropriate folder within the same email account.",
+                "title": "Destination Folder",
+                "type": "string"
+              }
+            },
+            "required": [
+              "message_ids",
+              "destination_folder"
+            ],
+            "title": "moveArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of a successful email move operation.",
+            "properties": {
+              "message_ids": {
+                "description": "The list of message IDs that were targeted for moving.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Message Ids",
+                "type": "array"
+              },
+              "destination_folder": {
+                "description": "The maildir folder the emails were moved to.",
+                "title": "Destination Folder",
+                "type": "string"
+              },
+              "moved_files_count": {
+                "description": "The number of email files successfully moved.",
+                "title": "Moved Files Count",
+                "type": "integer"
+              },
+              "status": {
+                "description": "A summary of the move operation.",
+                "title": "Status",
+                "type": "string"
+              }
+            },
+            "required": [
+              "message_ids",
+              "destination_folder",
+              "moved_files_count",
+              "status"
+            ],
+            "title": "MoveResult",
+            "type": "object"
+          }
+        },
+        "sync": {
+          "name": "sync",
+          "description": "Unified email synchronization tool. Modes: 'full' (complete sync), 'quick' (new messages only), 'preview' (dry-run), 'status' (validate config), 'info' (show repo details). Use 'folders' param to sync specific folders only.",
+          "inputSchema": {
+            "properties": {
+              "mode": {
+                "default": "full",
+                "description": "Sync mode: 'full' (complete), 'quick' (fast, new only), 'preview' (dry-run), 'status' (validate config), 'info' (repo details).",
+                "enum": [
+                  "full",
+                  "quick",
+                  "preview",
+                  "status",
+                  "info"
+                ],
+                "title": "Mode",
+                "type": "string"
+              },
+              "account": {
+                "default": "",
+                "description": "Optional account name to sync. If omitted, all accounts are synced.",
+                "title": "Account",
+                "type": "string"
+              },
+              "folders": {
+                "default": "",
+                "description": "Comma-separated folder names to sync (e.g., 'INBOX,Sent'). If omitted, all folders are synced.",
+                "title": "Folders",
+                "type": "string"
+              },
+              "config_file": {
+                "default": "",
+                "description": "Optional path to offlineimap config. Defaults to ~/.offlineimaprc.",
+                "title": "Config File",
+                "type": "string"
+              },
+              "timeout_seconds": {
+                "default": 0,
+                "description": "Timeout in seconds (0 uses mode defaults: full=300, quick/preview=180, status=60, info=120).",
+                "minimum": 0,
+                "title": "Timeout Seconds",
+                "type": "integer"
+              }
+            },
+            "title": "syncArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Generic operation result.",
+            "properties": {
+              "status": {
+                "description": "The outcome status of the operation.",
+                "enum": [
+                  "success",
+                  "error",
+                  "warning",
+                  "cancelled"
+                ],
+                "title": "Status",
+                "type": "string"
+              },
+              "message": {
+                "description": "Human-readable description of the operation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "data": {
+                "additionalProperties": true,
+                "description": "Additional structured data related to the operation.",
+                "title": "Data",
+                "type": "object"
+              }
+            },
+            "required": [
+              "status",
+              "message"
+            ],
+            "title": "OperationResult",
+            "type": "object"
+          }
+        },
+        "list": {
+          "name": "list",
+          "description": "List email-related items. Types: 'tags' (notmuch tags), 'folders' (maildir folders), 'accounts' (msmtp send accounts).",
+          "inputSchema": {
+            "properties": {
+              "type": {
+                "description": "What to list: 'tags', 'folders', or 'accounts'.",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "title": "listArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "properties": {
+              "result": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Result",
+                "type": "array"
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "title": "listOutput",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/email/tool.py",
-      "source_hash": "445d35a0da35fe9b28085d0102043b02b974fb762c23bcc6cb08932ef1a0750c"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/email/tool.py",
+      "source_hash": "f104367003579bb6b41a1e94fa6a3fa0ef5e7aac45817f8e20e40ae206deed7a"
     },
-    "github": {
-      "name": "github",
+    "py2nb": {
+      "name": "py2nb",
       "functions": {
-        "monitor_pr_checks": {
-          "name": "monitor_pr_checks",
-          "description": "Continuously monitors the CI checks for a GitHub pull request, providing live updates. Specify the `pr_number` to watch. The tool reports the status of each check and automatically exits when all checks pass, any check fails, or the `timeout_minutes` is reached. Returns a log of the monitoring session.",
+        "py_to_notebook": {
+          "name": "py_to_notebook",
+          "description": "Converts a Python script to a Jupyter notebook. Supports comment syntax for markdown cells (#|), command cells (#!), and cell splits (#-). Returns structured conversion result.",
           "inputSchema": {
             "properties": {
-              "pr_number": {
-                "title": "Pr Number",
-                "type": "integer"
+              "script_path": {
+                "description": "Path to the Python script file to convert to a Jupyter notebook.",
+                "title": "Script Path",
+                "type": "string"
               },
-              "timeout_minutes": {
-                "default": 30,
-                "title": "Timeout Minutes",
-                "type": "integer"
+              "output_path": {
+                "default": "",
+                "description": "Path for the output notebook file. If empty, uses script name with .ipynb extension.",
+                "title": "Output Path",
+                "type": "string"
               },
-              "check_interval_seconds": {
-                "default": 30,
-                "title": "Check Interval Seconds",
-                "type": "integer"
+              "backup": {
+                "default": true,
+                "description": "If True, creates a backup of the original script file with .bak extension.",
+                "title": "Backup",
+                "type": "boolean"
               }
             },
             "required": [
-              "pr_number"
+              "script_path"
             ],
-            "title": "monitor_pr_checksArguments",
+            "title": "py_to_notebookArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Result of notebook conversion operation.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "success": {
+                "description": "Indicates if the conversion was successful.",
+                "title": "Success",
+                "type": "boolean"
+              },
+              "input_path": {
+                "description": "The absolute path of the source file.",
+                "title": "Input Path",
+                "type": "string"
+              },
+              "output_path": {
+                "description": "The absolute path of the newly created destination file.",
+                "title": "Output Path",
+                "type": "string"
+              },
+              "backup_path": {
+                "default": "",
+                "description": "The path to the backup of the original file (empty if none created).",
+                "title": "Backup Path",
+                "type": "string"
+              },
+              "message": {
+                "description": "A human-readable summary of the conversion result.",
+                "title": "Message",
                 "type": "string"
               }
             },
             "required": [
-              "result"
+              "success",
+              "input_path",
+              "output_path",
+              "message"
             ],
-            "title": "monitor_pr_checksOutput",
+            "title": "ConversionResult",
+            "type": "object"
+          }
+        },
+        "notebook_to_py": {
+          "name": "notebook_to_py",
+          "description": "Converts a Jupyter notebook to a Python script. Preserves markdown as #| comments, command cells as #! comments, and adds cell separators. Returns structured conversion result.",
+          "inputSchema": {
+            "properties": {
+              "notebook_path": {
+                "description": "Path to the Jupyter notebook file to convert to Python script.",
+                "title": "Notebook Path",
+                "type": "string"
+              },
+              "output_path": {
+                "default": "",
+                "description": "Path for the output Python script. If empty, uses notebook name with .py extension.",
+                "title": "Output Path",
+                "type": "string"
+              },
+              "validate_files": {
+                "default": true,
+                "description": "If True, validates the input notebook and output script for correct syntax.",
+                "title": "Validate Files",
+                "type": "boolean"
+              },
+              "backup": {
+                "default": true,
+                "description": "If True, creates a backup of the original notebook file with .bak extension.",
+                "title": "Backup",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "notebook_path"
+            ],
+            "title": "notebook_to_pyArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of notebook conversion operation.",
+            "properties": {
+              "success": {
+                "description": "Indicates if the conversion was successful.",
+                "title": "Success",
+                "type": "boolean"
+              },
+              "input_path": {
+                "description": "The absolute path of the source file.",
+                "title": "Input Path",
+                "type": "string"
+              },
+              "output_path": {
+                "description": "The absolute path of the newly created destination file.",
+                "title": "Output Path",
+                "type": "string"
+              },
+              "backup_path": {
+                "default": "",
+                "description": "The path to the backup of the original file (empty if none created).",
+                "title": "Backup Path",
+                "type": "string"
+              },
+              "message": {
+                "description": "A human-readable summary of the conversion result.",
+                "title": "Message",
+                "type": "string"
+              }
+            },
+            "required": [
+              "success",
+              "input_path",
+              "output_path",
+              "message"
+            ],
+            "title": "ConversionResult",
+            "type": "object"
+          }
+        },
+        "validate_notebook": {
+          "name": "validate_notebook",
+          "description": "Validates a notebook file structure and syntax. Returns structured validation result with status and error details.",
+          "inputSchema": {
+            "properties": {
+              "notebook_path": {
+                "description": "Path to the Jupyter notebook file to validate for correct structure and syntax.",
+                "title": "Notebook Path",
+                "type": "string"
+              }
+            },
+            "required": [
+              "notebook_path"
+            ],
+            "title": "validate_notebookArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of file validation operation.",
+            "properties": {
+              "valid": {
+                "description": "Indicates if the file passed validation.",
+                "title": "Valid",
+                "type": "boolean"
+              },
+              "file_path": {
+                "description": "The path to the file that was validated.",
+                "title": "File Path",
+                "type": "string"
+              },
+              "message": {
+                "description": "A summary of the validation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "error_details": {
+                "default": "",
+                "description": "Detailed error information if validation failed (empty if none).",
+                "title": "Error Details",
+                "type": "string"
+              }
+            },
+            "required": [
+              "valid",
+              "file_path",
+              "message"
+            ],
+            "title": "ValidationResult",
+            "type": "object"
+          }
+        },
+        "validate_python": {
+          "name": "validate_python",
+          "description": "Validates a Python script file syntax. Returns structured validation result with status and error details.",
+          "inputSchema": {
+            "properties": {
+              "script_path": {
+                "description": "Path to the Python script file to validate for correct syntax.",
+                "title": "Script Path",
+                "type": "string"
+              }
+            },
+            "required": [
+              "script_path"
+            ],
+            "title": "validate_pythonArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of file validation operation.",
+            "properties": {
+              "valid": {
+                "description": "Indicates if the file passed validation.",
+                "title": "Valid",
+                "type": "boolean"
+              },
+              "file_path": {
+                "description": "The path to the file that was validated.",
+                "title": "File Path",
+                "type": "string"
+              },
+              "message": {
+                "description": "A summary of the validation result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "error_details": {
+                "default": "",
+                "description": "Detailed error information if validation failed (empty if none).",
+                "title": "Error Details",
+                "type": "string"
+              }
+            },
+            "required": [
+              "valid",
+              "file_path",
+              "message"
+            ],
+            "title": "ValidationResult",
+            "type": "object"
+          }
+        },
+        "test_roundtrip": {
+          "name": "test_roundtrip",
+          "description": "Performs round-trip conversion testing (py\u2192nb\u2192py) to verify conversion fidelity. Returns structured comparison results with difference details.",
+          "inputSchema": {
+            "properties": {
+              "script_path": {
+                "description": "Path to the Python script to test for round-trip conversion fidelity (py\u2192nb\u2192py).",
+                "title": "Script Path",
+                "type": "string"
+              },
+              "cleanup": {
+                "default": true,
+                "description": "If True, removes temporary files created during the round-trip test.",
+                "title": "Cleanup",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "script_path"
+            ],
+            "title": "test_roundtripArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of round-trip conversion testing.",
+            "properties": {
+              "success": {
+                "description": "Indicates if the round-trip conversion completed successfully.",
+                "title": "Success",
+                "type": "boolean"
+              },
+              "input_path": {
+                "description": "The path to the original file used for round-trip testing.",
+                "title": "Input Path",
+                "type": "string"
+              },
+              "differences_found": {
+                "description": "Whether any differences were detected between original and round-trip result.",
+                "title": "Differences Found",
+                "type": "boolean"
+              },
+              "message": {
+                "description": "A summary of the round-trip test result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "diff_output": {
+                "default": "",
+                "description": "Detailed diff output if differences were found (empty if none).",
+                "title": "Diff Output",
+                "type": "string"
+              },
+              "temporary_files_cleaned": {
+                "default": true,
+                "description": "Whether temporary files created during testing were cleaned up.",
+                "title": "Temporary Files Cleaned",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "success",
+              "input_path",
+              "differences_found",
+              "message"
+            ],
+            "title": "RoundtripResult",
             "type": "object"
           }
         },
         "server_info": {
           "name": "server_info",
-          "description": "Check GitHub CI Monitor server status and gh command availability",
+          "description": "Checks the status of the Notebook Conversion Tool server. Returns structured server information with capabilities.",
           "inputSchema": {
             "properties": {},
             "title": "server_infoArguments",
             "type": "object"
           },
           "outputSchema": {
+            "description": "Standardized server information across all tools.",
             "properties": {
-              "result": {
-                "title": "Result",
+              "name": {
+                "description": "The name of the MCP tool server.",
+                "title": "Name",
+                "type": "string"
+              },
+              "version": {
+                "description": "The version of the tool or its primary dependency.",
+                "title": "Version",
+                "type": "string"
+              },
+              "status": {
+                "description": "The operational status of the server (e.g., 'active', 'error').",
+                "title": "Status",
+                "type": "string"
+              },
+              "capabilities": {
+                "description": "A list of functions or features the tool provides.",
+                "items": {
+                  "type": "string"
+                },
+                "title": "Capabilities",
+                "type": "array"
+              },
+              "dependencies": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "A dictionary of dependencies and their versions or statuses.",
+                "title": "Dependencies",
+                "type": "object"
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "status"
+            ],
+            "title": "ServerInfo",
+            "type": "object"
+          }
+        },
+        "execute_notebook": {
+          "name": "execute_notebook",
+          "description": "Executes all cells in a Jupyter notebook and populates outputs as if a user ran every cell. Returns structured execution results with cell counts and timing.",
+          "inputSchema": {
+            "properties": {
+              "notebook_path": {
+                "description": "Path to the Jupyter notebook file to execute all cells.",
+                "title": "Notebook Path",
+                "type": "string"
+              },
+              "allow_errors": {
+                "default": false,
+                "description": "If True, continues execution even when cells raise exceptions.",
+                "title": "Allow Errors",
+                "type": "boolean"
+              },
+              "timeout": {
+                "default": 600,
+                "description": "Maximum time in seconds to wait for each cell to execute.",
+                "exclusiveMinimum": 0,
+                "title": "Timeout",
+                "type": "integer"
+              },
+              "kernel_name": {
+                "default": "python3",
+                "description": "Name of the Jupyter kernel to use for execution (e.g., 'python3', 'python').",
+                "title": "Kernel Name",
                 "type": "string"
               }
             },
             "required": [
-              "result"
+              "notebook_path"
             ],
-            "title": "server_infoOutput",
+            "title": "execute_notebookArguments",
+            "type": "object"
+          },
+          "outputSchema": {
+            "description": "Result of notebook execution operation.",
+            "properties": {
+              "success": {
+                "description": "Indicates if the notebook execution completed successfully.",
+                "title": "Success",
+                "type": "boolean"
+              },
+              "notebook_path": {
+                "description": "The path to the notebook that was executed.",
+                "title": "Notebook Path",
+                "type": "string"
+              },
+              "cells_executed": {
+                "description": "The total number of cells that were executed.",
+                "title": "Cells Executed",
+                "type": "integer"
+              },
+              "cells_with_errors": {
+                "description": "The number of cells that encountered errors during execution.",
+                "title": "Cells With Errors",
+                "type": "integer"
+              },
+              "execution_time_seconds": {
+                "description": "The total time taken to execute the notebook in seconds.",
+                "title": "Execution Time Seconds",
+                "type": "number"
+              },
+              "message": {
+                "description": "A summary of the execution result.",
+                "title": "Message",
+                "type": "string"
+              },
+              "error_details": {
+                "default": "",
+                "description": "Detailed error information if execution failed (empty if none).",
+                "title": "Error Details",
+                "type": "string"
+              },
+              "kernel_name": {
+                "default": "",
+                "description": "The name of the Jupyter kernel used for execution (empty if unknown).",
+                "title": "Kernel Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "success",
+              "notebook_path",
+              "cells_executed",
+              "cells_with_errors",
+              "execution_time_seconds",
+              "message"
+            ],
+            "title": "ExecutionResult",
             "type": "object"
           }
         }
       },
-      "source_file": "/home/will/code/mcp.4/src/mcp_handley_lab/github/tool.py",
-      "source_hash": "7b3a0d98ee9ac2914232235b2eeee05aa5c888fffe46f0b4202792c07b960fc8"
+      "source_file": "/home/will/tmp/mcp.1/src/mcp_handley_lab/py2nb/tool.py",
+      "source_hash": "785483b335da090fa5ca01a44c0fee4ee5c6501f451414a0c4418cd0c7e71425"
     }
   }
 }

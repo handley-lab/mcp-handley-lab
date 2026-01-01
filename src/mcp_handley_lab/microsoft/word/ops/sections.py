@@ -15,9 +15,9 @@ import re
 
 from lxml import etree
 
-from mcp_handley_lab.word.enums import WdSection
-from mcp_handley_lab.word.models import LineNumberingInfo, PageSetupInfo
-from mcp_handley_lab.word.opc.constants import qn
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.enums import WdSection
+from mcp_handley_lab.microsoft.word.models import LineNumberingInfo, PageSetupInfo
 
 # EMU per inch for unit conversions
 _EMU_PER_INCH = 914400

@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from mcp_handley_lab.word import document as word_ops
+from mcp_handley_lab.microsoft.word import document as word_ops
 
 if TYPE_CHECKING:
     pass
-from mcp_handley_lab.word.models import (
+from mcp_handley_lab.microsoft.word.models import (
     BookmarkInfo,
     CaptionInfo,
     CommentInfo,
@@ -26,7 +26,7 @@ from mcp_handley_lab.word.models import (
     TextBoxInfo,
     TOCInfo,
 )
-from mcp_handley_lab.word.opc import WordPackage
+from mcp_handley_lab.microsoft.word.package import WordPackage
 
 mcp = FastMCP("Word Document Tool")
 
@@ -136,7 +136,7 @@ def read(
         )
         return DocumentReadResult(block_count=block_count, blocks=blocks)
     if scope == "table_cells":
-        from mcp_handley_lab.word.opc.constants import qn
+        from mcp_handley_lab.microsoft.word.constants import qn
 
         t = word_ops.resolve_target(pkg, target_id)
         tbl_el = t.base_el if t.base_kind == "table" else t.leaf_el
@@ -223,7 +223,7 @@ def read(
             raise ValueError("target_id required for text_box_content scope")
         paragraphs = word_ops.read_text_box_content(pkg, target_id)
         # Return paragraphs as blocks for consistency
-        from mcp_handley_lab.word.models import Block
+        from mcp_handley_lab.microsoft.word.models import Block
 
         blocks = [
             Block(
@@ -263,7 +263,7 @@ def read(
         return DocumentReadResult(block_count=len(equations), equations=equations)
     if scope == "bibliography":
         sources = word_ops.build_sources(pkg)
-        from mcp_handley_lab.word.models import BibAuthor, BibSourceInfo
+        from mcp_handley_lab.microsoft.word.models import BibAuthor, BibSourceInfo
 
         bib_sources = [
             BibSourceInfo(
@@ -451,7 +451,7 @@ def edit(
         message = f"Completed {operation}"
 
         if operation == "create":
-            from mcp_handley_lab.word.opc.constants import qn
+            from mcp_handley_lab.microsoft.word.constants import qn
 
             # Create new document - if content_type provided, replace default paragraph
             if content_type:
@@ -806,7 +806,7 @@ def edit(
                 "heading8",
                 "heading9",
             ):
-                from mcp_handley_lab.word.opc.constants import qn
+                from mcp_handley_lab.microsoft.word.constants import qn
 
                 if t.leaf_el.tag != qn("w:p"):
                     raise ValueError(
@@ -1025,7 +1025,7 @@ def edit(
                 raise ValueError("target_id (paragraph ID) required for add_comment")
             target = word_ops.resolve_target(pkg, target_id)
             # Comments can only be added to paragraphs, not tables
-            from mcp_handley_lab.word.opc.constants import qn as _qn
+            from mcp_handley_lab.microsoft.word.constants import qn as _qn
 
             if target.leaf_el.tag != _qn("w:p"):
                 raise ValueError(
@@ -1085,7 +1085,7 @@ def edit(
             address = link_data.get("address", "")
             fragment = link_data.get("fragment", "")
             target = word_ops.resolve_target(pkg, target_id)
-            from mcp_handley_lab.word.opc.constants import qn as _qn
+            from mcp_handley_lab.microsoft.word.constants import qn as _qn
 
             # Get target paragraph - for cells, use first paragraph inside cell
             if target.leaf_kind == "cell":

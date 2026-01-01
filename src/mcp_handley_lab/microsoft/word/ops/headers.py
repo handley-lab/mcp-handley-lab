@@ -14,14 +14,16 @@ import json
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import HeaderFooterInfo
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.models import HeaderFooterInfo
+from mcp_handley_lab.microsoft.word.ops.core import (
     make_block_id,
     table_content_for_hash,
 )
-from mcp_handley_lab.word.ops.fields import insert_field  # noqa: F401 - re-export
-from mcp_handley_lab.word.ops.tables import populate_table
+from mcp_handley_lab.microsoft.word.ops.fields import (
+    insert_field,  # noqa: F401 - re-export
+)
+from mcp_handley_lab.microsoft.word.ops.tables import populate_table
 
 # EMU per inch for dimension calculations
 _EMU_PER_INCH = 914400
@@ -458,7 +460,7 @@ def append_to_header_footer(
         return make_block_id("paragraph", content_data, occurrence)
 
     if content_type == "table":
-        from mcp_handley_lab.word.ops.tables import _create_table_element
+        from mcp_handley_lab.microsoft.word.ops.tables import _create_table_element
 
         table_data = json.loads(content_data)
         rows = len(table_data)

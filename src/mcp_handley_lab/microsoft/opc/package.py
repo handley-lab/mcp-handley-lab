@@ -1,26 +1,28 @@
-"""WordPackage - general OPC package for Word documents."""
+"""OpcPackage - generic Open Packaging Conventions package.
+
+Base class for all OOXML packages (.docx, .xlsx, .pptx).
+Provides generic part API without format-specific logic.
+"""
 
 from __future__ import annotations
 
-import mimetypes
 import os
 import tempfile
 import zipfile
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
-from posixpath import normpath
+from posixpath import basename, dirname, normpath
 from typing import BinaryIO
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import CT, RT, qn
-from mcp_handley_lab.word.opc.content_types import ContentTypeMap
-from mcp_handley_lab.word.opc.relationships import Relationships
+from mcp_handley_lab.microsoft.opc.content_types import ContentTypeMap
+from mcp_handley_lab.microsoft.opc.relationships import Relationships
 
 
-class WordPackage:
-    """In-memory representation of a .docx package.
+class OpcPackage:
+    """In-memory representation of an OPC package.
 
     Provides general part API:
     - get_xml(partname) / set_xml(partname, root) - XML parts
@@ -31,12 +33,12 @@ class WordPackage:
     Uses dirty tracking to minimize serialization on save.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, defaults: dict[str, str] | None = None) -> None:
         self._bytes: dict[str, bytes] = {}  # Original bytes from ZIP
         self._xml: dict[str, etree._Element] = {}  # Parsed XML (lazy)
         self._dirty_xml: set[str] = set()  # Partnames with modified XML
         self._dirty_bytes: set[str] = set()  # Partnames with new/modified bytes
-        self._content_types = ContentTypeMap()
+        self._content_types = ContentTypeMap(defaults)
         self._pkg_rels = Relationships()  # /_rels/.rels
         self._part_rels: dict[str, Relationships] = {}  # partname -> Relationships
         self._dirty_rels: set[str] = set()  # Partnames with modified relationships
@@ -89,6 +91,10 @@ class WordPackage:
         """Iterate all partnames."""
         return iter(self._bytes.keys())
 
+    def get_content_type(self, partname: str) -> str:
+        """Get content type for a part."""
+        return self._content_types[partname]
+
     def drop_part(self, partname: str) -> None:
         """Remove a part and its relationships."""
         self._bytes.pop(partname, None)
@@ -97,14 +103,22 @@ class WordPackage:
         self._dirty_xml.discard(partname)
         self._dirty_bytes.discard(partname)
         self._dirty_rels.discard(partname)
-        self._content_types._overrides.pop(partname, None)
+        self._content_types.drop_override(partname)
 
     # === Relationships API ===
 
+    def get_pkg_rels(self) -> Relationships:
+        """Get package-level relationships (/_rels/.rels)."""
+        return self._pkg_rels
+
+    def relate_from_package(
+        self, target: str, reltype: str, *, is_external: bool = False
+    ) -> str:
+        """Add relationship from package root. Returns rId."""
+        return self._pkg_rels.get_or_add(reltype, target, is_external)
+
     def get_rels(self, partname: str) -> Relationships:
         """Get relationships for any part. Creates empty if not exists."""
-        from posixpath import dirname
-
         if partname not in self._part_rels:
             rels_path = self._rels_path_for(partname)
             if rels_path in self._bytes:
@@ -136,8 +150,6 @@ class WordPackage:
         Handles relative paths (e.g., "media/image1.png" from /word/document.xml).
         Returns normalized absolute partname starting with "/".
         """
-        from posixpath import dirname
-
         rels = self.get_rels(partname)
         rel = rels.get(rId)
         if not rel:
@@ -152,82 +164,17 @@ class WordPackage:
             resolved = "/" + resolved
         return resolved
 
-    # === Convenience Properties ===
-
-    @property
-    def document_xml(self) -> etree._Element:
-        return self.get_xml("/word/document.xml")
-
-    @property
-    def styles_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/styles.xml")
-            if self.has_part("/word/styles.xml")
-            else None
-        )
-
-    @property
-    def numbering_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/numbering.xml")
-            if self.has_part("/word/numbering.xml")
-            else None
-        )
-
-    @property
-    def settings_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/settings.xml")
-            if self.has_part("/word/settings.xml")
-            else None
-        )
-
-    @property
-    def comments_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/comments.xml")
-            if self.has_part("/word/comments.xml")
-            else None
-        )
-
-    @property
-    def footnotes_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/footnotes.xml")
-            if self.has_part("/word/footnotes.xml")
-            else None
-        )
-
-    @property
-    def endnotes_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/endnotes.xml")
-            if self.has_part("/word/endnotes.xml")
-            else None
-        )
-
-    @property
-    def body(self) -> etree._Element:
-        return self.document_xml.find(qn("w:body"))
-
     # === Loading ===
 
     @classmethod
-    def open(cls, file: str | Path | BinaryIO) -> WordPackage:
-        """Open a .docx file."""
+    def open(cls, file: str | Path | BinaryIO) -> OpcPackage:
+        """Open an OPC package file."""
         pkg = cls()
         if isinstance(file, str | Path):
             with open(file, "rb") as f:
                 pkg._load_from_stream(f)
         else:
             pkg._load_from_stream(file)
-        return pkg
-
-    @classmethod
-    def new(cls) -> WordPackage:
-        """Create a new empty Word document."""
-        pkg = cls()
-        pkg._create_minimal_document()
         return pkg
 
     def _load_from_stream(self, stream: BinaryIO) -> None:
@@ -247,96 +194,10 @@ class WordPackage:
         if "/_rels/.rels" in self._bytes:
             self._pkg_rels = Relationships.from_xml(self._bytes["/_rels/.rels"])
 
-    def _create_minimal_document(self) -> None:
-        """Create minimal valid Word document structure.
-
-        Creates document.xml, styles.xml, settings.xml, and core.xml
-        for a document that reliably opens in Microsoft Word.
-        """
-        w_ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-        r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-
-        # Document XML
-        doc_nsmap = {None: w_ns, "r": r_ns}
-        document = etree.Element(qn("w:document"), nsmap=doc_nsmap)
-        body = etree.SubElement(document, qn("w:body"))
-        p = etree.SubElement(body, qn("w:p"))
-        etree.SubElement(p, qn("w:r"))
-
-        # Section properties with page size and margins
-        sectPr = body.find(qn("w:sectPr"))
-        if sectPr is None:
-            sectPr = etree.SubElement(body, qn("w:sectPr"))
-        pgSz = etree.SubElement(sectPr, qn("w:pgSz"))
-        pgSz.set(qn("w:w"), "12240")  # 8.5 inches in twips
-        pgSz.set(qn("w:h"), "15840")  # 11 inches in twips
-        pgMar = etree.SubElement(sectPr, qn("w:pgMar"))
-        pgMar.set(qn("w:top"), "1440")  # 1 inch
-        pgMar.set(qn("w:right"), "1440")
-        pgMar.set(qn("w:bottom"), "1440")
-        pgMar.set(qn("w:left"), "1440")
-        pgMar.set(qn("w:header"), "720")  # 0.5 inch
-        pgMar.set(qn("w:footer"), "720")
-        pgMar.set(qn("w:gutter"), "0")
-
-        self._xml["/word/document.xml"] = document
-        self._bytes["/word/document.xml"] = b""
-        self._dirty_xml.add("/word/document.xml")
-        self._content_types["/word/document.xml"] = CT.WML_DOCUMENT_MAIN
-
-        # Styles XML (minimal)
-        styles_nsmap = {None: w_ns}
-        styles = etree.Element(qn("w:styles"), nsmap=styles_nsmap)
-        # Add Normal style
-        normal = etree.SubElement(styles, qn("w:style"))
-        normal.set(qn("w:type"), "paragraph")
-        normal.set(qn("w:styleId"), "Normal")
-        normal.set(qn("w:default"), "1")
-        name_el = etree.SubElement(normal, qn("w:name"))
-        name_el.set(qn("w:val"), "Normal")
-        self._xml["/word/styles.xml"] = styles
-        self._bytes["/word/styles.xml"] = b""
-        self._dirty_xml.add("/word/styles.xml")
-        self._content_types["/word/styles.xml"] = CT.WML_STYLES
-
-        # Settings XML (minimal)
-        settings = etree.Element(qn("w:settings"), nsmap=styles_nsmap)
-        self._xml["/word/settings.xml"] = settings
-        self._bytes["/word/settings.xml"] = b""
-        self._dirty_xml.add("/word/settings.xml")
-        self._content_types["/word/settings.xml"] = CT.WML_SETTINGS
-
-        # Core properties (docProps/core.xml)
-        ns_cp = (
-            "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
-        )
-        ns_dc = "http://purl.org/dc/elements/1.1/"
-        ns_dcterms = "http://purl.org/dc/terms/"
-        ns_xsi = "http://www.w3.org/2001/XMLSchema-instance"
-        core_nsmap = {"cp": ns_cp, "dc": ns_dc, "dcterms": ns_dcterms, "xsi": ns_xsi}
-        core = etree.Element(f"{{{ns_cp}}}coreProperties", nsmap=core_nsmap)
-        etree.SubElement(core, f"{{{ns_dc}}}title")
-        etree.SubElement(core, f"{{{ns_dc}}}creator")
-        etree.SubElement(core, f"{{{ns_cp}}}revision").text = "1"
-        self._xml["/docProps/core.xml"] = core
-        self._bytes["/docProps/core.xml"] = b""
-        self._dirty_xml.add("/docProps/core.xml")
-        self._content_types["/docProps/core.xml"] = CT.OPC_CORE_PROPERTIES
-
-        # Package relationships
-        self._pkg_rels.add(RT.OFFICE_DOCUMENT, "word/document.xml")
-        self._pkg_rels.add(RT.CORE_PROPERTIES, "docProps/core.xml")
-
-        # Document relationships to styles and settings
-        doc_rels = self.get_rels("/word/document.xml")
-        doc_rels.add(RT.STYLES, "styles.xml")
-        doc_rels.add(RT.SETTINGS, "settings.xml")
-        self._dirty_rels.add("/word/document.xml")
-
     # === Saving ===
 
     def save(self, file: str | Path | BinaryIO) -> None:
-        """Save package to .docx file. Uses atomic write for file paths."""
+        """Save package to file. Uses atomic write for file paths."""
         stream = BytesIO()
 
         with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as z:
@@ -388,7 +249,9 @@ class WordPackage:
         # Atomic write for file paths
         if isinstance(file, str | Path):
             file_path = Path(file)
-            fd, temp_path = tempfile.mkstemp(suffix=".docx", dir=file_path.parent)
+            fd, temp_path = tempfile.mkstemp(
+                suffix=file_path.suffix or ".pkg", dir=file_path.parent
+            )
             try:
                 os.write(fd, stream.getvalue())
                 os.close(fd)
@@ -404,48 +267,6 @@ class WordPackage:
     @staticmethod
     def _rels_path_for(partname: str) -> str:
         """Compute .rels path: /word/document.xml -> /word/_rels/document.xml.rels"""
-        # Use posixpath for OPC paths (always forward slashes regardless of platform)
-        from posixpath import basename, dirname
-
         parent = dirname(partname)
         name = basename(partname)
         return f"{parent}/_rels/{name}.rels"
-
-    # === Image Helpers ===
-
-    # Common image types that may not be in mimetypes database
-    _IMAGE_TYPES = {
-        "png": "image/png",
-        "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-        "gif": "image/gif",
-        "bmp": "image/bmp",
-        "tiff": "image/tiff",
-        "tif": "image/tiff",
-        "webp": "image/webp",
-        "svg": "image/svg+xml",
-        "emf": "image/x-emf",
-        "wmf": "image/x-wmf",
-    }
-
-    def add_image(self, image_bytes: bytes, ext: str = "png") -> str:
-        """Add image to package and return rId from document.xml."""
-        ext = ext.lower().lstrip(".")
-        content_type, _ = mimetypes.guess_type(f"file.{ext}")
-        if not content_type:
-            content_type = self._IMAGE_TYPES.get(ext)
-            if not content_type:
-                raise ValueError(f"Unknown image extension: {ext!r}")
-
-        # Find next image number
-        n = 1
-        while self.has_part(f"/word/media/image{n}.{ext}"):
-            n += 1
-
-        partname = f"/word/media/image{n}.{ext}"
-        self.set_bytes(partname, image_bytes)
-        self._content_types.add_default(ext, content_type)
-
-        # Add relationship from document.xml
-        target = f"media/image{n}.{ext}"
-        return self.relate_to("/word/document.xml", target, RT.IMAGE)

@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import mark_dirty
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.ops.core import mark_dirty
 
 if TYPE_CHECKING:
     pass

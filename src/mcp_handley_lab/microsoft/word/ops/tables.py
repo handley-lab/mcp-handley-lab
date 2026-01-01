@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import CellInfo, RowInfo, TableLayoutInfo
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import _insert_at, get_cell_text
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.models import CellInfo, RowInfo, TableLayoutInfo
+from mcp_handley_lab.microsoft.word.ops.core import _insert_at, get_cell_text
 
 # Element tag constants
 _W_TR = qn("w:tr")

@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import NSMAP, qn
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import NSMAP, qn
+from mcp_handley_lab.microsoft.word.ops.core import (
     content_hash,
     get_paragraph_text,
     make_block_id,

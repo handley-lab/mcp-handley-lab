@@ -14,8 +14,8 @@ import re
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.ops.core import (
     count_occurrence,
     get_paragraph_style,
     get_paragraph_text,
@@ -25,8 +25,8 @@ from mcp_handley_lab.word.ops.core import (
     paragraph_kind_and_level,
     resolve_target,
 )
-from mcp_handley_lab.word.ops.headers import insert_field
-from mcp_handley_lab.word.ops.revisions import _rev_xpath
+from mcp_handley_lab.microsoft.word.ops.headers import insert_field
+from mcp_handley_lab.microsoft.word.ops.revisions import _rev_xpath
 
 # =============================================================================
 # Constants

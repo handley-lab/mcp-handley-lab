@@ -19,8 +19,8 @@ from dataclasses import dataclass
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import Block
-from mcp_handley_lab.word.opc.constants import NSMAP, qn
+from mcp_handley_lab.microsoft.word.constants import NSMAP, qn
+from mcp_handley_lab.microsoft.word.models import Block
 
 # Element tag constants for pure OOXML
 _W_P = qn("w:p")
@@ -455,7 +455,7 @@ def build_blocks(
     Uses content-hash IDs: {type}_{hash}_{occurrence}
     """
     # Import here to avoid circular dependency (table_to_markdown is in tables.py)
-    from mcp_handley_lab.word.ops.tables import table_to_markdown
+    from mcp_handley_lab.microsoft.word.ops.tables import table_to_markdown
 
     blocks = []
     matched = 0
@@ -825,7 +825,7 @@ def insert_content_ooxml(
 
     Returns the new element (w:p or w:tbl).
     """
-    from mcp_handley_lab.word.ops.tables import insert_table_relative
+    from mcp_handley_lab.microsoft.word.ops.tables import insert_table_relative
 
     if content_type == "paragraph":
         el = insert_paragraph_relative(target_el, content_data, style_name, position)
@@ -861,7 +861,10 @@ def append_content_ooxml(
 
     Returns the new element (w:p or w:tbl).
     """
-    from mcp_handley_lab.word.ops.tables import _create_table_element, populate_table
+    from mcp_handley_lab.microsoft.word.ops.tables import (
+        _create_table_element,
+        populate_table,
+    )
 
     if content_type == "paragraph":
         return append_paragraph_ooxml(pkg, content_data, style_name)

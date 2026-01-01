@@ -17,12 +17,12 @@ from typing import TYPE_CHECKING
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
 
-from mcp_handley_lab.word.opc.constants import qn
+from mcp_handley_lab.microsoft.word.constants import qn
 
 if TYPE_CHECKING:
     pass
 
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.ops.core import (
     count_occurrence,
     get_paragraph_text,
     make_block_id,

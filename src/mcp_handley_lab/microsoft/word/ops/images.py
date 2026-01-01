@@ -17,10 +17,10 @@ import random
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
 
-from mcp_handley_lab.word.models import ImageInfo
-from mcp_handley_lab.word.opc.constants import NSMAP as OXML_NSMAP
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import NSMAP as OXML_NSMAP
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.models import ImageInfo
+from mcp_handley_lab.microsoft.word.ops.core import (
     _EMU_PER_INCH,
     _IMAGE_ID_RE,
     _iter_all_paragraphs,
@@ -170,7 +170,7 @@ def _get_image_content_type_ooxml(pkg, rel_id: str) -> str:
     if not target.startswith("/"):
         target = f"/word/{target}"
 
-    return pkg._content_types[target]
+    return pkg.get_content_type(target)
 
 
 def _get_image_filename_ooxml(rel_target: str) -> str:

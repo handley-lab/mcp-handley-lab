@@ -15,8 +15,8 @@ from datetime import datetime, timezone
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import CommentInfo
-from mcp_handley_lab.word.opc.constants import qn
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.models import CommentInfo
 
 # =============================================================================
 # Constants

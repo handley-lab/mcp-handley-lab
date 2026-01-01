@@ -1,6 +1,9 @@
-"""Namespaces, content types, and relationship types for OOXML."""
+"""Word-specific namespaces, content types, and relationship types."""
 
-# Namespace mapping - from python-docx oxml/ns.py
+from mcp_handley_lab.microsoft.opc.constants import CT as OPC_CT
+from mcp_handley_lab.microsoft.opc.constants import RT as OPC_RT
+
+# Word namespace mapping
 NSMAP = {
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
     "b": "http://schemas.openxmlformats.org/officeDocument/2006/bibliography",
@@ -45,18 +48,8 @@ def qn(tag: str) -> str:
     return f"{{{NSMAP[prefix]}}}{local}"
 
 
-class CT:
-    """Content type constants."""
-
-    # Package-level
-    OPC_CORE_PROPERTIES = "application/vnd.openxmlformats-package.core-properties+xml"
-    OPC_RELATIONSHIPS = "application/vnd.openxmlformats-package.relationships+xml"
-    OPC_CUSTOM_PROPERTIES = (
-        "application/vnd.openxmlformats-officedocument.custom-properties+xml"
-    )
-    OPC_EXTENDED_PROPERTIES = (
-        "application/vnd.openxmlformats-officedocument.extended-properties+xml"
-    )
+class CT(OPC_CT):
+    """Content type constants - Word-specific."""
 
     # Word-specific
     WML_DOCUMENT_MAIN = (
@@ -98,43 +91,15 @@ class CT:
         "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml"
     )
 
-    # Generic XML
-    XML = "application/xml"
-
     # CustomXml (for bibliography sources, etc.)
     CUSTOM_XML = "application/vnd.openxmlformats-officedocument.customXml+xml"
     CUSTOM_XML_PROPS = (
         "application/vnd.openxmlformats-officedocument.customXmlProperties+xml"
     )
 
-    # Images
-    PNG = "image/png"
-    JPEG = "image/jpeg"
-    GIF = "image/gif"
-    TIFF = "image/tiff"
-    BMP = "image/bmp"
 
-
-class RT:
-    """Relationship type constants."""
-
-    # Package-level
-    CORE_PROPERTIES = (
-        "http://schemas.openxmlformats.org/package/2006/relationships/"
-        "metadata/core-properties"
-    )
-    EXTENDED_PROPERTIES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
-        "extended-properties"
-    )
-    CUSTOM_PROPERTIES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
-        "custom-properties"
-    )
-    OFFICE_DOCUMENT = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
-        "officeDocument"
-    )
+class RT(OPC_RT):
+    """Relationship type constants - Word-specific."""
 
     # Word-specific
     COMMENTS = (
@@ -158,7 +123,6 @@ class RT:
     HYPERLINK = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
     )
-    IMAGE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
     NUMBERING = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"
     )
@@ -175,7 +139,6 @@ class RT:
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
         "webSettings"
     )
-    THEME = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"
 
     # CustomXml (for bibliography sources, etc.)
     CUSTOM_XML = (
@@ -185,17 +148,3 @@ class RT:
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
         "customXmlProps"
     )
-
-
-# Default content types by extension
-DEFAULT_CONTENT_TYPES = {
-    "rels": CT.OPC_RELATIONSHIPS,
-    "xml": CT.XML,
-    "png": CT.PNG,
-    "jpeg": CT.JPEG,
-    "jpg": CT.JPEG,
-    "gif": CT.GIF,
-    "tiff": CT.TIFF,
-    "tif": CT.TIFF,
-    "bmp": CT.BMP,
-}

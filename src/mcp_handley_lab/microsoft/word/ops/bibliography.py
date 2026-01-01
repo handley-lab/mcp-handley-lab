@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import CT, NSMAP, RT, qn
+from mcp_handley_lab.microsoft.word.constants import CT, NSMAP, RT, qn
 
 if TYPE_CHECKING:
-    from mcp_handley_lab.word.opc.package import WordPackage
+    from mcp_handley_lab.microsoft.word.package import WordPackage
 
 # Bibliography namespace
 NS_BIB = NSMAP["b"]
@@ -69,18 +69,19 @@ def _find_sources_part(pkg: WordPackage) -> tuple[str, etree._Element] | None:
         Tuple of (part_path, sources_element) or None if not found.
     """
     # Get package-level relationships to find customXml parts
-    pkg_rels_path = "/_rels/.rels"
-    pkg_rels = pkg._get_relationships(pkg_rels_path)
+    pkg_rels = pkg.get_pkg_rels()
 
-    for rel in pkg_rels:
-        if rel.get("Type") == RT.CUSTOM_XML:
-            target = rel.get("Target", "")
+    for rel in pkg_rels.values():
+        if rel.reltype == RT.CUSTOM_XML:
+            target = rel.target
             # Normalize path
             part_path = f"/{target}" if not target.startswith("/") else target
 
             # Try to parse and check root element by namespace URI + localname
             try:
-                xml_el = pkg._get_xml(part_path)
+                if not pkg.has_part(part_path):
+                    continue
+                xml_el = pkg.get_xml(part_path)
                 if xml_el is not None and xml_el.tag == f"{{{NS_BIB}}}Sources":
                     return part_path, xml_el
             except (KeyError, etree.XMLSyntaxError):
@@ -102,12 +103,11 @@ def _create_sources_part(pkg: WordPackage) -> tuple[str, etree._Element]:
     """
     # Find next available customXml item number
     n = 1
-    while f"/customXml/item{n}.xml" in pkg._parts:
+    while pkg.has_part(f"/customXml/item{n}.xml"):
         n += 1
 
     item_path = f"/customXml/item{n}.xml"
     props_path = f"/customXml/itemProps{n}.xml"
-    item_rels_path = f"/customXml/_rels/item{n}.xml.rels"
 
     # Create sources XML
     sources_el = etree.Element(
@@ -127,68 +127,15 @@ def _create_sources_part(pkg: WordPackage) -> tuple[str, etree._Element]:
     schema_ref = etree.SubElement(schema_refs, qn("ds:schemaRef"))
     schema_ref.set(qn("ds:uri"), NS_BIB)
 
-    # Create relationships
-    # 1. From item to props (within customXml folder)
-    item_rels = etree.Element(
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationships"
-    )
-    etree.SubElement(
-        item_rels,
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        attrib={
-            "Id": "rId1",
-            "Type": RT.CUSTOM_XML_PROPS,
-            "Target": f"itemProps{n}.xml",
-        },
-    )
+    # Add relationship from item to props (using public API)
+    pkg.relate_to(item_path, f"itemProps{n}.xml", RT.CUSTOM_XML_PROPS)
 
-    # 2. From package root to customXml item (in /_rels/.rels)
-    pkg_rels_path = "/_rels/.rels"
-    pkg_rels_el = pkg._get_xml(pkg_rels_path)
-    # Find next rId
-    existing_ids = [
-        r.get("Id", "")
-        for r in pkg_rels_el.findall(
-            "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"
-        )
-    ]
-    rid_num = 1
-    while f"rId{rid_num}" in existing_ids:
-        rid_num += 1
-    new_rid = f"rId{rid_num}"
+    # Add relationship from package root to customXml item
+    pkg.relate_from_package(f"customXml/item{n}.xml", RT.CUSTOM_XML)
 
-    etree.SubElement(
-        pkg_rels_el,
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        attrib={
-            "Id": new_rid,
-            "Type": RT.CUSTOM_XML,
-            "Target": f"customXml/item{n}.xml",
-        },
-    )
-    pkg.mark_xml_dirty(pkg_rels_path)
-
-    # Add content types
-    content_types = pkg._get_xml("/[Content_Types].xml")
-    etree.SubElement(
-        content_types,
-        "{http://schemas.openxmlformats.org/package/2006/content-types}Override",
-        attrib={"PartName": item_path, "ContentType": CT.CUSTOM_XML},
-    )
-    etree.SubElement(
-        content_types,
-        "{http://schemas.openxmlformats.org/package/2006/content-types}Override",
-        attrib={"PartName": props_path, "ContentType": CT.CUSTOM_XML_PROPS},
-    )
-    pkg.mark_xml_dirty("/[Content_Types].xml")
-
-    # Store all parts
-    pkg._xml_cache[item_path] = sources_el
-    pkg._xml_cache[props_path] = props_el
-    pkg._xml_cache[item_rels_path] = item_rels
-    pkg._dirty_xml.add(item_path)
-    pkg._dirty_xml.add(props_path)
-    pkg._dirty_xml.add(item_rels_path)
+    # Store all parts using public API (set_xml handles content types)
+    pkg.set_xml(item_path, sources_el, CT.CUSTOM_XML)
+    pkg.set_xml(props_path, props_el, CT.CUSTOM_XML_PROPS)
 
     return item_path, sources_el
 

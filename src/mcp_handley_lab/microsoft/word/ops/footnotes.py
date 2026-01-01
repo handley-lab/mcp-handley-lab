@@ -11,9 +11,8 @@ from __future__ import annotations
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.opc.package import WordPackage
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.ops.core import (
     count_occurrence,
     get_paragraph_text,
     make_block_id,
@@ -21,6 +20,7 @@ from mcp_handley_lab.word.ops.core import (
     paragraph_kind_and_level,
     resolve_target,
 )
+from mcp_handley_lab.microsoft.word.package import WordPackage
 
 # =============================================================================
 # Constants

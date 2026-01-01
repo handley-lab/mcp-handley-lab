@@ -8,9 +8,9 @@ import pytest
 from lxml import etree
 from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.opc.package import WordPackage
-from mcp_handley_lab.word.tool import mcp
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.package import WordPackage
+from mcp_handley_lab.microsoft.word.tool import mcp
 
 
 @pytest.fixture
@@ -6319,7 +6319,7 @@ async def test_accept_all_includes_moves(move_fixture_copy):
 @pytest.mark.asyncio
 async def test_accept_move_removes_all_markers(move_fixture_copy):
     """Test that accepting a move removes all range markers from XML."""
-    from mcp_handley_lab.word.document import _rev_xpath
+    from mcp_handley_lab.microsoft.word.document import _rev_xpath
 
     # Get a move ID
     _, before_result = await mcp.call_tool(
@@ -6371,7 +6371,7 @@ async def test_accept_move_removes_all_markers(move_fixture_copy):
 @pytest.mark.asyncio
 async def test_incomplete_move_fails_safely(move_fixture_copy):
     """Test that incomplete move markup raises error without partial mutation."""
-    from mcp_handley_lab.word.document import _rev_xpath
+    from mcp_handley_lab.microsoft.word.document import _rev_xpath
 
     # Get a move ID
     _, before_result = await mcp.call_tool(
@@ -6425,7 +6425,7 @@ async def test_incomplete_move_fails_safely(move_fixture_copy):
 @pytest.mark.asyncio
 async def test_incomplete_move_missing_end_marker(move_fixture_copy):
     """Test that missing end marker raises error without partial mutation."""
-    from mcp_handley_lab.word.document import _rev_xpath
+    from mcp_handley_lab.microsoft.word.document import _rev_xpath
 
     # Get a move ID
     _, before_result = await mcp.call_tool(

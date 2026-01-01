@@ -14,8 +14,8 @@ from __future__ import annotations
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import mark_dirty
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.ops.core import mark_dirty
 
 # Namespace for numbering XPath queries
 _NUMBERING_NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}

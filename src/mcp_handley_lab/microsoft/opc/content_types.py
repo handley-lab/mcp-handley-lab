@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import DEFAULT_CONTENT_TYPES
+from mcp_handley_lab.microsoft.opc.constants import DEFAULT_CONTENT_TYPES
 
 _CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
 _CT_NSMAP = {"ct": _CT_NS}
@@ -18,8 +18,10 @@ class ContentTypeMap:
     2. Overrides: Partname-based (e.g., /word/document.xml -> specific type)
     """
 
-    def __init__(self) -> None:
-        self._defaults: dict[str, str] = dict(DEFAULT_CONTENT_TYPES)
+    def __init__(self, defaults: dict[str, str] | None = None) -> None:
+        self._defaults: dict[str, str] = (
+            dict(defaults) if defaults else dict(DEFAULT_CONTENT_TYPES)
+        )
         self._overrides: dict[str, str] = {}
 
     def __getitem__(self, partname: str) -> str:
@@ -39,6 +41,10 @@ class ContentTypeMap:
         """Add extension default if not present."""
         if ext not in self._defaults:
             self._defaults[ext] = content_type
+
+    def drop_override(self, partname: str) -> None:
+        """Remove content type override for partname."""
+        self._overrides.pop(partname, None)
 
     @classmethod
     def from_xml(cls, xml_bytes: bytes) -> ContentTypeMap:

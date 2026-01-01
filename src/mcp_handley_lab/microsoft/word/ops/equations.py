@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.opc.constants import qn
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.ops.core import (
     content_hash,
     count_occurrence,
     get_paragraph_text,

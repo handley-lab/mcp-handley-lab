@@ -5,7 +5,7 @@ organized by functionality. The document.py facade re-exports these
 for backwards compatibility.
 """
 
-from mcp_handley_lab.word.ops.bookmarks import (
+from mcp_handley_lab.microsoft.word.ops.bookmarks import (
     _RESERVED_BOOKMARK_PREFIXES,
     _get_next_bookmark_id,
     _is_reserved_bookmark,
@@ -16,7 +16,7 @@ from mcp_handley_lab.word.ops.bookmarks import (
     insert_caption,
     insert_cross_reference,
 )
-from mcp_handley_lab.word.ops.comments import (
+from mcp_handley_lab.microsoft.word.ops.comments import (
     _COMMENTS_EXT_NS,
     _COMMENTS_EXTENDED_CT,
     _W15_NS,
@@ -27,7 +27,7 @@ from mcp_handley_lab.word.ops.comments import (
     resolve_comment,
     unresolve_comment,
 )
-from mcp_handley_lab.word.ops.core import (
+from mcp_handley_lab.microsoft.word.ops.core import (
     _CELL_RE,
     _EMU_PER_INCH,
     _HEADING_RE,
@@ -63,7 +63,7 @@ from mcp_handley_lab.word.ops.core import (
     resolve_target,
     table_content_for_hash,
 )
-from mcp_handley_lab.word.ops.equations import (
+from mcp_handley_lab.microsoft.word.ops.equations import (
     _MATH_NS,
     _MATH_NSMAP,
     _extract_equations_from_paragraph,
@@ -71,7 +71,7 @@ from mcp_handley_lab.word.ops.equations import (
     _get_equation_text,
     build_equations,
 )
-from mcp_handley_lab.word.ops.footnotes import (
+from mcp_handley_lab.microsoft.word.ops.footnotes import (
     _FN_CT_NS,
     _FN_REL_NS,
     _FN_W_NS,
@@ -86,7 +86,7 @@ from mcp_handley_lab.word.ops.footnotes import (
     build_footnotes,
     delete_footnote,
 )
-from mcp_handley_lab.word.ops.headers import (
+from mcp_handley_lab.microsoft.word.ops.headers import (
     append_to_header_footer,
     build_headers_footers,
     clear_header_footer,
@@ -94,7 +94,7 @@ from mcp_handley_lab.word.ops.headers import (
     insert_page_x_of_y,
     set_header_footer_text,
 )
-from mcp_handley_lab.word.ops.images import (
+from mcp_handley_lab.microsoft.word.ops.images import (
     _TEXTBOX_NS,
     _WRAP_API_TO_XML,
     _WRAP_XML_TO_API,
@@ -118,7 +118,7 @@ from mcp_handley_lab.word.ops.images import (
     read_text_box_content,
     resolve_image,
 )
-from mcp_handley_lab.word.ops.lists import (
+from mcp_handley_lab.microsoft.word.ops.lists import (
     _ensure_numPr,
     _ensure_pPr,
     _get_max_num_id,
@@ -132,14 +132,14 @@ from mcp_handley_lab.word.ops.lists import (
     restart_numbering,
     set_list_level,
 )
-from mcp_handley_lab.word.ops.properties import (
+from mcp_handley_lab.microsoft.word.ops.properties import (
     delete_custom_property,
     get_custom_properties,
     get_document_meta,
     set_custom_property,
     set_document_meta,
 )
-from mcp_handley_lab.word.ops.revisions import (
+from mcp_handley_lab.microsoft.word.ops.revisions import (
     _ALL_REVISION_TAGS,
     _CONTENT_REVISIONS,
     _FORMATTING_REVISIONS,
@@ -166,7 +166,7 @@ from mcp_handley_lab.word.ops.revisions import (
     reject_all_changes,
     reject_change,
 )
-from mcp_handley_lab.word.ops.sdt import (
+from mcp_handley_lab.microsoft.word.ops.sdt import (
     _SDT_NSMAP,
     _get_sdt_checked_state,
     _get_sdt_date_format,
@@ -180,7 +180,7 @@ from mcp_handley_lab.word.ops.sdt import (
     build_content_controls,
     set_content_control_value,
 )
-from mcp_handley_lab.word.ops.sections import (
+from mcp_handley_lab.microsoft.word.ops.sections import (
     _SECTION_START_MAP,
     _SECTPR_ORDER,
     _insert_sectpr_element,
@@ -191,7 +191,7 @@ from mcp_handley_lab.word.ops.sections import (
     set_page_orientation,
     set_section_columns,
 )
-from mcp_handley_lab.word.ops.styles import (
+from mcp_handley_lab.microsoft.word.ops.styles import (
     _ALIGNMENT_OOXML_MAP,
     _RUN_FORMAT_KEYS,
     _RUN_OOXML_BOOL,
@@ -218,7 +218,7 @@ from mcp_handley_lab.word.ops.styles import (
     get_or_create_rPr,
     get_style_format,
 )
-from mcp_handley_lab.word.ops.tables import (
+from mcp_handley_lab.microsoft.word.ops.tables import (
     add_table_column,
     add_table_row,
     build_table_cells,
@@ -241,7 +241,7 @@ from mcp_handley_lab.word.ops.tables import (
     set_table_fixed_layout,
     table_to_markdown,
 )
-from mcp_handley_lab.word.ops.toc import (
+from mcp_handley_lab.microsoft.word.ops.toc import (
     get_toc_info,
     has_toc,
     insert_toc,

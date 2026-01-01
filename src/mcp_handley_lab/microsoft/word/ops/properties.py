@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import CustomPropertyInfo, DocumentMeta
-from mcp_handley_lab.word.opc.constants import qn
+from mcp_handley_lab.microsoft.word.constants import qn
+from mcp_handley_lab.microsoft.word.models import CustomPropertyInfo, DocumentMeta
 
 # Namespaces for properties
 _NS_CP = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
@@ -91,7 +91,7 @@ def _create_core_xml(pkg) -> None:
 
     Used defensively when setting metadata on docs that lack core.xml.
     """
-    from mcp_handley_lab.word.opc.constants import CT, RT
+    from mcp_handley_lab.microsoft.word.constants import CT, RT
 
     ns_xsi = "http://www.w3.org/2001/XMLSchema-instance"
     core_nsmap = {
@@ -115,8 +115,9 @@ def _create_core_xml(pkg) -> None:
     pkg.set_xml("/docProps/core.xml", core, CT.OPC_CORE_PROPERTIES)
 
     # Add package relationship if not already present (avoid duplicates on corrupt docs)
-    if pkg._pkg_rels.rId_for_reltype(RT.CORE_PROPERTIES) is None:
-        pkg._pkg_rels.add(RT.CORE_PROPERTIES, "docProps/core.xml")
+    pkg_rels = pkg.get_pkg_rels()
+    if pkg_rels.rId_for_reltype(RT.CORE_PROPERTIES) is None:
+        pkg.relate_from_package("docProps/core.xml", RT.CORE_PROPERTIES)
 
 
 def set_document_meta(pkg, **kwargs) -> None:
@@ -239,9 +240,9 @@ def set_custom_property(pkg, name: str, value: str, prop_type: str = "string") -
             "application/vnd.openxmlformats-officedocument.custom-properties+xml",
         )
         # Add package relationship
-        pkg._pkg_rels.add(
-            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties",
+        pkg.relate_from_package(
             "docProps/custom.xml",
+            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties",
         )
 
     # Find existing property or create new

@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.word.models import (
+from mcp_handley_lab.microsoft.word.constants import RT, qn
+from mcp_handley_lab.microsoft.word.models import (
     HyperlinkInfo,
     ParagraphFormatInfo,
     RunInfo,
@@ -19,7 +20,6 @@ from mcp_handley_lab.word.models import (
     StyleInfo,
     TabStopInfo,
 )
-from mcp_handley_lab.word.opc.constants import RT, qn
 
 # =============================================================================
 # Constants
@@ -349,7 +349,7 @@ def add_hyperlink(
         hyperlink.set(qn("r:id"), r_id)
     else:
         # Internal link - use anchor attribute (validate bookmark name format)
-        from mcp_handley_lab.word.ops.bookmarks import _validate_bookmark_name
+        from mcp_handley_lab.microsoft.word.ops.bookmarks import _validate_bookmark_name
 
         _validate_bookmark_name(fragment)
         hyperlink.set(qn("w:anchor"), fragment)
@@ -894,7 +894,7 @@ _ALIGNMENT_OOXML_MAP = {
 
 def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
     """Apply direct formatting to paragraph element (pure OOXML)."""
-    from mcp_handley_lab.word.ops.core import get_or_create_pPr
+    from mcp_handley_lab.microsoft.word.ops.core import get_or_create_pPr
 
     pPr = get_or_create_pPr(p_el)
 
@@ -1196,7 +1196,7 @@ def _add_tab_stop_ooxml(
 
     Creates w:tabs element in w:pPr if needed, adds w:tab child.
     """
-    from mcp_handley_lab.word.ops.core import get_or_create_pPr
+    from mcp_handley_lab.microsoft.word.ops.core import get_or_create_pPr
 
     # OOXML leader mapping
     leader_map_ooxml = {

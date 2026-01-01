@@ -19,7 +19,7 @@ class CellInfo(BaseModel):
     ref: str  # e.g., "A1", "B2"
     value: str | None
     formula: str | None = None
-    type: str  # "string", "number", "boolean", "error", "date", "empty"
+    type: str  # "string", "number", "boolean", "error", "empty"
 
 
 class RangeInfo(BaseModel):

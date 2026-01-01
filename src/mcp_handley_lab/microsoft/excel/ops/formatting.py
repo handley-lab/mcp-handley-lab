@@ -1,0 +1,229 @@
+"""Formatting and style operations for Excel.
+
+Excel uses indexed styles - cells reference style indices, and styles are
+defined in styles.xml. This module provides read access to style definitions.
+"""
+
+from __future__ import annotations
+
+from lxml import etree
+
+from mcp_handley_lab.microsoft.excel.constants import qn
+from mcp_handley_lab.microsoft.excel.models import StyleInfo
+from mcp_handley_lab.microsoft.excel.package import ExcelPackage
+
+
+def list_styles(pkg: ExcelPackage) -> list[StyleInfo]:
+    """List all cell styles in the workbook.
+
+    Returns: List of StyleInfo for each cell format (cellXf).
+    """
+    styles_xml = pkg.styles_xml
+    if styles_xml is None:
+        return []
+
+    result = []
+    cell_xfs = styles_xml.find(qn("x:cellXfs"))
+    if cell_xfs is None:
+        return []
+
+    # Get lookup tables
+    fonts = styles_xml.find(qn("x:fonts"))
+    fills = styles_xml.find(qn("x:fills"))
+    borders = styles_xml.find(qn("x:borders"))
+    num_fmts = styles_xml.find(qn("x:numFmts"))
+
+    # Build number format lookup
+    num_fmt_map = _get_builtin_number_formats()
+    if num_fmts is not None:
+        for nf in num_fmts.findall(qn("x:numFmt")):
+            fmt_id = nf.get("numFmtId")
+            fmt_code = nf.get("formatCode")
+            if fmt_id and fmt_code:
+                num_fmt_map[int(fmt_id)] = fmt_code
+
+    for idx, xf in enumerate(cell_xfs.findall(qn("x:xf"))):
+        info = StyleInfo(index=idx)
+
+        # Font
+        font_id = xf.get("fontId")
+        if font_id and fonts is not None:
+            font_el = _get_element_by_index(fonts, qn("x:font"), int(font_id))
+            if font_el is not None:
+                info.font = _describe_font(font_el)
+
+        # Fill
+        fill_id = xf.get("fillId")
+        if fill_id and fills is not None:
+            fill_el = _get_element_by_index(fills, qn("x:fill"), int(fill_id))
+            if fill_el is not None:
+                info.fill = _describe_fill(fill_el)
+
+        # Border
+        border_id = xf.get("borderId")
+        if border_id and borders is not None:
+            border_el = _get_element_by_index(borders, qn("x:border"), int(border_id))
+            if border_el is not None:
+                info.border = _describe_border(border_el)
+
+        # Number format
+        num_fmt_id = xf.get("numFmtId")
+        if num_fmt_id:
+            fmt_code = num_fmt_map.get(int(num_fmt_id))
+            if fmt_code:
+                info.number_format = fmt_code
+
+        result.append(info)
+
+    return result
+
+
+def get_style_by_index(pkg: ExcelPackage, index: int) -> StyleInfo:
+    """Get style info by index.
+
+    Raises: IndexError if index out of range.
+    """
+    styles = list_styles(pkg)
+    if not 0 <= index < len(styles):
+        raise IndexError(f"Style index out of range: {index}")
+    return styles[index]
+
+
+def get_number_format(pkg: ExcelPackage, format_index: int) -> str | None:
+    """Get number format code by format ID.
+
+    Returns format code string or None if not found.
+    """
+    # Check built-in formats first
+    builtin = _get_builtin_number_formats()
+    if format_index in builtin:
+        return builtin[format_index]
+
+    # Check custom formats in styles.xml
+    styles_xml = pkg.styles_xml
+    if styles_xml is None:
+        return None
+
+    num_fmts = styles_xml.find(qn("x:numFmts"))
+    if num_fmts is None:
+        return None
+
+    for nf in num_fmts.findall(qn("x:numFmt")):
+        if nf.get("numFmtId") == str(format_index):
+            return nf.get("formatCode")
+
+    return None
+
+
+def _get_element_by_index(
+    parent: etree._Element, tag: str, index: int
+) -> etree._Element | None:
+    """Get child element by 0-based index."""
+    children = parent.findall(tag)
+    if 0 <= index < len(children):
+        return children[index]
+    return None
+
+
+def _describe_font(font_el: etree._Element) -> str:
+    """Generate human-readable font description."""
+    parts = []
+
+    name = font_el.find(qn("x:name"))
+    if name is not None:
+        parts.append(name.get("val", ""))
+
+    sz = font_el.find(qn("x:sz"))
+    if sz is not None:
+        parts.append(f"{sz.get('val')}pt")
+
+    if font_el.find(qn("x:b")) is not None:
+        parts.append("bold")
+    if font_el.find(qn("x:i")) is not None:
+        parts.append("italic")
+    if font_el.find(qn("x:u")) is not None:
+        parts.append("underline")
+
+    color = font_el.find(qn("x:color"))
+    if color is not None:
+        rgb = color.get("rgb")
+        if rgb:
+            parts.append(f"#{rgb}")
+        theme = color.get("theme")
+        if theme:
+            parts.append(f"theme:{theme}")
+
+    return " ".join(parts) if parts else "default"
+
+
+def _describe_fill(fill_el: etree._Element) -> str:
+    """Generate human-readable fill description."""
+    pattern = fill_el.find(qn("x:patternFill"))
+    if pattern is not None:
+        pattern_type = pattern.get("patternType", "none")
+        if pattern_type == "none":
+            return "none"
+        if pattern_type == "solid":
+            fg = pattern.find(qn("x:fgColor"))
+            if fg is not None:
+                rgb = fg.get("rgb")
+                if rgb:
+                    return f"solid #{rgb}"
+                theme = fg.get("theme")
+                if theme:
+                    return f"solid theme:{theme}"
+            return "solid"
+        return pattern_type
+
+    gradient = fill_el.find(qn("x:gradientFill"))
+    if gradient is not None:
+        return "gradient"
+
+    return "none"
+
+
+def _describe_border(border_el: etree._Element) -> str:
+    """Generate human-readable border description."""
+    sides = []
+    for side in ("left", "right", "top", "bottom"):
+        side_el = border_el.find(qn(f"x:{side}"))
+        if side_el is not None:
+            style = side_el.get("style")
+            if style:
+                sides.append(f"{side}:{style}")
+
+    return ", ".join(sides) if sides else "none"
+
+
+def _get_builtin_number_formats() -> dict[int, str]:
+    """Return built-in Excel number formats (0-49 are predefined)."""
+    return {
+        0: "General",
+        1: "0",
+        2: "0.00",
+        3: "#,##0",
+        4: "#,##0.00",
+        9: "0%",
+        10: "0.00%",
+        11: "0.00E+00",
+        12: "# ?/?",
+        13: "# ??/??",
+        14: "mm-dd-yy",
+        15: "d-mmm-yy",
+        16: "d-mmm",
+        17: "mmm-yy",
+        18: "h:mm AM/PM",
+        19: "h:mm:ss AM/PM",
+        20: "h:mm",
+        21: "h:mm:ss",
+        22: "m/d/yy h:mm",
+        37: "#,##0 ;(#,##0)",
+        38: "#,##0 ;[Red](#,##0)",
+        39: "#,##0.00;(#,##0.00)",
+        40: "#,##0.00;[Red](#,##0.00)",
+        45: "mm:ss",
+        46: "[h]:mm:ss",
+        47: "mmss.0",
+        48: "##0.0E+0",
+        49: "@",
+    }

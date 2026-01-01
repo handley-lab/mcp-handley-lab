@@ -32,6 +32,7 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.formatting import list_styles
 from mcp_handley_lab.microsoft.excel.ops.ranges import (
     delete_columns,
     delete_rows,
@@ -49,6 +50,15 @@ from mcp_handley_lab.microsoft.excel.ops.sheets import (
     list_sheets,
     rename_sheet,
 )
+from mcp_handley_lab.microsoft.excel.ops.tables import (
+    add_table_row,
+    create_table,
+    delete_table,
+    delete_table_row,
+    get_table_by_name,
+    get_table_data,
+    list_tables,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 mcp = FastMCP(
@@ -59,6 +69,9 @@ Scopes:
 - meta: Workbook metadata (sheet count, names)
 - sheets: List of all sheets
 - cells: Cell values in a range (default: grid representation)
+- table: Single table data by name
+- tables: List of all tables
+- styles: List of cell styles
 
 Representation (for cells scope):
 - grid: 2D arrays of values + types (default, most compact)
@@ -75,7 +88,7 @@ def read(
     file_path: str = Field(description="Path to .xlsx file"),
     scope: str = Field(
         default="sheets",
-        description="What to read: meta, sheets, cells",
+        description="What to read: meta, sheets, cells, table, tables, styles",
     ),
     sheet: str = Field(
         default="",
@@ -85,6 +98,10 @@ def read(
         default="",
         description="Range like 'A1:C10' (for cells scope, defaults to used range)",
     ),
+    table_name: str = Field(
+        default="",
+        description="Table name (for table scope)",
+    ),
     representation: str = Field(
         default="grid",
         description="Output format: grid (2D arrays), sparse (cell list), cells (verbose)",
@@ -92,6 +109,10 @@ def read(
     include_types: bool = Field(
         default=False,
         description="Include type codes (n=number, s=string, b=bool, e=error, f=formula)",
+    ),
+    include_headers: bool = Field(
+        default=False,
+        description="Include header row in table data (for table scope)",
     ),
     view: bool = Field(
         default=False,
@@ -108,6 +129,9 @@ def read(
     - meta: Quick workbook overview
     - sheets: List of sheets for subsequent queries
     - cells: Cell values with grid (default), sparse, or detailed representation
+    - table: Single table data by name
+    - tables: List of all tables
+    - styles: List of cell styles
     """
     pkg = ExcelPackage.open(file_path)
 
@@ -119,8 +143,12 @@ def read(
         result = _read_cells(
             pkg, sheet, range_ref, representation, include_types, view, limit
         )
-    elif scope in ("table", "tables", "styles"):
-        raise NotImplementedError(f"Scope '{scope}' not yet implemented")
+    elif scope == "table":
+        result = _read_table(pkg, table_name, include_headers)
+    elif scope == "tables":
+        result = _read_tables(pkg)
+    elif scope == "styles":
+        result = _read_styles(pkg)
     else:
         raise ValueError(f"Unknown scope: {scope}")
 
@@ -148,6 +176,41 @@ def _read_sheets(pkg: ExcelPackage) -> ExcelReadResult:
     return ExcelReadResult(
         scope="sheets",
         sheets=sheet_infos,
+    )
+
+
+def _read_table(
+    pkg: ExcelPackage, table_name: str, include_headers: bool
+) -> ExcelReadResult:
+    """Read a single table by name."""
+    if not table_name:
+        raise ValueError("table_name is required for table scope")
+
+    info = get_table_by_name(pkg, table_name)
+    data = get_table_data(pkg, table_name, include_headers=include_headers)
+
+    return ExcelReadResult(
+        scope="table",
+        table=info,
+        grid=GridData(values=data),
+    )
+
+
+def _read_tables(pkg: ExcelPackage) -> ExcelReadResult:
+    """Read list of all tables."""
+    tables = list_tables(pkg)
+    return ExcelReadResult(
+        scope="tables",
+        tables=tables,
+    )
+
+
+def _read_styles(pkg: ExcelPackage) -> ExcelReadResult:
+    """Read list of cell styles."""
+    styles = list_styles(pkg)
+    return ExcelReadResult(
+        scope="styles",
+        styles=styles,
     )
 
 
@@ -352,7 +415,8 @@ def edit(
     operation: str = Field(
         description="Operation: create, set_cell, set_formula, set_range, "
         "insert_rows, delete_rows, insert_columns, delete_columns, "
-        "merge_cells, unmerge_cells, add_sheet, rename_sheet, delete_sheet, copy_sheet"
+        "merge_cells, unmerge_cells, add_sheet, rename_sheet, delete_sheet, copy_sheet, "
+        "create_table, delete_table, add_table_row, delete_table_row"
     ),
     sheet: str = Field(
         default="",
@@ -364,11 +428,19 @@ def edit(
     ),
     value: str = Field(
         default="",
-        description="Value to set (string, number, or JSON 2D array for set_range)",
+        description="Value to set (string, number, or JSON array for add_table_row, JSON 2D array for set_range)",
     ),
     new_name: str = Field(
         default="",
-        description="New name (for rename_sheet, copy_sheet)",
+        description="New name (for rename_sheet, copy_sheet, table_name for create_table)",
+    ),
+    table_name: str = Field(
+        default="",
+        description="Table name (for table operations)",
+    ),
+    row_index: int = Field(
+        default=0,
+        description="Row index for delete_table_row (0-based, relative to data rows)",
     ),
     count: int = Field(
         default=1,
@@ -392,6 +464,10 @@ def edit(
     - rename_sheet: Rename existing sheet
     - delete_sheet: Delete sheet
     - copy_sheet: Copy sheet to new sheet
+    - create_table: Create table from range (cell_ref = range, new_name = table name)
+    - delete_table: Delete table by name (table_name)
+    - add_table_row: Add row to table (table_name, value = JSON array)
+    - delete_table_row: Delete row from table (table_name, row_index)
     """
     if operation == "create":
         return _edit_create(file_path)
@@ -421,6 +497,14 @@ def edit(
         return _edit_delete_sheet(file_path, sheet)
     elif operation == "copy_sheet":
         return _edit_copy_sheet(file_path, sheet, new_name)
+    elif operation == "create_table":
+        return _edit_create_table(file_path, sheet, cell_ref, new_name or table_name)
+    elif operation == "delete_table":
+        return _edit_delete_table(file_path, table_name)
+    elif operation == "add_table_row":
+        return _edit_add_table_row(file_path, table_name, value)
+    elif operation == "delete_table_row":
+        return _edit_delete_table_row(file_path, table_name, row_index)
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
@@ -717,4 +801,93 @@ def _edit_unmerge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str,
         success=True,
         message=f"Unmerged cells: {range_ref}",
         affected_refs=[range_ref],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Table Operations
+# =============================================================================
+
+
+def _edit_create_table(
+    file_path: str, sheet: str, range_ref: str, table_name: str
+) -> dict[str, Any]:
+    """Create a table from a range."""
+    if not sheet:
+        raise ValueError("sheet is required for create_table")
+    if not range_ref:
+        raise ValueError("cell_ref (range) is required for create_table")
+    if not table_name:
+        raise ValueError("new_name or table_name is required for create_table")
+
+    pkg = ExcelPackage.open(file_path)
+    create_table(pkg, sheet, range_ref, table_name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Created table: {table_name} in {range_ref}",
+        affected_refs=[range_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_table(file_path: str, table_name: str) -> dict[str, Any]:
+    """Delete a table."""
+    if not table_name:
+        raise ValueError("table_name is required for delete_table")
+
+    pkg = ExcelPackage.open(file_path)
+    delete_table(pkg, table_name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted table: {table_name}",
+        affected_refs=[table_name],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_add_table_row(file_path: str, table_name: str, value: str) -> dict[str, Any]:
+    """Add a row to a table."""
+    import json
+
+    if not table_name:
+        raise ValueError("table_name is required for add_table_row")
+    if not value:
+        raise ValueError("value (JSON array) is required for add_table_row")
+
+    try:
+        values = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"value must be valid JSON array: {e}") from e
+
+    if not isinstance(values, list):
+        raise ValueError("value must be a JSON array")
+
+    pkg = ExcelPackage.open(file_path)
+    first_ref = add_table_row(pkg, table_name, values)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Added row to table {table_name} at {first_ref}",
+        affected_refs=[first_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_table_row(
+    file_path: str, table_name: str, row_index: int
+) -> dict[str, Any]:
+    """Delete a row from a table."""
+    if not table_name:
+        raise ValueError("table_name is required for delete_table_row")
+
+    pkg = ExcelPackage.open(file_path)
+    delete_table_row(pkg, table_name, row_index)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted row {row_index} from table {table_name}",
+        affected_refs=[table_name],
     ).model_dump(exclude_none=True)

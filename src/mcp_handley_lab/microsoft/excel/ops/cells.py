@@ -44,6 +44,15 @@ def get_cell_data(
     return _extract_cell_data(pkg, cell)
 
 
+def get_cell_value(pkg: ExcelPackage, sheet_name: str, cell_ref: str) -> Any:
+    """Get just the cell value (ignoring type and formula).
+
+    Returns: JSON primitive (int, float, str, bool, None)
+    """
+    value, _type, _formula = get_cell_data(pkg, sheet_name, cell_ref)
+    return value
+
+
 def get_cells_in_range(
     pkg: ExcelPackage, sheet_name: str, start_ref: str, end_ref: str
 ) -> list[tuple[str, Any, str | None, str | None]]:

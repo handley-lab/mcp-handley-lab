@@ -3,6 +3,7 @@
 from mcp_handley_lab.microsoft.excel.ops.cells import (
     get_cell_data,
     get_cell_style_index,
+    get_cell_value,
     get_cells_in_range,
     set_cell_formula,
     set_cell_style,
@@ -15,6 +16,11 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     make_range_ref,
     parse_cell_ref,
     parse_range_ref,
+)
+from mcp_handley_lab.microsoft.excel.ops.formatting import (
+    get_number_format,
+    get_style_by_index,
+    list_styles,
 )
 from mcp_handley_lab.microsoft.excel.ops.ranges import (
     delete_columns,
@@ -37,6 +43,15 @@ from mcp_handley_lab.microsoft.excel.ops.sheets import (
     list_sheets,
     rename_sheet,
 )
+from mcp_handley_lab.microsoft.excel.ops.tables import (
+    add_table_row,
+    create_table,
+    delete_table,
+    delete_table_row,
+    get_table_by_name,
+    get_table_data,
+    list_tables,
+)
 
 __all__ = [
     # Core
@@ -49,6 +64,7 @@ __all__ = [
     # Cells - Read
     "get_cell_data",
     "get_cell_style_index",
+    "get_cell_value",
     "get_cells_in_range",
     # Cells - Write
     "set_cell_value",
@@ -74,4 +90,16 @@ __all__ = [
     "rename_sheet",
     "delete_sheet",
     "copy_sheet",
+    # Tables
+    "list_tables",
+    "get_table_by_name",
+    "get_table_data",
+    "create_table",
+    "delete_table",
+    "add_table_row",
+    "delete_table_row",
+    # Formatting
+    "list_styles",
+    "get_style_by_index",
+    "get_number_format",
 ]

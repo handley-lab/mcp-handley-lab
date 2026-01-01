@@ -42,11 +42,9 @@ def get_autofilter(pkg: ExcelPackage, sheet_name: str) -> AutoFilterInfo | None:
         col_id = int(filter_col.get("colId", "0"))
         filter_el = filter_col.find(qn("x:filters"))
         if filter_el is not None:
-            values = []
-            for f in filter_el.findall(qn("x:filter")):
-                val = f.get("val")
-                if val is not None:
-                    values.append(val)
+            values = [
+                f.get("val") for f in filter_el.findall(qn("x:filter")) if f.get("val")
+            ]
             if values:
                 filters[col_id] = values
 
@@ -215,12 +213,6 @@ def sort_range(
         sort_by = [sort_by]
     if isinstance(descending, bool):
         descending = [descending] * len(sort_by)
-
-    # Validate list lengths match
-    if len(sort_by) != len(descending):
-        raise ValueError(
-            f"sort_by has {len(sort_by)} items but descending has {len(descending)}"
-        )
 
     # Ensure AutoFilter exists
     autofilter = sheet_xml.find(qn("x:autoFilter"))

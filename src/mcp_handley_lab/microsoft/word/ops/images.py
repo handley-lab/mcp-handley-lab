@@ -13,9 +13,12 @@ from __future__ import annotations
 import hashlib
 import posixpath
 import random
+from io import BytesIO
+from pathlib import Path
 
 from lxml import etree
 from lxml.etree import ElementBase as _LxmlElementBase
+from PIL import Image
 
 from mcp_handley_lab.microsoft.word.constants import NSMAP as OXML_NSMAP
 from mcp_handley_lab.microsoft.word.constants import qn
@@ -26,6 +29,7 @@ from mcp_handley_lab.microsoft.word.ops.core import (
     _iter_all_paragraphs,
     _iter_all_runs_in_paragraph,
     content_hash,
+    get_paragraph_text_ooxml,
     make_block_id,
     mark_dirty,
     paragraph_kind_and_level,
@@ -420,11 +424,6 @@ def _get_image_metadata(image_path: str) -> tuple[bytes, str, int, int, int, int
 
     Returns: (image_bytes, ext, px_width, px_height, dpi_x, dpi_y)
     """
-    from io import BytesIO
-    from pathlib import Path
-
-    from PIL import Image
-
     path = Path(image_path)
     ext = path.suffix.lower().lstrip(".")
     image_bytes = path.read_bytes()
@@ -575,15 +574,6 @@ def insert_image(
     return f"image_{h}_{occurrence}"
 
 
-def _get_paragraph_text_ooxml(p_el: etree._Element) -> str:
-    """Extract text from a w:p element (pure OOXML)."""
-    text_parts = []
-    for t_el in p_el.iter(qn("w:t")):
-        if t_el.text:
-            text_parts.append(t_el.text)
-    return "".join(text_parts)
-
-
 def delete_image(pkg, image_id: str) -> None:
     """Delete an image. Removes containing paragraph if only whitespace remains.
 
@@ -598,7 +588,7 @@ def delete_image(pkg, image_id: str) -> None:
     drawing_el.getparent().remove(drawing_el)
 
     # Check if paragraph has any remaining content (text, drawings, fields, etc.)
-    text = _get_paragraph_text_ooxml(para_el)
+    text = get_paragraph_text_ooxml(para_el)
     has_content = bool(text.strip())
     if not has_content:
         for run_el in _iter_all_runs_in_paragraph(para_el):

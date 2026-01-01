@@ -36,57 +36,37 @@ class WordPackage(OpcPackage):
 
     # === Convenience Properties ===
 
+    def get_optional_xml(self, path: str) -> etree._Element | None:
+        """Get XML part if it exists, else None."""
+        return self.get_xml(path) if self.has_part(path) else None
+
     @property
     def document_xml(self) -> etree._Element:
         return self.get_xml("/word/document.xml")
 
     @property
     def styles_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/styles.xml")
-            if self.has_part("/word/styles.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/styles.xml")
 
     @property
     def numbering_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/numbering.xml")
-            if self.has_part("/word/numbering.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/numbering.xml")
 
     @property
     def settings_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/settings.xml")
-            if self.has_part("/word/settings.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/settings.xml")
 
     @property
     def comments_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/comments.xml")
-            if self.has_part("/word/comments.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/comments.xml")
 
     @property
     def footnotes_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/footnotes.xml")
-            if self.has_part("/word/footnotes.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/footnotes.xml")
 
     @property
     def endnotes_xml(self) -> etree._Element | None:
-        return (
-            self.get_xml("/word/endnotes.xml")
-            if self.has_part("/word/endnotes.xml")
-            else None
-        )
+        return self.get_optional_xml("/word/endnotes.xml")
 
     @property
     def body(self) -> etree._Element:

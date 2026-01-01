@@ -24,6 +24,19 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
+def _find_table(pkg: ExcelPackage, table_name: str) -> tuple[str, str]:
+    """Find table by name. Returns (table_path, sheet_name)."""
+    for sname, _rId, spartname in pkg.get_sheet_paths():
+        sheet_rels = pkg.get_rels(spartname)
+        for rel in sheet_rels.all_for_reltype(RT.TABLE):
+            tpath = pkg.resolve_rel_target(spartname, rel.rId)
+            if pkg.has_part(tpath):
+                table_xml = pkg.get_xml(tpath)
+                if table_xml.get("name") == table_name:
+                    return tpath, sname
+    raise KeyError(f"Table not found: {table_name}")
+
+
 def list_tables(pkg: ExcelPackage) -> list[TableInfo]:
     """List all tables in the workbook.
 
@@ -102,13 +115,7 @@ def create_table(
         has_headers: If True, first row contains column headers.
 
     Returns: TableInfo for the created table.
-    Raises: ValueError if table name exists or range is invalid.
     """
-    # Check for duplicate name
-    for info in list_tables(pkg):
-        if info.name == table_name:
-            raise ValueError(f"Table already exists: {table_name}")
-
     # Parse range
     start_ref, end_ref = parse_range_ref(range_ref)
     start_col, start_row, _, _ = parse_cell_ref(start_ref)
@@ -265,40 +272,16 @@ def add_table_row(pkg: ExcelPackage, table_name: str, values: list[Any]) -> str:
         values: List of values for the new row (must match column count).
 
     Returns: Cell reference of the first cell in the new row.
-    Raises: KeyError if table not found, ValueError if column count mismatch.
+    Raises: KeyError if table not found.
     """
-    # Find table and its path
-    table_path = None
-    sheet_name = None
-
-    for sname, _rId, spartname in pkg.get_sheet_paths():
-        sheet_rels = pkg.get_rels(spartname)
-        for rel in sheet_rels.all_for_reltype(RT.TABLE):
-            tpath = pkg.resolve_rel_target(spartname, rel.rId)
-            if pkg.has_part(tpath):
-                table_xml = pkg.get_xml(tpath)
-                if table_xml.get("name") == table_name:
-                    table_path = tpath
-                    sheet_name = sname
-                    break
-        if table_path:
-            break
-
-    if table_path is None:
-        raise KeyError(f"Table not found: {table_name}")
-
+    table_path, sheet_name = _find_table(pkg, table_name)
     table_xml = pkg.get_xml(table_path)
     old_ref = table_xml.get("ref", "")
     start_ref, end_ref = parse_range_ref(old_ref)
     start_col, start_row, _, _ = parse_cell_ref(start_ref)
     end_col, end_row, _, _ = parse_cell_ref(end_ref)
 
-    # Check column count
     start_col_idx = column_letter_to_index(start_col)
-    end_col_idx = column_letter_to_index(end_col)
-    expected_cols = end_col_idx - start_col_idx + 1
-    if len(values) != expected_cols:
-        raise ValueError(f"Expected {expected_cols} values, got {len(values)}")
 
     # New row is after current last row
     new_row_num = end_row + 1
@@ -336,26 +319,7 @@ def delete_table_row(pkg: ExcelPackage, table_name: str, row_index: int) -> None
 
     Raises: KeyError if table not found, IndexError if row_index out of range.
     """
-    # Find table and its path
-    table_path = None
-    sheet_name = None
-
-    for sname, _rId, spartname in pkg.get_sheet_paths():
-        sheet_rels = pkg.get_rels(spartname)
-        for rel in sheet_rels.all_for_reltype(RT.TABLE):
-            tpath = pkg.resolve_rel_target(spartname, rel.rId)
-            if pkg.has_part(tpath):
-                table_xml = pkg.get_xml(tpath)
-                if table_xml.get("name") == table_name:
-                    table_path = tpath
-                    sheet_name = sname
-                    break
-        if table_path:
-            break
-
-    if table_path is None:
-        raise KeyError(f"Table not found: {table_name}")
-
+    table_path, sheet_name = _find_table(pkg, table_name)
     table_xml = pkg.get_xml(table_path)
     old_ref = table_xml.get("ref", "")
     start_ref, end_ref = parse_range_ref(old_ref)

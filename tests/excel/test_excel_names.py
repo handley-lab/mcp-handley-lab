@@ -146,14 +146,6 @@ class TestCreateName:
 
         assert name.refers_to == "=0.0725"
 
-    def test_create_name_duplicate_raises(self) -> None:
-        """Creating duplicate name raises ValueError."""
-        pkg = ExcelPackage.new()
-        create_name(pkg, "MyRange", "'Sheet1'!$A$1")
-
-        with pytest.raises(ValueError, match="already exists"):
-            create_name(pkg, "MyRange", "'Sheet1'!$B$1")
-
     def test_create_name_same_name_different_scope(self) -> None:
         """Same name in different scopes is allowed."""
         pkg = ExcelPackage.new()

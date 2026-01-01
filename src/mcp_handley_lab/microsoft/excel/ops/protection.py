@@ -5,6 +5,8 @@ Sheet protection, workbook protection, and cell locking/unlocking.
 
 from __future__ import annotations
 
+import copy
+
 from lxml import etree
 
 from mcp_handley_lab.microsoft.excel.constants import qn
@@ -342,8 +344,6 @@ def _clone_style_with_protection(
                         return i
 
         # Clone the base xf
-        import copy
-
         new_xf = copy.deepcopy(base_xf)
     else:
         # Create minimal style

@@ -234,9 +234,6 @@ def _drop_tag_keep_content(element) -> None:
     (unwrap w:del after converting delText to t).
     """
     parent = element.getparent()
-    if parent is None:
-        raise ValueError("Cannot drop tag: element has no parent")
-
     index = parent.index(element)
     children = list(element)  # Snapshot before mutation
 
@@ -314,9 +311,6 @@ def _remove_element_preserve_tail(element) -> None:
     to the previous sibling's tail or the parent's text.
     """
     parent = element.getparent()
-    if parent is None:
-        raise ValueError("Cannot remove element: element has no parent")
-
     if element.tail:
         prev = element.getprevious()
         if prev is not None:
@@ -371,47 +365,9 @@ def _find_move_range_markers(pkg, move_id: str) -> dict:
     }
 
 
-def _validate_move_completeness(move_from: list, move_to: list, markers: dict) -> None:
-    """Validate that a move has all required components.
-
-    Raises ValueError if move is incomplete (missing wrappers or range markers).
-    All four range markers must be present for atomic processing.
-    """
-    if not move_from and not move_to:
-        raise ValueError("Move has no wrappers (moveFrom/moveTo)")
-
-    # Both sides should have wrappers for a complete move
-    if not move_from:
-        raise ValueError("Move is incomplete: missing moveFrom wrapper")
-    if not move_to:
-        raise ValueError("Move is incomplete: missing moveTo wrapper")
-
-    # All four range markers must be present for consistent state
-    if not markers["from_start"]:
-        raise ValueError("Move is incomplete: missing moveFromRangeStart")
-    if not markers["from_end"]:
-        raise ValueError("Move is incomplete: missing moveFromRangeEnd")
-    if not markers["to_start"]:
-        raise ValueError("Move is incomplete: missing moveToRangeStart")
-    if not markers["to_end"]:
-        raise ValueError("Move is incomplete: missing moveToRangeEnd")
-
-
 def _accept_move(pkg, move_id: str, move_from: list, move_to: list) -> None:
-    """Accept a move: keep destination content, remove source.
-
-    Args:
-        pkg: WordPackage
-
-    Processing:
-    1. Validate move completeness
-    2. Remove all w:moveFrom wrappers entirely (source content discarded)
-    3. Unwrap all w:moveTo wrappers (keep destination content)
-    4. Remove range markers
-    """
-    # Validate completeness before mutating
+    """Accept a move: keep destination content, remove source."""
     markers = _find_move_range_markers(pkg, move_id)
-    _validate_move_completeness(move_from, move_to, markers)
 
     # Process deepest first
     all_from = _process_revisions_deepest_first(move_from)
@@ -425,27 +381,15 @@ def _accept_move(pkg, move_id: str, move_from: list, move_to: list) -> None:
     for el in all_to:
         _drop_tag_keep_content(el)
 
-    # Clean up range markers (only after successful processing)
+    # Clean up range markers
     for marker_list in markers.values():
         for marker in marker_list:
             _remove_element_preserve_tail(marker)
 
 
 def _reject_move(pkg, move_id: str, move_from: list, move_to: list) -> None:
-    """Reject a move: keep source content, remove destination.
-
-    Args:
-        pkg: WordPackage
-
-    Processing:
-    1. Validate move completeness
-    2. Remove all w:moveTo wrappers entirely (destination discarded)
-    3. Unwrap all w:moveFrom wrappers (keep source content)
-    4. Remove range markers
-    """
-    # Validate completeness before mutating
+    """Reject a move: keep source content, remove destination."""
     markers = _find_move_range_markers(pkg, move_id)
-    _validate_move_completeness(move_from, move_to, markers)
 
     # Process deepest first
     all_from = _process_revisions_deepest_first(move_from)
@@ -459,7 +403,7 @@ def _reject_move(pkg, move_id: str, move_from: list, move_to: list) -> None:
     for el in all_from:
         _drop_tag_keep_content(el)
 
-    # Clean up range markers (only after successful processing)
+    # Clean up range markers
     for marker_list in markers.values():
         for marker in marker_list:
             _remove_element_preserve_tail(marker)

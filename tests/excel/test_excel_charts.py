@@ -97,7 +97,7 @@ class TestCreateChart:
     def test_create_chart_invalid_type_raises(self) -> None:
         """Invalid chart type raises error."""
         pkg = ExcelPackage.new()
-        with pytest.raises(ValueError, match="Invalid chart type"):
+        with pytest.raises(ValueError, match="Unsupported chart type"):
             create_chart(pkg, "Sheet1", "invalid", "A1:A5", "C1")
 
     def test_create_multiple_charts(self) -> None:

@@ -144,39 +144,6 @@ class TestCreatePivot:
 
         assert pivot is not None
 
-    def test_create_pivot_invalid_agg_func_raises(self) -> None:
-        """Invalid aggregation function raises error."""
-        pkg = ExcelPackage.new()
-        _setup_sample_data(pkg)
-
-        with pytest.raises(ValueError, match="Invalid aggregation function"):
-            create_pivot(
-                pkg,
-                "Sheet1",
-                "A1:C5",
-                "E1",
-                rows=["Region"],
-                cols=[],
-                values=["Sales"],
-                agg_func="invalid",
-            )
-
-    def test_create_pivot_field_not_found_raises(self) -> None:
-        """Non-existent field raises error."""
-        pkg = ExcelPackage.new()
-        _setup_sample_data(pkg)
-
-        with pytest.raises(ValueError, match="Field not found"):
-            create_pivot(
-                pkg,
-                "Sheet1",
-                "A1:C5",
-                "E1",
-                rows=["NonExistent"],
-                cols=[],
-                values=["Sales"],
-            )
-
     def test_create_pivot_sheet_not_found_raises(self) -> None:
         """Non-existent sheet raises error."""
         pkg = ExcelPackage.new()

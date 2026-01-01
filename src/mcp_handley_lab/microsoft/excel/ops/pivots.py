@@ -24,6 +24,9 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
@@ -38,16 +41,7 @@ def list_pivots(pkg: ExcelPackage, sheet_name: str) -> list[PivotInfo]:
         List of pivot table info
     """
     result = []
-
-    # Get sheet path
-    sheet_path = None
-    for name, _rId, partname in pkg.get_sheet_paths():
-        if name == sheet_name:
-            sheet_path = partname
-            break
-
-    if sheet_path is None:
-        raise KeyError(f"Sheet not found: {sheet_name}")
+    sheet_path = _get_sheet_path(pkg, sheet_name)
 
     # Get sheet relationships
     sheet_rels = pkg.get_rels(sheet_path)
@@ -234,47 +228,13 @@ def create_pivot(
     Returns:
         PivotInfo for created pivot table
     """
-    agg_funcs = {
-        "sum": "sum",
-        "count": "count",
-        "average": "average",
-        "min": "min",
-        "max": "max",
-    }
-    if agg_func not in agg_funcs:
-        raise ValueError(
-            f"Invalid aggregation function: {agg_func}. Use: {list(agg_funcs.keys())}"
-        )
-
-    # Validate destination sheet exists
-    sheet_names = [name for name, _, _ in pkg.get_sheet_paths()]
-    if sheet_name not in sheet_names:
-        raise KeyError(f"Sheet not found: {sheet_name}")
-
     # Parse data range to get sheet and ref
     source_sheet, source_ref = _parse_data_range(data_range, sheet_name)
-
-    # Validate source sheet exists (if different from destination)
-    if source_sheet not in sheet_names:
-        raise KeyError(f"Sheet not found: {source_sheet}")
 
     # Get field names from source data (header row)
     field_names = _get_source_headers(pkg, source_sheet, source_ref)
 
-    # Validate requested fields exist
-    for field in rows + cols + values:
-        if field not in field_names:
-            raise ValueError(f"Field not found in source data: {field}")
-
-    # Get sheet path
-    sheet_path = None
-    for name_s, _rId, partname in pkg.get_sheet_paths():
-        if name_s == sheet_name:
-            sheet_path = partname
-            break
-
-    if sheet_path is None:
-        raise KeyError(f"Sheet not found: {sheet_name}")
+    sheet_path = _get_sheet_path(pkg, sheet_name)
 
     # Generate IDs for new parts
     cache_num = _next_cache_num(pkg)
@@ -729,15 +689,7 @@ def delete_pivot(pkg: ExcelPackage, sheet_name: str, pivot_id: str) -> None:
         sheet_name: Sheet containing the pivot table
         pivot_id: Pivot table ID (from PivotInfo.id)
     """
-    # Get sheet path
-    sheet_path = None
-    for name, _rId, partname in pkg.get_sheet_paths():
-        if name == sheet_name:
-            sheet_path = partname
-            break
-
-    if sheet_path is None:
-        raise KeyError(f"Sheet not found: {sheet_name}")
+    sheet_path = _get_sheet_path(pkg, sheet_name)
 
     # Find pivot table
     sheet_rels = pkg.get_rels(sheet_path)
@@ -829,15 +781,7 @@ def refresh_pivot(pkg: ExcelPackage, sheet_name: str, pivot_id: str) -> None:
         sheet_name: Sheet containing the pivot table
         pivot_id: Pivot table ID (from PivotInfo.id)
     """
-    # Get sheet path
-    sheet_path = None
-    for name, _rId, partname in pkg.get_sheet_paths():
-        if name == sheet_name:
-            sheet_path = partname
-            break
-
-    if sheet_path is None:
-        raise KeyError(f"Sheet not found: {sheet_name}")
+    sheet_path = _get_sheet_path(pkg, sheet_name)
 
     # Find pivot table
     sheet_rels = pkg.get_rels(sheet_path)

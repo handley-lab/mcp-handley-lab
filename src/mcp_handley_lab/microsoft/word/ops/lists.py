@@ -186,6 +186,30 @@ def _ensure_numPr(pPr: etree._Element) -> etree._Element:
     return numPr
 
 
+def _require_numPr(p_el: etree._Element) -> etree._Element:
+    """Get numPr element from paragraph, raise if not in a list.
+
+    Validates: has pPr, has numPr, has numId != "0".
+    """
+    pPr = p_el.find(qn("w:pPr"))
+    numPr = pPr.find(qn("w:numPr")) if pPr is not None else None
+    if numPr is None:
+        raise ValueError("Paragraph is not in a list")
+    num_id_el = numPr.find(qn("w:numId"))
+    if num_id_el is None or num_id_el.get(qn("w:val")) == "0":
+        raise ValueError("Paragraph is not in a list")
+    return numPr
+
+
+def _ensure_ilvl(numPr: etree._Element) -> etree._Element:
+    """Get or create ilvl element in numPr."""
+    ilvl_el = numPr.find(qn("w:ilvl"))
+    if ilvl_el is None:
+        ilvl_el = etree.Element(qn("w:ilvl"))
+        numPr.insert(0, ilvl_el)
+    return ilvl_el
+
+
 def set_list_level(pkg, p_el: etree._Element, level: int) -> None:
     """Set list indentation level (0-8).
 
@@ -197,26 +221,8 @@ def set_list_level(pkg, p_el: etree._Element, level: int) -> None:
     Only works on paragraphs already in a list.
     Raises ValueError if paragraph is not in a list.
     """
-    if not 0 <= level <= 8:
-        raise ValueError(f"List level must be 0-8, got {level}")
-
-    pPr = p_el.find(qn("w:pPr"))
-    if pPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    numPr = pPr.find(qn("w:numPr"))
-    if numPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    num_id_el = numPr.find(qn("w:numId"))
-    if num_id_el is None or num_id_el.get(qn("w:val")) == "0":
-        raise ValueError("Paragraph is not in a list")
-
-    ilvl_el = numPr.find(qn("w:ilvl"))
-    if ilvl_el is None:
-        ilvl_el = etree.Element(qn("w:ilvl"))
-        numPr.insert(0, ilvl_el)
-    ilvl_el.set(qn("w:val"), str(level))
+    numPr = _require_numPr(p_el)
+    _ensure_ilvl(numPr).set(qn("w:val"), str(level))
     mark_dirty(pkg)
 
 
@@ -227,26 +233,11 @@ def promote_list_item(pkg, p_el: etree._Element) -> int:
         pkg: WordPackage
         p_el: w:p element
     """
-    pPr = p_el.find(qn("w:pPr"))
-    if pPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    numPr = pPr.find(qn("w:numPr"))
-    if numPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    num_id_el = numPr.find(qn("w:numId"))
-    if num_id_el is None or num_id_el.get(qn("w:val")) == "0":
-        raise ValueError("Paragraph is not in a list")
-
+    numPr = _require_numPr(p_el)
     ilvl_el = numPr.find(qn("w:ilvl"))
     current = int(ilvl_el.get(qn("w:val"))) if ilvl_el is not None else 0
     new_level = max(0, current - 1)
-
-    if ilvl_el is None:
-        ilvl_el = etree.Element(qn("w:ilvl"))
-        numPr.insert(0, ilvl_el)
-    ilvl_el.set(qn("w:val"), str(new_level))
+    _ensure_ilvl(numPr).set(qn("w:val"), str(new_level))
     mark_dirty(pkg)
     return new_level
 
@@ -258,26 +249,11 @@ def demote_list_item(pkg, p_el: etree._Element) -> int:
         pkg: WordPackage
         p_el: w:p element
     """
-    pPr = p_el.find(qn("w:pPr"))
-    if pPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    numPr = pPr.find(qn("w:numPr"))
-    if numPr is None:
-        raise ValueError("Paragraph is not in a list")
-
-    num_id_el = numPr.find(qn("w:numId"))
-    if num_id_el is None or num_id_el.get(qn("w:val")) == "0":
-        raise ValueError("Paragraph is not in a list")
-
+    numPr = _require_numPr(p_el)
     ilvl_el = numPr.find(qn("w:ilvl"))
     current = int(ilvl_el.get(qn("w:val"))) if ilvl_el is not None else 0
     new_level = min(8, current + 1)
-
-    if ilvl_el is None:
-        ilvl_el = etree.Element(qn("w:ilvl"))
-        numPr.insert(0, ilvl_el)
-    ilvl_el.set(qn("w:val"), str(new_level))
+    _ensure_ilvl(numPr).set(qn("w:val"), str(new_level))
     mark_dirty(pkg)
     return new_level
 
@@ -404,15 +380,6 @@ def add_to_list(
     Returns the new w:p element.
     Raises ValueError if reference paragraph is not in a list (no w:numPr).
     """
-    # Validate position
-    if position not in ("before", "after"):
-        raise ValueError(f"position must be 'before' or 'after', got {position!r}")
-
-    # Validate parent exists
-    parent = reference_p_el.getparent()
-    if parent is None:
-        raise ValueError("Reference paragraph has no parent element")
-
     # Get list info from reference
     list_info = get_list_info(pkg, reference_p_el)
     if list_info is None:
@@ -423,8 +390,6 @@ def add_to_list(
     # Determine level
     if level is None:
         level = list_info["level"]
-    elif not 0 <= level <= 8:
-        raise ValueError(f"List level must be 0-8, got {level}")
 
     # Create new paragraph using reference's tag for namespace context
     new_p = etree.Element(reference_p_el.tag)

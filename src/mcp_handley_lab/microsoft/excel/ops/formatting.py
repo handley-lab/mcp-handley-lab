@@ -34,14 +34,17 @@ def list_styles(pkg: ExcelPackage) -> list[StyleInfo]:
     if cell_xfs is None:
         return []
 
-    # Get lookup tables
-    fonts = styles_xml.find(qn("x:fonts"))
-    fills = styles_xml.find(qn("x:fills"))
-    borders = styles_xml.find(qn("x:borders"))
-    num_fmts = styles_xml.find(qn("x:numFmts"))
+    # Pre-fetch element lists once for O(1) lookup
+    fonts_el = styles_xml.find(qn("x:fonts"))
+    fills_el = styles_xml.find(qn("x:fills"))
+    borders_el = styles_xml.find(qn("x:borders"))
+    fonts = fonts_el.findall(qn("x:font")) if fonts_el is not None else []
+    fills = fills_el.findall(qn("x:fill")) if fills_el is not None else []
+    borders = borders_el.findall(qn("x:border")) if borders_el is not None else []
 
     # Build number format lookup
     num_fmt_map = _get_builtin_number_formats()
+    num_fmts = styles_xml.find(qn("x:numFmts"))
     if num_fmts is not None:
         for nf in num_fmts.findall(qn("x:numFmt")):
             fmt_id = nf.get("numFmtId")
@@ -52,28 +55,18 @@ def list_styles(pkg: ExcelPackage) -> list[StyleInfo]:
     for idx, xf in enumerate(cell_xfs.findall(qn("x:xf"))):
         info = StyleInfo(index=idx)
 
-        # Font
         font_id = xf.get("fontId")
-        if font_id and fonts is not None:
-            font_el = _get_element_by_index(fonts, qn("x:font"), int(font_id))
-            if font_el is not None:
-                info.font = _describe_font(font_el)
+        if font_id and int(font_id) < len(fonts):
+            info.font = _describe_font(fonts[int(font_id)])
 
-        # Fill
         fill_id = xf.get("fillId")
-        if fill_id and fills is not None:
-            fill_el = _get_element_by_index(fills, qn("x:fill"), int(fill_id))
-            if fill_el is not None:
-                info.fill = _describe_fill(fill_el)
+        if fill_id and int(fill_id) < len(fills):
+            info.fill = _describe_fill(fills[int(fill_id)])
 
-        # Border
         border_id = xf.get("borderId")
-        if border_id and borders is not None:
-            border_el = _get_element_by_index(borders, qn("x:border"), int(border_id))
-            if border_el is not None:
-                info.border = _describe_border(border_el)
+        if border_id and int(border_id) < len(borders):
+            info.border = _describe_border(borders[int(border_id)])
 
-        # Number format
         num_fmt_id = xf.get("numFmtId")
         if num_fmt_id:
             fmt_code = num_fmt_map.get(int(num_fmt_id))
@@ -86,14 +79,8 @@ def list_styles(pkg: ExcelPackage) -> list[StyleInfo]:
 
 
 def get_style_by_index(pkg: ExcelPackage, index: int) -> StyleInfo:
-    """Get style info by index.
-
-    Raises: IndexError if index out of range.
-    """
-    styles = list_styles(pkg)
-    if not 0 <= index < len(styles):
-        raise IndexError(f"Style index out of range: {index}")
-    return styles[index]
+    """Get style info by index."""
+    return list_styles(pkg)[index]
 
 
 def get_number_format(pkg: ExcelPackage, format_index: int) -> str | None:
@@ -119,16 +106,6 @@ def get_number_format(pkg: ExcelPackage, format_index: int) -> str | None:
         if nf.get("numFmtId") == str(format_index):
             return nf.get("formatCode")
 
-    return None
-
-
-def _get_element_by_index(
-    parent: etree._Element, tag: str, index: int
-) -> etree._Element | None:
-    """Get child element by 0-based index."""
-    children = parent.findall(tag)
-    if 0 <= index < len(children):
-        return children[index]
     return None
 
 

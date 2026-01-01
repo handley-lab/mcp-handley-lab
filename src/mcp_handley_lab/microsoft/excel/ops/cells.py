@@ -9,7 +9,7 @@ from typing import Any
 
 from lxml import etree
 
-from mcp_handley_lab.microsoft.excel.constants import qn
+from mcp_handley_lab.microsoft.excel.constants import NSMAP, qn
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     parse_cell_ref,
@@ -135,21 +135,7 @@ def get_cell_style_index(
 def _find_cell(sheet: etree._Element, cell_ref: str) -> etree._Element | None:
     """Find cell element by reference."""
     col, row, _, _ = parse_cell_ref(cell_ref)
-    normalized_ref = f"{col}{row}"
-
-    sheet_data = sheet.find(qn("x:sheetData"))
-    if sheet_data is None:
-        return None
-
-    # Find the row
-    for row_el in sheet_data.findall(qn("x:row")):
-        if row_el.get("r") == str(row):
-            # Find the cell in this row
-            for cell_el in row_el.findall(qn("x:c")):
-                if cell_el.get("r", "").upper() == normalized_ref.upper():
-                    return cell_el
-            break
-    return None
+    return sheet.find(f".//x:c[@r='{col}{row}']", namespaces=NSMAP)
 
 
 def _extract_cell_data(
@@ -266,9 +252,7 @@ def set_cell_value(
     sheet_path = _get_sheet_path(pkg, sheet_name)
 
     col, row, _, _ = parse_cell_ref(cell_ref)
-    normalized_ref = f"{col.upper()}{row}"
-
-    cell = _ensure_cell(sheet, normalized_ref, row)
+    cell = _ensure_cell(sheet, f"{col}{row}", row)
 
     if value is None:
         # Clear the cell
@@ -296,9 +280,7 @@ def set_cell_formula(
     sheet_path = _get_sheet_path(pkg, sheet_name)
 
     col, row, _, _ = parse_cell_ref(cell_ref)
-    normalized_ref = f"{col.upper()}{row}"
-
-    cell = _ensure_cell(sheet, normalized_ref, row)
+    cell = _ensure_cell(sheet, f"{col}{row}", row)
 
     # Remove any existing value
     for v_el in cell.findall(qn("x:v")):
@@ -329,9 +311,7 @@ def set_cell_style(
     sheet_path = _get_sheet_path(pkg, sheet_name)
 
     col, row, _, _ = parse_cell_ref(cell_ref)
-    normalized_ref = f"{col.upper()}{row}"
-
-    cell = _ensure_cell(sheet, normalized_ref, row)
+    cell = _ensure_cell(sheet, f"{col}{row}", row)
     cell.set("s", str(style_index))
 
     pkg.mark_xml_dirty(sheet_path)

@@ -348,10 +348,7 @@ def add_hyperlink(
         )
         hyperlink.set(qn("r:id"), r_id)
     else:
-        # Internal link - use anchor attribute (validate bookmark name format)
-        from mcp_handley_lab.microsoft.word.ops.bookmarks import _validate_bookmark_name
-
-        _validate_bookmark_name(fragment)
+        # Internal link - use anchor attribute
         hyperlink.set(qn("w:anchor"), fragment)
 
     # Set history attribute (standard Word behavior)
@@ -774,12 +771,7 @@ def _create_style_ooxml(
     """Create a new custom style via pure OOXML."""
     # Type mapping to OOXML type attribute
     type_map = {"paragraph": "paragraph", "character": "character", "table": "table"}
-    style_type_lower = style_type.lower()
-    if style_type_lower not in type_map:
-        raise ValueError(
-            f"Invalid style_type: {style_type!r}. Use 'paragraph', 'character', or 'table'"
-        )
-    ooxml_type = type_map[style_type_lower]
+    ooxml_type = type_map[style_type.lower()]
 
     # Generate styleId from name (remove spaces, capitalize)
     style_id = name.replace(" ", "")
@@ -788,11 +780,6 @@ def _create_style_ooxml(
         raise ValueError("Document has no styles.xml")
 
     styles_xml = pkg.styles_xml
-
-    # Check if style already exists
-    for style in styles_xml.findall(qn("w:style")):
-        if style.get(qn("w:styleId")) == style_id:
-            raise ValueError(f"Style '{name}' already exists")
 
     # Create the style element
     style_el = etree.SubElement(
@@ -1360,12 +1347,7 @@ def _resolve_run_by_index_ooxml(p_el: etree._Element, run_index: int) -> etree._
 
     Iterates all w:r elements (including those inside w:hyperlink) in document order.
     """
-    runs = list(p_el.iter(qn("w:r")))
-    if run_index < 0 or run_index >= len(runs):
-        raise IndexError(
-            f"Run index {run_index} out of range (paragraph has {len(runs)} runs)"
-        )
-    return runs[run_index]
+    return list(p_el.iter(qn("w:r")))[run_index]
 
 
 def _set_run_text_ooxml(run_el: etree._Element, text: str) -> None:

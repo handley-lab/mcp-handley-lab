@@ -723,11 +723,6 @@ def create_chart(
     Returns:
         ChartInfo for the created chart
     """
-    # Validate chart type
-    valid_types = {"bar", "column", "line", "pie", "scatter", "area"}
-    if chart_type.lower() not in valid_types:
-        raise ValueError(f"Invalid chart type: {chart_type}. Valid: {valid_types}")
-
     # Get or create drawing for sheet
     drawing_path, drawing_xml = _get_or_create_drawing(pkg, sheet_name)
 

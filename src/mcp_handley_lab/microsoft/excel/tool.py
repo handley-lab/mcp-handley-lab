@@ -6,6 +6,7 @@ Default representation is 'grid' with values + types arrays.
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import tempfile
@@ -491,7 +492,7 @@ def _read_cells(
     if include_view:
         result.view = _build_markdown_view(
             raw_cells, start_col_idx, start_row, num_rows, num_cols
-        ).content
+        )
 
     return result
 
@@ -559,20 +560,13 @@ def _build_cells(
     ]
 
 
-class _MarkdownView:
-    """Internal helper to build markdown table."""
-
-    def __init__(self, content: str):
-        self.content = content
-
-
 def _build_markdown_view(
     cells: list[tuple[str, Any, str | None, str | None]],
     start_col_idx: int,
     start_row: int,
     num_rows: int,
     num_cols: int,
-) -> _MarkdownView:
+) -> str:
     """Build markdown table view for LLM readability."""
     # Build 2D array first
     grid: list[list[Any]] = [[None] * num_cols for _ in range(num_rows)]
@@ -598,8 +592,7 @@ def _build_markdown_view(
         formatted = [_format_cell_for_markdown(v) for v in row_data]
         data_rows.append(f"| {row_num} | " + " | ".join(formatted) + " |")
 
-    content = "\n".join([header_row, separator] + data_rows)
-    return _MarkdownView(content=content)
+    return "\n".join([header_row, separator] + data_rows)
 
 
 def _format_cell_for_markdown(value: Any) -> str:
@@ -960,11 +953,6 @@ def _edit_set_cell(
     file_path: str, sheet: str, cell_ref: str, value: str
 ) -> dict[str, Any]:
     """Set a cell's value."""
-    if not sheet:
-        raise ValueError("sheet is required for set_cell")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for set_cell")
-
     pkg = ExcelPackage.open(file_path)
 
     # Auto-detect type from value string
@@ -995,11 +983,6 @@ def _edit_set_formula(
     file_path: str, sheet: str, cell_ref: str, formula: str
 ) -> dict[str, Any]:
     """Set a cell's formula."""
-    if not sheet:
-        raise ValueError("sheet is required for set_formula")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for set_formula")
-
     pkg = ExcelPackage.open(file_path)
     set_cell_formula(pkg, sheet, cell_ref, formula)
     pkg.save(file_path)
@@ -1015,15 +998,6 @@ def _edit_set_style(
     file_path: str, sheet: str, cell_ref: str, style_index: int
 ) -> dict[str, Any]:
     """Apply a style to a cell or range."""
-    if not sheet:
-        raise ValueError("sheet is required for set_style")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for set_style")
-    if style_index < 0:
-        raise ValueError(
-            "style_index is required for set_style (use read scope=styles)"
-        )
-
     pkg = ExcelPackage.open(file_path)
 
     # Support both single cell and range
@@ -1062,9 +1036,6 @@ def _edit_set_style(
 
 def _edit_add_sheet(file_path: str, name: str) -> dict[str, Any]:
     """Add a new sheet."""
-    if not name:
-        raise ValueError("value or new_name is required for add_sheet")
-
     pkg = ExcelPackage.open(file_path)
     add_sheet(pkg, name)
     pkg.save(file_path)
@@ -1078,11 +1049,6 @@ def _edit_add_sheet(file_path: str, name: str) -> dict[str, Any]:
 
 def _edit_rename_sheet(file_path: str, old_name: str, new_name: str) -> dict[str, Any]:
     """Rename a sheet."""
-    if not old_name:
-        raise ValueError("sheet is required for rename_sheet")
-    if not new_name:
-        raise ValueError("new_name is required for rename_sheet")
-
     pkg = ExcelPackage.open(file_path)
     rename_sheet(pkg, old_name, new_name)
     pkg.save(file_path)
@@ -1096,9 +1062,6 @@ def _edit_rename_sheet(file_path: str, old_name: str, new_name: str) -> dict[str
 
 def _edit_delete_sheet(file_path: str, name: str) -> dict[str, Any]:
     """Delete a sheet."""
-    if not name:
-        raise ValueError("sheet is required for delete_sheet")
-
     pkg = ExcelPackage.open(file_path)
     delete_sheet(pkg, name)
     pkg.save(file_path)
@@ -1112,11 +1075,6 @@ def _edit_delete_sheet(file_path: str, name: str) -> dict[str, Any]:
 
 def _edit_copy_sheet(file_path: str, source: str, new_name: str) -> dict[str, Any]:
     """Copy a sheet."""
-    if not source:
-        raise ValueError("sheet is required for copy_sheet")
-    if not new_name:
-        raise ValueError("new_name is required for copy_sheet")
-
     pkg = ExcelPackage.open(file_path)
     copy_sheet(pkg, source, new_name)
     pkg.save(file_path)
@@ -1137,22 +1095,7 @@ def _edit_set_range(
     file_path: str, sheet: str, start_ref: str, value: str
 ) -> dict[str, Any]:
     """Set range values from JSON 2D array."""
-    import json
-
-    if not sheet:
-        raise ValueError("sheet is required for set_range")
-    if not start_ref:
-        raise ValueError("cell_ref is required for set_range")
-    if not value:
-        raise ValueError("value (JSON 2D array) is required for set_range")
-
-    try:
-        values = json.loads(value)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"value must be valid JSON 2D array: {e}") from e
-
-    if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
-        raise ValueError("value must be a 2D array (list of lists)")
+    values = json.loads(value)
 
     pkg = ExcelPackage.open(file_path)
     count = set_range_values(pkg, sheet, start_ref, values)
@@ -1169,11 +1112,6 @@ def _edit_insert_rows(
     file_path: str, sheet: str, cell_ref: str, count: int
 ) -> dict[str, Any]:
     """Insert rows."""
-    if not sheet:
-        raise ValueError("sheet is required for insert_rows")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for insert_rows")
-
     _, row_num, _, _ = parse_cell_ref(cell_ref)
 
     pkg = ExcelPackage.open(file_path)
@@ -1191,11 +1129,6 @@ def _edit_delete_rows(
     file_path: str, sheet: str, cell_ref: str, count: int
 ) -> dict[str, Any]:
     """Delete rows."""
-    if not sheet:
-        raise ValueError("sheet is required for delete_rows")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for delete_rows")
-
     _, row_num, _, _ = parse_cell_ref(cell_ref)
 
     pkg = ExcelPackage.open(file_path)
@@ -1213,11 +1146,6 @@ def _edit_insert_columns(
     file_path: str, sheet: str, cell_ref: str, count: int
 ) -> dict[str, Any]:
     """Insert columns."""
-    if not sheet:
-        raise ValueError("sheet is required for insert_columns")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for insert_columns")
-
     col, _, _, _ = parse_cell_ref(cell_ref)
 
     pkg = ExcelPackage.open(file_path)
@@ -1235,11 +1163,6 @@ def _edit_delete_columns(
     file_path: str, sheet: str, cell_ref: str, count: int
 ) -> dict[str, Any]:
     """Delete columns."""
-    if not sheet:
-        raise ValueError("sheet is required for delete_columns")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for delete_columns")
-
     col, _, _, _ = parse_cell_ref(cell_ref)
 
     pkg = ExcelPackage.open(file_path)
@@ -1255,11 +1178,6 @@ def _edit_delete_columns(
 
 def _edit_merge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
     """Merge cells in a range."""
-    if not sheet:
-        raise ValueError("sheet is required for merge_cells")
-    if not range_ref:
-        raise ValueError("cell_ref (range) is required for merge_cells")
-
     pkg = ExcelPackage.open(file_path)
     merge_cells(pkg, sheet, range_ref)
     pkg.save(file_path)
@@ -1273,11 +1191,6 @@ def _edit_merge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str, A
 
 def _edit_unmerge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
     """Unmerge cells in a range."""
-    if not sheet:
-        raise ValueError("sheet is required for unmerge_cells")
-    if not range_ref:
-        raise ValueError("cell_ref (range) is required for unmerge_cells")
-
     pkg = ExcelPackage.open(file_path)
     unmerge_cells(pkg, sheet, range_ref)
     pkg.save(file_path)
@@ -1298,13 +1211,6 @@ def _edit_create_table(
     file_path: str, sheet: str, range_ref: str, table_name: str
 ) -> dict[str, Any]:
     """Create a table from a range."""
-    if not sheet:
-        raise ValueError("sheet is required for create_table")
-    if not range_ref:
-        raise ValueError("cell_ref (range) is required for create_table")
-    if not table_name:
-        raise ValueError("new_name or table_name is required for create_table")
-
     pkg = ExcelPackage.open(file_path)
     create_table(pkg, sheet, range_ref, table_name)
     pkg.save(file_path)
@@ -1318,9 +1224,6 @@ def _edit_create_table(
 
 def _edit_delete_table(file_path: str, table_name: str) -> dict[str, Any]:
     """Delete a table."""
-    if not table_name:
-        raise ValueError("table_name is required for delete_table")
-
     pkg = ExcelPackage.open(file_path)
     delete_table(pkg, table_name)
     pkg.save(file_path)
@@ -1334,21 +1237,7 @@ def _edit_delete_table(file_path: str, table_name: str) -> dict[str, Any]:
 
 def _edit_add_table_row(file_path: str, table_name: str, value: str) -> dict[str, Any]:
     """Add a row to a table."""
-    import json
-
-    if not table_name:
-        raise ValueError("table_name is required for add_table_row")
-    if not value:
-        raise ValueError("value (JSON array) is required for add_table_row")
-
-    try:
-        values = json.loads(value)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"value must be valid JSON array: {e}") from e
-
-    if not isinstance(values, list):
-        raise ValueError("value must be a JSON array")
-
+    values = json.loads(value)
     pkg = ExcelPackage.open(file_path)
     first_ref = add_table_row(pkg, table_name, values)
     pkg.save(file_path)
@@ -1364,9 +1253,6 @@ def _edit_delete_table_row(
     file_path: str, table_name: str, row_index: int
 ) -> dict[str, Any]:
     """Delete a row from a table."""
-    if not table_name:
-        raise ValueError("table_name is required for delete_table_row")
-
     pkg = ExcelPackage.open(file_path)
     delete_table_row(pkg, table_name, row_index)
     pkg.save(file_path)
@@ -1394,13 +1280,6 @@ def _edit_add_conditional_format(
     priority: int,
 ) -> dict[str, Any]:
     """Add a conditional formatting rule."""
-    if not sheet:
-        raise ValueError("sheet is required for add_conditional_format")
-    if not range_ref:
-        raise ValueError("cell_ref (range) is required for add_conditional_format")
-    if not rule_type:
-        raise ValueError("rule_type is required for add_conditional_format")
-
     pkg = ExcelPackage.open(file_path)
 
     # Convert -1 style_index to None (optional)
@@ -1432,9 +1311,6 @@ def _edit_add_conditional_format(
 
 def _edit_protect_sheet(file_path: str, sheet: str, password: str) -> dict[str, Any]:
     """Protect a sheet from modification."""
-    if not sheet:
-        raise ValueError("sheet is required for protect_sheet")
-
     pkg = ExcelPackage.open(file_path)
     protect_sheet(pkg, sheet, password=password or None)
     pkg.save(file_path)
@@ -1448,9 +1324,6 @@ def _edit_protect_sheet(file_path: str, sheet: str, password: str) -> dict[str, 
 
 def _edit_unprotect_sheet(file_path: str, sheet: str, password: str) -> dict[str, Any]:
     """Remove protection from a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for unprotect_sheet")
-
     pkg = ExcelPackage.open(file_path)
     unprotect_sheet(pkg, sheet, password=password or None)
     pkg.save(file_path)
@@ -1490,11 +1363,6 @@ def _edit_unprotect_workbook(file_path: str, password: str) -> dict[str, Any]:
 
 def _edit_lock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, Any]:
     """Lock cells in a range."""
-    if not sheet:
-        raise ValueError("sheet is required for lock_cells")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for lock_cells")
-
     pkg = ExcelPackage.open(file_path)
     lock_cells(pkg, sheet, cell_ref)
     pkg.save(file_path)
@@ -1508,11 +1376,6 @@ def _edit_lock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, Any
 
 def _edit_unlock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, Any]:
     """Unlock cells in a range."""
-    if not sheet:
-        raise ValueError("sheet is required for unlock_cells")
-    if not cell_ref:
-        raise ValueError("cell_ref is required for unlock_cells")
-
     pkg = ExcelPackage.open(file_path)
     unlock_cells(pkg, sheet, cell_ref)
     pkg.save(file_path)
@@ -1531,11 +1394,6 @@ def _edit_unlock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, A
 
 def _edit_set_print_area(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
     """Set the print area for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for set_print_area")
-    if not range_ref:
-        raise ValueError("cell_ref (range) is required for set_print_area")
-
     pkg = ExcelPackage.open(file_path)
     set_print_area(pkg, sheet, range_ref)
     pkg.save(file_path)
@@ -1549,9 +1407,6 @@ def _edit_set_print_area(file_path: str, sheet: str, range_ref: str) -> dict[str
 
 def _edit_clear_print_area(file_path: str, sheet: str) -> dict[str, Any]:
     """Clear the print area for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for clear_print_area")
-
     pkg = ExcelPackage.open(file_path)
     clear_print_area(pkg, sheet)
     pkg.save(file_path)
@@ -1567,9 +1422,6 @@ def _edit_set_print_titles(
     file_path: str, sheet: str, rows: str, cols: str
 ) -> dict[str, Any]:
     """Set print titles (repeating rows/columns)."""
-    if not sheet:
-        raise ValueError("sheet is required for set_print_titles")
-
     pkg = ExcelPackage.open(file_path)
     set_print_titles(pkg, sheet, rows=rows or None, cols=cols or None)
     pkg.save(file_path)
@@ -1596,9 +1448,6 @@ def _edit_set_page_margins(
     bottom: float,
 ) -> dict[str, Any]:
     """Set page margins for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for set_page_margins")
-
     pkg = ExcelPackage.open(file_path)
     set_page_margins(
         pkg,
@@ -1621,9 +1470,6 @@ def _edit_set_page_orientation(
     file_path: str, sheet: str, landscape: bool
 ) -> dict[str, Any]:
     """Set page orientation for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for set_page_orientation")
-
     pkg = ExcelPackage.open(file_path)
     set_page_orientation(pkg, sheet, landscape=landscape)
     pkg.save(file_path)
@@ -1638,9 +1484,6 @@ def _edit_set_page_orientation(
 
 def _edit_set_page_size(file_path: str, sheet: str, paper_size: int) -> dict[str, Any]:
     """Set paper size for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for set_page_size")
-
     pkg = ExcelPackage.open(file_path)
     set_page_size(pkg, sheet, paper_size)
     pkg.save(file_path)
@@ -1659,21 +1502,14 @@ def _edit_add_page_break(
     file_path: str, sheet: str, break_type: str, position: int
 ) -> dict[str, Any]:
     """Add a page break."""
-    if not sheet:
-        raise ValueError("sheet is required for add_page_break")
-    if position <= 0:
-        raise ValueError("break_position must be > 0 for add_page_break")
-
     pkg = ExcelPackage.open(file_path)
 
     if break_type == "row":
         add_row_page_break(pkg, sheet, position)
         msg = f"Added row page break before row {position}"
-    elif break_type == "column":
+    else:
         add_column_page_break(pkg, sheet, position)
         msg = f"Added column page break before column {position}"
-    else:
-        raise ValueError("break_type must be 'row' or 'column'")
 
     pkg.save(file_path)
 
@@ -1686,9 +1522,6 @@ def _edit_add_page_break(
 
 def _edit_clear_page_breaks(file_path: str, sheet: str) -> dict[str, Any]:
     """Clear all page breaks for a sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for clear_page_breaks")
-
     pkg = ExcelPackage.open(file_path)
     clear_page_breaks(pkg, sheet)
     pkg.save(file_path)
@@ -1702,9 +1535,6 @@ def _edit_clear_page_breaks(file_path: str, sheet: str) -> dict[str, Any]:
 
 def _edit_set_scale(file_path: str, sheet: str, scale_value: int) -> dict[str, Any]:
     """Set print scale percentage."""
-    if not sheet:
-        raise ValueError("sheet is required for set_scale")
-
     pkg = ExcelPackage.open(file_path)
     set_scale(pkg, sheet, scale_value)
     pkg.save(file_path)
@@ -1720,9 +1550,6 @@ def _edit_set_fit_to_page(
     file_path: str, sheet: str, width: int, height: int
 ) -> dict[str, Any]:
     """Set fit-to-page printing."""
-    if not sheet:
-        raise ValueError("sheet is required for set_fit_to_page")
-
     pkg = ExcelPackage.open(file_path)
     set_fit_to_page(
         pkg,
@@ -1759,15 +1586,6 @@ def _edit_create_chart(
     title: str,
 ) -> dict[str, Any]:
     """Create a chart on the sheet."""
-    if not sheet:
-        raise ValueError("sheet is required for create_chart")
-    if not chart_type:
-        raise ValueError("chart_type is required for create_chart")
-    if not data_range:
-        raise ValueError("data_range is required for create_chart")
-    if not position:
-        raise ValueError("position is required for create_chart")
-
     pkg = ExcelPackage.open(file_path)
     chart_info = create_chart(
         pkg,
@@ -1788,11 +1606,6 @@ def _edit_create_chart(
 
 def _edit_delete_chart(file_path: str, sheet: str, chart_id: str) -> dict[str, Any]:
     """Delete a chart by ID."""
-    if not sheet:
-        raise ValueError("sheet is required for delete_chart")
-    if not chart_id:
-        raise ValueError("chart_id is required for delete_chart")
-
     pkg = ExcelPackage.open(file_path)
     delete_chart(pkg, sheet, chart_id)
     pkg.save(file_path)
@@ -1808,13 +1621,6 @@ def _edit_update_chart_data(
     file_path: str, sheet: str, chart_id: str, data_range: str
 ) -> dict[str, Any]:
     """Update a chart's data range."""
-    if not sheet:
-        raise ValueError("sheet is required for update_chart_data")
-    if not chart_id:
-        raise ValueError("chart_id is required for update_chart_data")
-    if not data_range:
-        raise ValueError("data_range is required for update_chart_data")
-
     pkg = ExcelPackage.open(file_path)
     update_chart_data(pkg, sheet, chart_id, data_range)
     pkg.save(file_path)
@@ -1843,15 +1649,6 @@ def _edit_create_pivot(
     agg_func: str,
 ) -> dict[str, Any]:
     """Create a pivot table."""
-    if not sheet:
-        raise ValueError("sheet is required for create_pivot")
-    if not data_range:
-        raise ValueError("data_range is required for create_pivot")
-    if not position:
-        raise ValueError("position is required for create_pivot")
-    if not value_fields:
-        raise ValueError("value_fields is required for create_pivot")
-
     # Parse comma-separated field names
     rows = [f.strip() for f in row_fields.split(",") if f.strip()] if row_fields else []
     cols = [f.strip() for f in col_fields.split(",") if f.strip()] if col_fields else []
@@ -1880,11 +1677,6 @@ def _edit_create_pivot(
 
 def _edit_delete_pivot(file_path: str, sheet: str, pivot_id: str) -> dict[str, Any]:
     """Delete a pivot table by ID."""
-    if not sheet:
-        raise ValueError("sheet is required for delete_pivot")
-    if not pivot_id:
-        raise ValueError("pivot_id is required for delete_pivot")
-
     pkg = ExcelPackage.open(file_path)
     delete_pivot(pkg, sheet, pivot_id)
     pkg.save(file_path)
@@ -1898,11 +1690,6 @@ def _edit_delete_pivot(file_path: str, sheet: str, pivot_id: str) -> dict[str, A
 
 def _edit_refresh_pivot(file_path: str, sheet: str, pivot_id: str) -> dict[str, Any]:
     """Refresh a pivot table's cache."""
-    if not sheet:
-        raise ValueError("sheet is required for refresh_pivot")
-    if not pivot_id:
-        raise ValueError("pivot_id is required for refresh_pivot")
-
     pkg = ExcelPackage.open(file_path)
     refresh_pivot(pkg, sheet, pivot_id)
     pkg.save(file_path)
@@ -1920,12 +1707,6 @@ def _edit_recalculate(file_path: str) -> dict[str, Any]:
     This opens the file in LibreOffice, which triggers formula calculation,
     then saves it back. The cached values in <v> elements are then populated.
     """
-    # Check LibreOffice is available
-    if not shutil.which("libreoffice"):
-        raise RuntimeError(
-            "LibreOffice not found. Install libreoffice to use recalculate."
-        )
-
     file_path = str(Path(file_path).resolve())
     file_name = Path(file_path).name
 

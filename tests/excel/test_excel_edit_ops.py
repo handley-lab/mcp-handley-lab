@@ -161,12 +161,6 @@ class TestAddSheet:
         assert len(sheets) == 2
         assert sheets[1].name == "NewSheet"
 
-    def test_add_sheet_duplicate_raises(self):
-        """Adding duplicate sheet name raises."""
-        pkg = ExcelPackage.new()
-        with pytest.raises(ValueError, match="already exists"):
-            add_sheet(pkg, "Sheet1")
-
     def test_add_multiple_sheets(self):
         """Add multiple sheets."""
         pkg = ExcelPackage.new()
@@ -213,13 +207,6 @@ class TestRenameSheet:
         with pytest.raises(KeyError, match="not found"):
             rename_sheet(pkg, "NonExistent", "New")
 
-    def test_rename_to_existing_raises(self):
-        """Renaming to existing name raises."""
-        pkg = ExcelPackage.new()
-        add_sheet(pkg, "Sheet2")
-        with pytest.raises(ValueError, match="already exists"):
-            rename_sheet(pkg, "Sheet1", "Sheet2")
-
 
 class TestDeleteSheet:
     """Tests for delete_sheet."""
@@ -264,12 +251,6 @@ class TestCopySheet:
         # Check data was copied
         value, _, _ = get_cell_data(pkg, "Sheet1_Copy", "A1")
         assert value == 42
-
-    def test_copy_to_existing_raises(self):
-        """Copying to existing name raises."""
-        pkg = ExcelPackage.new()
-        with pytest.raises(ValueError, match="already exists"):
-            copy_sheet(pkg, "Sheet1", "Sheet1")
 
     def test_copy_nonexistent_raises(self):
         """Copying non-existent sheet raises."""

@@ -192,6 +192,34 @@ def _generate_para_id() -> str:
     return secrets.token_hex(4).upper()
 
 
+def _create_comment_element(
+    parent: etree._Element,
+    comment_id: int,
+    para_id: str,
+    text: str,
+    author: str,
+    initials: str,
+) -> etree._Element:
+    """Create w:comment element with content."""
+    comment_el = etree.SubElement(parent, qn("w:comment"))
+    comment_el.set(qn("w:id"), str(comment_id))
+    if author:
+        comment_el.set(qn("w:author"), author)
+    if initials:
+        comment_el.set(qn("w:initials"), initials)
+    comment_el.set(qn("w:date"), datetime.now(timezone.utc).isoformat())
+    comment_el.set(f"{{{_W15_NS}}}paraId", para_id)
+
+    comment_p = etree.SubElement(comment_el, qn("w:p"))
+    comment_r = etree.SubElement(comment_p, qn("w:r"))
+    comment_t = etree.SubElement(comment_r, qn("w:t"))
+    comment_t.text = text
+    if text and (text[0].isspace() or text[-1].isspace()):
+        comment_t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+
+    return comment_el
+
+
 def _get_next_comment_id(pkg) -> int:
     """Get next available comment ID from comments.xml."""
     if not pkg.has_part("/word/comments.xml"):
@@ -272,28 +300,9 @@ def add_comment_to_block(
         initials: Author initials
     """
     comments_xml = _ensure_comments_part(pkg)
-
-    # Get next comment ID and generate para_id
     comment_id = _get_next_comment_id(pkg)
     para_id = _generate_para_id()
-
-    # Create w:comment element
-    comment_el = etree.SubElement(comments_xml, qn("w:comment"))
-    comment_el.set(qn("w:id"), str(comment_id))
-    if author:
-        comment_el.set(qn("w:author"), author)
-    if initials:
-        comment_el.set(qn("w:initials"), initials)
-    comment_el.set(qn("w:date"), datetime.now(timezone.utc).isoformat())
-    comment_el.set(f"{{{_W15_NS}}}paraId", para_id)
-
-    # Add comment content as w:p/w:r/w:t
-    comment_p = etree.SubElement(comment_el, qn("w:p"))
-    comment_r = etree.SubElement(comment_p, qn("w:r"))
-    comment_t = etree.SubElement(comment_r, qn("w:t"))
-    comment_t.text = text
-    if text and (text[0].isspace() or text[-1].isspace()):
-        comment_t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    _create_comment_element(comments_xml, comment_id, para_id, text, author, initials)
 
     # Insert comment markers into the target paragraph
     # Insert commentRangeStart at beginning
@@ -406,28 +415,11 @@ def reply_to_comment(
     if p_el is None:
         raise ValueError(f"Parent comment {parent_id} not attached to any paragraph")
 
-    # Add reply comment using same mechanism as add_comment_to_block
+    # Add reply comment
     comments_xml = _ensure_comments_part(pkg)
     comment_id = _get_next_comment_id(pkg)
     para_id = _generate_para_id()
-
-    # Create w:comment element
-    comment_el = etree.SubElement(comments_xml, qn("w:comment"))
-    comment_el.set(qn("w:id"), str(comment_id))
-    if author:
-        comment_el.set(qn("w:author"), author)
-    if initials:
-        comment_el.set(qn("w:initials"), initials)
-    comment_el.set(qn("w:date"), datetime.now(timezone.utc).isoformat())
-    comment_el.set(f"{{{_W15_NS}}}paraId", para_id)
-
-    # Add comment content
-    comment_p = etree.SubElement(comment_el, qn("w:p"))
-    comment_r = etree.SubElement(comment_p, qn("w:r"))
-    comment_t = etree.SubElement(comment_r, qn("w:t"))
-    comment_t.text = text
-    if text and (text[0].isspace() or text[-1].isspace()):
-        comment_t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    _create_comment_element(comments_xml, comment_id, para_id, text, author, initials)
 
     # Insert markers in paragraph
     range_start = etree.Element(qn("w:commentRangeStart"))

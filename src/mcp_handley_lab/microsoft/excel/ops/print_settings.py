@@ -5,6 +5,8 @@ Page setup, margins, print area, print titles, and page breaks.
 
 from __future__ import annotations
 
+import re
+
 from lxml import etree
 
 from mcp_handley_lab.microsoft.excel.constants import qn
@@ -645,7 +647,6 @@ def _make_absolute_ref(range_ref: str) -> str:
         A:B -> $A:$B
         1:2 -> $1:$2
     """
-    import re
 
     def add_dollars(cell_ref: str) -> str:
         # Handle row-only (1:2) or column-only (A:B) references

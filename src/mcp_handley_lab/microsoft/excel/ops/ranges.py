@@ -106,9 +106,6 @@ def insert_rows(
     All rows at row_num and below are shifted down by count.
     Formulas referencing cells at or after the insertion point are updated.
     """
-    if count <= 0:
-        return
-
     sheet = pkg.get_sheet_xml(sheet_name)
     sheet_path = _get_sheet_path(pkg, sheet_name)
     sheet_data = sheet.find(qn("x:sheetData"))
@@ -159,9 +156,6 @@ def delete_rows(
     All rows below are shifted up by count.
     Formulas referencing deleted cells become #REF!; others are updated.
     """
-    if count <= 0:
-        return
-
     sheet = pkg.get_sheet_xml(sheet_name)
     sheet_path = _get_sheet_path(pkg, sheet_name)
     sheet_data = sheet.find(qn("x:sheetData"))
@@ -223,9 +217,6 @@ def insert_columns(
     col_ref can be a letter ("A") or 1-based index (1).
     Formulas referencing cells at or after the insertion point are updated.
     """
-    if count <= 0:
-        return
-
     col_idx = col_ref if isinstance(col_ref, int) else column_letter_to_index(col_ref)
 
     sheet = pkg.get_sheet_xml(sheet_name)
@@ -279,9 +270,6 @@ def delete_columns(
     col_ref can be a letter ("A") or 1-based index (1).
     Formulas referencing deleted cells become #REF!; others are updated.
     """
-    if count <= 0:
-        return
-
     col_idx = col_ref if isinstance(col_ref, int) else column_letter_to_index(col_ref)
 
     sheet = pkg.get_sheet_xml(sheet_name)

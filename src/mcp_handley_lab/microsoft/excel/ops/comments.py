@@ -15,8 +15,14 @@ from lxml import etree
 
 from mcp_handley_lab.microsoft.excel.constants import CT, NSMAP, RT, qn
 from mcp_handley_lab.microsoft.excel.models import CommentInfo
-from mcp_handley_lab.microsoft.excel.ops.core import get_sheet_path as _get_sheet_path
-from mcp_handley_lab.microsoft.excel.ops.core import insert_sheet_element
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    column_letter_to_index,
+    insert_sheet_element,
+    parse_cell_ref,
+)
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
@@ -57,16 +63,10 @@ def _next_part_number(pkg: ExcelPackage, pattern: str) -> int:
     return max_n + 1
 
 
-def _parse_cell_ref(ref: str) -> tuple[int, int]:
+def _cell_ref_to_indices(ref: str) -> tuple[int, int]:
     """Parse cell reference to (col, row) 1-based indices."""
-    match = re.match(r"^([A-Za-z]+)(\d+)$", ref)
-    if not match:
-        raise ValueError(f"Invalid cell reference: {ref}")
-    col_str, row_str = match.groups()
-    col = 0
-    for char in col_str.upper():
-        col = col * 26 + (ord(char) - ord("A") + 1)
-    return col, int(row_str)
+    col_letter, row, _, _ = parse_cell_ref(ref)
+    return column_letter_to_index(col_letter), row
 
 
 def _create_comments_xml(authors: list[str]) -> etree._Element:
@@ -181,7 +181,7 @@ def list_comments(pkg: ExcelPackage, sheet_name: str) -> list[CommentInfo]:
     """
     sheet_path = _get_sheet_path(pkg, sheet_name)
     comments_path = _find_comments_path(pkg, sheet_path)
-    if not comments_path or not pkg.has_part(comments_path):
+    if not comments_path:
         return []
 
     comments_xml = pkg.get_xml(comments_path)
@@ -267,16 +267,10 @@ def add_comment(
         author: Optional author name (defaults to "Author").
 
     Returns: CommentInfo for the created comment.
-
-    Raises: ValueError if comment already exists on cell.
     """
     cell_ref = cell_ref.upper()
     sheet_path = _get_sheet_path(pkg, sheet_name)
     author = author or "Author"
-
-    # Check for existing comment
-    if get_comment(pkg, sheet_name, cell_ref):
-        raise ValueError(f"Comment already exists on {cell_ref}")
 
     # Get or create comments part
     comments_path = _find_comments_path(pkg, sheet_path)
@@ -345,7 +339,7 @@ def add_comment(
     pkg.mark_xml_dirty(comments_path)
 
     # Add VML shape for the comment
-    col, row = _parse_cell_ref(cell_ref)
+    col, row = _cell_ref_to_indices(cell_ref)
     # Count existing shapes to get unique ID
     shape_count = len(vml_xml.findall(f".//{{{VML_NS}}}shape"))
     _add_vml_shape(vml_xml, col, row, 1024 + shape_count)
@@ -398,7 +392,7 @@ def delete_comment(pkg: ExcelPackage, sheet_name: str, cell_ref: str) -> None:
     vml_path = _find_vml_path(pkg, sheet_path)
     if vml_path and pkg.has_part(vml_path):
         vml_xml = pkg.get_xml(vml_path)
-        col, row = _parse_cell_ref(cell_ref)
+        col, row = _cell_ref_to_indices(cell_ref)
 
         # Find shape by matching Row/Column in ClientData
         shapes = vml_xml.findall(f".//{{{VML_NS}}}shape")

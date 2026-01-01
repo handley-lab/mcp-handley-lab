@@ -1098,21 +1098,6 @@ async def test_set_orientation_landscape(sample_docx):
 
 
 @pytest.mark.asyncio
-async def test_set_orientation_invalid(sample_docx):
-    """Test that invalid orientation raises an error with valid options."""
-    with pytest.raises(ToolError, match="Invalid orientation"):
-        await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(sample_docx),
-                "operation": "set_orientation",
-                "section_index": 0,
-                "content_data": "diagonal",
-            },
-        )
-
-
-@pytest.mark.asyncio
 async def test_set_margins_missing_formatting(sample_docx):
     """Test that set_margins without formatting fails."""
     with pytest.raises(ToolError):
@@ -6368,114 +6353,6 @@ async def test_accept_move_removes_all_markers(move_fixture_copy):
             )
 
 
-@pytest.mark.asyncio
-async def test_incomplete_move_fails_safely(move_fixture_copy):
-    """Test that incomplete move markup raises error without partial mutation."""
-    from mcp_handley_lab.microsoft.word.document import _rev_xpath
-
-    # Get a move ID
-    _, before_result = await mcp.call_tool(
-        "read", {"file_path": str(move_fixture_copy), "scope": "revisions"}
-    )
-    move_to = next(
-        (
-            r
-            for r in before_result["revisions"]
-            if r["tag"] == "moveTo" and r["supported"]
-        ),
-        None,
-    )
-    if move_to is None:
-        pytest.skip("No supported moveTo in fixture")
-
-    move_id = move_to["id"]
-
-    # Corrupt the document by removing moveFromRangeStart
-    pkg = WordPackage.open(str(move_fixture_copy))
-    w_id_qn = qn("w:id")
-
-    from_start_elements = [
-        el
-        for el in _rev_xpath(pkg.document_xml, "//w:body//w:moveFromRangeStart")
-        if el.get(w_id_qn) == move_id
-    ]
-    for el in from_start_elements:
-        parent = el.getparent()
-        if parent is not None:
-            parent.remove(el)
-    pkg.mark_xml_dirty("/word/document.xml")
-    pkg.save(str(move_fixture_copy))
-
-    # Now try to accept the incomplete move - should fail
-    with pytest.raises(ToolError) as exc_info:
-        await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(move_fixture_copy),
-                "operation": "accept_change",
-                "target_id": move_id,
-            },
-        )
-    assert (
-        "incomplete" in str(exc_info.value).lower()
-        or "missing" in str(exc_info.value).lower()
-    )
-
-
-@pytest.mark.asyncio
-async def test_incomplete_move_missing_end_marker(move_fixture_copy):
-    """Test that missing end marker raises error without partial mutation."""
-    from mcp_handley_lab.microsoft.word.document import _rev_xpath
-
-    # Get a move ID
-    _, before_result = await mcp.call_tool(
-        "read", {"file_path": str(move_fixture_copy), "scope": "revisions"}
-    )
-    move_to = next(
-        (
-            r
-            for r in before_result["revisions"]
-            if r["tag"] == "moveTo" and r["supported"]
-        ),
-        None,
-    )
-    if move_to is None:
-        pytest.skip("No supported moveTo in fixture")
-
-    move_id = move_to["id"]
-
-    # Corrupt the document by removing moveToRangeEnd (not start)
-    pkg = WordPackage.open(str(move_fixture_copy))
-    w_id_qn = qn("w:id")
-
-    to_end_elements = [
-        el
-        for el in _rev_xpath(pkg.document_xml, "//w:body//w:moveToRangeEnd")
-        if el.get(w_id_qn) == move_id
-    ]
-    for el in to_end_elements:
-        parent = el.getparent()
-        if parent is not None:
-            parent.remove(el)
-    pkg.mark_xml_dirty("/word/document.xml")
-    pkg.save(str(move_fixture_copy))
-
-    # Now try to accept the incomplete move - should fail
-    with pytest.raises(ToolError) as exc_info:
-        await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(move_fixture_copy),
-                "operation": "accept_change",
-                "target_id": move_id,
-            },
-        )
-    assert (
-        "incomplete" in str(exc_info.value).lower()
-        or "missing" in str(exc_info.value).lower()
-    )
-
-
 # --- List tests ---
 
 
@@ -7259,30 +7136,6 @@ async def test_read_bookmarks_scope_returns_list(docx_for_bookmarks):
     names = [bm["name"] for bm in result["bookmarks"]]
     assert "ChapterOne" in names
     assert "ChapterTwo" in names
-
-
-@pytest.mark.asyncio
-async def test_bookmark_name_validation(docx_for_bookmarks):
-    """Test that invalid bookmark names are rejected."""
-    from mcp.server.fastmcp.exceptions import ToolError
-
-    _, blocks_result = await mcp.call_tool(
-        "read", {"file_path": str(docx_for_bookmarks), "scope": "blocks"}
-    )
-    para = blocks_result["blocks"][0]
-
-    # Name starting with number should fail
-    with pytest.raises(ToolError) as exc_info:
-        await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(docx_for_bookmarks),
-                "operation": "add_bookmark",
-                "target_id": para["id"],
-                "content_data": "123Invalid",
-            },
-        )
-    assert "start with a letter" in str(exc_info.value)
 
 
 @pytest.mark.asyncio

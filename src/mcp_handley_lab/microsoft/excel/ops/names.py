@@ -33,10 +33,7 @@ def _get_sheet_index(pkg: ExcelPackage, sheet_name: str) -> int:
 
 def _get_sheet_name_by_index(pkg: ExcelPackage, idx: int) -> str:
     """Get sheet name by 0-based index."""
-    sheets = pkg.get_sheet_paths()
-    if 0 <= idx < len(sheets):
-        return sheets[idx][0]
-    raise IndexError(f"Sheet index out of range: {idx}")
+    return pkg.get_sheet_paths()[idx][0]
 
 
 def list_names(pkg: ExcelPackage) -> list[NameInfo]:
@@ -113,16 +110,7 @@ def create_name(
         comment: Optional comment/description for the name.
 
     Returns: NameInfo for the created name.
-    Raises: ValueError if name already exists in the same scope.
     """
-    # Check for duplicate
-    try:
-        get_name(pkg, name, scope)
-        scope_desc = f"in scope '{scope}'" if scope else "(global)"
-        raise ValueError(f"Name already exists: {name} {scope_desc}")
-    except KeyError:
-        pass  # Good - name doesn't exist
-
     workbook = pkg.workbook_xml
     defined_names = workbook.find(qn("x:definedNames"))
     if defined_names is None:

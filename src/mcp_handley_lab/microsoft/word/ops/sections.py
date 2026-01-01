@@ -197,11 +197,6 @@ def _get_sectpr_by_index(pkg, section_index: int) -> etree._Element:
     if body_sectPr is not None:
         sectprs.append(body_sectPr)
 
-    if section_index < 0 or section_index >= len(sectprs):
-        raise IndexError(
-            f"Section index {section_index} out of range (0-{len(sectprs) - 1})"
-        )
-
     return sectprs[section_index]
 
 
@@ -258,12 +253,6 @@ def set_page_orientation(pkg, section_index: int, orientation: str) -> None:
         section_index: 0-based section index
         orientation: 'portrait' or 'landscape'
     """
-    orient_lower = orientation.lower()
-    if orient_lower not in ("portrait", "landscape"):
-        raise ValueError(
-            f"Invalid orientation '{orientation}'. Valid: ['portrait', 'landscape']"
-        )
-
     sectPr = _get_sectpr_by_index(pkg, section_index)
 
     # Get or create w:pgSz element
@@ -280,7 +269,7 @@ def set_page_orientation(pkg, section_index: int, orientation: str) -> None:
     h = int(pgSz.get(qn("w:h")) or str(int(11 * 1440)))
 
     # Set orientation attribute
-    if orient_lower == "landscape":
+    if orientation.lower() == "landscape":
         pgSz.set(qn("w:orient"), "landscape")
         # Swap dimensions if currently portrait
         if h > w:
@@ -305,12 +294,6 @@ def add_section(pkg, start_type: str = "new_page") -> int:
         pkg: WordPackage
         start_type: 'new_page', 'continuous', 'even_page', 'odd_page', 'new_column'
     """
-    start_type_lower = start_type.lower()
-    if start_type_lower not in _SECTION_START_MAP:
-        raise ValueError(
-            f"Invalid start_type '{start_type}'. Valid: {list(_SECTION_START_MAP.keys())}"
-        )
-
     # OOXML type values
     _TYPE_MAP = {
         "new_page": "nextPage",
@@ -319,7 +302,7 @@ def add_section(pkg, start_type: str = "new_page") -> int:
         "odd_page": "oddPage",
         "new_column": "nextColumn",
     }
-    type_val = _TYPE_MAP[start_type_lower]
+    type_val = _TYPE_MAP[start_type.lower()]
 
     body = pkg.body
 

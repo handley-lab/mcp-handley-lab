@@ -301,15 +301,6 @@ class TestSortRange:
         sort_state = sheet_xml.find(qn("x:autoFilter")).find(qn("x:sortState"))
         assert sort_state is not None
 
-    def test_sort_range_length_mismatch_raises(self) -> None:
-        """Mismatched sort_by and descending list lengths raise error."""
-        pkg = ExcelPackage.new()
-
-        with pytest.raises(
-            ValueError, match="sort_by has 2 items but descending has 3"
-        ):
-            sort_range(pkg, "Sheet1", "A2:D10", [0, 1], descending=[True, False, True])
-
 
 class TestAutoFilterInfo:
     """Tests for AutoFilterInfo model."""

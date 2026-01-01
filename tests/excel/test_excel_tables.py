@@ -62,16 +62,6 @@ class TestCreateTable:
         assert info.columns == ["Product", "Price"]
         assert info.row_count == 1  # Excludes header row
 
-    def test_create_table_duplicate_name_raises(self) -> None:
-        """Creating table with existing name raises ValueError."""
-        pkg = ExcelPackage.new()
-
-        set_cell_value(pkg, "Sheet1", "A1", "Header")
-        create_table(pkg, "Sheet1", "A1:A2", "Table1")
-
-        with pytest.raises(ValueError, match="already exists"):
-            create_table(pkg, "Sheet1", "C1:C2", "Table1")
-
     def test_create_table_auto_column_names(self) -> None:
         """Table with empty headers gets auto-generated column names."""
         pkg = ExcelPackage.new()
@@ -205,17 +195,6 @@ class TestAddTableRow:
         # Table should now include new row
         info = get_table_by_name(pkg, "ExtendTable")
         assert info.ref == "A1:A3"
-
-    def test_add_table_row_wrong_column_count_raises(self) -> None:
-        """Adding row with wrong column count raises ValueError."""
-        pkg = ExcelPackage.new()
-
-        set_cell_value(pkg, "Sheet1", "A1", "Col1")
-        set_cell_value(pkg, "Sheet1", "B1", "Col2")
-        create_table(pkg, "Sheet1", "A1:B2", "TwoColumns")
-
-        with pytest.raises(ValueError, match="Expected 2 values"):
-            add_table_row(pkg, "TwoColumns", ["OnlyOne"])
 
     def test_add_table_row_not_found_raises(self) -> None:
         """Adding row to non-existent table raises KeyError."""

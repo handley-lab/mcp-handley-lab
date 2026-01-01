@@ -46,24 +46,6 @@ def _get_document_xml(pkg) -> etree._Element:
     return pkg.document_xml
 
 
-def _validate_bookmark_name(name: str) -> None:
-    """Validate bookmark name per Word restrictions.
-
-    Word requires:
-    - Starts with a letter
-    - No spaces (underscores allowed)
-    - Max 40 characters
-    """
-    if not name:
-        raise ValueError("Bookmark name cannot be empty")
-    if not name[0].isalpha():
-        raise ValueError("Bookmark name must start with a letter")
-    if " " in name:
-        raise ValueError("Bookmark name cannot contain spaces")
-    if len(name) > 40:
-        raise ValueError("Bookmark name cannot exceed 40 characters")
-
-
 def _get_next_bookmark_id(pkg) -> int:
     """Get next available bookmark ID.
 
@@ -150,18 +132,7 @@ def add_bookmark(pkg, name: str, p_el: etree._Element) -> int:
         name: Bookmark name
         p_el: w:p element
 
-    Validates:
-    - Name starts with letter
-    - No spaces (Word restriction)
-    - Unique within document
     """
-    _validate_bookmark_name(name)
-
-    # Check uniqueness
-    for bm in build_bookmarks(pkg):
-        if bm["name"] == name:
-            raise ValueError(f"Bookmark name already exists: {name}")
-
     bm_id = _get_next_bookmark_id(pkg)
 
     # Insert bookmarkStart at beginning of paragraph

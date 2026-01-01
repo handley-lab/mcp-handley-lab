@@ -8,14 +8,12 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.microsoft.excel.constants import NSMAP, qn
+from mcp_handley_lab.microsoft.excel.constants import CT, NSMAP, RT, qn
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
 def _get_styles_path(pkg: ExcelPackage) -> str:
     """Get styles.xml path from workbook relationships."""
-    from mcp_handley_lab.microsoft.excel.constants import RT
-
     wb_rels = pkg.get_rels(pkg.workbook_path)
     rId = wb_rels.rId_for_reltype(RT.STYLES)
     if rId:
@@ -64,8 +62,6 @@ def _ensure_styles_xml(pkg: ExcelPackage) -> etree._Element:
         borderId="0",
         xfId="0",
     )
-
-    from mcp_handley_lab.microsoft.excel.constants import CT, RT
 
     pkg.set_xml("/xl/styles.xml", styles, CT.SML_STYLES)
     pkg.relate_to(pkg.workbook_path, "styles.xml", RT.STYLES)

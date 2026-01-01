@@ -47,14 +47,8 @@ def get_sheet_by_name(pkg: ExcelPackage, sheet_name: str) -> SheetInfo:
 
 
 def get_sheet_by_index(pkg: ExcelPackage, idx: int) -> SheetInfo:
-    """Get sheet info by 0-based index.
-
-    Raises: IndexError if index out of range.
-    """
-    sheets = list_sheets(pkg)
-    if not 0 <= idx < len(sheets):
-        raise IndexError(f"Sheet index out of range: {idx}")
-    return sheets[idx]
+    """Get sheet info by 0-based index."""
+    return list_sheets(pkg)[idx]
 
 
 def get_used_range(pkg: ExcelPackage, sheet_name: str) -> str | None:
@@ -133,13 +127,7 @@ def add_sheet(pkg: ExcelPackage, name: str) -> SheetInfo:
     """Add a new sheet to the workbook.
 
     Returns: SheetInfo for the new sheet.
-    Raises: ValueError if sheet name already exists.
     """
-    # Check for duplicate name
-    for info in list_sheets(pkg):
-        if info.name == name:
-            raise ValueError(f"Sheet already exists: {name}")
-
     # Get next sheet ID
     workbook = pkg.workbook_xml
     sheets_el = workbook.find(qn("x:sheets"))
@@ -184,14 +172,8 @@ def add_sheet(pkg: ExcelPackage, name: str) -> SheetInfo:
 def rename_sheet(pkg: ExcelPackage, old_name: str, new_name: str) -> None:
     """Rename a sheet.
 
-    Raises: KeyError if sheet not found, ValueError if new name exists.
+    Raises: KeyError if sheet not found.
     """
-    # Check new name doesn't exist
-    for info in list_sheets(pkg):
-        if info.name == new_name:
-            raise ValueError(f"Sheet already exists: {new_name}")
-
-    # Find and rename
     workbook = pkg.workbook_xml
     sheets_el = workbook.find(qn("x:sheets"))
     if sheets_el is None:
@@ -255,18 +237,8 @@ def copy_sheet(pkg: ExcelPackage, source_name: str, new_name: str) -> SheetInfo:
     """Copy a sheet to a new sheet.
 
     Returns: SheetInfo for the new sheet.
-    Raises: KeyError if source not found, ValueError if new name exists.
+    Raises: KeyError if source not found.
     """
-    # Check source exists
-    source_info = None
-    for info in list_sheets(pkg):
-        if info.name == source_name:
-            source_info = info
-        if info.name == new_name:
-            raise ValueError(f"Sheet already exists: {new_name}")
-
-    if source_info is None:
-        raise KeyError(f"Sheet not found: {source_name}")
 
     # Get source sheet XML
     source_xml = pkg.get_sheet_xml(source_name)

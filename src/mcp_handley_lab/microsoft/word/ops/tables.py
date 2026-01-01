@@ -742,21 +742,10 @@ def delete_table_column(tbl_el: etree._Element, col_index: int) -> None:
 
     Pure OOXML: Takes w:tbl element.
     """
-    # Validate column index against grid or first row
+    # 1. Remove the grid column definition
     tblGrid = tbl_el.find(_W_TBLGRID)
     if tblGrid is not None:
-        gridCols = tblGrid.findall(_W_GRIDCOL)
-        num_cols = len(gridCols)
-    else:
-        rows = tbl_el.findall(_W_TR)
-        num_cols = len(rows[0].findall(_W_TC)) if rows else 0
-
-    if col_index < 0 or col_index >= num_cols:
-        raise IndexError(f"Column index {col_index} out of range (0..{num_cols - 1})")
-
-    # 1. Remove the grid column definition
-    if tblGrid is not None:
-        tblGrid.remove(gridCols[col_index])
+        tblGrid.remove(tblGrid.findall(_W_GRIDCOL)[col_index])
 
     # 2. Remove the cell from every row
     for tr in tbl_el.findall(_W_TR):
@@ -775,10 +764,6 @@ def set_table_alignment(tbl_el: etree._Element, alignment: str) -> None:
 
     Pure OOXML: Takes w:tbl element.
     """
-    alignment_lower = alignment.lower()
-    if alignment_lower not in ("left", "center", "right"):
-        raise ValueError(f"Invalid alignment '{alignment}'. Valid: left, center, right")
-
     tblPr = tbl_el.find(_W_TBL_PR)
     if tblPr is None:
         tblPr = etree.Element(_W_TBL_PR)
@@ -787,7 +772,7 @@ def set_table_alignment(tbl_el: etree._Element, alignment: str) -> None:
     jc = tblPr.find(_W_JC)
     if jc is None:
         jc = etree.SubElement(tblPr, _W_JC)
-    jc.set(_W_VAL, alignment_lower)
+    jc.set(_W_VAL, alignment.lower())
 
 
 def set_row_height(
@@ -804,9 +789,6 @@ def set_row_height(
         rule: 'auto', 'at_least' (default, prevents clipping), or 'exactly'
     """
     rule_map = {"auto": "auto", "at_least": "atLeast", "exactly": "exact"}
-    rule_lower = rule.lower()
-    if rule_lower not in rule_map:
-        raise ValueError(f"Invalid rule '{rule}'. Valid: {list(rule_map.keys())}")
 
     tr_els = tbl_el.findall(_W_TR)
     tr = tr_els[row_index]  # Let IndexError propagate
@@ -817,7 +799,7 @@ def set_row_height(
         tr.insert(0, trPr)
 
     trHeight = trPr.find(_W_TR_HEIGHT)
-    if rule_lower == "auto":
+    if rule.lower() == "auto":
         # Remove height specification for auto
         if trHeight is not None:
             trPr.remove(trHeight)
@@ -827,7 +809,7 @@ def set_row_height(
         # Convert inches to twips
         height_twips = int(height_inches * _TWIPS_PER_INCH)
         trHeight.set(_W_VAL, str(height_twips))
-        trHeight.set(_W_H_RULE, rule_map[rule_lower])
+        trHeight.set(_W_H_RULE, rule_map[rule.lower()])
 
 
 def set_table_autofit(tbl_el: etree._Element, autofit: bool) -> None:
@@ -913,9 +895,6 @@ def set_cell_vertical_alignment(
 
     Pure OOXML: Takes w:tbl element.
     """
-    alignment_lower = alignment.lower()
-    if alignment_lower not in ("top", "center", "bottom"):
-        raise ValueError(f"Invalid alignment '{alignment}'. Valid: top, center, bottom")
 
     tr_els = tbl_el.findall(_W_TR)
     tc_els = tr_els[row].findall(_W_TC)
@@ -929,7 +908,7 @@ def set_cell_vertical_alignment(
     vAlign = tcPr.find(_W_VALIGN)
     if vAlign is None:
         vAlign = etree.SubElement(tcPr, _W_VALIGN)
-    vAlign.set(_W_VAL, alignment_lower)
+    vAlign.set(_W_VAL, alignment.lower())
 
 
 def set_cell_borders(

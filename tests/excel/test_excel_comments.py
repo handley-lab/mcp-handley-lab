@@ -135,14 +135,6 @@ class TestAddComment:
         assert legacy_drawing is not None
         assert legacy_drawing.get(qn("r:id")) is not None
 
-    def test_add_comment_duplicate_raises(self) -> None:
-        """Adding comment to cell with existing comment raises."""
-        pkg = ExcelPackage.new()
-        add_comment(pkg, "Sheet1", "A1", "First")
-
-        with pytest.raises(ValueError, match="already exists"):
-            add_comment(pkg, "Sheet1", "A1", "Second")
-
     def test_add_comment_multiple_same_author(self) -> None:
         """Multiple comments from same author share author entry."""
         pkg = ExcelPackage.new()

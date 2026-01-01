@@ -547,14 +547,6 @@ def _insert_at(
 # =============================================================================
 
 
-def delete_element(el: etree._Element) -> None:
-    """Delete an element from its parent (pure OOXML)."""
-    parent = el.getparent()
-    if parent is None:
-        raise ValueError("Cannot delete element with no parent")
-    parent.remove(el)
-
-
 def get_or_create_pPr(p_el: etree._Element) -> etree._Element:
     """Get or create w:pPr element for a paragraph."""
     pPr = p_el.find(_W_PPR)

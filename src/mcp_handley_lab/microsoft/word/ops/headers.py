@@ -333,13 +333,7 @@ def _ensure_hf_part(
     Creates part if needed, adds relationship, and inserts reference in sectPr.
     Also sets required settings flags (titlePg, evenAndOddHeaders).
     """
-    sectPrs = _get_all_sectprs(pkg)
-    if section_idx >= len(sectPrs):
-        raise IndexError(
-            f"section_index {section_idx} out of range (document has {len(sectPrs)} sections)"
-        )
-
-    sectPr = sectPrs[section_idx]
+    sectPr = _get_all_sectprs(pkg)[section_idx]
     ref_tag = qn(f"w:{kind}Reference")
     r_id_qn = qn("r:id")
     type_qn = qn("w:type")

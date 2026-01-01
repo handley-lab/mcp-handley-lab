@@ -190,10 +190,7 @@ class ExcelPackage(OpcPackage):
 
     def get_sheet_xml_by_index(self, idx: int) -> etree._Element:
         """Get parsed worksheet.xml by 0-based index."""
-        sheets = self.get_sheet_paths()
-        if not 0 <= idx < len(sheets):
-            raise IndexError(f"Sheet index out of range: {idx}")
-        return self.get_xml(sheets[idx][2])
+        return self.get_xml(self.get_sheet_paths()[idx][2])
 
     # === Shared strings ===
 

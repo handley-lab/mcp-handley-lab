@@ -507,7 +507,7 @@ def edit(
 
         elif operation == "delete":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.delete_element(t.base_el)
+            t.base_el.getparent().remove(t.base_el)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Deleted block {target_id}"
 

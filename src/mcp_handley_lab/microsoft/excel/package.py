@@ -96,12 +96,17 @@ class SharedStrings:
         return sst
 
     def to_xml(self) -> bytes:
-        """Serialize to sharedStrings.xml."""
+        """Serialize to sharedStrings.xml.
+
+        count = total entries in the table (may include duplicates)
+        uniqueCount = number of unique string values
+        """
+        unique_count = len(set(self._strings))
         root = etree.Element(
             qn("x:sst"),
             nsmap={None: NSMAP["x"]},
             count=str(len(self._strings)),
-            uniqueCount=str(len(self._strings)),
+            uniqueCount=str(unique_count),
         )
         for text in self._strings:
             si = etree.SubElement(root, qn("x:si"))

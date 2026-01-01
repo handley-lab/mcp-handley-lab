@@ -11,7 +11,6 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
     make_range_ref,
-    make_sheet_id,
     parse_cell_ref,
 )
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
@@ -20,13 +19,12 @@ from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 def list_sheets(pkg: ExcelPackage) -> list[SheetInfo]:
     """List all sheets in workbook.
 
-    Returns: List of SheetInfo with name, index, and content-addressed ID.
+    Returns: List of SheetInfo with name and index.
     """
     sheet_paths = pkg.get_sheet_paths()
     result = []
     for idx, (name, _rId, _partname) in enumerate(sheet_paths):
-        sheet_id = make_sheet_id(name, idx)
-        result.append(SheetInfo(name=name, index=idx, id=sheet_id))
+        result.append(SheetInfo(name=name, index=idx))
     return result
 
 

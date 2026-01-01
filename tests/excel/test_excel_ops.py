@@ -4,14 +4,11 @@ import pytest
 from lxml import etree
 
 from mcp_handley_lab.microsoft.excel.constants import qn
-from mcp_handley_lab.microsoft.excel.ops.cells import get_cell_value, get_cells_in_range
+from mcp_handley_lab.microsoft.excel.ops.cells import get_cell_data, get_cells_in_range
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
-    make_cell_id,
     make_cell_ref,
-    make_range_id,
-    make_sheet_id,
     parse_cell_ref,
     parse_range_ref,
 )
@@ -129,31 +126,6 @@ class TestCoreUtilities:
             parse_range_ref("invalid")
 
 
-class TestContentAddressedIDs:
-    """Tests for content-addressed ID generation."""
-
-    def test_make_cell_id_basic(self):
-        """Cell IDs contain sheet, ref, hash."""
-        cell_id = make_cell_id("Sheet1", "A1", "hello")
-        assert cell_id.startswith("cell_Sheet1_A1_")
-        assert cell_id.endswith("_0")
-
-    def test_make_cell_id_with_spaces(self):
-        """Sheet names with spaces are handled."""
-        cell_id = make_cell_id("My Sheet", "B2", "test")
-        assert "My_Sheet" in cell_id
-
-    def test_make_range_id_basic(self):
-        """Range IDs contain sheet, ref, hash."""
-        range_id = make_range_id("Sheet1", "A1:C5")
-        assert range_id.startswith("range_Sheet1_A1C5_")
-
-    def test_make_sheet_id_basic(self):
-        """Sheet IDs contain name and hash."""
-        sheet_id = make_sheet_id("Sheet1")
-        assert sheet_id.startswith("sheet_Sheet1_")
-
-
 class TestSheetOperations:
     """Tests for sheet operations."""
 
@@ -165,13 +137,6 @@ class TestSheetOperations:
         assert sheets[0].name == "Sheet1"
         assert sheets[0].index == 0
 
-    def test_list_sheets_ids_are_unique(self):
-        """Sheet IDs are unique per sheet."""
-        pkg = ExcelPackage.new()
-        sheets = list_sheets(pkg)
-        # Even with same name, different ordinals would be unique
-        assert sheets[0].id.startswith("sheet_Sheet1_")
-
     def test_get_used_range_empty_sheet(self):
         """Empty sheet returns None for used range."""
         pkg = ExcelPackage.new()
@@ -182,12 +147,13 @@ class TestSheetOperations:
 class TestCellOperations:
     """Tests for cell operations."""
 
-    def test_get_cell_value_empty(self):
-        """Empty cell returns None, empty."""
+    def test_get_cell_data_empty(self):
+        """Empty cell returns None with no type."""
         pkg = ExcelPackage.new()
-        value, cell_type = get_cell_value(pkg, "Sheet1", "A1")
+        value, type_code, formula = get_cell_data(pkg, "Sheet1", "A1")
         assert value is None
-        assert cell_type == "empty"
+        assert type_code is None
+        assert formula is None
 
     def test_get_cells_in_range_empty(self):
         """Empty range returns empty list."""
@@ -215,19 +181,22 @@ class TestCellWithData:
         pkg.mark_xml_dirty("/xl/worksheets/sheet1.xml")
         return pkg
 
-    def test_get_cell_value_number(self, pkg_with_cell):
-        """Numeric cell returns value and type."""
-        value, cell_type = get_cell_value(pkg_with_cell, "Sheet1", "A1")
-        assert value == "42"
-        assert cell_type == "number"
+    def test_get_cell_data_number(self, pkg_with_cell):
+        """Numeric cell returns integer value and 'n' type."""
+        value, type_code, formula = get_cell_data(pkg_with_cell, "Sheet1", "A1")
+        assert value == 42  # Now returns int, not string
+        assert type_code == "n"
+        assert formula is None
 
     def test_get_cells_in_range_finds_cell(self, pkg_with_cell):
         """Range query finds cell with data."""
         cells = get_cells_in_range(pkg_with_cell, "Sheet1", "A1", "B2")
         assert len(cells) == 1
-        assert cells[0][0] == "A1"
-        assert cells[0][1] == "42"
-        assert cells[0][2] == "number"
+        ref, value, type_code, formula = cells[0]
+        assert ref == "A1"
+        assert value == 42  # Now returns int
+        assert type_code == "n"
+        assert formula is None
 
     def test_get_used_range_with_data(self, pkg_with_cell):
         """Used range detects cell."""
@@ -254,8 +223,77 @@ class TestCellWithData:
         pkg.mark_xml_dirty("/xl/worksheets/sheet1.xml")
         return pkg
 
-    def test_get_cell_value_shared_string(self, pkg_with_string_cell):
+    def test_get_cell_data_shared_string(self, pkg_with_string_cell):
         """Shared string cell resolves correctly."""
-        value, cell_type = get_cell_value(pkg_with_string_cell, "Sheet1", "A1")
+        value, type_code, formula = get_cell_data(pkg_with_string_cell, "Sheet1", "A1")
         assert value == "Hello World"
-        assert cell_type == "string"
+        assert type_code == "s"
+        assert formula is None
+
+    @pytest.fixture
+    def pkg_with_float_cell(self):
+        """Create package with a float cell."""
+        pkg = ExcelPackage.new()
+        sheet = pkg.get_sheet_xml("Sheet1")
+        sheet_data = sheet.find(qn("x:sheetData"))
+
+        row = etree.SubElement(sheet_data, qn("x:row"), r="1")
+        cell = etree.SubElement(row, qn("x:c"), r="A1")
+        v = etree.SubElement(cell, qn("x:v"))
+        v.text = "3.14159"
+
+        pkg.mark_xml_dirty("/xl/worksheets/sheet1.xml")
+        return pkg
+
+    def test_get_cell_data_float(self, pkg_with_float_cell):
+        """Float cell returns float value."""
+        value, type_code, formula = get_cell_data(pkg_with_float_cell, "Sheet1", "A1")
+        assert value == 3.14159
+        assert isinstance(value, float)
+        assert type_code == "n"
+
+    @pytest.fixture
+    def pkg_with_boolean_cell(self):
+        """Create package with a boolean cell."""
+        pkg = ExcelPackage.new()
+        sheet = pkg.get_sheet_xml("Sheet1")
+        sheet_data = sheet.find(qn("x:sheetData"))
+
+        row = etree.SubElement(sheet_data, qn("x:row"), r="1")
+        cell = etree.SubElement(row, qn("x:c"), r="A1", t="b")
+        v = etree.SubElement(cell, qn("x:v"))
+        v.text = "1"
+
+        pkg.mark_xml_dirty("/xl/worksheets/sheet1.xml")
+        return pkg
+
+    def test_get_cell_data_boolean(self, pkg_with_boolean_cell):
+        """Boolean cell returns Python bool."""
+        value, type_code, formula = get_cell_data(pkg_with_boolean_cell, "Sheet1", "A1")
+        assert value is True
+        assert isinstance(value, bool)
+        assert type_code == "b"
+
+    @pytest.fixture
+    def pkg_with_formula_cell(self):
+        """Create package with a formula cell."""
+        pkg = ExcelPackage.new()
+        sheet = pkg.get_sheet_xml("Sheet1")
+        sheet_data = sheet.find(qn("x:sheetData"))
+
+        row = etree.SubElement(sheet_data, qn("x:row"), r="1")
+        cell = etree.SubElement(row, qn("x:c"), r="A1")
+        f = etree.SubElement(cell, qn("x:f"))
+        f.text = "SUM(B1:B10)"
+        v = etree.SubElement(cell, qn("x:v"))
+        v.text = "100"
+
+        pkg.mark_xml_dirty("/xl/worksheets/sheet1.xml")
+        return pkg
+
+    def test_get_cell_data_formula(self, pkg_with_formula_cell):
+        """Formula cell returns value, formula type, and formula string."""
+        value, type_code, formula = get_cell_data(pkg_with_formula_cell, "Sheet1", "A1")
+        assert value == 100
+        assert type_code == "f"  # Formula type
+        assert formula == "SUM(B1:B10)"

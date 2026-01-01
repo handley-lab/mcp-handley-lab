@@ -1,20 +1,15 @@
 """Excel operation modules."""
 
 from mcp_handley_lab.microsoft.excel.ops.cells import (
-    get_cell_formula,
+    get_cell_data,
     get_cell_style_index,
-    get_cell_value,
     get_cells_in_range,
 )
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
-    make_cell_id,
     make_cell_ref,
-    make_range_id,
     make_range_ref,
-    make_sheet_id,
-    make_table_id,
     parse_cell_ref,
     parse_range_ref,
 )
@@ -34,13 +29,8 @@ __all__ = [
     "make_range_ref",
     "parse_cell_ref",
     "parse_range_ref",
-    "make_cell_id",
-    "make_range_id",
-    "make_sheet_id",
-    "make_table_id",
     # Cells
-    "get_cell_value",
-    "get_cell_formula",
+    "get_cell_data",
     "get_cell_style_index",
     "get_cells_in_range",
     # Sheets

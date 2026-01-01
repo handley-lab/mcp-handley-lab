@@ -144,6 +144,14 @@ class OpcPackage:
         self._dirty_rels.add(source_partname)
         return rId
 
+    def remove_rel(self, source_partname: str, rId: str) -> bool:
+        """Remove relationship by rId from source part. Returns True if removed."""
+        rels = self.get_rels(source_partname)
+        if rels.remove(rId):
+            self._dirty_rels.add(source_partname)
+            return True
+        return False
+
     def resolve_rel_target(self, partname: str, rId: str) -> str:
         """Resolve rId to absolute partname.
 

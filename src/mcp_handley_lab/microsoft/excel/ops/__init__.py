@@ -2,6 +2,7 @@
 
 from mcp_handley_lab.microsoft.excel.ops.cells import (
     get_cell_data,
+    get_cell_formula,
     get_cell_style_index,
     get_cell_value,
     get_cells_in_range,
@@ -17,7 +18,16 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.dates import (
+    datetime_to_excel,
+    excel_to_date,
+    excel_to_datetime,
+    excel_to_time,
+    is_date_format,
+)
 from mcp_handley_lab.microsoft.excel.ops.formatting import (
+    add_conditional_format,
+    get_conditional_formats,
     get_number_format,
     get_style_by_index,
     list_styles,
@@ -61,8 +71,15 @@ __all__ = [
     "make_range_ref",
     "parse_cell_ref",
     "parse_range_ref",
+    # Dates
+    "datetime_to_excel",
+    "excel_to_datetime",
+    "excel_to_date",
+    "excel_to_time",
+    "is_date_format",
     # Cells - Read
     "get_cell_data",
+    "get_cell_formula",
     "get_cell_style_index",
     "get_cell_value",
     "get_cells_in_range",
@@ -102,4 +119,7 @@ __all__ = [
     "list_styles",
     "get_style_by_index",
     "get_number_format",
+    # Conditional formatting
+    "get_conditional_formats",
+    "add_conditional_format",
 ]

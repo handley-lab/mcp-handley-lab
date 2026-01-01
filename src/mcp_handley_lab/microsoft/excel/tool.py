@@ -6,6 +6,10 @@ Default representation is 'grid' with values + types arrays.
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -19,20 +23,74 @@ from mcp_handley_lab.microsoft.excel.models import (
     RangeMeta,
     SheetInfo,
     SparseCell,
+    TableInfo,
     WorkbookMeta,
 )
 from mcp_handley_lab.microsoft.excel.ops.cells import (
     get_cells_in_range,
     set_cell_formula,
+    set_cell_style,
     set_cell_value,
+)
+from mcp_handley_lab.microsoft.excel.ops.charts import (
+    create_chart,
+    delete_chart,
+    list_charts,
+    update_chart_data,
 )
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
+    make_cell_id,
+    make_sheet_id,
+    make_table_id,
     parse_cell_ref,
     parse_range_ref,
 )
-from mcp_handley_lab.microsoft.excel.ops.formatting import list_styles
+from mcp_handley_lab.microsoft.excel.ops.formatting import (
+    add_conditional_format,
+    get_conditional_formats,
+    list_styles,
+)
+from mcp_handley_lab.microsoft.excel.ops.pivots import (
+    create_pivot,
+    delete_pivot,
+    list_pivots,
+    refresh_pivot,
+)
+from mcp_handley_lab.microsoft.excel.ops.print_settings import (
+    add_column_page_break,
+    add_row_page_break,
+    clear_page_breaks,
+    clear_print_area,
+    get_fit_to_page,
+    get_page_margins,
+    get_page_orientation,
+    get_page_size,
+    get_print_area,
+    get_print_titles,
+    get_scale,
+    list_page_breaks,
+    set_fit_to_page,
+    set_page_margins,
+    set_page_orientation,
+    set_page_size,
+    set_print_area,
+    set_print_titles,
+    set_scale,
+)
+from mcp_handley_lab.microsoft.excel.ops.protection import (
+    get_sheet_protection,
+    get_workbook_protection,
+    is_sheet_protected,
+    is_workbook_protected,
+    lock_cells,
+    protect_sheet,
+    protect_workbook,
+    unlock_cells,
+    unprotect_sheet,
+    unprotect_workbook,
+)
 from mcp_handley_lab.microsoft.excel.ops.ranges import (
     delete_columns,
     delete_rows,
@@ -72,6 +130,7 @@ Scopes:
 - table: Single table data by name
 - tables: List of all tables
 - styles: List of cell styles
+- conditional_formats: Conditional formatting rules for a sheet
 
 Representation (for cells scope):
 - grid: 2D arrays of values + types (default, most compact)
@@ -88,7 +147,7 @@ def read(
     file_path: str = Field(description="Path to .xlsx file"),
     scope: str = Field(
         default="sheets",
-        description="What to read: meta, sheets, cells, table, tables, styles",
+        description="What to read: meta, sheets, cells, table, tables, styles, conditional_formats, protection, print_settings, charts",
     ),
     sheet: str = Field(
         default="",
@@ -144,11 +203,21 @@ def read(
             pkg, sheet, range_ref, representation, include_types, view, limit
         )
     elif scope == "table":
-        result = _read_table(pkg, table_name, include_headers)
+        result = _read_table(pkg, table_name, include_headers, limit)
     elif scope == "tables":
         result = _read_tables(pkg)
     elif scope == "styles":
         result = _read_styles(pkg)
+    elif scope == "conditional_formats":
+        result = _read_conditional_formats(pkg, sheet)
+    elif scope == "protection":
+        result = _read_protection(pkg, sheet)
+    elif scope == "print_settings":
+        result = _read_print_settings(pkg, sheet)
+    elif scope == "charts":
+        result = _read_charts(pkg, sheet)
+    elif scope == "pivots":
+        result = _read_pivots(pkg, sheet)
     else:
         raise ValueError(f"Unknown scope: {scope}")
 
@@ -171,8 +240,15 @@ def _read_meta(pkg: ExcelPackage) -> ExcelReadResult:
 def _read_sheets(pkg: ExcelPackage) -> ExcelReadResult:
     """Read list of sheets."""
     sheets = list_sheets(pkg)
-    # Convert to SheetInfo without content-addressed IDs
-    sheet_infos = [SheetInfo(name=s.name, index=s.index) for s in sheets]
+    # Convert to SheetInfo with content-addressed IDs
+    sheet_infos = [
+        SheetInfo(
+            id=make_sheet_id(s.name, s.index),
+            name=s.name,
+            index=s.index,
+        )
+        for s in sheets
+    ]
     return ExcelReadResult(
         scope="sheets",
         sheets=sheet_infos,
@@ -180,7 +256,7 @@ def _read_sheets(pkg: ExcelPackage) -> ExcelReadResult:
 
 
 def _read_table(
-    pkg: ExcelPackage, table_name: str, include_headers: bool
+    pkg: ExcelPackage, table_name: str, include_headers: bool, limit: int
 ) -> ExcelReadResult:
     """Read a single table by name."""
     if not table_name:
@@ -189,9 +265,23 @@ def _read_table(
     info = get_table_by_name(pkg, table_name)
     data = get_table_data(pkg, table_name, include_headers=include_headers)
 
+    # Apply limit to data rows
+    if limit and len(data) > limit:
+        data = data[:limit]
+
+    # Add content-addressed ID
+    info_with_id = TableInfo(
+        id=make_table_id(info.name, info.ref),
+        name=info.name,
+        sheet=info.sheet,
+        ref=info.ref,
+        columns=info.columns,
+        row_count=info.row_count,
+    )
+
     return ExcelReadResult(
         scope="table",
-        table=info,
+        table=info_with_id,
         grid=GridData(values=data),
     )
 
@@ -199,9 +289,21 @@ def _read_table(
 def _read_tables(pkg: ExcelPackage) -> ExcelReadResult:
     """Read list of all tables."""
     tables = list_tables(pkg)
+    # Add content-addressed IDs
+    tables_with_ids = [
+        TableInfo(
+            id=make_table_id(t.name, t.ref),
+            name=t.name,
+            sheet=t.sheet,
+            ref=t.ref,
+            columns=t.columns,
+            row_count=t.row_count,
+        )
+        for t in tables
+    ]
     return ExcelReadResult(
         scope="tables",
-        tables=tables,
+        tables=tables_with_ids,
     )
 
 
@@ -211,6 +313,110 @@ def _read_styles(pkg: ExcelPackage) -> ExcelReadResult:
     return ExcelReadResult(
         scope="styles",
         styles=styles,
+    )
+
+
+def _read_conditional_formats(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read conditional formatting rules for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="conditional_formats", sheet=None)
+        sheet = sheets[0].name
+
+    rules = get_conditional_formats(pkg, sheet)
+    return ExcelReadResult(
+        scope="conditional_formats",
+        sheet=sheet,
+        conditional_formats=rules,
+    )
+
+
+def _read_protection(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read protection status for workbook and optionally a sheet."""
+    workbook_protection = get_workbook_protection(pkg)
+    sheet_protection = None
+
+    if sheet:
+        sheet_protection = get_sheet_protection(pkg, sheet)
+
+    # Build protection info dict
+    protection_info = {
+        "workbook": {
+            "protected": is_workbook_protected(pkg),
+            **(workbook_protection or {}),
+        }
+    }
+
+    if sheet:
+        protection_info["sheet"] = {
+            "name": sheet,
+            "protected": is_sheet_protected(pkg, sheet),
+            **(sheet_protection or {}),
+        }
+
+    return ExcelReadResult(
+        scope="protection",
+        sheet=sheet or None,
+        protection=protection_info,
+    )
+
+
+def _read_print_settings(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read print settings for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="print_settings", sheet=None)
+        sheet = sheets[0].name
+
+    settings: dict = {
+        "print_area": get_print_area(pkg, sheet),
+        "print_titles": get_print_titles(pkg, sheet),
+        "page_margins": get_page_margins(pkg, sheet),
+        "page_orientation": get_page_orientation(pkg, sheet),
+        "page_size": get_page_size(pkg, sheet),
+        "scale": get_scale(pkg, sheet),
+        "fit_to_page": get_fit_to_page(pkg, sheet),
+        "page_breaks": list_page_breaks(pkg, sheet),
+    }
+
+    return ExcelReadResult(
+        scope="print_settings",
+        sheet=sheet,
+        print_settings=settings,
+    )
+
+
+def _read_charts(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read charts for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="charts", sheet=None, charts=[])
+        sheet = sheets[0].name
+
+    chart_list = list_charts(pkg, sheet)
+    return ExcelReadResult(
+        scope="charts",
+        sheet=sheet,
+        charts=chart_list,
+    )
+
+
+def _read_pivots(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read pivot tables for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="pivots", sheet=None, pivots=[])
+        sheet = sheets[0].name
+
+    pivot_list = list_pivots(pkg, sheet)
+    return ExcelReadResult(
+        scope="pivots",
+        sheet=sheet,
+        pivots=pivot_list,
     )
 
 
@@ -275,9 +481,9 @@ def _read_cells(
             raw_cells, start_col_idx, start_row, num_rows, num_cols, include_types
         )
     elif representation == "sparse":
-        result.sparse = _build_sparse(raw_cells, include_types)
+        result.sparse = _build_sparse(raw_cells, include_types, sheet)
     elif representation == "cells":
-        result.cells = _build_cells(raw_cells, include_types)
+        result.cells = _build_cells(raw_cells, include_types, sheet)
     else:
         raise ValueError(f"Unknown representation: {representation}")
 
@@ -321,10 +527,12 @@ def _build_grid(
 def _build_sparse(
     cells: list[tuple[str, Any, str | None, str | None]],
     include_types: bool,
+    sheet_name: str,
 ) -> list[SparseCell]:
     """Build sparse representation for non-empty cells only."""
     return [
         SparseCell(
+            id=make_cell_id(sheet_name, cell_ref, value),
             ref=cell_ref,
             value=value,
             type=type_code if include_types else None,
@@ -336,10 +544,12 @@ def _build_sparse(
 def _build_cells(
     cells: list[tuple[str, Any, str | None, str | None]],
     include_types: bool,
+    sheet_name: str,
 ) -> list[CellInfo]:
     """Build detailed cell representation."""
     return [
         CellInfo(
+            id=make_cell_id(sheet_name, cell_ref, value),
             ref=cell_ref,
             value=value,
             type=type_code if include_types else None,
@@ -413,10 +623,15 @@ def _format_cell_for_markdown(value: Any) -> str:
 def edit(
     file_path: str = Field(description="Path to .xlsx file"),
     operation: str = Field(
-        description="Operation: create, set_cell, set_formula, set_range, "
+        description="Operation: create, set_cell, set_formula, set_range, set_style, "
         "insert_rows, delete_rows, insert_columns, delete_columns, "
         "merge_cells, unmerge_cells, add_sheet, rename_sheet, delete_sheet, copy_sheet, "
-        "create_table, delete_table, add_table_row, delete_table_row"
+        "create_table, delete_table, add_table_row, delete_table_row, add_conditional_format, "
+        "protect_sheet, unprotect_sheet, protect_workbook, unprotect_workbook, lock_cells, unlock_cells, "
+        "set_print_area, clear_print_area, set_print_titles, set_page_margins, set_page_orientation, "
+        "set_page_size, set_scale, set_fit_to_page, add_page_break, clear_page_breaks, "
+        "create_chart, delete_chart, update_chart_data, "
+        "create_pivot, delete_pivot, refresh_pivot, recalculate"
     ),
     sheet: str = Field(
         default="",
@@ -446,6 +661,129 @@ def edit(
         default=1,
         description="Count for insert/delete rows/columns",
     ),
+    style_index: int = Field(
+        default=-1,
+        description="Style index for set_style or add_conditional_format (dxfId)",
+    ),
+    rule_type: str = Field(
+        default="",
+        description="For add_conditional_format: rule type (cellIs, colorScale, dataBar, etc.)",
+    ),
+    operator: str = Field(
+        default="",
+        description="For add_conditional_format: operator (lessThan, greaterThan, equal, between, etc.)",
+    ),
+    formula: str = Field(
+        default="",
+        description="For add_conditional_format: formula or value(s), semicolon-separated for between",
+    ),
+    priority: int = Field(
+        default=1,
+        description="For add_conditional_format: rule priority (lower = higher priority)",
+    ),
+    password: str = Field(
+        default="",
+        description="Password for protect_sheet/protect_workbook/unprotect operations",
+    ),
+    # Print settings parameters
+    margin_left: float = Field(
+        default=-1.0,
+        description="Left margin in inches (for set_page_margins)",
+    ),
+    margin_right: float = Field(
+        default=-1.0,
+        description="Right margin in inches (for set_page_margins)",
+    ),
+    margin_top: float = Field(
+        default=-1.0,
+        description="Top margin in inches (for set_page_margins)",
+    ),
+    margin_bottom: float = Field(
+        default=-1.0,
+        description="Bottom margin in inches (for set_page_margins)",
+    ),
+    landscape: bool = Field(
+        default=False,
+        description="Landscape orientation (for set_page_orientation)",
+    ),
+    paper_size: int = Field(
+        default=1,
+        description="Paper size code: 1=Letter, 9=A4, 5=Legal (for set_page_size)",
+    ),
+    print_rows: str = Field(
+        default="",
+        description="Rows to repeat, e.g., '1:2' (for set_print_titles)",
+    ),
+    print_cols: str = Field(
+        default="",
+        description="Columns to repeat, e.g., 'A:B' (for set_print_titles)",
+    ),
+    break_type: str = Field(
+        default="row",
+        description="Page break type: 'row' or 'column' (for add_page_break)",
+    ),
+    break_position: int = Field(
+        default=0,
+        description="Row or column number for page break (for add_page_break)",
+    ),
+    scale: int = Field(
+        default=100,
+        description="Print scale percentage 10-400 (for set_scale)",
+    ),
+    fit_width: int = Field(
+        default=-1,
+        description="Fit to N pages wide, 0=auto (for set_fit_to_page)",
+    ),
+    fit_height: int = Field(
+        default=-1,
+        description="Fit to N pages tall, 0=auto (for set_fit_to_page)",
+    ),
+    # Chart parameters
+    chart_type: str = Field(
+        default="",
+        description="Chart type: bar, column, line, pie, scatter, area (for create_chart)",
+    ),
+    data_range: str = Field(
+        default="",
+        description="Data range like 'A1:B10' (for create_chart, update_chart_data)",
+    ),
+    position: str = Field(
+        default="",
+        description="Chart position cell like 'E5' (for create_chart)",
+    ),
+    title: str = Field(
+        default="",
+        description="Chart title (for create_chart)",
+    ),
+    chart_id: str = Field(
+        default="",
+        description="Chart ID (for delete_chart, update_chart_data)",
+    ),
+    # Pivot table parameters
+    row_fields: str = Field(
+        default="",
+        description="Comma-separated field names for row labels (for create_pivot)",
+    ),
+    col_fields: str = Field(
+        default="",
+        description="Comma-separated field names for column labels (for create_pivot)",
+    ),
+    value_fields: str = Field(
+        default="",
+        description="Comma-separated field names for values (for create_pivot)",
+    ),
+    pivot_name: str = Field(
+        default="",
+        description="Pivot table name (for create_pivot)",
+    ),
+    pivot_id: str = Field(
+        default="",
+        description="Pivot table ID (for delete_pivot, refresh_pivot)",
+    ),
+    agg_func: str = Field(
+        default="sum",
+        description="Aggregation function: sum, count, average, min, max (for create_pivot)",
+    ),
 ) -> dict[str, Any]:
     """Edit an Excel workbook.
 
@@ -454,6 +792,7 @@ def edit(
     - set_cell: Set cell value (auto-detects type)
     - set_formula: Set cell formula (without leading =)
     - set_range: Set range values from JSON 2D array (cell_ref is start cell)
+    - set_style: Apply style to cell or range (style_index from read scope=styles)
     - insert_rows: Insert rows at cell_ref row (count = number to insert)
     - delete_rows: Delete rows at cell_ref row (count = number to delete)
     - insert_columns: Insert columns at cell_ref column (count = number to insert)
@@ -468,6 +807,30 @@ def edit(
     - delete_table: Delete table by name (table_name)
     - add_table_row: Add row to table (table_name, value = JSON array)
     - delete_table_row: Delete row from table (table_name, row_index)
+    - add_conditional_format: Add conditional formatting (sheet, cell_ref=range, rule_type, operator, formula, style_index)
+    - protect_sheet: Protect sheet from modification (sheet, password=optional)
+    - unprotect_sheet: Remove sheet protection (sheet, password=required if set)
+    - protect_workbook: Protect workbook structure (password=optional)
+    - unprotect_workbook: Remove workbook protection (password=required if set)
+    - lock_cells: Lock cells in range (sheet, cell_ref=range)
+    - unlock_cells: Unlock cells in range (sheet, cell_ref=range)
+    - set_print_area: Set print area (sheet, cell_ref=range)
+    - clear_print_area: Clear print area (sheet)
+    - set_print_titles: Set repeating rows/columns (sheet, print_rows, print_cols)
+    - set_page_margins: Set page margins (sheet, margin_left/right/top/bottom)
+    - set_page_orientation: Set page orientation (sheet, landscape)
+    - set_page_size: Set paper size (sheet, paper_size: 1=Letter, 9=A4)
+    - set_scale: Set print scale percentage (sheet, scale: 10-400)
+    - set_fit_to_page: Fit to pages (sheet, fit_width, fit_height; 0=auto)
+    - add_page_break: Add page break (sheet, break_type='row'/'column', break_position)
+    - clear_page_breaks: Clear all page breaks (sheet)
+    - create_chart: Create chart (sheet, chart_type, data_range, position, title=optional)
+    - delete_chart: Delete chart by ID (sheet, chart_id)
+    - update_chart_data: Update chart data range (sheet, chart_id, data_range)
+    - create_pivot: Create pivot table (sheet, data_range, position, row_fields, col_fields, value_fields, pivot_name=optional, agg_func=sum)
+    - delete_pivot: Delete pivot table by ID (sheet, pivot_id)
+    - refresh_pivot: Refresh pivot table cache (sheet, pivot_id)
+    - recalculate: Recalculate all formulas using LibreOffice (populates cached values)
     """
     if operation == "create":
         return _edit_create(file_path)
@@ -477,6 +840,8 @@ def edit(
         return _edit_set_formula(file_path, sheet, cell_ref, value)
     elif operation == "set_range":
         return _edit_set_range(file_path, sheet, cell_ref, value)
+    elif operation == "set_style":
+        return _edit_set_style(file_path, sheet, cell_ref, style_index)
     elif operation == "insert_rows":
         return _edit_insert_rows(file_path, sheet, cell_ref, count)
     elif operation == "delete_rows":
@@ -505,6 +870,77 @@ def edit(
         return _edit_add_table_row(file_path, table_name, value)
     elif operation == "delete_table_row":
         return _edit_delete_table_row(file_path, table_name, row_index)
+    elif operation == "add_conditional_format":
+        return _edit_add_conditional_format(
+            file_path,
+            sheet,
+            cell_ref,
+            rule_type,
+            operator,
+            formula,
+            style_index,
+            priority,
+        )
+    elif operation == "protect_sheet":
+        return _edit_protect_sheet(file_path, sheet, password)
+    elif operation == "unprotect_sheet":
+        return _edit_unprotect_sheet(file_path, sheet, password)
+    elif operation == "protect_workbook":
+        return _edit_protect_workbook(file_path, password)
+    elif operation == "unprotect_workbook":
+        return _edit_unprotect_workbook(file_path, password)
+    elif operation == "lock_cells":
+        return _edit_lock_cells(file_path, sheet, cell_ref)
+    elif operation == "unlock_cells":
+        return _edit_unlock_cells(file_path, sheet, cell_ref)
+    elif operation == "set_print_area":
+        return _edit_set_print_area(file_path, sheet, cell_ref)
+    elif operation == "clear_print_area":
+        return _edit_clear_print_area(file_path, sheet)
+    elif operation == "set_print_titles":
+        return _edit_set_print_titles(file_path, sheet, print_rows, print_cols)
+    elif operation == "set_page_margins":
+        return _edit_set_page_margins(
+            file_path, sheet, margin_left, margin_right, margin_top, margin_bottom
+        )
+    elif operation == "set_page_orientation":
+        return _edit_set_page_orientation(file_path, sheet, landscape)
+    elif operation == "set_page_size":
+        return _edit_set_page_size(file_path, sheet, paper_size)
+    elif operation == "set_scale":
+        return _edit_set_scale(file_path, sheet, scale)
+    elif operation == "set_fit_to_page":
+        return _edit_set_fit_to_page(file_path, sheet, fit_width, fit_height)
+    elif operation == "add_page_break":
+        return _edit_add_page_break(file_path, sheet, break_type, break_position)
+    elif operation == "clear_page_breaks":
+        return _edit_clear_page_breaks(file_path, sheet)
+    elif operation == "create_chart":
+        return _edit_create_chart(
+            file_path, sheet, chart_type, data_range, position, title
+        )
+    elif operation == "delete_chart":
+        return _edit_delete_chart(file_path, sheet, chart_id)
+    elif operation == "update_chart_data":
+        return _edit_update_chart_data(file_path, sheet, chart_id, data_range)
+    elif operation == "create_pivot":
+        return _edit_create_pivot(
+            file_path,
+            sheet,
+            data_range,
+            position,
+            row_fields,
+            col_fields,
+            value_fields,
+            pivot_name,
+            agg_func,
+        )
+    elif operation == "delete_pivot":
+        return _edit_delete_pivot(file_path, sheet, pivot_id)
+    elif operation == "refresh_pivot":
+        return _edit_refresh_pivot(file_path, sheet, pivot_id)
+    elif operation == "recalculate":
+        return _edit_recalculate(file_path)
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
@@ -573,6 +1009,55 @@ def _edit_set_formula(
         message=f"Set {cell_ref} formula to ={formula}",
         affected_refs=[cell_ref],
     ).model_dump(exclude_none=True)
+
+
+def _edit_set_style(
+    file_path: str, sheet: str, cell_ref: str, style_index: int
+) -> dict[str, Any]:
+    """Apply a style to a cell or range."""
+    if not sheet:
+        raise ValueError("sheet is required for set_style")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for set_style")
+    if style_index < 0:
+        raise ValueError(
+            "style_index is required for set_style (use read scope=styles)"
+        )
+
+    pkg = ExcelPackage.open(file_path)
+
+    # Support both single cell and range
+    if ":" in cell_ref:
+        # Range - apply style to all cells
+        start_ref, end_ref = parse_range_ref(cell_ref)
+        start_col, start_row, _, _ = parse_cell_ref(start_ref)
+        end_col, end_row, _, _ = parse_cell_ref(end_ref)
+        start_col_idx = column_letter_to_index(start_col)
+        end_col_idx = column_letter_to_index(end_col)
+
+        affected = []
+        for row_num in range(start_row, end_row + 1):
+            for col_idx in range(start_col_idx, end_col_idx + 1):
+                col_letter = index_to_column_letter(col_idx)
+                ref = f"{col_letter}{row_num}"
+                set_cell_style(pkg, sheet, ref, style_index)
+                affected.append(ref)
+
+        pkg.save(file_path)
+        return ExcelEditResult(
+            success=True,
+            message=f"Applied style {style_index} to {len(affected)} cells in {cell_ref}",
+            affected_refs=affected,
+        ).model_dump(exclude_none=True)
+    else:
+        # Single cell
+        set_cell_style(pkg, sheet, cell_ref, style_index)
+        pkg.save(file_path)
+        return ExcelEditResult(
+            success=True,
+            message=f"Applied style {style_index} to {cell_ref}",
+            affected_refs=[cell_ref],
+        ).model_dump(exclude_none=True)
 
 
 def _edit_add_sheet(file_path: str, name: str) -> dict[str, Any]:
@@ -890,4 +1375,612 @@ def _edit_delete_table_row(
         success=True,
         message=f"Deleted row {row_index} from table {table_name}",
         affected_refs=[table_name],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Conditional Formatting Operations
+# =============================================================================
+
+
+def _edit_add_conditional_format(
+    file_path: str,
+    sheet: str,
+    range_ref: str,
+    rule_type: str,
+    operator: str,
+    formula: str,
+    style_index: int,
+    priority: int,
+) -> dict[str, Any]:
+    """Add a conditional formatting rule."""
+    if not sheet:
+        raise ValueError("sheet is required for add_conditional_format")
+    if not range_ref:
+        raise ValueError("cell_ref (range) is required for add_conditional_format")
+    if not rule_type:
+        raise ValueError("rule_type is required for add_conditional_format")
+
+    pkg = ExcelPackage.open(file_path)
+
+    # Convert -1 style_index to None (optional)
+    dxf_id = style_index if style_index >= 0 else None
+
+    add_conditional_format(
+        pkg,
+        sheet,
+        range_ref,
+        rule_type,
+        operator=operator or None,
+        formula=formula or None,
+        style_index=dxf_id,
+        priority=priority,
+    )
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Added {rule_type} conditional format to {range_ref}",
+        affected_refs=[range_ref],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Protection Operations
+# =============================================================================
+
+
+def _edit_protect_sheet(file_path: str, sheet: str, password: str) -> dict[str, Any]:
+    """Protect a sheet from modification."""
+    if not sheet:
+        raise ValueError("sheet is required for protect_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    protect_sheet(pkg, sheet, password=password or None)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Protected sheet: {sheet}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_unprotect_sheet(file_path: str, sheet: str, password: str) -> dict[str, Any]:
+    """Remove protection from a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for unprotect_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    unprotect_sheet(pkg, sheet, password=password or None)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Unprotected sheet: {sheet}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_protect_workbook(file_path: str, password: str) -> dict[str, Any]:
+    """Protect workbook structure."""
+    pkg = ExcelPackage.open(file_path)
+    protect_workbook(pkg, password=password or None)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Protected workbook structure",
+        affected_refs=["workbook"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_unprotect_workbook(file_path: str, password: str) -> dict[str, Any]:
+    """Remove workbook protection."""
+    pkg = ExcelPackage.open(file_path)
+    unprotect_workbook(pkg, password=password or None)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Unprotected workbook",
+        affected_refs=["workbook"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_lock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, Any]:
+    """Lock cells in a range."""
+    if not sheet:
+        raise ValueError("sheet is required for lock_cells")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for lock_cells")
+
+    pkg = ExcelPackage.open(file_path)
+    lock_cells(pkg, sheet, cell_ref)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Locked cells: {cell_ref}",
+        affected_refs=[cell_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_unlock_cells(file_path: str, sheet: str, cell_ref: str) -> dict[str, Any]:
+    """Unlock cells in a range."""
+    if not sheet:
+        raise ValueError("sheet is required for unlock_cells")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for unlock_cells")
+
+    pkg = ExcelPackage.open(file_path)
+    unlock_cells(pkg, sheet, cell_ref)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Unlocked cells: {cell_ref}",
+        affected_refs=[cell_ref],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Print Settings Operations
+# =============================================================================
+
+
+def _edit_set_print_area(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
+    """Set the print area for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for set_print_area")
+    if not range_ref:
+        raise ValueError("cell_ref (range) is required for set_print_area")
+
+    pkg = ExcelPackage.open(file_path)
+    set_print_area(pkg, sheet, range_ref)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set print area to {range_ref}",
+        affected_refs=[range_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_clear_print_area(file_path: str, sheet: str) -> dict[str, Any]:
+    """Clear the print area for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for clear_print_area")
+
+    pkg = ExcelPackage.open(file_path)
+    clear_print_area(pkg, sheet)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Cleared print area",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_print_titles(
+    file_path: str, sheet: str, rows: str, cols: str
+) -> dict[str, Any]:
+    """Set print titles (repeating rows/columns)."""
+    if not sheet:
+        raise ValueError("sheet is required for set_print_titles")
+
+    pkg = ExcelPackage.open(file_path)
+    set_print_titles(pkg, sheet, rows=rows or None, cols=cols or None)
+    pkg.save(file_path)
+
+    parts = []
+    if rows:
+        parts.append(f"rows {rows}")
+    if cols:
+        parts.append(f"columns {cols}")
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set print titles: {', '.join(parts) or 'cleared'}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_page_margins(
+    file_path: str,
+    sheet: str,
+    left: float,
+    right: float,
+    top: float,
+    bottom: float,
+) -> dict[str, Any]:
+    """Set page margins for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for set_page_margins")
+
+    pkg = ExcelPackage.open(file_path)
+    set_page_margins(
+        pkg,
+        sheet,
+        left=left if left >= 0 else None,
+        right=right if right >= 0 else None,
+        top=top if top >= 0 else None,
+        bottom=bottom if bottom >= 0 else None,
+    )
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Updated page margins",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_page_orientation(
+    file_path: str, sheet: str, landscape: bool
+) -> dict[str, Any]:
+    """Set page orientation for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for set_page_orientation")
+
+    pkg = ExcelPackage.open(file_path)
+    set_page_orientation(pkg, sheet, landscape=landscape)
+    pkg.save(file_path)
+
+    orientation = "landscape" if landscape else "portrait"
+    return ExcelEditResult(
+        success=True,
+        message=f"Set page orientation to {orientation}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_page_size(file_path: str, sheet: str, paper_size: int) -> dict[str, Any]:
+    """Set paper size for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for set_page_size")
+
+    pkg = ExcelPackage.open(file_path)
+    set_page_size(pkg, sheet, paper_size)
+    pkg.save(file_path)
+
+    size_names = {1: "Letter", 5: "Legal", 9: "A4", 11: "A5"}
+    size_name = size_names.get(paper_size, f"code {paper_size}")
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set paper size to {size_name}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_add_page_break(
+    file_path: str, sheet: str, break_type: str, position: int
+) -> dict[str, Any]:
+    """Add a page break."""
+    if not sheet:
+        raise ValueError("sheet is required for add_page_break")
+    if position <= 0:
+        raise ValueError("break_position must be > 0 for add_page_break")
+
+    pkg = ExcelPackage.open(file_path)
+
+    if break_type == "row":
+        add_row_page_break(pkg, sheet, position)
+        msg = f"Added row page break before row {position}"
+    elif break_type == "column":
+        add_column_page_break(pkg, sheet, position)
+        msg = f"Added column page break before column {position}"
+    else:
+        raise ValueError("break_type must be 'row' or 'column'")
+
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=msg,
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_clear_page_breaks(file_path: str, sheet: str) -> dict[str, Any]:
+    """Clear all page breaks for a sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for clear_page_breaks")
+
+    pkg = ExcelPackage.open(file_path)
+    clear_page_breaks(pkg, sheet)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Cleared all page breaks",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_scale(file_path: str, sheet: str, scale_value: int) -> dict[str, Any]:
+    """Set print scale percentage."""
+    if not sheet:
+        raise ValueError("sheet is required for set_scale")
+
+    pkg = ExcelPackage.open(file_path)
+    set_scale(pkg, sheet, scale_value)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set print scale to {scale_value}%",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_fit_to_page(
+    file_path: str, sheet: str, width: int, height: int
+) -> dict[str, Any]:
+    """Set fit-to-page printing."""
+    if not sheet:
+        raise ValueError("sheet is required for set_fit_to_page")
+
+    pkg = ExcelPackage.open(file_path)
+    set_fit_to_page(
+        pkg,
+        sheet,
+        width=width if width >= 0 else None,
+        height=height if height >= 0 else None,
+    )
+    pkg.save(file_path)
+
+    msg_parts = []
+    if width >= 0:
+        msg_parts.append(f"{width} page(s) wide" if width > 0 else "auto width")
+    if height >= 0:
+        msg_parts.append(f"{height} page(s) tall" if height > 0 else "auto height")
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set fit-to-page: {', '.join(msg_parts) or 'default'}",
+        affected_refs=[sheet],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Chart Operations
+# =============================================================================
+
+
+def _edit_create_chart(
+    file_path: str,
+    sheet: str,
+    chart_type: str,
+    data_range: str,
+    position: str,
+    title: str,
+) -> dict[str, Any]:
+    """Create a chart on the sheet."""
+    if not sheet:
+        raise ValueError("sheet is required for create_chart")
+    if not chart_type:
+        raise ValueError("chart_type is required for create_chart")
+    if not data_range:
+        raise ValueError("data_range is required for create_chart")
+    if not position:
+        raise ValueError("position is required for create_chart")
+
+    pkg = ExcelPackage.open(file_path)
+    chart_info = create_chart(
+        pkg,
+        sheet,
+        chart_type,
+        data_range,
+        position,
+        title=title if title else None,
+    )
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Created {chart_type} chart at {position}",
+        affected_refs=[chart_info.id or position],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_chart(file_path: str, sheet: str, chart_id: str) -> dict[str, Any]:
+    """Delete a chart by ID."""
+    if not sheet:
+        raise ValueError("sheet is required for delete_chart")
+    if not chart_id:
+        raise ValueError("chart_id is required for delete_chart")
+
+    pkg = ExcelPackage.open(file_path)
+    delete_chart(pkg, sheet, chart_id)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted chart: {chart_id}",
+        affected_refs=[chart_id],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_update_chart_data(
+    file_path: str, sheet: str, chart_id: str, data_range: str
+) -> dict[str, Any]:
+    """Update a chart's data range."""
+    if not sheet:
+        raise ValueError("sheet is required for update_chart_data")
+    if not chart_id:
+        raise ValueError("chart_id is required for update_chart_data")
+    if not data_range:
+        raise ValueError("data_range is required for update_chart_data")
+
+    pkg = ExcelPackage.open(file_path)
+    update_chart_data(pkg, sheet, chart_id, data_range)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Updated chart {chart_id} data range to {data_range}",
+        affected_refs=[chart_id],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Pivot Table Operations
+# =============================================================================
+
+
+def _edit_create_pivot(
+    file_path: str,
+    sheet: str,
+    data_range: str,
+    position: str,
+    row_fields: str,
+    col_fields: str,
+    value_fields: str,
+    pivot_name: str,
+    agg_func: str,
+) -> dict[str, Any]:
+    """Create a pivot table."""
+    if not sheet:
+        raise ValueError("sheet is required for create_pivot")
+    if not data_range:
+        raise ValueError("data_range is required for create_pivot")
+    if not position:
+        raise ValueError("position is required for create_pivot")
+    if not value_fields:
+        raise ValueError("value_fields is required for create_pivot")
+
+    # Parse comma-separated field names
+    rows = [f.strip() for f in row_fields.split(",") if f.strip()] if row_fields else []
+    cols = [f.strip() for f in col_fields.split(",") if f.strip()] if col_fields else []
+    values = [f.strip() for f in value_fields.split(",") if f.strip()]
+
+    pkg = ExcelPackage.open(file_path)
+    pivot_info = create_pivot(
+        pkg,
+        sheet,
+        data_range,
+        position,
+        rows,
+        cols,
+        values,
+        name=pivot_name if pivot_name else None,
+        agg_func=agg_func,
+    )
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Created pivot table '{pivot_info.name}' at {position}",
+        affected_refs=[pivot_info.id or position],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_pivot(file_path: str, sheet: str, pivot_id: str) -> dict[str, Any]:
+    """Delete a pivot table by ID."""
+    if not sheet:
+        raise ValueError("sheet is required for delete_pivot")
+    if not pivot_id:
+        raise ValueError("pivot_id is required for delete_pivot")
+
+    pkg = ExcelPackage.open(file_path)
+    delete_pivot(pkg, sheet, pivot_id)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted pivot table: {pivot_id}",
+        affected_refs=[pivot_id],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_refresh_pivot(file_path: str, sheet: str, pivot_id: str) -> dict[str, Any]:
+    """Refresh a pivot table's cache."""
+    if not sheet:
+        raise ValueError("sheet is required for refresh_pivot")
+    if not pivot_id:
+        raise ValueError("pivot_id is required for refresh_pivot")
+
+    pkg = ExcelPackage.open(file_path)
+    refresh_pivot(pkg, sheet, pivot_id)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Refreshed pivot table: {pivot_id}",
+        affected_refs=[pivot_id],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_recalculate(file_path: str) -> dict[str, Any]:
+    """Recalculate all formulas using LibreOffice headless.
+
+    This opens the file in LibreOffice, which triggers formula calculation,
+    then saves it back. The cached values in <v> elements are then populated.
+    """
+    # Check LibreOffice is available
+    if not shutil.which("libreoffice"):
+        raise RuntimeError(
+            "LibreOffice not found. Install libreoffice to use recalculate."
+        )
+
+    file_path = str(Path(file_path).resolve())
+    file_name = Path(file_path).name
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # LibreOffice can't overwrite input file, so use separate in/out dirs
+        input_dir = Path(tmpdir) / "in"
+        output_dir = Path(tmpdir) / "out"
+        input_dir.mkdir()
+        output_dir.mkdir()
+
+        # Copy input to temp location
+        input_copy = input_dir / file_name
+        shutil.copy2(file_path, input_copy)
+
+        # LibreOffice converts and outputs to a directory
+        result = subprocess.run(
+            [
+                "libreoffice",
+                "--headless",
+                "--calc",
+                "--convert-to",
+                "xlsx",
+                "--outdir",
+                str(output_dir),
+                str(input_copy),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(f"LibreOffice failed: {result.stderr or result.stdout}")
+
+        # Find output file (LO may change extension or name slightly)
+        output_file = output_dir / file_name
+        if not output_file.exists():
+            # Fallback: find any .xlsx file in output dir
+            xlsx_files = list(output_dir.glob("*.xlsx"))
+            if len(xlsx_files) == 1:
+                output_file = xlsx_files[0]
+            elif not xlsx_files:
+                raise RuntimeError(
+                    f"LibreOffice did not produce any .xlsx file in {output_dir}"
+                )
+            else:
+                raise RuntimeError(
+                    f"LibreOffice produced multiple files: {[f.name for f in xlsx_files]}"
+                )
+
+        # Replace original with recalculated version
+        shutil.move(str(output_file), file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message="Recalculated all formulas",
+        affected_refs=["*"],
     ).model_dump(exclude_none=True)

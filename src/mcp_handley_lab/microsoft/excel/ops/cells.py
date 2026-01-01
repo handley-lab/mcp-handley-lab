@@ -14,6 +14,9 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     parse_cell_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 # Type codes for cell types
@@ -51,6 +54,15 @@ def get_cell_value(pkg: ExcelPackage, sheet_name: str, cell_ref: str) -> Any:
     """
     value, _type, _formula = get_cell_data(pkg, sheet_name, cell_ref)
     return value
+
+
+def get_cell_formula(pkg: ExcelPackage, sheet_name: str, cell_ref: str) -> str | None:
+    """Get just the cell formula (ignoring value and type).
+
+    Returns: Formula string without leading '=', or None if no formula.
+    """
+    _value, _type, formula = get_cell_data(pkg, sheet_name, cell_ref)
+    return formula
 
 
 def get_cells_in_range(
@@ -323,14 +335,6 @@ def set_cell_style(
     cell.set("s", str(style_index))
 
     pkg.mark_xml_dirty(sheet_path)
-
-
-def _get_sheet_path(pkg: ExcelPackage, sheet_name: str) -> str:
-    """Get the part path for a sheet by name."""
-    for name, _rId, partname in pkg.get_sheet_paths():
-        if name == sheet_name:
-            return partname
-    raise KeyError(f"Sheet not found: {sheet_name}")
 
 
 def _ensure_cell(sheet: etree._Element, cell_ref: str, row_num: int) -> etree._Element:

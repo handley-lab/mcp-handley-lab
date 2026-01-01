@@ -16,9 +16,21 @@ from mcp_handley_lab.microsoft.excel.ops.cells import (
 )
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
+    insert_sheet_element,
     make_cell_ref,
     parse_cell_ref,
     parse_range_ref,
+)
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
+from mcp_handley_lab.microsoft.excel.ops.formula_refactor import (
+    update_formulas_after_delete,
+    update_formulas_after_insert,
+)
+from mcp_handley_lab.microsoft.excel.ops.structural_update import (
+    update_dependent_structures_after_delete,
+    update_dependent_structures_after_insert,
 )
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
@@ -92,7 +104,7 @@ def insert_rows(
     """Insert rows at the specified position.
 
     All rows at row_num and below are shifted down by count.
-    Note: Formulas are not updated - cell references in formulas will not shift.
+    Formulas referencing cells at or after the insertion point are updated.
     """
     if count <= 0:
         return
@@ -127,6 +139,15 @@ def insert_rows(
     _shift_merge_cells(sheet, row_num, count, is_row=True)
 
     pkg.mark_xml_dirty(sheet_path)
+
+    # Update formulas in all sheets
+    update_formulas_after_insert(pkg, sheet_name, row_num, count, is_row=True)
+
+    # Update dependent structures (autoFilter, validations, tables, names, charts, pivots)
+    update_dependent_structures_after_insert(
+        pkg, sheet_name, row_num, count, is_row=True
+    )
+
     pkg.drop_calc_chain()
 
 
@@ -136,7 +157,7 @@ def delete_rows(
     """Delete rows starting at the specified position.
 
     All rows below are shifted up by count.
-    Note: Formulas are not updated - cell references in formulas will not shift.
+    Formulas referencing deleted cells become #REF!; others are updated.
     """
     if count <= 0:
         return
@@ -181,6 +202,15 @@ def delete_rows(
     _shift_merge_cells(sheet, row_num, -count, is_row=True)
 
     pkg.mark_xml_dirty(sheet_path)
+
+    # Update formulas in all sheets
+    update_formulas_after_delete(pkg, sheet_name, row_num, count, is_row=True)
+
+    # Update dependent structures (autoFilter, validations, tables, names, charts, pivots)
+    update_dependent_structures_after_delete(
+        pkg, sheet_name, row_num, count, is_row=True
+    )
+
     pkg.drop_calc_chain()
 
 
@@ -191,7 +221,7 @@ def insert_columns(
 
     All columns at col_ref and to the right are shifted right by count.
     col_ref can be a letter ("A") or 1-based index (1).
-    Note: Formulas are not updated - cell references in formulas will not shift.
+    Formulas referencing cells at or after the insertion point are updated.
     """
     if count <= 0:
         return
@@ -228,6 +258,15 @@ def insert_columns(
     _shift_merge_cells(sheet, col_idx, count, is_row=False)
 
     pkg.mark_xml_dirty(sheet_path)
+
+    # Update formulas in all sheets
+    update_formulas_after_insert(pkg, sheet_name, col_idx, count, is_row=False)
+
+    # Update dependent structures (autoFilter, validations, tables, names, charts, pivots)
+    update_dependent_structures_after_insert(
+        pkg, sheet_name, col_idx, count, is_row=False
+    )
+
     pkg.drop_calc_chain()
 
 
@@ -238,7 +277,7 @@ def delete_columns(
 
     All columns to the right are shifted left by count.
     col_ref can be a letter ("A") or 1-based index (1).
-    Note: Formulas are not updated - cell references in formulas will not shift.
+    Formulas referencing deleted cells become #REF!; others are updated.
     """
     if count <= 0:
         return
@@ -284,6 +323,15 @@ def delete_columns(
     _shift_merge_cells(sheet, col_idx, -count, is_row=False)
 
     pkg.mark_xml_dirty(sheet_path)
+
+    # Update formulas in all sheets
+    update_formulas_after_delete(pkg, sheet_name, col_idx, count, is_row=False)
+
+    # Update dependent structures (autoFilter, validations, tables, names, charts, pivots)
+    update_dependent_structures_after_delete(
+        pkg, sheet_name, col_idx, count, is_row=False
+    )
+
     pkg.drop_calc_chain()
 
 
@@ -298,13 +346,9 @@ def merge_cells(pkg: ExcelPackage, sheet_name: str, range_ref: str) -> None:
     # Find or create mergeCells element
     merge_cells_el = sheet.find(qn("x:mergeCells"))
     if merge_cells_el is None:
-        # Insert after sheetData
-        sheet_data = sheet.find(qn("x:sheetData"))
-        if sheet_data is not None:
-            merge_cells_el = etree.Element(qn("x:mergeCells"))
-            sheet_data.addnext(merge_cells_el)
-        else:
-            merge_cells_el = etree.SubElement(sheet, qn("x:mergeCells"))
+        # Create mergeCells element at correct OOXML position
+        merge_cells_el = etree.Element(qn("x:mergeCells"))
+        insert_sheet_element(sheet, "mergeCells", merge_cells_el)
 
     # Check if range overlaps with existing merges
     for existing in merge_cells_el.findall(qn("x:mergeCell")):
@@ -380,14 +424,6 @@ def unmerge_cells(pkg: ExcelPackage, sheet_name: str, range_ref: str) -> None:
 # =============================================================================
 # Helper Functions
 # =============================================================================
-
-
-def _get_sheet_path(pkg: ExcelPackage, sheet_name: str) -> str:
-    """Get the part path for a sheet by name."""
-    for name, _rId, partname in pkg.get_sheet_paths():
-        if name == sheet_name:
-            return partname
-    raise KeyError(f"Sheet not found: {sheet_name}")
 
 
 def _sort_rows(sheet_data: etree._Element) -> None:

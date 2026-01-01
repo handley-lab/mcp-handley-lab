@@ -54,8 +54,18 @@ class SharedStrings:
         return idx
 
     def add(self, text: str) -> int:
-        """Add string and return its index. Deduplicates automatically."""
-        return self.get_or_add(text)
+        """Add string and return its index. Always appends (index-stable).
+
+        Use this for editing existing workbooks to preserve index stability.
+        For new workbooks where deduplication is desired, use get_or_add().
+        """
+        idx = len(self._strings)
+        self._strings.append(text)
+        # Update index only if this is a new string (preserves first-occurrence mapping)
+        if text not in self._index:
+            self._index[text] = idx
+        self._dirty = True
+        return idx
 
     @property
     def is_dirty(self) -> bool:

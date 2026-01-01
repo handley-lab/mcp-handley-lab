@@ -581,3 +581,41 @@ class TestRangeRoundTrip:
             assert v3 == "row2"
 
             Path(f.name).unlink()
+
+
+class TestRecalculate:
+    """Tests for recalculate operation."""
+
+    def test_recalculate_populates_formula_values(self):
+        """Recalculate should populate cached values for formulas."""
+        import shutil
+
+        from mcp_handley_lab.microsoft.excel.tool import _edit_recalculate
+
+        if not shutil.which("libreoffice"):
+            pytest.skip("LibreOffice not installed")
+
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", 10)
+        set_cell_value(pkg, "Sheet1", "A2", 20)
+        set_cell_formula(pkg, "Sheet1", "A3", "SUM(A1:A2)")
+
+        # Before recalculate: formula cell has no cached value
+        value, type_code, formula = get_cell_data(pkg, "Sheet1", "A3")
+        assert formula == "SUM(A1:A2)"
+        assert value is None  # No cached value yet
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            pkg.save(f.name)
+
+            # Recalculate using LibreOffice
+            result = _edit_recalculate(f.name)
+            assert result["success"] is True
+
+            # Reload and check cached value
+            pkg2 = ExcelPackage.open(f.name)
+            value, type_code, formula = get_cell_data(pkg2, "Sheet1", "A3")
+            assert formula == "SUM(A1:A2)"
+            assert value == 30  # Now has cached value
+
+            Path(f.name).unlink()

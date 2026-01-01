@@ -16,6 +16,7 @@ from mcp_handley_lab.microsoft.excel.ops.cells import get_cell_value, set_cell_v
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
+    insert_sheet_element,
     make_range_ref,
     parse_cell_ref,
     parse_range_ref,
@@ -190,20 +191,12 @@ def create_table(
     rel_target = f"../tables/table{new_table_id}.xml"
     rId = pkg.relate_to(sheet_partname, rel_target, RT.TABLE)
 
-    # Add tablePart to worksheet (insert after sheetData for OOXML compliance)
+    # Add tablePart to worksheet at correct OOXML position
     sheet_xml = pkg.get_sheet_xml(sheet_name)
     table_parts = sheet_xml.find(qn("x:tableParts"))
     if table_parts is None:
         table_parts = etree.Element(qn("x:tableParts"), count="0")
-        # Insert after sheetData or mergeCells for proper element ordering
-        sheet_data = sheet_xml.find(qn("x:sheetData"))
-        merge_cells = sheet_xml.find(qn("x:mergeCells"))
-        if merge_cells is not None:
-            merge_cells.addnext(table_parts)
-        elif sheet_data is not None:
-            sheet_data.addnext(table_parts)
-        else:
-            sheet_xml.append(table_parts)
+        insert_sheet_element(sheet_xml, "tableParts", table_parts)
     table_parts.set("count", str(int(table_parts.get("count", "0")) + 1))
     etree.SubElement(table_parts, qn("x:tablePart"), attrib={qn("r:id"): rId})
     pkg.mark_xml_dirty(sheet_partname)

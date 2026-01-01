@@ -8,8 +8,15 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.microsoft.excel.constants import qn
-from mcp_handley_lab.microsoft.excel.models import StyleInfo
+from mcp_handley_lab.microsoft.excel.constants import NSMAP, qn
+from mcp_handley_lab.microsoft.excel.models import ConditionalFormatInfo, StyleInfo
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    insert_sheet_element,
+    make_range_id,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
@@ -227,3 +234,119 @@ def _get_builtin_number_formats() -> dict[int, str]:
         48: "##0.0E+0",
         49: "@",
     }
+
+
+def get_conditional_formats(
+    pkg: ExcelPackage, sheet_name: str
+) -> list[ConditionalFormatInfo]:
+    """Get conditional formatting rules for a sheet.
+
+    Returns: List of ConditionalFormatInfo for each rule.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+    result = []
+
+    for cf in sheet_xml.findall(qn("x:conditionalFormatting")):
+        sqref = cf.get("sqref", "")
+
+        for rule in cf.findall(qn("x:cfRule")):
+            rule_type = rule.get("type", "")
+            priority = int(rule.get("priority", "0"))
+
+            info = ConditionalFormatInfo(
+                id=make_range_id(sheet_name, sqref),
+                ref=sqref,
+                type=rule_type,
+                priority=priority,
+            )
+
+            # Operator for cellIs rules
+            operator = rule.get("operator")
+            if operator:
+                info.operator = operator
+
+            # Formula(s) for the rule
+            formulas = rule.findall(qn("x:formula"))
+            if formulas:
+                # Join multiple formulas (e.g., between operator uses two)
+                info.formula = ";".join(f.text or "" for f in formulas)
+
+            # Style index (dxfId - differential formatting)
+            dxf_id = rule.get("dxfId")
+            if dxf_id is not None:
+                info.style_index = int(dxf_id)
+
+            result.append(info)
+
+    return result
+
+
+def add_conditional_format(
+    pkg: ExcelPackage,
+    sheet_name: str,
+    range_ref: str,
+    rule_type: str,
+    operator: str | None = None,
+    formula: str | None = None,
+    style_index: int | None = None,
+    priority: int = 1,
+) -> ConditionalFormatInfo:
+    """Add a conditional formatting rule to a sheet.
+
+    Args:
+        pkg: Excel package.
+        sheet_name: Target sheet name.
+        range_ref: Range to apply formatting (e.g., "A1:C10").
+        rule_type: Rule type (cellIs, colorScale, dataBar, etc.).
+        operator: Operator for cellIs (lessThan, greaterThan, equal, etc.).
+        formula: Formula or value for comparison.
+        style_index: Differential formatting index (dxfId).
+        priority: Rule priority (lower = higher priority).
+
+    Returns: ConditionalFormatInfo for the created rule.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+
+    # Find or create conditionalFormatting element for this range
+    cf_elem = None
+    for cf in sheet_xml.findall(qn("x:conditionalFormatting")):
+        if cf.get("sqref") == range_ref:
+            cf_elem = cf
+            break
+
+    if cf_elem is None:
+        # Create new conditionalFormatting element at correct OOXML position
+        cf_elem = etree.Element(qn("x:conditionalFormatting"), nsmap=NSMAP)
+        cf_elem.set("sqref", range_ref)
+        insert_sheet_element(sheet_xml, "conditionalFormatting", cf_elem)
+
+    # Create the rule
+    rule_elem = etree.SubElement(cf_elem, qn("x:cfRule"))
+    rule_elem.set("type", rule_type)
+    rule_elem.set("priority", str(priority))
+
+    if operator:
+        rule_elem.set("operator", operator)
+
+    if style_index is not None:
+        rule_elem.set("dxfId", str(style_index))
+
+    if formula:
+        # Support multiple formulas separated by semicolon
+        for f in formula.split(";"):
+            formula_elem = etree.SubElement(rule_elem, qn("x:formula"))
+            formula_elem.text = f.strip()
+
+    # Mark sheet as modified
+    sheet_path = _get_sheet_path(pkg, sheet_name)
+    pkg.mark_xml_dirty(sheet_path)
+
+    return ConditionalFormatInfo(
+        id=make_range_id(sheet_name, range_ref),
+        ref=range_ref,
+        type=rule_type,
+        priority=priority,
+        operator=operator,
+        formula=formula,
+        style_index=style_index,
+    )

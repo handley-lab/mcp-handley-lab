@@ -17,6 +17,9 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     make_range_ref,
     parse_cell_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.core import (
+    get_sheet_path as _get_sheet_path,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
@@ -304,3 +307,224 @@ def copy_sheet(pkg: ExcelPackage, source_name: str, new_name: str) -> SheetInfo:
     pkg.mark_xml_dirty(pkg.workbook_path)
 
     return SheetInfo(name=new_name, index=new_index)
+
+
+# =============================================================================
+# Column and Row Sizing
+# =============================================================================
+
+
+def _get_or_create_cols(sheet_xml: etree._Element) -> etree._Element:
+    """Get or create <cols> element, positioned after sheetViews/before sheetData."""
+    cols = sheet_xml.find(qn("x:cols"))
+    if cols is not None:
+        return cols
+
+    # Create <cols> element and insert in correct position
+    cols = etree.Element(qn("x:cols"))
+
+    # Find insertion point: after sheetViews, sheetFormatPr, before sheetData
+    sheet_data = sheet_xml.find(qn("x:sheetData"))
+    if sheet_data is not None:
+        idx = list(sheet_xml).index(sheet_data)
+        sheet_xml.insert(idx, cols)
+    else:
+        sheet_xml.append(cols)
+
+    return cols
+
+
+def set_column_width(
+    pkg: ExcelPackage, sheet_name: str, col: str | int, width: float
+) -> None:
+    """Set the width of a column.
+
+    Args:
+        pkg: Excel package.
+        sheet_name: Target sheet name.
+        col: Column letter (e.g., "A") or 1-based column index.
+        width: Column width in character units (Excel's width unit).
+
+    Note: Excel column width is measured in character widths of the default font.
+    A width of 8.43 is the default. Width 0 hides the column.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+    cols = _get_or_create_cols(sheet_xml)
+
+    # Normalize column to 1-based index
+    col_idx = column_letter_to_index(col) if isinstance(col, str) else col
+
+    # Find existing col element for this column
+    for col_el in list(cols.findall(qn("x:col"))):
+        min_col = int(col_el.get("min", "0"))
+        max_col = int(col_el.get("max", "0"))
+        if min_col == col_idx == max_col:
+            # Exact match - update existing
+            col_el.set("width", str(width))
+            col_el.set("customWidth", "1")
+            pkg.mark_xml_dirty(_get_sheet_path(pkg, sheet_name))
+            return
+        elif min_col <= col_idx <= max_col:
+            # Column is part of a range - split it properly
+            # Save original attributes to copy to split elements
+            orig_attribs = dict(col_el.attrib)
+            del orig_attribs["min"]
+            del orig_attribs["max"]
+
+            # Remove the original range
+            cols.remove(col_el)
+
+            # Create elements for the split ranges
+            if min_col < col_idx:
+                # Left portion: min to col_idx-1
+                left_el = etree.SubElement(cols, qn("x:col"))
+                left_el.set("min", str(min_col))
+                left_el.set("max", str(col_idx - 1))
+                for k, v in orig_attribs.items():
+                    left_el.set(k, v)
+
+            # Middle: the target column with new width
+            mid_el = etree.SubElement(cols, qn("x:col"))
+            mid_el.set("min", str(col_idx))
+            mid_el.set("max", str(col_idx))
+            mid_el.set("width", str(width))
+            mid_el.set("customWidth", "1")
+
+            if max_col > col_idx:
+                # Right portion: col_idx+1 to max
+                right_el = etree.SubElement(cols, qn("x:col"))
+                right_el.set("min", str(col_idx + 1))
+                right_el.set("max", str(max_col))
+                for k, v in orig_attribs.items():
+                    right_el.set(k, v)
+
+            pkg.mark_xml_dirty(_get_sheet_path(pkg, sheet_name))
+            return
+
+    # No existing col element covers this column - add new
+    col_el = etree.SubElement(cols, qn("x:col"))
+    col_el.set("min", str(col_idx))
+    col_el.set("max", str(col_idx))
+    col_el.set("width", str(width))
+    col_el.set("customWidth", "1")
+
+    pkg.mark_xml_dirty(_get_sheet_path(pkg, sheet_name))
+
+
+def get_column_width(pkg: ExcelPackage, sheet_name: str, col: str | int) -> float:
+    """Get the width of a column.
+
+    Args:
+        pkg: Excel package.
+        sheet_name: Target sheet name.
+        col: Column letter (e.g., "A") or 1-based column index.
+
+    Returns: Column width in character units, or default width (8.43) if not set.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+
+    # Normalize column to 1-based index
+    col_idx = column_letter_to_index(col) if isinstance(col, str) else col
+
+    # Check sheetFormatPr for default column width
+    default_width = 8.43  # Excel default
+    fmt_pr = sheet_xml.find(qn("x:sheetFormatPr"))
+    if fmt_pr is not None:
+        default_col_width = fmt_pr.get("defaultColWidth")
+        if default_col_width:
+            default_width = float(default_col_width)
+
+    # Find col element
+    cols = sheet_xml.find(qn("x:cols"))
+    if cols is None:
+        return default_width
+
+    for col_el in cols.findall(qn("x:col")):
+        min_col = int(col_el.get("min", "0"))
+        max_col = int(col_el.get("max", "0"))
+        if min_col <= col_idx <= max_col:
+            width = col_el.get("width")
+            if width:
+                return float(width)
+
+    return default_width
+
+
+def set_row_height(pkg: ExcelPackage, sheet_name: str, row: int, height: float) -> None:
+    """Set the height of a row.
+
+    Args:
+        pkg: Excel package.
+        sheet_name: Target sheet name.
+        row: 1-based row number.
+        height: Row height in points.
+
+    Note: Excel row height is measured in points. Default is about 15 points.
+    Height 0 hides the row.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+    sheet_data = sheet_xml.find(qn("x:sheetData"))
+    if sheet_data is None:
+        sheet_data = etree.SubElement(sheet_xml, qn("x:sheetData"))
+
+    # Find or create row element
+    row_el = None
+    for r in sheet_data.findall(qn("x:row")):
+        if int(r.get("r", "0")) == row:
+            row_el = r
+            break
+
+    if row_el is None:
+        # Create new row element in sorted position
+        row_el = etree.Element(qn("x:row"))
+        row_el.set("r", str(row))
+
+        # Insert in sorted order
+        inserted = False
+        for idx, r in enumerate(sheet_data.findall(qn("x:row"))):
+            if int(r.get("r", "0")) > row:
+                sheet_data.insert(idx, row_el)
+                inserted = True
+                break
+        if not inserted:
+            sheet_data.append(row_el)
+
+    row_el.set("ht", str(height))
+    row_el.set("customHeight", "1")
+
+    pkg.mark_xml_dirty(_get_sheet_path(pkg, sheet_name))
+
+
+def get_row_height(pkg: ExcelPackage, sheet_name: str, row: int) -> float:
+    """Get the height of a row.
+
+    Args:
+        pkg: Excel package.
+        sheet_name: Target sheet name.
+        row: 1-based row number.
+
+    Returns: Row height in points, or default height (15) if not set.
+    """
+    sheet_xml = pkg.get_sheet_xml(sheet_name)
+
+    # Check sheetFormatPr for default row height
+    default_height = 15.0  # Excel default in points
+    fmt_pr = sheet_xml.find(qn("x:sheetFormatPr"))
+    if fmt_pr is not None:
+        default_row_height = fmt_pr.get("defaultRowHeight")
+        if default_row_height:
+            default_height = float(default_row_height)
+
+    # Find row element
+    sheet_data = sheet_xml.find(qn("x:sheetData"))
+    if sheet_data is None:
+        return default_height
+
+    for r in sheet_data.findall(qn("x:row")):
+        if int(r.get("r", "0")) == row:
+            ht = r.get("ht")
+            if ht:
+                return float(ht)
+            break
+
+    return default_height

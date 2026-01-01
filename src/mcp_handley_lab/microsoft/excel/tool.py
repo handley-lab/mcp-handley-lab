@@ -13,6 +13,7 @@ from pydantic import Field
 
 from mcp_handley_lab.microsoft.excel.models import (
     CellInfo,
+    ExcelEditResult,
     ExcelReadResult,
     GridData,
     RangeMeta,
@@ -20,7 +21,11 @@ from mcp_handley_lab.microsoft.excel.models import (
     SparseCell,
     WorkbookMeta,
 )
-from mcp_handley_lab.microsoft.excel.ops.cells import get_cells_in_range
+from mcp_handley_lab.microsoft.excel.ops.cells import (
+    get_cells_in_range,
+    set_cell_formula,
+    set_cell_value,
+)
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
@@ -28,8 +33,12 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_range_ref,
 )
 from mcp_handley_lab.microsoft.excel.ops.sheets import (
+    add_sheet,
+    copy_sheet,
+    delete_sheet,
     get_used_range,
     list_sheets,
+    rename_sheet,
 )
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
@@ -321,3 +330,194 @@ def _format_cell_for_markdown(value: Any) -> str:
     if len(s) > 50:
         s = s[:47] + "..."
     return s
+
+
+# =============================================================================
+# Edit Operations
+# =============================================================================
+
+
+@mcp.tool()
+def edit(
+    file_path: str = Field(description="Path to .xlsx file"),
+    operation: str = Field(
+        description="Operation: create, set_cell, set_formula, add_sheet, rename_sheet, delete_sheet, copy_sheet"
+    ),
+    sheet: str = Field(
+        default="",
+        description="Sheet name (required for cell/sheet operations)",
+    ),
+    cell_ref: str = Field(
+        default="",
+        description="Cell reference like 'A1' (for cell operations)",
+    ),
+    value: str = Field(
+        default="",
+        description="Value to set (string, number, or JSON for arrays)",
+    ),
+    new_name: str = Field(
+        default="",
+        description="New name (for rename_sheet, copy_sheet)",
+    ),
+) -> dict[str, Any]:
+    """Edit an Excel workbook.
+
+    Operations:
+    - create: Create new empty workbook
+    - set_cell: Set cell value (auto-detects type)
+    - set_formula: Set cell formula (without leading =)
+    - add_sheet: Add new sheet
+    - rename_sheet: Rename existing sheet
+    - delete_sheet: Delete sheet
+    - copy_sheet: Copy sheet to new sheet
+    """
+    if operation == "create":
+        return _edit_create(file_path)
+    elif operation == "set_cell":
+        return _edit_set_cell(file_path, sheet, cell_ref, value)
+    elif operation == "set_formula":
+        return _edit_set_formula(file_path, sheet, cell_ref, value)
+    elif operation == "add_sheet":
+        return _edit_add_sheet(file_path, value or new_name)
+    elif operation == "rename_sheet":
+        return _edit_rename_sheet(file_path, sheet, new_name)
+    elif operation == "delete_sheet":
+        return _edit_delete_sheet(file_path, sheet)
+    elif operation == "copy_sheet":
+        return _edit_copy_sheet(file_path, sheet, new_name)
+    else:
+        raise ValueError(f"Unknown operation: {operation}")
+
+
+def _edit_create(file_path: str) -> dict[str, Any]:
+    """Create a new empty workbook."""
+    pkg = ExcelPackage.new()
+    pkg.save(file_path)
+    return ExcelEditResult(
+        success=True,
+        message=f"Created workbook: {file_path}",
+        affected_refs=["Sheet1"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_cell(
+    file_path: str, sheet: str, cell_ref: str, value: str
+) -> dict[str, Any]:
+    """Set a cell's value."""
+    if not sheet:
+        raise ValueError("sheet is required for set_cell")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for set_cell")
+
+    pkg = ExcelPackage.open(file_path)
+
+    # Auto-detect type from value string
+    parsed_value: Any = value
+    if value == "":
+        parsed_value = None
+    elif value.lower() == "true":
+        parsed_value = True
+    elif value.lower() == "false":
+        parsed_value = False
+    else:
+        try:
+            parsed_value = float(value) if "." in value else int(value)
+        except ValueError:
+            parsed_value = value  # Keep as string
+
+    set_cell_value(pkg, sheet, cell_ref, parsed_value)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set {cell_ref} to {repr(parsed_value)}",
+        affected_refs=[cell_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_set_formula(
+    file_path: str, sheet: str, cell_ref: str, formula: str
+) -> dict[str, Any]:
+    """Set a cell's formula."""
+    if not sheet:
+        raise ValueError("sheet is required for set_formula")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for set_formula")
+
+    pkg = ExcelPackage.open(file_path)
+    set_cell_formula(pkg, sheet, cell_ref, formula)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set {cell_ref} formula to ={formula}",
+        affected_refs=[cell_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_add_sheet(file_path: str, name: str) -> dict[str, Any]:
+    """Add a new sheet."""
+    if not name:
+        raise ValueError("value or new_name is required for add_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    add_sheet(pkg, name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Added sheet: {name}",
+        affected_refs=[name],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_rename_sheet(file_path: str, old_name: str, new_name: str) -> dict[str, Any]:
+    """Rename a sheet."""
+    if not old_name:
+        raise ValueError("sheet is required for rename_sheet")
+    if not new_name:
+        raise ValueError("new_name is required for rename_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    rename_sheet(pkg, old_name, new_name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Renamed sheet: {old_name} -> {new_name}",
+        affected_refs=[new_name],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_sheet(file_path: str, name: str) -> dict[str, Any]:
+    """Delete a sheet."""
+    if not name:
+        raise ValueError("sheet is required for delete_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    delete_sheet(pkg, name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted sheet: {name}",
+        affected_refs=[name],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_copy_sheet(file_path: str, source: str, new_name: str) -> dict[str, Any]:
+    """Copy a sheet."""
+    if not source:
+        raise ValueError("sheet is required for copy_sheet")
+    if not new_name:
+        raise ValueError("new_name is required for copy_sheet")
+
+    pkg = ExcelPackage.open(file_path)
+    copy_sheet(pkg, source, new_name)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Copied sheet: {source} -> {new_name}",
+        affected_refs=[new_name],
+    ).model_dump(exclude_none=True)

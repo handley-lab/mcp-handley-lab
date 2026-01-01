@@ -202,6 +202,10 @@ def _extract_cell_data(
         value = _parse_number(v_el.text)
         return value, TYPE_FORMULA if has_formula else TYPE_NUMBER, formula
 
+    # Formula without cached value
+    if has_formula:
+        return None, TYPE_FORMULA, formula
+
     return None, TYPE_EMPTY, None
 
 
@@ -217,3 +221,196 @@ def _parse_number(text: str) -> int | float:
         return f
     except ValueError:
         return text  # Fallback to string if unparseable
+
+
+# =============================================================================
+# Write Operations
+# =============================================================================
+
+
+def set_cell_value(
+    pkg: ExcelPackage, sheet_name: str, cell_ref: str, value: Any
+) -> None:
+    """Set a cell's value.
+
+    Handles type inference:
+    - None: clears the cell
+    - bool: sets boolean cell
+    - int/float: sets numeric cell
+    - str: adds to shared strings and sets string cell
+
+    After editing, call pkg.drop_calc_chain() to force recalculation.
+    """
+    sheet = pkg.get_sheet_xml(sheet_name)
+    sheet_path = _get_sheet_path(pkg, sheet_name)
+
+    col, row, _, _ = parse_cell_ref(cell_ref)
+    normalized_ref = f"{col.upper()}{row}"
+
+    cell = _ensure_cell(sheet, normalized_ref, row)
+
+    if value is None:
+        # Clear the cell
+        _clear_cell(cell)
+    elif isinstance(value, bool):
+        _set_boolean_cell(cell, value)
+    elif isinstance(value, int | float):
+        _set_number_cell(cell, value)
+    else:
+        _set_string_cell(pkg, cell, str(value))
+
+    pkg.mark_xml_dirty(sheet_path)
+    pkg.drop_calc_chain()
+
+
+def set_cell_formula(
+    pkg: ExcelPackage, sheet_name: str, cell_ref: str, formula: str
+) -> None:
+    """Set a cell's formula.
+
+    The formula should not include the leading '=' sign.
+    Example: set_cell_formula(pkg, "Sheet1", "A1", "SUM(B1:B10)")
+    """
+    sheet = pkg.get_sheet_xml(sheet_name)
+    sheet_path = _get_sheet_path(pkg, sheet_name)
+
+    col, row, _, _ = parse_cell_ref(cell_ref)
+    normalized_ref = f"{col.upper()}{row}"
+
+    cell = _ensure_cell(sheet, normalized_ref, row)
+
+    # Remove any existing value
+    for v_el in cell.findall(qn("x:v")):
+        cell.remove(v_el)
+
+    # Set formula
+    f_el = cell.find(qn("x:f"))
+    if f_el is None:
+        f_el = etree.SubElement(cell, qn("x:f"))
+    f_el.text = formula
+
+    # Clear type attribute (result type determined on calculation)
+    if "t" in cell.attrib:
+        del cell.attrib["t"]
+
+    pkg.mark_xml_dirty(sheet_path)
+    pkg.drop_calc_chain()
+
+
+def set_cell_style(
+    pkg: ExcelPackage, sheet_name: str, cell_ref: str, style_index: int
+) -> None:
+    """Set a cell's style index.
+
+    The style_index references the cellXfs array in styles.xml.
+    """
+    sheet = pkg.get_sheet_xml(sheet_name)
+    sheet_path = _get_sheet_path(pkg, sheet_name)
+
+    col, row, _, _ = parse_cell_ref(cell_ref)
+    normalized_ref = f"{col.upper()}{row}"
+
+    cell = _ensure_cell(sheet, normalized_ref, row)
+    cell.set("s", str(style_index))
+
+    pkg.mark_xml_dirty(sheet_path)
+
+
+def _get_sheet_path(pkg: ExcelPackage, sheet_name: str) -> str:
+    """Get the part path for a sheet by name."""
+    for name, _rId, partname in pkg.get_sheet_paths():
+        if name == sheet_name:
+            return partname
+    raise KeyError(f"Sheet not found: {sheet_name}")
+
+
+def _ensure_cell(sheet: etree._Element, cell_ref: str, row_num: int) -> etree._Element:
+    """Ensure a cell element exists, creating row and cell if needed."""
+    sheet_data = sheet.find(qn("x:sheetData"))
+    if sheet_data is None:
+        sheet_data = etree.SubElement(sheet, qn("x:sheetData"))
+
+    # Find or create the row
+    row_el = None
+    for r in sheet_data.findall(qn("x:row")):
+        if r.get("r") == str(row_num):
+            row_el = r
+            break
+
+    if row_el is None:
+        # Create row in correct position (sorted by row number)
+        row_el = etree.Element(qn("x:row"), r=str(row_num))
+        inserted = False
+        for r in sheet_data.findall(qn("x:row")):
+            if int(r.get("r", "0")) > row_num:
+                r.addprevious(row_el)
+                inserted = True
+                break
+        if not inserted:
+            sheet_data.append(row_el)
+
+    # Find or create the cell
+    cell_el = None
+    for c in row_el.findall(qn("x:c")):
+        if c.get("r", "").upper() == cell_ref.upper():
+            cell_el = c
+            break
+
+    if cell_el is None:
+        # Create cell in correct position (sorted by column)
+        cell_el = etree.Element(qn("x:c"), r=cell_ref)
+        col, _, _, _ = parse_cell_ref(cell_ref)
+        col_idx = column_letter_to_index(col)
+
+        inserted = False
+        for c in row_el.findall(qn("x:c")):
+            c_col, _, _, _ = parse_cell_ref(c.get("r", "A1"))
+            c_idx = column_letter_to_index(c_col)
+            if c_idx > col_idx:
+                c.addprevious(cell_el)
+                inserted = True
+                break
+        if not inserted:
+            row_el.append(cell_el)
+
+    return cell_el
+
+
+def _clear_cell(cell: etree._Element) -> None:
+    """Clear a cell's value, formula, and type."""
+    for v_el in cell.findall(qn("x:v")):
+        cell.remove(v_el)
+    for f_el in cell.findall(qn("x:f")):
+        cell.remove(f_el)
+    if "t" in cell.attrib:
+        del cell.attrib["t"]
+
+
+def _set_boolean_cell(cell: etree._Element, value: bool) -> None:
+    """Set a cell to a boolean value."""
+    _clear_cell(cell)
+    cell.set("t", "b")
+    v_el = etree.SubElement(cell, qn("x:v"))
+    v_el.text = "1" if value else "0"
+
+
+def _set_number_cell(cell: etree._Element, value: int | float) -> None:
+    """Set a cell to a numeric value."""
+    _clear_cell(cell)
+    if "t" in cell.attrib:
+        del cell.attrib["t"]  # Numbers have no type attribute
+    v_el = etree.SubElement(cell, qn("x:v"))
+    # Use repr to preserve precision, but strip trailing .0 for integers
+    if isinstance(value, float) and value.is_integer():
+        v_el.text = str(int(value))
+    else:
+        v_el.text = str(value)
+
+
+def _set_string_cell(pkg: ExcelPackage, cell: etree._Element, value: str) -> None:
+    """Set a cell to a string value using shared strings."""
+    _clear_cell(cell)
+    idx = pkg.shared_strings.add(value)
+    cell.set("t", "s")
+    v_el = etree.SubElement(cell, qn("x:v"))
+    v_el.text = str(idx)

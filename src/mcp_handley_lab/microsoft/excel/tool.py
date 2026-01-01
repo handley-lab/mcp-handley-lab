@@ -32,6 +32,15 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.ranges import (
+    delete_columns,
+    delete_rows,
+    insert_columns,
+    insert_rows,
+    merge_cells,
+    set_range_values,
+    unmerge_cells,
+)
 from mcp_handley_lab.microsoft.excel.ops.sheets import (
     add_sheet,
     copy_sheet,
@@ -341,7 +350,9 @@ def _format_cell_for_markdown(value: Any) -> str:
 def edit(
     file_path: str = Field(description="Path to .xlsx file"),
     operation: str = Field(
-        description="Operation: create, set_cell, set_formula, add_sheet, rename_sheet, delete_sheet, copy_sheet"
+        description="Operation: create, set_cell, set_formula, set_range, "
+        "insert_rows, delete_rows, insert_columns, delete_columns, "
+        "merge_cells, unmerge_cells, add_sheet, rename_sheet, delete_sheet, copy_sheet"
     ),
     sheet: str = Field(
         default="",
@@ -349,15 +360,19 @@ def edit(
     ),
     cell_ref: str = Field(
         default="",
-        description="Cell reference like 'A1' (for cell operations)",
+        description="Cell reference like 'A1' or range like 'A1:C3'",
     ),
     value: str = Field(
         default="",
-        description="Value to set (string, number, or JSON for arrays)",
+        description="Value to set (string, number, or JSON 2D array for set_range)",
     ),
     new_name: str = Field(
         default="",
         description="New name (for rename_sheet, copy_sheet)",
+    ),
+    count: int = Field(
+        default=1,
+        description="Count for insert/delete rows/columns",
     ),
 ) -> dict[str, Any]:
     """Edit an Excel workbook.
@@ -366,6 +381,13 @@ def edit(
     - create: Create new empty workbook
     - set_cell: Set cell value (auto-detects type)
     - set_formula: Set cell formula (without leading =)
+    - set_range: Set range values from JSON 2D array (cell_ref is start cell)
+    - insert_rows: Insert rows at cell_ref row (count = number to insert)
+    - delete_rows: Delete rows at cell_ref row (count = number to delete)
+    - insert_columns: Insert columns at cell_ref column (count = number to insert)
+    - delete_columns: Delete columns at cell_ref column (count = number to delete)
+    - merge_cells: Merge cells in range (cell_ref = range like 'A1:C3')
+    - unmerge_cells: Unmerge cells in range (cell_ref = range like 'A1:C3')
     - add_sheet: Add new sheet
     - rename_sheet: Rename existing sheet
     - delete_sheet: Delete sheet
@@ -377,6 +399,20 @@ def edit(
         return _edit_set_cell(file_path, sheet, cell_ref, value)
     elif operation == "set_formula":
         return _edit_set_formula(file_path, sheet, cell_ref, value)
+    elif operation == "set_range":
+        return _edit_set_range(file_path, sheet, cell_ref, value)
+    elif operation == "insert_rows":
+        return _edit_insert_rows(file_path, sheet, cell_ref, count)
+    elif operation == "delete_rows":
+        return _edit_delete_rows(file_path, sheet, cell_ref, count)
+    elif operation == "insert_columns":
+        return _edit_insert_columns(file_path, sheet, cell_ref, count)
+    elif operation == "delete_columns":
+        return _edit_delete_columns(file_path, sheet, cell_ref, count)
+    elif operation == "merge_cells":
+        return _edit_merge_cells(file_path, sheet, cell_ref)
+    elif operation == "unmerge_cells":
+        return _edit_unmerge_cells(file_path, sheet, cell_ref)
     elif operation == "add_sheet":
         return _edit_add_sheet(file_path, value or new_name)
     elif operation == "rename_sheet":
@@ -520,4 +556,165 @@ def _edit_copy_sheet(file_path: str, source: str, new_name: str) -> dict[str, An
         success=True,
         message=f"Copied sheet: {source} -> {new_name}",
         affected_refs=[new_name],
+    ).model_dump(exclude_none=True)
+
+
+# =============================================================================
+# Range Operations
+# =============================================================================
+
+
+def _edit_set_range(
+    file_path: str, sheet: str, start_ref: str, value: str
+) -> dict[str, Any]:
+    """Set range values from JSON 2D array."""
+    import json
+
+    if not sheet:
+        raise ValueError("sheet is required for set_range")
+    if not start_ref:
+        raise ValueError("cell_ref is required for set_range")
+    if not value:
+        raise ValueError("value (JSON 2D array) is required for set_range")
+
+    try:
+        values = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"value must be valid JSON 2D array: {e}") from e
+
+    if not isinstance(values, list) or not all(isinstance(row, list) for row in values):
+        raise ValueError("value must be a 2D array (list of lists)")
+
+    pkg = ExcelPackage.open(file_path)
+    count = set_range_values(pkg, sheet, start_ref, values)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Set {count} cells starting at {start_ref}",
+        affected_refs=[start_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_insert_rows(
+    file_path: str, sheet: str, cell_ref: str, count: int
+) -> dict[str, Any]:
+    """Insert rows."""
+    if not sheet:
+        raise ValueError("sheet is required for insert_rows")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for insert_rows")
+
+    _, row_num, _, _ = parse_cell_ref(cell_ref)
+
+    pkg = ExcelPackage.open(file_path)
+    insert_rows(pkg, sheet, row_num, count)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Inserted {count} row(s) at row {row_num}",
+        affected_refs=[f"row {row_num}"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_rows(
+    file_path: str, sheet: str, cell_ref: str, count: int
+) -> dict[str, Any]:
+    """Delete rows."""
+    if not sheet:
+        raise ValueError("sheet is required for delete_rows")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for delete_rows")
+
+    _, row_num, _, _ = parse_cell_ref(cell_ref)
+
+    pkg = ExcelPackage.open(file_path)
+    delete_rows(pkg, sheet, row_num, count)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted {count} row(s) at row {row_num}",
+        affected_refs=[f"row {row_num}"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_insert_columns(
+    file_path: str, sheet: str, cell_ref: str, count: int
+) -> dict[str, Any]:
+    """Insert columns."""
+    if not sheet:
+        raise ValueError("sheet is required for insert_columns")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for insert_columns")
+
+    col, _, _, _ = parse_cell_ref(cell_ref)
+
+    pkg = ExcelPackage.open(file_path)
+    insert_columns(pkg, sheet, col, count)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Inserted {count} column(s) at column {col}",
+        affected_refs=[f"column {col}"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_delete_columns(
+    file_path: str, sheet: str, cell_ref: str, count: int
+) -> dict[str, Any]:
+    """Delete columns."""
+    if not sheet:
+        raise ValueError("sheet is required for delete_columns")
+    if not cell_ref:
+        raise ValueError("cell_ref is required for delete_columns")
+
+    col, _, _, _ = parse_cell_ref(cell_ref)
+
+    pkg = ExcelPackage.open(file_path)
+    delete_columns(pkg, sheet, col, count)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Deleted {count} column(s) at column {col}",
+        affected_refs=[f"column {col}"],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_merge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
+    """Merge cells in a range."""
+    if not sheet:
+        raise ValueError("sheet is required for merge_cells")
+    if not range_ref:
+        raise ValueError("cell_ref (range) is required for merge_cells")
+
+    pkg = ExcelPackage.open(file_path)
+    merge_cells(pkg, sheet, range_ref)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Merged cells: {range_ref}",
+        affected_refs=[range_ref],
+    ).model_dump(exclude_none=True)
+
+
+def _edit_unmerge_cells(file_path: str, sheet: str, range_ref: str) -> dict[str, Any]:
+    """Unmerge cells in a range."""
+    if not sheet:
+        raise ValueError("sheet is required for unmerge_cells")
+    if not range_ref:
+        raise ValueError("cell_ref (range) is required for unmerge_cells")
+
+    pkg = ExcelPackage.open(file_path)
+    unmerge_cells(pkg, sheet, range_ref)
+    pkg.save(file_path)
+
+    return ExcelEditResult(
+        success=True,
+        message=f"Unmerged cells: {range_ref}",
+        affected_refs=[range_ref],
     ).model_dump(exclude_none=True)

@@ -16,6 +16,16 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.ranges import (
+    delete_columns,
+    delete_rows,
+    get_range_values,
+    insert_columns,
+    insert_rows,
+    merge_cells,
+    set_range_values,
+    unmerge_cells,
+)
 from mcp_handley_lab.microsoft.excel.ops.sheets import (
     add_sheet,
     copy_sheet,
@@ -44,6 +54,15 @@ __all__ = [
     "set_cell_value",
     "set_cell_formula",
     "set_cell_style",
+    # Ranges
+    "get_range_values",
+    "set_range_values",
+    "insert_rows",
+    "delete_rows",
+    "insert_columns",
+    "delete_columns",
+    "merge_cells",
+    "unmerge_cells",
     # Sheets - Read
     "list_sheets",
     "get_sheet_by_name",

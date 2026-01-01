@@ -10,6 +10,16 @@ from mcp_handley_lab.microsoft.excel.ops.cells import (
     set_cell_formula,
     set_cell_value,
 )
+from mcp_handley_lab.microsoft.excel.ops.ranges import (
+    delete_columns,
+    delete_rows,
+    get_range_values,
+    insert_columns,
+    insert_rows,
+    merge_cells,
+    set_range_values,
+    unmerge_cells,
+)
 from mcp_handley_lab.microsoft.excel.ops.sheets import (
     add_sheet,
     copy_sheet,
@@ -282,5 +292,292 @@ class TestCopySheet:
 
             value, _, _ = get_cell_data(pkg2, "Copy", "A1")
             assert value == 42
+
+            Path(f.name).unlink()
+
+
+# =============================================================================
+# Range Operations Tests
+# =============================================================================
+
+
+class TestGetRangeValues:
+    """Tests for get_range_values."""
+
+    def test_get_range_values(self):
+        """Get values from a range."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", 1)
+        set_cell_value(pkg, "Sheet1", "B1", 2)
+        set_cell_value(pkg, "Sheet1", "A2", 3)
+        set_cell_value(pkg, "Sheet1", "B2", 4)
+
+        values = get_range_values(pkg, "Sheet1", "A1:B2")
+
+        assert values == [[1, 2], [3, 4]]
+
+    def test_get_range_with_empty_cells(self):
+        """Get range with empty cells returns None."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", 1)
+        set_cell_value(pkg, "Sheet1", "B2", 4)
+
+        values = get_range_values(pkg, "Sheet1", "A1:B2")
+
+        assert values == [[1, None], [None, 4]]
+
+    def test_get_empty_range(self):
+        """Get empty range returns grid of None."""
+        pkg = ExcelPackage.new()
+        values = get_range_values(pkg, "Sheet1", "A1:B2")
+
+        assert values == [[None, None], [None, None]]
+
+
+class TestSetRangeValues:
+    """Tests for set_range_values."""
+
+    def test_set_range_values(self):
+        """Set values in a range."""
+        pkg = ExcelPackage.new()
+        count = set_range_values(pkg, "Sheet1", "A1", [[1, 2], [3, 4]])
+
+        assert count == 4
+        values = get_range_values(pkg, "Sheet1", "A1:B2")
+        assert values == [[1, 2], [3, 4]]
+
+    def test_set_range_mixed_types(self):
+        """Set range with mixed types."""
+        pkg = ExcelPackage.new()
+        set_range_values(pkg, "Sheet1", "A1", [[1, "text"], [True, 3.14]])
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        v2, _, _ = get_cell_data(pkg, "Sheet1", "B1")
+        v3, _, _ = get_cell_data(pkg, "Sheet1", "A2")
+        v4, _, _ = get_cell_data(pkg, "Sheet1", "B2")
+
+        assert v1 == 1
+        assert v2 == "text"
+        assert v3 is True
+        assert v4 == 3.14
+
+    def test_set_range_empty_returns_zero(self):
+        """Empty values returns 0."""
+        pkg = ExcelPackage.new()
+        count = set_range_values(pkg, "Sheet1", "A1", [])
+        assert count == 0
+
+
+class TestInsertRows:
+    """Tests for insert_rows."""
+
+    def test_insert_rows_shifts_data(self):
+        """Insert rows shifts existing data down."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "row1")
+        set_cell_value(pkg, "Sheet1", "A2", "row2")
+
+        insert_rows(pkg, "Sheet1", 2, 2)
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        v2, _, _ = get_cell_data(pkg, "Sheet1", "A2")
+        v3, _, _ = get_cell_data(pkg, "Sheet1", "A4")
+
+        assert v1 == "row1"  # Row 1 unchanged
+        assert v2 is None  # Inserted row
+        assert v3 == "row2"  # Original row 2 shifted to row 4
+
+    def test_insert_rows_zero_count(self):
+        """Insert 0 rows does nothing."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "test")
+
+        insert_rows(pkg, "Sheet1", 1, 0)
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        assert v1 == "test"
+
+
+class TestDeleteRows:
+    """Tests for delete_rows."""
+
+    def test_delete_rows_removes_data(self):
+        """Delete rows removes data and shifts up."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "row1")
+        set_cell_value(pkg, "Sheet1", "A2", "row2")
+        set_cell_value(pkg, "Sheet1", "A3", "row3")
+
+        delete_rows(pkg, "Sheet1", 2, 1)
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        v2, _, _ = get_cell_data(pkg, "Sheet1", "A2")
+        v3, _, _ = get_cell_data(pkg, "Sheet1", "A3")
+
+        assert v1 == "row1"  # Row 1 unchanged
+        assert v2 == "row3"  # Row 3 shifted up to row 2
+        assert v3 is None  # No data in row 3 now
+
+    def test_delete_multiple_rows(self):
+        """Delete multiple rows."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "row1")
+        set_cell_value(pkg, "Sheet1", "A2", "row2")
+        set_cell_value(pkg, "Sheet1", "A3", "row3")
+        set_cell_value(pkg, "Sheet1", "A4", "row4")
+
+        delete_rows(pkg, "Sheet1", 2, 2)
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        v2, _, _ = get_cell_data(pkg, "Sheet1", "A2")
+
+        assert v1 == "row1"
+        assert v2 == "row4"  # Row 4 shifted up to row 2
+
+
+class TestInsertColumns:
+    """Tests for insert_columns."""
+
+    def test_insert_columns_shifts_data(self):
+        """Insert columns shifts existing data right."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "colA")
+        set_cell_value(pkg, "Sheet1", "B1", "colB")
+
+        insert_columns(pkg, "Sheet1", "B", 2)
+
+        vA, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        vB, _, _ = get_cell_data(pkg, "Sheet1", "B1")
+        vD, _, _ = get_cell_data(pkg, "Sheet1", "D1")
+
+        assert vA == "colA"  # Column A unchanged
+        assert vB is None  # Inserted column
+        assert vD == "colB"  # Original column B shifted to D
+
+    def test_insert_columns_with_index(self):
+        """Insert columns using numeric index."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "colA")
+        set_cell_value(pkg, "Sheet1", "B1", "colB")
+
+        insert_columns(pkg, "Sheet1", 2, 1)  # Column B (index 2)
+
+        vA, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        vC, _, _ = get_cell_data(pkg, "Sheet1", "C1")
+
+        assert vA == "colA"
+        assert vC == "colB"
+
+
+class TestDeleteColumns:
+    """Tests for delete_columns."""
+
+    def test_delete_columns_removes_data(self):
+        """Delete columns removes data and shifts left."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "colA")
+        set_cell_value(pkg, "Sheet1", "B1", "colB")
+        set_cell_value(pkg, "Sheet1", "C1", "colC")
+
+        delete_columns(pkg, "Sheet1", "B", 1)
+
+        vA, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        vB, _, _ = get_cell_data(pkg, "Sheet1", "B1")
+        vC, _, _ = get_cell_data(pkg, "Sheet1", "C1")
+
+        assert vA == "colA"
+        assert vB == "colC"  # Column C shifted to B
+        assert vC is None
+
+
+class TestMergeCells:
+    """Tests for merge_cells."""
+
+    def test_merge_cells(self):
+        """Merge cells clears non-top-left cells."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "top-left")
+        set_cell_value(pkg, "Sheet1", "B1", "to-clear")
+        set_cell_value(pkg, "Sheet1", "A2", "to-clear")
+        set_cell_value(pkg, "Sheet1", "B2", "to-clear")
+
+        merge_cells(pkg, "Sheet1", "A1:B2")
+
+        v1, _, _ = get_cell_data(pkg, "Sheet1", "A1")
+        v2, _, _ = get_cell_data(pkg, "Sheet1", "B1")
+        v3, _, _ = get_cell_data(pkg, "Sheet1", "A2")
+
+        assert v1 == "top-left"  # Preserved
+        assert v2 is None  # Cleared
+        assert v3 is None  # Cleared
+
+    def test_merge_overlapping_raises(self):
+        """Merging overlapping range raises."""
+        pkg = ExcelPackage.new()
+        merge_cells(pkg, "Sheet1", "A1:B2")
+
+        with pytest.raises(ValueError, match="overlaps"):
+            merge_cells(pkg, "Sheet1", "B2:C3")
+
+
+class TestUnmergeCells:
+    """Tests for unmerge_cells."""
+
+    def test_unmerge_cells(self):
+        """Unmerge cells removes merge."""
+        pkg = ExcelPackage.new()
+        merge_cells(pkg, "Sheet1", "A1:B2")
+
+        # Should not raise
+        unmerge_cells(pkg, "Sheet1", "A1:B2")
+
+        # Can merge again after unmerge
+        merge_cells(pkg, "Sheet1", "A1:B2")
+
+    def test_unmerge_not_found_raises(self):
+        """Unmerging non-existent merge raises."""
+        pkg = ExcelPackage.new()
+        with pytest.raises(ValueError, match="(not found|No merged cells)"):
+            unmerge_cells(pkg, "Sheet1", "A1:B2")
+
+
+class TestRangeRoundTrip:
+    """Round-trip tests for range operations."""
+
+    def test_merge_round_trip(self):
+        """Merge survives save/reload."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "merged")
+        merge_cells(pkg, "Sheet1", "A1:B2")
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            pkg.save(f.name)
+            pkg2 = ExcelPackage.open(f.name)
+
+            # Value preserved
+            v, _, _ = get_cell_data(pkg2, "Sheet1", "A1")
+            assert v == "merged"
+
+            # Can unmerge (proves merge was saved)
+            unmerge_cells(pkg2, "Sheet1", "A1:B2")
+
+            Path(f.name).unlink()
+
+    def test_insert_delete_round_trip(self):
+        """Insert/delete survives save/reload."""
+        pkg = ExcelPackage.new()
+        set_cell_value(pkg, "Sheet1", "A1", "row1")
+        set_cell_value(pkg, "Sheet1", "A2", "row2")
+        insert_rows(pkg, "Sheet1", 2, 1)
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            pkg.save(f.name)
+            pkg2 = ExcelPackage.open(f.name)
+
+            v1, _, _ = get_cell_data(pkg2, "Sheet1", "A1")
+            v3, _, _ = get_cell_data(pkg2, "Sheet1", "A3")
+
+            assert v1 == "row1"
+            assert v3 == "row2"
 
             Path(f.name).unlink()

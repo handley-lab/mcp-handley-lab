@@ -96,7 +96,10 @@ def _find_smart_destination(
 class EmailContent(BaseModel):
     """Structured representation of a single email's content."""
 
-    id: str = Field(..., description="The unique message ID of the email.")
+    id: str = Field(
+        ...,
+        description="Complete message ID (use ENTIRE string including @domain for id: queries).",
+    )
     subject: str = Field(..., description="The subject line of the email.")
     from_address: str = Field(..., description="The sender's email address and name.")
     to_address: str = Field(
@@ -188,7 +191,10 @@ class MoveResult(BaseModel):
 class SearchResult(BaseModel):
     """Structured search result for a single email."""
 
-    id: str = Field(..., description="The unique message ID of the email.")
+    id: str = Field(
+        ...,
+        description="Complete message ID (use ENTIRE string including @domain for id: queries).",
+    )
     subject: str = Field(..., description="The subject line of the email.")
     from_address: str = Field(..., description="The sender's email address and name.")
     to_address: str = Field(
@@ -748,7 +754,7 @@ def _list_accounts(config_file: str = "") -> list[str]:
 def read(
     query: str = Field(
         default="",
-        description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'.",
+        description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'. For ID queries, use the COMPLETE id field from search results including the @domain part (e.g., 'id:ABC123@example.com', NOT 'id:ABC123').",
     ),
     limit: int = Field(
         default=100,

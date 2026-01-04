@@ -763,7 +763,7 @@ def read(
         description="Include emails with excluded tags (spam, deleted) that are normally hidden.",
     ),
     mode: str = Field(
-        default="full",
+        default="headers",
         description="Rendering mode: 'headers' (metadata only), 'summary' (first 2000 chars), or 'full' (complete optimized content)",
     ),
     save_attachments_to: str = Field(

@@ -62,10 +62,6 @@ dev = [
     "pre-commit>=3.0.0",
     "tomli>=2.0.0",
 ]
-# Optional: Quote/signature detection (requires C compiler for cchardet)
-quote-detection = [
-    "talon>=1.4.0",
-]
 semantic = [
     "chromadb>=1.0.0",
 ]

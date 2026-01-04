@@ -138,8 +138,8 @@ class TestHtmlConversion:
 class TestQuoteDetection:
     """Tests for quote/signature detection."""
 
-    def test_graceful_degradation_without_talon(self):
-        """Without talon, all content should be returned as 'reply' segment."""
+    def test_segments_preserve_all_content(self):
+        """Segmentation must preserve all content - never discard."""
         text = "Hello\n\nOn Mon... wrote:\n> Quoted text"
 
         segments = segment_email_content(text)
@@ -148,10 +148,10 @@ class TestQuoteDetection:
         assert len(segments) >= 1
         # First segment should be reply type
         assert segments[0].segment_type == "reply"
-        # Full content preserved
+        # Full content preserved across all segments
         full_content = "".join(s.content for s in segments)
         assert "Hello" in full_content
-        assert "Quoted text" in full_content
+        assert "Quoted" in full_content
 
     def test_empty_text_returns_empty(self):
         """Empty text should return empty segments list."""

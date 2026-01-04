@@ -1,21 +1,24 @@
-"""Quote and signature detection using talon.
+"""Quote and signature detection using simple heuristics.
 
 Segments email content into reply, quoted, and signature parts.
 NEVER discards content - just labels it.
 """
 
-import contextlib
+import re
 
 from mcp_handley_lab.email.extraction.models import EmailBodySegment
 
-# Try to import talon, gracefully degrade if not available
-try:
-    from talon import quotations
-    from talon import signature as talon_signature
+# Pattern for quote attribution lines like "On Mon, Jan 1, 2025 at 10:00 AM John wrote:"
+ATTRIBUTION_PATTERN = re.compile(
+    r"^On .+wrote:?\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
 
-    TALON_AVAILABLE = True
-except ImportError:
-    TALON_AVAILABLE = False
+# Pattern for signature delimiters
+SIGNATURE_PATTERN = re.compile(
+    r"^--\s*$",  # Standard signature delimiter: "-- " or "--"
+    re.MULTILINE,
+)
 
 
 def segment_email_content(
@@ -25,52 +28,51 @@ def segment_email_content(
     """
     Segment email into reply, quoted, and signature parts.
 
-    Uses talon library for intelligent detection.
+    Uses simple heuristics:
+    - Lines starting with > are quoted
+    - "On ... wrote:" introduces quoted section
+    - "-- " starts signature
+
     SEGMENTS rather than STRIPS - caller decides what to display.
 
     Args:
         text: The email body text
-        sender_email: Optional sender email for signature detection
+        sender_email: Optional sender email (unused, kept for API compatibility)
 
     Returns:
         List of EmailBodySegment with segment_type indicating each part.
-        If talon unavailable, returns single "reply" segment with full content.
     """
     if not text or not text.strip():
         return []
 
-    if not TALON_AVAILABLE:
-        # Graceful degradation: return everything as reply
-        return [EmailBodySegment(segment_type="reply", content=text)]
-
     segments: list[EmailBodySegment] = []
 
-    # Extract reply vs quoted
-    try:
-        reply_text, quoted_text = quotations.extract_from(text, "text/plain")
-    except Exception:
-        # If extraction fails, treat as single reply
-        reply_text = text
-        quoted_text = None
-
-    # Detect signature in reply
-    main_text = reply_text or text
+    # Split off signature first (standard "-- " delimiter)
+    signature_match = SIGNATURE_PATTERN.search(text)
+    main_text = text
     signature_text = ""
 
-    if sender_email:
-        with contextlib.suppress(Exception):
-            main_text, signature_text = talon_signature.extract(
-                reply_text or text, sender=sender_email
-            )
+    if signature_match:
+        main_text = text[: signature_match.start()]
+        signature_text = text[signature_match.end() :].strip()
+
+    # Find quoted section (starts with attribution or > lines)
+    reply_text = main_text
+    quoted_text = ""
+
+    attribution_match = ATTRIBUTION_PATTERN.search(main_text)
+    if attribution_match:
+        reply_text = main_text[: attribution_match.start()].strip()
+        quoted_text = main_text[attribution_match.start() :].strip()
 
     # Build segments
-    if main_text and main_text.strip():
-        segments.append(EmailBodySegment(segment_type="reply", content=main_text))
+    if reply_text:
+        segments.append(EmailBodySegment(segment_type="reply", content=reply_text))
 
-    if quoted_text and quoted_text.strip():
+    if quoted_text:
         segments.append(EmailBodySegment(segment_type="quoted", content=quoted_text))
 
-    if signature_text and signature_text.strip():
+    if signature_text:
         segments.append(
             EmailBodySegment(segment_type="signature", content=signature_text)
         )

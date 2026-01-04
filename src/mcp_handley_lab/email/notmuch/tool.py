@@ -209,44 +209,46 @@ def _search_emails(
     offset: int = 0,
     include_excluded: bool = False,
 ) -> list[SearchResult]:
-    """Internal search implementation."""
-    cmd = [
-        "notmuch",
-        "search",
-        "--format=json",
-        "--output=messages",
-        "--limit",
-        str(limit),
-        "--offset",
-        str(offset),
-    ]
+    """Internal search implementation using notmuch show --body=false for efficiency."""
+    cmd = ["notmuch", "show", "--format=json", "--body=false"]
     if include_excluded:
         cmd.append("--exclude=false")
+    cmd.extend(["--limit", str(limit), "--offset", str(offset)])
     cmd.append(query)
     stdout, _ = run_command(cmd)
-    message_ids = json.loads(stdout.decode().strip())
+
+    # notmuch show returns nested structure: [[thread1], [thread2], ...]
+    # Each thread contains messages: [msg1, [replies...], msg2, ...]
+    threads = json.loads(stdout.decode().strip())
 
     results = []
-    for message_id in message_ids:
-        msg = _get_message_from_raw_source(message_id)
-
-        # Get tags
-        tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
-        tag_stdout, _ = run_command(tag_cmd)
-        tags = [t.strip() for t in tag_stdout.decode().strip().split("\n") if t.strip()]
-
-        results.append(
-            SearchResult(
-                id=message_id,
-                subject=msg.get("Subject", "") or "[No Subject]",
-                from_address=msg.get("From", "") or "[Unknown Sender]",
-                to_address=msg.get("To", ""),
-                date=msg.get("Date", ""),
-                tags=tags,
-            )
-        )
+    for thread in threads:
+        for item in thread:
+            # item is either a message dict or a list of replies
+            _collect_messages_from_thread(item, results)
 
     return results
+
+
+def _collect_messages_from_thread(item, results: list[SearchResult]) -> None:
+    """Recursively collect messages from notmuch thread structure."""
+    if isinstance(item, dict):
+        # This is a message
+        headers = item.get("headers", {})
+        results.append(
+            SearchResult(
+                id=item.get("id", ""),
+                subject=headers.get("Subject", "") or "[No Subject]",
+                from_address=headers.get("From", "") or "[Unknown Sender]",
+                to_address=headers.get("To", ""),
+                date=headers.get("Date", ""),
+                tags=item.get("tags", []),
+            )
+        )
+    elif isinstance(item, list):
+        # This is a list of replies or nested messages
+        for sub_item in item:
+            _collect_messages_from_thread(sub_item, results)
 
 
 def _get_message_from_raw_source(message_id: str) -> EmailMessage:

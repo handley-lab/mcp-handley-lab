@@ -128,9 +128,7 @@ def extract_mime_parts(
             selected_index = plain_parts[0][0]  # Mark first as selected
             plain_content = "\n\n".join(content for _, content in plain_parts)
             if len(plain_parts) > 1:
-                warnings.append(
-                    f"Concatenated {len(plain_parts)} text/plain parts"
-                )
+                warnings.append(f"Concatenated {len(plain_parts)} text/plain parts")
 
     if html_parts:
         # Concatenate all HTML parts

@@ -453,9 +453,7 @@ class TestProgressiveDisclosureProjection:
             body_markdown="Test body",
             body_format="text",
             body_raw="Test body",
-            segments=[
-                EmailBodySegment(segment_type="reply", content="Test body")
-            ],
+            segments=[EmailBodySegment(segment_type="reply", content="Test body")],
         )
 
         serialized = with_segments.model_dump(exclude_none=True)
@@ -476,7 +474,7 @@ class TestProgressiveDisclosureProjection:
         assert len(result.parts_manifest) >= 1
 
         # Verify serialization includes these
-        from mcp_handley_lab.email.notmuch.tool import EmailContent, EmailPartInfo
+        from mcp_handley_lab.email.notmuch.tool import EmailContent
 
         content = EmailContent(
             id="test",

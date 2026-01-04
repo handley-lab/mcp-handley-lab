@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.21.2"
+version = "0.21.3"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,9 +39,6 @@ dependencies = [
     "html2text>=2020.1.16",
     "beautifulsoup4>=4.12.0",
     "markdownify>=0.11.0",
-    "email-reply-parser>=0.5.0",
-    "selectolax>=0.3.0",
-    "inscriptis>=2.5.0",
     "ftfy>=6.0.0",
     "python-dateutil>=2.8.0",
     "dateparser>=1.2.0",
@@ -64,6 +61,10 @@ dev = [
     "ruff>=0.1.0",
     "pre-commit>=3.0.0",
     "tomli>=2.0.0",
+]
+# Optional: Quote/signature detection (requires C compiler for cchardet)
+quote-detection = [
+    "talon>=1.4.0",
 ]
 semantic = [
     "chromadb>=1.0.0",

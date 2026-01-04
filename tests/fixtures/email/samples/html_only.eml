@@ -1,0 +1,30 @@
+Message-ID: <test-html-001@example.com>
+Date: Mon, 1 Jan 2024 12:00:00 +0000
+From: sender@example.com
+To: recipient@example.com
+Subject: HTML only email with links
+Content-Type: text/html; charset="utf-8"
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.hidden { display: none; }
+</style>
+<script>alert('should be removed');</script>
+</head>
+<body>
+<h1>Welcome Email</h1>
+<p>Hello <strong>World</strong>,</p>
+<p>Please visit our <a href="https://example.com">website</a> for more info.</p>
+<div class="hidden">This hidden content should be removed</div>
+<img width="1" height="1" src="https://tracking.example.com/pixel.gif" />
+<table>
+<tr><th>Item</th><th>Price</th></tr>
+<tr><td>Widget</td><td>$10</td></tr>
+</table>
+<footer>
+<a href="https://example.com/unsubscribe">Unsubscribe</a>
+</footer>
+</body>
+</html>

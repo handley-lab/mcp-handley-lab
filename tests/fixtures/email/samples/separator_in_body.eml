@@ -1,0 +1,17 @@
+Message-ID: <test-separator-001@example.com>
+Date: Mon, 1 Jan 2024 12:00:00 +0000
+From: sender@example.com
+To: recipient@example.com
+Subject: Email with separator that looks like signature delimiter
+Content-Type: text/plain; charset="utf-8"
+
+This is the first part of the email.
+
+----------------------------
+
+This is content that comes AFTER the separator line.
+It should NOT be truncated.
+The old email-reply-parser would treat this as a signature
+and remove everything below the dashes.
+
+More content here to verify full preservation.

@@ -1,0 +1,29 @@
+Message-ID: <test-multipart-001@example.com>
+Date: Mon, 1 Jan 2024 12:00:00 +0000
+From: sender@example.com
+To: recipient@example.com
+Subject: Multipart alternative with plain and HTML
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary123"
+
+--boundary123
+Content-Type: text/plain; charset="utf-8"
+
+This is the plain text version.
+
+It has multiple paragraphs.
+
+And a link: https://example.com
+
+--boundary123
+Content-Type: text/html; charset="utf-8"
+
+<html>
+<body>
+<p>This is the <strong>HTML</strong> version.</p>
+<p>It has multiple paragraphs.</p>
+<p>And a <a href="https://example.com">link</a></p>
+</body>
+</html>
+
+--boundary123--

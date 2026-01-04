@@ -6,16 +6,18 @@ import re
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
+from email.utils import parseaddr
 from pathlib import Path
 
-import ftfy
-from email_reply_parser import EmailReplyParser
-from inscriptis import get_text
 from pydantic import BaseModel, Field
-from selectolax.parser import HTMLParser
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
+from mcp_handley_lab.email.extraction import (
+    EmailBodySegment,
+    EmailPartInfo,
+    extract_email_content,
+)
 
 MAILDIR_LEAFS = {"cur", "new", "tmp"}
 
@@ -112,7 +114,7 @@ class EmailContent(BaseModel):
     )
     body_format: str = Field(
         ...,
-        description="The original format of the body ('html' or 'text'). Indicates if the markdown was converted or is original plain text.",
+        description="The original format of the body ('html', 'text', or 'empty').",
     )
     attachments: list[str] = Field(
         default_factory=list,
@@ -121,6 +123,38 @@ class EmailContent(BaseModel):
     saved_files: list[str] = Field(
         default_factory=list,
         description="Paths to saved files when save_attachments_to is used (body + attachments).",
+    )
+
+    # Selected part info (summary + full modes)
+    selected_part: EmailPartInfo | None = Field(
+        default=None, description="Which MIME part was chosen as body."
+    )
+
+    # Truncation metadata (summary mode only)
+    is_truncated: bool | None = Field(
+        default=None, description="True if body was truncated in summary mode."
+    )
+    original_length: int | None = Field(
+        default=None, description="Char count of body_markdown before truncation."
+    )
+
+    # Warnings (summary + full modes)
+    extraction_warnings: list[str] | None = Field(
+        default=None, description="Non-fatal issues during extraction."
+    )
+
+    # Preservation fields (full mode only - use None for omission from serialization)
+    body_raw: str | None = Field(
+        default=None, description="Decoded text before processing (full mode only)."
+    )
+    body_html_raw: str | None = Field(
+        default=None, description="Original HTML if source was HTML (full mode only)."
+    )
+    segments: list[EmailBodySegment] | None = Field(
+        default=None, description="Quote detection results (full mode only)."
+    )
+    parts_manifest: list[EmailPartInfo] | None = Field(
+        default=None, description="All MIME parts in the message (full mode only)."
     )
 
 
@@ -224,161 +258,6 @@ def _get_message_from_raw_source(message_id: str) -> EmailMessage:
     return parser.parsebytes(raw_email_bytes)
 
 
-# Initialize email reply parser
-reply_parser = EmailReplyParser()
-
-
-def normalize_whitespace(text: str) -> str:
-    """Normalize whitespace for token efficiency while preserving readability."""
-    if not text:
-        return ""
-
-    # Collapse excessive newlines (preserve paragraph structure)
-    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
-
-    # Remove trailing whitespace from lines
-    text = "\n".join(line.rstrip() for line in text.split("\n"))
-
-    # Compress multiple spaces to single space
-    text = re.sub(r"[ \t]+", " ", text)
-
-    return text.strip()
-
-
-def optimize_email_content(msg: EmailMessage, mode: str = "full") -> dict:
-    """
-    Optimized email content extraction using expert-recommended libraries.
-
-    Args:
-        msg: EmailMessage object
-        mode: "headers", "summary", or "full"
-
-    Returns:
-        dict with body, attachments, and body_format
-    """
-    attachments = []
-
-    # Extract attachments
-    for part in msg.walk():
-        if part.get_filename():
-            attachment_info = f"{part.get_filename()} ({part.get_content_type()})"
-            attachments.append(attachment_info)
-
-    if mode == "headers":
-        return {
-            "body": "",
-            "attachments": sorted(set(attachments)),
-            "body_format": "headers_only",
-        }
-
-    # Get best content part
-    body_part = msg.get_body(preferencelist=("plain", "html"))
-
-    if not body_part:
-        # Fallback: try to extract from multipart
-        if not msg.is_multipart() and not msg.is_attachment():
-            content = msg.get_content()
-        else:
-            content = ""
-    else:
-        content = body_part.get_content()
-        content_type = body_part.get_content_type()
-
-        if content_type == "text/html":
-            # Use optimized HTML processing pipeline
-            content = process_html_content(content)
-            body_format = "html"
-        else:
-            body_format = "text"
-
-    if not content:
-        return {
-            "body": "",
-            "attachments": sorted(set(attachments)),
-            "body_format": "empty",
-        }
-
-    # Apply email-reply-parser for quote stripping and clean content extraction
-    clean_content = reply_parser.parse_reply(content)
-
-    # Final normalization
-    clean_content = ftfy.fix_text(clean_content)
-    clean_content = normalize_whitespace(clean_content)
-
-    # Apply length limits based on mode
-    if mode == "summary" and len(clean_content) > 2000:
-        clean_content = (
-            clean_content[:2000] + "\n\n[Content truncated for summary mode]"
-        )
-
-    return {
-        "body": clean_content,
-        "attachments": sorted(set(attachments)),
-        "body_format": body_format if "body_format" in locals() else "text",
-    }
-
-
-def process_html_content(html_content: str) -> str:
-    """
-    Process HTML content using selectolax + inscriptis for optimal token efficiency.
-    """
-    if not html_content:
-        return ""
-
-    # Parse with selectolax (faster than BeautifulSoup)
-    tree = HTMLParser(html_content)
-
-    # Remove common email cruft
-    selectors_to_remove = [
-        "script",
-        "style",
-        "meta",
-        "link",
-        "head",
-        "noscript",
-        "iframe",
-        # Hidden content
-        '[style*="display:none"]',
-        '[style*="visibility:hidden"]',
-        '[style*="opacity:0"]',
-        '[style*="font-size:0"]',
-        "[hidden]",
-        '[aria-hidden="true"]',
-        # Tracking and marketing
-        'img[width="1"]',
-        'img[height="1"]',
-        'img[src*="tracking"]',
-        'img[src*="open"]',
-        'img[src*="fls.doubleclick.net"]',
-        'img[src*="googletagmanager"]',
-        # Email client quote blocks
-        ".gmail_quote",
-        ".OutlookMessageHeader",
-        ".yahoo_quoted",
-        'blockquote[type="cite"]',
-        'div[style*="border-left:1px #ccc solid"]',
-        # Unsubscribe and footer content
-        ".unsubscribe",
-        ".unsubscribe-link",
-        'a[href*="unsubscribe"]',
-        'a[href*="optout"]',
-        ".disclaimer",
-        ".legal",
-        "footer",
-        "nav",
-    ]
-
-    for selector in selectors_to_remove:
-        for node in tree.css(selector):
-            node.decompose()
-
-    # Get cleaned HTML
-    cleaned_html = tree.body.html if tree.body else tree.html
-
-    # Convert to clean text with inscriptis
-    return get_text(cleaned_html)
-
-
 def _save_email_files(
     msg, message_id: str, body_content: str, body_format: str, save_path: Path
 ) -> list[str]:
@@ -389,10 +268,10 @@ def _save_email_files(
     # Create safe base filename from message_id
     safe_id = re.sub(r'[\\/*?:"<>|@]', "_", message_id)[:50]
 
-    # Save body as txt or html
+    # Save body as txt or html (explicit encoding for robustness)
     body_ext = ".html" if body_format == "html" else ".txt"
     body_file = save_path / f"{safe_id}_body{body_ext}"
-    body_file.write_text(body_content)
+    body_file.write_text(body_content, encoding="utf-8", errors="replace")
     saved_files.append(str(body_file))
 
     # Save attachments
@@ -421,8 +300,21 @@ def _show_email(
     limit: int | None = None,
     include_excluded: bool = False,
     save_to: str = "",
+    segment_quotes: bool = False,
 ) -> list[EmailContent]:
-    """Internal implementation of email display."""
+    """Internal implementation of email display.
+
+    Uses new extraction pipeline that never silently loses content.
+    Mode controls response projection (what fields are returned), not extraction.
+
+    Args:
+        query: notmuch query string
+        mode: 'headers' (metadata only), 'summary' (truncated body), 'full' (complete)
+        limit: max messages to return
+        include_excluded: include spam/deleted
+        save_to: directory to save attachments
+        segment_quotes: if True, include quote detection segments (full mode only)
+    """
     cmd = ["notmuch", "search", "--format=json", "--output=messages"]
     if include_excluded:
         cmd.append("--exclude=false")
@@ -438,19 +330,13 @@ def _show_email(
 
     results = []
     for message_id in message_ids:
-        reconstructed_msg = _get_message_from_raw_source(message_id)
-
-        # Use optimized content extraction
-        extracted_data = optimize_email_content(reconstructed_msg, mode=mode)
-        body_content = extracted_data["body"]
-        body_format = extracted_data["body_format"]
-        attachments = extracted_data["attachments"]
+        msg = _get_message_from_raw_source(message_id)
 
         # Extract headers
-        subject = reconstructed_msg.get("Subject", "")
-        from_address = reconstructed_msg.get("From", "")
-        to_address = reconstructed_msg.get("To", "")
-        date = reconstructed_msg.get("Date", "")
+        subject = msg.get("Subject", "") or "[No Subject]"
+        from_address = msg.get("From", "") or "[Unknown Sender]"
+        to_address = msg.get("To", "") or "[Unknown Recipient]"
+        date = msg.get("Date", "") or "[Unknown Date]"
 
         # Get tags
         tag_cmd = ["notmuch", "search", "--output=tags", f"id:{message_id}"]
@@ -461,27 +347,66 @@ def _show_email(
             if tag.strip()
         ]
 
-        # Save files if requested
+        # Extract email content (summary and full modes)
+        # Note: headers mode is handled by read() calling _search_emails() directly
+        # Parse email address from From header for talon signature detection
+        _, sender_email = parseaddr(from_address)
+        extraction = extract_email_content(
+            msg,
+            segment_quotes=segment_quotes and mode == "full",
+            sender_email=sender_email,
+        )
+
+        # Prepare body content
+        full_body_content = extraction.body_markdown
+        body_format = extraction.body_format
+
+        # Save files if requested - always save FULL content, never truncated
         saved_files = []
         if save_path:
             saved_files = _save_email_files(
-                reconstructed_msg, message_id, body_content, body_format, save_path
+                msg, message_id, full_body_content, body_format, save_path
             )
 
-        results.append(
-            EmailContent(
-                id=message_id,
-                subject=subject or "[No Subject]",
-                from_address=from_address or "[Unknown Sender]",
-                to_address=to_address or "[Unknown Recipient]",
-                date=date or "[Unknown Date]",
-                tags=tags,
-                body_markdown=body_content,
-                body_format=body_format,
-                attachments=attachments,
-                saved_files=saved_files,
-            )
+        # Summary mode: truncate for response (after saving full)
+        body_content = full_body_content
+        is_truncated = None
+        original_length = None
+        if mode == "summary" and len(full_body_content) > 2000:
+            original_length = len(full_body_content)
+            body_content = full_body_content[:2000]
+            is_truncated = True
+
+        # Build result with progressive disclosure
+        email_content = EmailContent(
+            id=message_id,
+            subject=subject,
+            from_address=from_address,
+            to_address=to_address,
+            date=date,
+            tags=tags,
+            body_markdown=body_content,
+            body_format=body_format,
+            attachments=extraction.attachments,
+            saved_files=saved_files,
+            # Summary + full modes
+            selected_part=extraction.selected_part,
+            extraction_warnings=extraction.extraction_warnings or None,
+            # Summary mode only
+            is_truncated=is_truncated,
+            original_length=original_length,
         )
+
+        # Full mode: add preservation fields
+        if mode == "full":
+            email_content.body_raw = extraction.body_raw or None
+            email_content.body_html_raw = extraction.body_html_raw or None
+            email_content.parts_manifest = extraction.parts_manifest or None
+            if segment_quotes and extraction.segments:
+                email_content.segments = extraction.segments
+
+        results.append(email_content)
+
     return results
 
 
@@ -673,27 +598,20 @@ def _get_thread_messages(
     if max_messages > 0 and len(thread_message_ids) > max_messages:
         thread_message_ids = thread_message_ids[-max_messages:]
 
-    # Fetch each message directly (more efficient than _show_email)
+    # Fetch each message using new extraction pipeline
     messages = []
     for mid in thread_message_ids:
         try:
             msg = _get_message_from_raw_source(mid)
-            # Get body without quote stripping for full thread context
-            body_part = msg.get_body(preferencelist=("plain", "html"))
-            if body_part:
-                content = body_part.get_content()
-                if body_part.get_content_type() == "text/html":
-                    content = process_html_content(content)
-                body = normalize_whitespace(ftfy.fix_text(content))
-            else:
-                body = ""
+            # Use extraction module for full content (no quote stripping for thread context)
+            extraction = extract_email_content(msg, segment_quotes=False)
 
             messages.append(
                 (
                     msg.get("Date", "[Unknown Date]"),
                     msg.get("From", "[Unknown Sender]"),
                     msg.get("Subject", "[No Subject]"),
-                    body,
+                    extraction.body_markdown,
                 )
             )
         except Exception:
@@ -861,6 +779,10 @@ def read(
         description="For find_contacts: maximum results to return.",
         gt=0,
     ),
+    segment_quotes: bool = Field(
+        default=False,
+        description="For full mode: include quote/signature segmentation in response (requires talon).",
+    ),
 ) -> list[SearchResult] | list[EmailContent] | list[str] | list[Contact]:
     """Unified read tool for emails.
 
@@ -904,14 +826,23 @@ def read(
         results = _search_emails(query, limit, offset, include_excluded)
         if mode == "headers":
             return results
-        # For summary, get truncated content
+        # For summary, get truncated content (save_to supported in all modes)
         return _show_email(
-            query, mode="summary", limit=limit, include_excluded=include_excluded
+            query,
+            mode="summary",
+            limit=limit,
+            include_excluded=include_excluded,
+            save_to=save_attachments_to,
         )
 
     # Full content display
     return _show_email(
-        query, mode, limit, include_excluded, save_to=save_attachments_to
+        query,
+        mode=mode,
+        limit=limit,
+        include_excluded=include_excluded,
+        save_to=save_attachments_to,
+        segment_quotes=segment_quotes,
     )
 
 

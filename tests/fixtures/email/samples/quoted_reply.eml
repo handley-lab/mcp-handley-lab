@@ -1,0 +1,21 @@
+Message-ID: <test-quoted-001@example.com>
+Date: Mon, 1 Jan 2024 14:00:00 +0000
+From: replier@example.com
+To: original@example.com
+Subject: Re: Original subject
+Content-Type: text/plain; charset="utf-8"
+
+This is my reply to your email.
+
+I have some thoughts on this matter.
+
+Best,
+Replier
+
+On Mon, Jan 1, 2024 at 12:00 PM, Original <original@example.com> wrote:
+> This is the original message.
+>
+> It had multiple paragraphs.
+>
+> Best,
+> Original Sender

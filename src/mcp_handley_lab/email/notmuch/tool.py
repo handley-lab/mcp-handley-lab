@@ -391,13 +391,8 @@ def _show_email(
         is_truncated = None
         original_length = None
 
-        # When saving to file, omit body from response (avoid duplicate large content)
-        if save_path:
-            original_length = len(full_body_content)
-            body_content = f"[Body saved to file - {original_length} chars]"
-            is_truncated = True
         # Summary mode: truncate for response
-        elif mode == "summary" and len(full_body_content) > 2000:
+        if mode == "summary" and len(full_body_content) > 2000:
             original_length = len(full_body_content)
             body_content = full_body_content[:2000]
             is_truncated = True
@@ -422,10 +417,8 @@ def _show_email(
             original_length=original_length,
         )
 
-        # Full mode: add preservation fields (but not if saving to file)
-        if mode == "full" and not save_path:
-            email_content.body_raw = extraction.body_raw or None
-            email_content.body_html_raw = extraction.body_html_raw or None
+        # Full mode: add metadata
+        if mode == "full":
             email_content.parts_manifest = extraction.parts_manifest or None
             if segment_quotes and extraction.segments:
                 email_content.segments = extraction.segments

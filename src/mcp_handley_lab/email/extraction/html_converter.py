@@ -54,13 +54,19 @@ def sanitize_html_minimal(html: str) -> str:
     to_remove = []
 
     # Dangerous/useless elements
-    to_remove.extend(soup.find_all(["script", "style", "noscript", "meta", "link", "head"]))
+    to_remove.extend(
+        soup.find_all(["script", "style", "noscript", "meta", "link", "head"])
+    )
 
     # Hidden elements
     for tag in soup.find_all(style=True):
         style = tag.get("style", "").lower()
-        if "display:none" in style or "display: none" in style or \
-           "visibility:hidden" in style or "visibility: hidden" in style:
+        if (
+            "display:none" in style
+            or "display: none" in style
+            or "visibility:hidden" in style
+            or "visibility: hidden" in style
+        ):
             to_remove.append(tag)
 
     # 1x1 tracking pixels

@@ -50,30 +50,26 @@ def sanitize_html_minimal(html: str) -> str:
 
     soup = BeautifulSoup(html, "lxml")
 
-    # Remove truly dangerous/useless elements
-    for tag in soup.find_all(["script", "style", "noscript", "meta", "link", "head"]):
-        tag.decompose()
+    # Collect all tags to remove (avoids mutation-during-iteration issues)
+    to_remove = []
 
-    # Remove hidden elements
+    # Dangerous/useless elements
+    to_remove.extend(soup.find_all(["script", "style", "noscript", "meta", "link", "head"]))
+
+    # Hidden elements
     for tag in soup.find_all(style=True):
         style = tag.get("style", "").lower()
-        if any(
-            hidden in style
-            for hidden in [
-                "display:none",
-                "display: none",
-                "visibility:hidden",
-                "visibility: hidden",
-            ]
-        ):
-            tag.decompose()
+        if "display:none" in style or "display: none" in style or \
+           "visibility:hidden" in style or "visibility: hidden" in style:
+            to_remove.append(tag)
 
-    # Remove 1x1 tracking pixels
+    # 1x1 tracking pixels
     for img in soup.find_all("img"):
-        width = img.get("width", "")
-        height = img.get("height", "")
-        if width == "1" and height == "1":
-            img.decompose()
+        if img.get("width") == "1" and img.get("height") == "1":
+            to_remove.append(img)
 
-    # Return cleaned HTML
+    # Now decompose all at once
+    for tag in to_remove:
+        tag.decompose()
+
     return str(soup)

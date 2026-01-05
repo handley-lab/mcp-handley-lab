@@ -93,7 +93,7 @@ def _find_smart_destination(
     )
 
 
-class EmailContent(BaseModel):
+class EmailContent(BaseModel, extra="forbid"):
     """Structured representation of a single email's content."""
 
     id: str = Field(
@@ -159,6 +159,16 @@ class EmailContent(BaseModel):
     parts_manifest: list[EmailPartInfo] | None = Field(
         default=None, description="All MIME parts in the message (full mode only)."
     )
+
+    def model_dump(self, **kwargs) -> dict:
+        """Override to exclude None values by default (reduces response size)."""
+        kwargs.setdefault("exclude_none", True)
+        return super().model_dump(**kwargs)
+
+    def model_dump_json(self, **kwargs) -> str:
+        """Override to exclude None values by default (reduces response size)."""
+        kwargs.setdefault("exclude_none", True)
+        return super().model_dump_json(**kwargs)
 
 
 class TagResult(BaseModel):

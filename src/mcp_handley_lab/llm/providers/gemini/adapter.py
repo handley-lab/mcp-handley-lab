@@ -97,10 +97,18 @@ def resolve_files(files: list[str]) -> tuple[list[Part], bool]:
             # Large file - use Files API
             used_files_api = True
             config = UploadFileConfig(mimeType=get_gemini_safe_mime_type(file_path))
-            uploaded_file = get_client().files.upload(
-                file=str(file_path),
-                config=config,
-            )
+            try:
+                uploaded_file = get_client().files.upload(
+                    file=str(file_path),
+                    config=config,
+                )
+            except OSError as e:
+                # Disambiguate: we already stat'd the file, so this is an SDK issue
+                if e.errno == 2:
+                    raise OSError(
+                        f"Gemini SDK failed uploading '{file_path}' (file exists, SDK error)"
+                    ) from e
+                raise
             parts.append(Part(fileData=FileData(fileUri=uploaded_file.uri)))
         else:
             # Small file - use inlineData with base64 encoding
@@ -227,6 +235,13 @@ def generation_adapter(
                 response = get_client().models.generate_content(
                     model=model, contents=prompt, config=config
                 )
+    except OSError as e:
+        # Disambiguate: files were already read, so errno 2 is an SDK/environment issue
+        if e.errno == 2:
+            raise OSError(
+                f"Gemini SDK internal error (file access succeeded): {e}"
+            ) from e
+        raise
     except Exception as e:
         # Convert all API errors to ValueError for consistent error handling
         raise ValueError(f"Gemini API error: {str(e)}") from e

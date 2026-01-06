@@ -120,7 +120,15 @@ def generation_adapter(
             request_params["text"] = {"verbosity": verbosity}
 
     # Make Responses API call
-    response = get_client().responses.create(**request_params)
+    try:
+        response = get_client().responses.create(**request_params)
+    except OSError as e:
+        # Disambiguate: files were already read, so errno 2 is an SDK/environment issue
+        if e.errno == 2:
+            raise OSError(
+                f"OpenAI SDK internal error (file access succeeded): {e}"
+            ) from e
+        raise
 
     # Extract primary output text via helper property
     text = getattr(response, "output_text", None)

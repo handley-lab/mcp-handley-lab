@@ -20,6 +20,7 @@ from google.genai.types import (
     GenerateImagesConfig,
     GoogleSearch,
     GoogleSearchRetrieval,
+    ImageConfig,
     Part,
     ThinkingConfig,
     Tool,
@@ -390,16 +391,105 @@ def image_analysis_adapter(
     }
 
 
-def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """Gemini-specific image generation function with comprehensive metadata extraction."""
-    actual_model = model
+def _is_nano_banana_model(model: str) -> bool:
+    """Check if model is a Nano Banana model (uses generate_content API)."""
+    return "gemini-" in model and "-image" in model
 
-    # Extract config parameters for metadata
+
+def _generate_with_nano_banana(prompt: str, model: str, **kwargs) -> dict:
+    """Generate image using Nano Banana models via generate_content API."""
+    # Build image config for aspect ratio and size
+    image_config_params = {}
+    if aspect_ratio := kwargs.get("aspect_ratio"):
+        image_config_params["aspect_ratio"] = aspect_ratio
+    if image_size := kwargs.get("size"):
+        # Must be uppercase K (1K, 2K, 4K)
+        image_config_params["image_size"] = image_size.upper()
+
+    config_params = {"response_modalities": ["image", "text"]}
+    if image_config_params:
+        config_params["image_config"] = ImageConfig(**image_config_params)
+
+    config = GenerateContentConfig(**config_params)
+
+    # Build content parts: prompt text + any input images
+    content_parts = [Part(text=prompt)]
+    input_images = kwargs.get("input_images", [])
+    if input_images:
+        image_list = resolve_images(input_images)
+        for img in image_list:
+            # Convert PIL Image to bytes
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            img_bytes = buf.getvalue()
+            content_parts.append(
+                Part(
+                    inlineData=Blob(
+                        mimeType="image/png",
+                        data=base64.b64encode(img_bytes).decode(),
+                    )
+                )
+            )
+
+    response = get_client().models.generate_content(
+        model=model,
+        contents=content_parts,
+        config=config,
+    )
+
+    # Extract image from response parts
+    image_bytes = None
+    text_response = ""
+    mime_type = "image/png"
+
+    if response.candidates and response.candidates[0].content:
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, "inline_data") and part.inline_data:
+                # SDK returns data as bytes or base64 string depending on version
+                raw_data = part.inline_data.data
+                if isinstance(raw_data, str):
+                    image_bytes = base64.b64decode(raw_data)
+                else:
+                    image_bytes = raw_data
+                mime_type = part.inline_data.mime_type or "image/png"
+            elif hasattr(part, "text") and part.text:
+                text_response = part.text
+
+    if not image_bytes:
+        raise RuntimeError(
+            f"No image generated. Model response: {text_response or 'empty'}"
+        )
+
+    # Extract token usage
+    input_tokens = 0
+    output_tokens = 1
+    if response.usage_metadata:
+        input_tokens = response.usage_metadata.prompt_token_count or 0
+        output_tokens = response.usage_metadata.candidates_token_count or 0
+
+    return {
+        "image_bytes": image_bytes,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "enhanced_prompt": "",
+        "original_prompt": prompt,
+        "mime_type": mime_type,
+        "text_response": text_response,
+        "gemini_metadata": {
+            "actual_model_used": model,
+            "requested_model": model,
+            "generation_type": "nano_banana",
+        },
+    }
+
+
+def _generate_with_imagen(prompt: str, model: str, **kwargs) -> dict:
+    """Generate image using Imagen models via generate_images API."""
     aspect_ratio = kwargs.get("aspect_ratio", "1:1")
     config = GenerateImagesConfig(number_of_images=1, aspect_ratio=aspect_ratio)
 
     response = get_client().models.generate_images(
-        model=actual_model,
+        model=model,
         prompt=prompt,
         config=config,
     )
@@ -407,7 +497,6 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     if not response.generated_images or not response.generated_images[0].image:
         raise RuntimeError("Generated image has no data")
 
-    # Extract response data
     generated_image = response.generated_images[0]
     image = generated_image.image
 
@@ -420,16 +509,10 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
             "content_type": generated_image.safety_attributes.content_type,
         }
 
-    # Extract provider-specific metadata
-    gemini_metadata = {
-        "positive_prompt_safety_attributes": response.positive_prompt_safety_attributes,
-        "actual_model_used": actual_model,
-        "requested_model": model,
-    }
-
     return {
         "image_bytes": image.image_bytes,
-        "input_tokens": 0,  # Not used for Imagen pricing (per-image billing)
+        "input_tokens": 0,
+        "output_tokens": 1,
         "enhanced_prompt": generated_image.enhanced_prompt or "",
         "original_prompt": prompt,
         "aspect_ratio": aspect_ratio,
@@ -438,8 +521,26 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
         "cloud_uri": image.gcs_uri or "",
         "content_filter_reason": generated_image.rai_filtered_reason or "",
         "safety_attributes": safety_attributes,
-        "gemini_metadata": gemini_metadata,
+        "gemini_metadata": {
+            "positive_prompt_safety_attributes": response.positive_prompt_safety_attributes,
+            "actual_model_used": model,
+            "requested_model": model,
+            "generation_type": "imagen",
+        },
     }
+
+
+def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Gemini-specific image generation function.
+
+    Routes to appropriate API based on model type:
+    - Nano Banana models (gemini-*-image*): uses generate_content API
+    - Imagen models: uses generate_images API
+    """
+    if _is_nano_banana_model(model):
+        return _generate_with_nano_banana(prompt, model, **kwargs)
+    else:
+        return _generate_with_imagen(prompt, model, **kwargs)
 
 
 def list_api_models() -> set[str]:

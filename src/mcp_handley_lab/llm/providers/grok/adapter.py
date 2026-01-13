@@ -4,7 +4,6 @@ Contains provider-specific generation functions that implement the Grok API call
 These adapters are used by the unified mcp-chat tool.
 """
 
-import base64
 import threading
 from typing import Any
 
@@ -260,33 +259,30 @@ def image_analysis_adapter(
 def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     """Grok-specific image generation function with comprehensive metadata extraction."""
     # Use xai-sdk's image.sample method
+    # image_format="base64" returns raw bytes via response.image
     response = get_client().image.sample(
         prompt=prompt, model=model, image_format="base64"
     )
 
-    if not response or not response.images:
+    if not response or not response.image:
         raise RuntimeError("No image generated")
 
-    # Get the first (and typically only) image
-    image = response.images[0]
-
-    # Decode base64 image data
-    image_bytes = base64.b64decode(image.image_data)
+    # response.image returns raw image bytes directly (not base64 encoded)
+    image_bytes = response.image
 
     # Extract metadata
     grok_metadata = {
         "model_used": model,
-        "safety_rating": getattr(image, "safety_rating", None),
-        "finish_reason": getattr(image, "finish_reason", None),
     }
 
     return {
         "image_bytes": image_bytes,
-        "generation_timestamp": 0,  # Not provided by xai-sdk
-        "enhanced_prompt": "",  # Not provided by xai-sdk
+        "input_tokens": 0,
+        "output_tokens": 1,
+        "enhanced_prompt": getattr(response, "prompt", "") or "",
         "original_prompt": prompt,
-        "requested_format": "png",  # xai-sdk returns PNG
-        "mime_type": "image/png",
+        "requested_format": "jpg",  # xai-sdk returns JPG
+        "mime_type": "image/jpeg",
         "grok_metadata": grok_metadata,
     }
 

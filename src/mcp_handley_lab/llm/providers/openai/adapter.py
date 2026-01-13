@@ -4,6 +4,7 @@ Contains provider-specific generation functions that implement the OpenAI API ca
 These adapters are used by the unified mcp-chat tool.
 """
 
+import base64
 import threading
 from typing import Any
 
@@ -315,6 +316,9 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     size = kwargs.get("size", "1024x1024")
     quality = kwargs.get("quality", "standard")
 
+    # gpt-image-1 models only return b64_json (automatically, no param needed)
+    is_gpt_image = model.startswith("gpt-image")
+
     params = {"model": model, "prompt": prompt, "size": size, "n": 1}
     if model == "dall-e-3":
         params["quality"] = quality
@@ -328,11 +332,18 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
     image = response.data[0]
 
-    # Download the image
-    with httpx.Client() as http_client:
-        image_response = http_client.get(image.url)
-        image_response.raise_for_status()
-        image_bytes = image_response.content
+    # Get image bytes based on response format
+    if is_gpt_image or getattr(image, "b64_json", None):
+        # Decode base64 response
+        image_bytes = base64.b64decode(image.b64_json)
+        original_url = None
+    else:
+        # Download from URL
+        with httpx.Client() as http_client:
+            image_response = http_client.get(image.url)
+            image_response.raise_for_status()
+            image_bytes = image_response.content
+        original_url = image.url
 
     openai_metadata = {
         "background": getattr(response, "background", None),
@@ -342,14 +353,16 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
 
     return {
         "image_bytes": image_bytes,
+        "input_tokens": 0,
+        "output_tokens": 1,
         "generation_timestamp": response.created,
-        "enhanced_prompt": image.revised_prompt or "",
+        "enhanced_prompt": getattr(image, "revised_prompt", "") or "",
         "original_prompt": prompt,
         "requested_size": size,
         "requested_quality": quality,
         "requested_format": "png",
         "mime_type": "image/png",
-        "original_url": image.url,
+        "original_url": original_url,
         "openai_metadata": openai_metadata,
     }
 

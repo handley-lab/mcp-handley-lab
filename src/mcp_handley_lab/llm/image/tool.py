@@ -17,7 +17,8 @@ mcp = FastMCP("Image Tool")
 
 @mcp.tool(
     description="Generate an image from a text prompt. "
-    "Supports Gemini (imagen-*), OpenAI (dall-e-*), and Grok (grok-*-image) models. "
+    "Supports Gemini (imagen-*, gemini-*-image), OpenAI (dall-e-*), and Grok (grok-*-image) models. "
+    "Nano Banana models (gemini-*-image) support input_images for editing/reference. "
     "Returns: {file_path, file_size_bytes, model, provider, cost, enhanced_prompt?, original_prompt}."
 )
 def generate(
@@ -27,15 +28,21 @@ def generate(
     ),
     output_file: str = Field(
         ...,
-        description="File path to save the generated image (PNG format).",
+        description="File path to save the generated image. Nano Banana outputs JPEG, Imagen outputs PNG.",
     ),
     model: str = Field(
-        default="imagen-4.0-generate-001",
+        default="gemini-3-pro-image-preview",
         description="Image model. Provider auto-detected from name.",
+    ),
+    input_images: list[str] = Field(
+        default=[],
+        description="Input images for editing (Nano Banana models only). "
+        "Provide images to edit/transform based on the prompt. "
+        "Accepts: local paths, URLs, or data URIs.",
     ),
     size: str = Field(
         default="",
-        description="Image size (e.g., '1024x1024'). Provider-specific.",
+        description="Image size. For Nano Banana: '1K', '2K', '4K'. For others: '1024x1024'.",
     ),
     quality: str = Field(
         default="",
@@ -43,7 +50,7 @@ def generate(
     ),
     aspect_ratio: str = Field(
         default="",
-        description="Aspect ratio (e.g., '16:9'). Provider-specific.",
+        description="Aspect ratio. Nano Banana supports: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9.",
     ),
 ) -> dict[str, Any]:
     """Generate an image from a text prompt."""
@@ -69,6 +76,8 @@ def generate(
         kwargs["quality"] = quality
     if aspect_ratio:
         kwargs["aspect_ratio"] = aspect_ratio
+    if input_images:
+        kwargs["input_images"] = input_images
 
     # Generate the image
     response_data = generation_func(prompt=prompt, model=canonical_model, **kwargs)

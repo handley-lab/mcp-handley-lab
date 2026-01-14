@@ -186,6 +186,7 @@ models:
     param: "max_output_tokens"
     supports_temperature: false
     supports_reasoning: true
+    requires_web_search: true  # Deep research models require web_search_preview tool
 
     # Pricing
     input_per_1m: 10.00
@@ -220,6 +221,7 @@ models:
     param: "max_output_tokens"
     supports_temperature: false
     supports_reasoning: true
+    requires_web_search: true  # Deep research models require web_search_preview tool
 
     # Pricing
     input_per_1m: 2.00

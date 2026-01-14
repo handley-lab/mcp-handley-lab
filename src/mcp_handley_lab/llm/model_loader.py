@@ -105,6 +105,9 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                     "supports_temperature": model_info.get(
                         "supports_temperature", True
                     ),
+                    "supports_reasoning": model_info.get("supports_reasoning", False),
+                    "supports_verbosity": model_info.get("supports_verbosity", False),
+                    "requires_web_search": model_info.get("requires_web_search", False),
                 }
         elif provider == "claude":
             # Claude format - require explicit values in YAML

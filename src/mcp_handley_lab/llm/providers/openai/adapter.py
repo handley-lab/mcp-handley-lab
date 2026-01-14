@@ -120,6 +120,10 @@ def generation_adapter(
         if verbosity in ("low", "medium", "high"):
             request_params["text"] = {"verbosity": verbosity}
 
+    # Add required tools for deep research models
+    if model_config.get("requires_web_search", False):
+        request_params["tools"] = [{"type": "web_search_preview"}]
+
     # Make Responses API call
     response = get_client().responses.create(**request_params)
 

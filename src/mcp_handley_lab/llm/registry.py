@@ -66,6 +66,14 @@ PROVIDER_OPTIONS = {
             "type": "bool",
             "description": "Include model's thinking in output",
         },
+        "poll_interval": {
+            "type": "int",
+            "description": "Seconds between polls for deep research (default 10)",
+        },
+        "max_polls": {
+            "type": "int",
+            "description": "Maximum poll attempts for deep research (default 360)",
+        },
     },
     "openai": {
         "reasoning_effort": {
@@ -209,12 +217,19 @@ def get_supported_options(provider: str, model_config: dict[str, Any]) -> set[st
     # Model-specific capability flags can restrict options
     # e.g., only models with supports_grounding=True can use grounding
     if provider == "gemini":
-        if not model_config.get("supports_grounding", False):
-            supported.discard("grounding")
-        if not model_config.get("supports_thinking_level", False):
-            supported.discard("thinking_level")
-            supported.discard("thinking_budget")
-            supported.discard("include_thoughts")
+        if model_config.get("is_agent"):
+            # Agent models only support polling options
+            supported = {"poll_interval", "max_polls"}
+        else:
+            # Regular models don't support polling options
+            supported.discard("poll_interval")
+            supported.discard("max_polls")
+            if not model_config.get("supports_grounding", False):
+                supported.discard("grounding")
+            if not model_config.get("supports_thinking_level", False):
+                supported.discard("thinking_level")
+                supported.discard("thinking_budget")
+                supported.discard("include_thoughts")
 
     if provider == "openai":
         if not model_config.get("supports_reasoning", False):
@@ -400,6 +415,7 @@ def get_adapter(provider: str, adapter_type: str):
             "image_analysis": adapter.image_analysis_adapter,
             "image_generation": adapter.image_generation_adapter,
             "embeddings": adapter.embeddings_adapter,
+            "deep_research": adapter.deep_research_adapter,
         }
     elif provider == "openai":
         from mcp_handley_lab.llm.providers.openai import adapter

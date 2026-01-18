@@ -119,8 +119,14 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 "output_tokens": model_info["output_tokens"],
             }
         elif provider == "gemini":
-            # Gemini format - skip image/video generation models or require explicit values
-            if model_info.get("pricing_type") in ["per_image", "per_second"]:
+            # Gemini format - handle agents, image/video generation, and text models
+            if model_info.get("is_agent"):
+                # Agent models (e.g., deep research)
+                model_configs[model_id] = {
+                    "output_tokens": model_info.get("output_tokens"),
+                    "is_agent": True,
+                }
+            elif model_info.get("pricing_type") in ["per_image", "per_second"]:
                 # Image/video generation models don't need output_tokens
                 model_configs[model_id] = {
                     "output_tokens": None  # N/A for image/video generation

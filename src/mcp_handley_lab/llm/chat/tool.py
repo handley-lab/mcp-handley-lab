@@ -90,7 +90,9 @@ def ask(
     provider, canonical_model, model_config = resolve_model(model)
     validate_options(provider, model, model_config, options)
 
-    generation_func = get_adapter(provider, "generation")
+    # Route agent models (e.g., deep research) to their specialized adapter
+    adapter_type = "deep_research" if model_config.get("is_agent") else "generation"
+    generation_func = get_adapter(provider, adapter_type)
 
     return process_llm_request(
         prompt=prompt,

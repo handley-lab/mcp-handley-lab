@@ -223,6 +223,23 @@ models:
     price_per_second: 0.35
     pricing_type: "per_second"
 
+  # Deep research agents
+  gemini-deep-research:
+    # Model metadata
+    description: "Deep research agent - autonomous web research and synthesis"
+    capabilities: "🔬 Best for: Complex research questions, literature reviews, market analysis"
+    tags: ["research", "agent", "latest"]
+    best_for: "Complex research questions, literature reviews, market analysis"
+    context_window: "Unlimited (web)"
+    output_tokens: 100000
+
+    # Agent configuration
+    is_agent: true
+
+    # Pricing (per request, ~$2-5 per task)
+    pricing_type: "per_request"
+    price_per_request: 3.00
+
 # Display categories (how to group models by tags for presentation)
 display_categories:
   - name: "🌟 Gemini 3 Series"
@@ -237,6 +254,9 @@ display_categories:
   - name: "🎬 Video Generation"
     tags: ["video-generation"]
     description: "Video content creation models"
+  - name: "🔬 Research Agents"
+    tags: ["research"]
+    description: "Autonomous deep research agents for complex investigations"
 
 # Default model
 default_model: "gemini-3-pro-preview"

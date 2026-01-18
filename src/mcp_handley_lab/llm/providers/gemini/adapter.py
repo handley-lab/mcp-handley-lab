@@ -609,7 +609,7 @@ def deep_research_adapter(
         # Poll until complete with exponential backoff on errors
         data = {}
         status = "in_progress"
-        for poll_num in range(max_polls):
+        for _poll_num in range(max_polls):
             time.sleep(poll_interval)
             try:
                 result = client.get(

@@ -36,6 +36,7 @@ class TestModelConfiguration:
             "gemini-2.5-pro",
             "gemini-2.5-flash",
             "gemini-2.5-flash-lite",
+            "gemini-deep-research",
             "imagen-4.0-generate-001",
             "imagen-4.0-fast-generate-001",
             "imagen-4.0-ultra-generate-001",

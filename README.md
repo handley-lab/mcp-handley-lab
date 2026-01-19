@@ -71,6 +71,7 @@ Export in your `.bashrc`/`.zshrc`, a `.env` file, or the current session:
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export ANTHROPIC_API_KEY="sk-ant-..."
+export GROQ_API_KEY="gsk_..."
 export GROK_API_KEY="grok-..."
 export GOOGLE_MAPS_API_KEY="AIza..."
 # Note: Google Calendar requires OAuth setup (see tool description below)

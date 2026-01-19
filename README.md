@@ -8,7 +8,8 @@ A toolkit that bridges AI assistants with command-line tools and services. Built
 
 - **Python**: 3.10 or higher
 - **MCP CLI**: `pip install mcp[cli]` (for Claude Desktop integration)
-- **Package Manager**: Either standard `pip`/`venv` or [uv](https://github.com/astral-sh/uv) (optional, faster alternative)
+- **Package Manager**: Either standard `pip`/`venv` or [`pipx`](https://github.com/pypa/pipx)
+    - Alternatively, [`uv`](https://github.com/astral-sh/uv)/[`uv tool`](https://docs.astral.sh/uv/concepts/tools/) (optional, faster alternative)
 
 ### System Dependencies (Optional)
 Some tools require additional system packages:
@@ -19,94 +20,67 @@ Some tools require additional system packages:
 
 ## Quick Start
 
-Get up and running in 5 minutes:
+### Installation with uv tool (Recommended)
 
-### Standard Installation (venv)
+[uv tool](https://docs.astral.sh/uv/concepts/tools/) installs Python CLI applications in isolated environments while making them globally available. (Note: `uvx` is an alias for `uv tool run` if you've seen that elsewhere.)
 
 ```bash
-# 1. Clone and enter the project
 git clone git@github.com:handley-lab/mcp-handley-lab.git
 cd mcp-handley-lab
-
-# 2. Set up Python environment (requires Python 3.10+)
-python3 -m venv venv
-source venv/bin/activate
-
-# 3. Install the toolkit (includes mcp[cli] automatically)
-pip install -e .
-
-# 4. Set up API keys and authentication
-# Export in your .bashrc/.zshrc, a .env file, or the current session
-export OPENAI_API_KEY="sk-..."
-export GEMINI_API_KEY="AIza..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GROQ_API_KEY="gsk_..."
-export GROK_API_KEY="grok-..."
-export GOOGLE_MAPS_API_KEY="AIza..."
-# Note: Google Calendar requires OAuth setup (see tool description below)
-
-# 5. Register essential tools with Claude (add others as needed)
-# Note: Registering too many MCP tools can cause context bloat and reduce tool calling accuracy
-# Only register the tools you actively need to maintain optimal performance
-
-# Unified LLM tools (one tool handles all providers via model inference)
-claude mcp add llm-chat --scope user mcp-llm-chat      # Chat with any LLM (Gemini, OpenAI, Claude, etc.)
-claude mcp add llm-image --scope user mcp-llm-image    # Image generation (DALL-E, Imagen)
-claude mcp add llm-models --scope user mcp-llm-models  # List available models
-
-# Other essential tools
-claude mcp add arxiv --scope user mcp-arxiv
-claude mcp add google-maps --scope user mcp-google-maps
-
-# Add additional tools as needed:
-# claude mcp add llm-embeddings --scope user mcp-llm-embeddings  # Semantic embeddings
-# claude mcp add llm-ocr --scope user mcp-llm-ocr                # Document OCR
-# claude mcp add llm-audio --scope user mcp-llm-audio            # Audio transcription
-# claude mcp add py2nb --scope user mcp-py2nb
-# claude mcp add code2prompt --scope user mcp-code2prompt
-# claude mcp add google-calendar --scope user mcp-google-calendar
-# claude mcp add vim --scope user mcp-vim
-# claude mcp add email --scope user mcp-email
-# claude mcp add word --scope user mcp-word                        # Word document editing
-# claude mcp add mathematica --scope user mcp-mathematica
-# claude mcp add repl --scope user mcp-repl
-# claude mcp add screenshot --scope user mcp-screenshot
-
-# 6. Verify tools are working
-# Use /mcp command in Claude to check tool status
+uv tool install .
 ```
 
-### Alternative Installation (uv)
+Then continue to [Configuration](#configuration) to set up API keys and register tools with Claude.
 
-[uv](https://github.com/astral-sh/uv) is a fast Python package installer and environment manager. If you add the `.venv/bin` directory to your system PATH, the MCP tools can be called from anywhere without having to activate the virtual environment:
+### Alternative: pipx
+
+[pipx](https://github.com/pypa/pipx) provides similar functionality if you don't have uv:
 
 ```bash
-# 1. Clone and enter the project
+git clone git@github.com:handley-lab/mcp-handley-lab.git
+cd mcp-handley-lab
+pipx install .
+```
+
+### Development Installation
+
+For contributors who want to modify the code:
+
+```bash
+# Clone and enter the project
 git clone git@github.com:handley-lab/mcp-handley-lab.git
 cd mcp-handley-lab
 
-# 2. Set up Python environment and install (requires uv)
-uv sync
+# Install editable and globally available
+uv tool install -e .
+```
 
-# 3. Set up API keys and authentication
-# Export in your .bashrc/.zshrc, a .env file, or the current session
+Alternatively:
+- `uv sync` for a local venv (run tools with `uv run mcp-llm-chat` or `source .venv/bin/activate`)
+- Traditional pip: `python3 -m venv venv && source venv/bin/activate && pip install -e .`
+
+## Configuration
+
+After installing, set up API keys and register tools with Claude.
+
+### API Keys
+
+Export in your `.bashrc`/`.zshrc`, a `.env` file, or the current session:
+
+```bash
 export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 export GROK_API_KEY="grok-..."
 export GOOGLE_MAPS_API_KEY="AIza..."
 # Note: Google Calendar requires OAuth setup (see tool description below)
+```
 
-# 4. (Optional) Add venv bin directory to PATH for global access
-# This allows MCP tools to be called from anywhere without activating venv
-readlink -f .venv/bin
-export PATH="/absolute/path/to/mcp-handley-lab/.venv/bin:$PATH"
-# Add the above export line to your .bashrc or .zshrc for persistence
+### Register Tools with Claude
 
-# 5. Register essential tools with Claude (add others as needed)
-# Note: Registering too many MCP tools can cause context bloat and reduce tool calling accuracy
-# Only register the tools you actively need to maintain optimal performance
+Register only the tools you need to avoid context bloat:
 
+```bash
 # Unified LLM tools (one tool handles all providers via model inference)
 claude mcp add llm-chat --scope user mcp-llm-chat      # Chat with any LLM
 claude mcp add llm-image --scope user mcp-llm-image    # Image generation
@@ -129,10 +103,9 @@ claude mcp add google-maps --scope user mcp-google-maps
 # claude mcp add mathematica --scope user mcp-mathematica
 # claude mcp add repl --scope user mcp-repl
 # claude mcp add screenshot --scope user mcp-screenshot
-
-# 6. Verify tools are working
-# Use /mcp command in Claude to check tool status
 ```
+
+Verify tools are working with the `/mcp` command in Claude.
 
 ## Available Tools
 

@@ -260,7 +260,9 @@ class TestImageGenerationErrorHandling:
     @pytest.mark.asyncio
     async def test_empty_prompt(self, test_image_file):
         """Test image generation with empty prompt."""
-        with pytest.raises(ToolError, match="Prompt is required and cannot be empty"):
+        with pytest.raises(
+            ToolError, match="Provide exactly one of 'prompt' or 'prompt_file'"
+        ):
             await mcp.call_tool(
                 "generate", {"prompt": "", "output_file": test_image_file}
             )

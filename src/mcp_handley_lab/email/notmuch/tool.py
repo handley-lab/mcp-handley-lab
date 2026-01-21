@@ -93,12 +93,74 @@ def _find_smart_destination(
     )
 
 
+def _quote_for_notmuch(s: str) -> str:
+    """Escape a string for use in notmuch quoted queries."""
+    return s.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def _resolve_message_id(abbreviated: str) -> str:
+    """Resolve an abbreviated message ID to a full ID using notmuch.
+
+    Supports abbreviated message ID prefixes. If the input is already a full
+    valid message ID, it is returned unchanged.
+
+    Args:
+        abbreviated: Full or abbreviated message ID
+
+    Returns:
+        The full message ID
+
+    Raises:
+        ValueError: If no match found or if the prefix is ambiguous
+    """
+    # 1. Try exact match first (handles full IDs efficiently)
+    quoted = _quote_for_notmuch(abbreviated)
+    stdout, _ = run_command(["notmuch", "count", f'id:"{quoted}"'])
+    if int(stdout.decode().strip()) == 1:
+        return abbreviated  # Already a valid full ID
+
+    # 2. Prefix match via regex (use --limit=2 to detect ambiguity without full scan)
+    escaped = re.escape(abbreviated)
+    stdout, _ = run_command(
+        ["notmuch", "search", "--output=messages", "--limit=2", f"mid:/^{escaped}/"]
+    )
+    matches = []
+    for line in stdout.decode(errors="replace").strip().split("\n"):
+        if line:
+            # Output format: id:MESSAGE_ID
+            matches.append(line[3:] if line.startswith("id:") else line)
+
+    if len(matches) == 1:
+        return matches[0]
+    elif len(matches) > 1:
+        raise ValueError(
+            f"Ambiguous: '{abbreviated}' matches {matches[0]} and {matches[1]}"
+        )
+    else:
+        raise ValueError(f"No message found matching '{abbreviated}'")
+
+
+def _resolve_id_in_query(query: str) -> str:
+    """Replace abbreviated id:/mid: in query with resolved full ID.
+
+    Handles both quoted and unquoted forms: id:XXX, id:"XXX", mid:XXX, mid:"XXX"
+    """
+    pattern = r'(?:id|mid):(?:"([^"]+)"|([^\s\)\]]+))'
+
+    def replace_id(match: re.Match) -> str:
+        abbreviated = match.group(1) or match.group(2)
+        full_id = _resolve_message_id(abbreviated)
+        return f'id:"{full_id}"'
+
+    return re.sub(pattern, replace_id, query)
+
+
 class EmailContent(BaseModel, extra="forbid"):
     """Structured representation of a single email's content."""
 
     id: str = Field(
         ...,
-        description="Complete message ID (use ENTIRE string including @domain for id: queries).",
+        description="Message ID. Abbreviated prefixes are supported for queries.",
     )
     subject: str = Field(..., description="The subject line of the email.")
     from_address: str = Field(..., description="The sender's email address and name.")
@@ -203,7 +265,7 @@ class SearchResult(BaseModel):
 
     id: str = Field(
         ...,
-        description="Complete message ID (use ENTIRE string including @domain for id: queries).",
+        description="Message ID. Abbreviated prefixes are supported for queries.",
     )
     subject: str = Field(..., description="The subject line of the email.")
     from_address: str = Field(..., description="The sender's email address and name.")
@@ -764,7 +826,7 @@ def _list_accounts(config_file: str = "") -> list[str]:
 def read(
     query: str = Field(
         default="",
-        description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'. For ID queries, use the COMPLETE id field from search results including the @domain part (e.g., 'id:ABC123@example.com', NOT 'id:ABC123').",
+        description="A valid notmuch search query. Examples: 'from:boss', 'tag:inbox and date:2024-01-01..', 'subject:\"Project X\"'. Supports abbreviated message IDs (e.g., 'id:CAHgsCeb' resolves to full ID if unique).",
     ),
     limit: int = Field(
         default=100,
@@ -838,6 +900,10 @@ def read(
             "Query required for email search/show. Use list_type for listing, or 'contact:name' for contacts."
         )
 
+    # Resolve abbreviated message IDs in query (supports id: and mid: terms)
+    if "id:" in query or "mid:" in query:
+        query = _resolve_id_in_query(query)
+
     # For headers/summary mode, use lightweight search
     if mode in ("headers", "summary"):
         # Get search results first
@@ -870,7 +936,7 @@ def read(
 def update(
     message_ids: list[str] = Field(
         default_factory=list,
-        description="A list of notmuch message IDs for the emails to update.",
+        description="A list of notmuch message IDs for the emails to update. Supports abbreviated IDs.",
     ),
     action: str = Field(
         ...,
@@ -895,6 +961,9 @@ def update(
     - tag: Add/remove tags from emails
     - move: Move emails to a maildir folder
     """
+    # Resolve abbreviated message IDs
+    message_ids = [_resolve_message_id(mid) for mid in message_ids]
+
     if action == "tag":
         if not message_ids:
             raise ValueError("At least one message_id required for tag action")

@@ -729,7 +729,7 @@ def send(
     ),
     message_id: str = Field(
         default=None,
-        description="For reply/forward: the notmuch message ID of the email to reply to or forward.",
+        description="For reply/forward: the notmuch message ID of the email to reply to or forward. Supports abbreviated IDs.",
     ),
     mode: str = Field(
         default="compose",
@@ -766,8 +766,12 @@ def send(
             _get_message_from_raw_source,
             _get_thread_messages,
             _is_sent_message,
+            _resolve_message_id,
             _show_email,
         )
+
+        # Resolve abbreviated message ID
+        message_id = _resolve_message_id(message_id)
 
         # Get original message data
         result = _show_email(f"id:{message_id}")
@@ -871,8 +875,12 @@ def send(
         # Import notmuch function to get original message data
         from mcp_handley_lab.email.notmuch.tool import (
             _get_message_from_raw_source,
+            _resolve_message_id,
             _show_email,
         )
+
+        # Resolve abbreviated message ID
+        message_id = _resolve_message_id(message_id)
 
         result = _show_email(f"id:{message_id}")
         original_msg = result[0]

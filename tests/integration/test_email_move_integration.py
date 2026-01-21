@@ -71,6 +71,10 @@ class TestEmailMoveIntegration:
         """Test moving emails from Hermes INBOX to Archive."""
         # Mock notmuch commands
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution (msg1)
+            (b"1\n", b""),
+            # notmuch count for message ID resolution (msg2)
+            (b"1\n", b""),
             # notmuch search --output=files query
             (
                 f"{sample_emails['hermes_email1']}\n{sample_emails['hermes_email2']}\n".encode(),
@@ -129,6 +133,8 @@ class TestEmailMoveIntegration:
     ):
         """Test moving Gmail email to trash (should find [Google Mail].Bin)."""
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution
+            (b"1\n", b""),
             # notmuch search --output=files query
             (f"{sample_emails['gmail_email']}\n".encode(), b""),
             # notmuch config get database.path
@@ -170,6 +176,8 @@ class TestEmailMoveIntegration:
         from mcp.server.fastmcp.exceptions import ToolError
 
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution
+            (b"1\n", b""),
             # notmuch search --output=files query
             (f"{sample_emails['hermes_email1']}\n".encode(), b""),
             # notmuch config get database.path
@@ -201,6 +209,8 @@ class TestEmailMoveIntegration:
         from mcp.server.fastmcp.exceptions import ToolError
 
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution
+            (b"1\n", b""),
             # notmuch search --output=files returns empty
             (b"", b""),
         ]
@@ -238,6 +248,10 @@ class TestEmailMoveIntegration:
         """Test handling when only some message IDs are found."""
         # Only return one file for two message IDs
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution (msg1)
+            (b"1\n", b""),
+            # notmuch count for message ID resolution (missing)
+            (b"1\n", b""),
             # notmuch search --output=files query (only finds one)
             (f"{sample_emails['hermes_email1']}\n".encode(), b""),
             # notmuch config get database.path
@@ -278,6 +292,8 @@ class TestEmailMoveIntegration:
         from mcp.server.fastmcp.exceptions import ToolError
 
         mock_run_command.side_effect = [
+            # notmuch count for message ID resolution
+            (b"1\n", b""),
             (f"{sample_emails['hermes_email1']}\n".encode(), b""),
             (str(mock_maildir).encode(), b""),
         ]

@@ -10,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
 from mcp_handley_lab.common.pricing import calculate_cost
+from mcp_handley_lab.llm.common import load_prompt_text
 from mcp_handley_lab.llm.registry import get_adapter, resolve_model
 
 mcp = FastMCP("Image Tool")
@@ -22,9 +23,17 @@ mcp = FastMCP("Image Tool")
     "Returns: {file_path, file_size_bytes, model, provider, cost, enhanced_prompt?, original_prompt}."
 )
 def generate(
-    prompt: str = Field(
-        ...,
+    prompt: str | None = Field(
+        default=None,
         description="Text description of the image to generate.",
+    ),
+    prompt_file: str | None = Field(
+        default=None,
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="Variables for template substitution using ${var} syntax.",
     ),
     output_file: str = Field(
         ...,
@@ -54,7 +63,8 @@ def generate(
     ),
 ) -> dict[str, Any]:
     """Generate an image from a text prompt."""
-    if not prompt.strip():
+    final_prompt = load_prompt_text(prompt, prompt_file, prompt_vars or None)
+    if not final_prompt.strip():
         raise ValueError("Prompt is required and cannot be empty")
 
     provider, canonical_model, _ = resolve_model(model)
@@ -80,7 +90,9 @@ def generate(
         kwargs["input_images"] = input_images
 
     # Generate the image
-    response_data = generation_func(prompt=prompt, model=canonical_model, **kwargs)
+    response_data = generation_func(
+        prompt=final_prompt, model=canonical_model, **kwargs
+    )
     image_bytes = response_data["image_bytes"]
     input_tokens = response_data.get("input_tokens", 0)
     output_tokens = response_data.get("output_tokens", 1)
@@ -101,5 +113,5 @@ def generate(
         "provider": provider,
         "cost": cost,
         "enhanced_prompt": response_data.get("enhanced_prompt", ""),
-        "original_prompt": prompt,
+        "original_prompt": final_prompt,
     }

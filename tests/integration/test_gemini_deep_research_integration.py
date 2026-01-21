@@ -15,6 +15,7 @@ def skip_if_no_gemini_key():
 
 @pytest.mark.vcr
 @pytest.mark.slow
+@pytest.mark.live  # Skip in CI - VCR replays HTTP instantly but time.sleep() still executes
 class TestGeminiDeepResearch:
     """Test Gemini Deep Research functionality via MCP protocol."""
 

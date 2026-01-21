@@ -1,0 +1,2428 @@
+interactions:
+- request:
+    body: '{"input": "What are the latest developments in fusion energy research in
+      2025?", "agent": "deep-research-pro-preview-12-2025", "background": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '141'
+      Content-Type:
+      - application/json
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:01 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=1890
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:12 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=441
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:22 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=443
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:33 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=443
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:43 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=420
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:11:54 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=436
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:04 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=438
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:15 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=437
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:25 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=438
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:36 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=432
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:46 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=434
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:12:57 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=436
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:13:07 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=430
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:13:18 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=450
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:13:28 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=465
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:13:39 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=454
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:13:49 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=453
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:00 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=464
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:11 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=703
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:21 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=714
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:32 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=703
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:43 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=699
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:14:54 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=718
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:04 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=714
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:15 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=700
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:26 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=725
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:37 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=742
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:48 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=769
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:15:58 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=790
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:16:09 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=731
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:16:20 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=730
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:16:31 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=757
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:16:42 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=765
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:16:52 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=775
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:03 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=788
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:14 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=750
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:25 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=762
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:36 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=750
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/3yPTW+DMAxA/0vOjYTDQBpHtqFt0qp1EGh7qUJi8bEJUBLoqqr/ve5278GX5yfr
+        +cxUg4NnCTOIE7foUFnd8smONLh0eOQguAhExFZMW1QeDdkEYh4AF1BAnAAkAexJ6G67BQ5PrXHy
+        NQ131Toqvn/3+XM766DcbMP3z10Oafn1tq2z9GhE1qOMPirZPNTDOpPZ46kQL35TSro21j3qW1s3
+        eLRK+24cCNvxBwn+h6+Y88rP7s86UHZDPzjC82TutV6uAAAA//8DAAcZFpL6AAAA
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:47 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=745
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - generativelanguage.googleapis.com
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://generativelanguage.googleapis.com/v1beta/interactions/v1_ChdsUHB3YWN5TkxZSDhuc0VQX3JPYS1BVRIXbFBwd2FjeU5MWUg4bnNFUF9yT2EtQVU
+  response:
+    body:
+      string: !!binary |
+        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
+        LUHZjVZ1Lli32lFvWEudSBaCQ+B1l6R7GTGiediS8+X2PB41JofAoVl6Hy57g+Pycm15JltfdbXo
+        2mQswadk1xiYphenVal9rh+o5TspZL7+ioXfQZgdjZrF+0PNSdLrjLRn4sbiyG63vzpJzuFkCo3a
+        dkxfh3wSny/xenAU6A1Jru3k0m1WIzLKqqfOnNmOLvZ+GoxW2Vrp8bytnwZXajBQ+eOwNnf6bKtv
+        r6ouZXObcL0+Do0qB5GXm3aGySaZEnyXHG1CKepF4by1M05ZcBmMxz7Hd3WRaMxPzOZ43Smk27kc
+        FXtDccxoqIk2W9P7yfTa5HrDoPp3CI8kKO7Dbbej7CNt6viDYSvjQmnEJ5u+eJCOO8VeVCeuH2nr
+        eRUI3Tro6I2t3m67cUC3aT/QjoLpr/oT93ziVruqMhwdt9qGshJ/wTot3RlbNTPz6xy9vybLpkEs
+        5qQ6d5P4mgyd41BzOHFgJGJiVBu8HQnUfq81jF5adzan+ri1Htavi6sZ+s724PBa5xqJfFvvt5zT
+        jFLttjfcb3RTF7p88JolBDG95E5Igic+3glfraN6HdePB2dAHC56O8l612Z10VfX9R1g3oqYqNml
+        TQ5PYMXavE4JljXbTU8jWx/quuez3jExu9xkcN7uVqfxUeGnUVBtSDtNirLpSdKSaaycMoJgzlI3
+        PMUTt9c7DYX+cmLuxr1wuZ6c5tvxIoyZ9vIw7JJkmm7Xaru2PoCPCNjRmnEYm6MY3+4MN+3j6HSk
+        liRBDgh5u26NHIEixOF6zCfpYUQZamtnq1423Byl2lCJVaGmcv6raMF+/xGi7UxnXt2LeI8dVcPV
+        NKpTI8XttBZj1Q8kY2L0lb7Znez7vjKazg+SFqTBlqejHh/sk3Hb3yqz/lj2sswfjjsi500lenSA
+        QKg6ZRRbOCXrdvtymuzSeO6cmKt50GpdydHI2XIvTjPW7/m767i5nV/6l5VrGvzUGNKSdKY3nH4m
+        4uVmA67a0hZG8A4BfFdEJPnxhts9TY20vbrSoblo6N3GuVNdZGN6nZ0nu2MzVmZtTmscrlZHabp7
+        IhKaw1ndEprKikq3Xkbwy/NhcNwn6XQvrMhpzaB7vBTNWtedHvsX3h1Y2dbbbjjHNCYTNvHpZVCd
+        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
+        85/4j//4XwAAAP//AwBEFW5UoR4BAA==
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Jan 2026 16:17:59 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      Server-Timing:
+      - gfet4t7; dur=1858
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1

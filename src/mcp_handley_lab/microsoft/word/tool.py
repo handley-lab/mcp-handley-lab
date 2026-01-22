@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Image
+from mcp.types import TextContent
 from pydantic import Field
 
 from mcp_handley_lab.microsoft.word import document as word_ops
@@ -286,6 +287,37 @@ def read(
             block_count=len(bib_sources), bibliography_sources=bib_sources
         )
     raise ValueError(f"Unknown scope: {scope}")
+
+
+@mcp.tool(
+    description="Render Word document for visual inspection or sharing. output='png' (default) returns labeled images for Claude to see. output='pdf' returns PDF bytes for sharing. Requires libreoffice (and pdftoppm for PNG)."
+)
+def render(
+    file_path: str = Field(..., description="Path to .docx file"),
+    pages: list[int] = Field(
+        default=[],
+        description="Page numbers to render (1-based). Required for PNG output. Max 5 pages.",
+    ),
+    dpi: int = Field(150, description="Resolution for PNG (default 150, max 300)"),
+    output: str = Field(
+        "png", description="Output format: 'png' (images) or 'pdf' (full document)"
+    ),
+):  # No return type - allows mixed TextContent + Image content
+    """Render Word document for visual inspection or sharing."""
+    if output == "pdf":
+        pdf_bytes = word_ops.render_to_pdf(file_path)
+        return [
+            TextContent(type="text", text=f"PDF ({len(pdf_bytes):,} bytes)"),
+            Image(data=pdf_bytes, format="pdf"),
+        ]
+    # PNG output (default)
+    if not pages:
+        raise ValueError("pages is required for PNG output")
+    result = []
+    for page_num, png_bytes in word_ops.render_to_images(file_path, pages, dpi):
+        result.append(TextContent(type="text", text=f"Page {page_num}:"))
+        result.append(Image(data=png_bytes, format="png"))
+    return result
 
 
 @mcp.tool(

@@ -156,6 +156,10 @@ from mcp_handley_lab.microsoft.word.ops.properties import (  # noqa: F401
     set_custom_property,
     set_document_meta,
 )
+from mcp_handley_lab.microsoft.word.ops.render import (  # noqa: F401
+    render_to_images,
+    render_to_pdf,
+)
 from mcp_handley_lab.microsoft.word.ops.revisions import (  # noqa: F401
     _ALL_REVISION_TAGS,
     _CONTENT_REVISIONS,

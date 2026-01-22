@@ -76,7 +76,7 @@ def read(
     ),
     target_id: str = Field(
         "",
-        description="Block ID for table_cells/runs/table_layout/list scopes, style name for 'style' scope, or text box ID for 'text_box_content' scope",
+        description="Block ID for table_cells/runs/table_layout/list scopes, style name for 'style' scope, or text box ID for 'text_box_content' scope. For nested tables use hierarchical paths: 'table_abc_0#r0c1/tbl0' (nested table 0 inside cell row=0,col=1). Path segments: #rXcY (cell), /tblN (Nth descendant table in document order), /pN (paragraph). Deep nesting: 'table_abc_0#r0c0/tbl0/r0c0/tbl0'. Note: /tblN indexes ALL descendant tables in the cell, not just direct children.",
     ),
     search_query: str = Field("", description="Text to search for (scope='search')"),
     limit: int = Field(50, description="Max blocks to return"),
@@ -140,8 +140,8 @@ def read(
         from mcp_handley_lab.microsoft.word.constants import qn
 
         t = word_ops.resolve_target(pkg, target_id)
-        tbl_el = t.base_el if t.base_kind == "table" else t.leaf_el
-        cells = word_ops.build_table_cells(tbl_el, t.base_id)
+        tbl_el = t.leaf_el
+        cells = word_ops.build_table_cells(tbl_el, target_id)
         # Count rows/cols from element
         rows = tbl_el.findall(qn("w:tr"))
         max_cols = max((len(tr.findall(qn("w:tc"))) for tr in rows), default=0)
@@ -153,8 +153,8 @@ def read(
         )
     if scope == "table_layout":
         t = word_ops.resolve_target(pkg, target_id)
-        tbl_el = t.base_el if t.base_kind == "table" else t.leaf_el
-        table_layout = word_ops.build_table_layout(tbl_el, t.base_id)
+        tbl_el = t.leaf_el
+        table_layout = word_ops.build_table_layout(tbl_el, target_id)
         return DocumentReadResult(block_count=1, table_layout=table_layout)
     if scope == "runs":
         # Pure OOXML path - find paragraph element, get doc rels for hyperlink URLs
@@ -331,7 +331,7 @@ def edit(
     ),
     target_id: str = Field(
         "",
-        description="Block ID from read() - required for insert/delete/replace/style/edit_cell/edit_run/add_comment/insert_image/list operations and table operations. For edit_style: style name. For delete_style: style name to delete. For delete_image: the image ID. For accept_change/reject_change: the revision ID from read(scope='revisions'). For edit_text_box: the text box ID from read(scope='text_boxes'). For add_bookmark/add_hyperlink/insert_cross_ref/insert_caption/insert_toc: the paragraph or block ID (or table cell ID). For reply_comment/resolve_comment/unresolve_comment: the comment ID. For add_footnote: the paragraph ID. For delete_footnote: the footnote ID (from read(scope='footnotes')). For set_content_control: the content control ID (from read(scope='content_controls')).",
+        description="Block ID from read() - required for insert/delete/replace/style/edit_cell/edit_run/add_comment/insert_image/list operations and table operations. For nested tables use hierarchical paths: 'table_abc_0#r0c1/tbl0' targets nested table 0 inside cell (row=0,col=1). For edit_style: style name. For delete_style: style name to delete. For delete_image: the image ID. For accept_change/reject_change: the revision ID from read(scope='revisions'). For edit_text_box: the text box ID from read(scope='text_boxes'). For add_bookmark/add_hyperlink/insert_cross_ref/insert_caption/insert_toc: the paragraph or block ID (or table cell ID). For reply_comment/resolve_comment/unresolve_comment: the comment ID. For add_footnote: the paragraph ID. For delete_footnote: the footnote ID (from read(scope='footnotes')). For set_content_control: the content control ID (from read(scope='content_controls')).",
     ),
     content_type: str = Field(
         "paragraph",
@@ -563,7 +563,7 @@ def edit(
 
         elif operation == "edit_cell":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.replace_table_cell(t.base_el, row, col, content_data)
+            word_ops.replace_table_cell(t.leaf_el, row, col, content_data)
             pkg.mark_xml_dirty("/word/document.xml")
             element_id = _recalc_table_id(pkg, t)
             message = f"Updated cell r{row}c{col}"
@@ -571,7 +571,7 @@ def edit(
         elif operation == "add_row":
             t = word_ops.resolve_target(pkg, target_id)
             data = json.loads(content_data) if content_data else None
-            row_idx = word_ops.add_table_row(t.base_el, data)
+            row_idx = word_ops.add_table_row(t.leaf_el, data)
             pkg.mark_xml_dirty("/word/document.xml")
             element_id = _recalc_table_id(pkg, t)
             message = f"Added row {row_idx}"
@@ -582,21 +582,21 @@ def edit(
             width_inches = float(fmt.get("width", 1.0))
             width_twips = int(width_inches * 1440)  # 1440 twips per inch
             data = json.loads(content_data) if content_data else None
-            col_idx = word_ops.add_table_column(t.base_el, width_twips, data)
+            col_idx = word_ops.add_table_column(t.leaf_el, width_twips, data)
             pkg.mark_xml_dirty("/word/document.xml")
             element_id = _recalc_table_id(pkg, t)
             message = f"Added column {col_idx}"
 
         elif operation == "delete_row":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.delete_table_row(t.base_el, row)
+            word_ops.delete_table_row(t.leaf_el, row)
             pkg.mark_xml_dirty("/word/document.xml")
             element_id = _recalc_table_id(pkg, t)
             message = f"Deleted row {row}"
 
         elif operation == "delete_column":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.delete_table_column(t.base_el, col)
+            word_ops.delete_table_column(t.leaf_el, col)
             pkg.mark_xml_dirty("/word/document.xml")
             element_id = _recalc_table_id(pkg, t)
             message = f"Deleted column {col}"
@@ -621,29 +621,30 @@ def edit(
                 raise ValueError(
                     "merge_cells requires end_row and end_col in content_data"
                 )
-            word_ops.merge_cells(t.base_el, start_row, start_col, end_row, end_col)
+            word_ops.merge_cells(t.leaf_el, start_row, start_col, end_row, end_col)
             pkg.mark_xml_dirty("/word/document.xml")
+            element_id = _recalc_table_id(pkg, t)
             message = (
                 f"Merged cells from ({start_row},{start_col}) to ({end_row},{end_col})"
             )
 
         elif operation == "set_table_alignment":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.set_table_alignment(t.base_el, content_data)
+            word_ops.set_table_alignment(t.leaf_el, content_data)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set table alignment to {content_data}"
 
         elif operation == "set_table_autofit":
             t = word_ops.resolve_target(pkg, target_id)
             autofit_value = json.loads(content_data.lower())
-            word_ops.set_table_autofit(t.base_el, autofit_value)
+            word_ops.set_table_autofit(t.leaf_el, autofit_value)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set table autofit to {autofit_value}"
 
         elif operation == "set_table_fixed_layout":
             t = word_ops.resolve_target(pkg, target_id)
             widths = json.loads(content_data)
-            word_ops.set_table_fixed_layout(t.base_el, widths)
+            word_ops.set_table_fixed_layout(t.leaf_el, widths)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set table fixed layout with {len(widths)} columns"
 
@@ -651,7 +652,7 @@ def edit(
             t = word_ops.resolve_target(pkg, target_id)
             height_data = json.loads(content_data)
             word_ops.set_row_height(
-                t.base_el,
+                t.leaf_el,
                 row,
                 height_data["height"],
                 height_data.get("rule", "at_least"),
@@ -661,13 +662,13 @@ def edit(
 
         elif operation == "set_cell_width":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.set_cell_width(t.base_el, row, col, float(content_data))
+            word_ops.set_cell_width(t.leaf_el, row, col, float(content_data))
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set cell ({row},{col}) width to {content_data} inches"
 
         elif operation == "set_cell_vertical_alignment":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.set_cell_vertical_alignment(t.base_el, row, col, content_data)
+            word_ops.set_cell_vertical_alignment(t.leaf_el, row, col, content_data)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set cell ({row},{col}) vertical alignment to {content_data}"
 
@@ -675,7 +676,7 @@ def edit(
             t = word_ops.resolve_target(pkg, target_id)
             border_data = json.loads(content_data)
             word_ops.set_cell_borders(
-                t.base_el,
+                t.leaf_el,
                 row,
                 col,
                 top=border_data.get("top"),
@@ -688,14 +689,14 @@ def edit(
 
         elif operation == "set_cell_shading":
             t = word_ops.resolve_target(pkg, target_id)
-            word_ops.set_cell_shading(t.base_el, row, col, content_data)
+            word_ops.set_cell_shading(t.leaf_el, row, col, content_data)
             pkg.mark_xml_dirty("/word/document.xml")
             message = f"Set shading on cell ({row},{col}) to {content_data}"
 
         elif operation == "set_header_row":
             t = word_ops.resolve_target(pkg, target_id)
             is_header = content_data.lower() in ("true", "1", "yes")
-            word_ops.set_header_row(t.base_el, row, is_header)
+            word_ops.set_header_row(t.leaf_el, row, is_header)
             pkg.mark_xml_dirty("/word/document.xml")
             action = "marked as" if is_header else "unmarked as"
             message = f"Row {row} {action} header row"

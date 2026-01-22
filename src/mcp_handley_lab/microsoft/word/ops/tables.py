@@ -10,7 +10,11 @@ from lxml import etree
 
 from mcp_handley_lab.microsoft.word.constants import qn
 from mcp_handley_lab.microsoft.word.models import CellInfo, RowInfo, TableLayoutInfo
-from mcp_handley_lab.microsoft.word.ops.core import _insert_at, get_cell_text
+from mcp_handley_lab.microsoft.word.ops.core import (
+    _insert_at,
+    get_cell_tables,
+    get_cell_text,
+)
 
 # Element tag constants
 _W_TR = qn("w:tr")
@@ -353,6 +357,7 @@ def build_table_cells(tbl_el: etree._Element, table_id: str = "") -> list[CellIn
                         border_left=border_left,
                         border_right=border_right,
                         fill_color=fill_color,
+                        nested_tables=len(get_cell_tables(tc)),
                     )
                 )
                 # Add continuation entries for horizontal span

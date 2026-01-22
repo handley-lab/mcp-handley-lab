@@ -53,6 +53,7 @@ class CellInfo(BaseModel):
     border_left: str | None = None
     border_right: str | None = None
     fill_color: str | None = None  # Hex background color (e.g., "FF0000")
+    nested_tables: int = 0  # Count of all descendant tables (includes deeply nested)
 
 
 class RowInfo(BaseModel):

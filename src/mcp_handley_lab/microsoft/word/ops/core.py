@@ -267,8 +267,8 @@ def get_cell_paragraphs(tc_el: etree._Element) -> list[etree._Element]:
 
 
 def get_cell_tables(tc_el: etree._Element) -> list[etree._Element]:
-    """Get all nested table elements within a cell."""
-    return tc_el.findall(_W_TBL)
+    """Get all nested table elements within a cell (including inside paragraphs)."""
+    return tc_el.findall(f".//{_W_TBL}")
 
 
 def resolve_path(

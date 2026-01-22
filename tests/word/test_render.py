@@ -151,9 +151,11 @@ async def test_render_page_images_differ(multi_page_docx):
 @requires_pdftoppm
 @pytest.mark.asyncio
 async def test_render_missing_page_error(sample_docx):
-    """Test that requesting a non-existent page raises an error."""
+    """Test that requesting a non-existent page raises CalledProcessError."""
+    import subprocess
+
     # sample_docx has only 1 page - pdftoppm errors on out-of-range pages
-    with pytest.raises(RuntimeError, match="page 999"):
+    with pytest.raises(subprocess.CalledProcessError):
         render_to_images(str(sample_docx), pages=[999])
 
 

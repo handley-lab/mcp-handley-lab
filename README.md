@@ -14,6 +14,8 @@ A toolkit that bridges AI assistants with command-line tools and services. Built
 Some tools require additional system packages:
 - **code2prompt tool**: `cargo install code2prompt`
 - **email tools**: `msmtp`, `mutt`, `notmuch` for email management
+- **repl tool**: `tmux` for session management
+- **screenshot tool**: `maim`, `wmctrl` for X11 window capture
 
 ## Quick Start
 
@@ -67,6 +69,8 @@ claude mcp add google-maps --scope user mcp-google-maps
 # claude mcp add email --scope user mcp-email
 # claude mcp add word --scope user mcp-word                        # Word document editing
 # claude mcp add mathematica --scope user mcp-mathematica
+# claude mcp add repl --scope user mcp-repl
+# claude mcp add screenshot --scope user mcp-screenshot
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -123,6 +127,8 @@ claude mcp add google-maps --scope user mcp-google-maps
 # claude mcp add email --scope user mcp-email
 # claude mcp add word --scope user mcp-word                        # Word document editing
 # claude mcp add mathematica --scope user mcp-mathematica
+# claude mcp add repl --scope user mcp-repl
+# claude mcp add screenshot --scope user mcp-screenshot
 
 # 6. Verify tools are working
 # Use /mcp command in Claude to check tool status
@@ -218,6 +224,23 @@ Comprehensive Word document manipulation via pure OOXML
   - **Lists**: Numbered/bulleted lists, promote/demote, restart numbering
   - **Other**: Content controls, equations, hyperlinks, custom properties
   - _Claude example_: `> read the outline of my thesis, then add a citation to Smith2020 in the introduction`
+
+### 🖥️ **REPL Sessions** (`repl`)
+Manage interactive REPL sessions for various interpreters
+  - Create persistent sessions (bash, python, ipython, aichat, ollama, mathematica)
+  - Execute code and retrieve output with cell indexing (In[N]/Out[N])
+  - Pass extra arguments to interpreters (e.g., `--matplotlib` for ipython)
+  - _Claude example_: `> start an ipython session with matplotlib, create a plot, and show me the figure`
+  - **Requires**: `tmux` and the desired interpreter installed
+
+### 📸 **Screenshot Capture** (`screenshot`)
+Capture screenshots of windows or the full screen
+  - List all windows with ID, class, desktop, and name
+  - Capture specific window by name or hex ID
+  - Capture full screen
+  - Save to file or return image directly
+  - _Claude example_: `> show me the matplotlib Figure 1 window`
+  - **Requires**: `maim` and `wmctrl` (X11)
 
 ## Recommended External MCPs
 

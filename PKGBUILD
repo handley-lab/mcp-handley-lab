@@ -73,7 +73,7 @@ optdepends=(
     'python-ruff: Linting'
     'python-chromadb: Semantic search features (AUR)'
     'maim: Screenshot capture'
-    'xdotool: Window detection for screenshots'
+    'wmctrl: Window listing for screenshots'
     'tmux: REPL session management'
 )
 source=()

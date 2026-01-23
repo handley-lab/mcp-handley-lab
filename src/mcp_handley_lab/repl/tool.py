@@ -7,38 +7,48 @@ mcp = FastMCP("REPL Tool")
 
 
 @mcp.tool()
-def create(backend: str = "bash", name: str = "") -> dict:
-    return {"session_id": manager.create(backend, name or None), "message": f"Created {backend} session"}
+def session(
+    action: str,
+    session_id: str = "",
+    backend: str = "bash",
+    name: str = "",
+    cell: str = ""
+) -> dict:
+    """
+    Manage REPL sessions.
+
+    Actions:
+    - create: Create new session. Returns session_id. Params: backend, name (optional)
+    - list: List active sessions. Returns list of sessions.
+    - destroy: Destroy session (sends Ctrl-C first). Params: session_id
+    - read: Read cells from session. Params: session_id, cell (optional)
+            cell can be: index (0, 1, -1), "In[5]", "Out[7]", or omit for all cells
+    """
+    if action == "create":
+        sid = manager.create(backend, name or None)
+        return {"session_id": sid, "backend": backend, "name": name or sid}
+
+    if action == "list":
+        return {"sessions": manager.list_sessions(), "backends": list(BACKENDS.keys())}
+
+    if action == "destroy":
+        manager.destroy(session_id)
+        return {"status": "destroyed", "session_id": session_id}
+
+    if action == "read":
+        cell_arg = int(cell) if cell.lstrip("-").isdigit() else (cell or None)
+        result = manager.read_cells(session_id, cell_arg)
+        return {"session_id": session_id, "cells": result}
+
+    return {"error": f"Unknown action: {action}"}
 
 
 @mcp.tool()
 def eval(session_id: str, code: str, timeout: int = 30) -> dict:
-    output, timed_out = manager.eval_code(session_id, code, timeout)
-    return {"output": output, "timed_out": timed_out, "session_id": session_id}
+    """
+    Execute code in a REPL session.
 
-
-@mcp.tool()
-def read(session_id: str, lines: int = 100) -> dict:
-    return {"output": manager.capture_output(session_id, lines), "session_id": session_id}
-
-
-@mcp.tool()
-def interrupt(session_id: str) -> dict:
-    manager.interrupt(session_id)
-    return {"status": "interrupted", "session_id": session_id}
-
-
-@mcp.tool()
-def list_sessions() -> list[dict]:
-    return manager.list_sessions()
-
-
-@mcp.tool()
-def destroy(session_id: str) -> dict:
-    manager.destroy(session_id)
-    return {"status": "destroyed", "session_id": session_id}
-
-
-@mcp.tool()
-def backends() -> list[dict]:
-    return [{"name": k, "description": v.description} for k, v in BACKENDS.items()]
+    Returns output, cell_index, and timed_out flag.
+    """
+    result = manager.eval_code(session_id, code, timeout)
+    return {"session_id": session_id, **result}

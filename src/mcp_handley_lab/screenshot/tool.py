@@ -4,17 +4,17 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP, Image
 
-mcp = FastMCP("X11 Window Tool")
+mcp = FastMCP("Screenshot Tool")
 
 
 @mcp.tool()
-def capture(window: str = "", list_windows: bool = False):
+def take(window: str = "", list_windows: bool = False):
     """
-    Capture X11 windows.
+    Take screenshots of windows.
 
-    - capture(list_windows=True) - list all window names
-    - capture(window="Figure 1") - capture window by name, returns image
-    - capture(window="0x1234567") - capture window by ID
+    - take(list_windows=True) - list all window names
+    - take(window="Figure 1") - capture window by name, returns image
+    - take(window="0x1234567") - capture window by ID
     """
     if list_windows:
         result = subprocess.run(

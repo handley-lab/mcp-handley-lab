@@ -12,20 +12,21 @@ def session(
     session_id: str = "",
     backend: str = "bash",
     name: str = "",
-    cell: str = ""
+    cell: str = "",
+    args: str = ""
 ) -> dict:
     """
     Manage REPL sessions.
 
     Actions:
-    - create: Create new session. Returns session_id. Params: backend, name (optional)
+    - create: Create new session. Returns session_id. Params: backend, name (optional), args (optional)
     - list: List active sessions. Returns list of sessions.
     - destroy: Destroy session (sends Ctrl-C first). Params: session_id
     - read: Read cells from session. Params: session_id, cell (optional)
             cell can be: index (0, 1, -1), "In[5]", "Out[7]", or omit for all cells
     """
     if action == "create":
-        sid = manager.create(backend, name or None)
+        sid = manager.create(backend, name or None, args or None)
         return {"session_id": sid, "backend": backend, "name": name or sid}
 
     if action == "list":

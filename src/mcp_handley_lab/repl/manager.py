@@ -33,15 +33,16 @@ def _capture(sid, n=500):
     return ANSI.sub("", _run(["capture-pane", "-t", sid, "-p", "-S", f"-{n}"]).stdout)
 
 
-def create(backend, name=None):
+def create(backend, name=None, args=None):
     if _run(["new-session", "-d", "-s", TMUX]).returncode == 0:
         default_window = _run(["list-windows", "-t", TMUX, "-F", "#{window_id}"]).stdout.strip()
     else:
         default_window = None
 
     cfg = BACKENDS[backend]
+    command = cfg.command + (args.split() if args else [])
     name = name or f"{backend}-{datetime.now().strftime('%H%M%S')}"
-    res = _run(["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *cfg.command])
+    res = _run(["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *command])
     pane_id = res.stdout.strip()
 
     if default_window:

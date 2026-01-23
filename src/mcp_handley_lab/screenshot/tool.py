@@ -8,15 +8,15 @@ mcp = FastMCP("Screenshot Tool")
 
 
 @mcp.tool()
-def take(window: str = "", list_windows: bool = False):
+def grab(window: str = ""):
     """
-    Take screenshots of windows.
+    Grab screenshots.
 
-    - take(list_windows=True) - list all window names
-    - take(window="Figure 1") - capture window by name, returns image
-    - take(window="0x1234567") - capture window by ID
+    - grab() - list all window names
+    - grab(window="Figure 1") - capture window by name, returns image
+    - grab(window="0x1234567") - capture window by ID
     """
-    if list_windows:
+    if not window:
         result = subprocess.run(
             ["xdotool", "search", "--name", ""],
             capture_output=True, text=True
@@ -34,9 +34,6 @@ def take(window: str = "", list_windows: bool = False):
                 windows.append({"id": wid, "name": name})
 
         return {"windows": windows}
-
-    if not window:
-        return {"error": "Specify window name or use list_windows=True"}
 
     # Check if window is an ID (hex) or name
     if window.startswith("0x"):

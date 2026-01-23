@@ -1,6 +1,4 @@
 import subprocess
-import tempfile
-from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP, Image
 
@@ -48,12 +46,12 @@ def grab(window: str = ""):
             return {"error": f"No window found matching '{window}'"}
         window_id = window_ids[0]
 
-    # Capture window
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        temp_path = f.name
+    # Capture window using maim (outputs PNG to stdout by default)
+    result = subprocess.run(
+        ["maim", "-i", window_id],
+        capture_output=True
+    )
+    if result.returncode != 0:
+        return {"error": f"Capture failed: {result.stderr.decode()}"}
 
-    subprocess.run(["import", "-window", window_id, temp_path], check=True)
-    png_bytes = Path(temp_path).read_bytes()
-    Path(temp_path).unlink()
-
-    return [Image(data=png_bytes, format="png")]
+    return Image(data=result.stdout, format="png")

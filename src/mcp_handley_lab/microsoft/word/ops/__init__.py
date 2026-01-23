@@ -82,8 +82,10 @@ from mcp_handley_lab.microsoft.word.ops.footnotes import (
     _ensure_note_styles,
     _get_safe_note_id,
     add_footnote,
+    add_footnote_ooxml,
     build_footnotes,
     delete_footnote,
+    delete_footnote_ooxml,
 )
 from mcp_handley_lab.microsoft.word.ops.headers import (
     append_to_header_footer,
@@ -446,7 +448,9 @@ __all__ = [
     "_create_minimal_notes_xml",
     "_ensure_note_styles",
     "add_footnote",
+    "add_footnote_ooxml",
     "delete_footnote",
+    "delete_footnote_ooxml",
     # Bookmarks
     "_RESERVED_BOOKMARK_PREFIXES",
     "_get_next_bookmark_id",

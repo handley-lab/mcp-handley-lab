@@ -100,8 +100,10 @@ from mcp_handley_lab.microsoft.word.ops.footnotes import (  # noqa: F401
     _ensure_note_styles,
     _get_safe_note_id,
     add_footnote,
+    add_footnote_ooxml,
     build_footnotes,
     delete_footnote,
+    delete_footnote_ooxml,
 )
 from mcp_handley_lab.microsoft.word.ops.headers import (  # noqa: F401
     append_to_header_footer,

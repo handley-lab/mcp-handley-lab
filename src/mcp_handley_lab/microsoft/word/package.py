@@ -85,6 +85,22 @@ class WordPackage(OpcPackage):
             pkg._load_from_stream(file)
         return pkg
 
+    def _reload_from_file(self, path: str | Path) -> None:
+        """Reload package contents from file after external modification.
+
+        Used for operations like footnotes that require saving to disk
+        and then continuing with batch operations.
+        """
+        # Clear existing state
+        self._xml.clear()
+        self._bytes.clear()
+        self._rels.clear()
+        self._dirty_xml.clear()
+        self._dirty_rels.clear()
+        # Reload from file
+        with open(path, "rb") as f:
+            self._load_from_stream(f)
+
     @classmethod
     def new(cls) -> WordPackage:
         """Create a new empty Word document."""

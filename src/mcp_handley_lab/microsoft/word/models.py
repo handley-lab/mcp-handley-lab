@@ -416,10 +416,29 @@ class DocumentReadResult(BaseModel):
     )  # For bibliography scope
 
 
-class EditResult(BaseModel):
-    """Result from edit() tool."""
+class OpResult(BaseModel):
+    """Result from a single operation (returned by _apply_operation)."""
 
+    index: int = 0  # 0-based position in ops array (set by edit() loop)
+    op: str = ""  # The operation type (set by edit() loop)
     success: bool
     element_id: str = ""
     comment_id: int | None = None
+    message: str = ""
+    error: str = ""  # Error message if success=False (from exception or validation)
+
+
+class EditResult(BaseModel):
+    """Result from edit() - now supports batch."""
+
+    success: bool  # True only if ALL operations succeeded
+    element_id: str = ""  # Last successful element_id (for single-op convenience)
+    comment_id: int | None = None
     message: str
+    # Batch fields (always present, even for single ops):
+    total: int = 1
+    succeeded: int = 0
+    failed: int = 0
+    results: list[OpResult] = Field(default_factory=list)  # Per-operation results
+    error: str = ""  # Batch-level error (parse, open, save failures)
+    saved: bool = False  # Whether document was saved

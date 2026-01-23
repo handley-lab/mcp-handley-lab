@@ -1,5 +1,6 @@
 """Tests for Word document visual rendering."""
 
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -8,6 +9,12 @@ import pytest
 
 from mcp_handley_lab.microsoft.word.ops.render import render_to_images, render_to_pdf
 from mcp_handley_lab.microsoft.word.tool import mcp
+
+
+def _ops(operations: list[dict]) -> str:
+    """Helper to convert operation list to ops JSON string."""
+    return json.dumps(operations)
+
 
 # Check for required binaries
 has_libreoffice = shutil.which("libreoffice") or shutil.which("soffice")
@@ -28,13 +35,22 @@ async def sample_docx():
     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as f:
         path = Path(f.name)
 
+    # Create document with initial empty paragraph
+    await mcp.call_tool("create", {"file_path": str(path)})
+    # Append content
     await mcp.call_tool(
         "edit",
         {
             "file_path": str(path),
-            "operation": "create",
-            "content_type": "paragraph",
-            "content_data": "Test content for rendering",
+            "ops": _ops(
+                [
+                    {
+                        "op": "append",
+                        "content_type": "paragraph",
+                        "content_data": "Test content for rendering",
+                    }
+                ]
+            ),
         },
     )
     yield path
@@ -47,36 +63,30 @@ async def multi_page_docx():
     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as f:
         path = Path(f.name)
 
-    # Create document with first paragraph
-    await mcp.call_tool(
-        "edit",
+    # Create document with initial empty paragraph
+    await mcp.call_tool("create", {"file_path": str(path)})
+
+    # Add first heading and all page breaks with content in a single batch
+    ops = [
         {
-            "file_path": str(path),
-            "operation": "create",
+            "op": "append",
             "content_type": "heading",
             "content_data": "Page 1 Content",
             "heading_level": 1,
-        },
-    )
-
-    # Add page breaks and content for pages 2-5
+        }
+    ]
     for i in range(2, 6):
-        # Add page break
-        await mcp.call_tool(
-            "edit",
-            {"file_path": str(path), "operation": "add_page_break"},
-        )
-        # Add content
-        await mcp.call_tool(
-            "edit",
+        ops.append({"op": "add_page_break"})
+        ops.append(
             {
-                "file_path": str(path),
-                "operation": "append",
+                "op": "append",
                 "content_type": "heading",
                 "content_data": f"Page {i} Content",
                 "heading_level": 1,
-            },
+            }
         )
+
+    await mcp.call_tool("edit", {"file_path": str(path), "ops": _ops(ops)})
 
     yield path
     path.unlink(missing_ok=True)

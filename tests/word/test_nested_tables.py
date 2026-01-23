@@ -5,6 +5,7 @@ Tests the hierarchical ID system for targeting nested tables:
 - table_abc_0#r0c0/tbl0/r1c2 - cell (1,2) in nested table
 """
 
+import json
 import tempfile
 from pathlib import Path
 
@@ -15,6 +16,11 @@ from mcp.server.fastmcp.exceptions import ToolError
 from mcp_handley_lab.microsoft.word.constants import qn
 from mcp_handley_lab.microsoft.word.package import WordPackage
 from mcp_handley_lab.microsoft.word.tool import mcp
+
+
+def _ops(operations: list[dict]) -> str:
+    """Helper to convert operation list to ops JSON string."""
+    return json.dumps(operations)
 
 
 def _create_doc_with_nested_table() -> Path:
@@ -251,11 +257,17 @@ async def test_edit_nested_table_cell(nested_table_doc):
         "edit",
         {
             "file_path": str(nested_table_doc),
-            "operation": "edit_cell",
-            "target_id": nested_table_id,
-            "row": 1,
-            "col": 1,
-            "content_data": "MODIFIED",
+            "ops": _ops(
+                [
+                    {
+                        "op": "edit_cell",
+                        "target_id": nested_table_id,
+                        "row": 1,
+                        "col": 1,
+                        "content_data": "MODIFIED",
+                    }
+                ]
+            ),
         },
     )
 
@@ -311,9 +323,15 @@ async def test_edit_nested_table_add_row(nested_table_doc):
         "edit",
         {
             "file_path": str(nested_table_doc),
-            "operation": "add_row",
-            "target_id": nested_table_id,
-            "content_data": '["New A", "New B"]',
+            "ops": _ops(
+                [
+                    {
+                        "op": "add_row",
+                        "target_id": nested_table_id,
+                        "content_data": '["New A", "New B"]',
+                    }
+                ]
+            ),
         },
     )
 
@@ -366,9 +384,15 @@ async def test_edit_nested_table_set_alignment(nested_table_doc):
         "edit",
         {
             "file_path": str(nested_table_doc),
-            "operation": "set_table_alignment",
-            "target_id": nested_table_id,
-            "content_data": "center",
+            "ops": _ops(
+                [
+                    {
+                        "op": "set_table_alignment",
+                        "target_id": nested_table_id,
+                        "content_data": "center",
+                    }
+                ]
+            ),
         },
     )
 
@@ -490,11 +514,17 @@ async def test_backward_compatibility_non_nested_tables(nested_table_doc):
         "edit",
         {
             "file_path": str(nested_table_doc),
-            "operation": "edit_cell",
-            "target_id": outer_table_id,
-            "row": 1,
-            "col": 1,
-            "content_data": "Modified Outer D",
+            "ops": _ops(
+                [
+                    {
+                        "op": "edit_cell",
+                        "target_id": outer_table_id,
+                        "row": 1,
+                        "col": 1,
+                        "content_data": "Modified Outer D",
+                    }
+                ]
+            ),
         },
     )
 
@@ -650,11 +680,17 @@ async def test_deep_nesting_two_levels():
             "edit",
             {
                 "file_path": str(path),
-                "operation": "edit_cell",
-                "target_id": l2_table_id,
-                "row": 0,
-                "col": 0,
-                "content_data": "DEEP EDIT",
+                "ops": _ops(
+                    [
+                        {
+                            "op": "edit_cell",
+                            "target_id": l2_table_id,
+                            "row": 0,
+                            "col": 0,
+                            "content_data": "DEEP EDIT",
+                        }
+                    ]
+                ),
             },
         )
 

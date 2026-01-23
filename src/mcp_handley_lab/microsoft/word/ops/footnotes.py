@@ -302,17 +302,17 @@ def _ensure_note_styles(styles_root, note_type: str) -> None:
 # =============================================================================
 
 
-def add_footnote(
-    doc_path: str,
+def add_footnote_ooxml(
+    pkg: WordPackage,
     target_id: str,
     text: str,
     note_type: str = "footnote",
     position: str = "after",
 ) -> int:
-    """Add a footnote or endnote to a document.
+    """Add a footnote or endnote to an open package (no save).
 
     Args:
-        doc_path: Path to the Word document
+        pkg: Open WordPackage
         target_id: Block ID where the reference should be placed
         text: Content of the footnote/endnote
         note_type: "footnote" or "endnote"
@@ -323,13 +323,9 @@ def add_footnote(
 
     Raises:
         ValueError: If target not found or invalid location
-        FileNotFoundError: If document not found
     """
     ns = {"w": _FN_W_NS}
     notes_partname = f"/word/{note_type}s.xml"
-
-    # Load document with WordPackage (raises FileNotFoundError naturally)
-    pkg = WordPackage.open(doc_path)
 
     # Use resolve_target to get the target paragraph element directly
     try:
@@ -430,29 +426,53 @@ def add_footnote(
     # Mark document and notes as dirty
     mark_dirty(pkg)
     pkg.mark_xml_dirty(notes_partname)
+    return note_id
 
-    # Save changes
+
+def add_footnote(
+    doc_path: str,
+    target_id: str,
+    text: str,
+    note_type: str = "footnote",
+    position: str = "after",
+) -> int:
+    """Add a footnote or endnote to a document (opens, modifies, saves).
+
+    Args:
+        doc_path: Path to the Word document
+        target_id: Block ID where the reference should be placed
+        text: Content of the footnote/endnote
+        note_type: "footnote" or "endnote"
+        position: "after" (end of paragraph) or "before" (start)
+
+    Returns:
+        The ID of the new footnote/endnote
+
+    Raises:
+        ValueError: If target not found or invalid location
+        FileNotFoundError: If document not found
+    """
+    pkg = WordPackage.open(doc_path)
+    note_id = add_footnote_ooxml(pkg, target_id, text, note_type, position)
     pkg.save(doc_path)
     return note_id
 
 
-def delete_footnote(doc_path: str, note_id: int, note_type: str = "footnote") -> None:
-    """Delete a footnote or endnote from a document.
+def delete_footnote_ooxml(
+    pkg: WordPackage, note_id: int, note_type: str = "footnote"
+) -> None:
+    """Delete a footnote or endnote from an open package (no save).
 
     Args:
-        doc_path: Path to the Word document
+        pkg: Open WordPackage
         note_id: ID of the footnote/endnote to delete
         note_type: "footnote" or "endnote"
 
     Raises:
         ValueError: If note not found
-        FileNotFoundError: If document not found
     """
     ns = {"w": _FN_W_NS}
     notes_partname = f"/word/{note_type}s.xml"
-
-    # Load document with WordPackage (raises FileNotFoundError naturally)
-    pkg = WordPackage.open(doc_path)
 
     # Get notes XML
     notes_root = pkg.footnotes_xml if note_type == "footnote" else pkg.endnotes_xml
@@ -479,7 +499,23 @@ def delete_footnote(doc_path: str, note_id: int, note_type: str = "footnote") ->
     for fn in _fn_xpath(notes_root, f"//w:{note_type}[@w:id='{note_id}']", ns):
         notes_root.remove(fn)
 
-    # Mark modified parts as dirty and save
+    # Mark modified parts as dirty
     mark_dirty(pkg)
     pkg.mark_xml_dirty(notes_partname)
+
+
+def delete_footnote(doc_path: str, note_id: int, note_type: str = "footnote") -> None:
+    """Delete a footnote or endnote from a document (opens, modifies, saves).
+
+    Args:
+        doc_path: Path to the Word document
+        note_id: ID of the footnote/endnote to delete
+        note_type: "footnote" or "endnote"
+
+    Raises:
+        ValueError: If note not found
+        FileNotFoundError: If document not found
+    """
+    pkg = WordPackage.open(doc_path)
+    delete_footnote_ooxml(pkg, note_id, note_type)
     pkg.save(doc_path)

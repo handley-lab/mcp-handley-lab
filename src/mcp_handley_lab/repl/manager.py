@@ -15,12 +15,9 @@ from datetime import datetime
 from pathlib import Path
 
 from mcp_handley_lab.repl.backends import BackendConfig, get_backend
-from mcp_handley_lab.repl.sentinel import (
-    SentinelStyle,
-    check_completion,
+from mcp_handley_lab.repl.completion import (
+    PromptDetector,
     extract_output,
-    generate_sentinel_id,
-    wrap_code_with_sentinel,
 )
 
 TMUX_SESSION = "mcp-repls"
@@ -121,7 +118,9 @@ class TmuxSessionManager:
         sessions.pop(session_id, None)
         self._save_sessions(sessions)
 
-    def _log_command(self, session_id: str, code: str, output: str, exit_code: int | None) -> None:
+    def _log_command(
+        self, session_id: str, code: str, output: str, exit_code: int | None
+    ) -> None:
         """Log a command execution to history."""
         history_file = self._history_dir / f"{session_id}.jsonl"
         entry = {
@@ -158,25 +157,33 @@ class TmuxSessionManager:
 
         # Create new window with the REPL command
         command = " ".join(config.command)
-        result = _run_tmux([
-            "new-window",
-            "-t", TMUX_SESSION,
-            "-n", window_name,
-            "-P", "-F", "#{pane_id}",
-            command,
-        ])
+        result = _run_tmux(
+            [
+                "new-window",
+                "-t",
+                TMUX_SESSION,
+                "-n",
+                window_name,
+                "-P",
+                "-F",
+                "#{pane_id}",
+                command,
+            ]
+        )
 
         pane_id = result.stdout.strip()
 
         # Store metadata
         self._add_session(pane_id, backend, window_name)
 
-        # Give the REPL a moment to start
-        time.sleep(0.3)
+        # Give the REPL a moment to start and display its prompt
+        time.sleep(0.5)
 
         return pane_id
 
-    def send_code(self, session_id: str, code: str, bracketed_paste: bool = True) -> None:
+    def send_code(
+        self, session_id: str, code: str, bracketed_paste: bool = True
+    ) -> None:
         """Send code to a session.
 
         Uses bracketed paste mode for safe multi-line transmission via
@@ -187,14 +194,16 @@ class TmuxSessionManager:
             code: The code to send.
             bracketed_paste: Use bracketed paste mode (default True).
         """
-        # Ensure code ends with double newline to trigger execution
-        # Python REPL needs blank line after compound statements
-        code = code.rstrip("\n") + "\n\n"
+        code = code.rstrip("\n")
 
         if bracketed_paste:
+            # Bracketed paste: we'll send Enter separately, so don't add newline
+            # For multi-line code, add one newline to end the block (Python needs this)
+            if "\n" in code:
+                code = code + "\n"
             # Use tmux buffer for bracketed paste
             # 1. Load code into tmux buffer from stdin
-            load_proc = subprocess.run(
+            subprocess.run(
                 ["tmux", "load-buffer", "-"],
                 input=code,
                 capture_output=True,
@@ -205,13 +214,19 @@ class TmuxSessionManager:
             # 2. Paste with bracketed paste mode (-p) and delete buffer (-d)
             _run_tmux(["paste-buffer", "-p", "-d", "-t", session_id])
 
-            # 3. Send extra Enter to trigger execution after bracketed paste
+            # 3. Send Enter to trigger execution (bracketed paste doesn't auto-execute)
             _run_tmux(["send-keys", "-t", session_id, "Enter"])
         else:
             # Fallback: send-keys (for REPLs that don't support bracketed paste)
+            # Add newline for multi-line code to end blocks
+            if "\n" in code:
+                code = code + "\n"
             _run_tmux(["send-keys", "-t", session_id, "-l", code])
+            _run_tmux(["send-keys", "-t", session_id, "Enter"])
 
-    def capture_output(self, session_id: str, lines: int = DEFAULT_CAPTURE_LINES) -> str:
+    def capture_output(
+        self, session_id: str, lines: int = DEFAULT_CAPTURE_LINES
+    ) -> str:
         """Capture current pane output.
 
         Args:
@@ -221,12 +236,17 @@ class TmuxSessionManager:
         Returns:
             The captured output with ANSI codes stripped.
         """
-        result = _run_tmux([
-            "capture-pane",
-            "-t", session_id,
-            "-p",  # Print to stdout
-            "-S", f"-{lines}",  # Start from N lines back
-        ], check=False)
+        result = _run_tmux(
+            [
+                "capture-pane",
+                "-t",
+                session_id,
+                "-p",  # Print to stdout
+                "-S",
+                f"-{lines}",  # Start from N lines back
+            ],
+            check=False,
+        )
 
         if result.returncode != 0:
             raise RuntimeError(f"Failed to capture pane output: {result.stderr}")
@@ -274,13 +294,15 @@ class TmuxSessionManager:
 
         for session_id, meta in sessions.items():
             if session_id in actual_panes:
-                active_sessions.append(SessionInfo(
-                    session_id=session_id,
-                    backend=meta.get("backend", "unknown"),
-                    name=meta.get("name", actual_panes[session_id]),
-                    created_at=meta.get("created_at", ""),
-                    pane_id=session_id,
-                ))
+                active_sessions.append(
+                    SessionInfo(
+                        session_id=session_id,
+                        backend=meta.get("backend", "unknown"),
+                        name=meta.get("name", actual_panes[session_id]),
+                        created_at=meta.get("created_at", ""),
+                        pane_id=session_id,
+                    )
+                )
             else:
                 orphaned.append(session_id)
 
@@ -340,9 +362,10 @@ class TmuxSessionManager:
         code: str,
         timeout: int = 30,
     ) -> tuple[str, int | None]:
-        """Execute code and wait for completion.
+        """Execute code and wait for completion via prompt detection.
 
-        Uses the sentinel protocol to detect when execution completes.
+        Sends code to the REPL and waits for the prompt to reappear,
+        then extracts the output between prompts.
 
         Args:
             session_id: The tmux pane ID.
@@ -350,7 +373,8 @@ class TmuxSessionManager:
             timeout: Maximum seconds to wait for completion.
 
         Returns:
-            Tuple of (output, exit_code). exit_code is None if timed out.
+            Tuple of (output, exit_code). exit_code is always None
+            (prompt-based detection doesn't capture exit codes).
 
         Raises:
             RuntimeError: If the session doesn't exist or backend is unknown.
@@ -362,37 +386,52 @@ class TmuxSessionManager:
         if config is None:
             raise RuntimeError(f"Unknown backend for session {session_id}")
 
-        # Generate sentinel and wrap code
-        sentinel_id = generate_sentinel_id()
-        wrapped_code = wrap_code_with_sentinel(code, sentinel_id, config.sentinel_style)
+        # Compile prompt and continuation patterns
+        prompt_pattern = re.compile(config.prompt_regex, re.MULTILINE)
+        continuation_pattern = (
+            re.compile(config.continuation_regex, re.MULTILINE)
+            if config.continuation_regex
+            else None
+        )
 
-        # Clear some scrollback context by capturing first
-        # This helps isolate our output from previous commands
-        self.capture_output(session_id, lines=10)
+        # 1. Capture baseline output before sending command
+        baseline_output = self.capture_output(session_id, lines=1000)
+        detector = PromptDetector(prompt_pattern)
 
-        # Send the wrapped code
-        self.send_code(session_id, wrapped_code)
+        # 2. Send code (no sentinel wrapping)
+        self.send_code(
+            session_id, code, bracketed_paste=config.supports_bracketed_paste
+        )
 
-        # Poll for completion
-        start_time = time.time()
-        poll_interval = 0.1
+        # 3. Wait for completion with two-phase polling
+        result = detector.wait_for_completion(
+            capture_func=lambda: self.capture_output(session_id, lines=1000),
+            baseline_output=baseline_output,
+            timeout=timeout,
+        )
 
-        while time.time() - start_time < timeout:
-            raw_output = self.capture_output(session_id)
+        # 4. Handle timeout
+        if not result.completed:
+            self.send_interrupt(session_id)
+            time.sleep(0.2)
+            # Capture final state after interrupt
+            result = type(result)(
+                completed=False,
+                captured_output=self.capture_output(session_id, lines=1000),
+                elapsed_seconds=result.elapsed_seconds,
+            )
 
-            if check_completion(raw_output, sentinel_id):
-                output, exit_code = extract_output(raw_output, sentinel_id)
-                self._log_command(session_id, code, output, exit_code)
-                return output, exit_code
+        # 5. Extract output by comparing baseline and captured
+        output = extract_output(
+            baseline_output,
+            result.captured_output,
+            prompt_pattern,
+            code,
+            config.echo_commands,
+            continuation_pattern,
+        )
 
-            time.sleep(poll_interval)
-            # Increase poll interval for longer-running commands
-            poll_interval = min(poll_interval * 1.2, 1.0)
-
-        # Timeout - try to interrupt and return partial output
-        self.send_interrupt(session_id)
-        time.sleep(0.2)
-        raw_output = self.capture_output(session_id)
-        output, _ = extract_output(raw_output, sentinel_id)
+        # 6. Log and return
+        timed_out = not result.completed
         self._log_command(session_id, code, output, None)
-        return output, None
+        return output, timed_out

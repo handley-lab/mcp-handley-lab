@@ -6,8 +6,8 @@ using tmux as the backend.
 
 Key features:
 - Sessions persist across MCP server restarts (tmux owns the processes)
-- Sentinel protocol for reliable command completion detection
-- Support for multiple backends (bash, ipython, python)
+- Prompt-based detection for reliable command completion
+- Support for multiple backends (bash, ipython, python, aichat, ollama, mathematica)
 - Command history logging
 - Session metadata persistence
 
@@ -25,7 +25,12 @@ Usage:
     destroy(session_id=session.session_id)
 """
 
-from mcp_handley_lab.repl.backends import BACKENDS, BackendConfig, get_backend, list_backends
+from mcp_handley_lab.repl.backends import (
+    BACKENDS,
+    BackendConfig,
+    get_backend,
+    list_backends,
+)
 from mcp_handley_lab.repl.manager import TmuxSessionManager
 from mcp_handley_lab.repl.tool import mcp
 

@@ -27,7 +27,9 @@ def _get_manager() -> TmuxSessionManager:
 class SessionCreateResult(BaseModel):
     """Result of creating a new REPL session."""
 
-    session_id: str = Field(..., description="Unique identifier for the session (tmux pane ID)")
+    session_id: str = Field(
+        ..., description="Unique identifier for the session (tmux pane ID)"
+    )
     backend: str = Field(..., description="The backend type (bash, ipython, python)")
     name: str = Field(..., description="Human-readable session name")
     message: str = Field(..., description="Status message")
@@ -94,7 +96,7 @@ def create(
 
 
 @mcp.tool(
-    description="Execute code in a REPL session. Uses sentinel protocol for reliable completion detection. Returns output and exit code. Variables persist between calls - load large data once, then run multiple queries against it. Only the output comes back into context, not the full data."
+    description="Execute code in a REPL session. Uses prompt detection for reliable completion detection. Returns output and exit code. Variables persist between calls - load large data once, then run multiple queries against it. Only the output comes back into context, not the full data."
 )
 def eval(
     session_id: str = Field(
@@ -112,12 +114,12 @@ def eval(
 ) -> EvalResult:
     """Execute code in a REPL session and return the output."""
     manager = _get_manager()
-    output, exit_code = manager.eval(session_id, code, timeout)
+    output, timed_out = manager.eval(session_id, code, timeout)
 
     return EvalResult(
         output=output,
-        exit_code=exit_code,
-        timed_out=exit_code is None,
+        exit_code=None,  # Prompt-based detection doesn't capture exit codes
+        timed_out=timed_out,
         session_id=session_id,
     )
 
@@ -145,9 +147,7 @@ def read(
     )
 
 
-@mcp.tool(
-    description="Send Ctrl-C to interrupt a running command in a REPL session."
-)
+@mcp.tool(description="Send Ctrl-C to interrupt a running command in a REPL session.")
 def interrupt(
     session_id: str = Field(
         ...,
@@ -204,9 +204,7 @@ def destroy(
     }
 
 
-@mcp.tool(
-    description="List available REPL backends (bash, ipython, python)."
-)
+@mcp.tool(description="List available REPL backends (bash, ipython, python).")
 def backends() -> list[BackendInfo]:
     """List all available backends."""
     return [

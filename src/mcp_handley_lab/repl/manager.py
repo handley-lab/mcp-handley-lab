@@ -35,27 +35,37 @@ def _capture(sid, n=500):
 
 def create(backend, name=None, args=None):
     if _run(["new-session", "-d", "-s", TMUX]).returncode == 0:
-        default_window = _run(["list-windows", "-t", TMUX, "-F", "#{window_id}"]).stdout.strip()
+        default_window = _run(
+            ["list-windows", "-t", TMUX, "-F", "#{window_id}"]
+        ).stdout.strip()
     else:
         default_window = None
 
     cfg = BACKENDS[backend]
     command = cfg.command + (args.split() if args else [])
     name = name or f"{backend}-{datetime.now().strftime('%H%M%S')}"
-    res = _run(["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *command])
+    res = _run(
+        ["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *command]
+    )
     pane_id = res.stdout.strip()
 
     if default_window:
         _run(["kill-window", "-t", default_window])
 
     sessions = _load()
-    sessions[pane_id] = {"backend": backend, "name": name, "created_at": datetime.now().isoformat()}
+    sessions[pane_id] = {
+        "backend": backend,
+        "name": name,
+        "created_at": datetime.now().isoformat(),
+    }
     _save(sessions)
     return pane_id
 
 
 def list_sessions():
-    panes = set(_run(["list-panes", "-t", TMUX, "-F", "#{pane_id}"], check=False).stdout.split())
+    panes = set(
+        _run(["list-panes", "-t", TMUX, "-F", "#{pane_id}"], check=False).stdout.split()
+    )
     return [{"session_id": k, **v} for k, v in _load().items() if k in panes]
 
 
@@ -73,7 +83,9 @@ def parse_cells(sid):
     # Match prompt at start of line (not requiring end of line)
     prompt_start = cfg.prompt_regex.rstrip("$")
     prompt = re.compile(prompt_start, re.M)
-    continuation = re.compile(cfg.continuation_regex) if cfg.continuation_regex else None
+    continuation = (
+        re.compile(cfg.continuation_regex) if cfg.continuation_regex else None
+    )
 
     lines = output.split("\n")
     cells = []
@@ -85,32 +97,36 @@ def parse_cells(sid):
         if match:
             # Save previous cell if we have content
             if current_input or current_output:
-                cells.append({
-                    "index": len(cells),
-                    "input": "\n".join(current_input),
-                    "output": "\n".join(current_output).strip()
-                })
+                cells.append(
+                    {
+                        "index": len(cells),
+                        "input": "\n".join(current_input),
+                        "output": "\n".join(current_output).strip(),
+                    }
+                )
                 current_input = []
                 current_output = []
             # Extract input after prompt
-            input_text = line[match.end():].strip()
+            input_text = line[match.end() :].strip()
             if input_text:
                 current_input.append(input_text)
         elif continuation and continuation.match(line):
             # Continuation line - append to input
             cont_match = continuation.match(line)
-            current_input.append(line[cont_match.end():])
+            current_input.append(line[cont_match.end() :])
         elif current_input:
             # We have input, so this is output
             current_output.append(line)
 
     # Save final cell if it has content (but not if just waiting at prompt)
     if current_input and current_output:
-        cells.append({
-            "index": len(cells),
-            "input": "\n".join(current_input),
-            "output": "\n".join(current_output).strip()
-        })
+        cells.append(
+            {
+                "index": len(cells),
+                "input": "\n".join(current_input),
+                "output": "\n".join(current_output).strip(),
+            }
+        )
 
     return cells
 
@@ -157,7 +173,10 @@ def read_cells(sid, cell=None):
 def eval_code(sid, code, timeout=30):
     cfg = BACKENDS[_load()[sid]["backend"]]
     prompt = re.compile(cfg.prompt_regex, re.M)
-    cap = lambda: _capture(sid, 1000)
+
+    def cap():
+        return _capture(sid, 1000)
+
     base = cap()
 
     # Send code
@@ -175,8 +194,12 @@ def eval_code(sid, code, timeout=30):
         out = cap()
 
     output = extract_output(
-        base, out, prompt, code, cfg.echo_commands,
-        re.compile(cfg.continuation_regex, re.M) if cfg.continuation_regex else None
+        base,
+        out,
+        prompt,
+        code,
+        cfg.echo_commands,
+        re.compile(cfg.continuation_regex, re.M) if cfg.continuation_regex else None,
     )
 
     # Get cell index

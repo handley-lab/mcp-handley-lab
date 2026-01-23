@@ -13,7 +13,7 @@ def session(
     backend: str = "bash",
     name: str = "",
     cell: str = "",
-    args: str = ""
+    args: str = "",
 ) -> dict:
     """
     Manage REPL sessions.

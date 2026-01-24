@@ -42,6 +42,18 @@ cd mcp-handley-lab
 pipx install .
 ```
 
+### Arch Linux
+
+A PKGBUILD is included in the repository for native package manager integration:
+
+```bash
+git clone git@github.com:handley-lab/mcp-handley-lab.git
+cd mcp-handley-lab
+makepkg -si
+```
+
+This installs to `/usr/bin/` and is managed by pacman. Note that `uv` and `pipx` are also available in the official Arch repos (`pacman -S uv` or `pacman -S python-pipx`).
+
 ### Development Installation
 
 For contributors who want to modify the code:

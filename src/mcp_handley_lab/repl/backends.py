@@ -66,7 +66,7 @@ BACKENDS = {
         "ollama",
         ["ollama", "run", "llama3"],
         "Ollama LLM",
-        r"^>>> ?$",
+        r"^>>> ",
         supports_bracketed_paste=False,
         echo_commands=False,
     ),

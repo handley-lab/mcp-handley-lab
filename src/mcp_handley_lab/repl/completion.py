@@ -17,7 +17,7 @@ def wait_for_completion(capture, baseline, prompt, timeout):
     stable = None
 
     while (t := now() - start) < timeout:
-        time.sleep(0.2 if t < 1 else 3)
+        time.sleep(0.2 if t < 1 else 1)
         cur = capture()
         if cur != prev:
             prev = cur

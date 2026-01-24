@@ -269,6 +269,60 @@ This pattern works because:
 - The unified `llm-chat` tool can read files as context
 - The provider is automatically inferred from the model name
 
+## Direct LLM Access in Python
+
+For advanced workflows, you can use the `llm` module directly from Python without going through MCP:
+
+```python
+from mcp_handley_lab import llm
+
+# Simple query
+result = llm.query("What is 2+2?")
+print(result.text)  # "The answer is 4."
+
+# With different provider
+result = llm.query("Hello", model="openai")
+
+# With provider-specific options
+result = llm.query("Search for Python tutorials", model="gemini", options={"grounding": True})
+
+# Access token usage
+print(f"Input: {result.input_tokens}, Output: {result.output_tokens}")
+```
+
+### Recursive LLM Pattern for Large Documents
+
+For documents too large to fit in context (>100K tokens), use the Recursive LLM pattern inspired by the [RLM paper](https://arxiv.org/abs/2502.07413). This approach processes documents in chunks using sub-LLM calls from within a REPL session:
+
+```python
+# In a Python REPL session (mcp__repl__session)
+from mcp_handley_lab import llm
+from pathlib import Path
+
+# Process a large file in chunks
+context_path = Path("/path/to/large/document.txt")
+results = []
+chunk_size = 100_000  # ~25K tokens
+
+with open(context_path, 'rb') as f:
+    offset = 0
+    while chunk := f.read(chunk_size):
+        text = chunk.decode('utf-8', errors='replace')
+        result = llm.query(f'''Extract key facts from this chunk.
+<document_chunk offset="{offset}">
+{text}
+</document_chunk>''')
+        results.append({"offset": offset, "summary": result.text})
+        offset += len(chunk)
+
+# Aggregate results
+summaries = "\n".join(f"[{r['offset']}]: {r['summary']}" for r in results)
+final = llm.query(f"Synthesize these summaries:\n{summaries}")
+print(final.text)
+```
+
+The `/recursive-llm` skill (in `.claude/skills/recursive-llm/SKILL.md`) provides detailed guidance on when and how to use this pattern.
+
 
 ## Testing
 

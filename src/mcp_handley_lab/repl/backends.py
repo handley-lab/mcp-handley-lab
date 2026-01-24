@@ -43,7 +43,11 @@ BACKENDS = {
         supports_bracketed_paste=False,
     ),
     "apl": BackendConfig(
-        "apl", ["apl"], "GNU APL", r"^      ?$", supports_bracketed_paste=False
+        "apl",
+        ["apl"],
+        "GNU APL",
+        r"      $",
+        supports_bracketed_paste=False,
     ),
     "maple": BackendConfig(
         "maple",

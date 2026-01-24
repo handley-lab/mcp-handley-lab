@@ -6,9 +6,10 @@ class BackendConfig(NamedTuple):
     command: list[str]
     description: str
     prompt_regex: str
-    continuation_regex: str | None = None
+    continuation_regex: str = ""
     supports_bracketed_paste: bool = True
     echo_commands: bool = True
+    default_args: str = ""  # Used when no args provided
 
 
 BACKENDS = {
@@ -24,6 +25,7 @@ BACKENDS = {
         "IPython",
         r"^In \[\d+\]: ?$",
         r"^   \.\.\.:",
+        default_args="--matplotlib",
     ),
     "aichat": BackendConfig(
         "aichat",
@@ -45,5 +47,6 @@ BACKENDS = {
         "Mathematica",
         r"^In\[\d+\]:= ?$",
         supports_bracketed_paste=False,
+        default_args="-run $PrePrint=InputForm",
     ),
 }

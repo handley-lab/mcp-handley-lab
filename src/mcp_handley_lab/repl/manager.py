@@ -42,7 +42,8 @@ def create(backend, name=None, args=None):
         default_window = None
 
     cfg = BACKENDS[backend]
-    command = cfg.command + (args.split() if args else [])
+    extra_args = args or cfg.default_args
+    command = cfg.command + (extra_args.split() if extra_args else [])
     name = name or f"{backend}-{datetime.now().strftime('%H%M%S')}"
     res = _run(
         ["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *command]

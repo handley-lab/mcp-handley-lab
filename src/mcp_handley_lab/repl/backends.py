@@ -18,7 +18,12 @@ BACKENDS = {
     ),
     "zsh": BackendConfig("zsh", ["zsh"], "Zsh shell", r"^.*[%$#] ?$"),
     "python": BackendConfig(
-        "python", ["python3", "-u"], "Python interpreter", r"^>>> ?$", r"^\.\.\."
+        "python",
+        ["python3", "-u"],
+        "Python interpreter",
+        r"^>>> ?$",
+        r"^\.\.\.",
+        supports_bracketed_paste=False,
     ),
     "ipython": BackendConfig(
         "ipython",
@@ -31,7 +36,11 @@ BACKENDS = {
     "julia": BackendConfig("julia", ["julia"], "Julia", r"^julia> ?$"),
     "R": BackendConfig("R", ["R", "--quiet"], "R", r"^> ?$", r"^\+ ?$"),
     "clojure": BackendConfig(
-        "clojure", ["clojure"], "Clojure", r"^[a-zA-Z0-9._-]+=> ?$"
+        "clojure",
+        ["clojure"],
+        "Clojure",
+        r"^[a-zA-Z0-9._-]+=> ?$",
+        supports_bracketed_paste=False,
     ),
     "apl": BackendConfig(
         "apl", ["apl"], "GNU APL", r"^      ?$", supports_bracketed_paste=False
@@ -54,6 +63,7 @@ BACKENDS = {
         ["ollama", "run", "llama3"],
         "Ollama LLM",
         r"^>>> ?$",
+        supports_bracketed_paste=False,
         echo_commands=False,
     ),
     "mathematica": BackendConfig(

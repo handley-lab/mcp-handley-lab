@@ -3,8 +3,10 @@ import time
 
 def _ends_prompt(text, prompt):
     for line in reversed(text.split("\n")):
+        if prompt.match(line):
+            return True
         if line.strip():
-            return bool(prompt.match(line))
+            return False
     return False
 
 

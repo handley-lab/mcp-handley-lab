@@ -30,7 +30,10 @@ def _save(s):
 
 
 def _capture(sid, n=500):
-    return ANSI.sub("", _run(["capture-pane", "-t", sid, "-p", "-S", f"-{n}"]).stdout)
+    # -e preserves escape codes which prevents tmux from stripping trailing whitespace
+    return ANSI.sub(
+        "", _run(["capture-pane", "-e", "-t", sid, "-p", "-S", f"-{n}"]).stdout
+    )
 
 
 def create(backend, name=None, args=None):

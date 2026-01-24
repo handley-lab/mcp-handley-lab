@@ -55,13 +55,6 @@ BACKENDS = {
         "Maple",
         r"^> ?$",
     ),
-    "aichat": BackendConfig(
-        "aichat",
-        ["aichat", "--session", "mcp"],
-        "aichat LLM",
-        r"^> ?$",
-        echo_commands=False,
-    ),
     "ollama": BackendConfig(
         "ollama",
         ["ollama", "run", "llama3"],

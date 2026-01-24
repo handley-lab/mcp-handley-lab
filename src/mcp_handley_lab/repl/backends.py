@@ -16,6 +16,7 @@ BACKENDS = {
     "bash": BackendConfig(
         "bash", ["bash", "--norc", "--noprofile"], "Bash shell", r"^.*\$ ?$"
     ),
+    "zsh": BackendConfig("zsh", ["zsh"], "Zsh shell", r"^.*[%$#] ?$"),
     "python": BackendConfig(
         "python", ["python3", "-u"], "Python interpreter", r"^>>> ?$", r"^\.\.\."
     ),
@@ -26,6 +27,20 @@ BACKENDS = {
         r"^In \[\d+\]: ?$",
         r"^   \.\.\.:",
         default_args="--matplotlib",
+    ),
+    "julia": BackendConfig("julia", ["julia"], "Julia", r"^julia> ?$"),
+    "R": BackendConfig("R", ["R", "--quiet"], "R", r"^> ?$", r"^\+ ?$"),
+    "clojure": BackendConfig(
+        "clojure", ["clojure"], "Clojure", r"^[a-zA-Z0-9._-]+=> ?$"
+    ),
+    "apl": BackendConfig(
+        "apl", ["apl"], "GNU APL", r"^      ?$", supports_bracketed_paste=False
+    ),
+    "maple": BackendConfig(
+        "maple",
+        ["maple", "-c", "interface(errorcursor=false);"],
+        "Maple",
+        r"^> ?$",
     ),
     "aichat": BackendConfig(
         "aichat",

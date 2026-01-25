@@ -1,33 +1,23 @@
-import json
 import re
 import subprocess
 from datetime import datetime
-from pathlib import Path
 
 from mcp_handley_lab.repl.backends import BACKENDS
 from mcp_handley_lab.repl.completion import extract_output, wait_for_completion
 from mcp_handley_lab.repl.terminal import maybe_open_terminal
 
 TMUX = "mcp-repls"
-STORAGE = Path("~/.mcp-handley-lab/repl").expanduser()
-SESSIONS_FILE = STORAGE / "sessions.json"
 ANSI = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]|\x1b\][^\x07]*\x07")
-
-STORAGE.mkdir(parents=True, exist_ok=True)
-if not SESSIONS_FILE.exists():
-    SESSIONS_FILE.write_text("{}")
 
 
 def _run(args, **kw):
     return subprocess.run(["tmux", *args], capture_output=True, text=True, **kw)
 
 
-def _load():
-    return json.loads(SESSIONS_FILE.read_text())
-
-
-def _save(s):
-    SESSIONS_FILE.write_text(json.dumps(s))
+def _get_backend(sid):
+    """Get backend from window name (format: backend-suffix)."""
+    name = _run(["display-message", "-t", sid, "-p", "#{window_name}"]).stdout.strip()
+    return name.split("-")[0]
 
 
 def _capture(sid, n=500):
@@ -48,7 +38,7 @@ def create(backend, name=None, args=None):
     cfg = BACKENDS[backend]
     extra_args = args or cfg.default_args
     command = cfg.command + (extra_args.split() if extra_args else [])
-    name = name or f"{backend}-{datetime.now().strftime('%H%M%S')}"
+    name = f"{backend}-{name or datetime.now().strftime('%H%M%S')}"
     res = _run(
         ["new-window", "-t", TMUX, "-n", name, "-P", "-F", "#{pane_id}", *command]
     )
@@ -57,22 +47,22 @@ def create(backend, name=None, args=None):
     if default_window:
         _run(["kill-window", "-t", default_window])
 
-    sessions = _load()
-    sessions[pane_id] = {
-        "backend": backend,
-        "name": name,
-        "created_at": datetime.now().isoformat(),
-    }
-    _save(sessions)
     maybe_open_terminal(TMUX)
     return pane_id
 
 
 def list_sessions():
-    panes = set(
-        _run(["list-panes", "-t", TMUX, "-F", "#{pane_id}"], check=False).stdout.split()
+    result = _run(
+        ["list-panes", "-t", TMUX, "-F", "#{pane_id} #{window_name}"], check=False
     )
-    return [{"session_id": k, **v} for k, v in _load().items() if k in panes]
+    sessions = []
+    for line in result.stdout.strip().split("\n"):
+        if not line:
+            continue
+        pane_id, name = line.split(" ", 1)
+        backend = name.split("-")[0]
+        sessions.append({"session_id": pane_id, "backend": backend, "name": name})
+    return sessions
 
 
 def destroy(sid):
@@ -82,8 +72,7 @@ def destroy(sid):
 
 def parse_cells(sid):
     """Parse terminal output into cells based on backend prompts."""
-    meta = _load()[sid]
-    cfg = BACKENDS[meta["backend"]]
+    cfg = BACKENDS[_get_backend(sid)]
     output = _capture(sid, 2000)
 
     # Match prompt at start of line (not requiring end of line)
@@ -177,7 +166,7 @@ def read_cells(sid, cell=None):
 
 
 def eval_code(sid, code, timeout=30):
-    cfg = BACKENDS[_load()[sid]["backend"]]
+    cfg = BACKENDS[_get_backend(sid)]
     prompt = re.compile(cfg.prompt_regex, re.M)
 
     def cap():

@@ -1,17 +1,18 @@
 """Shared utilities for LLM providers."""
 
+import os
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from mcp_handley_lab.common.pricing import calculate_cost
 from mcp_handley_lab.llm import memory
-from mcp_handley_lab.llm.common import (
-    get_session_id,
-    load_prompt_text,
-)
+from mcp_handley_lab.llm.common import load_prompt_text
+from mcp_handley_lab.llm.registry import get_adapter, resolve_model, validate_options
 from mcp_handley_lab.shared.models import (
     GroundingMetadata,
     LLMResult,
+    UsageStats,
 )
 
 
@@ -33,11 +34,16 @@ def normalize_branch(branch: str) -> str | None:
 def _handle_memory_setup(
     branch: str,
     system_prompt: str | None,
-    mcp_instance,
     provider: str,
     from_ref: str | None = None,
 ) -> tuple[bool, str, list, str | None, Path | None, str | None]:
     """Set up memory for the LLM request.
+
+    Args:
+        branch: Already resolved branch name (callers handle "session" resolution)
+        system_prompt: System prompt for the conversation
+        provider: Provider name (for metadata)
+        from_ref: Optional ref to fork from
 
     Returns:
         (use_memory, actual_branch, history, system_instruction, project_dir, pending_system_prompt)
@@ -58,8 +64,7 @@ def _handle_memory_setup(
 
     if use_memory:
         actual_branch = normalized  # Use normalized branch name
-        if actual_branch == "session":
-            actual_branch = get_session_id(mcp_instance, provider)
+        # Note: "session" should already be resolved by caller to pid/client-scoped ID
 
         project_dir = memory.get_project_dir()
 
@@ -248,7 +253,6 @@ def process_llm_request(
     model: str,
     provider: str,
     generation_func: Callable,
-    mcp_instance,
     from_ref: str | None = None,
     **kwargs,
 ) -> LLMResult:
@@ -257,11 +261,10 @@ def process_llm_request(
     Args:
         prompt: The prompt text
         output_file: File path to save response
-        branch: Conversation branch name
+        branch: Already resolved branch name (callers handle "session" resolution)
         model: Model identifier
         provider: Provider name
         generation_func: Provider-specific generation function
-        mcp_instance: MCP server instance
         from_ref: Optional ref to fork from when creating new branch
         **kwargs: Additional arguments for the generation function
     """
@@ -290,9 +293,7 @@ def process_llm_request(
         system_instruction,
         project_dir,
         pending_system_prompt,
-    ) = _handle_memory_setup(
-        branch, final_system_prompt, mcp_instance, provider, from_ref
-    )
+    ) = _handle_memory_setup(branch, final_system_prompt, provider, from_ref)
 
     # Enhance prompt for image analysis
     final_prompt, user_prompt = _enhance_prompt_for_images(
@@ -330,8 +331,6 @@ def process_llm_request(
     if output_file:
         output_path = Path(output_file).expanduser()
         output_path.write_text(metadata["response_text"])
-
-    from mcp_handley_lab.shared.models import UsageStats
 
     usage_stats = UsageStats(
         input_tokens=metadata["input_tokens"],
@@ -374,3 +373,134 @@ def process_llm_request(
         citations=metadata["citations"],
         refusal=metadata["refusal"],
     )
+
+
+# =============================================================================
+# Public API - identical interface to MCP tools
+# =============================================================================
+
+
+def chat(
+    prompt: str | None = None,
+    prompt_file: str | None = None,
+    prompt_vars: dict[str, str] | None = None,
+    output_file: str = "",
+    branch: str = "session",
+    model: str = "gemini",
+    temperature: float = 1.0,
+    files: list[str] | None = None,
+    system_prompt: str | None = None,
+    system_prompt_file: str | None = None,
+    system_prompt_vars: dict[str, str] | None = None,
+    options: dict[str, Any] | None = None,
+    from_ref: str | None = None,
+) -> LLMResult:
+    """Chat with LLM. Identical interface to MCP chat() tool.
+
+    Args:
+        prompt: The message to send to the LLM
+        prompt_file: Path to file containing prompt (mutually exclusive with prompt)
+        prompt_vars: Variables for ${var} template substitution
+        output_file: File path to save response (empty = no file output)
+        branch: Conversation branch name ('session' uses pid-based ID, 'false' disables memory)
+        model: Model or provider name (gemini, openai, claude, etc.)
+        temperature: Controls randomness (0.0-2.0)
+        files: Files to include as context
+        system_prompt: System instructions for the conversation
+        system_prompt_file: Path to file containing system instructions
+        system_prompt_vars: Variables for system prompt template substitution
+        options: Provider-specific options
+        from_ref: Fork from this ref when creating new branch
+
+    Returns:
+        LLMResult with content, usage stats, branch, and commit_sha
+    """
+    provider, canonical_model, config = resolve_model(model)
+    validate_options(provider, model, config, options or {})
+    generation_func = get_adapter(
+        provider, "deep_research" if config.get("is_agent") else "generation"
+    )
+
+    # For non-MCP usage, resolve "session" to pid-based ID
+    actual_branch = branch
+    if branch == "session":
+        actual_branch = f"_session_{provider}_{os.getpid()}"
+
+    return process_llm_request(
+        prompt=prompt,
+        output_file=output_file,
+        branch=actual_branch,
+        model=canonical_model,
+        provider=provider,
+        generation_func=generation_func,
+        from_ref=from_ref,
+        prompt_file=prompt_file,
+        prompt_vars=prompt_vars,
+        temperature=temperature,
+        files=files or [],
+        system_prompt=system_prompt,
+        system_prompt_file=system_prompt_file,
+        system_prompt_vars=system_prompt_vars,
+        options=options or {},
+    )
+
+
+def conversation(
+    action: str,
+    branch: str = "",
+    ref: str = "",
+    index: int = -1,
+    limit: int = 20,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Manage conversation branches. Identical interface to MCP conversation() tool.
+
+    Args:
+        action: Action to perform: 'list', 'log', 'show', 'response', 'edit', 'done'
+        branch: Target branch for log/show/response actions
+        ref: Specific commit ref for show action
+        index: For response action: assistant message index (-1=last, 0=first)
+        limit: For log action: maximum entries to return
+        force: For done action: force removal even if lock not held
+
+    Returns:
+        Dict with action-specific results
+    """
+    project_dir = memory.get_project_dir()
+
+    if action == "list":
+        return {"branches": memory.list_branches(project_dir)}
+
+    elif action == "log":
+        if not branch:
+            raise ValueError("branch required for 'log' action")
+        return {"branch": branch, "entries": memory.get_log(project_dir, branch, limit)}
+
+    elif action == "show":
+        if not ref and not branch:
+            raise ValueError("Either 'ref' or 'branch' required for 'show' action")
+        if ref:
+            content, resolved_sha = memory.read_ref(project_dir, ref)
+            return {"content": content, "ref": resolved_sha}
+        sha = memory.get_branch_sha(project_dir, branch)
+        if sha is None:
+            raise ValueError(f"Branch '{branch}' not found")
+        content = memory.read_branch(project_dir, branch)
+        return {"content": content, "ref": sha, "branch": branch}
+
+    elif action == "response":
+        if not branch:
+            raise ValueError("branch required for 'response' action")
+        return memory.get_response(project_dir, branch, index)
+
+    elif action == "edit":
+        return memory.start_edit(project_dir)
+
+    elif action == "done":
+        memory.end_edit(project_dir, force=force)
+        return {"status": "success", "message": "Edit session ended"}
+
+    else:
+        raise ValueError(
+            f"Unknown action: {action}. Valid: list, log, show, response, edit, done"
+        )

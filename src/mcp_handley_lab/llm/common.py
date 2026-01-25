@@ -93,12 +93,9 @@ def load_prompt_text(
     return final_prompt
 
 
-def get_session_id(mcp_instance, provider: str = "default") -> str:
-    """Get persistent session ID for this MCP server process with provider isolation."""
-    context = mcp_instance.get_context()
-    client_id = getattr(context, "client_id", None)
-    base_id = client_id if client_id else os.getpid()
-    return f"_session_{provider}_{base_id}"
+def get_session_id(provider: str = "default") -> str:
+    """Get session ID for this process with provider isolation."""
+    return f"_session_{provider}_{os.getpid()}"
 
 
 def determine_mime_type(file_path: Path) -> str:

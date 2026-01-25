@@ -4,21 +4,30 @@ Provides a single entry point for multiple LLM providers (Gemini, OpenAI, Claude
 Mistral, Grok, Groq) with model-based provider inference and Git-backed memory.
 """
 
+import os
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from mcp_handley_lab.llm import memory
-from mcp_handley_lab.llm.registry import (
-    get_adapter,
-    resolve_model,
-    validate_options,
-)
+from mcp_handley_lab.llm.registry import get_adapter, resolve_model, validate_options
+from mcp_handley_lab.llm.shared import chat as _chat
+from mcp_handley_lab.llm.shared import conversation as _conversation
 from mcp_handley_lab.llm.shared import process_llm_request
-from mcp_handley_lab.shared.models import LLMResult
+from mcp_handley_lab.shared.models import LLMResult  # noqa: F401 - used in type hints
 
 mcp = FastMCP("Chat Tool")
+
+
+def _resolve_session_branch(branch: str, model: str = "gemini") -> str:
+    """Resolve 'session' branch to client-scoped ID for MCP context."""
+    if branch != "session":
+        return branch
+    # mcp.get_context() is instance method on FastMCP
+    context = mcp.get_context()
+    client_id = getattr(context, "client_id", None) or os.getpid()
+    provider, _, _ = resolve_model(model)
+    return f"_session_{provider}_{client_id}"
 
 
 @mcp.tool(
@@ -92,30 +101,20 @@ def chat(
     ),
 ) -> LLMResult:
     """Send a message to an LLM with automatic provider detection."""
-    provider, canonical_model, model_config = resolve_model(model)
-    validate_options(provider, model, model_config, options)
-
-    # Route agent models (e.g., deep research) to their specialized adapter
-    adapter_type = "deep_research" if model_config.get("is_agent") else "generation"
-    generation_func = get_adapter(provider, adapter_type)
-
-    return process_llm_request(
+    return _chat(
         prompt=prompt,
         prompt_file=prompt_file,
         prompt_vars=prompt_vars,
         output_file=output_file,
-        branch=branch,
-        model=canonical_model,
-        provider=provider,
-        generation_func=generation_func,
-        mcp_instance=mcp,
-        from_ref=from_ref,
+        branch=_resolve_session_branch(branch, model),
+        model=model,
         temperature=temperature,
         files=files,
         system_prompt=system_prompt,
         system_prompt_file=system_prompt_file,
         system_prompt_vars=system_prompt_vars,
         options=options,
+        from_ref=from_ref,
     )
 
 
@@ -171,11 +170,10 @@ def analyze_image(
     return process_llm_request(
         prompt=prompt,
         output_file=output_file,
-        branch=branch,
+        branch=_resolve_session_branch(branch, model),
         model=canonical_model,
         provider=provider,
         generation_func=analysis_func,
-        mcp_instance=mcp,
         images=images,
         focus=focus,
         system_prompt=system_prompt,
@@ -215,59 +213,14 @@ def conversation(
         description="For done action: force removal even if lock not held by this process.",
     ),
 ) -> dict[str, Any]:
-    """Git interface for conversation management.
-
-    Actions:
-    - list: List all conversation branches with stats (message count, latest timestamp)
-    - log: Get commit history for a branch with hashes for progressive disclosure
-    - show: Get full JSONL content at branch tip or specific ref
-    - response: Get assistant message by index (returns content, usage, metadata)
-    - edit: Start editing session (creates lock + worktree for Git operations)
-    - done: End editing session (removes worktree + lock)
-    """
-    project_dir = memory.get_project_dir()
-
-    if action == "list":
-        branches = memory.list_branches(project_dir)
-        return {"branches": branches}
-
-    elif action == "log":
-        if not branch:
-            raise ValueError("branch parameter is required for 'log' action")
-        log_entries = memory.get_log(project_dir, branch, limit)
-        return {"branch": branch, "entries": log_entries}
-
-    elif action == "show":
-        if not ref and not branch:
-            raise ValueError(
-                "Either 'ref' or 'branch' must be specified for 'show' action"
-            )
-
-        if ref:
-            content, resolved_sha = memory.read_ref(project_dir, ref)
-            return {"content": content, "ref": resolved_sha}
-        else:
-            # Check branch exists before reading
-            sha = memory.get_branch_sha(project_dir, branch)
-            if sha is None:
-                raise ValueError(f"Branch '{branch}' not found")
-            content = memory.read_branch(project_dir, branch)
-            return {"content": content, "ref": sha, "branch": branch}
-
-    elif action == "response":
-        if not branch:
-            raise ValueError("branch parameter is required for 'response' action")
-        return memory.get_response(project_dir, branch, index)
-
-    elif action == "edit":
-        # start_edit returns {"path": str} dict directly
-        return memory.start_edit(project_dir)
-
-    elif action == "done":
-        memory.end_edit(project_dir, force=force)
-        return {"status": "success", "message": "Edit session ended"}
-
-    else:
-        raise ValueError(
-            f"Unknown action: {action}. Valid actions: list, log, show, response, edit, done"
-        )
+    """Git interface for conversation management."""
+    # Resolve "session" branch for actions that use branch parameter
+    resolved_branch = _resolve_session_branch(branch) if branch else branch
+    return _conversation(
+        action=action,
+        branch=resolved_branch,
+        ref=ref,
+        index=index,
+        limit=limit,
+        force=force,
+    )

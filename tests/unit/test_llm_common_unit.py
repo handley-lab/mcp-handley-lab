@@ -2,7 +2,7 @@
 
 import base64
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -21,36 +21,17 @@ from mcp_handley_lab.llm.common import (
 class TestGetSessionId:
     """Test session ID generation."""
 
-    def test_get_session_id_with_valid_context(self):
-        """Test session ID with valid MCP context."""
-        mock_mcp = Mock()
-        mock_context = Mock()
-        mock_context.client_id = "test_client_123"
-        mock_mcp.get_context.return_value = mock_context
-
-        result = get_session_id(mock_mcp, "openai")
-        assert result == "_session_openai_test_client_123"
-
-    def test_get_session_id_no_client_id(self):
-        """Test session ID when context has no client_id."""
-        mock_mcp = Mock()
-        mock_context = Mock()
-        mock_context.client_id = None
-        mock_mcp.get_context.return_value = mock_context
-
+    def test_get_session_id_with_provider(self):
+        """Test session ID with specified provider."""
         with patch("os.getpid", return_value=12345):
-            result = get_session_id(mock_mcp, "gemini")
-            assert result == "_session_gemini_12345"
+            result = get_session_id("openai")
+            assert result == "_session_openai_12345"
 
     def test_get_session_id_default_provider(self):
         """Test session ID with default provider."""
-        mock_mcp = Mock()
-        mock_context = Mock()
-        mock_context.client_id = "test_client_456"
-        mock_mcp.get_context.return_value = mock_context
-
-        result = get_session_id(mock_mcp)
-        assert result == "_session_default_test_client_456"
+        with patch("os.getpid", return_value=67890):
+            result = get_session_id()
+            assert result == "_session_default_67890"
 
 
 class TestDetermineMimeType:

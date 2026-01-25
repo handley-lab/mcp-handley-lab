@@ -27,6 +27,15 @@ def load_config() -> dict[str, Any]:
         return tomllib.load(f)
 
 
+def load_config_safe() -> dict[str, Any]:
+    """Load config, returning {} if file doesn't exist."""
+    config_file = get_config_file()
+    if not config_file.exists():
+        return {}
+    with open(config_file, "rb") as f:
+        return tomllib.load(f)
+
+
 def create_default_config():
     """Create a default configuration file."""
     config_file = get_config_file()

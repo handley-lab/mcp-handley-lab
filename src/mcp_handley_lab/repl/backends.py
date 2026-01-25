@@ -16,7 +16,7 @@ BACKENDS = {
     "bash": BackendConfig(
         "bash", ["bash", "--norc", "--noprofile"], "Bash shell", r"^.*\$ ?$"
     ),
-    "zsh": BackendConfig("zsh", ["zsh"], "Zsh shell", r"^.*[%$#] ?$"),
+    "zsh": BackendConfig("zsh", ["zsh", "--no-rcs"], "Zsh shell", r"^.*[%$#] ?$"),
     "python": BackendConfig(
         "python",
         ["python3", "-u"],
@@ -26,14 +26,14 @@ BACKENDS = {
     ),
     "ipython": BackendConfig(
         "ipython",
-        ["ipython", "--simple-prompt", "--no-banner"],
+        ["ipython"],
         "IPython",
         r"^In \[\d+\]: ?$",
         r"^   \.\.\.:",
         default_args="--matplotlib",
     ),
     "julia": BackendConfig("julia", ["julia"], "Julia", r"^julia> ?$"),
-    "R": BackendConfig("R", ["R", "--quiet"], "R", r"^> ?$", r"^\+ ?$"),
+    "R": BackendConfig("R", ["R"], "R", r"^> ?$", r"^\+ ?$"),
     "clojure": BackendConfig(
         "clojure",
         ["clojure"],

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from mcp_handley_lab.repl.backends import BACKENDS
 from mcp_handley_lab.repl.completion import extract_output, wait_for_completion
+from mcp_handley_lab.repl.terminal import maybe_open_terminal
 
 TMUX = "mcp-repls"
 STORAGE = Path("~/.mcp-handley-lab/repl").expanduser()
@@ -63,6 +64,7 @@ def create(backend, name=None, args=None):
         "created_at": datetime.now().isoformat(),
     }
     _save(sessions)
+    maybe_open_terminal(TMUX)
     return pane_id
 
 

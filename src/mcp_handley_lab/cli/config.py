@@ -11,8 +11,8 @@ import tomllib
 def get_config_dir() -> Path:
     """Get the configuration directory for MCP CLI."""
     if config_home := os.getenv("XDG_CONFIG_HOME"):
-        return Path(config_home) / "mcp"
-    return Path.home() / ".config" / "mcp"
+        return Path(config_home) / "mcp-handley-lab"
+    return Path.home() / ".config" / "mcp-handley-lab"
 
 
 def get_config_file() -> Path:

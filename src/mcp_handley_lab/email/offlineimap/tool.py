@@ -4,7 +4,6 @@ from typing import Literal
 
 from pydantic import Field
 
-from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.email.common import mcp
 from mcp_handley_lab.shared.models import OperationResult
 
@@ -36,72 +35,12 @@ def sync(
     ),
 ) -> OperationResult:
     """Unified email synchronization with multiple modes."""
-    if mode == "info":
-        timeout = timeout_seconds or 120
-        cmd = ["offlineimap", "--info"]
-        if config_file:
-            cmd.extend(["-c", config_file])
-        stdout, _ = run_command(cmd, timeout=timeout)
-        output = stdout.decode().strip()
-        # Parse accounts from output
-        accounts = [
-            line.split()[-1]
-            for line in output.splitlines()
-            if line.strip().startswith("Account:")
-        ]
-        return OperationResult(
-            status="success",
-            message=f"Repository information:\n{output}",
-            data={"raw": output, "accounts": accounts},
-        )
+    from mcp_handley_lab.email.offlineimap.shared import sync as _sync
 
-    if mode == "status":
-        timeout = timeout_seconds or 60
-        cmd = ["offlineimap", "--dry-run", "-o1"]
-        if config_file:
-            cmd.extend(["-c", config_file])
-        if account:
-            cmd.extend(["-a", account])
-        stdout, _ = run_command(cmd, timeout=timeout)
-        output = stdout.decode().strip()
-        return OperationResult(
-            status="success",
-            message=f"Configuration valid:\n{output}",
-            data={"raw": output, "valid": True},
-        )
-
-    # Build sync command
-    cmd = ["offlineimap", "-o1"]
-
-    if mode == "quick":
-        cmd.append("-q")
-    elif mode == "preview":
-        cmd.append("--dry-run")
-
-    if account:
-        cmd.extend(["-a", account])
-    if folders:
-        cmd.extend(["-f", folders])
-    if config_file:
-        cmd.extend(["-c", config_file])
-
-    timeout = timeout_seconds or (300 if mode == "full" else 180)
-    stdout, _ = run_command(cmd, timeout=timeout)
-    output = stdout.decode().strip()
-
-    # Index new messages after actual sync (not preview mode)
-    notmuch_output = ""
-    if mode in ("full", "quick"):
-        notmuch_stdout, _ = run_command(["notmuch", "new"], timeout=60)
-        notmuch_output = notmuch_stdout.decode().strip()
-
-    mode_desc = {"full": "Full", "quick": "Quick", "preview": "Preview"}
-    message = f"{mode_desc.get(mode, mode)} sync completed:\n{output}"
-    if notmuch_output:
-        message += f"\n\nIndexing:\n{notmuch_output}"
-
-    return OperationResult(
-        status="success",
-        message=message,
-        data={"raw": output, "mode": mode, "indexed": notmuch_output},
+    return _sync(
+        mode=mode,
+        account=account,
+        folders=folders,
+        config_file=config_file,
+        timeout_seconds=timeout_seconds,
     )

@@ -193,36 +193,20 @@ def read(
     - tables: List of all tables
     - styles: List of cell styles
     """
-    pkg = ExcelPackage.open(file_path)
+    from mcp_handley_lab.microsoft.excel.shared import read as _read
 
-    if scope == "meta":
-        result = _read_meta(pkg)
-    elif scope == "sheets":
-        result = _read_sheets(pkg)
-    elif scope == "cells":
-        result = _read_cells(
-            pkg, sheet, range_ref, representation, include_types, view, limit
-        )
-    elif scope == "table":
-        result = _read_table(pkg, table_name, include_headers, limit)
-    elif scope == "tables":
-        result = _read_tables(pkg)
-    elif scope == "styles":
-        result = _read_styles(pkg)
-    elif scope == "conditional_formats":
-        result = _read_conditional_formats(pkg, sheet)
-    elif scope == "protection":
-        result = _read_protection(pkg, sheet)
-    elif scope == "print_settings":
-        result = _read_print_settings(pkg, sheet)
-    elif scope == "charts":
-        result = _read_charts(pkg, sheet)
-    elif scope == "pivots":
-        result = _read_pivots(pkg, sheet)
-    else:
-        raise ValueError(f"Unknown scope: {scope}")
-
-    return result.model_dump(exclude_none=True)
+    return _read(
+        file_path=file_path,
+        scope=scope,
+        sheet=sheet,
+        range_ref=range_ref,
+        table_name=table_name,
+        representation=representation,
+        include_types=include_types,
+        include_headers=include_headers,
+        view=view,
+        limit=limit,
+    )
 
 
 def _read_meta(pkg: ExcelPackage) -> ExcelReadResult:
@@ -825,117 +809,49 @@ def edit(
     - refresh_pivot: Refresh pivot table cache (sheet, pivot_id)
     - recalculate: Recalculate all formulas using LibreOffice (populates cached values)
     """
-    if operation == "create":
-        return _edit_create(file_path)
-    elif operation == "set_cell":
-        return _edit_set_cell(file_path, sheet, cell_ref, value)
-    elif operation == "set_formula":
-        return _edit_set_formula(file_path, sheet, cell_ref, value)
-    elif operation == "set_range":
-        return _edit_set_range(file_path, sheet, cell_ref, value)
-    elif operation == "set_style":
-        return _edit_set_style(file_path, sheet, cell_ref, style_index)
-    elif operation == "insert_rows":
-        return _edit_insert_rows(file_path, sheet, cell_ref, count)
-    elif operation == "delete_rows":
-        return _edit_delete_rows(file_path, sheet, cell_ref, count)
-    elif operation == "insert_columns":
-        return _edit_insert_columns(file_path, sheet, cell_ref, count)
-    elif operation == "delete_columns":
-        return _edit_delete_columns(file_path, sheet, cell_ref, count)
-    elif operation == "merge_cells":
-        return _edit_merge_cells(file_path, sheet, cell_ref)
-    elif operation == "unmerge_cells":
-        return _edit_unmerge_cells(file_path, sheet, cell_ref)
-    elif operation == "add_sheet":
-        return _edit_add_sheet(file_path, value or new_name)
-    elif operation == "rename_sheet":
-        return _edit_rename_sheet(file_path, sheet, new_name)
-    elif operation == "delete_sheet":
-        return _edit_delete_sheet(file_path, sheet)
-    elif operation == "copy_sheet":
-        return _edit_copy_sheet(file_path, sheet, new_name)
-    elif operation == "create_table":
-        return _edit_create_table(file_path, sheet, cell_ref, new_name or table_name)
-    elif operation == "delete_table":
-        return _edit_delete_table(file_path, table_name)
-    elif operation == "add_table_row":
-        return _edit_add_table_row(file_path, table_name, value)
-    elif operation == "delete_table_row":
-        return _edit_delete_table_row(file_path, table_name, row_index)
-    elif operation == "add_conditional_format":
-        return _edit_add_conditional_format(
-            file_path,
-            sheet,
-            cell_ref,
-            rule_type,
-            operator,
-            formula,
-            style_index,
-            priority,
-        )
-    elif operation == "protect_sheet":
-        return _edit_protect_sheet(file_path, sheet, password)
-    elif operation == "unprotect_sheet":
-        return _edit_unprotect_sheet(file_path, sheet, password)
-    elif operation == "protect_workbook":
-        return _edit_protect_workbook(file_path, password)
-    elif operation == "unprotect_workbook":
-        return _edit_unprotect_workbook(file_path, password)
-    elif operation == "lock_cells":
-        return _edit_lock_cells(file_path, sheet, cell_ref)
-    elif operation == "unlock_cells":
-        return _edit_unlock_cells(file_path, sheet, cell_ref)
-    elif operation == "set_print_area":
-        return _edit_set_print_area(file_path, sheet, cell_ref)
-    elif operation == "clear_print_area":
-        return _edit_clear_print_area(file_path, sheet)
-    elif operation == "set_print_titles":
-        return _edit_set_print_titles(file_path, sheet, print_rows, print_cols)
-    elif operation == "set_page_margins":
-        return _edit_set_page_margins(
-            file_path, sheet, margin_left, margin_right, margin_top, margin_bottom
-        )
-    elif operation == "set_page_orientation":
-        return _edit_set_page_orientation(file_path, sheet, landscape)
-    elif operation == "set_page_size":
-        return _edit_set_page_size(file_path, sheet, paper_size)
-    elif operation == "set_scale":
-        return _edit_set_scale(file_path, sheet, scale)
-    elif operation == "set_fit_to_page":
-        return _edit_set_fit_to_page(file_path, sheet, fit_width, fit_height)
-    elif operation == "add_page_break":
-        return _edit_add_page_break(file_path, sheet, break_type, break_position)
-    elif operation == "clear_page_breaks":
-        return _edit_clear_page_breaks(file_path, sheet)
-    elif operation == "create_chart":
-        return _edit_create_chart(
-            file_path, sheet, chart_type, data_range, position, title
-        )
-    elif operation == "delete_chart":
-        return _edit_delete_chart(file_path, sheet, chart_id)
-    elif operation == "update_chart_data":
-        return _edit_update_chart_data(file_path, sheet, chart_id, data_range)
-    elif operation == "create_pivot":
-        return _edit_create_pivot(
-            file_path,
-            sheet,
-            data_range,
-            position,
-            row_fields,
-            col_fields,
-            value_fields,
-            pivot_name,
-            agg_func,
-        )
-    elif operation == "delete_pivot":
-        return _edit_delete_pivot(file_path, sheet, pivot_id)
-    elif operation == "refresh_pivot":
-        return _edit_refresh_pivot(file_path, sheet, pivot_id)
-    elif operation == "recalculate":
-        return _edit_recalculate(file_path)
-    else:
-        raise ValueError(f"Unknown operation: {operation}")
+    from mcp_handley_lab.microsoft.excel.shared import edit as _edit
+
+    return _edit(
+        file_path=file_path,
+        operation=operation,
+        sheet=sheet,
+        cell_ref=cell_ref,
+        value=value,
+        new_name=new_name,
+        table_name=table_name,
+        row_index=row_index,
+        count=count,
+        style_index=style_index,
+        rule_type=rule_type,
+        operator=operator,
+        formula=formula,
+        priority=priority,
+        password=password,
+        margin_left=margin_left,
+        margin_right=margin_right,
+        margin_top=margin_top,
+        margin_bottom=margin_bottom,
+        landscape=landscape,
+        paper_size=paper_size,
+        print_rows=print_rows,
+        print_cols=print_cols,
+        break_type=break_type,
+        break_position=break_position,
+        scale=scale,
+        fit_width=fit_width,
+        fit_height=fit_height,
+        chart_type=chart_type,
+        data_range=data_range,
+        position=position,
+        title=title,
+        chart_id=chart_id,
+        row_fields=row_fields,
+        col_fields=col_fields,
+        value_fields=value_fields,
+        pivot_name=pivot_name,
+        pivot_id=pivot_id,
+        agg_func=agg_func,
+    )
 
 
 def _edit_create(file_path: str) -> dict[str, Any]:

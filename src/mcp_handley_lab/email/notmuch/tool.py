@@ -864,68 +864,18 @@ def read(
         description="For full mode: include quote/signature segmentation in response (requires talon).",
     ),
 ) -> list[SearchResult] | list[EmailContent] | list[str] | list[Contact]:
-    """Unified read tool for emails.
+    """Unified read tool for emails."""
+    from mcp_handley_lab.email.notmuch.shared import read as _read
 
-    Operations based on parameters:
-    - list_type set: Returns list of tags/folders/accounts
-    - query starts with "contact:": Searches contacts (e.g., "contact:alice")
-    - query + mode="headers"/"summary": Search with lightweight results
-    - query + mode="full": Full email content display
-
-    Returns different types based on operation.
-    """
-    # Handle list operations
-    if list_type:
-        if list_type == "tags":
-            return _list_tags()
-        elif list_type == "folders":
-            return _list_folders()
-        elif list_type == "accounts":
-            return _list_accounts()
-        else:
-            raise ValueError(
-                f"Unknown list_type: {list_type}. Use 'tags', 'folders', or 'accounts'."
-            )
-
-    # Handle contact search
-    if query.startswith("contact:"):
-        contact_query = query[8:].strip()
-        if not contact_query:
-            raise ValueError("Contact query required after 'contact:'")
-        return _find_contacts(contact_query, max_results)
-
-    # Validate query for email operations
-    if not query:
-        raise ValueError(
-            "Query required for email search/show. Use list_type for listing, or 'contact:name' for contacts."
-        )
-
-    # Resolve abbreviated message IDs in query (supports id: and mid: terms)
-    if "id:" in query or "mid:" in query:
-        query = _resolve_id_in_query(query)
-
-    # For headers/summary mode, use lightweight search
-    if mode in ("headers", "summary"):
-        # Get search results first
-        results = _search_emails(query, limit, offset, include_excluded)
-        if mode == "headers":
-            return results
-        # For summary, get truncated content (save_to supported in all modes)
-        return _show_email(
-            query,
-            mode="summary",
-            limit=limit,
-            include_excluded=include_excluded,
-            save_to=save_attachments_to,
-        )
-
-    # Full content display
-    return _show_email(
-        query,
-        mode=mode,
+    return _read(
+        query=query,
         limit=limit,
+        offset=offset,
         include_excluded=include_excluded,
-        save_to=save_attachments_to,
+        mode=mode,
+        save_attachments_to=save_attachments_to,
+        list_type=list_type,
+        max_results=max_results,
         segment_quotes=segment_quotes,
     )
 
@@ -955,36 +905,13 @@ def update(
         description="For action='move': destination folder (e.g., 'Trash', 'Archive').",
     ),
 ) -> TagResult | MoveResult:
-    """Unified update tool for email metadata.
+    """Unified update tool for email metadata."""
+    from mcp_handley_lab.email.notmuch.shared import update as _update
 
-    Actions:
-    - tag: Add/remove tags from emails
-    - move: Move emails to a maildir folder
-    """
-    # Resolve abbreviated message IDs
-    message_ids = [_resolve_message_id(mid) for mid in message_ids]
-
-    if action == "tag":
-        if not message_ids:
-            raise ValueError("At least one message_id required for tag action")
-        if len(message_ids) == 1:
-            return _tag_email(message_ids[0], add_tags, remove_tags)
-        # Bulk tag operation
-        results = []
-        for mid in message_ids:
-            results.append(_tag_email(mid, add_tags, remove_tags))
-        # Return summary result
-        return TagResult(
-            message_id=f"{len(message_ids)} messages",
-            added_tags=add_tags,
-            removed_tags=remove_tags,
-        )
-
-    if action == "move":
-        if not message_ids:
-            raise ValueError("At least one message_id required for move action")
-        if not destination_folder:
-            raise ValueError("destination_folder required for move action")
-        return _move_emails(message_ids, destination_folder)
-
-    raise ValueError(f"Unknown action: {action}. Use 'tag' or 'move'.")
+    return _update(
+        message_ids=message_ids or None,
+        action=action,
+        add_tags=add_tags or None,
+        remove_tags=remove_tags or None,
+        destination_folder=destination_folder,
+    )

@@ -3,7 +3,7 @@
 import logging
 import pickle
 import zoneinfo
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 import dateparser
@@ -642,108 +642,19 @@ def read(
     ),
 ) -> list[CalendarEvent]:
     """Read calendar events - either get by ID or search."""
-    service = _get_calendar_service()
+    from mcp_handley_lab.google_calendar.shared import read as _read
 
-    # Get single event by ID
-    if event_id:
-        if calendar_id == "all":
-            raise ValueError("Cannot use calendar_id='all' when fetching by event_id")
-        resolved_id = _resolve_calendar_id(calendar_id, service)
-        event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-
-        if _has_timezone_inconsistency(event):
-            logger.warning(
-                "Timezone inconsistency detected in event '%s'. "
-                "To fix: update(event_id='%s', calendar_id='%s', normalize_timezone=True)",
-                event.get("summary", "Unknown"),
-                event_id,
-                calendar_id,
-            )
-
-        return [_build_event_model(event)]
-
-    # Search/list events
-    if not start_date:
-        start_date = _parse_datetime_to_utc("")
-    else:
-        start_date = _parse_datetime_to_utc(start_date)
-
-    if not end_date:
-        days = 7 if not search_text else 365
-        # Compute end_date from start_date, not from now
-        start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-        end_dt = start_dt + timedelta(days=days)
-        end_date = end_dt.isoformat().replace("+00:00", "Z")
-    else:
-        if "T" not in end_date:
-            end_date = end_date + "T23:59:59Z"
-        else:
-            end_date = _parse_datetime_to_utc(end_date)
-
-    events_list = []
-
-    if calendar_id == "all":
-        calendar_list_response = service.calendarList().list().execute()
-
-        for calendar in calendar_list_response.get("items", []):
-            cal_id = calendar["id"]
-
-            params = {
-                "calendarId": cal_id,
-                "timeMin": start_date,
-                "timeMax": end_date,
-                "maxResults": max_results,
-                "singleEvents": True,
-                "orderBy": "startTime",
-            }
-            if search_text:
-                params["q"] = search_text
-            events_result = service.events().list(**params).execute()
-
-            cal_events = events_result.get("items", [])
-            for event in cal_events:
-                event["calendar_name"] = calendar.get("summary", cal_id)
-            events_list.extend(cal_events)
-    else:
-        resolved_id = _resolve_calendar_id(calendar_id, service)
-
-        params = {
-            "calendarId": resolved_id,
-            "timeMin": start_date,
-            "timeMax": end_date,
-            "maxResults": max_results,
-            "singleEvents": True,
-            "orderBy": "startTime",
-        }
-        if search_text:
-            params["q"] = search_text
-        events_result = service.events().list(**params).execute()
-        events_list = events_result.get("items", [])
-
-    # Client-side filtering: None=skip, []=default fields, ['field1',...]=specific fields
-    if search_fields is not None or case_sensitive or not match_all_terms:
-        filtered_events = _client_side_filter(
-            events_list,
-            search_text=search_text,
-            search_fields=search_fields
-            if search_fields
-            else None,  # [] -> use defaults
-            case_sensitive=case_sensitive,
-            match_all_terms=match_all_terms,
-        )
-    else:
-        filtered_events = events_list
-
-    if not filtered_events:
-        return []
-
-    filtered_events.sort(
-        key=lambda x: x.get("start", {}).get(
-            "dateTime", x.get("start", {}).get("date", "")
-        )
+    return _read(
+        event_id=event_id,
+        calendar_id=calendar_id,
+        search_text=search_text,
+        start_date=start_date,
+        end_date=end_date,
+        max_results=max_results,
+        search_fields=search_fields,
+        case_sensitive=case_sensitive,
+        match_all_terms=match_all_terms,
     )
-
-    return [_build_event_model(event) for event in filtered_events]
 
 
 @mcp.tool(
@@ -782,64 +693,19 @@ def create(
         description="A list of attendee email addresses to invite to the event.",
     ),
 ) -> CreatedEventResult:
-    """Create a new calendar event with intelligent datetime parsing and flexible timezone handling.
+    """Create a new calendar event with intelligent datetime parsing and flexible timezone handling."""
+    from mcp_handley_lab.google_calendar.shared import create as _create
 
-    Examples:
-    - Natural language: start_datetime="tomorrow at 2pm", end_datetime="tomorrow at 3pm"
-    - Mixed timezones: start_datetime="10:00am", start_timezone="America/Los_Angeles",
-                      end_datetime="6:30pm", end_timezone="America/New_York"
-    - ISO format: start_datetime="2024-07-15T14:00:00-08:00" (preserves timezone)
-    - Relative time: start_datetime="in 2 hours", end_datetime="in 3 hours"
-    """
-    service = _get_calendar_service()
-    resolved_id = _resolve_calendar_id(calendar_id, service)
-
-    # Get calendar's default timezone as fallback context
-    calendar_tz = _get_calendar_timezone(service, resolved_id)
-
-    # Prepare start datetime with smart timezone handling
-    if start_timezone:
-        # Use explicit timezone for start time
-        start_body = _prepare_event_datetime(start_datetime, start_timezone)
-    else:
-        # Use calendar timezone as context for naive datetimes
-        start_body = _prepare_event_datetime(start_datetime, calendar_tz)
-
-    # Prepare end datetime with smart timezone handling
-    if end_timezone:
-        # Use explicit timezone for end time
-        end_body = _prepare_event_datetime(end_datetime, end_timezone)
-    else:
-        # Use calendar timezone as context for naive datetimes
-        end_body = _prepare_event_datetime(end_datetime, calendar_tz)
-
-    event_body = {
-        "summary": summary,
-        "description": description or "",
-        "location": location or "",
-        "start": start_body,
-        "end": end_body,
-    }
-
-    if attendees:
-        event_body["attendees"] = [{"email": email} for email in attendees]
-
-    created_event = (
-        service.events().insert(calendarId=resolved_id, body=event_body).execute()
-    )
-
-    start = created_event.get("start", {})
-    time_str = start.get("dateTime", start.get("date", "N/A"))
-    tz_str = start.get("timeZone")
-    display_time = f"{time_str} ({tz_str})" if tz_str else time_str
-
-    return CreatedEventResult(
-        status="Event created successfully!",
-        event_id=created_event["id"],
-        title=created_event["summary"],
-        time=display_time,
-        calendar=calendar_id,
-        attendees=[att.get("email") for att in created_event.get("attendees", [])],
+    return _create(
+        summary=summary,
+        start_datetime=start_datetime,
+        end_datetime=end_datetime,
+        description=description,
+        location=location,
+        calendar_id=calendar_id,
+        start_timezone=start_timezone,
+        end_timezone=end_timezone,
+        attendees=attendees,
     )
 
 
@@ -889,129 +755,20 @@ def update(
     ),
 ) -> UpdateEventResult:
     """Update or move an event. Move and update are mutually exclusive."""
-    service = _get_calendar_service()
-    resolved_id = _resolve_calendar_id(calendar_id, service)
+    from mcp_handley_lab.google_calendar.shared import update as _update
 
-    # Handle move operation
-    if destination_calendar_id:
-        # Validate mutual exclusivity - include ALL update-related fields
-        # Check str|None fields for not-None, check str fields for non-empty
-        has_update_fields = any(
-            f is not None
-            for f in [summary, start_datetime, end_datetime, description, location]
-        ) or any(f.strip() for f in [start_timezone, end_timezone])
-        if has_update_fields:
-            raise ValueError(
-                "Cannot combine move (destination_calendar_id) with update fields. "
-                "Move first, then update in a separate call."
-            )
-        if normalize_timezone:
-            raise ValueError(
-                "Cannot combine move (destination_calendar_id) with normalize_timezone. "
-                "Move first, then normalize in a separate call."
-            )
-
-        dest_resolved_id = _resolve_calendar_id(destination_calendar_id, service)
-        moved_event = (
-            service.events()
-            .move(
-                calendarId=resolved_id,
-                eventId=event_id,
-                destination=dest_resolved_id,
-            )
-            .execute()
-        )
-
-        return UpdateEventResult(
-            event_id=event_id,
-            new_event_id=moved_event["id"],
-            html_link=moved_event.get("htmlLink", ""),
-            updated_fields=["moved"],
-            message=f"Event moved from '{calendar_id}' to '{destination_calendar_id}'. New ID: {moved_event['id']}",
-        )
-
-    # Handle update operation
-    update_body = {}
-    updated_fields = []
-
-    current_event = None
-    if normalize_timezone or start_datetime or end_datetime:
-        current_event = (
-            service.events().get(calendarId=resolved_id, eventId=event_id).execute()
-        )
-
-    if normalize_timezone and current_event:
-        normalization_patch = _get_normalization_patch(current_event)
-        update_body.update(normalization_patch)
-        if normalization_patch:
-            updated_fields.append("timezone_normalization")
-
-    if summary is not None:
-        update_body["summary"] = summary
-        updated_fields.append("summary")
-    if description is not None:
-        update_body["description"] = description
-        updated_fields.append("description")
-    if location is not None:
-        update_body["location"] = location
-        updated_fields.append("location")
-
-    if start_datetime or end_datetime:
-        calendar_tz = _get_calendar_timezone(service, resolved_id)
-        existing_start_tz = (
-            current_event.get("start", {}).get("timeZone") or calendar_tz
-        )
-        existing_end_tz = current_event.get("end", {}).get("timeZone") or calendar_tz
-
-        # Prevent silent conversion of all-day events to timed events
-        is_all_day = _is_all_day_event(current_event)
-        if is_all_day:
-            would_convert_start = start_datetime and _would_be_timed_event(
-                start_datetime
-            )
-            would_convert_end = end_datetime and _would_be_timed_event(end_datetime)
-            if would_convert_start or would_convert_end:
-                raise ValueError(
-                    "Cannot convert all-day event to timed event. "
-                    "Use date-only format (YYYY-MM-DD) to update all-day events, "
-                    "or delete and recreate as a timed event."
-                )
-
-        if start_datetime:
-            target_tz = start_timezone or existing_start_tz
-            update_body["start"] = _prepare_event_datetime(start_datetime, target_tz)
-            updated_fields.append("start_datetime")
-
-        if end_datetime:
-            target_tz = end_timezone or existing_end_tz
-            update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)
-            updated_fields.append("end_datetime")
-
-    if not update_body:
-        return UpdateEventResult(
-            event_id=event_id,
-            html_link="",
-            updated_fields=[],
-            message="No updates specified. Nothing to do.",
-        )
-
-    updated_event = (
-        service.events()
-        .patch(calendarId=resolved_id, eventId=event_id, body=update_body)
-        .execute()
-    )
-
-    result_msg = f"Event (ID: {updated_event['id']}) updated successfully."
-    if updated_fields:
-        result_msg += f" Modified fields: {', '.join(updated_fields)}"
-    if normalize_timezone and ("start" in update_body or "end" in update_body):
-        result_msg += " (timezone inconsistency normalized)"
-
-    return UpdateEventResult(
-        event_id=updated_event["id"],
-        html_link=updated_event.get("htmlLink", ""),
-        updated_fields=updated_fields,
-        message=result_msg,
+    return _update(
+        event_id=event_id,
+        calendar_id=calendar_id,
+        destination_calendar_id=destination_calendar_id,
+        summary=summary,
+        start_datetime=start_datetime,
+        end_datetime=end_datetime,
+        description=description,
+        location=location,
+        start_timezone=start_timezone,
+        end_timezone=end_timezone,
+        normalize_timezone=normalize_timezone,
     )
 
 
@@ -1026,8 +783,6 @@ def delete(
     ),
 ) -> str:
     """Delete a calendar event permanently."""
-    service = _get_calendar_service()
-    resolved_id = _resolve_calendar_id(calendar_id, service)
+    from mcp_handley_lab.google_calendar.shared import delete as _delete
 
-    service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
-    return f"Event (ID: {event_id}) has been permanently deleted."
+    return _delete(event_id=event_id, calendar_id=calendar_id)

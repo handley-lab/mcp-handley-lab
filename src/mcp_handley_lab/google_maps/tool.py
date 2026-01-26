@@ -401,85 +401,27 @@ def get_directions(
         description="Specifies preferences for transit routes, such as fewer transfers or less walking. Only for 'transit' mode.",
     ),
 ) -> DirectionsResult:
-    gmaps = _get_maps_client()
+    """Get directions between an origin and destination."""
+    from mcp_handley_lab.google_maps.shared import get_directions as _get_directions
 
-    # Parse departure/arrival time with flexible parsing
-    departure_dt = None
-    arrival_dt = None
-    if departure_time:
-        departure_dt = _parse_flexible_datetime(departure_time, user_timezone)
-    if arrival_time:
-        arrival_dt = _parse_flexible_datetime(arrival_time, user_timezone)
-
-    # The avoid parameter is already a list, no need to process it
-
-    # Make API request
-    result = gmaps.directions(
-        origin=origin,
-        destination=destination,
-        mode=mode,
-        departure_time=departure_dt,
-        arrival_time=arrival_dt,
-        avoid=avoid,
-        alternatives=alternatives,
-        waypoints=waypoints,
-        transit_mode=transit_mode,
-        transit_routing_preference=transit_routing_preference,
-    )
-
-    if not result:
-        return DirectionsResult(
-            routes=[],
-            status="NO_ROUTES_FOUND",
-            origin=origin,
-            destination=destination,
-            mode=mode,
-            departure_time=departure_time,
-            maps_url="",
-        )
-
-    # Parse routes
-    routes = [_parse_route(route, user_timezone) for route in result]
-
-    # Generate Google Maps URL
-    maps_url = _generate_maps_url(
-        origin,
-        destination,
-        mode,
-        waypoints,
-        departure_dt.isoformat() if departure_dt else "",
-        arrival_dt.isoformat() if arrival_dt else "",
-        avoid,
-        transit_mode,
-        transit_routing_preference,
-        api_result=result,
-    )
-
-    return DirectionsResult(
-        routes=routes,
-        status="OK",
+    return _get_directions(
         origin=origin,
         destination=destination,
         mode=mode,
         departure_time=departure_time,
-        maps_url=maps_url,
+        arrival_time=arrival_time,
+        user_timezone=user_timezone,
+        avoid=avoid or None,
+        alternatives=alternatives,
+        waypoints=waypoints or None,
+        transit_mode=transit_mode or None,
+        transit_routing_preference=transit_routing_preference,
     )
 
 
 @mcp.tool(description="Get Google Maps Tool server information and capabilities.")
 def server_info() -> ServerInfo:
-    return ServerInfo(
-        name="Google Maps Tool",
-        version="0.4.0",
-        status="active",
-        capabilities=[
-            "get_directions",
-            "server_info",
-            "directions",
-            "multiple_transport_modes",
-            "waypoint_support",
-            "traffic_aware_routing",
-            "alternative_routes",
-        ],
-        dependencies={"googlemaps": "4.0.0+", "pydantic": "2.0.0+", "mcp": "1.0.0+"},
-    )
+    """Get Google Maps Tool server information and capabilities."""
+    from mcp_handley_lab.google_maps.shared import server_info as _server_info
+
+    return _server_info()

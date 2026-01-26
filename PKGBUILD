@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.24.0
+pkgver=0.24.1
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -95,8 +95,7 @@ check() {
         --tb=no \
         --no-header \
         -q \
-        --ignore=tests/integration/ \
-        --ignore=tests/test_mathematica_integration.py
+        --ignore=tests/integration/
 }
 
 package() {

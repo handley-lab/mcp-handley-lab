@@ -95,7 +95,8 @@ check() {
         --tb=no \
         --no-header \
         -q \
-        --ignore=tests/integration/
+        --ignore=tests/integration/ \
+        --ignore=tests/test_mathematica_integration.py
 }
 
 package() {

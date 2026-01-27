@@ -16,6 +16,17 @@ from mcp_handley_lab.shared.models import (
 )
 
 
+def resolve_generation_adapter(
+    provider: str, config: dict, images: list[str] | None = None
+) -> Callable:
+    """Select the appropriate generation adapter based on context."""
+    if images:
+        return get_adapter(provider, "image_analysis")
+    if config.get("is_agent"):
+        return get_adapter(provider, "deep_research")
+    return get_adapter(provider, "generation")
+
+
 def normalize_branch(branch: str) -> str | None:
     """Normalize branch input, returning None if memory should be disabled.
 
@@ -390,6 +401,8 @@ def chat(
     model: str = "gemini",
     temperature: float = 1.0,
     files: list[str] | None = None,
+    images: list[str] | None = None,
+    focus: str = "general",
     system_prompt: str | None = None,
     system_prompt_file: str | None = None,
     system_prompt_vars: dict[str, str] | None = None,
@@ -407,6 +420,8 @@ def chat(
         model: Model or provider name (gemini, openai, claude, etc.)
         temperature: Controls randomness (0.0-2.0)
         files: Files to include as context
+        images: Images for vision analysis (local paths or data URIs)
+        focus: Analysis focus when images provided (e.g., 'ocr', 'objects', 'general')
         system_prompt: System instructions for the conversation
         system_prompt_file: Path to file containing system instructions
         system_prompt_vars: Variables for system prompt template substitution
@@ -418,14 +433,26 @@ def chat(
     """
     provider, canonical_model, config = resolve_model(model)
     validate_options(provider, model, config, options or {})
-    generation_func = get_adapter(
-        provider, "deep_research" if config.get("is_agent") else "generation"
-    )
+    generation_func = resolve_generation_adapter(provider, config, images)
 
     # For non-MCP usage, resolve "session" to pid-based ID
     actual_branch = branch
     if branch == "session":
-        actual_branch = f"_session_{provider}_{os.getpid()}"
+        actual_branch = f"_session_{os.getpid()}"
+
+    kwargs: dict[str, Any] = {
+        "prompt_file": prompt_file,
+        "prompt_vars": prompt_vars,
+        "temperature": temperature,
+        "files": files or [],
+        "system_prompt": system_prompt,
+        "system_prompt_file": system_prompt_file,
+        "system_prompt_vars": system_prompt_vars,
+        "options": options or {},
+    }
+    if images:
+        kwargs["images"] = images
+        kwargs["focus"] = focus
 
     return process_llm_request(
         prompt=prompt,
@@ -435,14 +462,7 @@ def chat(
         provider=provider,
         generation_func=generation_func,
         from_ref=from_ref,
-        prompt_file=prompt_file,
-        prompt_vars=prompt_vars,
-        temperature=temperature,
-        files=files or [],
-        system_prompt=system_prompt,
-        system_prompt_file=system_prompt_file,
-        system_prompt_vars=system_prompt_vars,
-        options=options or {},
+        **kwargs,
     )
 
 

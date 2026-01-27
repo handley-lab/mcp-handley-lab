@@ -4,9 +4,9 @@ import inspect
 
 import pytest
 
-from mcp_handley_lab.llm.chat.tool import analyze_image, chat
 from mcp_handley_lab.llm.common import load_prompt_text
 from mcp_handley_lab.llm.registry import PROVIDERS, get_default_model, resolve_model
+from mcp_handley_lab.llm.tool import chat
 
 
 class TestXORValidation:
@@ -138,20 +138,13 @@ class TestUnifiedChatParameterConsistency:
         for param in required_params:
             assert param in actual_params, f"Missing parameter: {param}"
 
-    def test_analyze_image_has_required_parameters(self):
-        """Test that analyze_image() has required parameters."""
-        sig = inspect.signature(analyze_image)
-        required_params = {
-            "prompt",
-            "images",
-            "output_file",
-            "model",
-            "focus",
-            "branch",
-        }
+    def test_chat_has_image_analysis_parameters(self):
+        """Test that chat() has image analysis parameters (merged from analyze_image)."""
+        sig = inspect.signature(chat)
+        image_params = {"images", "focus"}
 
         actual_params = set(sig.parameters.keys())
-        for param in required_params:
+        for param in image_params:
             assert param in actual_params, f"Missing parameter: {param}"
 
 

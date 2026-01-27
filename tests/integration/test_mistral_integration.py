@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from mcp_handley_lab.llm.chat.tool import mcp
-from mcp_handley_lab.llm.ocr.tool import mcp as ocr_mcp
+from mcp_handley_lab.llm.tool import mcp
 
 
 @pytest.fixture
@@ -98,7 +97,7 @@ async def test_mistral_analyze_image(skip_if_no_api_key, test_output_file):
 
     try:
         _, response = await mcp.call_tool(
-            "analyze_image",
+            "chat",
             {
                 "prompt": "What color is this image?",
                 "output_file": test_output_file,
@@ -136,8 +135,8 @@ async def test_mistral_process_ocr_image(skip_if_no_api_key, test_output_file):
         image_path = image_file.name
 
     try:
-        _, response = await ocr_mcp.call_tool(
-            "process",
+        _, response = await mcp.call_tool(
+            "ocr",
             {
                 "document_path": image_path,
                 "output_file": test_output_file,

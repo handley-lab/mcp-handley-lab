@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.llm.image.tool import mcp
+from mcp_handley_lab.llm.tool import mcp
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ class TestOpenAIImageGeneration:
     async def test_dalle3_basic_generation(self, test_image_file):
         """Test DALL-E 3 basic image generation."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A simple red circle",
                 "model": "dall-e-3",
@@ -54,7 +54,7 @@ class TestOpenAIImageGeneration:
     async def test_dalle3_enhanced_prompt(self, test_image_file):
         """Test DALL-E 3 prompt enhancement."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A futuristic city",
                 "model": "dall-e-3",
@@ -77,7 +77,7 @@ class TestOpenAIImageGeneration:
     async def test_dalle3_portrait_size(self, test_image_file):
         """Test DALL-E 3 with portrait orientation."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A mountain landscape",
                 "model": "dall-e-3",
@@ -101,7 +101,7 @@ class TestGeminiImageGeneration:
     async def test_imagen3_basic_generation(self, test_image_file):
         """Test Imagen 3 basic image generation."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A peaceful garden",
                 "model": "imagen-4.0-generate-001",
@@ -122,7 +122,7 @@ class TestGeminiImageGeneration:
     async def test_imagen3_with_aspect_ratio(self, test_image_file):
         """Test Imagen 3 with custom aspect ratio."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A safe, family-friendly cartoon character",
                 "model": "imagen-4.0-generate-001",
@@ -141,7 +141,7 @@ class TestGeminiImageGeneration:
     async def test_imagen_model_variants(self, test_image_file):
         """Test different Imagen model variants."""
         _, result = await mcp.call_tool(
-            "generate",
+            "generate_image",
             {
                 "prompt": "A modern abstract art piece",
                 "model": "imagen-4.0-generate-001",
@@ -171,7 +171,7 @@ class TestImageGenerationComparison:
 
         try:
             _, openai_result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {
                     "prompt": prompt,
                     "model": "dall-e-3",
@@ -182,7 +182,7 @@ class TestImageGenerationComparison:
             )
 
             _, gemini_result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {
                     "prompt": prompt,
                     "model": "imagen-4.0-generate-001",
@@ -220,7 +220,7 @@ class TestImageGenerationComparison:
 
         try:
             _, openai_result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {
                     "prompt": prompt,
                     "model": "dall-e-3",
@@ -231,7 +231,7 @@ class TestImageGenerationComparison:
             )
 
             _, gemini_result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {
                     "prompt": prompt,
                     "model": "imagen-4.0-generate-001",
@@ -264,7 +264,7 @@ class TestImageGenerationErrorHandling:
             ToolError, match="Provide exactly one of 'prompt' or 'prompt_file'"
         ):
             await mcp.call_tool(
-                "generate", {"prompt": "", "output_file": test_image_file}
+                "generate_image", {"prompt": "", "output_file": test_image_file}
             )
 
     @pytest.mark.vcr
@@ -273,7 +273,7 @@ class TestImageGenerationErrorHandling:
         """Test OpenAI with invalid size parameter."""
         with pytest.raises(ToolError):
             await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {
                     "prompt": "Test",
                     "model": "dall-e-3",
@@ -292,7 +292,7 @@ if __name__ == "__main__":
         if os.getenv("OPENAI_API_KEY"):
             print("Testing OpenAI...")
             _, result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {"prompt": "Test", "model": "dall-e-3", "size": "1024x1024"},
             )
             print(f"Generated: {result['file_path']}")
@@ -300,7 +300,7 @@ if __name__ == "__main__":
         if os.getenv("GEMINI_API_KEY"):
             print("Testing Gemini...")
             _, result = await mcp.call_tool(
-                "generate",
+                "generate_image",
                 {"prompt": "Test", "model": "imagen-4.0-generate-001"},
             )
             print(f"Generated: {result['file_path']}")

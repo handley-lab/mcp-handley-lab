@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 
-from mcp_handley_lab.llm.chat.tool import mcp
+from mcp_handley_lab.llm.tool import mcp
 
 # Provider configurations for systematic testing (unified MCP, model determines provider)
 llm_unhappy_providers = [
@@ -544,7 +544,7 @@ class TestLLMImageAnalysisUnhappyPaths:
             ToolError,
             match="image|invalid|corrupted|format|decode|Could not process image",
         ):
-            await mcp.call_tool("analyze_image", base_params)
+            await mcp.call_tool("chat", base_params)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("provider, api_key, model", image_unhappy_providers)
@@ -577,7 +577,7 @@ class TestLLMImageAnalysisUnhappyPaths:
             ToolError,
             match="file.*not found|not.*exist|no such file|directory|No such file",
         ):
-            await mcp.call_tool("analyze_image", base_params)
+            await mcp.call_tool("chat", base_params)
 
 
 @pytest.mark.integration

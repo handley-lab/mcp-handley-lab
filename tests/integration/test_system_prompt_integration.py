@@ -5,7 +5,7 @@ import os
 import pytest
 from PIL import Image
 
-from mcp_handley_lab.llm.chat.tool import mcp
+from mcp_handley_lab.llm.tool import mcp
 
 # Skip all API-requiring tests if API keys not available
 gemini_available = bool(os.getenv("GEMINI_API_KEY"))
@@ -170,7 +170,7 @@ class TestSystemPromptBasic:
         if provider in ("openai", "gemini", "claude"):
             base_params.update({})
 
-        _, response = await mcp.call_tool("analyze_image", base_params)
+        _, response = await mcp.call_tool("chat", base_params)
         assert "error" not in response, response.get("error")
 
         assert response["content"] is not None

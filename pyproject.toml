@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.24.9"
+version = "0.25.0"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -68,12 +68,8 @@ semantic = [
 
 [project.scripts]
 # Unified LLM tools
-mcp-llm-chat = "mcp_handley_lab.llm.chat.tool:mcp.run"
-mcp-llm-image = "mcp_handley_lab.llm.image.tool:mcp.run"
+mcp-llm = "mcp_handley_lab.llm.tool:mcp.run"
 mcp-llm-embeddings = "mcp_handley_lab.llm.embeddings.tool:mcp.run"
-mcp-llm-ocr = "mcp_handley_lab.llm.ocr.tool:mcp.run"
-mcp-llm-audio = "mcp_handley_lab.llm.audio.tool:mcp.run"
-mcp-llm-models = "mcp_handley_lab.llm.models.tool:mcp.run"
 # Other tools
 mcp-vim = "mcp_handley_lab.vim.tool:mcp.run"
 mcp-code2prompt = "mcp_handley_lab.code2prompt.tool:mcp.run"

@@ -6,7 +6,7 @@ import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 from PIL import Image
 
-from mcp_handley_lab.llm.chat.tool import mcp
+from mcp_handley_lab.llm.tool import mcp
 
 # Define provider-specific parameters (unified MCP, model determines provider)
 llm_providers = [
@@ -238,7 +238,7 @@ async def test_llm_analyze_image(
     if provider in ("openai", "gemini", "claude", "grok"):
         base_params.update({})
 
-    _, response = await mcp.call_tool("analyze_image", base_params)
+    _, response = await mcp.call_tool("chat", base_params)
     assert "error" not in response, response.get("error")
 
     assert response["content"] is not None
@@ -354,9 +354,6 @@ async def test_llm_input_validation(
             "chat", {**base_params, "prompt": "", "output_file": test_output_file}
         )
     assert "prompt" in str(e1.value).lower() or "empty" in str(e1.value).lower()
-
-    # Note: output_file now has a default of "-" in the unified tool,
-    # so missing output_file is valid (uses stdout)
 
 
 # Error scenario test parameters (unified MCP, model determines provider)

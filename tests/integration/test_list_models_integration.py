@@ -1,6 +1,6 @@
 """Integration tests for unified list_models function."""
 
-from mcp_handley_lab.llm.models.tool import list_models
+from mcp_handley_lab.llm.tool import list_models
 
 
 def test_list_models_returns_all_providers():

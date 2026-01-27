@@ -20,12 +20,8 @@ def get_available_tools() -> dict[str, str]:
         "github": "mcp-github",
         "notes": "mcp-notes",
         # LLM tools
-        "llm-chat": "mcp-llm-chat",
-        "llm-image": "mcp-llm-image",
+        "llm": "mcp-llm",
         "llm-embeddings": "mcp-llm-embeddings",
-        "llm-ocr": "mcp-llm-ocr",
-        "llm-audio": "mcp-llm-audio",
-        "llm-models": "mcp-llm-models",
     }
 
     return scripts

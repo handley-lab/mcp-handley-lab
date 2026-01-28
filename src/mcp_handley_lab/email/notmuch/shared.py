@@ -113,12 +113,13 @@ def update(
     remove_tags: list[str] | None = None,
     destination_folder: str = "",
 ) -> TagResult | MoveResult:
-    """Update email metadata - tag or move emails.
+    """Update email metadata - tag, move, or archive emails.
 
     Args:
         message_ids: A list of notmuch message IDs for the emails to update.
             Supports abbreviated IDs.
-        action: Action: 'tag' (add/remove tags) or 'move' (relocate to folder).
+        action: Action: 'tag' (add/remove tags), 'move' (relocate to folder),
+            or 'archive' (move to Archive folder).
         add_tags: For action='tag': tags to add.
         remove_tags: For action='tag': tags to remove.
         destination_folder: For action='move': destination folder (e.g., 'Trash', 'Archive').
@@ -155,4 +156,9 @@ def update(
             raise ValueError("destination_folder required for move action")
         return _move_emails(message_ids, destination_folder)
 
-    raise ValueError(f"Unknown action: {action}. Use 'tag' or 'move'.")
+    if action == "archive":
+        if not message_ids:
+            raise ValueError("At least one message_id required for archive action")
+        return _move_emails(message_ids, "archive")
+
+    raise ValueError(f"Unknown action: {action}. Use 'tag', 'move', or 'archive'.")

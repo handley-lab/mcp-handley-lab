@@ -185,3 +185,156 @@ class TestFindSmartDestination:
 
         # Should find the directory, not the file
         assert result == archive_dir
+
+    def test_explicit_account_folder_path(self, tmp_path):
+        """Should resolve explicit Account/Folder paths directly."""
+        # Setup: create folder structure
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        archive_path = account_path / "Archive"
+        archive_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        # Create a different account with different Archive
+        other_account = tmp_path / "Gmail"
+        other_account.mkdir()
+        other_archive = other_account / "Archive"
+        other_archive.mkdir()
+        (other_account / "INBOX").mkdir()
+
+        # Source file in Gmail, but explicitly request Hermes/Archive
+        source_file = str(other_account / "INBOX" / "cur" / "test.eml")
+
+        result = _find_smart_destination([source_file], tmp_path, "Hermes/Archive")
+
+        assert result == archive_path
+
+    def test_explicit_path_not_found_error(self, tmp_path):
+        """Should raise helpful error when explicit Account/Folder path doesn't exist."""
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        (account_path / "INBOX").mkdir()
+        (account_path / "Sent").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        with pytest.raises(FileNotFoundError) as exc_info:
+            _find_smart_destination([source_file], tmp_path, "Hermes/NonExistent")
+
+        error_msg = str(exc_info.value)
+        assert "Explicit path 'Hermes/NonExistent' not found" in error_msg
+        assert "Available folders in 'Hermes':" in error_msg
+        assert "INBOX" in error_msg
+
+    def test_expanded_aliases_sent_items(self, tmp_path):
+        """Should match 'Sent Items' folder using 'sent' alias."""
+        account_path = tmp_path / "Outlook"
+        account_path.mkdir()
+        sent_path = account_path / "Sent Items"
+        sent_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        result = _find_smart_destination([source_file], tmp_path, "sent")
+
+        assert result == sent_path
+
+    def test_expanded_aliases_deleted_items(self, tmp_path):
+        """Should match 'Deleted Items' folder using 'trash' alias."""
+        account_path = tmp_path / "Outlook"
+        account_path.mkdir()
+        deleted_path = account_path / "Deleted Items"
+        deleted_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        result = _find_smart_destination([source_file], tmp_path, "trash")
+
+        assert result == deleted_path
+
+    def test_expanded_aliases_all_mail(self, tmp_path):
+        """Should match 'All Mail' folder using 'archive' alias."""
+        account_path = tmp_path / "Gmail"
+        account_path.mkdir()
+        all_mail_path = account_path / "[Gmail].All Mail"
+        all_mail_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        result = _find_smart_destination([source_file], tmp_path, "archive")
+
+        assert result == all_mail_path
+
+    def test_input_normalization(self, tmp_path):
+        """Should normalize whitespace and multiple slashes in destination path."""
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        archive_path = account_path / "Archive"
+        archive_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        # Source file in same account for cleaner test
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        # Test with extra whitespace and slashes
+        result = _find_smart_destination(
+            [source_file], tmp_path, "  Hermes//Archive/  "
+        )
+
+        assert result == archive_path
+
+    def test_path_traversal_rejected(self, tmp_path):
+        """Should reject path traversal attempts."""
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        with pytest.raises(ValueError) as exc_info:
+            _find_smart_destination([source_file], tmp_path, "../Hermes/Archive")
+
+        assert "Invalid destination folder path" in str(exc_info.value)
+
+    def test_absolute_path_rejected(self, tmp_path):
+        """Should reject absolute paths."""
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        with pytest.raises(ValueError) as exc_info:
+            _find_smart_destination([source_file], tmp_path, "/tmp/Archive")
+
+        assert "Invalid destination folder path" in str(exc_info.value)
+
+    def test_tilde_path_rejected(self, tmp_path):
+        """Should reject tilde-prefixed paths."""
+        account_path = tmp_path / "Hermes"
+        account_path.mkdir()
+        (account_path / "INBOX").mkdir()
+
+        source_file = str(account_path / "INBOX" / "cur" / "test.eml")
+
+        with pytest.raises(ValueError) as exc_info:
+            _find_smart_destination([source_file], tmp_path, "~/mail/Archive")
+
+        assert "Invalid destination folder path" in str(exc_info.value)
+
+    def test_root_level_alias_matching(self, tmp_path):
+        """Should match aliases for root-level maildir source files."""
+        # Setup: root-level maildir with Archive folder using Gmail naming
+        (tmp_path / "cur").mkdir()
+        all_mail_path = tmp_path / "[Gmail].All Mail"
+        all_mail_path.mkdir()
+
+        # Source file at root level (cur/test.eml, not Account/INBOX/cur/test.eml)
+        source_file = str(tmp_path / "cur" / "test.eml")
+
+        result = _find_smart_destination([source_file], tmp_path, "archive")
+
+        assert result == all_mail_path

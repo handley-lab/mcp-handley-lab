@@ -79,6 +79,18 @@ class CalendarEvent(BaseModel):
         default="",
         description="The last modification time of the event as an ISO 8601 string.",
     )
+    recurrence: list[str] = Field(
+        default_factory=list,
+        description="RRULE/EXDATE/RDATE strings. Empty for single events or instances.",
+    )
+    recurringEventId: str = Field(
+        default="",
+        description="For instances: ID of parent series master. Empty for single events or masters.",
+    )
+    originalStartTime: EventDateTime | None = Field(
+        default=None,
+        description="For instances: scheduled start per recurrence rule (may differ from actual start if rescheduled).",
+    )
 
 
 class CreatedEventResult(BaseModel):
@@ -127,13 +139,17 @@ class CalendarInfo(BaseModel):
     """Calendar information."""
 
     id: str = Field(..., description="The unique identifier of the calendar.")
-    summary: str = Field(..., description="The title or name of the calendar.")
+    summary: str = Field(
+        default="Unknown",
+        description="The title or name of the calendar.",
+    )
     accessRole: str = Field(
-        ...,
+        default="unknown",
         description="The user's access level to the calendar (e.g., 'owner', 'reader', 'writer').",
     )
     colorId: str = Field(
-        ..., description="The color identifier used to display the calendar."
+        default="",
+        description="The color identifier used to display the calendar.",
     )
 
 
@@ -358,6 +374,13 @@ def _build_event_model(event_data: dict) -> CalendarEvent:
         for att in event_data.get("attendees", [])
     ]
 
+    # Parse originalStartTime for recurring event instances
+    original_start_raw = event_data.get("originalStartTime")
+    original_start = None
+    if original_start_raw:
+        original_start_normalized = _normalize_datetime_for_output(original_start_raw)
+        original_start = EventDateTime(**original_start_normalized)
+
     return CalendarEvent(
         id=event_data["id"],
         summary=event_data.get("summary", "No Title"),
@@ -369,6 +392,9 @@ def _build_event_model(event_data: dict) -> CalendarEvent:
         calendar_name=event_data.get("calendar_name", ""),
         created=event_data.get("created", ""),
         updated=event_data.get("updated", ""),
+        recurrence=event_data.get("recurrence", []),
+        recurringEventId=event_data.get("recurringEventId", ""),
+        originalStartTime=original_start,
     )
 
 
@@ -577,6 +603,58 @@ def _client_side_filter(
     return filtered_events
 
 
+def _get_series_master_id(event_data: dict) -> str | None:
+    """Get the master event ID for a recurring series.
+
+    Returns:
+        - event ID if event is a series master (has recurrence rules)
+        - recurringEventId if event is an instance of a series
+        - None if event is not recurring
+    """
+    if event_data.get("recurrence"):
+        return event_data["id"]
+    if event_data.get("recurringEventId"):
+        return event_data["recurringEventId"]
+    return None
+
+
+def _validate_recurrence(recurrence: list[str]) -> None:
+    """Validate recurrence rules. Raises ValueError if invalid.
+
+    Args:
+        recurrence: List of RRULE/EXDATE/RDATE strings
+
+    Raises:
+        ValueError: If any rule is invalid or has conflicting COUNT/UNTIL
+    """
+    if not recurrence:
+        return  # Empty list is valid (no recurrence)
+
+    has_count = False
+    has_until = False
+
+    for rule in recurrence:
+        rule = rule.strip()
+        if not rule:
+            raise ValueError("Empty recurrence rule string")
+
+        # Check valid prefix (case-sensitive per RFC 5545)
+        if not rule.startswith(("RRULE:", "EXDATE:", "RDATE:")):
+            raise ValueError(
+                f"Invalid recurrence rule: '{rule}'. "
+                "Must start with RRULE:, EXDATE:, or RDATE:"
+            )
+
+        if rule.startswith("RRULE:"):
+            if "COUNT=" in rule:
+                has_count = True
+            if "UNTIL=" in rule:
+                has_until = True
+
+    if has_count and has_until:
+        raise ValueError("Cannot use both COUNT and UNTIL in RRULE")
+
+
 # =============================================================================
 # MCP Resource: Calendars
 # =============================================================================
@@ -592,9 +670,10 @@ def calendar_list() -> list[CalendarInfo]:
             id=cal["id"],
             summary=cal.get("summary", "Unknown"),
             accessRole=cal.get("accessRole", "unknown"),
-            colorId=cal.get("colorId", "default"),
+            colorId=cal.get("colorId", ""),
         )
         for cal in calendar_list_response.get("items", [])
+        if "id" in cal  # Skip malformed entries (should never happen)
     ]
 
 
@@ -640,6 +719,18 @@ def read(
         True,
         description="If True (AND), all words must match. If False (OR), any can match.",
     ),
+    get_instances: bool = Field(
+        False,
+        description="If True with event_id, return all instances of the recurring series. Returns empty list if event is not recurring.",
+    ),
+    time_min: str = Field(
+        "",
+        description="For get_instances: start of time range (YYYY-MM-DD). Defaults to today.",
+    ),
+    time_max: str = Field(
+        "",
+        description="For get_instances: end of time range (YYYY-MM-DD). Defaults to 1 year from time_min.",
+    ),
 ) -> list[CalendarEvent]:
     """Read calendar events - either get by ID or search."""
     from mcp_handley_lab.google_calendar.shared import read as _read
@@ -654,6 +745,9 @@ def read(
         search_fields=search_fields,
         case_sensitive=case_sensitive,
         match_all_terms=match_all_terms,
+        get_instances=get_instances,
+        time_min=time_min,
+        time_max=time_max,
     )
 
 
@@ -677,8 +771,8 @@ def create(
         "", description="The physical location or meeting link for the event."
     ),
     calendar_id: str = Field(
-        ...,
-        description="The ID or name of the calendar to add the event to. Use calendar://list resource to discover options. Required parameter - no default.",
+        "primary",
+        description="The ID or name of the calendar to add the event to. Use calendar://list resource to discover options. Defaults to 'primary'.",
     ),
     start_timezone: str = Field(
         "",
@@ -688,9 +782,13 @@ def create(
         "",
         description="Explicit IANA timezone for the end time. Essential for events spanning timezones, like flights.",
     ),
-    attendees: list[str] = Field(
-        default_factory=list,
+    attendees: list[str] | None = Field(
+        None,
         description="A list of attendee email addresses to invite to the event.",
+    ),
+    recurrence: list[str] | None = Field(
+        None,
+        description="Recurrence rules as RRULE strings (e.g., ['RRULE:FREQ=WEEKLY;COUNT=10']). None for single event.",
     ),
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing and flexible timezone handling."""
@@ -706,6 +804,7 @@ def create(
         start_timezone=start_timezone,
         end_timezone=end_timezone,
         attendees=attendees,
+        recurrence=recurrence,
     )
 
 
@@ -753,6 +852,14 @@ def update(
         False,
         description="Fix timezone inconsistencies (UTC time with non-UTC label).",
     ),
+    update_series: bool = Field(
+        False,
+        description="If True, update the entire recurring series (resolves instance to master). If False, update only this instance/event.",
+    ),
+    recurrence: list[str] | None = Field(
+        None,
+        description="New recurrence rules. None=no change. Empty list=remove recurrence (convert to single event). Only valid with update_series=True.",
+    ),
 ) -> UpdateEventResult:
     """Update or move an event. Move and update are mutually exclusive."""
     from mcp_handley_lab.google_calendar.shared import update as _update
@@ -769,6 +876,8 @@ def update(
         start_timezone=start_timezone,
         end_timezone=end_timezone,
         normalize_timezone=normalize_timezone,
+        update_series=update_series,
+        recurrence=recurrence,
     )
 
 
@@ -783,8 +892,14 @@ def delete(
         "primary",
         description="The calendar where the event is located. Defaults to primary.",
     ),
+    delete_series: bool = Field(
+        False,
+        description="If True, delete entire recurring series (resolves instance to master). If False, delete only this instance.",
+    ),
 ) -> str:
     """Delete a calendar event permanently."""
     from mcp_handley_lab.google_calendar.shared import delete as _delete
 
-    return _delete(event_id=event_id, calendar_id=calendar_id)
+    return _delete(
+        event_id=event_id, calendar_id=calendar_id, delete_series=delete_series
+    )

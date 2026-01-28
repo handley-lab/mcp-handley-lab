@@ -27,7 +27,7 @@ class TestGPT5Integration:
             "chat",
             {
                 "prompt": "What is 3+3? Answer with just the number.",
-                "output_file": "-",
+                "output_file": "",
                 "branch": "false",
                 "model": "gpt-5",
                 "files": [],
@@ -51,7 +51,7 @@ class TestGPT5Integration:
             "chat",
             {
                 "prompt": "What is 2+2? Answer with just the number.",
-                "output_file": "-",
+                "output_file": "",
                 "branch": "false",
                 "model": "gpt-5-mini",
                 "files": [],
@@ -74,7 +74,7 @@ class TestGPT5Integration:
             "chat",
             {
                 "prompt": "What is 1+1? Answer with just the number.",
-                "output_file": "-",
+                "output_file": "",
                 "branch": "false",
                 "model": "gpt-5-nano",
                 "files": [],
@@ -100,7 +100,7 @@ class TestGPT5Integration:
             "chat",
             {
                 "prompt": f"Count how many words are in this text: {long_text}",
-                "output_file": "-",
+                "output_file": "",
                 "branch": "false",
                 "model": "gpt-5-nano",
                 "files": [],
@@ -126,7 +126,7 @@ class TestGPT5Integration:
                 "chat",
                 {
                     "prompt": "Say hello",
-                    "output_file": "-",
+                    "output_file": "",
                     "branch": "false",
                     "model": "gpt-5-nano",
                     "temperature": 0.1,  # Should fail
@@ -150,7 +150,7 @@ class TestGPT5Integration:
             "chat",
             {
                 "prompt": "Say hello",
-                "output_file": "-",
+                "output_file": "",
                 "branch": "false",
                 "model": "gpt-5-nano",
                 "files": [],

@@ -29,8 +29,50 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **AI Model Integration**: Unified LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, and Groq
 - **Productivity & Scheduling**: Google Calendar management
 - **Academic Research**: ArXiv paper source code retrieval and analysis
-- **Interactive Editing**: Programmatic `vim` invocation
 - **Persistent Memory**: Agent management with conversational memory for LLMs
+
+## Filing GitHub Issues for MCP Tool Bugs
+
+When you encounter a bug or issue in an MCP tool, file a GitHub issue with `gh issue create`. Reference the correct source file path so developers can locate the code.
+
+### MCP Tool Source Locations
+
+| MCP Server | Tool File | Description |
+|------------|-----------|-------------|
+| `mcp-llm` | `src/mcp_handley_lab/llm/tool.py` | Chat, vision, image gen, transcribe, OCR, models |
+| `mcp-llm-embeddings` | `src/mcp_handley_lab/llm/embeddings/tool.py` | Text embeddings & semantic search |
+| `mcp-email` | `src/mcp_handley_lab/email/tool.py` (entry); `email/notmuch/tool.py` (read/update), `email/mutt/tool.py` (send), `email/offlineimap/tool.py` (sync) | Email read/send/update/sync |
+| `mcp-google-calendar` | `src/mcp_handley_lab/google_calendar/tool.py` | Calendar CRUD & search |
+| `mcp-google-maps` | `src/mcp_handley_lab/google_maps/tool.py` | Directions & routes |
+| `mcp-repl` | `src/mcp_handley_lab/repl/tool.py` | REPL session management |
+| `mcp-mathematica` | `src/mcp_handley_lab/mathematica/tool.py` | Wolfram Language evaluation |
+| `mcp-word` | `src/mcp_handley_lab/microsoft/word/tool.py` | Word document read/edit |
+| `mcp-excel` | `src/mcp_handley_lab/microsoft/excel/tool.py` | Excel workbook read/edit |
+| `mcp-search` | `src/mcp_handley_lab/search/tool.py` | Conversation transcript search |
+| `mcp-screenshot` | `src/mcp_handley_lab/screenshot/tool.py` | Window/screen capture |
+| `mcp-code2prompt` | `src/mcp_handley_lab/code2prompt/tool.py` | Codebase summarization |
+| `mcp-arxiv` | `src/mcp_handley_lab/arxiv/tool.py` | ArXiv paper download |
+
+### Issue Template
+
+```bash
+gh issue create \
+  --title "fix(<server>): <short description>" \
+  --body "## Description
+<What happened vs what was expected>
+
+## Source
+Tool file: \`<path from table above>\`
+
+## Steps to Reproduce
+1. ...
+2. ...
+
+## Error Output
+\`\`\`
+<paste error>
+\`\`\`"
+```
 
 ## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
 
@@ -86,7 +128,7 @@ git commit --no-verify -m "bypass hooks"
 ## Critical Development Guidelines
 
 ### Environment Assumptions
-- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, vim, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
+- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
 - **NEVER use --break-system-packages**: Use virtual environments instead for package installations
 - Work within a Python virtual environment for all package installations: `python -m venv venv && source venv/bin/activate`
 - This is a local toolset, not for wider distribution - failures in practice guide improvements
@@ -192,10 +234,9 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**
-2. **Phase 2**: Simple CLI-based tools (vim) ✓ **COMPLETE**
-3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
-4. **Phase 4**: Complex tools (code2prompt) ✓ **COMPLETE**
-5. **Phase 5**: Comprehensive testing and documentation ✓ **COMPLETE**
+2. **Phase 2**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
+3. **Phase 3**: Complex tools (code2prompt) ✓ **COMPLETE**
+4. **Phase 4**: Comprehensive testing and documentation ✓ **COMPLETE**
 
 ## Completed Implementations
 
@@ -212,10 +253,6 @@ Provider-agnostic LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, an
 - **Location**: `src/mcp_handley_lab/llm/embeddings/`
 - **Functions**: `get_embeddings`, `calculate_similarity`, `index_documents`, `search_documents`
 - **Features**: Text embeddings, semantic search, document indexing
-
-### Vim Tool ✓
-- **Location**: `src/mcp_handley_lab/vim/`
-- **Functions**: `prompt_user_edit`, `quick_edit`, `open_file`, `server_info`
 
 ### Google Calendar Tool ✓
 - **Location**: `src/mcp_handley_lab/google_calendar/`
@@ -240,15 +277,11 @@ mcp-llm                                         # Chat, vision, image gen, trans
 mcp-llm-embeddings                              # Text embeddings & search
 
 # Other Tools
-mcp-vim                                         # Vim editing
 mcp-code2prompt                                 # Codebase summarization
 mcp-arxiv                                       # ArXiv paper download
 mcp-google-calendar                             # Calendar management
 mcp-google-maps                                 # Directions/routes
 mcp-email                                       # Email via notmuch
-mcp-github                                      # GitHub integration
-mcp-jq                                          # JSON querying
-mcp-py2nb                                       # Python/notebook conversion
 ```
 
 ### JSON-RPC MCP Server Usage
@@ -567,6 +600,35 @@ mcp__code2prompt__generate_prompt path="/path/to/code" output_file="/tmp/code_re
 mcp__llm__chat prompt="Review this code for improvements" agent_name="code_reviewer" model="gemini" files=["/tmp/code_review.md"]
 ```
 
+## MCP Resources
+
+MCP resources provide read-only discovery data that can be cached by clients. Check relevant resources before making tool calls that need discovery info.
+
+### Available Resources
+
+| Resource URI | Server | Description |
+|-------------|--------|-------------|
+| `calendar://list` | mcp-google-calendar | All accessible calendars with IDs, names, access levels |
+| `model://list` | mcp-llm | All LLM models grouped by provider with capabilities and pricing |
+| `email://tags` | mcp-email | All tags in the notmuch database |
+| `email://folders` | mcp-email | All maildir folders (Account/Folder format) |
+| `email://accounts` | mcp-email | All configured msmtp email accounts |
+| `repl://backends` | mcp-repl | All available REPL backends (bash, python, julia, etc.) |
+
+### Usage via JSON-RPC
+
+```bash
+# List available resources
+{"jsonrpc": "2.0", "id": 1, "method": "resources/list"}
+
+# Read a specific resource
+{"jsonrpc": "2.0", "id": 2, "method": "resources/read", "params": {"uri": "model://list"}}
+```
+
+### When to Use Resources vs Tools
+
+- **Resources**: Discovery, listing, static/semi-static data (calendars, models, folders)
+- **Tools**: Actions, mutations, queries with parameters (send email, create event, chat)
 
 ## Reference Documentation
 

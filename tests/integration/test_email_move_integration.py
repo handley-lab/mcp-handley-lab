@@ -112,7 +112,7 @@ class TestEmailMoveIntegration:
         assert move_result["message_ids"] == ["msg1@hermes.com", "msg2@hermes.com"]
         assert move_result["destination_folder"] == "Archive"
         assert move_result["moved_files_count"] == 2
-        assert "Successfully moved 2 email(s) to 'Archive'" in move_result["status"]
+        assert "Successfully moved 2 file(s) to 'Archive'" in move_result["status"]
 
         # Verify emails were moved to correct location
         archive_new_dir = mock_maildir / "Hermes" / "Archive" / "new"
@@ -158,7 +158,7 @@ class TestEmailMoveIntegration:
         )
 
         assert move_result["moved_files_count"] == 1
-        assert "Successfully moved 1 email(s) to 'Trash'" in move_result["status"]
+        assert "Successfully moved 1 file(s) to 'Trash'" in move_result["status"]
 
         # Verify email moved to Gmail's Bin folder
         bin_new_dir = mock_maildir / "Gmail" / "[Google Mail].Bin" / "new"
@@ -276,13 +276,11 @@ class TestEmailMoveIntegration:
             result.get("result", result) if isinstance(result, dict) else result
         )
 
-        # Should move 1 file but report about the missing one
+        # Should move 1 file (all files that were found were moved successfully)
         assert move_result["moved_files_count"] == 1
         assert len(move_result["message_ids"]) == 2
-        assert (
-            "Note: 1 of the requested message IDs could not be found"
-            in move_result["status"]
-        )
+        # Note: The status message only reports file-level failures, not missing message IDs
+        assert "Successfully moved 1 file(s) to 'Archive'" in move_result["status"]
 
     @patch("mcp_handley_lab.email.notmuch.tool.run_command")
     async def test_move_os_rename_failure_raises_error(

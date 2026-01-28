@@ -288,6 +288,7 @@ def search(
     type: str = "",
     limit: int = 20,
     since: str = "",
+    file_path: str = "",
 ) -> list[dict]:
     """Full-text search across Claude transcripts."""
     conn = get_connection("claude")
@@ -307,6 +308,9 @@ def search(
         if since:
             sql += " AND timestamp >= ?"
             params.append(since)
+        if file_path:
+            sql += " AND file_path = ?"
+            params.append(file_path)
 
         sql += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
@@ -320,6 +324,7 @@ def search(
             "project_path": project or None,
             "type": type or None,
             "timestamp": since or None,
+            "file_path": file_path or None,
         },
     )
 

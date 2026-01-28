@@ -16,11 +16,13 @@ from mcp_handley_lab.google_calendar.tool import (
     _get_calendar_service,
     _get_calendar_timezone,
     _get_normalization_patch,
+    _get_series_master_id,
     _has_timezone_inconsistency,
     _is_all_day_event,
     _parse_datetime_to_utc,
     _prepare_event_datetime,
     _resolve_calendar_id,
+    _validate_recurrence,
     _would_be_timed_event,
     logger,
 )
@@ -36,6 +38,9 @@ def read(
     search_fields: list[str] | None = None,
     case_sensitive: bool = False,
     match_all_terms: bool = True,
+    get_instances: bool = False,
+    time_min: str = "",
+    time_max: str = "",
 ) -> list[CalendarEvent]:
     """Read calendar events - either get by ID or search.
 
@@ -51,6 +56,9 @@ def read(
             None=API search only, []=search all fields.
         case_sensitive: If True, search is case-sensitive.
         match_all_terms: If True (AND), all words must match. If False (OR), any can match.
+        get_instances: If True with event_id, return all instances of the recurring series.
+        time_min: For get_instances: start of time range (YYYY-MM-DD). Defaults to today.
+        time_max: For get_instances: end of time range (YYYY-MM-DD). Defaults to 1 year from time_min.
 
     Returns:
         List of CalendarEvent objects.
@@ -63,6 +71,82 @@ def read(
             raise ValueError("Cannot use calendar_id='all' when fetching by event_id")
         resolved_id = _resolve_calendar_id(calendar_id, service)
         event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+
+        # Get instances of recurring series
+        if get_instances:
+            master_id = _get_series_master_id(event)
+            if not master_id:
+                return []  # Not a recurring event
+
+            # Get calendar name for consistency
+            calendar_list_response = service.calendarList().list().execute()
+            calendar_name = resolved_id
+            for cal in calendar_list_response.get("items", []):
+                if cal["id"] == resolved_id:
+                    calendar_name = cal.get("summary", resolved_id)
+                    break
+
+            # Set time bounds (required for instances API)
+            # Use calendar's timezone for interpreting date-only inputs
+            calendar_tz = _get_calendar_timezone(service, resolved_id)
+
+            if not time_min:
+                # Default to start of today in calendar's timezone
+                today = datetime.now().strftime("%Y-%m-%d")
+                time_min_utc = _parse_datetime_to_utc(today, calendar_tz)
+            else:
+                time_min_utc = _parse_datetime_to_utc(time_min, calendar_tz)
+
+            if not time_max:
+                # Default to 1 year from time_min
+                time_min_dt = datetime.fromisoformat(
+                    time_min_utc.replace("Z", "+00:00")
+                )
+                time_max_dt = time_min_dt + timedelta(days=365)
+                time_max_utc = time_max_dt.isoformat().replace("+00:00", "Z")
+            else:
+                if "T" not in time_max:
+                    time_max = time_max + "T23:59:59"
+                time_max_utc = _parse_datetime_to_utc(time_max, calendar_tz)
+
+            # Fetch instances with pagination
+            all_instances: list[dict[str, Any]] = []
+            instances_result = (
+                service.events()
+                .instances(
+                    calendarId=resolved_id,
+                    eventId=master_id,
+                    timeMin=time_min_utc,
+                    timeMax=time_max_utc,
+                    maxResults=max_results,
+                    showDeleted=False,
+                )
+                .execute()
+            )
+
+            all_instances.extend(instances_result.get("items", []))
+
+            while "nextPageToken" in instances_result:
+                instances_result = (
+                    service.events()
+                    .instances(
+                        calendarId=resolved_id,
+                        eventId=master_id,
+                        timeMin=time_min_utc,
+                        timeMax=time_max_utc,
+                        maxResults=max_results,
+                        showDeleted=False,
+                        pageToken=instances_result["nextPageToken"],
+                    )
+                    .execute()
+                )
+                all_instances.extend(instances_result.get("items", []))
+
+            # Add calendar_name for consistency
+            for inst in all_instances:
+                inst["calendar_name"] = calendar_name
+
+            return [_build_event_model(inst) for inst in all_instances]
 
         if _has_timezone_inconsistency(event):
             logger.warning(
@@ -166,6 +250,7 @@ def create(
     start_timezone: str = "",
     end_timezone: str = "",
     attendees: list[str] | None = None,
+    recurrence: list[str] | None = None,
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing.
 
@@ -179,6 +264,7 @@ def create(
         start_timezone: Explicit IANA timezone for the start time (e.g., 'America/Los_Angeles').
         end_timezone: Explicit IANA timezone for the end time.
         attendees: A list of attendee email addresses to invite.
+        recurrence: Recurrence rules as RRULE strings (e.g., ['RRULE:FREQ=WEEKLY;COUNT=10']).
 
     Returns:
         CreatedEventResult with event details.
@@ -187,9 +273,15 @@ def create(
         - Natural language: create("Meeting", "tomorrow at 2pm", "tomorrow at 3pm")
         - Mixed timezones: create("Flight", "10:00am", "6:30pm",
             start_timezone="America/Los_Angeles", end_timezone="America/New_York")
+        - Recurring: create("Standup", "Monday 9am", "Monday 9:30am",
+            recurrence=["RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=50"])
     """
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
+
+    # Validate recurrence rules if provided
+    if recurrence:
+        _validate_recurrence(recurrence)
 
     # Get calendar's default timezone as fallback context
     calendar_tz = _get_calendar_timezone(service, resolved_id)
@@ -217,6 +309,9 @@ def create(
     if attendees:
         event_body["attendees"] = [{"email": email} for email in attendees]
 
+    if recurrence:
+        event_body["recurrence"] = recurrence
+
     created_event = (
         service.events()
         .insert(calendarId=resolved_id, body=event_body, sendUpdates="all")
@@ -238,6 +333,36 @@ def create(
     )
 
 
+def _merge_recurrence(existing: list[str], new: list[str] | None) -> list[str] | None:
+    """Merge recurrence rules, preserving EXDATE/RDATE unless explicitly provided.
+
+    Args:
+        existing: Current recurrence rules from the event
+        new: New recurrence rules. None=no change, []=clear all recurrence
+
+    Returns:
+        Merged recurrence rules, None if no change, or empty list to clear
+    """
+    if new is None:
+        return None  # No change
+
+    if new == []:
+        return []  # Clear all recurrence (convert to single event)
+
+    # Check if caller provided EXDATE/RDATE
+    new_has_exceptions = any(r.startswith(("EXDATE:", "RDATE:")) for r in new)
+
+    if new_has_exceptions:
+        # Caller provided full recurrence spec - use as-is
+        return new
+
+    # Caller only provided RRULE - preserve existing exceptions
+    existing_exceptions = [r for r in existing if r.startswith(("EXDATE:", "RDATE:"))]
+    new_rrules = [r for r in new if r.startswith("RRULE:")]
+
+    return new_rrules + existing_exceptions
+
+
 def update(
     event_id: str,
     calendar_id: str = "primary",
@@ -250,6 +375,8 @@ def update(
     start_timezone: str = "",
     end_timezone: str = "",
     normalize_timezone: bool = False,
+    update_series: bool = False,
+    recurrence: list[str] | None = None,
 ) -> UpdateEventResult:
     """Update or move a calendar event.
 
@@ -266,12 +393,25 @@ def update(
         start_timezone: New IANA timezone for start. If empty, preserves existing.
         end_timezone: New IANA timezone for end. If empty, preserves existing.
         normalize_timezone: Fix timezone inconsistencies (UTC time with non-UTC label).
+        update_series: If True, update the entire recurring series (resolves instance to master).
+        recurrence: New recurrence rules. None=no change. []=remove recurrence.
 
     Returns:
         UpdateEventResult with update details.
     """
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
+
+    # Validate recurrence parameter usage
+    if recurrence is not None and not update_series:
+        raise ValueError(
+            "Cannot modify recurrence without update_series=True. "
+            "Set update_series=True to modify the entire series."
+        )
+
+    # Validate recurrence rules if provided
+    if recurrence:
+        _validate_recurrence(recurrence)
 
     # Handle move operation
     if destination_calendar_id:
@@ -288,6 +428,11 @@ def update(
             raise ValueError(
                 "Cannot combine move (destination_calendar_id) with normalize_timezone. "
                 "Move first, then normalize in a separate call."
+            )
+        if update_series:
+            raise ValueError(
+                "Cannot combine move (destination_calendar_id) with update_series. "
+                "Move first, then update series in a separate call."
             )
 
         dest_resolved_id = _resolve_calendar_id(destination_calendar_id, service)
@@ -313,11 +458,26 @@ def update(
     update_body: dict[str, Any] = {}
     updated_fields: list[str] = []
 
+    # Determine target event ID (may need to resolve to master for series updates)
+    target_event_id = event_id
     current_event = None
-    if normalize_timezone or start_datetime or end_datetime:
+
+    if update_series or normalize_timezone or start_datetime or end_datetime:
         current_event = (
             service.events().get(calendarId=resolved_id, eventId=event_id).execute()
         )
+
+        # For series updates, resolve instance to master
+        if update_series:
+            master_id = _get_series_master_id(current_event)
+            if master_id and master_id != event_id:
+                # Need to fetch the master event
+                target_event_id = master_id
+                current_event = (
+                    service.events()
+                    .get(calendarId=resolved_id, eventId=master_id)
+                    .execute()
+                )
 
     if normalize_timezone and current_event:
         normalization_patch = _get_normalization_patch(current_event)
@@ -334,6 +494,19 @@ def update(
     if location is not None:
         update_body["location"] = location
         updated_fields.append("location")
+
+    # Handle recurrence updates (only valid with update_series=True, already validated above)
+    if recurrence is not None and current_event:
+        existing_recurrence = current_event.get("recurrence", [])
+        merged_recurrence = _merge_recurrence(existing_recurrence, recurrence)
+        if merged_recurrence is not None:
+            if merged_recurrence == []:
+                # Remove recurrence - Google API requires empty list to clear
+                update_body["recurrence"] = []
+                updated_fields.append("recurrence_removed")
+            else:
+                update_body["recurrence"] = merged_recurrence
+                updated_fields.append("recurrence")
 
     if start_datetime or end_datetime:
         calendar_tz = _get_calendar_timezone(service, resolved_id)
@@ -378,7 +551,7 @@ def update(
         service.events()
         .patch(
             calendarId=resolved_id,
-            eventId=event_id,
+            eventId=target_event_id,
             body=update_body,
             sendUpdates="all",
         )
@@ -386,6 +559,8 @@ def update(
     )
 
     result_msg = f"Event (ID: {updated_event['id']}) updated successfully."
+    if update_series and target_event_id != event_id:
+        result_msg = f"Series master (ID: {updated_event['id']}) updated successfully."
     if updated_fields:
         result_msg += f" Modified fields: {', '.join(updated_fields)}"
     if normalize_timezone and ("start" in update_body or "end" in update_body):
@@ -399,12 +574,15 @@ def update(
     )
 
 
-def delete(event_id: str, calendar_id: str = "primary") -> str:
+def delete(
+    event_id: str, calendar_id: str = "primary", delete_series: bool = False
+) -> str:
     """Delete a calendar event permanently.
 
     Args:
         event_id: The unique identifier of the event to delete.
         calendar_id: The calendar where the event is located. Defaults to primary.
+        delete_series: If True, delete entire recurring series (resolves instance to master).
 
     Returns:
         Confirmation message.
@@ -414,7 +592,19 @@ def delete(event_id: str, calendar_id: str = "primary") -> str:
     service = _get_calendar_service()
     resolved_id = _resolve_calendar_id(calendar_id, service)
 
-    service.events().delete(calendarId=resolved_id, eventId=event_id).execute()
+    target_event_id = event_id
+
+    # For series deletion, resolve instance to master
+    if delete_series:
+        event = service.events().get(calendarId=resolved_id, eventId=event_id).execute()
+        master_id = _get_series_master_id(event)
+        if master_id:
+            target_event_id = master_id
+
+    service.events().delete(calendarId=resolved_id, eventId=target_event_id).execute()
+
+    if delete_series and target_event_id != event_id:
+        return f"Recurring series (master ID: {target_event_id}) has been permanently deleted."
     return f"Event (ID: {event_id}) has been permanently deleted."
 
 
@@ -431,7 +621,8 @@ def list_calendars() -> list[CalendarInfo]:
             id=cal["id"],
             summary=cal.get("summary", "Unknown"),
             accessRole=cal.get("accessRole", "unknown"),
-            colorId=cal.get("colorId", "default"),
+            colorId=cal.get("colorId", ""),
         )
         for cal in calendar_list_response.get("items", [])
+        if "id" in cal  # Skip malformed entries (should never happen)
     ]

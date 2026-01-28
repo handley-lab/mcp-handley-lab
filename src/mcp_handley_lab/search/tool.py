@@ -22,7 +22,9 @@ def context(
     ),
     query: str = Field(
         default="",
-        description="FTS5 search query (supports AND, OR, NEAR, prefix*). Required for search action.",
+        description='FTS5 query. Syntax: word, prefix*, "exact phrase", '
+        "A AND B, A OR B, NEAR(a b, N), NOT term. "
+        "Invalid syntax auto-falls back to phrase search.",
     ),
     project: str = Field(
         default="",
@@ -42,7 +44,8 @@ def context(
     ),
     file_path: str = Field(
         default="",
-        description="Session identifier for slice (from SearchHit.file_path)",
+        description="Session identifier (files[file_idx] from search results). "
+        "For slice: get entries by position. For search: scope to this session.",
     ),
     start: int = Field(
         default=0,
@@ -51,6 +54,10 @@ def context(
     end: int = Field(
         default=-1,
         description="End index for slice (exclusive, -1 = to end of session)",
+    ),
+    max_chars: int = Field(
+        default=0,
+        description="For slice: max chars per entry (0=no limit). Truncates at word boundary.",
     ),
     full: bool = Field(
         default=False,
@@ -63,12 +70,11 @@ def context(
 ) -> dict:
     """Search and slice AI conversation context.
 
-    Search returns hits with location metadata (index, session_length) for slicing.
-    Slice retrieves entries at specific positions within a session.
-
-    Example workflow:
-        1. Search to find relevant entries
-        2. Use file_path and index from hits to slice surrounding context
+    Hits: "file_idx[entry_idx/total] type: snippet..."
+      - file_idx -> files[file_idx] gives file_path for slicing
+      - entry_idx -> position in session (use as start for slice)
+      - total -> session length
+    Workflow: search -> get file_idx/entry_idx -> slice with context window
     """
     # Convert -1 to None for end parameter
     end_val = None if end == -1 else end
@@ -84,6 +90,7 @@ def context(
         file_path=file_path,
         start=start,
         end=end_val,
+        max_chars=max_chars,
         full=full,
         verbose=verbose,
     )

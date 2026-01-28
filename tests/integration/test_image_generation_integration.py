@@ -5,6 +5,7 @@ The dummy API keys fixture in conftest.py allows the code to proceed
 to HTTP calls, where VCR intercepts and replays recorded responses.
 """
 
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -13,6 +14,23 @@ import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 
 from mcp_handley_lab.llm.tool import mcp
+
+
+def parse_image_result(result) -> tuple[dict, any]:
+    """Parse generate_image result into metadata dict and image.
+
+    FastMCP returns [TextContent(JSON metadata), Image(preview)] directly
+    when a function returns content objects.
+
+    Returns (metadata_dict, image_object).
+    """
+    assert isinstance(result, list), f"Expected list, got {type(result)}"
+    assert len(result) == 2, f"Expected 2 elements, got {len(result)}"
+    # First element is TextContent with JSON metadata
+    metadata = json.loads(result[0].text)
+    # Second element is Image
+    image = result[1]
+    return metadata, image
 
 
 @pytest.fixture
@@ -30,7 +48,8 @@ class TestOpenAIImageGeneration:
     @pytest.mark.asyncio
     async def test_dalle3_basic_generation(self, test_image_file):
         """Test DALL-E 3 basic image generation."""
-        _, result = await mcp.call_tool(
+        # FastMCP returns list directly when function returns content objects
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A simple red circle",
@@ -41,19 +60,27 @@ class TestOpenAIImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, image = parse_image_result(result)
+
         # Verify core fields
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["model"] == "dall-e-3"
-        assert result["provider"] == "openai"
-        assert result["original_prompt"] == "A simple red circle"
-        assert result["cost"] > 0
+        assert Path(metadata["file_path"]).exists()
+        assert metadata["file_size_bytes"] > 0
+        assert metadata["model"] == "dall-e-3"
+        assert metadata["provider"] == "openai"
+        assert metadata["original_prompt"] == "A simple red circle"
+        assert metadata["cost"] > 0
+        assert metadata["detected_format"] in ("png", "jpeg")
+
+        # Verify Image content present (ImageContent has data and mimeType)
+        assert hasattr(image, "data")
+        assert hasattr(image, "mimeType") or hasattr(image, "format")
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_dalle3_enhanced_prompt(self, test_image_file):
         """Test DALL-E 3 prompt enhancement."""
-        _, result = await mcp.call_tool(
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A futuristic city",
@@ -64,19 +91,22 @@ class TestOpenAIImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, _ = parse_image_result(result)
+
         # Verify core fields
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["original_prompt"] == "A futuristic city"
+        assert Path(metadata["file_path"]).exists()
+        assert metadata["file_size_bytes"] > 0
+        assert metadata["original_prompt"] == "A futuristic city"
 
         # DALL-E 3 enhances prompts
-        assert result["enhanced_prompt"] != ""
+        assert metadata["enhanced_prompt"] != ""
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_dalle3_portrait_size(self, test_image_file):
         """Test DALL-E 3 with portrait orientation."""
-        _, result = await mcp.call_tool(
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A mountain landscape",
@@ -87,10 +117,13 @@ class TestOpenAIImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, _ = parse_image_result(result)
+
         # Verify image was generated
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["provider"] == "openai"
+        assert Path(metadata["file_path"]).exists()
+        assert metadata["file_size_bytes"] > 0
+        assert metadata["provider"] == "openai"
 
 
 class TestGeminiImageGeneration:
@@ -100,7 +133,7 @@ class TestGeminiImageGeneration:
     @pytest.mark.asyncio
     async def test_imagen3_basic_generation(self, test_image_file):
         """Test Imagen 3 basic image generation."""
-        _, result = await mcp.call_tool(
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A peaceful garden",
@@ -109,19 +142,22 @@ class TestGeminiImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, _ = parse_image_result(result)
+
         # Verify core fields
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["model"] == "imagen-4.0-generate-001"
-        assert result["provider"] == "gemini"
-        assert result["original_prompt"] == "A peaceful garden"
-        assert result["cost"] >= 0
+        assert Path(metadata["file_path"]).exists()
+        assert metadata["file_size_bytes"] > 0
+        assert metadata["model"] == "imagen-4.0-generate-001"
+        assert metadata["provider"] == "gemini"
+        assert metadata["original_prompt"] == "A peaceful garden"
+        assert metadata["cost"] >= 0
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_imagen3_with_aspect_ratio(self, test_image_file):
         """Test Imagen 3 with custom aspect ratio."""
-        _, result = await mcp.call_tool(
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A safe, family-friendly cartoon character",
@@ -131,16 +167,19 @@ class TestGeminiImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, _ = parse_image_result(result)
+
         # Verify image was generated
-        assert Path(result["file_path"]).exists()
-        assert result["file_size_bytes"] > 0
-        assert result["provider"] == "gemini"
+        assert Path(metadata["file_path"]).exists()
+        assert metadata["file_size_bytes"] > 0
+        assert metadata["provider"] == "gemini"
 
     @pytest.mark.vcr
     @pytest.mark.asyncio
     async def test_imagen_model_variants(self, test_image_file):
         """Test different Imagen model variants."""
-        _, result = await mcp.call_tool(
+        result = await mcp.call_tool(
             "generate_image",
             {
                 "prompt": "A modern abstract art piece",
@@ -149,10 +188,13 @@ class TestGeminiImageGeneration:
             },
         )
 
+        # Parse metadata from [TextContent, Image] result
+        metadata, _ = parse_image_result(result)
+
         # Verify model is correctly used
-        assert result["model"] == "imagen-4.0-generate-001"
-        assert result["original_prompt"] == "A modern abstract art piece"
-        assert result["provider"] == "gemini"
+        assert metadata["model"] == "imagen-4.0-generate-001"
+        assert metadata["original_prompt"] == "A modern abstract art piece"
+        assert metadata["provider"] == "gemini"
 
 
 class TestImageGenerationComparison:
@@ -170,7 +212,7 @@ class TestImageGenerationComparison:
             gemini_file = f2.name
 
         try:
-            _, openai_result = await mcp.call_tool(
+            openai_result = await mcp.call_tool(
                 "generate_image",
                 {
                     "prompt": prompt,
@@ -181,7 +223,7 @@ class TestImageGenerationComparison:
                 },
             )
 
-            _, gemini_result = await mcp.call_tool(
+            gemini_result = await mcp.call_tool(
                 "generate_image",
                 {
                     "prompt": prompt,
@@ -190,19 +232,24 @@ class TestImageGenerationComparison:
                 },
             )
 
+            # Parse metadata from [TextContent, Image] results
+            openai_metadata, _ = parse_image_result(openai_result)
+            gemini_metadata, _ = parse_image_result(gemini_result)
+
             # Both should have the same core structure
-            for result in [openai_result, gemini_result]:
-                assert "file_path" in result
-                assert "file_size_bytes" in result
-                assert "model" in result
-                assert "provider" in result
-                assert "cost" in result
-                assert "original_prompt" in result
-                assert "enhanced_prompt" in result
+            for metadata in [openai_metadata, gemini_metadata]:
+                assert "file_path" in metadata
+                assert "file_size_bytes" in metadata
+                assert "model" in metadata
+                assert "provider" in metadata
+                assert "cost" in metadata
+                assert "original_prompt" in metadata
+                assert "enhanced_prompt" in metadata
+                assert "detected_format" in metadata
 
             # Verify correct providers
-            assert openai_result["provider"] == "openai"
-            assert gemini_result["provider"] == "gemini"
+            assert openai_metadata["provider"] == "openai"
+            assert gemini_metadata["provider"] == "gemini"
         finally:
             Path(openai_file).unlink(missing_ok=True)
             Path(gemini_file).unlink(missing_ok=True)
@@ -219,7 +266,7 @@ class TestImageGenerationComparison:
             gemini_file = f2.name
 
         try:
-            _, openai_result = await mcp.call_tool(
+            openai_result = await mcp.call_tool(
                 "generate_image",
                 {
                     "prompt": prompt,
@@ -230,7 +277,7 @@ class TestImageGenerationComparison:
                 },
             )
 
-            _, gemini_result = await mcp.call_tool(
+            gemini_result = await mcp.call_tool(
                 "generate_image",
                 {
                     "prompt": prompt,
@@ -239,16 +286,20 @@ class TestImageGenerationComparison:
                 },
             )
 
+            # Parse metadata from [TextContent, Image] results
+            openai_metadata, _ = parse_image_result(openai_result)
+            gemini_metadata, _ = parse_image_result(gemini_result)
+
             # Both should preserve original prompt
-            assert openai_result["original_prompt"] == prompt
-            assert gemini_result["original_prompt"] == prompt
+            assert openai_metadata["original_prompt"] == prompt
+            assert gemini_metadata["original_prompt"] == prompt
 
             # DALL-E 3 should enhance prompts significantly
-            assert openai_result["enhanced_prompt"] != ""
-            assert len(openai_result["enhanced_prompt"]) > len(prompt)
+            assert openai_metadata["enhanced_prompt"] != ""
+            assert len(openai_metadata["enhanced_prompt"]) > len(prompt)
 
             # Gemini may or may not enhance prompts
-            assert isinstance(gemini_result["enhanced_prompt"], str)
+            assert isinstance(gemini_metadata["enhanced_prompt"], str)
         finally:
             Path(openai_file).unlink(missing_ok=True)
             Path(gemini_file).unlink(missing_ok=True)
@@ -291,18 +342,29 @@ if __name__ == "__main__":
         # Run basic smoke test
         if os.getenv("OPENAI_API_KEY"):
             print("Testing OpenAI...")
-            _, result = await mcp.call_tool(
+            result = await mcp.call_tool(
                 "generate_image",
-                {"prompt": "Test", "model": "dall-e-3", "size": "1024x1024"},
+                {
+                    "prompt": "Test",
+                    "model": "dall-e-3",
+                    "size": "1024x1024",
+                    "output_file": "/tmp/test_openai.png",
+                },
             )
-            print(f"Generated: {result['file_path']}")
+            metadata, _ = parse_image_result(result)
+            print(f"Generated: {metadata['file_path']}")
 
         if os.getenv("GEMINI_API_KEY"):
             print("Testing Gemini...")
-            _, result = await mcp.call_tool(
+            result = await mcp.call_tool(
                 "generate_image",
-                {"prompt": "Test", "model": "imagen-4.0-generate-001"},
+                {
+                    "prompt": "Test",
+                    "model": "imagen-4.0-generate-001",
+                    "output_file": "/tmp/test_gemini.png",
+                },
             )
-            print(f"Generated: {result['file_path']}")
+            metadata, _ = parse_image_result(result)
+            print(f"Generated: {metadata['file_path']}")
 
     asyncio.run(main())

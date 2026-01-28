@@ -6,6 +6,12 @@ from mcp_handley_lab.repl.backends import BACKENDS
 mcp = FastMCP("REPL Tool")
 
 
+@mcp.resource("repl://backends")
+def repl_backends() -> list[str]:
+    """All available REPL backends (bash, python, julia, etc.)."""
+    return sorted(BACKENDS.keys())
+
+
 @mcp.tool()
 def session(
     action: str,
@@ -17,6 +23,7 @@ def session(
 ) -> dict:
     """
     Manage REPL sessions. Create a session before using the eval tool.
+    Use repl://backends resource to discover available backends.
 
     Actions:
     - create: Create new session. Returns session_id for use with eval. Params: backend, name (optional), args (optional)

@@ -52,12 +52,38 @@ def _find_smart_destination(
     if not source_files:
         raise ValueError("No source files provided to determine destination.")
 
+    # Security: reject path traversal and absolute paths (before normalization)
+    stripped = destination_folder.strip()
+    if (
+        Path(stripped).is_absolute()
+        or stripped.startswith("~")
+        or ".." in Path(stripped).parts
+    ):
+        raise ValueError(f"Invalid destination folder path: {stripped}")
+
+    # Normalize input: collapse repeated slashes, strip leading/trailing slashes
+    destination_folder = re.sub(r"/+", "/", stripped).strip("/")
+
+    # Try explicit Account/Folder path first (e.g., "Hermes/Archive")
+    if "/" in destination_folder:
+        explicit_path = maildir_root / destination_folder
+        if explicit_path.is_dir():
+            return explicit_path
+        # Explicit path specified but doesn't exist - fail with helpful error
+        account_part = destination_folder.split("/", 1)[0]
+        account_folders = _get_account_folders(maildir_root, account_part)
+        raise FileNotFoundError(
+            f"Explicit path '{destination_folder}' not found. "
+            f"Available folders in '{account_part}': {list(account_folders.keys())}"
+        )
+
     folder_map = {
-        "archive": ["archive"],
-        "trash": ["bin", "trash", "deleted"],
-        "sent": ["sent"],
+        "inbox": ["inbox"],
+        "archive": ["archive", "all mail"],
+        "trash": ["bin", "trash", "deleted", "deleted items"],
+        "sent": ["sent", "sent items", "sent mail"],
         "drafts": ["drafts", "draft"],
-        "spam": ["spam", "junk"],
+        "spam": ["spam", "junk", "junk email"],
     }
 
     first_source = Path(source_files[0])
@@ -76,8 +102,16 @@ def _find_smart_destination(
     if exact_match.is_dir():
         return exact_match
 
-    # Get folders from notmuch index (fast, no filesystem scan)
-    account_folders = _get_account_folders(maildir_root, account_name)
+    # Get folders - handle root-level vs account-specific
+    if account_path == maildir_root:
+        # Root-level: scan folders directly under maildir_root
+        account_folders = {
+            p.name: p
+            for p in maildir_root.iterdir()
+            if p.is_dir() and p.name not in MAILDIR_LEAFS
+        }
+    else:
+        account_folders = _get_account_folders(maildir_root, account_name)
 
     # Try common name variations (case-insensitive)
     destination_lower = destination_folder.lower()
@@ -600,10 +634,11 @@ def _move_emails(
                 run_command(["notmuch", "tag"] + tag_changes + [f"id:{mid}"])
 
     # Construct and return a structured result
-    moved_count = len(source_files)
-    status_message = f"Successfully moved {moved_count} email(s) to '{destination_folder}' and updated the index."
-    if moved_count < len(message_ids):
-        status_message += f" Note: {len(message_ids) - moved_count} of the requested message IDs could not be found."
+    status_message = f"Successfully moved {moved_count} file(s) to '{destination_folder}' and updated the index."
+    if moved_count < len(source_files):
+        status_message += (
+            f" Note: {len(source_files) - moved_count} file(s) failed to move."
+        )
 
     return MoveResult(
         message_ids=message_ids,
@@ -815,13 +850,39 @@ def _list_accounts(config_file: str = "") -> list[str]:
     return accounts
 
 
+# =============================================================================
+# MCP Resources: Email Discovery
+# =============================================================================
+
+
+@mcp.resource("email://tags")
+def email_tags() -> list[str]:
+    """All tags in the notmuch email database."""
+    return _list_tags()
+
+
+@mcp.resource("email://folders")
+def email_folders() -> list[str]:
+    """All maildir folders in format 'Account/Folder'."""
+    return _list_folders()
+
+
+@mcp.resource("email://accounts")
+def email_accounts() -> list[str]:
+    """All configured msmtp email accounts."""
+    try:
+        return _list_accounts()
+    except FileNotFoundError:
+        return []  # No msmtprc configured
+
+
 # ============================================================================
 # Unified Tools
 # ============================================================================
 
 
 @mcp.tool(
-    description="""Search and read emails. Returns message IDs needed by send (for replies) and update (for tagging/moving). Supports notmuch query language: sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
+    description="""Search and read emails. Returns message IDs needed by send (for replies) and update (for tagging/moving). Use email://tags, email://folders, email://accounts resources to discover available options. Supports notmuch query language: sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 )
 def read(
     query: str = Field(
@@ -881,7 +942,7 @@ def read(
 
 
 @mcp.tool(
-    description="""Update email metadata. Requires message_ids from the read tool. Actions: 'tag' (add/remove tags), 'move' (relocate to folder)."""
+    description="""Update email metadata. Requires message_ids from the read tool. Actions: 'tag' (add/remove tags), 'move' (relocate to folder), 'archive' (move to Archive folder)."""
 )
 def update(
     message_ids: list[str] = Field(
@@ -890,7 +951,7 @@ def update(
     ),
     action: str = Field(
         ...,
-        description="Action: 'tag' (add/remove tags) or 'move' (relocate to folder).",
+        description="Action: 'tag' (add/remove tags), 'move' (relocate to folder), or 'archive' (move to Archive folder).",
     ),
     add_tags: list[str] = Field(
         default_factory=list,
@@ -902,7 +963,7 @@ def update(
     ),
     destination_folder: str = Field(
         default="",
-        description="For action='move': destination folder (e.g., 'Trash', 'Archive').",
+        description="For action='move': destination folder. Supports 'Account/Folder' paths (e.g., 'Hermes/Archive') or folder names ('Archive', 'Trash'). Aliases: 'trash'→Bin/Deleted, 'sent'→Sent Items.",
     ),
 ) -> TagResult | MoveResult:
     """Unified update tool for email metadata."""

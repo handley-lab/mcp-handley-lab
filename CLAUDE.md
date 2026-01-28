@@ -239,7 +239,6 @@ mcp-arxiv                                       # ArXiv paper download
 mcp-google-calendar                             # Calendar management
 mcp-google-maps                                 # Directions/routes
 mcp-email                                       # Email via notmuch
-mcp-py2nb                                       # Python/notebook conversion
 ```
 
 ### JSON-RPC MCP Server Usage

@@ -67,7 +67,6 @@ checkdepends=(
 )
 optdepends=(
     'jq: JSON processing'
-    'vim: Text editing'
     'python-code2prompt: Codebase analysis'
     'python-black: Code formatting'
     'python-ruff: Linting'

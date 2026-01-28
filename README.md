@@ -105,12 +105,8 @@ claude mcp add google-maps --scope user mcp-google-maps
 
 # Add additional tools as needed:
 # claude mcp add llm-embeddings --scope user mcp-llm-embeddings
-# claude mcp add llm-ocr --scope user mcp-llm-ocr
-# claude mcp add llm-audio --scope user mcp-llm-audio
-# claude mcp add py2nb --scope user mcp-py2nb
 # claude mcp add code2prompt --scope user mcp-code2prompt
 # claude mcp add google-calendar --scope user mcp-google-calendar
-# claude mcp add vim --scope user mcp-vim
 # claude mcp add email --scope user mcp-email
 # claude mcp add word --scope user mcp-word                        # Word document editing
 # claude mcp add excel --scope user mcp-excel                      # Excel spreadsheet editing
@@ -124,14 +120,11 @@ Verify tools are working with the `/mcp` command in Claude.
 
 ## Available Tools
 
-### 🤖 **Unified LLM Tools** (`llm-chat`, `llm-image`, `llm-embeddings`, `llm-ocr`, `llm-audio`, `llm-models`)
+### 🤖 **Unified LLM Tools** (`llm`, `llm-embeddings`)
 Connect with multiple AI providers through unified interfaces
-  - **llm-chat**: Chat with any LLM - provider inferred from model name (e.g., `gpt-5.2` → OpenAI, `gemini-2.5-flash` → Gemini)
-  - **llm-image**: Generate images with DALL-E, Imagen, or Grok
+  - **llm**: Chat, vision, image generation, transcription, OCR, model discovery - all in one tool
   - **llm-embeddings**: Semantic embeddings for text (OpenAI, Gemini, Mistral)
-  - **llm-ocr**: Document OCR via Mistral
-  - **llm-audio**: Audio transcription via Mistral Voxtral
-  - **llm-models**: List all available models across providers
+  - Provider inferred from model name (e.g., `gpt-5.2` → OpenAI, `gemini-2.5-flash` → Gemini)
   - Persistent conversations with memory via `agent_name` parameter
   - Supported providers: OpenAI, Gemini, Claude, Mistral, Grok, Groq
   - _Claude example_: `> ask gpt-5.2 to review the changes you just made`
@@ -141,12 +134,6 @@ Search and download academic papers from ArXiv
   - Search by author, title, or topic
   - Download source code, PDFs, or LaTeX files
   - _Claude example_: `> find all papers by Harry Bevins on arxiv`
-
-### 📓 **Python/Notebook Conversion** (`py2nb`)
-Convert between Python scripts and Jupyter notebooks
-  - Bidirectional Python ↔ Jupyter notebook conversion
-  - Preserve markdown comments and cell structure
-  - _Claude example_: `> convert this Python script to a Jupyter notebook`
 
 ### 🔍 **Code Flattening** (`code2prompt`)
 Convert codebases into structured, AI-readable text
@@ -184,12 +171,6 @@ Execute Mathematica code and computations
   - Export results in various formats
   - _Claude example_: `> use Mathematica to solve this differential equation and plot the solution`
   - **Requires**: [WolframScript](https://www.wolfram.com/wolframscript/) installed and licensed
-
-### ✏️ **Interactive Editing** (`vim`)
-Open vim for user input when needed
-  - Create or edit content interactively
-  - Useful for drafting emails or documentation
-  - _Claude example_: `> use vim to open a draft of a relevant email`
 
 ### 📧 **Email Management** (`email`)
 Comprehensive email workflow integration

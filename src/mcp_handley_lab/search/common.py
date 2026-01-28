@@ -79,6 +79,9 @@ def fts_search(
             if filters.get("timestamp"):
                 sql += " AND e.timestamp >= ?"
                 params.append(filters["timestamp"])
+            if filters.get("file_path"):
+                sql += " AND e.file_path = ?"
+                params.append(filters["file_path"])
 
         sql += f" ORDER BY bm25({table}_fts) LIMIT ?"
         params.append(limit)

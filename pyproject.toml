@@ -127,8 +127,10 @@ ignore = ["E501", "B008"]  # Line too long, function call in default arguments (
 "src/mcp_handley_lab/microsoft/opc/*.py" = ["N802", "N803", "N806"]  # OPC uses rId naming convention
 "src/mcp_handley_lab/microsoft/word/*.py" = ["N802", "N803", "N806", "E402", "SIM102", "SIM105", "SIM108", "SIM117", "B007", "B904"]  # OOXML naming conventions
 "src/mcp_handley_lab/microsoft/excel/*.py" = ["N802", "N803", "N806"]  # SpreadsheetML uses OOXML naming conventions
+"src/mcp_handley_lab/microsoft/powerpoint/*.py" = ["N802", "N803", "N806"]  # PresentationML uses OOXML naming conventions
 "tests/word/*.py" = ["N806"]  # Allow OOXML element naming in tests
 "tests/excel/*.py" = ["N806"]  # Allow OOXML element naming in tests
+"tests/powerpoint/*.py" = ["N806"]  # Allow OOXML element naming in tests
 
 [tool.coverage.run]
 omit = [

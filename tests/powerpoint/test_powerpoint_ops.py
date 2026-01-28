@@ -237,9 +237,9 @@ class TestPhase12BugFixes:
             extract_text_from_txBody,
         )
 
-        txBody = etree.Element(qn("a:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        p = etree.SubElement(txBody, qn("a:p"))
+        tx_body = etree.Element(qn("a:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        p = etree.SubElement(tx_body, qn("a:p"))
         r1 = etree.SubElement(p, qn("a:r"))
         t1 = etree.SubElement(r1, qn("a:t"))
         t1.text = "Col1"
@@ -248,7 +248,7 @@ class TestPhase12BugFixes:
         t2 = etree.SubElement(r2, qn("a:t"))
         t2.text = "Col2"
 
-        text = extract_text_from_txBody(txBody)
+        text = extract_text_from_txBody(tx_body)
         assert text == "Col1\tCol2"
 
     def test_tab_creation_in_shape_text(self):
@@ -262,16 +262,16 @@ class TestPhase12BugFixes:
 
         sp = etree.Element(qn("p:sp"))
         set_shape_text(sp, "A\tB\tC")
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        assert txBody is not None
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        assert tx_body is not None
 
         # Should have tab elements
-        p = txBody.find(qn("a:p"), NSMAP)
+        p = tx_body.find(qn("a:p"), NSMAP)
         tabs = p.findall(qn("a:tab"), NSMAP)
         assert len(tabs) == 2
 
         # Round-trip should preserve tabs
-        text = extract_text_from_txBody(txBody)
+        text = extract_text_from_txBody(tx_body)
         assert text == "A\tB\tC"
 
     def test_cell_text_preserves_formatting(self):
@@ -283,16 +283,16 @@ class TestPhase12BugFixes:
 
         # Create a cell with formatting
         tc = etree.Element(qn("a:tc"))
-        txBody = etree.SubElement(tc, qn("a:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        etree.SubElement(txBody, qn("a:lstStyle"))
-        p = etree.SubElement(txBody, qn("a:p"))
-        pPr = etree.SubElement(p, qn("a:pPr"))
-        pPr.set("algn", "ctr")
+        tx_body = etree.SubElement(tc, qn("a:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        etree.SubElement(tx_body, qn("a:lstStyle"))
+        p = etree.SubElement(tx_body, qn("a:p"))
+        p_pr = etree.SubElement(p, qn("a:pPr"))
+        p_pr.set("algn", "ctr")
         r = etree.SubElement(p, qn("a:r"))
-        rPr = etree.SubElement(r, qn("a:rPr"))
-        rPr.set("sz", "2400")
-        rPr.set("b", "1")
+        r_pr = etree.SubElement(r, qn("a:rPr"))
+        r_pr.set("sz", "2400")
+        r_pr.set("b", "1")
         t = etree.SubElement(r, qn("a:t"))
         t.text = "Old text"
 
@@ -300,16 +300,16 @@ class TestPhase12BugFixes:
         _set_cell_text(tc, "New text")
 
         # Verify formatting preserved
-        new_txBody = tc.find(qn("a:txBody"), NSMAP)
-        new_p = new_txBody.find(qn("a:p"), NSMAP)
-        new_pPr = new_p.find(qn("a:pPr"), NSMAP)
-        assert new_pPr is not None
-        assert new_pPr.get("algn") == "ctr"
+        new_tx_body = tc.find(qn("a:txBody"), NSMAP)
+        new_p = new_tx_body.find(qn("a:p"), NSMAP)
+        new_p_pr = new_p.find(qn("a:pPr"), NSMAP)
+        assert new_p_pr is not None
+        assert new_p_pr.get("algn") == "ctr"
 
         new_r = new_p.find(qn("a:r"), NSMAP)
-        new_rPr = new_r.find(qn("a:rPr"), NSMAP)
-        assert new_rPr.get("sz") == "2400"
-        assert new_rPr.get("b") == "1"
+        new_r_pr = new_r.find(qn("a:rPr"), NSMAP)
+        assert new_r_pr.get("sz") == "2400"
+        assert new_r_pr.get("b") == "1"
 
         new_t = new_r.find(qn("a:t"), NSMAP)
         assert new_t.text == "New text"
@@ -340,16 +340,16 @@ def _add_test_slide(pkg):
 
     # Add relationship from presentation to slide
     pres_rels = pkg.get_rels(pkg.presentation_path)
-    rId = pres_rels.get_or_add(RT.SLIDE, "slides/slide1.xml")
+    r_id = pres_rels.get_or_add(RT.SLIDE, "slides/slide1.xml")
 
     # Add slide to sldIdLst
     pres = pkg.presentation_xml
-    sldIdLst = pres.find(qn("p:sldIdLst"), NSMAP)
-    if sldIdLst is None:
-        sldIdLst = etree.SubElement(pres, qn("p:sldIdLst"))
-    sldId = etree.SubElement(sldIdLst, qn("p:sldId"))
-    sldId.set("id", "256")
-    sldId.set(qn("r:id"), rId)
+    sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
+    if sld_id_lst is None:
+        sld_id_lst = etree.SubElement(pres, qn("p:sldIdLst"))
+    sld_id = etree.SubElement(sld_id_lst, qn("p:sldId"))
+    sld_id.set("id", "256")
+    sld_id.set(qn("r:id"), r_id)
 
     # Reset cached slide paths
     pkg._slide_paths = None
@@ -372,24 +372,24 @@ class TestPhase13SlideBackground:
         assert result is True
 
         slide_xml = pkg.get_slide_xml(1)
-        cSld = slide_xml.find(qn("p:cSld"), NSMAP)
-        bg = cSld.find(qn("p:bg"), NSMAP)
+        c_sld = slide_xml.find(qn("p:cSld"), NSMAP)
+        bg = c_sld.find(qn("p:bg"), NSMAP)
         assert bg is not None
 
         # p:bg should be first child of p:cSld
-        assert cSld[0].tag == qn("p:bg")
+        assert c_sld[0].tag == qn("p:bg")
 
         # Check structure: p:bg/p:bgPr/a:solidFill/a:srgbClr
-        bgPr = bg.find(qn("p:bgPr"), NSMAP)
-        assert bgPr is not None
-        solid_fill = bgPr.find(qn("a:solidFill"), NSMAP)
+        bg_pr = bg.find(qn("p:bgPr"), NSMAP)
+        assert bg_pr is not None
+        solid_fill = bg_pr.find(qn("a:solidFill"), NSMAP)
         assert solid_fill is not None
         srgb = solid_fill.find(qn("a:srgbClr"), NSMAP)
         assert srgb is not None
         assert srgb.get("val") == "FF0000"
 
         # effectLst should be present
-        assert bgPr.find(qn("a:effectLst"), NSMAP) is not None
+        assert bg_pr.find(qn("a:effectLst"), NSMAP) is not None
 
     def test_replace_existing_background(self):
         """Setting background twice replaces the first."""
@@ -404,9 +404,9 @@ class TestPhase13SlideBackground:
         set_slide_background(pkg, 1, "00FF00")
 
         slide_xml = pkg.get_slide_xml(1)
-        cSld = slide_xml.find(qn("p:cSld"), NSMAP)
+        c_sld = slide_xml.find(qn("p:cSld"), NSMAP)
         # Only one p:bg element
-        bgs = cSld.findall(qn("p:bg"), NSMAP)
+        bgs = c_sld.findall(qn("p:bg"), NSMAP)
         assert len(bgs) == 1
 
         srgb = bgs[0].find(".//" + qn("a:srgbClr"), NSMAP)
@@ -425,18 +425,18 @@ class TestPhase15BulletLists:
         sp = etree.Element(qn("p:sp"))
         set_shape_text(sp, "Item 1\nItem 2", bullet_style="bullet")
 
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        paragraphs = txBody.findall(qn("a:p"), NSMAP)
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        paragraphs = tx_body.findall(qn("a:p"), NSMAP)
         assert len(paragraphs) == 2
 
         for p in paragraphs:
-            pPr = p.find(qn("a:pPr"), NSMAP)
-            assert pPr is not None
-            buChar = pPr.find(qn("a:buChar"), NSMAP)
-            assert buChar is not None
-            assert buChar.get("char") == "\u2022"
-            assert pPr.get("marL") == "228600"
-            assert pPr.get("indent") == "-228600"
+            p_pr = p.find(qn("a:pPr"), NSMAP)
+            assert p_pr is not None
+            bu_char = p_pr.find(qn("a:buChar"), NSMAP)
+            assert bu_char is not None
+            assert bu_char.get("char") == "\u2022"
+            assert p_pr.get("marL") == "228600"
+            assert p_pr.get("indent") == "-228600"
 
     def test_dash_bullet_style(self):
         """bullet_style='dash' creates a:buChar with en-dash."""
@@ -447,11 +447,11 @@ class TestPhase15BulletLists:
         sp = etree.Element(qn("p:sp"))
         set_shape_text(sp, "Item", bullet_style="dash")
 
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        p = txBody.find(qn("a:p"), NSMAP)
-        pPr = p.find(qn("a:pPr"), NSMAP)
-        buChar = pPr.find(qn("a:buChar"), NSMAP)
-        assert buChar.get("char") == "\u2013"
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        p = tx_body.find(qn("a:p"), NSMAP)
+        p_pr = p.find(qn("a:pPr"), NSMAP)
+        bu_char = p_pr.find(qn("a:buChar"), NSMAP)
+        assert bu_char.get("char") == "\u2013"
 
     def test_number_bullet_style(self):
         """bullet_style='number' creates a:buAutoNum."""
@@ -462,12 +462,12 @@ class TestPhase15BulletLists:
         sp = etree.Element(qn("p:sp"))
         set_shape_text(sp, "Step 1\nStep 2", bullet_style="number")
 
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        p = txBody.find(qn("a:p"), NSMAP)
-        pPr = p.find(qn("a:pPr"), NSMAP)
-        buAutoNum = pPr.find(qn("a:buAutoNum"), NSMAP)
-        assert buAutoNum is not None
-        assert buAutoNum.get("type") == "arabicPeriod"
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        p = tx_body.find(qn("a:p"), NSMAP)
+        p_pr = p.find(qn("a:pPr"), NSMAP)
+        bu_auto_num = p_pr.find(qn("a:buAutoNum"), NSMAP)
+        assert bu_auto_num is not None
+        assert bu_auto_num.get("type") == "arabicPeriod"
 
     def test_none_bullet_style_removes_bullets(self):
         """bullet_style='none' adds a:buNone and removes indent."""
@@ -481,13 +481,13 @@ class TestPhase15BulletLists:
         # Then remove
         set_shape_text(sp, "Item", bullet_style="none")
 
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        p = txBody.find(qn("a:p"), NSMAP)
-        pPr = p.find(qn("a:pPr"), NSMAP)
-        assert pPr.find(qn("a:buNone"), NSMAP) is not None
-        assert pPr.find(qn("a:buChar"), NSMAP) is None
-        assert pPr.get("marL") is None
-        assert pPr.get("indent") is None
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        p = tx_body.find(qn("a:p"), NSMAP)
+        p_pr = p.find(qn("a:pPr"), NSMAP)
+        assert p_pr.find(qn("a:buNone"), NSMAP) is not None
+        assert p_pr.find(qn("a:buChar"), NSMAP) is None
+        assert p_pr.get("marL") is None
+        assert p_pr.get("indent") is None
 
     def test_invalid_bullet_style_raises(self):
         """Unknown bullet_style raises ValueError."""
@@ -512,13 +512,13 @@ class TestPhase15BulletLists:
         # Edit without bullet_style - should preserve
         set_shape_text(sp, "New text")
 
-        txBody = sp.find(qn("p:txBody"), NSMAP)
-        p = txBody.find(qn("a:p"), NSMAP)
-        pPr = p.find(qn("a:pPr"), NSMAP)
+        tx_body = sp.find(qn("p:txBody"), NSMAP)
+        p = tx_body.find(qn("a:p"), NSMAP)
+        p_pr = p.find(qn("a:pPr"), NSMAP)
         # The existing pPr should be preserved with bullet properties
-        assert pPr is not None
-        buChar = pPr.find(qn("a:buChar"), NSMAP)
-        assert buChar is not None
+        assert p_pr is not None
+        bu_char = p_pr.find(qn("a:buChar"), NSMAP)
+        assert bu_char is not None
 
 
 class TestPhase14Hyperlinks:
@@ -537,17 +537,17 @@ class TestPhase14Hyperlinks:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "100")
-        cNvPr.set("name", "Test Shape")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        txBody = etree.SubElement(sp, qn("p:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        p = etree.SubElement(txBody, qn("a:p"))
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "100")
+        c_nv_pr.set("name", "Test Shape")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        tx_body = etree.SubElement(sp, qn("p:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        p = etree.SubElement(tx_body, qn("a:p"))
         r = etree.SubElement(p, qn("a:r"))
-        rPr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
+        r_pr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
         t = etree.SubElement(r, qn("a:t"))
         t.text = "Click me"
         slide_partname = pkg.get_slide_partname(1)
@@ -557,16 +557,16 @@ class TestPhase14Hyperlinks:
         assert result is True
 
         # Verify a:hlinkClick was added
-        hlink = rPr.find(qn("a:hlinkClick"), NSMAP)
+        hlink = r_pr.find(qn("a:hlinkClick"), NSMAP)
         assert hlink is not None
         assert hlink.get("tooltip") == "Example"
 
         # Verify relationship was created and is external
         slide_rels = pkg.get_rels(slide_partname)
-        rId = hlink.get(qn("r:id"))
-        assert rId is not None
-        assert rId in slide_rels
-        rel = slide_rels[rId]
+        r_id = hlink.get(qn("r:id"))
+        assert r_id is not None
+        assert r_id in slide_rels
+        rel = slide_rels[r_id]
         assert rel.is_external is True
         assert rel.target == "https://example.com"
 
@@ -583,17 +583,17 @@ class TestPhase14Hyperlinks:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "101")
-        cNvPr.set("name", "Test Shape")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        txBody = etree.SubElement(sp, qn("p:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        p = etree.SubElement(txBody, qn("a:p"))
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "101")
+        c_nv_pr.set("name", "Test Shape")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        tx_body = etree.SubElement(sp, qn("p:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        p = etree.SubElement(tx_body, qn("a:p"))
         r = etree.SubElement(p, qn("a:r"))
-        rPr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
+        r_pr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
         t = etree.SubElement(r, qn("a:t"))
         t.text = "Link text"
         slide_partname = pkg.get_slide_partname(1)
@@ -605,7 +605,7 @@ class TestPhase14Hyperlinks:
         add_hyperlink(pkg, "1:101", "https://new.com", "New Link")
 
         # Should only have one hlinkClick
-        hlinks = rPr.findall(qn("a:hlinkClick"), NSMAP)
+        hlinks = r_pr.findall(qn("a:hlinkClick"), NSMAP)
         assert len(hlinks) == 1
         assert hlinks[0].get("tooltip") == "New Link"
 
@@ -622,15 +622,15 @@ class TestPhase14Hyperlinks:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "102")
-        cNvPr.set("name", "Empty Shape")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        txBody = etree.SubElement(sp, qn("p:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        etree.SubElement(txBody, qn("a:p"))  # Empty paragraph, no runs
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "102")
+        c_nv_pr.set("name", "Empty Shape")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        tx_body = etree.SubElement(sp, qn("p:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        etree.SubElement(tx_body, qn("a:p"))  # Empty paragraph, no runs
         pkg.mark_xml_dirty(pkg.get_slide_partname(1))
 
         result = add_hyperlink(pkg, "1:102", url="https://example.com")
@@ -659,29 +659,29 @@ class TestPhase14Hyperlinks:
         pkg._xml["/ppt/slides/slide2.xml"] = slide2_xml
         pkg._bytes["/ppt/slides/slide2.xml"] = etree.tostring(slide2_xml)
         pres_rels = pkg.get_rels(pkg.presentation_path)
-        rId2 = pres_rels.get_or_add(RT.SLIDE, "slides/slide2.xml")
+        r_id2 = pres_rels.get_or_add(RT.SLIDE, "slides/slide2.xml")
         pres = pkg.presentation_xml
-        sldIdLst = pres.find(qn("p:sldIdLst"), NSMAP)
-        sldId2 = etree.SubElement(sldIdLst, qn("p:sldId"))
-        sldId2.set("id", "257")
-        sldId2.set(qn("r:id"), rId2)
+        sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
+        sld_id2 = etree.SubElement(sld_id_lst, qn("p:sldId"))
+        sld_id2.set("id", "257")
+        sld_id2.set(qn("r:id"), r_id2)
         pkg._slide_paths = None
 
         # Add a shape with text on slide 1
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "103")
-        cNvPr.set("name", "Link Shape")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        txBody = etree.SubElement(sp, qn("p:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        p = etree.SubElement(txBody, qn("a:p"))
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "103")
+        c_nv_pr.set("name", "Link Shape")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        tx_body = etree.SubElement(sp, qn("p:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        p = etree.SubElement(tx_body, qn("a:p"))
         r = etree.SubElement(p, qn("a:r"))
-        rPr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
+        r_pr = etree.SubElement(r, qn("a:rPr"), lang="en-US")
         t = etree.SubElement(r, qn("a:t"))
         t.text = "Go to slide 2"
         slide_partname = pkg.get_slide_partname(1)
@@ -691,17 +691,17 @@ class TestPhase14Hyperlinks:
         assert result is True
 
         # Verify a:hlinkClick was added with action attribute
-        hlink = rPr.find(qn("a:hlinkClick"), NSMAP)
+        hlink = r_pr.find(qn("a:hlinkClick"), NSMAP)
         assert hlink is not None
         assert hlink.get("action") == "ppaction://hlinksldjump"
         assert hlink.get("tooltip") == "Jump to slide 2"
 
         # Verify relationship points to slide 2
         slide_rels = pkg.get_rels(slide_partname)
-        rId = hlink.get(qn("r:id"))
-        assert rId is not None
-        assert rId in slide_rels
-        rel = slide_rels[rId]
+        r_id = hlink.get(qn("r:id"))
+        assert r_id is not None
+        assert r_id in slide_rels
+        rel = slide_rels[r_id]
         # Internal hyperlink uses HYPERLINK relationship type with is_external=True
         # (TargetMode="External" is required for hyperlink rels, even internal ones)
         # The action="ppaction://hlinksldjump" controls the jump behavior
@@ -1025,14 +1025,14 @@ class TestPhase18bShapeTransform:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "50")
-        cNvPr.set("name", "Rotated Shape")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        spPr = etree.SubElement(sp, qn("p:spPr"))
-        xfrm = etree.SubElement(spPr, qn("a:xfrm"))
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "50")
+        c_nv_pr.set("name", "Rotated Shape")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        sp_pr = etree.SubElement(sp, qn("p:spPr"))
+        xfrm = etree.SubElement(sp_pr, qn("a:xfrm"))
         xfrm.set("rot", "5400000")  # 90 degrees
         xfrm.set("flipH", "1")
         etree.SubElement(xfrm, qn("a:off"), x="0", y="0")
@@ -1065,10 +1065,10 @@ class TestPhase18cDuplicateSlide:
         from lxml import etree
 
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "10")
-        cNvPr.set("name", "Test Shape")
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "10")
+        c_nv_pr.set("name", "Test Shape")
         pkg.mark_xml_dirty(pkg.get_slide_partname(1))
 
         # Duplicate
@@ -1128,14 +1128,14 @@ class TestPhase18cDuplicateSlide:
         assert new_layout_target == source_layout_target
 
     def test_duplicate_slide_unique_sld_id(self):
-        """Test that duplicated slide gets unique sldId."""
+        """Test that duplicated slide gets unique sld_id."""
         from mcp_handley_lab.microsoft.powerpoint.ops.slides import duplicate_slide
 
         pkg = PowerPointPackage.new()
         _add_test_slide(pkg)
         _add_test_slide(pkg)
 
-        # Get existing sldIds
+        # Get existing sld_ids
         pres = pkg.presentation_xml
         sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
         existing_ids = {el.get("id") for el in sld_id_lst}
@@ -1143,7 +1143,7 @@ class TestPhase18cDuplicateSlide:
         # Duplicate
         duplicate_slide(pkg, 1)
 
-        # Get new sldIds
+        # Get new sld_ids
         new_ids = {el.get("id") for el in sld_id_lst}
 
         # Should have one new unique ID
@@ -1199,10 +1199,10 @@ class TestPhase18dFontSelection:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         shape = sp_tree.find(".//" + qn("p:sp"), NSMAP)
-        txBody = shape.find(qn("p:txBody"), NSMAP)
-        r = txBody.find(".//" + qn("a:r"), NSMAP)
-        rPr = r.find(qn("a:rPr"), NSMAP)
-        latin = rPr.find(qn("a:latin"), NSMAP)
+        tx_body = shape.find(qn("p:txBody"), NSMAP)
+        r = tx_body.find(".//" + qn("a:r"), NSMAP)
+        r_pr = r.find(qn("a:rPr"), NSMAP)
+        latin = r_pr.find(qn("a:latin"), NSMAP)
         assert latin is not None
         assert latin.get("typeface") == "Arial"
 
@@ -1227,10 +1227,10 @@ class TestPhase18dFontSelection:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         shape = sp_tree.find(".//" + qn("p:sp"), NSMAP)
-        txBody = shape.find(qn("p:txBody"), NSMAP)
-        r = txBody.find(".//" + qn("a:r"), NSMAP)
-        rPr = r.find(qn("a:rPr"), NSMAP)
-        latins = rPr.findall(qn("a:latin"), NSMAP)
+        tx_body = shape.find(qn("p:txBody"), NSMAP)
+        r = tx_body.find(".//" + qn("a:r"), NSMAP)
+        r_pr = r.find(qn("a:rPr"), NSMAP)
+        latins = r_pr.findall(qn("a:latin"), NSMAP)
         assert len(latins) == 1
         assert latins[0].get("typeface") == "Times New Roman"
 
@@ -1247,15 +1247,15 @@ class TestPhase18dFontSelection:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         sp = etree.SubElement(sp_tree, qn("p:sp"))
-        nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
-        cNvPr = etree.SubElement(nvSpPr, qn("p:cNvPr"))
-        cNvPr.set("id", "100")
-        cNvPr.set("name", "Test")
-        etree.SubElement(nvSpPr, qn("p:cNvSpPr"))
-        etree.SubElement(nvSpPr, qn("p:nvPr"))
-        txBody = etree.SubElement(sp, qn("p:txBody"))
-        etree.SubElement(txBody, qn("a:bodyPr"))
-        p = etree.SubElement(txBody, qn("a:p"))
+        nv_sp_pr = etree.SubElement(sp, qn("p:nvSpPr"))
+        c_nv_pr = etree.SubElement(nv_sp_pr, qn("p:cNvPr"))
+        c_nv_pr.set("id", "100")
+        c_nv_pr.set("name", "Test")
+        etree.SubElement(nv_sp_pr, qn("p:cNvSpPr"))
+        etree.SubElement(nv_sp_pr, qn("p:nvPr"))
+        tx_body = etree.SubElement(sp, qn("p:txBody"))
+        etree.SubElement(tx_body, qn("a:bodyPr"))
+        p = etree.SubElement(tx_body, qn("a:p"))
         r = etree.SubElement(p, qn("a:r"))
         etree.SubElement(r, qn("a:rPr"), lang="en-US")
         t = etree.SubElement(r, qn("a:t"))
@@ -1268,8 +1268,8 @@ class TestPhase18dFontSelection:
         assert result is True
 
         # Verify endParaRPr has font
-        endParaRPr = p.find(qn("a:endParaRPr"), NSMAP)
-        latin = endParaRPr.find(qn("a:latin"), NSMAP)
+        end_para_r_pr = p.find(qn("a:endParaRPr"), NSMAP)
+        latin = end_para_r_pr.find(qn("a:latin"), NSMAP)
         assert latin is not None
         assert latin.get("typeface") == "Georgia"
 
@@ -1291,19 +1291,19 @@ class TestPhase18dFontSelection:
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         shape = sp_tree.find(".//" + qn("p:sp"), NSMAP)
-        txBody = shape.find(qn("p:txBody"), NSMAP)
-        r = txBody.find(".//" + qn("a:r"), NSMAP)
-        rPr = r.find(qn("a:rPr"), NSMAP)
+        tx_body = shape.find(qn("p:txBody"), NSMAP)
+        r = tx_body.find(".//" + qn("a:r"), NSMAP)
+        r_pr = r.find(qn("a:rPr"), NSMAP)
 
         # Check font
-        latin = rPr.find(qn("a:latin"), NSMAP)
+        latin = r_pr.find(qn("a:latin"), NSMAP)
         assert latin.get("typeface") == "Courier New"
 
         # Check size (in 100ths of point)
-        assert rPr.get("sz") == "1400"
+        assert r_pr.get("sz") == "1400"
 
         # Check bold
-        assert rPr.get("b") == "1"
+        assert r_pr.get("b") == "1"
 
 
 class TestPhase17cDocumentProperties:

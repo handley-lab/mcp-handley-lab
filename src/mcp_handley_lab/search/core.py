@@ -136,7 +136,7 @@ def context(
     elif action == "slice":
         return _slice(conn, source, sid, start, end, max_chars, verbose)
     elif action == "sessions":
-        return _get_sessions(conn, source)
+        return _get_sessions(conn, source, limit)
     else:
         raise ValueError(f"Unknown action: {action}")
 
@@ -285,9 +285,9 @@ def _slice(
     return result.model_dump()
 
 
-def _get_sessions(conn, source: str) -> dict:
-    """List all sessions for a source."""
-    rows = db.get_sessions(conn, source)
+def _get_sessions(conn, source: str, limit: int = 20) -> dict:
+    """List sessions for a source, ordered by most recent activity."""
+    rows = db.get_sessions(conn, source, limit)
     result = SessionList(
         source=source,
         sessions=[

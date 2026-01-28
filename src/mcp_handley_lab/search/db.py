@@ -248,8 +248,13 @@ def insert_entries(
 # --- Timestamp normalization ---
 
 
-def parse_timestamp(ts_str: str | None) -> float | None:
-    """Parse ISO timestamp string to unix epoch. Returns None on failure."""
+def parse_timestamp(ts_str: str | int | float | None) -> float | None:
+    """Parse timestamp to unix epoch. Accepts ISO strings or epoch millis. Returns None on failure."""
+    if ts_str is None:
+        return None
+    if isinstance(ts_str, int | float):
+        # Epoch milliseconds (13+ digits) vs epoch seconds
+        return ts_str / 1000 if ts_str > 1e12 else float(ts_str)
     if not ts_str:
         return None
     try:
@@ -412,8 +417,10 @@ def get_session_length(conn: sqlite3.Connection, source: str, session_key: str) 
     return row["entry_count"] if row else 0
 
 
-def get_sessions(conn: sqlite3.Connection, source: str | None = None) -> list[dict]:
-    """Get all sessions with metadata."""
+def get_sessions(
+    conn: sqlite3.Connection, source: str | None = None, limit: int = 20
+) -> list[dict]:
+    """Get sessions with metadata, ordered by most recent activity."""
     sql = """
         SELECT source, session_key, display_name, project,
                entry_count, first_ts, last_ts
@@ -423,7 +430,8 @@ def get_sessions(conn: sqlite3.Connection, source: str | None = None) -> list[di
     if source:
         sql += " WHERE source = ?"
         params.append(source)
-    sql += " ORDER BY (last_ts IS NULL) ASC, last_ts DESC"
+    sql += " ORDER BY (last_ts IS NULL) ASC, last_ts DESC LIMIT ?"
+    params.append(limit)
     return [dict(row) for row in conn.execute(sql, params)]
 
 

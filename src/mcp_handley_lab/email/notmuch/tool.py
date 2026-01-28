@@ -636,7 +636,9 @@ def _move_emails(
     # Construct and return a structured result
     status_message = f"Successfully moved {moved_count} file(s) to '{destination_folder}' and updated the index."
     if moved_count < len(source_files):
-        status_message += f" Note: {len(source_files) - moved_count} file(s) failed to move."
+        status_message += (
+            f" Note: {len(source_files) - moved_count} file(s) failed to move."
+        )
 
     return MoveResult(
         message_ids=message_ids,

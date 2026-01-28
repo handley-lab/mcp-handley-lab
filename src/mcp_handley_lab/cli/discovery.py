@@ -10,16 +10,11 @@ def get_available_tools() -> dict[str, str]:
     """Get a list of available tool commands."""
     # Map of tool names to their script entry commands
     scripts = {
-        "jq": "mcp-jq",
-        "vim": "mcp-vim",
         "code2prompt": "mcp-code2prompt",
         "arxiv": "mcp-arxiv",
         "google-calendar": "mcp-google-calendar",
         "google-maps": "mcp-google-maps",
         "email": "mcp-email",
-        "github": "mcp-github",
-        "notes": "mcp-notes",
-        # LLM tools
         "llm": "mcp-llm",
         "llm-embeddings": "mcp-llm-embeddings",
     }

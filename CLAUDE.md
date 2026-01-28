@@ -29,7 +29,6 @@ This is an MCP (Model Context Protocol) framework project designed to bridge var
 - **AI Model Integration**: Unified LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, and Groq
 - **Productivity & Scheduling**: Google Calendar management
 - **Academic Research**: ArXiv paper source code retrieval and analysis
-- **Interactive Editing**: Programmatic `vim` invocation
 - **Persistent Memory**: Agent management with conversational memory for LLMs
 
 ## ⚠️ CRITICAL: VERSION MANAGEMENT REQUIRED FOR ALL CHANGES
@@ -86,7 +85,7 @@ git commit --no-verify -m "bypass hooks"
 ## Critical Development Guidelines
 
 ### Environment Assumptions
-- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, vim, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
+- **CRITICAL**: Assume the environment is properly configured with all required tools installed (code2prompt, etc.) and API keys available (GEMINI_API_KEY, OPENAI_API_KEY, etc.)
 - **NEVER use --break-system-packages**: Use virtual environments instead for package installations
 - Work within a Python virtual environment for all package installations: `python -m venv venv && source venv/bin/activate`
 - This is a local toolset, not for wider distribution - failures in practice guide improvements
@@ -192,10 +191,9 @@ The project follows a modern Python SDK approach using `FastMCP` from the MCP SD
 ### Development Phases
 
 1. **Phase 1**: Project setup with common utilities (config, memory, pricing) ✓ **COMPLETE**
-2. **Phase 2**: Simple CLI-based tools (vim) ✓ **COMPLETE**
-3. **Phase 3**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
-4. **Phase 4**: Complex tools (code2prompt) ✓ **COMPLETE**
-5. **Phase 5**: Comprehensive testing and documentation ✓ **COMPLETE**
+2. **Phase 2**: External API integrations (Google Calendar, LLM providers) ✓ **COMPLETE**
+3. **Phase 3**: Complex tools (code2prompt) ✓ **COMPLETE**
+4. **Phase 4**: Comprehensive testing and documentation ✓ **COMPLETE**
 
 ## Completed Implementations
 
@@ -212,10 +210,6 @@ Provider-agnostic LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, an
 - **Location**: `src/mcp_handley_lab/llm/embeddings/`
 - **Functions**: `get_embeddings`, `calculate_similarity`, `index_documents`, `search_documents`
 - **Features**: Text embeddings, semantic search, document indexing
-
-### Vim Tool ✓
-- **Location**: `src/mcp_handley_lab/vim/`
-- **Functions**: `prompt_user_edit`, `quick_edit`, `open_file`, `server_info`
 
 ### Google Calendar Tool ✓
 - **Location**: `src/mcp_handley_lab/google_calendar/`
@@ -240,14 +234,11 @@ mcp-llm                                         # Chat, vision, image gen, trans
 mcp-llm-embeddings                              # Text embeddings & search
 
 # Other Tools
-mcp-vim                                         # Vim editing
 mcp-code2prompt                                 # Codebase summarization
 mcp-arxiv                                       # ArXiv paper download
 mcp-google-calendar                             # Calendar management
 mcp-google-maps                                 # Directions/routes
 mcp-email                                       # Email via notmuch
-mcp-github                                      # GitHub integration
-mcp-jq                                          # JSON querying
 mcp-py2nb                                       # Python/notebook conversion
 ```
 

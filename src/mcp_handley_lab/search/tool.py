@@ -44,8 +44,9 @@ def context(
     ),
     file_path: str = Field(
         default="",
-        description="Session identifier (files[file_idx] from search results). "
-        "For slice: get entries by position. For search: scope to this session.",
+        description="Session identifier for slice/search scoping. "
+        "Accepts composite handle '{source}:{session_key}' from search results, "
+        "or raw session_key. Use session_id from search hits for slicing.",
     ),
     start: int = Field(
         default=0,
@@ -70,16 +71,15 @@ def context(
 ) -> dict:
     """Search and slice AI conversation context.
 
-    Hits: "file_idx[entry_idx/total] type: snippet..."
-      - file_idx -> files[file_idx] gives file_path for slicing
-      - entry_idx -> position in session (use as start for slice)
-      - total -> session length
-    Workflow: search -> get file_idx/entry_idx -> slice with context window
+    Search returns structured hits with session_id, entry_index, role, snippet, and BM25 score.
+    Use session_id from hits to slice for full context.
+
+    Workflow: search -> get session_id/entry_index -> slice with context window
     """
     # Convert -1 to None for end parameter
     end_val = None if end == -1 else end
 
-    result = _context(
+    return _context(
         action=action,
         source=source,
         query=query,
@@ -94,13 +94,6 @@ def context(
         full=full,
         verbose=verbose,
     )
-
-    # Convert Pydantic models to dicts for JSON serialization
-    if hasattr(result, "model_dump"):
-        return result.model_dump()
-    if isinstance(result, list):
-        return [e.model_dump() if hasattr(e, "model_dump") else e for e in result]
-    return result
 
 
 @mcp.tool(description="[DEPRECATED] Use 'context' tool instead")
@@ -122,7 +115,7 @@ def transcript_search(
     ),
     type: str = Field(
         default="",
-        description="Filter by entry type: user, assistant, system, tool",
+        description="Filter by entry type: user, assistant, system, tool, prompt",
     ),
     limit: int = Field(
         default=20,

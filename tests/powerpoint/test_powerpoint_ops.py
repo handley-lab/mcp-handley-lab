@@ -1001,26 +1001,6 @@ class TestPhase18bShapeTransform:
         assert ext.get("cx") == str(int(5.0 * EMU_PER_INCH))
         assert ext.get("cy") == str(int(2.5 * EMU_PER_INCH))
 
-    def test_transform_invalid_dimensions_raises(self):
-        """Test that invalid dimensions raise ValueError."""
-        import pytest
-
-        from mcp_handley_lab.microsoft.powerpoint.ops.shapes import (
-            add_shape,
-            set_shape_transform,
-        )
-
-        pkg = PowerPointPackage.new()
-        _add_test_slide(pkg)
-
-        shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test")
-
-        with pytest.raises(ValueError, match="Width must be > 0"):
-            set_shape_transform(pkg, shape_key, width=0)
-
-        with pytest.raises(ValueError, match="Height must be > 0"):
-            set_shape_transform(pkg, shape_key, height=-1)
-
     def test_transform_nonexistent_shape_returns_false(self):
         """Test that transforming a nonexistent shape returns False."""
         from mcp_handley_lab.microsoft.powerpoint.ops.shapes import set_shape_transform

@@ -118,7 +118,7 @@ _MAX_OPS = 500
 def read(
     file_path: str,
     scope: ReadScope = "slides",
-    slide_num: int | None = None,
+    slide_num: int = 0,
 ) -> dict:
     """Read from a PowerPoint presentation.
 
@@ -134,7 +134,7 @@ def read(
             - "images": List images (all slides, or specific slide if slide_num given)
             - "tables": List tables with structure (requires slide_num)
             - "properties": Document properties (title, author, custom properties)
-        slide_num: Required for shapes/text/notes/tables scopes; optional for images (1-based)
+        slide_num: Slide number (1-based). Required for shapes/text/notes/tables; optional for images (0 = all slides)
 
     Returns:
         PowerPointReadResult with scope-specific data
@@ -148,17 +148,17 @@ def read(
         return _read_slides(pkg).model_dump(exclude_none=True)
 
     elif scope == "shapes":
-        if slide_num is None:
+        if not slide_num:
             raise ValueError("slide_num required for shapes scope")
         return _read_shapes(pkg, slide_num).model_dump(exclude_none=True)
 
     elif scope == "text":
-        if slide_num is None:
+        if not slide_num:
             raise ValueError("slide_num required for text scope")
         return _read_text(pkg, slide_num).model_dump(exclude_none=True)
 
     elif scope == "notes":
-        if slide_num is None:
+        if not slide_num:
             raise ValueError("slide_num required for notes scope")
         return _read_notes(pkg, slide_num).model_dump(exclude_none=True)
 
@@ -166,10 +166,10 @@ def read(
         return _read_layouts(pkg).model_dump(exclude_none=True)
 
     elif scope == "images":
-        return _read_images(pkg, slide_num).model_dump(exclude_none=True)
+        return _read_images(pkg, slide_num or None).model_dump(exclude_none=True)
 
     elif scope == "tables":
-        if slide_num is None:
+        if not slide_num:
             raise ValueError("slide_num required for tables scope")
         return _read_tables(pkg, slide_num).model_dump(exclude_none=True)
 
@@ -808,11 +808,12 @@ def _op_add_image(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, A
         raise ValueError("slide_num required for add_image")
     if image_path is None:
         raise ValueError("image_path required for add_image")
-    kwargs: dict[str, Any] = {}
-    for k in ("x", "y", "width", "height"):
-        if k in params:
-            kwargs[k] = params[k]
-    shape_key = add_image(pkg, slide_num, image_path, **kwargs)
+    shape_key = add_image(
+        pkg,
+        slide_num,
+        image_path,
+        **{k: params[k] for k in ("x", "y", "width", "height") if k in params},
+    )
     return {"message": f"Added image on slide {slide_num}", "element_id": shape_key}
 
 
@@ -837,11 +838,13 @@ def _op_add_table(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, A
         raise ValueError("slide_num required for add_table")
     if rows is None or cols is None:
         raise ValueError("rows and cols required for add_table")
-    kwargs: dict[str, Any] = {}
-    for k in ("x", "y", "width", "height"):
-        if k in params:
-            kwargs[k] = params[k]
-    shape_key = add_table(pkg, slide_num, rows, cols, **kwargs)
+    shape_key = add_table(
+        pkg,
+        slide_num,
+        rows,
+        cols,
+        **{k: params[k] for k in ("x", "y", "width", "height") if k in params},
+    )
     return {
         "message": f"Added {rows}x{cols} table on slide {slide_num}",
         "element_id": shape_key,
@@ -1090,7 +1093,7 @@ def _op_delete_custom_property(
 @mcp.tool()
 def render(
     file_path: str,
-    slides: list[int] | None = None,
+    slides: list[int] = Field(default_factory=list),
     dpi: int = 150,
     output: str = "png",
 ):

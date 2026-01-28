@@ -1,11 +1,15 @@
-"""Unit tests for Claude Code search module."""
+"""Unit tests for Claude Code search source adapter and end-to-end sync."""
 
 import json
 from unittest.mock import patch
 
 import pytest
 
-from mcp_handley_lab.search import claude, common
+from mcp_handley_lab.search import db
+from mcp_handley_lab.search.core import context
+from mcp_handley_lab.search.models import SyncItem
+from mcp_handley_lab.search.sources import claude
+from mcp_handley_lab.search.sync import sync_single_source
 
 
 @pytest.fixture
@@ -13,8 +17,17 @@ def temp_search_dir(tmp_path):
     """Create a temporary search directory."""
     search_dir = tmp_path / "search"
     search_dir.mkdir()
-    with patch.object(common, "get_search_dir", return_value=search_dir):
+    with patch.object(db, "get_search_dir", return_value=search_dir):
         yield search_dir
+
+
+@pytest.fixture
+def temp_db(temp_search_dir):
+    """Create a temporary unified database."""
+    conn = db.get_connection()
+    db.init_schema(conn)
+    conn.commit()
+    return conn
 
 
 @pytest.fixture
@@ -24,7 +37,6 @@ def temp_claude_dir(tmp_path):
     projects_dir = claude_dir / "projects" / "test-project"
     projects_dir.mkdir(parents=True)
 
-    # Create sample JSONL file
     session_file = projects_dir / "session-123.jsonl"
     entries = [
         {
@@ -68,7 +80,6 @@ def temp_claude_dir(tmp_path):
 
 class TestExtractText:
     def test_user_message_string(self):
-        """Test extracting text from user message with string content."""
         entry = {
             "type": "user",
             "message": {"content": "hello world"},
@@ -77,7 +88,6 @@ class TestExtractText:
         assert text == "hello world"
 
     def test_user_message_list(self):
-        """Test extracting text from user message with list content."""
         entry = {
             "type": "user",
             "message": {
@@ -92,7 +102,6 @@ class TestExtractText:
         assert "line 2" in text
 
     def test_assistant_with_thinking(self):
-        """Test extracting thinking blocks from assistant message."""
         entry = {
             "type": "assistant",
             "message": {
@@ -107,7 +116,6 @@ class TestExtractText:
         assert "Here is my answer" in text
 
     def test_assistant_with_tool_use(self):
-        """Test extracting tool use from assistant message."""
         entry = {
             "type": "assistant",
             "message": {
@@ -125,7 +133,6 @@ class TestExtractText:
         assert "/path/to/file.py" in text
 
     def test_tool_result_string(self):
-        """Test extracting tool result as string."""
         entry = {
             "type": "assistant",
             "toolUseResult": "file contents here",
@@ -135,7 +142,6 @@ class TestExtractText:
         assert "file contents here" in text
 
     def test_tool_result_list(self):
-        """Test extracting tool result as list."""
         entry = {
             "type": "assistant",
             "toolUseResult": [{"type": "text", "text": "result 1"}],
@@ -145,120 +151,253 @@ class TestExtractText:
         assert "result 1" in text
 
     def test_system_message(self):
-        """Test extracting system message."""
         entry = {"type": "system", "content": "system prompt"}
         text = claude._extract_text(entry)
         assert text == "system prompt"
 
     def test_summary_message(self):
-        """Test extracting summary message."""
         entry = {"type": "summary", "summary": "conversation summary"}
         text = claude._extract_text(entry)
         assert text == "conversation summary"
 
 
-class TestFindFiles:
-    def test_finds_jsonl_files(self, temp_claude_dir):
-        """Test that _find_files finds JSONL files."""
+class TestDiscoverItems:
+    def test_finds_files(self, temp_claude_dir):
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            files = claude._find_files()
-            assert len(files) == 1
-            assert files[0].suffix == ".jsonl"
+            items = claude.discover_items()
+        assert len(items) == 1
+        assert items[0].display_name == "session-123"
+        assert items[0].project == "test-project"
 
     def test_excludes_agent_files(self, temp_claude_dir):
-        """Test that agent- prefixed files are excluded."""
-        # Create an agent file
         projects_dir = temp_claude_dir / "projects" / "test-project"
         agent_file = projects_dir / "agent-123.jsonl"
         agent_file.write_text('{"type": "user", "message": {"content": "test"}}')
 
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            files = claude._find_files()
-            assert not any(f.name.startswith("agent-") for f in files)
+            items = claude.discover_items()
+        assert not any("agent-" in i.session_key for i in items)
+
+    def test_includes_history(self, temp_claude_dir):
+        history = temp_claude_dir / "history.jsonl"
+        history.write_text(
+            json.dumps(
+                {
+                    "display": "test prompt",
+                    "timestamp": "2024-01-01T10:00:00Z",
+                }
+            )
+            + "\n"
+        )
+
+        with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
+            items = claude.discover_items()
+        assert any(i.display_name == "history" for i in items)
 
 
-class TestParseFile:
+class TestLoadEntries:
     def test_parses_entries(self, temp_claude_dir):
-        """Test that _parse_file correctly parses entries."""
         session_file = (
             temp_claude_dir / "projects" / "test-project" / "session-123.jsonl"
         )
-        entries = claude._parse_file(session_file)
-
+        item = SyncItem(
+            session_key=str(session_file),
+            display_name="session-123",
+            project="test-project",
+            fingerprint="0:0",
+        )
+        entries = claude.load_entries(item)
         assert len(entries) == 4
-        # Check first entry (user message)
-        assert entries[0][1] == "session-123"  # session_id
-        assert entries[0][2] == "test-project"  # project_path
-        assert entries[0][4] == "user"  # type
-        assert "matplotlib" in entries[0][6]  # content_text
+        assert entries[0].role == "user"
+        assert "matplotlib" in entries[0].content
+        assert entries[0].idx == 0
+        assert entries[1].idx == 1
 
     def test_handles_invalid_json(self, tmp_path):
-        """Test that invalid JSON lines are skipped."""
-        session_file = tmp_path / "test.jsonl"
-        session_file.write_text('{"valid": "json"}\ninvalid json\n{"also": "valid"}')
-        entries = claude._parse_file(session_file)
-        # Should have 2 valid entries (but with empty content_text)
-        assert len(entries) >= 0  # May skip entries with no content
+        f = tmp_path / "test.jsonl"
+        f.write_text(
+            '{"valid": "json", "type": "system", "content": "ok"}\ninvalid json\n'
+        )
+        item = SyncItem(
+            session_key=str(f), display_name="test", project=None, fingerprint="0:0"
+        )
+        entries = claude.load_entries(item)
+        # Should parse the valid line, skip the invalid one
+        assert len(entries) >= 1
 
 
-class TestSync:
+class TestEndToEndSync:
+    """Test sync through the shared orchestration layer."""
+
     def test_full_sync(self, temp_search_dir, temp_claude_dir):
-        """Test full sync creates database entries."""
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            stats = claude.sync(full=True)
+            stats = sync_single_source("claude", claude, full=True)
 
         assert stats["files"] == 1
         assert stats["entries"] == 4
         assert stats["skipped"] == 0
 
     def test_incremental_sync_skips_unchanged(self, temp_search_dir, temp_claude_dir):
-        """Test incremental sync skips unchanged files."""
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            # First sync
-            claude.sync(full=True)
-            # Second sync should skip
-            stats = claude.sync(full=False)
+            sync_single_source("claude", claude, full=True)
+            stats = sync_single_source("claude", claude, full=False)
 
         assert stats["skipped"] == 1
         assert stats["files"] == 0
 
-
-class TestSearch:
-    def test_search_by_query(self, temp_search_dir, temp_claude_dir):
-        """Test search finds matching entries."""
+    def test_search_after_sync(self, temp_search_dir, temp_claude_dir):
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            claude.sync(full=True)
-            results = claude.search(query="matplotlib")
+            sync_single_source("claude", claude, full=True)
 
+        conn = db.get_connection()
+        db.init_schema(conn)
+        results = db.fts_search(conn, "matplotlib", source="claude")
         assert len(results) > 0
         assert any("matplotlib" in r["content_text"] for r in results)
 
-    def test_search_by_type(self, temp_search_dir, temp_claude_dir):
-        """Test search filters by type."""
+    def test_search_by_role(self, temp_search_dir, temp_claude_dir):
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            claude.sync(full=True)
-            results = claude.search(query="", type="user", limit=100)
+            sync_single_source("claude", claude, full=True)
 
-        assert all(r["type"] == "user" for r in results)
+        conn = db.get_connection()
+        db.init_schema(conn)
+        results = db.search_recent(conn, source="claude", role="user", limit=100)
+        assert all(r["role"] == "user" for r in results)
 
-    def test_search_empty_query_returns_recent(self, temp_search_dir, temp_claude_dir):
-        """Test empty query returns recent entries."""
+    def test_search_empty_query(self, temp_search_dir, temp_claude_dir):
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            claude.sync(full=True)
-            results = claude.search(query="", limit=10)
+            sync_single_source("claude", claude, full=True)
 
+        conn = db.get_connection()
+        db.init_schema(conn)
+        results = db.search_recent(conn, source="claude", limit=10)
         assert len(results) > 0
 
-
-class TestStats:
-    def test_stats_returns_counts(self, temp_search_dir, temp_claude_dir):
-        """Test stats returns correct counts."""
+    def test_stats_after_sync(self, temp_search_dir, temp_claude_dir):
         with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
-            claude.sync(full=True)
-            stats = claude.stats()
+            sync_single_source("claude", claude, full=True)
 
+        conn = db.get_connection()
+        db.init_schema(conn)
+        stats = db.get_stats(conn, "claude")
         assert stats["entries"] == 4
         assert stats["sessions"] == 1
         assert stats["projects"] == 1
         assert "by_type" in stats
         assert stats["by_type"]["user"] == 1
+
+
+class TestCoreContextAPI:
+    """Test the core context() function with structured outputs (Phase 2)."""
+
+    def _sync(self, temp_claude_dir):
+        with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
+            sync_single_source("claude", claude, full=True)
+
+    def test_search_returns_structured_hits(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        result = context(action="search", source="claude", query="matplotlib")
+        assert isinstance(result, dict)
+        assert "hits" in result
+        assert "total" in result
+        assert "query" in result
+        assert result["total"] > 0
+        hit = result["hits"][0]
+        assert "session_id" in hit
+        assert "entry_index" in hit
+        assert "session_length" in hit
+        assert "role" in hit
+        assert "snippet" in hit
+        assert "source" in hit
+        assert hit["source"] == "claude"
+        assert hit["session_id"].startswith("claude:")
+
+    def test_search_has_bm25_score(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        result = context(action="search", source="claude", query="matplotlib")
+        hit = result["hits"][0]
+        assert "score" in hit
+        assert hit["score"] is not None
+        assert isinstance(hit["score"], float)
+
+    def test_search_empty_returns_dict(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        result = context(action="search", source="claude", query="")
+        assert isinstance(result, dict)
+        assert "hits" in result
+        assert result["total"] > 0
+
+    def test_slice_returns_structured(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        # Get session_id from search
+        search = context(action="search", source="claude", query="matplotlib")
+        session_id = search["hits"][0]["session_id"]
+
+        result = context(action="slice", source="claude", file_path=session_id)
+        assert isinstance(result, dict)
+        assert "session_id" in result
+        assert "source" in result
+        assert "entry_count" in result
+        assert "entries" in result
+        assert result["session_id"] == session_id
+        assert result["source"] == "claude"
+        assert len(result["entries"]) > 0
+        entry = result["entries"][0]
+        assert "entry_index" in entry
+        assert "role" in entry
+        assert "content" in entry
+
+    def test_slice_with_max_chars(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        search = context(action="search", source="claude", query="matplotlib")
+        session_id = search["hits"][0]["session_id"]
+
+        result = context(
+            action="slice", source="claude", file_path=session_id, max_chars=10
+        )
+        for entry in result["entries"]:
+            # Entries with content should respect max_chars (+ "...")
+            if entry["content"]:
+                assert len(entry["content"]) <= 13  # 10 + "..."
+
+    def test_sessions_returns_structured(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        result = context(action="sessions", source="claude")
+        assert isinstance(result, dict)
+        assert "source" in result
+        assert "sessions" in result
+        assert result["source"] == "claude"
+        session = result["sessions"][0]
+        assert "session_id" in session
+        assert "display_name" in session
+        assert "entry_count" in session
+        assert session["session_id"].startswith("claude:")
+
+    def test_stats_returns_dict(self, temp_search_dir, temp_claude_dir):
+        self._sync(temp_claude_dir)
+        result = context(action="stats", source="claude")
+        assert isinstance(result, dict)
+        assert "entries" in result
+        assert "sessions" in result
+
+    def test_sync_returns_dict(self, temp_search_dir, temp_claude_dir):
+        with patch.object(claude, "_get_claude_dir", return_value=temp_claude_dir):
+            result = context(action="sync", source="claude", full=True)
+        assert isinstance(result, dict)
+        assert "files" in result
+        assert "entries" in result
+
+    def test_composite_session_id_roundtrip(self, temp_search_dir, temp_claude_dir):
+        """Search → get session_id → slice with it → verify consistency."""
+        self._sync(temp_claude_dir)
+        search = context(action="search", source="claude", query="matplotlib")
+        session_id = search["hits"][0]["session_id"]
+
+        # Slice using composite session_id
+        sliced = context(action="slice", source="claude", file_path=session_id)
+        assert sliced["session_id"] == session_id
+
+        # Sessions should also have same session_id format
+        sessions = context(action="sessions", source="claude")
+        session_ids = [s["session_id"] for s in sessions["sessions"]]
+        assert session_id in session_ids

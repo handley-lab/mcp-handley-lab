@@ -242,6 +242,9 @@ def read(
         return DocumentReadResult(
             block_count=len(bib_sources), bibliography_sources=bib_sources
         )
+    if scope == "charts":
+        charts = word_ops.list_charts_op(pkg)
+        return DocumentReadResult(block_count=len(charts), charts=charts)
     raise ValueError(f"Unknown scope: {scope}")
 
 

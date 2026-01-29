@@ -15,6 +15,18 @@ from mcp_handley_lab.microsoft.word.ops.bookmarks import (
     insert_caption,
     insert_cross_reference,
 )
+from mcp_handley_lab.microsoft.word.ops.charts import (
+    create_chart as create_chart_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (
+    delete_chart as delete_chart_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (
+    list_charts as list_charts_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (
+    update_chart_data as update_chart_data_op,
+)
 from mcp_handley_lab.microsoft.word.ops.comments import (
     _COMMENTS_EXT_NS,
     _COMMENTS_EXTENDED_CT,
@@ -493,6 +505,11 @@ __all__ = [
     "_get_equation_complexity",
     "_extract_equations_from_paragraph",
     "build_equations",
+    # Charts
+    "create_chart_op",
+    "list_charts_op",
+    "delete_chart_op",
+    "update_chart_data_op",
     # Render
     "render_to_images",
     "render_to_pdf",

@@ -161,6 +161,16 @@ class TableInfo(BaseModel):
     cells: list[TableCell] = Field(default_factory=list)
 
 
+class ChartInfo(BaseModel):
+    """Information about a chart on a slide."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    shape_key: str  # slide_num:shape_id
+    type: str  # bar, column, line, pie, scatter, area
+    title: str | None = None
+
+
 class PowerPointReadResult(BaseModel):
     """Result from read() operation."""
 
@@ -175,6 +185,7 @@ class PowerPointReadResult(BaseModel):
     layouts: list[LayoutInfo] | None = None
     images: list[ImageInfo] | None = None
     tables: list[TableInfo] | None = None
+    charts: list[ChartInfo] | None = None
     properties: DocumentProperties | None = None
 
 

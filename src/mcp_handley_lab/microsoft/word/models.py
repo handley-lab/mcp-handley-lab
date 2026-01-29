@@ -378,6 +378,14 @@ class BibSourceInfo(BaseModel):
     url: str | None = None
 
 
+class ChartInfo(BaseModel):
+    """Information about an embedded chart."""
+
+    id: str  # e.g. "chart_1"
+    type: str  # bar, column, line, pie, scatter, area
+    title: str | None = None
+
+
 class DocumentReadResult(BaseModel):
     """Result from read() tool."""
 
@@ -414,6 +422,7 @@ class DocumentReadResult(BaseModel):
     bibliography_sources: list["BibSourceInfo"] = Field(
         default_factory=list
     )  # For bibliography scope
+    charts: list["ChartInfo"] = Field(default_factory=list)  # For charts scope
 
 
 class OpResult(BaseModel):

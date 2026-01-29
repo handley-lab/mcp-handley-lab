@@ -42,7 +42,7 @@ def get_shape_type(shape: etree._Element) -> str:
             return "table"
         chart = shape.find(
             ".//" + qn("c:chart"),
-            {"c": "http://schemas.openxmlformats.org/drawingml/2006/chart"},
+            NSMAP,
         )
         if chart is not None:
             return "chart"

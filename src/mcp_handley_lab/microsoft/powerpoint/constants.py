@@ -12,6 +12,7 @@ NSMAP = {
     "p": "http://schemas.openxmlformats.org/presentationml/2006/main",
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
     "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+    "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "p14": "http://schemas.microsoft.com/office/powerpoint/2010/main",
     "p15": "http://schemas.microsoft.com/office/powerpoint/2012/main",
     "mc": "http://schemas.openxmlformats.org/markup-compatibility/2006",

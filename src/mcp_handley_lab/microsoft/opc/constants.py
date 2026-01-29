@@ -21,6 +21,9 @@ class CT:
     # Generic XML
     XML = "application/xml"
 
+    # DrawingML charts (shared across formats)
+    CHART = "application/vnd.openxmlformats-officedocument.drawingml.chart+xml"
+
     # Images (shared across formats)
     PNG = "image/png"
     JPEG = "image/jpeg"
@@ -53,6 +56,10 @@ class RT:
     # Shared across formats
     IMAGE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
     THEME = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"
+    CHART = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"
+    PACKAGE = (
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package"
+    )
 
 
 # Default content types by extension (shared across formats)

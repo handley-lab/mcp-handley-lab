@@ -21,6 +21,18 @@ from mcp_handley_lab.microsoft.word.ops.bookmarks import (  # noqa: F401
     insert_caption,
     insert_cross_reference,
 )
+from mcp_handley_lab.microsoft.word.ops.charts import (  # noqa: F401
+    create_chart as create_chart_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (  # noqa: F401
+    delete_chart as delete_chart_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (  # noqa: F401
+    list_charts as list_charts_op,
+)
+from mcp_handley_lab.microsoft.word.ops.charts import (  # noqa: F401
+    update_chart_data as update_chart_data_op,
+)
 from mcp_handley_lab.microsoft.word.ops.comments import (  # noqa: F401
     _COMMENTS_EXT_NS,
     _COMMENTS_EXTENDED_CT,

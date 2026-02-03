@@ -45,8 +45,10 @@ from mcp_handley_lab.microsoft.visio.ops.shapes import (
     get_shape_cells,
     get_shape_data,
     get_text_in_reading_order,
+    group_shapes,
     list_shapes,
     set_z_order,
+    ungroup,
 )
 from mcp_handley_lab.microsoft.visio.package import VisioPackage
 
@@ -276,6 +278,8 @@ def edit(
         - set_shape_data: Set Property row value {page_num, shape_id, row_name, value}
         - delete_shape: Delete shape {page_num, shape_id}
         - set_z_order: Change z-order {page_num, shape_id, action} (action: bring_to_front, send_to_back, bring_forward, send_backward)
+        - group_shapes: Group shapes {page_num, shape_ids} (V1: no rotation/nested groups)
+        - ungroup: Ungroup a group {page_num, group_id} (V1: no rotation/nested groups)
 
         Page operations:
         - add_page: Add blank page {name?}
@@ -342,6 +346,10 @@ def _apply_op(pkg: VisioPackage, op: str, params: dict[str, Any]) -> dict[str, A
         return _op_add_shape(pkg, params)
     elif op == "add_connector":
         return _op_add_connector(pkg, params)
+    elif op == "group_shapes":
+        return _op_group_shapes(pkg, params)
+    elif op == "ungroup":
+        return _op_ungroup(pkg, params)
     else:
         raise ValueError(f"Unknown operation: {op}")
 
@@ -562,6 +570,49 @@ def _op_add_connector(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, An
     return {
         "message": f"Added connector from shape {from_shape_id} to {to_shape_id}",
         "element_id": shape_key,
+    }
+
+
+def _op_group_shapes(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Group multiple shapes into a new group."""
+    page_num = params.get("page_num")
+    shape_ids = params.get("shape_ids")
+
+    if not page_num:
+        raise ValueError("page_num required for group_shapes")
+    if not shape_ids or len(shape_ids) < 2:
+        raise ValueError("shape_ids (list of at least 2) required for group_shapes")
+
+    group_id = group_shapes(
+        pkg,
+        int(page_num),
+        [int(sid) for sid in shape_ids],
+    )
+    shape_key = f"{page_num}:{group_id}"
+    return {
+        "message": f"Created group {group_id} from {len(shape_ids)} shapes",
+        "element_id": shape_key,
+    }
+
+
+def _op_ungroup(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Ungroup a group, promoting children to page level."""
+    page_num = params.get("page_num")
+    group_id = params.get("group_id")
+
+    if not page_num:
+        raise ValueError("page_num required for ungroup")
+    if group_id is None:
+        raise ValueError("group_id required for ungroup")
+
+    child_ids = ungroup(
+        pkg,
+        int(page_num),
+        int(group_id),
+    )
+    return {
+        "message": f"Ungrouped {group_id} into {len(child_ids)} shapes: {child_ids}",
+        "element_id": f"{page_num}:{child_ids[0]}" if child_ids else "",
     }
 
 

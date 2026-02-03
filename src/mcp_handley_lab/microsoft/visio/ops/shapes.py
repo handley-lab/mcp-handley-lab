@@ -664,3 +664,291 @@ def add_connector(
 
     pkg.mark_page_dirty(page_num)
     return new_id
+
+
+# =============================================================================
+# Group/Ungroup Helper Functions
+# =============================================================================
+
+
+def _is_connector_visio(shape_el: etree._Element) -> bool:
+    """Check if shape is a 1D connector (has BeginX/EndX cells)."""
+    begin_x = get_cell_value(shape_el, "BeginX")
+    end_x = get_cell_value(shape_el, "EndX")
+    return begin_x is not None and end_x is not None
+
+
+def _has_rotation_visio(shape_el: etree._Element) -> bool:
+    """Check if Angle cell is non-zero."""
+    angle = get_cell_float(shape_el, "Angle")
+    return angle is not None and abs(angle) > 0.001
+
+
+def _get_shape_bounds_visio(
+    shape_el: etree._Element,
+) -> tuple[float, float, float, float] | None:
+    """Get shape bounds (left_x, bottom_y, width, height) in inches.
+
+    Uses PinX/PinY/Width/Height/LocPinX/LocPinY to calculate bounding box.
+    Returns None if required cells are missing.
+    """
+    pin_x = get_cell_float(shape_el, "PinX")
+    pin_y = get_cell_float(shape_el, "PinY")
+    width = get_cell_float(shape_el, "Width")
+    height = get_cell_float(shape_el, "Height")
+
+    if pin_x is None or pin_y is None or width is None or height is None:
+        return None
+
+    # Get local pin (defaults to center)
+    loc_pin_x = get_cell_float(shape_el, "LocPinX")
+    loc_pin_y = get_cell_float(shape_el, "LocPinY")
+
+    if loc_pin_x is None:
+        loc_pin_x = width / 2
+    if loc_pin_y is None:
+        loc_pin_y = height / 2
+
+    # Calculate bottom-left corner
+    left_x = pin_x - loc_pin_x
+    bottom_y = pin_y - loc_pin_y
+
+    return (left_x, bottom_y, width, height)
+
+
+def _is_nested_in_group_visio(shape_el: etree._Element) -> bool:
+    """Check if shape is already inside a group."""
+    parent = shape_el.getparent()
+    if parent is None:
+        return False
+    # Chain: Shape -> Shapes -> Shape (group)
+    grandparent = parent.getparent()
+    if grandparent is None:
+        return False
+    # Check if grandparent is a group
+    return grandparent.get("Type") == "Group"
+
+
+# =============================================================================
+# Group/Ungroup Operations
+# =============================================================================
+
+
+def group_shapes(
+    pkg: VisioPackage,
+    page_num: int,
+    shape_ids: list[int],
+) -> int:
+    """Group multiple shapes into a new group.
+
+    Args:
+        pkg: Visio package
+        page_num: 1-based page number
+        shape_ids: List of shape IDs to group
+
+    Returns:
+        The new group's shape ID.
+
+    Raises:
+        ValueError: If shapes cannot be grouped.
+
+    V1 Constraints:
+        - Only unrotated shapes supported
+        - Connectors (1D shapes) excluded
+        - Nested groups not supported
+        - All shapes must be on same page at top level
+    """
+    if len(shape_ids) < 2:
+        raise ValueError("At least 2 shapes required to create a group")
+
+    page_xml = pkg.get_page_xml(page_num)
+
+    # Find the top-level Shapes container
+    shapes_containers = findall_v(page_xml, "Shapes")
+    if not shapes_containers:
+        raise ValueError(f"Page {page_num} has no Shapes container")
+    shapes_container = shapes_containers[0]
+
+    # Find all shapes to group at top level
+    shapes_to_group = []
+    for shape_el in findall_v(shapes_container, "Shape"):
+        id_str = shape_el.get("ID")
+        if id_str and int(id_str) in shape_ids:
+            shape_id = int(id_str)
+
+            # Validate constraints
+            if _is_connector_visio(shape_el):
+                raise ValueError(
+                    f"Cannot group connectors (shape {shape_id}). "
+                    "Remove connectors from selection."
+                )
+
+            if _has_rotation_visio(shape_el):
+                raise ValueError(
+                    f"Shape {shape_id} has rotation. V1 only supports unrotated shapes."
+                )
+
+            if shape_el.get("Type") == "Group":
+                raise ValueError(
+                    f"Shape {shape_id} is a group. Nested groups not supported in V1."
+                )
+
+            if _is_nested_in_group_visio(shape_el):
+                raise ValueError(
+                    f"Shape {shape_id} is already in a group. "
+                    "Nested groups not supported in V1."
+                )
+
+            bounds = _get_shape_bounds_visio(shape_el)
+            if bounds is None:
+                raise ValueError(f"Shape {shape_id} has missing position/size cells.")
+
+            shapes_to_group.append((shape_el, bounds))
+
+    if len(shapes_to_group) != len(shape_ids):
+        found_ids = {int(s.get("ID")) for s, _ in shapes_to_group if s.get("ID")}
+        missing = set(shape_ids) - found_ids
+        raise ValueError(
+            f"Shapes not found at top level: {missing}. "
+            "Shapes may be inside groups or on different pages."
+        )
+
+    # Calculate bounding box for group
+    min_x = min(b[0] for _, b in shapes_to_group)
+    min_y = min(b[1] for _, b in shapes_to_group)
+    max_x = max(b[0] + b[2] for _, b in shapes_to_group)
+    max_y = max(b[1] + b[3] for _, b in shapes_to_group)
+
+    group_width = max_x - min_x
+    group_height = max_y - min_y
+    group_pin_x = min_x + group_width / 2
+    group_pin_y = min_y + group_height / 2
+
+    # Allocate new shape ID
+    group_id = _get_max_shape_id(pkg, page_num) + 1
+
+    # Track first shape's position for insertion
+    first_shape_idx = None
+    ordered_shapes = []
+    for idx, child in enumerate(shapes_container):
+        if child in [s for s, _ in shapes_to_group]:
+            if first_shape_idx is None:
+                first_shape_idx = idx
+            ordered_shapes.append(child)
+
+    # Create group element
+    group_el = etree.Element(
+        qn("v:Shape"),
+        {"ID": str(group_id), "Type": "Group"},
+        nsmap={"v": NS_VISIO_2012},
+    )
+
+    # Add group position cells
+    group_el.append(_make_cell("PinX", str(group_pin_x), "IN"))
+    group_el.append(_make_cell("PinY", str(group_pin_y), "IN"))
+    group_el.append(_make_cell("Width", str(group_width), "IN"))
+    group_el.append(_make_cell("Height", str(group_height), "IN"))
+    group_el.append(_make_cell("LocPinX", str(group_width / 2), "IN"))
+    group_el.append(_make_cell("LocPinY", str(group_height / 2), "IN"))
+
+    # Create nested Shapes container
+    nested_shapes = etree.SubElement(
+        group_el, qn("v:Shapes"), nsmap={"v": NS_VISIO_2012}
+    )
+
+    # Move children to group (Visio children keep absolute coordinates!)
+    for shape_el in ordered_shapes:
+        shapes_container.remove(shape_el)
+        nested_shapes.append(shape_el)
+
+    # Insert group at first shape's position
+    shapes_container.insert(first_shape_idx, group_el)
+
+    pkg.mark_page_dirty(page_num)
+    return group_id
+
+
+def ungroup(
+    pkg: VisioPackage,
+    page_num: int,
+    group_id: int,
+) -> list[int]:
+    """Ungroup a group, promoting children to page level.
+
+    Args:
+        pkg: Visio package
+        page_num: 1-based page number
+        group_id: Shape ID of the group to ungroup
+
+    Returns:
+        List of shape IDs of the ungrouped children.
+
+    Raises:
+        ValueError: If shape is not a group or has unsupported properties.
+
+    V1 Constraints:
+        - Only unrotated groups supported
+        - Nested groups not supported
+    """
+    page_xml = pkg.get_page_xml(page_num)
+
+    # Find the top-level Shapes container
+    shapes_containers = findall_v(page_xml, "Shapes")
+    if not shapes_containers:
+        raise ValueError(f"Page {page_num} has no Shapes container")
+    shapes_container = shapes_containers[0]
+
+    # Find the group at top level
+    group_el = None
+    group_idx = None
+    for idx, shape_el in enumerate(shapes_container):
+        id_str = shape_el.get("ID")
+        if id_str and int(id_str) == group_id:
+            group_el = shape_el
+            group_idx = idx
+            break
+
+    if group_el is None:
+        raise ValueError(f"Group {group_id} not found at top level on page {page_num}")
+
+    if group_el.get("Type") != "Group":
+        raise ValueError(f"Shape {group_id} is not a group")
+
+    if _has_rotation_visio(group_el):
+        raise ValueError("Group has rotation. V1 only supports unrotated groups.")
+
+    # Find nested Shapes container
+    nested_shapes_list = list(findall_v(group_el, "Shapes"))
+    if not nested_shapes_list:
+        raise ValueError(f"Group {group_id} has no nested Shapes container")
+    nested_shapes = nested_shapes_list[0]
+
+    # Check for nested groups
+    for child in findall_v(nested_shapes, "Shape"):
+        if child.get("Type") == "Group":
+            raise ValueError(
+                "Group contains nested groups. V1 does not support ungrouping nested groups."
+            )
+
+    # Collect children
+    children = list(findall_v(nested_shapes, "Shape"))
+    if not children:
+        raise ValueError(f"Group {group_id} has no child shapes")
+
+    # Collect child IDs
+    result_ids = []
+    for child in children:
+        id_str = child.get("ID")
+        if id_str:
+            result_ids.append(int(id_str))
+
+    # Move children to page level (Visio children already have absolute coords!)
+    for i, child in enumerate(children):
+        nested_shapes.remove(child)
+        shapes_container.insert(group_idx + i, child)
+
+    # Remove the group element
+    shapes_container.remove(group_el)
+
+    pkg.mark_page_dirty(page_num)
+    return result_ids

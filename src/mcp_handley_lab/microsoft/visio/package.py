@@ -122,6 +122,13 @@ class VisioPackage(OpcPackage):
                 return partname
         raise KeyError(f"Page {page_num} not found")
 
+    def mark_page_dirty(self, page_num: int) -> None:
+        """Mark a page as modified so it will be serialized on save.
+
+        Convenience wrapper around mark_xml_dirty(get_page_partname(page_num)).
+        """
+        self.mark_xml_dirty(self.get_page_partname(page_num))
+
     def get_pages_xml(self) -> etree._Element | None:
         """Get the pages.xml root element."""
         pages_path = self.pages_path

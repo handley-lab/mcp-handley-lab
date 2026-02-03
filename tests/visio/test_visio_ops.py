@@ -2394,3 +2394,246 @@ class TestSetShapeCellUnitClearing:
         cell = next(c for c in findall_v(shape_el, "Cell") if c.get("N") == "Width")
         assert cell.get("U") is None
         assert cell.get("V") == "3.0"
+
+
+# =============================================================================
+# Group/Ungroup tests
+# =============================================================================
+
+
+class TestGroupUngroup:
+    """Tests for Visio group/ungroup operations."""
+
+    def test_group_two_shapes(self):
+        """Test basic grouping of two shapes."""
+        from mcp_handley_lab.microsoft.visio.ops.shapes import (
+            group_shapes,
+            list_shapes,
+        )
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                    {
+                        "id": 2,
+                        "name": "Shape2",
+                        "pin_x": 3.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                ]
+            ]
+        )
+        pkg = VisioPackage.open(buf)
+
+        # Group the shapes
+        group_id = group_shapes(pkg, 1, [1, 2])
+
+        # Verify group was created
+        shapes = list_shapes(pkg, 1)
+        groups = [s for s in shapes if s.type == "group"]
+        assert len(groups) == 1
+        assert groups[0].shape_id == group_id
+
+        # Children should have parent_id set
+        children = [s for s in shapes if s.parent_id == group_id]
+        assert len(children) == 2
+
+    def test_group_requires_two_shapes(self):
+        """Test that grouping requires at least 2 shapes."""
+        from mcp_handley_lab.microsoft.visio.ops.shapes import group_shapes
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                ]
+            ]
+        )
+        pkg = VisioPackage.open(buf)
+
+        with pytest.raises(ValueError, match="(?i)at least 2"):
+            group_shapes(pkg, 1, [1])
+
+    def test_group_rejects_connectors(self):
+        """Test that grouping connectors is rejected."""
+        from mcp_handley_lab.microsoft.visio.ops.shapes import group_shapes
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                    {
+                        "id": 2,
+                        "name": "Connector",
+                        "begin_x": 1.5,
+                        "begin_y": 1.0,
+                        "end_x": 2.5,
+                        "end_y": 1.0,
+                    },
+                ]
+            ]
+        )
+        pkg = VisioPackage.open(buf)
+
+        with pytest.raises(ValueError, match="connectors"):
+            group_shapes(pkg, 1, [1, 2])
+
+    def test_ungroup_basic(self):
+        """Test basic ungrouping."""
+        from mcp_handley_lab.microsoft.visio.ops.shapes import (
+            group_shapes,
+            list_shapes,
+            ungroup,
+        )
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                    {
+                        "id": 2,
+                        "name": "Shape2",
+                        "pin_x": 3.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                ]
+            ]
+        )
+        pkg = VisioPackage.open(buf)
+
+        # Group then ungroup
+        group_id = group_shapes(pkg, 1, [1, 2])
+        child_ids = ungroup(pkg, 1, group_id)
+
+        # Verify ungrouped
+        assert len(child_ids) == 2
+        shapes = list_shapes(pkg, 1)
+        groups = [s for s in shapes if s.type == "group"]
+        assert len(groups) == 0
+
+        # Children should be at top level now
+        top_level = [s for s in shapes if s.parent_id is None]
+        assert len(top_level) == 2
+
+    def test_ungroup_non_group_fails(self):
+        """Test that ungrouping a regular shape fails."""
+        from mcp_handley_lab.microsoft.visio.ops.shapes import ungroup
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                ]
+            ]
+        )
+        pkg = VisioPackage.open(buf)
+
+        with pytest.raises(ValueError, match="not a group"):
+            ungroup(pkg, 1, 1)
+
+    def test_group_via_tool(self):
+        """Test group/ungroup via edit tool."""
+        import json
+        import tempfile
+        from pathlib import Path
+
+        from mcp_handley_lab.microsoft.visio.tool import edit, read
+
+        buf = _build_minimal_vsdx(
+            shapes_per_page=[
+                [
+                    {
+                        "id": 1,
+                        "name": "Shape1",
+                        "pin_x": 1.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                    {
+                        "id": 2,
+                        "name": "Shape2",
+                        "pin_x": 3.0,
+                        "pin_y": 1.0,
+                        "width": 1.0,
+                        "height": 1.0,
+                    },
+                ]
+            ]
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".vsdx", delete=False) as f:
+            f.write(buf.getvalue())
+            temp_path = f.name
+
+        try:
+            # Group via edit
+            result = edit(
+                temp_path,
+                json.dumps(
+                    [{"op": "group_shapes", "page_num": 1, "shape_ids": [1, 2]}]
+                ),
+            )
+            assert result["success"]
+            group_key = result["results"][0]["element_id"]
+            group_id = int(group_key.split(":")[1])
+
+            # Verify via read
+            shapes = read(temp_path, scope="shapes", page_num=1)
+            groups = [s for s in shapes["shapes"] if s["type"] == "group"]
+            assert len(groups) == 1
+
+            # Ungroup via edit
+            result = edit(
+                temp_path,
+                json.dumps([{"op": "ungroup", "page_num": 1, "group_id": group_id}]),
+            )
+            assert result["success"]
+
+            # Verify no groups
+            shapes = read(temp_path, scope="shapes", page_num=1)
+            groups = [s for s in shapes["shapes"] if s["type"] == "group"]
+            assert len(groups) == 0
+
+        finally:
+            Path(temp_path).unlink(missing_ok=True)

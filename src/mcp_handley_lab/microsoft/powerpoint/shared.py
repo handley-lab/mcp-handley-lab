@@ -60,9 +60,11 @@ from mcp_handley_lab.microsoft.powerpoint.ops.shapes import (
     delete_shape,
     edit_shape,
     get_text_in_reading_order,
+    group_shapes,
     list_shapes,
     set_shape_transform,
     set_z_order,
+    ungroup,
 )
 from mcp_handley_lab.microsoft.powerpoint.ops.slides import (
     add_slide,
@@ -225,6 +227,7 @@ def edit(
     Available operations:
         - add_slide, delete_slide, reorder_slide, duplicate_slide, hide_slide
         - add_shape, add_connector, edit_shape, delete_shape, transform_shape, set_z_order
+        - group_shapes, ungroup (group/ungroup shapes; V1: no rotation/flip/nested groups)
         - add_image, delete_image
         - add_table, set_table_cell, add_table_row, add_table_column
         - delete_table_row, delete_table_column
@@ -495,6 +498,10 @@ def _apply_op(
         return _op_update_chart_data(pkg, params)
     elif op == "find_replace":
         return _op_find_replace(pkg, params)
+    elif op == "group_shapes":
+        return _op_group_shapes(pkg, params)
+    elif op == "ungroup":
+        return _op_ungroup(pkg, params)
     else:
         raise ValueError(f"Unknown operation: {op}")
 
@@ -1051,3 +1058,30 @@ def _op_find_replace(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str
             "message": f"Replaced {count} occurrences of '{search}' across all slides",
             "element_id": "",
         }
+
+
+def _op_group_shapes(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Group multiple shapes into a new group."""
+    slide_num = params.get("slide_num")
+    shape_keys = params.get("shape_keys")
+    if slide_num is None:
+        raise ValueError("slide_num required for group_shapes")
+    if not shape_keys or len(shape_keys) < 2:
+        raise ValueError("shape_keys (list of at least 2) required for group_shapes")
+    group_key = group_shapes(pkg, slide_num, shape_keys)
+    return {
+        "message": f"Created group {group_key} from {len(shape_keys)} shapes",
+        "element_id": group_key,
+    }
+
+
+def _op_ungroup(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Ungroup a group, promoting children to parent level."""
+    shape_key = params.get("shape_key")
+    if not shape_key:
+        raise ValueError("shape_key required for ungroup")
+    child_keys = ungroup(pkg, shape_key)
+    return {
+        "message": f"Ungrouped {shape_key} into {len(child_keys)} shapes: {child_keys}",
+        "element_id": child_keys[0] if child_keys else "",
+    }

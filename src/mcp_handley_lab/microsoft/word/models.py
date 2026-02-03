@@ -386,6 +386,23 @@ class ChartInfo(BaseModel):
     title: str | None = None
 
 
+class ThemeColors(BaseModel):
+    """Theme color scheme from the document."""
+
+    dk1: str | None = None  # Dark 1 (typically black/dark text)
+    lt1: str | None = None  # Light 1 (typically white/light background)
+    dk2: str | None = None  # Dark 2 (accent dark)
+    lt2: str | None = None  # Light 2 (accent light)
+    accent1: str | None = None
+    accent2: str | None = None
+    accent3: str | None = None
+    accent4: str | None = None
+    accent5: str | None = None
+    accent6: str | None = None
+    hlink: str | None = None  # Hyperlink
+    folHlink: str | None = None  # Followed hyperlink  # noqa: N815
+
+
 class DocumentReadResult(BaseModel):
     """Result from read() tool."""
 
@@ -423,6 +440,7 @@ class DocumentReadResult(BaseModel):
         default_factory=list
     )  # For bibliography scope
     charts: list["ChartInfo"] = Field(default_factory=list)  # For charts scope
+    theme_colors: "ThemeColors | None" = None  # For theme scope
 
 
 class OpResult(BaseModel):

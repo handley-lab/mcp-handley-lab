@@ -79,6 +79,19 @@ class MasterInfo(BaseModel):
     shape_count: int = 0
 
 
+class CommentInfo(BaseModel):
+    """Information about a comment in the document."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    page_id: int
+    shape_id: int | None = None  # None for page-level comments
+    author: str | None = None
+    author_id: str | None = None
+    text: str
+    date: str | None = None
+
+
 class ShapeDataProperty(BaseModel):
     """A custom property from a shape's Property section."""
 
@@ -172,3 +185,4 @@ class VisioReadResult(BaseModel):
     shape_data: list[ShapeDataProperty] | None = None
     shape_cells: list[ShapeCellInfo] | None = None
     properties: DocumentProperties | None = None
+    comments: list[CommentInfo] | None = None

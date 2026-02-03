@@ -30,6 +30,7 @@ from mcp_handley_lab.microsoft.word.models import (
     OpResult,
     RevisionInfo,
     TextBoxInfo,
+    ThemeColors,
     TOCInfo,
 )
 from mcp_handley_lab.microsoft.word.package import WordPackage
@@ -1165,6 +1166,26 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
         element_id = target_id
         message = f"Updated chart data for {target_id}"
 
+    elif operation == "find_replace":
+        search = content_data
+        replace_text = params.get("replace", "")
+        match_case = params.get("match_case", True)  # Default to case-sensitive
+        if not search:
+            raise ValueError("content_data (search text) required for find_replace")
+        count = word_ops.find_replace(pkg, search, replace_text, match_case=match_case)
+        element_id = ""
+        message = f"Replaced {count} occurrences of '{search}'"
+
+    elif operation == "mail_merge":
+        replacements = _parse_json_param(content_data, "content_data") or {}
+        if not replacements:
+            raise ValueError(
+                "content_data (JSON dict of placeholder:value) required for mail_merge"
+            )
+        count = word_ops.mail_merge(pkg, replacements)
+        element_id = ""
+        message = f"Replaced {count} placeholders"
+
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
@@ -1214,6 +1235,7 @@ def read(
             - 'content_controls': All content controls/SDTs
             - 'equations': Math equations with simplified text
             - 'bibliography': Bibliography sources
+            - 'theme': Theme color scheme (base colors only)
         target_id: Block ID for table_cells/runs/table_layout/list scopes,
             style name for 'style' scope, or text box ID for 'text_box_content' scope.
         search_query: Text to search for (scope='search').
@@ -1383,6 +1405,17 @@ def read(
     if scope == "charts":
         charts = word_ops.list_charts_op(pkg)
         return DocumentReadResult(block_count=len(charts), charts=charts)
+    if scope == "theme":
+        from mcp_handley_lab.microsoft.common.colors import (
+            get_theme_colors_from_package,
+        )
+        from mcp_handley_lab.microsoft.opc.constants import RT as OPC_RT
+
+        colors = get_theme_colors_from_package(pkg, "/word/document.xml", OPC_RT.THEME)
+        theme_colors = ThemeColors(**colors) if colors else None
+        return DocumentReadResult(
+            block_count=1 if theme_colors else 0, theme_colors=theme_colors
+        )
     raise ValueError(f"Unknown scope: {scope}")
 
 
@@ -1436,6 +1469,29 @@ def edit(
             Use $prev[N] in target_id to reference element_id from operation N (0-indexed).
         mode: Batch mode: 'atomic' (all-or-nothing, file unchanged on any failure)
             or 'partial' (save successful ops before failure).
+
+    Available operations:
+        - append_paragraph, append_heading, insert_paragraph, insert_heading
+        - append_table, insert_table_relative, populate_table
+        - set_text, set_style, edit_run_text, edit_run_formatting
+        - add_hyperlink, add_tab_stop, clear_tab_stops
+        - add_bookmark, insert_caption, insert_cross_reference
+        - add_footnote, delete_footnote, insert_citation, insert_bibliography
+        - add_section, set_page_margins, set_page_orientation, set_page_size
+        - set_line_numbering, set_page_borders, set_section_columns
+        - create_list, add_to_list, set_list_level, restart_numbering
+        - promote_list_item, demote_list_item, remove_list_formatting
+        - add_table_row, add_table_column, delete_table_row, delete_table_column
+        - set_table_cell, merge_table_cells, set_header_row
+        - set_cell_borders, set_cell_shading, set_cell_width, set_row_height
+        - insert_image, insert_floating_image, delete_image, edit_text_box
+        - add_source, delete_source, insert_toc
+        - accept_change, reject_change, accept_all_changes, reject_all_changes
+        - add_comment, reply_comment, resolve_comment, unresolve_comment
+        - create_content_control, set_content_control_value
+        - set_property, set_custom_property, delete_custom_property
+        - find_replace (text search/replace in document)
+        - mail_merge (replace {{placeholder}} patterns with values)
 
     Returns:
         EditResult with batch fields (total, succeeded, failed, results, saved).

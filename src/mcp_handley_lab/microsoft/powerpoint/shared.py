@@ -11,6 +11,7 @@ from mcp_handley_lab.microsoft.common.batch import (
     convert_custom_property_value,
     run_batch_edit,
 )
+from mcp_handley_lab.microsoft.common.colors import get_theme_colors_from_package
 from mcp_handley_lab.microsoft.common.properties import (
     delete_custom_property,
     get_core_properties,
@@ -18,6 +19,7 @@ from mcp_handley_lab.microsoft.common.properties import (
     set_core_properties,
     set_custom_property,
 )
+from mcp_handley_lab.microsoft.opc.constants import RT as OPC_RT
 from mcp_handley_lab.microsoft.powerpoint.constants import EMU_PER_INCH
 from mcp_handley_lab.microsoft.powerpoint.models import (
     CustomPropertyInfo,
@@ -28,6 +30,7 @@ from mcp_handley_lab.microsoft.powerpoint.models import (
     PresentationMeta,
     TableCell,
     TableInfo,
+    ThemeColors,
 )
 from mcp_handley_lab.microsoft.powerpoint.ops.charts import (
     create_chart as create_chart_op,
@@ -41,6 +44,9 @@ from mcp_handley_lab.microsoft.powerpoint.ops.charts import (
 from mcp_handley_lab.microsoft.powerpoint.ops.charts import (
     update_chart_data as update_chart_data_op,
 )
+from mcp_handley_lab.microsoft.powerpoint.ops.comments import (
+    list_comments,
+)
 from mcp_handley_lab.microsoft.powerpoint.ops.images import (
     add_image,
     delete_image,
@@ -49,12 +55,14 @@ from mcp_handley_lab.microsoft.powerpoint.ops.images import (
 from mcp_handley_lab.microsoft.powerpoint.ops.notes import get_notes, set_notes
 from mcp_handley_lab.microsoft.powerpoint.ops.placeholders import set_placeholder_text
 from mcp_handley_lab.microsoft.powerpoint.ops.shapes import (
+    add_connector,
     add_shape,
     delete_shape,
     edit_shape,
     get_text_in_reading_order,
     list_shapes,
     set_shape_transform,
+    set_z_order,
 )
 from mcp_handley_lab.microsoft.powerpoint.ops.slides import (
     add_slide,
@@ -83,7 +91,12 @@ from mcp_handley_lab.microsoft.powerpoint.ops.tables import (
     list_tables,
     set_table_cell,
 )
-from mcp_handley_lab.microsoft.powerpoint.ops.text import add_hyperlink
+from mcp_handley_lab.microsoft.powerpoint.ops.text import (
+    add_hyperlink,
+)
+from mcp_handley_lab.microsoft.powerpoint.ops.text import (
+    find_replace as find_replace_text,
+)
 from mcp_handley_lab.microsoft.powerpoint.package import PowerPointPackage
 
 ReadScope = Literal[
@@ -97,6 +110,8 @@ ReadScope = Literal[
     "tables",
     "charts",
     "properties",
+    "theme",
+    "comments",
 ]
 
 _PREV_FIELDS = {"shape_key"}
@@ -127,6 +142,7 @@ def read(
     - images: List images (all slides, or specific slide if slide_num given)
     - tables: List tables with structure (requires slide_num)
     - properties: Document properties (title, author, custom properties)
+    - comments: Slide comments (all slides, or specific slide if slide_num given)
 
     Args:
         file_path: Path to .pptx file.
@@ -179,6 +195,12 @@ def read(
     elif scope == "properties":
         return _read_properties(pkg).model_dump(exclude_none=True)
 
+    elif scope == "theme":
+        return _read_theme(pkg).model_dump(exclude_none=True)
+
+    elif scope == "comments":
+        return _read_comments(pkg, slide_num or None).model_dump(exclude_none=True)
+
     else:
         raise ValueError(f"Unknown scope: {scope}")
 
@@ -199,6 +221,19 @@ def edit(
             [{"op": "add_shape", "slide_num": 1, "x": 1.0, "y": 1.0, "width": 4.0, "height": 1.0, "text": "Title"},
              {"op": "set_text_style", "shape_key": "$prev[0]", "bold": true}]
         mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops).
+
+    Available operations:
+        - add_slide, delete_slide, reorder_slide, duplicate_slide, hide_slide
+        - add_shape, add_connector, edit_shape, delete_shape, transform_shape, set_z_order
+        - add_image, delete_image
+        - add_table, set_table_cell, add_table_row, add_table_column
+        - delete_table_row, delete_table_column
+        - set_shape_fill, set_shape_line, set_text_style, set_slide_background
+        - set_dimensions, set_placeholder, set_notes
+        - add_hyperlink
+        - set_property, set_custom_property, delete_custom_property
+        - add_chart, delete_chart, update_chart_data
+        - find_replace (text search/replace in shape text bodies)
 
     Returns:
         Dict with success status, counts, and per-operation results.
@@ -356,6 +391,30 @@ def _read_charts(pkg: PowerPointPackage, slide_num: int) -> PowerPointReadResult
     )
 
 
+def _read_theme(pkg: PowerPointPackage) -> PowerPointReadResult:
+    """Read theme colors from the presentation."""
+    colors = get_theme_colors_from_package(pkg, pkg.presentation_path, OPC_RT.THEME)
+
+    # Convert dict to ThemeColors model
+    theme_colors = ThemeColors(**colors) if colors else None
+
+    return PowerPointReadResult(
+        scope="theme",
+        theme_colors=theme_colors,
+    )
+
+
+def _read_comments(
+    pkg: PowerPointPackage, slide_num: int | None
+) -> PowerPointReadResult:
+    """Read comments from the presentation."""
+    comments = list_comments(pkg, slide_num)
+    return PowerPointReadResult(
+        scope="comments",
+        comments=comments,
+    )
+
+
 # =============================================================================
 # Operation Dispatcher
 # =============================================================================
@@ -384,12 +443,16 @@ def _apply_op(
         return _op_set_notes(pkg, params)
     elif op == "add_shape":
         return _op_add_shape(pkg, params)
+    elif op == "add_connector":
+        return _op_add_connector(pkg, params)
     elif op == "edit_shape":
         return _op_edit_shape(pkg, params)
     elif op == "delete_shape":
         return _op_delete_shape(pkg, params)
     elif op == "transform_shape":
         return _op_transform_shape(pkg, params)
+    elif op == "set_z_order":
+        return _op_set_z_order(pkg, params)
     elif op == "add_image":
         return _op_add_image(pkg, params)
     elif op == "delete_image":
@@ -430,6 +493,8 @@ def _apply_op(
         return _op_delete_chart(pkg, params)
     elif op == "update_chart_data":
         return _op_update_chart_data(pkg, params)
+    elif op == "find_replace":
+        return _op_find_replace(pkg, params)
     else:
         raise ValueError(f"Unknown operation: {op}")
 
@@ -546,12 +611,39 @@ def _op_add_shape(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, A
     width = params.get("width")
     height = params.get("height")
     text = params.get("text", "")
+    shape_type = params.get("shape_type", "rect")
     if slide_num is None:
         raise ValueError("slide_num required for add_shape")
     if x is None or y is None or width is None or height is None:
         raise ValueError("x, y, width, height required for add_shape")
-    shape_key = add_shape(pkg, slide_num, x, y, width, height, text)
-    return {"message": f"Added shape on slide {slide_num}", "element_id": shape_key}
+    shape_key = add_shape(pkg, slide_num, x, y, width, height, text, shape_type)
+    return {
+        "message": f"Added {shape_type} shape on slide {slide_num}",
+        "element_id": shape_key,
+    }
+
+
+def _op_add_connector(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Add a connector between two shapes."""
+    slide_num = params.get("slide_num")
+    from_shape_key = params.get("from_shape_key")
+    to_shape_key = params.get("to_shape_key")
+    connector_type = params.get("connector_type", "straightConnector1")
+
+    if slide_num is None:
+        raise ValueError("slide_num required for add_connector")
+    if from_shape_key is None:
+        raise ValueError("from_shape_key required for add_connector")
+    if to_shape_key is None:
+        raise ValueError("to_shape_key required for add_connector")
+
+    shape_key = add_connector(
+        pkg, slide_num, from_shape_key, to_shape_key, connector_type
+    )
+    return {
+        "message": f"Added connector from {from_shape_key} to {to_shape_key}",
+        "element_id": shape_key,
+    }
 
 
 def _op_edit_shape(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
@@ -589,6 +681,18 @@ def _op_transform_shape(
         raise ValueError("shape_key required for transform_shape")
     set_shape_transform(pkg, shape_key, x, y, width, height)
     return {"message": f"Transformed shape {shape_key}", "element_id": shape_key}
+
+
+def _op_set_z_order(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Change z-order (stacking order) of a shape."""
+    shape_key = params.get("shape_key")
+    action = params.get("action")
+    if shape_key is None:
+        raise ValueError("shape_key required for set_z_order")
+    if action is None:
+        raise ValueError("action required for set_z_order")
+    set_z_order(pkg, shape_key, action)
+    return {"message": f"Set z-order of {shape_key}: {action}", "element_id": shape_key}
 
 
 def _op_add_image(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
@@ -921,3 +1025,29 @@ def _op_update_chart_data(
         raise ValueError("data required for update_chart_data (2D list)")
     update_chart_data_op(pkg, slide_num, shape_key, data)
     return {"message": f"Updated chart data for {shape_key}", "element_id": shape_key}
+
+
+def _op_find_replace(pkg: PowerPointPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Find and replace text in shape text bodies."""
+    search = params.get("search")
+    if not search:
+        raise ValueError("search required for find_replace")
+    replace_text_str = params.get("replace", "")
+    slide_num = params.get(
+        "slide_num"
+    )  # Optional - if not provided, searches all slides
+    match_case = params.get("match_case", True)  # Default to case-sensitive
+
+    count = find_replace_text(
+        pkg, search, replace_text_str, slide_num, match_case=match_case
+    )
+    if slide_num:
+        return {
+            "message": f"Replaced {count} occurrences of '{search}' on slide {slide_num}",
+            "element_id": "",
+        }
+    else:
+        return {
+            "message": f"Replaced {count} occurrences of '{search}' across all slides",
+            "element_id": "",
+        }

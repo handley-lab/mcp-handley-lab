@@ -936,3 +936,124 @@ def append_content_ooxml(
         return tbl
     else:
         raise ValueError(f"Unknown content_type: {content_type}")
+
+
+# =============================================================================
+# Find/Replace and Mail Merge
+# =============================================================================
+
+
+def _iter_paragraphs_with_parts(pkg) -> Iterator[tuple[etree._Element, str]]:
+    """Iterate over all paragraphs in document, headers, and footers.
+
+    Yields (paragraph_element, part_name) tuples.
+    Covers: main body, headers/footers via relationships, tables, content controls.
+    """
+    # Main document body (includes tables and content controls via iter)
+    doc = pkg.document
+    for p in doc.iter(_W_P):
+        yield p, "/word/document.xml"
+
+    # Headers and footers via relationships
+    doc_rels = pkg.get_rels("/word/document.xml")
+    for rel in doc_rels:
+        reltype = rel.reltype
+        if "/header" in reltype or "/footer" in reltype:
+            target = rel.target
+            if not target.startswith("/"):
+                target = f"/word/{target}"
+            if pkg.has_part(target):
+                hf_xml = pkg.get_xml(target)
+                for p in hf_xml.iter(_W_P):
+                    yield p, target
+
+
+def find_replace(
+    pkg,
+    search: str,
+    replace: str,
+    match_case: bool = True,
+) -> int:
+    """Find and replace text throughout the document.
+
+    Handles text that spans multiple runs (e.g., `{{name}}` split across runs).
+    Covers: main body, headers/footers, tables, content controls.
+    Does NOT cover: footnotes, comments, text boxes, fields.
+
+    Args:
+        pkg: WordPackage
+        search: Text to search for
+        replace: Replacement text
+        match_case: If True (default), search is case-sensitive. If False,
+            performs case-insensitive search.
+
+    Returns:
+        Total number of replacements made.
+    """
+    from mcp_handley_lab.microsoft.common.text import replace_in_word_paragraph
+
+    if not search:
+        raise ValueError("search text cannot be empty")
+
+    total_count = 0
+    dirty_parts = set()
+
+    for p, part_name in _iter_paragraphs_with_parts(pkg):
+        count = replace_in_word_paragraph(p, search, replace, match_case=match_case)
+        if count > 0:
+            total_count += count
+            dirty_parts.add(part_name)
+
+    # Mark all modified parts as dirty
+    for part_name in dirty_parts:
+        pkg.mark_xml_dirty(part_name)
+
+    return total_count
+
+
+def mail_merge(
+    pkg,
+    replacements: dict[str, str],
+) -> int:
+    """Replace {{placeholder}} patterns with values from replacements dict.
+
+    Handles text that spans multiple runs (e.g., `{{name}}` split across runs).
+    Covers: main body, headers/footers, tables, content controls.
+    Does NOT cover: footnotes, comments, text boxes, fields.
+
+    Args:
+        pkg: WordPackage
+        replacements: Dict mapping placeholder names (without braces) to values.
+            Example: {"name": "John", "date": "2024-01-15"}
+
+    Returns:
+        Total number of replacements made.
+    """
+    from mcp_handley_lab.microsoft.common.text import (
+        get_word_paragraph_text,
+        replace_in_word_paragraph,
+    )
+
+    if not replacements:
+        return 0
+
+    total_count = 0
+    dirty_parts = set()
+
+    for p, part_name in _iter_paragraphs_with_parts(pkg):
+        full_text = get_word_paragraph_text(p)
+        for key, value in replacements.items():
+            placeholder = f"{{{{{key}}}}}"
+            if placeholder in full_text:
+                count = replace_in_word_paragraph(p, placeholder, str(value))
+                if count > 0:
+                    total_count += count
+                    dirty_parts.add(part_name)
+                    # Update full_text for subsequent replacements in same paragraph
+                    full_text = get_word_paragraph_text(p)
+
+    # Mark all modified parts as dirty
+    for part_name in dirty_parts:
+        pkg.mark_xml_dirty(part_name)
+
+    return total_count

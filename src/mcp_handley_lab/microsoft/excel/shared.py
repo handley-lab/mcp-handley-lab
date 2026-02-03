@@ -36,6 +36,12 @@ from mcp_handley_lab.microsoft.excel.models import (
     WorkbookMeta,
 )
 from mcp_handley_lab.microsoft.excel.ops.cells import (
+    find_cells as find_cells_op,
+)
+from mcp_handley_lab.microsoft.excel.ops.cells import (
+    find_replace as find_replace_cells,
+)
+from mcp_handley_lab.microsoft.excel.ops.cells import (
     get_cells_in_range,
     set_cell_formula,
     set_cell_style,
@@ -47,6 +53,9 @@ from mcp_handley_lab.microsoft.excel.ops.charts import (
     list_charts,
     update_chart_data,
 )
+from mcp_handley_lab.microsoft.excel.ops.comments import (
+    list_comments,
+)
 from mcp_handley_lab.microsoft.excel.ops.core import (
     column_letter_to_index,
     index_to_column_letter,
@@ -56,10 +65,23 @@ from mcp_handley_lab.microsoft.excel.ops.core import (
     parse_cell_ref,
     parse_range_ref,
 )
+from mcp_handley_lab.microsoft.excel.ops.filtering import (
+    apply_filter,
+    clear_autofilter,
+    clear_filter,
+    get_autofilter,
+    set_autofilter,
+    sort_range,
+)
 from mcp_handley_lab.microsoft.excel.ops.formatting import (
     add_conditional_format,
     get_conditional_formats,
     list_styles,
+)
+from mcp_handley_lab.microsoft.excel.ops.names import (
+    create_name,
+    delete_name,
+    list_names,
 )
 from mcp_handley_lab.microsoft.excel.ops.pivots import (
     create_pivot,
@@ -126,6 +148,11 @@ from mcp_handley_lab.microsoft.excel.ops.tables import (
     get_table_data,
     list_tables,
 )
+from mcp_handley_lab.microsoft.excel.ops.validation import (
+    add_validation,
+    list_validations,
+    remove_validation,
+)
 from mcp_handley_lab.microsoft.excel.package import ExcelPackage
 
 
@@ -155,11 +182,12 @@ def read(
     - print_settings: Print configuration
     - charts: Chart list for a sheet
     - pivots: Pivot table list for a sheet
+    - comments: Cell comments/notes for a sheet
 
     Args:
         file_path: Path to .xlsx file.
         scope: What to read: meta, sheets, cells, table, tables, styles,
-            conditional_formats, protection, print_settings, charts, pivots.
+            conditional_formats, protection, print_settings, charts, pivots, comments.
         sheet: Sheet name (for cells scope, defaults to first sheet).
         range_ref: Range like 'A1:C10' (for cells scope, defaults to used range).
         table_name: Table name (for table scope).
@@ -200,10 +228,43 @@ def read(
         result = _read_pivots(pkg, sheet)
     elif scope == "properties":
         result = _read_properties(pkg)
+    elif scope == "names":
+        result = _read_names(pkg)
+    elif scope == "validations":
+        result = _read_validations(pkg, sheet)
+    elif scope == "autofilter":
+        result = _read_autofilter(pkg, sheet)
+    elif scope == "comments":
+        result = _read_comments(pkg, sheet)
     else:
         raise ValueError(f"Unknown scope: {scope}")
 
     return result.model_dump(exclude_none=True)
+
+
+def find_cells(
+    file_path: str,
+    query: str,
+    sheet: str = "",
+    match_case: bool = False,
+    exact: bool = False,
+) -> list[dict[str, Any]]:
+    """Find cells containing specific text.
+
+    Searches cell values (not formulas) across sheets.
+
+    Args:
+        file_path: Path to .xlsx file.
+        query: Text to search for.
+        sheet: Optional sheet to limit search. If empty, searches all sheets.
+        match_case: Case-sensitive search (default False).
+        exact: Exact match only (default False for substring matching).
+
+    Returns:
+        List of dicts with 'sheet', 'ref', and 'value' for each match.
+    """
+    pkg = ExcelPackage.open(file_path)
+    return find_cells_op(pkg, query, sheet or None, match_case, exact)
 
 
 def edit(
@@ -238,6 +299,10 @@ def edit(
         - create_chart, delete_chart, update_chart_data
         - create_pivot, delete_pivot, refresh_pivot
         - set_meta, set_custom_property, delete_custom_property
+        - create_name, delete_name (named ranges)
+        - add_validation, remove_validation (data validation)
+        - set_autofilter, clear_autofilter, apply_filter, clear_filter, sort_range
+        - find_replace (text search/replace in cell values, skips formula cells)
 
     $prev chaining:
         Reference results of previous operations using $prev[N] where N is the
@@ -491,6 +556,63 @@ def _read_properties(pkg: ExcelPackage) -> ExcelReadResult:
     return ExcelReadResult(
         scope="properties",
         properties=_get_document_properties(pkg),
+    )
+
+
+def _read_names(pkg: ExcelPackage) -> ExcelReadResult:
+    """Read all defined names (named ranges)."""
+    names = list_names(pkg)
+    return ExcelReadResult(
+        scope="names",
+        names=names,
+    )
+
+
+def _read_validations(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read data validation rules for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="validations", sheet=None, validations=[])
+        sheet = sheets[0].name
+
+    validations = list_validations(pkg, sheet)
+    return ExcelReadResult(
+        scope="validations",
+        sheet=sheet,
+        validations=validations,
+    )
+
+
+def _read_autofilter(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read AutoFilter info for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="autofilter", sheet=None, autofilter=None)
+        sheet = sheets[0].name
+
+    autofilter_info = get_autofilter(pkg, sheet)
+    return ExcelReadResult(
+        scope="autofilter",
+        sheet=sheet,
+        autofilter=autofilter_info,
+    )
+
+
+def _read_comments(pkg: ExcelPackage, sheet: str) -> ExcelReadResult:
+    """Read comments (notes) for a sheet."""
+    if not sheet:
+        sheets = list_sheets(pkg)
+        if not sheets:
+            return ExcelReadResult(scope="comments", sheet=None, comments=[])
+        sheet = sheets[0].name
+
+    comments = list_comments(pkg, sheet)
+    return ExcelReadResult(
+        scope="comments",
+        sheet=sheet,
+        comments=comments,
     )
 
 
@@ -794,6 +916,29 @@ def _apply_op(pkg: ExcelPackage, op: str, params: dict[str, Any]) -> dict[str, A
         return _op_set_custom_property(pkg, params)
     elif op == "delete_custom_property":
         return _op_delete_custom_property(pkg, params)
+    # Named ranges
+    elif op == "create_name":
+        return _op_create_name(pkg, params)
+    elif op == "delete_name":
+        return _op_delete_name(pkg, params)
+    # Data validation
+    elif op == "add_validation":
+        return _op_add_validation(pkg, params)
+    elif op == "remove_validation":
+        return _op_remove_validation(pkg, params)
+    # AutoFilter
+    elif op == "set_autofilter":
+        return _op_set_autofilter(pkg, params)
+    elif op == "clear_autofilter":
+        return _op_clear_autofilter(pkg, params)
+    elif op == "apply_filter":
+        return _op_apply_filter(pkg, params)
+    elif op == "clear_filter":
+        return _op_clear_filter(pkg, params)
+    elif op == "sort_range":
+        return _op_sort_range(pkg, params)
+    elif op == "find_replace":
+        return _op_find_replace(pkg, params)
     else:
         raise ValueError(f"Unknown operation: {op}")
 
@@ -1359,3 +1504,171 @@ def _op_delete_custom_property(
         return {"message": f"Deleted custom property '{name}'", "element_id": ""}
     else:
         raise ValueError(f"Custom property '{name}' not found")
+
+
+# =============================================================================
+# Named Ranges Operations
+# =============================================================================
+
+
+def _op_create_name(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Create a defined name (named range)."""
+    name = require(params, "name", "create_name")
+    refers_to = require(params, "refers_to", "create_name")
+    scope = params.get("scope")
+    comment = params.get("comment")
+
+    name_info = create_name(pkg, name, refers_to, scope, comment)
+    return {
+        "message": f"Created name '{name}' -> {refers_to}",
+        "element_id": name_info.id or name,
+    }
+
+
+def _op_delete_name(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Delete a defined name."""
+    name = require(params, "name", "delete_name")
+    scope = params.get("scope")
+
+    delete_name(pkg, name, scope)
+    return {"message": f"Deleted name '{name}'", "element_id": ""}
+
+
+# =============================================================================
+# Data Validation Operations
+# =============================================================================
+
+
+def _op_add_validation(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Add data validation to cells."""
+    sheet = require(params, "sheet", "add_validation")
+    cell_ref = require(params, "cell_ref", "add_validation")
+    val_type = require(params, "type", "add_validation")
+
+    formula1 = params.get("formula1")
+    formula2 = params.get("formula2")
+    operator = params.get("operator")
+    allow_blank = params.get("allow_blank", True)
+    show_dropdown = params.get("show_dropdown", True)
+    error_title = params.get("error_title")
+    error_message = params.get("error_message")
+    prompt_title = params.get("prompt_title")
+    prompt = params.get("prompt")
+
+    val_info = add_validation(
+        pkg,
+        sheet,
+        cell_ref,
+        val_type,
+        formula1,
+        formula2,
+        operator,
+        allow_blank,
+        show_dropdown,
+        error_title,
+        error_message,
+        prompt_title,
+        prompt,
+    )
+    return {
+        "message": f"Added {val_type} validation to {cell_ref}",
+        "element_id": val_info.id or cell_ref,
+    }
+
+
+def _op_remove_validation(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Remove data validation from cells."""
+    sheet = require(params, "sheet", "remove_validation")
+    cell_ref = require(params, "cell_ref", "remove_validation")
+
+    remove_validation(pkg, sheet, cell_ref)
+    return {"message": f"Removed validation from {cell_ref}", "element_id": ""}
+
+
+# =============================================================================
+# AutoFilter Operations
+# =============================================================================
+
+
+def _op_set_autofilter(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Enable AutoFilter on a range."""
+    sheet = require(params, "sheet", "set_autofilter")
+    cell_ref = require(params, "cell_ref", "set_autofilter")
+
+    filter_info = set_autofilter(pkg, sheet, cell_ref)
+    return {
+        "message": f"Set AutoFilter on {cell_ref}",
+        "element_id": filter_info.ref,
+    }
+
+
+def _op_clear_autofilter(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Remove AutoFilter from a sheet."""
+    sheet = require(params, "sheet", "clear_autofilter")
+
+    clear_autofilter(pkg, sheet)
+    return {"message": f"Cleared AutoFilter from sheet '{sheet}'", "element_id": ""}
+
+
+def _op_apply_filter(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Apply filter criteria to a column."""
+    sheet = require(params, "sheet", "apply_filter")
+    column = params.get("column")
+    values = params.get("values")
+
+    if column is None:
+        raise ValueError("column required for apply_filter")
+    if values is None:
+        raise ValueError("values required for apply_filter (list of strings)")
+
+    filter_info = apply_filter(pkg, sheet, column, values)
+    return {
+        "message": f"Applied filter to column {column}",
+        "element_id": filter_info.ref if filter_info else "",
+    }
+
+
+def _op_clear_filter(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Clear filter on a specific column."""
+    sheet = require(params, "sheet", "clear_filter")
+    column = params.get("column")
+
+    if column is None:
+        raise ValueError("column required for clear_filter")
+
+    clear_filter(pkg, sheet, column)
+    return {"message": f"Cleared filter on column {column}", "element_id": ""}
+
+
+def _op_sort_range(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Sort a range by one or more columns."""
+    sheet = require(params, "sheet", "sort_range")
+    cell_ref = require(params, "cell_ref", "sort_range")
+    sort_by = params.get("sort_by")
+    descending = params.get("descending", False)
+
+    if sort_by is None:
+        raise ValueError("sort_by required for sort_range (column index or list)")
+
+    sort_range(pkg, sheet, cell_ref, sort_by, descending)
+    return {"message": f"Sorted range {cell_ref}", "element_id": ""}
+
+
+def _op_find_replace(pkg: ExcelPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Find and replace text in cell values."""
+    search = require(params, "search", "find_replace")
+    replace_text = params.get("replace", "")
+    sheet = params.get("sheet")  # Optional - if not provided, searches all sheets
+    match_case = params.get("match_case", True)  # Default to case-sensitive
+
+    count = find_replace_cells(pkg, search, replace_text, sheet, match_case=match_case)
+    if sheet:
+        return {
+            "message": f"Replaced {count} occurrences of '{search}' in sheet '{sheet}'",
+            "element_id": "",
+        }
+    else:
+        return {
+            "message": f"Replaced {count} occurrences of '{search}' across all sheets",
+            "element_id": "",
+        }

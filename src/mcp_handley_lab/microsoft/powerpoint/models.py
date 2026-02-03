@@ -171,6 +171,39 @@ class ChartInfo(BaseModel):
     title: str | None = None
 
 
+class CommentInfo(BaseModel):
+    """Information about a comment on a slide."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    slide_num: int
+    author: str | None = None
+    author_id: int | None = None
+    text: str
+    date: str | None = None
+    x_pos: float | None = None  # Position in EMUs if available
+    y_pos: float | None = None
+
+
+class ThemeColors(BaseModel):
+    """Theme color scheme from the presentation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    dk1: str | None = None  # Dark 1 (typically black/dark text)
+    lt1: str | None = None  # Light 1 (typically white/light background)
+    dk2: str | None = None  # Dark 2 (accent dark)
+    lt2: str | None = None  # Light 2 (accent light)
+    accent1: str | None = None
+    accent2: str | None = None
+    accent3: str | None = None
+    accent4: str | None = None
+    accent5: str | None = None
+    accent6: str | None = None
+    hlink: str | None = None  # Hyperlink
+    folHlink: str | None = None  # Followed hyperlink  # noqa: N815
+
+
 class PowerPointReadResult(BaseModel):
     """Result from read() operation."""
 
@@ -187,6 +220,8 @@ class PowerPointReadResult(BaseModel):
     tables: list[TableInfo] | None = None
     charts: list[ChartInfo] | None = None
     properties: DocumentProperties | None = None
+    theme_colors: ThemeColors | None = None
+    comments: list[CommentInfo] | None = None
 
 
 class PowerPointOpResult(BaseModel):

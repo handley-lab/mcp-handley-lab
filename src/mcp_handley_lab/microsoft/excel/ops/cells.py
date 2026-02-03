@@ -407,3 +407,173 @@ def _set_string_cell(pkg: ExcelPackage, cell: etree._Element, value: str) -> Non
     cell.set("t", "s")
     v_el = etree.SubElement(cell, qn("x:v"))
     v_el.text = str(idx)
+
+
+def _set_inline_string(cell: etree._Element, value: str) -> None:
+    """Set a cell to an inline string value (doesn't affect shared strings).
+
+    Used for find/replace to avoid affecting other cells using the same shared string.
+    Sets t="inlineStr" and adds <is><t>value</t></is>.
+    """
+    _clear_cell(cell)
+    # Remove any existing inline string
+    for is_el in cell.findall(qn("x:is")):
+        cell.remove(is_el)
+
+    cell.set("t", "inlineStr")
+    is_el = etree.SubElement(cell, qn("x:is"))
+    t_el = etree.SubElement(is_el, qn("x:t"))
+    t_el.text = value
+    # Preserve leading/trailing whitespace
+    if value and (value[0].isspace() or value[-1].isspace()):
+        t_el.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+
+
+def find_replace(
+    pkg: ExcelPackage,
+    search: str,
+    replace: str,
+    sheet_name: str | None = None,
+    match_case: bool = True,
+) -> int:
+    """Find and replace text in cell values.
+
+    Skips formula cells to avoid breaking formulas.
+    Uses inline strings for replacement to avoid affecting other cells
+    using the same shared string.
+
+    Args:
+        pkg: ExcelPackage
+        search: Text to search for
+        replace: Replacement text
+        sheet_name: Optional sheet to limit search. If None, searches all sheets.
+        match_case: If True (default), search is case-sensitive. If False,
+            performs case-insensitive search while preserving original case
+            in non-matched portions.
+
+    Returns:
+        Total number of replacements made.
+    """
+    if not search:
+        raise ValueError("search text cannot be empty")
+
+    total_count = 0
+
+    # Determine sheets to process
+    if sheet_name:
+        sheets_to_check = [sheet_name]
+    else:
+        from mcp_handley_lab.microsoft.excel.ops.sheets import list_sheets
+
+        sheets_to_check = [s.name for s in list_sheets(pkg)]
+
+    for sname in sheets_to_check:
+        sheet_xml = pkg.get_sheet_xml(sname)
+        sheet_part = _get_sheet_path(pkg, sname)
+
+        for row in sheet_xml.findall(qn("x:sheetData") + "/" + qn("x:row")):
+            for cell in row.findall(qn("x:c")):
+                # Skip formula cells (Risk B)
+                if cell.find(qn("x:f")) is not None:
+                    continue
+
+                # Get current value
+                value, _, _ = _extract_cell_data(pkg, cell)
+                if value is None:
+                    continue
+
+                # Convert to string and check for match
+                str_value = str(value)
+                if match_case:
+                    if search in str_value:
+                        new_value = str_value.replace(search, replace)
+                        _set_inline_string(cell, new_value)
+                        total_count += str_value.count(search)
+                        pkg.mark_xml_dirty(sheet_part)
+                else:
+                    # Case-insensitive replacement
+                    import re
+
+                    pattern = re.compile(re.escape(search), re.IGNORECASE)
+                    matches = pattern.findall(str_value)
+                    if matches:
+                        new_value = pattern.sub(replace, str_value)
+                        _set_inline_string(cell, new_value)
+                        total_count += len(matches)
+                        pkg.mark_xml_dirty(sheet_part)
+
+    return total_count
+
+
+def find_cells(
+    pkg: ExcelPackage,
+    query: str,
+    sheet_name: str | None = None,
+    match_case: bool = False,
+    exact: bool = False,
+) -> list[dict[str, Any]]:
+    """Find cells containing specific text.
+
+    Searches cell values (not formulas) across sheets. Handles all cell types:
+    - Shared strings (t="s")
+    - Inline strings (t="inlineStr")
+    - Formula string results (t="str")
+    - Numbers (no type or t="n")
+    - Booleans (t="b")
+    - Errors (t="e")
+
+    Args:
+        pkg: ExcelPackage
+        query: Text to search for
+        sheet_name: Optional sheet to limit search. If None, searches all sheets.
+        match_case: Case-sensitive search (default False)
+        exact: Exact match only (default False for substring matching)
+
+    Returns:
+        List of dicts with 'sheet', 'ref', and 'value' for each match.
+    """
+    from mcp_handley_lab.microsoft.excel.ops.sheets import list_sheets
+
+    if not query:
+        raise ValueError("query cannot be empty")
+
+    results: list[dict[str, Any]] = []
+    query_norm = query if match_case else query.lower()
+
+    # Determine sheets to process
+    sheets_to_check = [sheet_name] if sheet_name else [s.name for s in list_sheets(pkg)]
+
+    for sname in sheets_to_check:
+        sheet_xml = pkg.get_sheet_xml(sname)
+        sheet_data = sheet_xml.find(qn("x:sheetData"))
+        if sheet_data is None:
+            continue
+
+        for row in sheet_data.findall(qn("x:row")):
+            for cell in row.findall(qn("x:c")):
+                cell_ref = cell.get("r", "")
+                if not cell_ref:
+                    continue
+
+                # Get cell value (handles all types)
+                value, type_code, _ = _extract_cell_data(pkg, cell)
+                if value is None:
+                    continue
+
+                # Convert to string for matching
+                val_str = str(value)
+                check_val = val_str if match_case else val_str.lower()
+
+                # Check for match
+                match = check_val == query_norm if exact else query_norm in check_val
+
+                if match:
+                    results.append(
+                        {
+                            "sheet": sname,
+                            "ref": cell_ref,
+                            "value": value,
+                        }
+                    )
+
+    return results

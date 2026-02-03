@@ -300,6 +300,58 @@ def _apply_bullet_style(pPr: etree._Element, style: str) -> None:
         etree.SubElement(pPr, qn("a:buAutoNum"), type="arabicPeriod")
 
 
+def find_replace(
+    pkg: PowerPointPackage,
+    search: str,
+    replace: str,
+    slide_num: int | None = None,
+    match_case: bool = True,
+) -> int:
+    """Find and replace text in shape text bodies.
+
+    Args:
+        pkg: PowerPoint package
+        search: Text to search for
+        replace: Replacement text
+        slide_num: Optional slide number (1-based) to limit search.
+                   If None, searches all slides.
+        match_case: If True (default), search is case-sensitive. If False,
+            performs case-insensitive search.
+
+    Returns:
+        Total number of replacements made.
+    """
+    from mcp_handley_lab.microsoft.common.text import replace_in_ppt_paragraph
+
+    if not search:
+        raise ValueError("search text cannot be empty")
+
+    total_count = 0
+
+    # Determine slides to process
+    if slide_num is not None:
+        slide_nums = [slide_num]
+    else:
+        slide_nums = list(range(1, pkg.slide_count + 1))
+
+    for snum in slide_nums:
+        slide_xml = pkg.get_slide_xml(snum)
+        slide_partname = pkg.get_slide_partname(snum)
+        modified = False
+
+        # Find all a:p paragraphs in the slide
+        for p in slide_xml.iter(qn("a:p")):
+            count = replace_in_ppt_paragraph(p, search, replace, match_case=match_case)
+            if count > 0:
+                total_count += count
+                modified = True
+
+        if modified:
+            pkg.mark_xml_dirty(slide_partname)
+
+    return total_count
+
+
 def add_hyperlink(
     pkg: PowerPointPackage,
     shape_key: str,

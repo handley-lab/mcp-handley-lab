@@ -19,6 +19,7 @@ from mcp_handley_lab.microsoft.visio.models import (
     VisioOpResult,
     VisioReadResult,
 )
+from mcp_handley_lab.microsoft.visio.ops.comments import list_comments
 from mcp_handley_lab.microsoft.visio.ops.connections import list_connections
 from mcp_handley_lab.microsoft.visio.ops.edit import (
     add_page,
@@ -39,10 +40,13 @@ from mcp_handley_lab.microsoft.visio.ops.properties import (
     set_property,
 )
 from mcp_handley_lab.microsoft.visio.ops.shapes import (
+    add_connector,
+    add_shape_from_master,
     get_shape_cells,
     get_shape_data,
     get_text_in_reading_order,
     list_shapes,
+    set_z_order,
 )
 from mcp_handley_lab.microsoft.visio.package import VisioPackage
 
@@ -58,6 +62,7 @@ ReadScope = Literal[
     "shape_cells",
     "masters",
     "properties",
+    "comments",
 ]
 
 _PREV_FIELDS = {"shape_key"}
@@ -72,7 +77,7 @@ def read(
     file_path: str = Field(description="Path to .vsdx file"),
     scope: ReadScope = Field(
         default="pages",
-        description="What to read: meta, pages, shapes, text, connections, shape_data, shape_cells, masters, properties",
+        description="What to read: meta, pages, shapes, text, connections, shape_data, shape_cells, masters, properties, comments",
     ),
     page_num: int = 0,
     shape_id: int = 0,
@@ -94,7 +99,8 @@ def read(
             - "shape_cells": All singleton cells for a shape (ShapeSheet dump)
             - "masters": Master shapes (stencils) with name and shape count
             - "properties": Document properties (title, author, etc.)
-        page_num: Required for shapes/text/connections/shape_data/shape_cells (1-based)
+            - "comments": Comments with page/shape reference, author, text
+        page_num: Required for shapes/text/connections/shape_data/shape_cells (1-based). Optional for comments.
         shape_id: Required for shape_data/shape_cells
 
     Returns:
@@ -142,6 +148,9 @@ def read(
 
     elif scope == "properties":
         return _read_properties(pkg).model_dump(exclude_none=True)
+
+    elif scope == "comments":
+        return _read_comments(pkg, page_num or None).model_dump(exclude_none=True)
 
     else:
         raise ValueError(f"Unknown scope: {scope}")
@@ -223,6 +232,12 @@ def _read_properties(pkg: VisioPackage) -> VisioReadResult:
     return VisioReadResult(scope="properties", properties=_get_document_properties(pkg))
 
 
+def _read_comments(pkg: VisioPackage, page_num: int | None) -> VisioReadResult:
+    """Read comments from the document."""
+    comments = list_comments(pkg, page_num)
+    return VisioReadResult(scope="comments", comments=comments)
+
+
 # =============================================================================
 # Edit Tool
 # =============================================================================
@@ -254,10 +269,13 @@ def edit(
 
     Available operations:
         Shape operations:
+        - add_shape: Add shape from master {page_num, master_name, x, y, width?, height?, text?}
+        - add_connector: Add connector between shapes {page_num, from_shape_id, to_shape_id, text?}
         - set_text: Set shape text {page_num, shape_id, text}
         - set_cell: Set ShapeSheet cell {page_num, shape_id, cell_name, value, formula?, unit?}
         - set_shape_data: Set Property row value {page_num, shape_id, row_name, value}
         - delete_shape: Delete shape {page_num, shape_id}
+        - set_z_order: Change z-order {page_num, shape_id, action} (action: bring_to_front, send_to_back, bring_forward, send_backward)
 
         Page operations:
         - add_page: Add blank page {name?}
@@ -318,6 +336,12 @@ def _apply_op(pkg: VisioPackage, op: str, params: dict[str, Any]) -> dict[str, A
         return _op_set_custom_property(pkg, params)
     elif op == "delete_custom_property":
         return _op_delete_custom_property(pkg, params)
+    elif op == "set_z_order":
+        return _op_set_z_order(pkg, params)
+    elif op == "add_shape":
+        return _op_add_shape(pkg, params)
+    elif op == "add_connector":
+        return _op_add_connector(pkg, params)
     else:
         raise ValueError(f"Unknown operation: {op}")
 
@@ -459,6 +483,86 @@ def _op_delete_custom_property(
     if deleted:
         return {"message": f"Deleted custom property '{name}'", "element_id": ""}
     raise ValueError(f"Custom property '{name}' not found")
+
+
+def _op_set_z_order(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Change z-order (stacking order) of a shape."""
+    page_num, shape_id = _resolve_shape_params(params)
+    action = params.get("action")
+    if action is None:
+        raise ValueError("action required for set_z_order")
+    set_z_order(pkg, page_num, shape_id, action)
+    shape_key = f"{page_num}:{shape_id}"
+    return {
+        "message": f"Set z-order of {shape_key}: {action}",
+        "element_id": shape_key,
+    }
+
+
+def _op_add_shape(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Add a shape by dropping a master from the document stencil."""
+    page_num = params.get("page_num")
+    master_name = params.get("master_name")
+    x = params.get("x")
+    y = params.get("y")
+
+    if not page_num:
+        raise ValueError("page_num required for add_shape")
+    if not master_name:
+        raise ValueError("master_name required for add_shape")
+    if x is None:
+        raise ValueError("x required for add_shape")
+    if y is None:
+        raise ValueError("y required for add_shape")
+
+    width = params.get("width")
+    height = params.get("height")
+    text = params.get("text")
+
+    new_id = add_shape_from_master(
+        pkg,
+        int(page_num),
+        master_name,
+        float(x),
+        float(y),
+        width=float(width) if width is not None else None,
+        height=float(height) if height is not None else None,
+        text=text,
+    )
+    shape_key = f"{page_num}:{new_id}"
+    return {
+        "message": f"Added shape '{master_name}' with ID {new_id}",
+        "element_id": shape_key,
+    }
+
+
+def _op_add_connector(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any]:
+    """Add a connector between two shapes."""
+    page_num = params.get("page_num")
+    from_shape_id = params.get("from_shape_id")
+    to_shape_id = params.get("to_shape_id")
+
+    if not page_num:
+        raise ValueError("page_num required for add_connector")
+    if from_shape_id is None:
+        raise ValueError("from_shape_id required for add_connector")
+    if to_shape_id is None:
+        raise ValueError("to_shape_id required for add_connector")
+
+    text = params.get("text", "")
+
+    new_id = add_connector(
+        pkg,
+        int(page_num),
+        int(from_shape_id),
+        int(to_shape_id),
+        text=text,
+    )
+    shape_key = f"{page_num}:{new_id}"
+    return {
+        "message": f"Added connector from shape {from_shape_id} to {to_shape_id}",
+        "element_id": shape_key,
+    }
 
 
 # =============================================================================

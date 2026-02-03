@@ -180,6 +180,10 @@ class ExcelReadResult(BaseModel):
     charts: list["ChartInfo"] | None = None
     pivots: list["PivotInfo"] | None = None
     properties: DocumentProperties | None = None
+    names: list["NameInfo"] | None = None
+    validations: list["ValidationInfo"] | None = None
+    autofilter: "AutoFilterInfo | None" = None
+    comments: list["CommentInfo"] | None = None
 
 
 class NameInfo(BaseModel):

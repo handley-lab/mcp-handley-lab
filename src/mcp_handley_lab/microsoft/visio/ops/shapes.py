@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from lxml import etree
 
-from mcp_handley_lab.microsoft.visio.constants import findall_v
+from mcp_handley_lab.microsoft.visio.constants import NS_VISIO_2012, findall_v, qn
 from mcp_handley_lab.microsoft.visio.models import (
     ShapeCellInfo,
     ShapeDataProperty,
@@ -18,7 +18,10 @@ from mcp_handley_lab.microsoft.visio.ops.core import (
     get_section_rows,
     make_shape_key,
 )
-from mcp_handley_lab.microsoft.visio.ops.masters import resolve_master_name
+from mcp_handley_lab.microsoft.visio.ops.masters import (
+    list_masters,
+    resolve_master_name,
+)
 from mcp_handley_lab.microsoft.visio.ops.pages import get_page_dimensions
 from mcp_handley_lab.microsoft.visio.package import VisioPackage
 
@@ -283,3 +286,381 @@ def get_shape_cells(
         )
         for c in raw_cells
     ]
+
+
+def set_z_order(
+    pkg: VisioPackage,
+    page_num: int,
+    shape_id: int,
+    action: str,
+) -> bool:
+    """Change the z-order (stacking order) of a shape.
+
+    Z-order in Visio is determined by position in the Shapes container.
+    Later shapes (higher index) are drawn on top.
+
+    Args:
+        pkg: Visio package
+        page_num: 1-based page number
+        shape_id: Shape ID
+        action: Z-order action:
+            - "bring_to_front": Move shape to top (highest z-order)
+            - "send_to_back": Move shape to bottom (lowest z-order)
+            - "bring_forward": Move shape one level up
+            - "send_backward": Move shape one level down
+
+    Returns:
+        True if successful, False if shape not found
+
+    Raises:
+        ValueError: If action is invalid or shape is inside a group.
+    """
+    valid_actions = {"bring_to_front", "send_to_back", "bring_forward", "send_backward"}
+    if action not in valid_actions:
+        raise ValueError(
+            f"Invalid action '{action}'. Valid: {', '.join(valid_actions)}"
+        )
+
+    page_xml = pkg.get_page_xml(page_num)
+
+    # Find the top-level Shapes container(s)
+    shapes_containers = findall_v(page_xml, "Shapes")
+    if not shapes_containers:
+        return False
+
+    # Find the shape and its direct parent
+    shape_el = None
+    parent = None
+    for container in shapes_containers:
+        for shape in findall_v(container, "Shape"):
+            id_str = shape.get("ID")
+            if id_str and int(id_str) == shape_id:
+                shape_el = shape
+                parent = container
+                break
+        if shape_el is not None:
+            break
+
+    if shape_el is None:
+        # Shape might be inside a group - check recursively but reject
+        for container in shapes_containers:
+            found = _find_shape_recursive(container, shape_id)
+            if found is not None:
+                # Walk up the ancestor chain to detect group membership
+                # Chain: Shape (child) -> Shapes -> Shape (group) -> Shapes -> ...
+                ancestor = found.getparent()
+                while ancestor is not None:
+                    # If we find a Shape element with Type="Group", we're inside a group
+                    is_shape = (
+                        ancestor.tag.endswith("}Shape") or ancestor.tag == "Shape"
+                    )
+                    if is_shape and ancestor.get("Type") == "Group":
+                        raise ValueError(
+                            "Cannot change z-order of shape inside group. "
+                            "Use group's shape_id instead."
+                        )
+                    ancestor = ancestor.getparent()
+        return False
+
+    # Build list of Shape elements in order
+    shapes = list(findall_v(parent, "Shape"))
+    if not shapes:
+        return False
+
+    try:
+        shape_idx = shapes.index(shape_el)
+    except ValueError:
+        return False
+
+    # Apply z-order action (swap semantics)
+    if action == "bring_to_front":
+        shapes.remove(shape_el)
+        shapes.append(shape_el)
+    elif action == "send_to_back":
+        shapes.remove(shape_el)
+        shapes.insert(0, shape_el)
+    elif action == "bring_forward":
+        if shape_idx < len(shapes) - 1:
+            shapes[shape_idx], shapes[shape_idx + 1] = (
+                shapes[shape_idx + 1],
+                shapes[shape_idx],
+            )
+    elif action == "send_backward":
+        if shape_idx > 0:
+            shapes[shape_idx], shapes[shape_idx - 1] = (
+                shapes[shape_idx - 1],
+                shapes[shape_idx],
+            )
+
+    # Remove all shapes and re-add in new order
+    for s in list(findall_v(parent, "Shape")):
+        parent.remove(s)
+    for s in shapes:
+        parent.append(s)
+
+    pkg.mark_page_dirty(page_num)
+    return True
+
+
+def _get_max_shape_id(pkg: VisioPackage, page_num: int) -> int:
+    """Get the maximum shape ID currently used on a page."""
+    page_xml = pkg.get_page_xml(page_num)
+    max_id = 0
+
+    # Recursively find all shape IDs
+    def scan_shapes(parent: etree._Element) -> None:
+        nonlocal max_id
+        for shape in findall_v(parent, "Shape"):
+            id_str = shape.get("ID")
+            if id_str:
+                try:
+                    shape_id = int(id_str)
+                    if shape_id > max_id:
+                        max_id = shape_id
+                except ValueError:
+                    pass
+            # Recurse into nested Shapes containers (groups)
+            for shapes_container in findall_v(shape, "Shapes"):
+                scan_shapes(shapes_container)
+
+    # Start from top-level Shapes containers
+    for shapes_container in findall_v(page_xml, "Shapes"):
+        scan_shapes(shapes_container)
+
+    return max_id
+
+
+def _make_cell(name: str, value: str, unit: str | None = None) -> etree._Element:
+    """Create a Visio Cell element."""
+    attrib = {"N": name, "V": value}
+    if unit:
+        attrib["U"] = unit
+    return etree.Element(qn("v:Cell"), attrib, nsmap={"v": NS_VISIO_2012})
+
+
+def add_shape_from_master(
+    pkg: VisioPackage,
+    page_num: int,
+    master_name: str,
+    x: float,
+    y: float,
+    width: float | None = None,
+    height: float | None = None,
+    text: str | None = None,
+) -> int:
+    """Add a new shape by dropping a master from the document stencil.
+
+    Can only use masters already in the document. Master shapes inherit
+    geometry and formatting from their master definition.
+
+    Args:
+        pkg: Visio package
+        page_num: 1-based page number
+        master_name: Name or NameU of the master to drop
+        x: Pin X position in inches (center of shape)
+        y: Pin Y position in inches (center of shape)
+        width: Optional width in inches (overrides master default)
+        height: Optional height in inches (overrides master default)
+        text: Optional text to place in the shape
+
+    Returns:
+        The new shape's ID.
+
+    Raises:
+        ValueError: If master_name is not found in document stencil.
+    """
+    # Build name -> id mapping from masters
+    masters = list_masters(pkg)
+    name_to_id: dict[str, int] = {}
+    for m in masters:
+        if m.name_u:
+            name_to_id[m.name_u] = m.master_id
+        if m.name:
+            name_to_id[m.name] = m.master_id
+
+    if not name_to_id:
+        raise ValueError(
+            "No masters found in document stencil. "
+            "Create the document from a template that includes stencils."
+        )
+
+    # Look up master by name
+    master_id = name_to_id.get(master_name)
+    if master_id is None:
+        available = sorted(name_to_id.keys())
+        raise ValueError(
+            f"Master '{master_name}' not found. Available masters: {available}"
+        )
+
+    # Generate unique shape ID
+    new_id = _get_max_shape_id(pkg, page_num) + 1
+
+    # Get page XML and find/create Shapes container
+    page_xml = pkg.get_page_xml(page_num)
+    shapes_containers = findall_v(page_xml, "Shapes")
+    if shapes_containers:
+        shapes_container = shapes_containers[0]
+    else:
+        # Create Shapes container if missing
+        shapes_container = etree.SubElement(
+            page_xml, qn("v:Shapes"), nsmap={"v": NS_VISIO_2012}
+        )
+
+    # Create minimal Shape element
+    shape_el = etree.SubElement(
+        shapes_container,
+        qn("v:Shape"),
+        {"ID": str(new_id), "Master": str(master_id), "Type": "Shape"},
+        nsmap={"v": NS_VISIO_2012},
+    )
+
+    # Add position cells (PinX, PinY)
+    shape_el.append(_make_cell("PinX", str(x), "IN"))
+    shape_el.append(_make_cell("PinY", str(y), "IN"))
+
+    # Add optional size cells
+    if width is not None:
+        shape_el.append(_make_cell("Width", str(width), "IN"))
+    if height is not None:
+        shape_el.append(_make_cell("Height", str(height), "IN"))
+
+    # Add text if provided
+    if text:
+        text_el = etree.SubElement(shape_el, qn("v:Text"), nsmap={"v": NS_VISIO_2012})
+        text_el.text = text
+
+    pkg.mark_page_dirty(page_num)
+    return new_id
+
+
+def _get_shape_center_visio(
+    pkg: VisioPackage, page_num: int, shape_id: int
+) -> tuple[float, float] | None:
+    """Get the center coordinates of a Visio shape in inches.
+
+    Returns (x, y) or None if shape not found or has no position.
+    """
+    shape_el = find_shape_element(pkg, page_num, shape_id)
+    if shape_el is None:
+        return None
+
+    # Check if it's a 2D shape (PinX/PinY) or 1D (BeginX/EndX)
+    pin_x = get_cell_float(shape_el, "PinX")
+    pin_y = get_cell_float(shape_el, "PinY")
+
+    if pin_x is not None and pin_y is not None:
+        return (pin_x, pin_y)
+
+    # For 1D shapes, use midpoint
+    begin_x = get_cell_float(shape_el, "BeginX")
+    begin_y = get_cell_float(shape_el, "BeginY")
+    end_x = get_cell_float(shape_el, "EndX")
+    end_y = get_cell_float(shape_el, "EndY")
+
+    if all(v is not None for v in [begin_x, begin_y, end_x, end_y]):
+        mid_x = (begin_x + end_x) / 2
+        mid_y = (begin_y + end_y) / 2
+        return (mid_x, mid_y)
+
+    return None
+
+
+def add_connector(
+    pkg: VisioPackage,
+    page_num: int,
+    from_shape_id: int,
+    to_shape_id: int,
+    text: str = "",
+) -> int:
+    """Add a connector between two shapes.
+
+    V1 constraints:
+    - Static endpoints (center-to-center)
+    - No dynamic glue (endpoints don't follow shape moves)
+
+    Args:
+        pkg: Visio package
+        page_num: 1-based page number
+        from_shape_id: Source shape ID
+        to_shape_id: Destination shape ID
+        text: Optional text to place on the connector
+
+    Returns:
+        The new connector's shape ID.
+
+    Raises:
+        ValueError: If shapes not found or have no position.
+    """
+    # Get center coordinates for both shapes
+    from_center = _get_shape_center_visio(pkg, page_num, from_shape_id)
+    to_center = _get_shape_center_visio(pkg, page_num, to_shape_id)
+
+    if from_center is None:
+        raise ValueError(f"Source shape {from_shape_id} not found or has no position")
+    if to_center is None:
+        raise ValueError(
+            f"Destination shape {to_shape_id} not found or has no position"
+        )
+
+    from_x, from_y = from_center
+    to_x, to_y = to_center
+
+    # Generate unique shape ID
+    new_id = _get_max_shape_id(pkg, page_num) + 1
+
+    # Get page XML and find Shapes container
+    page_xml = pkg.get_page_xml(page_num)
+    shapes_containers = findall_v(page_xml, "Shapes")
+    if not shapes_containers:
+        raise ValueError(f"Page {page_num} has no Shapes container")
+
+    shapes_container = shapes_containers[0]
+
+    # Create 1D connector shape (no Master attribute for simple line)
+    shape_el = etree.SubElement(
+        shapes_container,
+        qn("v:Shape"),
+        {"ID": str(new_id), "Type": "Shape"},
+        nsmap={"v": NS_VISIO_2012},
+    )
+
+    # Add 1D endpoint cells
+    shape_el.append(_make_cell("BeginX", str(from_x), "IN"))
+    shape_el.append(_make_cell("BeginY", str(from_y), "IN"))
+    shape_el.append(_make_cell("EndX", str(to_x), "IN"))
+    shape_el.append(_make_cell("EndY", str(to_y), "IN"))
+
+    # Add text if provided
+    if text:
+        text_el = etree.SubElement(shape_el, qn("v:Text"), nsmap={"v": NS_VISIO_2012})
+        text_el.text = text
+
+    # Add Connect elements to link the connector to shapes
+    # Connect elements are direct children of PageContents, not Shapes
+    # FromSheet = connector ID, ToSheet = connected shape ID
+    # FromCell = "BeginX" or "EndX" indicates which end
+
+    etree.SubElement(
+        page_xml,
+        qn("v:Connect"),
+        {
+            "FromSheet": str(new_id),
+            "FromCell": "BeginX",
+            "ToSheet": str(from_shape_id),
+        },
+        nsmap={"v": NS_VISIO_2012},
+    )
+
+    etree.SubElement(
+        page_xml,
+        qn("v:Connect"),
+        {
+            "FromSheet": str(new_id),
+            "FromCell": "EndX",
+            "ToSheet": str(to_shape_id),
+        },
+        nsmap={"v": NS_VISIO_2012},
+    )
+
+    pkg.mark_page_dirty(page_num)
+    return new_id

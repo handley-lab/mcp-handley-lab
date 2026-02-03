@@ -141,14 +141,15 @@ def render_pages_to_images(
             except subprocess.TimeoutExpired as e:
                 raise RuntimeError(f"Page {page_num} render timed out") from e
 
-            # pdftoppm creates files like page1-1.png, page2-2.png
-            expected_png = tmp / f"page{page_num}-{page_num}.png"
-            if not expected_png.exists():
+            # pdftoppm creates files with zero-padded page numbers based on total
+            # page count: page1-1.png (1-9 pages), page1-01.png (10-99 pages), etc.
+            # Use glob to find the actual output file.
+            png_files = list(tmp.glob(f"page{page_num}-*.png"))
+            if not png_files:
                 raise ValueError(
-                    f"Page {page_num} not found in rendered output. "
-                    "The document may have fewer pages than expected, "
-                    "or PDF conversion may have partially failed."
+                    f"Page {page_num} out of bounds. "
+                    "The document may have fewer pages than requested."
                 )
-            result.append((page_num, expected_png.read_bytes()))
+            result.append((page_num, png_files[0].read_bytes()))
 
         return result

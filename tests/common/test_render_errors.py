@@ -149,9 +149,8 @@ class TestRenderPagesToImagesErrors:
                     render_pages_to_images(str(doc_path), pages=[1], dpi=150)
 
                 msg = str(exc_info.value)
-                assert "Page 1 not found" in msg
-                assert "fewer pages than expected" in msg
-                assert "partially failed" in msg
+                assert "Page 1 out of bounds" in msg
+                assert "fewer pages than requested" in msg
 
     def test_pdftoppm_failure(self, tmp_path):
         """pdftoppm failure gives clear error message."""

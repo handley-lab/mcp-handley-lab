@@ -168,6 +168,66 @@ async def test_render_missing_page_error(sample_docx):
         render_to_images(str(sample_docx), pages=[999])
 
 
+@pytest.fixture
+async def ten_plus_page_docx():
+    """Create a Word document with 12 pages for zero-padding test.
+
+    pdftoppm uses zero-padded page numbers based on total page count:
+    - 1-9 pages: page1-1.png
+    - 10-99 pages: page1-01.png
+    This fixture ensures we test the >9 pages case.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as f:
+        path = Path(f.name)
+
+    WordPackage.new().save(str(path))
+
+    # Create 12 pages with page breaks
+    ops = [
+        {
+            "op": "append",
+            "content_type": "heading",
+            "content_data": "Page 1 Content",
+            "heading_level": 1,
+        }
+    ]
+    for i in range(2, 13):
+        ops.append({"op": "add_page_break"})
+        ops.append(
+            {
+                "op": "append",
+                "content_type": "heading",
+                "content_data": f"Page {i} Content",
+                "heading_level": 1,
+            }
+        )
+
+    await mcp.call_tool("edit", {"file_path": str(path), "ops": _ops(ops)})
+
+    yield path
+    path.unlink(missing_ok=True)
+
+
+@requires_libreoffice
+@requires_pdftoppm
+@pytest.mark.asyncio
+async def test_render_ten_plus_pages(ten_plus_page_docx):
+    """Test rendering pages from a 10+ page document works correctly.
+
+    Regression test for #224: pdftoppm uses zero-padded page numbers
+    (page1-01.png instead of page1-1.png) when total pages > 9.
+    """
+    result = render_to_images(str(ten_plus_page_docx), pages=[1, 5])
+    assert len(result) == 2
+    page1_num, page1_bytes = result[0]
+    page5_num, page5_bytes = result[1]
+    assert page1_num == 1
+    assert page5_num == 5
+    # Verify valid PNG headers
+    assert page1_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+    assert page5_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+
+
 # PDF rendering tests - only require libreoffice
 @requires_libreoffice
 @pytest.mark.asyncio

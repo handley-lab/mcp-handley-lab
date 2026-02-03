@@ -1,10 +1,13 @@
 """Google Calendar tool for calendar management via MCP."""
 
+import asyncio
 import logging
 import pickle
 import zoneinfo
+from collections.abc import Callable
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, TypedDict
 
 import dateparser
 import pendulum
@@ -153,7 +156,99 @@ class CalendarInfo(BaseModel):
     )
 
 
-mcp = FastMCP("Google Calendar Tool")
+# =============================================================================
+# Tool Description Injection
+# =============================================================================
+
+
+class ToolConfig(TypedDict):
+    fn: Callable[..., Any]
+    description: str
+
+
+_TOOL_CONFIGS: dict[str, ToolConfig] = {}
+
+
+def _has_valid_cached_credentials() -> bool:
+    """Check if valid cached credentials exist without triggering interactive auth."""
+    token_file = settings.google_token_path
+    try:
+        with open(token_file, "rb") as f:
+            creds = pickle.load(f)
+        # Valid if not expired, or if expired but has refresh token
+        return bool(creds and (creds.valid or (creds.expired and creds.refresh_token)))
+    except (FileNotFoundError, Exception):
+        return False
+
+
+def _fetch_calendars_text() -> str:
+    """Fetch calendar list with pagination, capped at 10 displayed.
+
+    Only call this if _has_valid_cached_credentials() returns True.
+    """
+    service = _get_calendar_service()
+    items = []
+    token = None
+    # Fetch up to 11 to know if there are more, display max 10
+    while len(items) < 11:
+        resp = service.calendarList().list(pageToken=token, maxResults=20).execute()
+        items.extend(resp.get("items", []))
+        token = resp.get("nextPageToken")
+        if not token:
+            break
+
+    lines = []
+    for c in items[:10]:
+        cid = c.get("id")
+        if not cid:
+            continue
+        summary = (c.get("summary") or "Unknown").replace("\n", " ")[:50]
+        lines.append(f"- {cid} ({summary})")
+
+    if not lines:
+        return "(No calendars found; use 'primary' or read calendar://list resource)"
+
+    if len(items) > 10:
+        lines.append("... and more (read calendar://list resource for full list)")
+    return "\n".join(lines)
+
+
+@asynccontextmanager
+async def _lifespan(app: FastMCP):
+    """Inject available calendars into tool descriptions at server startup.
+
+    Only attempts fetch if valid cached credentials exist (avoids interactive OAuth).
+    """
+    # Check credentials synchronously first - fast and safe
+    if not _has_valid_cached_credentials():
+        logger.info("No valid cached credentials; skipping calendar list injection")
+        yield
+        return
+
+    try:
+        calendar_text = await asyncio.wait_for(
+            asyncio.to_thread(_fetch_calendars_text),
+            timeout=3.0,
+        )
+    except Exception:
+        logger.warning("Failed to fetch calendar list", exc_info=True)
+        yield
+        return
+
+    for name, config in _TOOL_CONFIGS.items():
+        try:
+            app.remove_tool(name)
+            app.add_tool(
+                config["fn"],
+                name=name,
+                description=f"{config['description']}\n\nAvailable calendars:\n{calendar_text}",
+            )
+        except Exception:
+            logger.warning(f"Failed to inject calendar list into {name}", exc_info=True)
+    yield
+
+
+mcp = FastMCP("Google Calendar Tool", lifespan=_lifespan)
 
 # Google Calendar API scopes
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -664,7 +759,16 @@ def _validate_recurrence(recurrence: list[str]) -> None:
 def calendar_list() -> list[CalendarInfo]:
     """All accessible calendars with IDs, names, and access levels."""
     service = _get_calendar_service()
-    calendar_list_response = service.calendarList().list().execute()
+    items = []
+    page_token = None
+    while True:
+        resp = (
+            service.calendarList().list(pageToken=page_token, maxResults=100).execute()
+        )
+        items.extend(resp.get("items", []))
+        page_token = resp.get("nextPageToken")
+        if not page_token:
+            break
     return [
         CalendarInfo(
             id=cal["id"],
@@ -672,7 +776,7 @@ def calendar_list() -> list[CalendarInfo]:
             accessRole=cal.get("accessRole", "unknown"),
             colorId=cal.get("colorId", ""),
         )
-        for cal in calendar_list_response.get("items", [])
+        for cal in items
         if "id" in cal  # Skip malformed entries (should never happen)
     ]
 
@@ -682,9 +786,6 @@ def calendar_list() -> list[CalendarInfo]:
 # =============================================================================
 
 
-@mcp.tool(
-    description="Read calendar events. Get single event by ID (returns singleton list), or search/list events in date range. Use calendar://list resource to discover available calendar IDs."
-)
 def read(
     event_id: str | None = Field(
         None,
@@ -751,9 +852,6 @@ def read(
     )
 
 
-@mcp.tool(
-    description="Create a new calendar event. Use read to check for conflicts first. Supports natural language datetimes (e.g., 'tomorrow at 2pm') and mixed timezones."
-)
 def create(
     summary: str = Field(..., description="The title or summary for the new event."),
     start_datetime: str = Field(
@@ -808,9 +906,6 @@ def create(
     )
 
 
-@mcp.tool(
-    description="Update or move a calendar event. Requires event_id from read. If destination_calendar_id provided, moves event (may change event ID). Otherwise updates event properties."
-)
 def update(
     event_id: str = Field(
         ..., description="The unique identifier of the event to update or move."
@@ -881,9 +976,6 @@ def update(
     )
 
 
-@mcp.tool(
-    description="Delete a calendar event permanently. Requires event_id from read. WARNING: Irreversible."
-)
 def delete(
     event_id: str = Field(
         ..., description="The unique identifier of the event to delete."
@@ -903,3 +995,32 @@ def delete(
     return _delete(
         event_id=event_id, calendar_id=calendar_id, delete_series=delete_series
     )
+
+
+# =============================================================================
+# Tool Registration (explicit for lifespan-based description injection)
+# =============================================================================
+
+_TOOL_CONFIGS["read"] = {
+    "fn": read,
+    "description": "Read calendar events. Get single event by ID or search/list in date range.",
+}
+_TOOL_CONFIGS["create"] = {
+    "fn": create,
+    "description": "Create a new calendar event. Supports natural language datetimes.",
+}
+_TOOL_CONFIGS["update"] = {
+    "fn": update,
+    "description": "Update or move a calendar event. Requires event_id from read.",
+}
+_TOOL_CONFIGS["delete"] = {
+    "fn": delete,
+    "description": "Delete a calendar event permanently. WARNING: Irreversible.",
+}
+
+for _name, _config in _TOOL_CONFIGS.items():
+    mcp.add_tool(_config["fn"], name=_name, description=_config["description"])
+
+
+if __name__ == "__main__":
+    mcp.run()

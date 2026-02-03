@@ -413,3 +413,108 @@ class TestGroupUngroupV1Constraints:
         result = edit(temp_pptx, json.dumps(group_ops))
         assert not result["success"]
         assert "cannot group a group" in result["results"][0]["error"].lower()
+
+    def test_ungroup_rejects_nested_groups(self, temp_pptx):
+        """Test that ungrouping a group containing nested groups is rejected.
+
+        Note: This tests the edge case where a group was created externally
+        (e.g., in PowerPoint) that contains nested groups. Our group_shapes()
+        prevents creating such groups, but we need to handle files that have them.
+        """
+        import zipfile
+
+        from lxml import etree
+
+        # Create file with shapes and make a group
+        create_ops = [
+            {"op": "add_slide"},
+            {
+                "op": "add_shape",
+                "slide_num": 1,
+                "x": 1.0,
+                "y": 1.0,
+                "width": 2.0,
+                "height": 1.0,
+                "text": "Shape A",
+            },
+            {
+                "op": "add_shape",
+                "slide_num": 1,
+                "x": 4.0,
+                "y": 1.0,
+                "width": 2.0,
+                "height": 1.0,
+                "text": "Shape B",
+            },
+        ]
+        result = edit(temp_pptx, json.dumps(create_ops))
+        assert result["success"]
+
+        shapes_result = read(temp_pptx, scope="shapes", slide_num=1)
+        shape_keys = [
+            s["shape_key"]
+            for s in shapes_result["shapes"]
+            if s.get("text") in ("Shape A", "Shape B")
+        ]
+
+        # Group them
+        group_ops = [{"op": "group_shapes", "slide_num": 1, "shape_keys": shape_keys}]
+        result = edit(temp_pptx, json.dumps(group_ops))
+        assert result["success"]
+        group_key = result["results"][0]["element_id"]
+        group_id = int(group_key.split(":")[1])
+
+        # Manually inject a nested group by modifying the PPTX XML
+        # Read the slide XML
+        with zipfile.ZipFile(temp_pptx, "r") as zf:
+            slide_xml = zf.read("ppt/slides/slide1.xml")
+
+        # Parse and find the group
+        root = etree.fromstring(slide_xml)
+        ns = {
+            "p": "http://schemas.openxmlformats.org/presentationml/2006/main",
+            "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+        }
+
+        # Find our group by ID
+        grp = None
+        for g in root.findall(".//p:grpSp", ns):
+            nvpr = g.find("p:nvGrpSpPr/p:cNvPr", ns)
+            if nvpr is not None and nvpr.get("id") == str(group_id):
+                grp = g
+                break
+        assert grp is not None, "Could not find group element"
+
+        # Create a minimal nested group element
+        nested_grp = etree.SubElement(grp, "{{{}}}grpSp".format(ns["p"]))
+        nested_nvpr = etree.SubElement(nested_grp, "{{{}}}nvGrpSpPr".format(ns["p"]))
+        etree.SubElement(
+            nested_nvpr, "{{{}}}cNvPr".format(ns["p"]), id="999", name="NestedGroup"
+        )
+        etree.SubElement(nested_nvpr, "{{{}}}cNvGrpSpPr".format(ns["p"]))
+        etree.SubElement(nested_nvpr, "{{{}}}nvPr".format(ns["p"]))
+        nested_sppr = etree.SubElement(nested_grp, "{{{}}}grpSpPr".format(ns["p"]))
+        nested_xfrm = etree.SubElement(nested_sppr, "{{{}}}xfrm".format(ns["a"]))
+        etree.SubElement(nested_xfrm, "{{{}}}off".format(ns["a"]), x="0", y="0")
+        etree.SubElement(
+            nested_xfrm, "{{{}}}ext".format(ns["a"]), cx="914400", cy="914400"
+        )
+        etree.SubElement(nested_xfrm, "{{{}}}chOff".format(ns["a"]), x="0", y="0")
+        etree.SubElement(
+            nested_xfrm, "{{{}}}chExt".format(ns["a"]), cx="914400", cy="914400"
+        )
+
+        # Write modified XML back to the PPTX
+        modified_xml = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+        with zipfile.ZipFile(temp_pptx, "r") as zf_in:
+            contents = {name: zf_in.read(name) for name in zf_in.namelist()}
+        contents["ppt/slides/slide1.xml"] = modified_xml
+        with zipfile.ZipFile(temp_pptx, "w") as zf_out:
+            for name, data in contents.items():
+                zf_out.writestr(name, data)
+
+        # Now try to ungroup - should fail with nested groups error
+        ungroup_ops = [{"op": "ungroup", "shape_key": group_key}]
+        result = edit(temp_pptx, json.dumps(ungroup_ops))
+        assert not result["success"]
+        assert "nested groups" in result["results"][0]["error"].lower()

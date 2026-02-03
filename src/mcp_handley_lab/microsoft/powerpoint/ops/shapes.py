@@ -1424,13 +1424,6 @@ def ungroup(
             "V1 only supports groups with no scaling."
         )
 
-    # Check for nested groups
-    for child in group:
-        if etree.QName(child).localname == "grpSp":
-            raise ValueError(
-                "Group contains nested groups. V1 does not support ungrouping nested groups."
-            )
-
     # Get group offset
     off = grp_xfrm.find(qn("a:off"))
     group_off_x = int(off.get("x", "0"))
@@ -1445,6 +1438,13 @@ def ungroup(
 
     if not children:
         raise ValueError("Group has no child shapes")
+
+    # Check for nested groups (among drawable children only)
+    for child in children:
+        if etree.QName(child).localname == "grpSp":
+            raise ValueError(
+                "Group contains nested groups. V1 does not support ungrouping nested groups."
+            )
 
     # Transform children to absolute coordinates
     result_keys = []

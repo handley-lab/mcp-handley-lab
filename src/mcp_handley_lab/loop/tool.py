@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from mcp_handley_lab.loop.protocol import Request, Response
 
@@ -42,23 +42,25 @@ class Cell(BaseModel):
 
 
 class ManageResult(BaseModel):
-    """Result of manage action."""
+    """Result of manage action. Only relevant fields are populated."""
+
+    model_config = ConfigDict(extra="forbid")
 
     # spawn
-    loop_id: str = ""
-    namespace: str = ""
+    loop_id: str | None = None
+    namespace: str | None = None
     # list
-    loops: list[LoopInfo] = Field(default_factory=list)
+    loops: list[LoopInfo] | None = None
     # read
-    cells: list[Cell] = Field(default_factory=list)
+    cells: list[Cell] | None = None
     # read_raw
-    raw_output: str = ""
+    raw_output: str | None = None
     # status
-    running: bool = False
-    started_at: str = ""
-    elapsed_seconds: float = 0.0
-    # terminate/kill
-    ok: bool = False
+    running: bool | None = None
+    started_at: str | None = None
+    elapsed_seconds: float | None = None
+    # always present
+    ok: bool = True
 
 
 class EvalResult(BaseModel):
@@ -239,21 +241,27 @@ def manage(params: ManageArgs) -> ManageResult:
     if not response.ok:
         raise RuntimeError(f"{response.error_code}: {response.error}")
 
-    # Build result from response
-    loops = [LoopInfo(**loop) for loop in response.loops]
-    cells = [Cell(**cell) for cell in response.cells]
+    # Build result with only relevant fields (exclude_none in serialization)
+    result = ManageResult(ok=response.ok)
 
-    return ManageResult(
-        loop_id=response.loop_id,
-        namespace=response.namespace,
-        loops=loops,
-        cells=cells,
-        raw_output=response.raw_output,
-        running=response.running,
-        started_at=response.started_at,
-        elapsed_seconds=response.elapsed_seconds,
-        ok=response.ok,
-    )
+    if response.loop_id:
+        result.loop_id = response.loop_id
+    if response.namespace:
+        result.namespace = response.namespace
+    if response.loops:
+        result.loops = [LoopInfo(**loop) for loop in response.loops]
+    if response.cells:
+        result.cells = [Cell(**cell) for cell in response.cells]
+    if response.raw_output:
+        result.raw_output = response.raw_output
+    if response.running:
+        result.running = response.running
+    if response.started_at:
+        result.started_at = response.started_at
+    if response.elapsed_seconds:
+        result.elapsed_seconds = response.elapsed_seconds
+
+    return result
 
 
 @mcp.tool()

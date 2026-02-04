@@ -6,6 +6,7 @@ import re
 import signal
 import subprocess
 import sys
+import threading
 import time
 from collections.abc import Callable
 from datetime import datetime
@@ -362,6 +363,7 @@ class TmuxBackend:
 
 # Claude subprocess state - keyed by loop_id
 _claude_processes: dict[str, dict[str, Any]] = {}
+_claude_lock = threading.Lock()
 
 
 class ClaudeBackend:
@@ -400,18 +402,18 @@ class ClaudeBackend:
             cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,  # Avoid deadlock from unbuffered stderr
             text=True,
             bufsize=1,  # Line buffered
         )
 
         # Don't wait for init - Claude only sends it after first user message
-        _claude_processes[loop_id] = {
-            "proc": proc,
-            "cells": [],
-            "session_id": "",
-            "initialized": False,
-        }
+        with _claude_lock:
+            _claude_processes[loop_id] = {
+                "proc": proc,
+                "cells": [],
+                "session_id": "",
+            }
 
         return loop_id, loop_id  # loop_id serves as both identifiers
 
@@ -419,11 +421,13 @@ class ClaudeBackend:
         self, pane_id: str, code: str, check_cancelled: Callable[[], bool]
     ) -> dict[str, Any]:
         """Send message to Claude and wait for response."""
-        state = _claude_processes.get(pane_id)
-        if not state:
-            raise RuntimeError(f"Claude session not found: {pane_id}")
+        with _claude_lock:
+            state = _claude_processes.get(pane_id)
+            if not state:
+                raise RuntimeError(f"Claude session not found: {pane_id}")
+            proc = state["proc"]
+            cells = state["cells"]
 
-        proc = state["proc"]
         if proc.poll() is not None:
             raise RuntimeError(f"Claude process has exited (code {proc.returncode})")
 
@@ -432,17 +436,18 @@ class ClaudeBackend:
         proc.stdin.write(json.dumps(msg) + "\n")
         proc.stdin.flush()
 
-        # Collect response
+        # Collect response (no lock needed - proc is per-session)
         output_parts: list[str] = []
         result = None
 
         while True:
             if check_cancelled():
                 self.terminate(pane_id)
-                return {
-                    "output": "".join(output_parts) + "\n[cancelled]",
-                    "cell_index": len(state["cells"]),
-                }
+                with _claude_lock:
+                    return {
+                        "output": "".join(output_parts) + "\n[cancelled]",
+                        "cell_index": len(cells),
+                    }
 
             line = proc.stdout.readline()
             if not line:
@@ -456,10 +461,10 @@ class ClaudeBackend:
             msg_type = data.get("type")
 
             if msg_type == "system":
-                # Init message - capture session_id and continue
+                # Init message - capture session_id
                 if data.get("subtype") == "init":
-                    state["session_id"] = data.get("session_id", "")
-                    state["initialized"] = True
+                    with _claude_lock:
+                        state["session_id"] = data.get("session_id", "")
                 continue
 
             if msg_type == "assistant":
@@ -480,30 +485,36 @@ class ClaudeBackend:
         )
 
         # Store as cell
-        cell_index = len(state["cells"])
-        state["cells"].append({"index": cell_index, "input": code, "output": output})
+        with _claude_lock:
+            cell_index = len(cells)
+            cells.append({"index": cell_index, "input": code, "output": output})
 
         return {"output": output, "cell_index": cell_index}
 
     def read(self, pane_id: str) -> list[dict[str, Any]]:
         """Read conversation cells."""
-        state = _claude_processes.get(pane_id)
-        return state["cells"] if state else []
+        with _claude_lock:
+            state = _claude_processes.get(pane_id)
+            return list(state["cells"]) if state else []
 
     def read_raw(self, pane_id: str) -> str:
         """Read raw output (returns JSON of cells for Claude backend)."""
-        state = _claude_processes.get(pane_id)
-        return json.dumps(state["cells"], indent=2) if state else "[]"
+        with _claude_lock:
+            state = _claude_processes.get(pane_id)
+            return json.dumps(state["cells"], indent=2) if state else "[]"
 
     def terminate(self, pane_id: str) -> None:
         """Send SIGINT to interrupt running eval."""
-        state = _claude_processes.get(pane_id)
-        if state and state["proc"].poll() is None:
-            state["proc"].send_signal(signal.SIGINT)
+        with _claude_lock:
+            state = _claude_processes.get(pane_id)
+            proc = state["proc"] if state else None
+        if proc and proc.poll() is None:
+            proc.send_signal(signal.SIGINT)
 
     def kill(self, pane_id: str) -> None:
         """Force-kill the Claude process."""
-        state = _claude_processes.pop(pane_id, None)
+        with _claude_lock:
+            state = _claude_processes.pop(pane_id, None)
         if state:
             proc = state["proc"]
             if proc.poll() is None:
@@ -512,3 +523,7 @@ class ClaudeBackend:
                     proc.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+            # Close pipes to release FDs
+            for pipe in (proc.stdin, proc.stdout):
+                if pipe:
+                    pipe.close()

@@ -677,9 +677,8 @@ class TestLegacyMigration:
 
     def test_migration_idempotent(self, temp_search_dir):
         """Test that migration doesn't run if unified DB already has data."""
-        # First create some data in unified DB
-        conn = db.get_connection()
-        db.init_schema(conn)
+        # First create some data in unified DB using ensure_db to set schema version
+        conn = db.ensure_db()
         sid = db.get_or_create_session(conn, "claude", "/existing", "existing", None)
         db.insert_entries(
             conn,

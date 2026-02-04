@@ -201,10 +201,11 @@ class TestLoadEntries:
             temp_claude_dir / "projects" / "test-project" / "session-123.jsonl"
         )
         item = SyncItem(
-            session_key=str(session_file),
+            session_key="test-project/session-123",
             display_name="session-123",
             project="test-project",
             fingerprint="0:0",
+            file_path=str(session_file),
         )
         entries = claude.load_entries(item)
         assert len(entries) == 4
@@ -219,7 +220,11 @@ class TestLoadEntries:
             '{"valid": "json", "type": "system", "content": "ok"}\ninvalid json\n'
         )
         item = SyncItem(
-            session_key=str(f), display_name="test", project=None, fingerprint="0:0"
+            session_key="test",
+            display_name="test",
+            project=None,
+            fingerprint="0:0",
+            file_path=str(f),
         )
         entries = claude.load_entries(item)
         # Should parse the valid line, skip the invalid one

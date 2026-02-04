@@ -79,10 +79,11 @@ def discover_items() -> list[SyncItem]:
                 continue
             items.append(
                 SyncItem(
-                    session_key=f"{repo_path}:{branch}",
+                    session_key=f"{project_name}:{branch}",  # Short: "project:branch"
                     display_name=branch,
                     project=project_name,
                     fingerprint=tip,
+                    file_path=str(repo_path),  # Repo path for loading
                     tip_sha=tip,
                 )
             )
@@ -91,10 +92,10 @@ def discover_items() -> list[SyncItem]:
 
 def load_entries(item: SyncItem) -> list[RawEntry]:
     """Load and parse entries from a branch's conversation.jsonl."""
-    # Parse repo_path and branch from session_key
-    # Format: "/path/to/repo:branch_name"
+    # Use file_path for repo_path, extract branch from session_key
+    # session_key format: "project:branch_name"
+    repo_path = Path(item.file_path)
     colon_idx = item.session_key.rfind(":")
-    repo_path = Path(item.session_key[:colon_idx])
     branch = item.session_key[colon_idx + 1 :]
 
     content = _get_branch_content(repo_path, branch)

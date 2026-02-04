@@ -15,10 +15,11 @@ from pydantic import BaseModel
 class SyncItem:
     """A syncable unit discovered by a source adapter."""
 
-    session_key: str  # Unique key for sessions + sync_state (full path or repo:branch)
+    session_key: str  # Short unique key (e.g., "project/session", "project:branch")
     display_name: str  # Human-readable name
     project: str | None  # Project identifier
     fingerprint: str  # Change detection: "{mtime}:{size}" or git SHA
+    file_path: str | None = None  # Full path for loading (sync only, not stored in DB)
     # Source-specific fields for sync_state:
     mtime: float | None = None  # Filesystem sources
     size: int | None = None  # Filesystem sources

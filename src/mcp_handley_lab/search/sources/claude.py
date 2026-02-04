@@ -24,10 +24,11 @@ def discover_items() -> list[SyncItem]:
             stat = f.stat()
             items.append(
                 SyncItem(
-                    session_key=str(f),
+                    session_key=f"{f.parent.name}/{f.stem}",  # Short: "abc123/session"
                     display_name=f.stem,
                     project=f.parent.name,
                     fingerprint=f"{stat.st_mtime}:{stat.st_size}",
+                    file_path=str(f),
                     mtime=stat.st_mtime,
                     size=stat.st_size,
                 )
@@ -39,10 +40,11 @@ def discover_items() -> list[SyncItem]:
         stat = history_file.stat()
         items.append(
             SyncItem(
-                session_key=str(history_file),
+                session_key="history",  # Short: just "history"
                 display_name="history",
                 project=None,
                 fingerprint=f"{stat.st_mtime}:{stat.st_size}",
+                file_path=str(history_file),
                 mtime=stat.st_mtime,
                 size=stat.st_size,
             )
@@ -53,7 +55,7 @@ def discover_items() -> list[SyncItem]:
 
 def load_entries(item: SyncItem) -> list[RawEntry]:
     """Load and parse entries from a Claude transcript file."""
-    path = Path(item.session_key)
+    path = Path(item.file_path)
     if item.display_name == "history":
         return _parse_history(path)
     return _parse_transcript(path)

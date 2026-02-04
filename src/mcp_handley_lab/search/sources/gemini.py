@@ -24,10 +24,11 @@ def discover_items() -> list[SyncItem]:
         project_hash = f.parent.parent.name
         items.append(
             SyncItem(
-                session_key=str(f),
+                session_key=f"{project_hash}/{f.stem}",  # Short: "hash/chat1"
                 display_name=f"{project_hash}/{f.stem}",
                 project=project_hash,
                 fingerprint=f"{stat.st_mtime}:{stat.st_size}",
+                file_path=str(f),
                 mtime=stat.st_mtime,
                 size=stat.st_size,
             )
@@ -37,7 +38,7 @@ def discover_items() -> list[SyncItem]:
 
 def load_entries(item: SyncItem) -> list[RawEntry]:
     """Load and parse entries from a Gemini chat JSON file."""
-    file_path = Path(item.session_key)
+    file_path = Path(item.file_path)
     try:
         with open(file_path, encoding="utf-8", errors="replace") as f:
             data = json.load(f)

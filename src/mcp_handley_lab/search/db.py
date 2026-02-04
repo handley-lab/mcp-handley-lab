@@ -15,6 +15,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DB_NAME = "transcripts"
+SCHEMA_VERSION = 2  # Bump to force re-sync (v2: short session_keys)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
@@ -75,6 +76,10 @@ CREATE INDEX IF NOT EXISTS idx_entries_role ON entries(role);
 CREATE INDEX IF NOT EXISTS idx_entries_ts ON entries(timestamp_unix);
 CREATE INDEX IF NOT EXISTS idx_sessions_source ON sessions(source);
 CREATE INDEX IF NOT EXISTS idx_sessions_project ON sessions(project);
+
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER PRIMARY KEY
+);
 """
 
 
@@ -619,6 +624,30 @@ def _backfill_timestamps(conn: sqlite3.Connection) -> None:
         conn.executemany("UPDATE entries SET timestamp_unix = ? WHERE id = ?", updates)
 
 
+def _check_schema_version(conn: sqlite3.Connection) -> bool:
+    """Check if schema version matches. Returns True if OK, False if needs re-sync."""
+    row = conn.execute("SELECT version FROM schema_version LIMIT 1").fetchone()
+    if not row:
+        return False
+    return row[0] == SCHEMA_VERSION
+
+
+def _set_schema_version(conn: sqlite3.Connection) -> None:
+    """Set schema version after successful init or re-sync."""
+    conn.execute("DELETE FROM schema_version")
+    conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
+
+
+def _wipe_for_resync(conn: sqlite3.Connection) -> None:
+    """Wipe all data for a fresh re-sync (schema version changed)."""
+    logger.info("Schema version changed, wiping data for re-sync")
+    conn.execute("DELETE FROM entries")
+    conn.execute("DELETE FROM sessions")
+    conn.execute("DELETE FROM sync_state")
+    # Rebuild FTS index
+    conn.execute("INSERT INTO entries_fts(entries_fts) VALUES('rebuild')")
+
+
 def ensure_db(conn: sqlite3.Connection | None = None) -> sqlite3.Connection:
     """Get or create unified DB connection, initialize schema, run migration if needed.
 
@@ -627,6 +656,14 @@ def ensure_db(conn: sqlite3.Connection | None = None) -> sqlite3.Connection:
     if conn is None:
         conn = get_connection()
     init_schema(conn)
+
+    # Check schema version - if mismatched, wipe for re-sync
+    if not _check_schema_version(conn):
+        has_data = conn.execute("SELECT 1 FROM sessions LIMIT 1").fetchone()
+        if has_data:
+            _wipe_for_resync(conn)
+        _set_schema_version(conn)
+        conn.commit()
 
     # Migrate legacy DBs only if unified DB is fresh (no sessions yet)
     has_data = conn.execute("SELECT 1 FROM sessions LIMIT 1").fetchone()

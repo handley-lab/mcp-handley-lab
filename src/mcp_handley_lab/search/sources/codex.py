@@ -23,10 +23,11 @@ def discover_items() -> list[SyncItem]:
         stat = f.stat()
         items.append(
             SyncItem(
-                session_key=str(f),
+                session_key=f.stem,  # Short: just "session1"
                 display_name=f.stem,
                 project=None,  # Extracted during load_entries from session_meta
                 fingerprint=f"{stat.st_mtime}:{stat.st_size}",
+                file_path=str(f),
                 mtime=stat.st_mtime,
                 size=stat.st_size,
             )
@@ -36,7 +37,7 @@ def discover_items() -> list[SyncItem]:
 
 def load_entries(item: SyncItem) -> list[RawEntry]:
     """Load and parse entries from a Codex session file."""
-    file_path = Path(item.session_key)
+    file_path = Path(item.file_path)
     entries = []
     project_path = None
     idx = 0

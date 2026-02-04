@@ -645,13 +645,13 @@ def render(
 
     from mcp.types import ImageContent, TextContent
 
-    from mcp_handley_lab.microsoft.common.render import (
-        convert_to_pdf,
-        render_pages_to_images,
+    from mcp_handley_lab.microsoft.visio.ops.render import (
+        render_to_images,
+        render_to_pdf,
     )
 
     if output == "pdf":
-        pdf_bytes = convert_to_pdf(file_path)
+        pdf_bytes = render_to_pdf(file_path)
         return [
             TextContent(type="text", text=f"PDF ({len(pdf_bytes):,} bytes)"),
             ImageContent(
@@ -670,7 +670,7 @@ def render(
         raise ValueError("dpi max is 300")
 
     result = []
-    for page_num, png_bytes in render_pages_to_images(file_path, pages, dpi):
+    for page_num, png_bytes in render_to_images(file_path, pages, dpi):
         result.append(TextContent(type="text", text=f"Page {page_num}:"))
         result.append(
             ImageContent(

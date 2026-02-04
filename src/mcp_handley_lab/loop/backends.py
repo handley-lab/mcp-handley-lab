@@ -1,7 +1,9 @@
-"""Loop backends - TmuxBackend for terminal-based REPLs."""
+"""Loop backends - TmuxBackend for terminal-based REPLs, ClaudeBackend for Claude Code."""
 
+import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -89,6 +91,8 @@ BACKENDS = {
 
 def get_backend(name: str) -> Any:
     """Get a backend instance by name."""
+    if name == "claude":
+        return ClaudeBackend()
     if name in BACKENDS:
         return TmuxBackend(BACKENDS[name])
     raise NotImplementedError(f"backend '{name}' not implemented")
@@ -354,3 +358,157 @@ class TmuxBackend:
         """Force-kill the pane."""
         _run(["send-keys", "-t", pane_id, "C-c"])
         _run(["kill-pane", "-t", pane_id])
+
+
+# Claude subprocess state - keyed by loop_id
+_claude_processes: dict[str, dict[str, Any]] = {}
+
+
+class ClaudeBackend:
+    """Backend for Claude Code in stream-json mode."""
+
+    def spawn(
+        self,
+        namespace: str,
+        name: str | None,
+        args: str | None,
+        child_allowed_tools: list[str],
+    ) -> tuple[str, str]:
+        """Spawn a new Claude session. Returns (loop_id, loop_id)."""
+        timestamp = datetime.now().strftime("%H%M%S")
+        loop_id = f"claude-{name or timestamp}"
+
+        cmd = [
+            "claude",
+            "-p",
+            "--input-format",
+            "stream-json",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+        ]
+
+        # Add allowed tools if specified
+        if child_allowed_tools:
+            cmd.extend(["--allowedTools", ",".join(child_allowed_tools)])
+
+        # Add any extra args
+        if args:
+            cmd.extend(args.split())
+
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,  # Line buffered
+        )
+
+        # Don't wait for init - Claude only sends it after first user message
+        _claude_processes[loop_id] = {
+            "proc": proc,
+            "cells": [],
+            "session_id": "",
+            "initialized": False,
+        }
+
+        return loop_id, loop_id  # loop_id serves as both identifiers
+
+    def eval(
+        self, pane_id: str, code: str, check_cancelled: Callable[[], bool]
+    ) -> dict[str, Any]:
+        """Send message to Claude and wait for response."""
+        state = _claude_processes.get(pane_id)
+        if not state:
+            raise RuntimeError(f"Claude session not found: {pane_id}")
+
+        proc = state["proc"]
+        if proc.poll() is not None:
+            raise RuntimeError(f"Claude process has exited (code {proc.returncode})")
+
+        # Send user message
+        msg = {"type": "user", "message": {"role": "user", "content": code}}
+        proc.stdin.write(json.dumps(msg) + "\n")
+        proc.stdin.flush()
+
+        # Collect response
+        output_parts: list[str] = []
+        result = None
+
+        while True:
+            if check_cancelled():
+                self.terminate(pane_id)
+                return {
+                    "output": "".join(output_parts) + "\n[cancelled]",
+                    "cell_index": len(state["cells"]),
+                }
+
+            line = proc.stdout.readline()
+            if not line:
+                break
+
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            msg_type = data.get("type")
+
+            if msg_type == "system":
+                # Init message - capture session_id and continue
+                if data.get("subtype") == "init":
+                    state["session_id"] = data.get("session_id", "")
+                    state["initialized"] = True
+                continue
+
+            if msg_type == "assistant":
+                # Extract text content
+                message = data.get("message", {})
+                for content in message.get("content", []):
+                    if content.get("type") == "text":
+                        output_parts.append(content.get("text", ""))
+
+            elif msg_type == "result":
+                result = data
+                break
+
+        output = (
+            result.get("result", "".join(output_parts))
+            if result
+            else "".join(output_parts)
+        )
+
+        # Store as cell
+        cell_index = len(state["cells"])
+        state["cells"].append({"index": cell_index, "input": code, "output": output})
+
+        return {"output": output, "cell_index": cell_index}
+
+    def read(self, pane_id: str) -> list[dict[str, Any]]:
+        """Read conversation cells."""
+        state = _claude_processes.get(pane_id)
+        return state["cells"] if state else []
+
+    def read_raw(self, pane_id: str) -> str:
+        """Read raw output (returns JSON of cells for Claude backend)."""
+        state = _claude_processes.get(pane_id)
+        return json.dumps(state["cells"], indent=2) if state else "[]"
+
+    def terminate(self, pane_id: str) -> None:
+        """Send SIGINT to interrupt running eval."""
+        state = _claude_processes.get(pane_id)
+        if state and state["proc"].poll() is None:
+            state["proc"].send_signal(signal.SIGINT)
+
+    def kill(self, pane_id: str) -> None:
+        """Force-kill the Claude process."""
+        state = _claude_processes.pop(pane_id, None)
+        if state:
+            proc = state["proc"]
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    proc.kill()

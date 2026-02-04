@@ -458,7 +458,7 @@ Subject: {test_subject}
     @pytest.mark.asyncio
     async def test_email_tool_functions_integration(self):
         """Test email tool functions that don't require credentials."""
-        from mcp_handley_lab.email.notmuch.tool import _list_accounts
+        from mcp_handley_lab.email.common import _list_accounts
         from mcp_handley_lab.email.tool import mcp
 
         # Test msmtp account parsing with real config file

@@ -627,12 +627,9 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
 
     elif operation == "delete_custom_property":
         prop_name = content_data
-        deleted = word_ops.delete_custom_property(pkg, prop_name)
+        word_ops.delete_custom_property(pkg, prop_name)
         element_id = ""
-        if deleted:
-            message = f"Deleted custom property '{prop_name}'"
-        else:
-            message = f"Custom property '{prop_name}' not found"
+        message = f"Deleted custom property '{prop_name}'"
 
     elif operation == "set_property":
         meta_data = (
@@ -1025,12 +1022,9 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
         message = f"Created style '{style_data['name']}'"
 
     elif operation == "delete_style":
-        deleted = word_ops.delete_style(pkg, target_id)
+        word_ops.delete_style(pkg, target_id)
         element_id = ""
-        if deleted:
-            message = f"Deleted style '{target_id}'"
-        else:
-            message = f"Style '{target_id}' not found or is builtin"
+        message = f"Deleted style '{target_id}'"
 
     elif operation == "insert_image":
         fmt = _parse_json_param(formatting, "formatting") or {}
@@ -1115,12 +1109,9 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
 
     elif operation == "delete_source":
         tag = content_data.strip()
-        if word_ops.delete_source(pkg, tag):
-            element_id = ""
-            message = f"Deleted bibliography source: {tag}"
-        else:
-            element_id = ""
-            message = f"Source not found: {tag}"
+        word_ops.delete_source(pkg, tag)
+        element_id = ""
+        message = f"Deleted bibliography source: {tag}"
 
     elif operation == "insert_citation":
         t = word_ops.resolve_target(pkg, target_id)
@@ -1459,82 +1450,33 @@ _PREV_REF_PATTERN = re.compile(r"^\$prev\[(\d+)\]$")
 def edit(
     file_path: str,
     ops: str,
-    mode: str = "atomic",
 ) -> EditResult:
     """Edit Word document with batch operations. Creates a new file if file_path doesn't exist.
+
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
 
     Args:
         file_path: Path to .docx file (created if it doesn't exist).
         ops: JSON array of operation objects. Each object must have an "op" field.
             Use $prev[N] in target_id to reference element_id from operation N (0-indexed).
-        mode: Batch mode: 'atomic' (all-or-nothing, file unchanged on any failure)
-            or 'partial' (save successful ops before failure).
-
-    Available operations:
-        - append_paragraph, append_heading, insert_paragraph, insert_heading
-        - append_table, insert_table_relative, populate_table
-        - set_text, set_style, edit_run_text, edit_run_formatting
-        - add_hyperlink, add_tab_stop, clear_tab_stops
-        - add_bookmark, insert_caption, insert_cross_reference
-        - add_footnote, delete_footnote, insert_citation, insert_bibliography
-        - add_section, set_page_margins, set_page_orientation, set_page_size
-        - set_line_numbering, set_page_borders, set_section_columns
-        - create_list, add_to_list, set_list_level, restart_numbering
-        - promote_list_item, demote_list_item, remove_list_formatting
-        - add_table_row, add_table_column, delete_table_row, delete_table_column
-        - set_table_cell, merge_table_cells, set_header_row
-        - set_cell_borders, set_cell_shading, set_cell_width, set_row_height
-        - insert_image, insert_floating_image, delete_image, edit_text_box
-        - add_source, delete_source, insert_toc
-        - accept_change, reject_change, accept_all_changes, reject_all_changes
-        - add_comment, reply_comment, resolve_comment, unresolve_comment
-        - create_content_control, set_content_control_value
-        - set_property, set_custom_property, delete_custom_property
-        - find_replace (text search/replace in document)
-        - mail_merge (replace {{placeholder}} patterns with values)
+            See tool.py for the complete list of supported operations.
 
     Returns:
-        EditResult with batch fields (total, succeeded, failed, results, saved).
+        EditResult with batch fields (total, succeeded, results, saved).
+
+    Raises:
+        ValueError: Invalid JSON, invalid operation, missing required params.
+        KeyError: Target element not found.
     """
-    # Parse ops JSON
-    try:
-        operations = json.loads(ops)
-    except json.JSONDecodeError as e:
-        return EditResult(
-            success=False,
-            message="Invalid JSON in ops parameter",
-            error=f"JSON parse error: {e}",
-            total=0,
-            succeeded=0,
-            failed=0,
-            results=[],
-            saved=False,
-        )
+    # Parse ops JSON - raises on invalid JSON
+    operations = json.loads(ops)
 
     if not isinstance(operations, list):
-        return EditResult(
-            success=False,
-            message="ops must be a JSON array",
-            error="Expected array, got " + type(operations).__name__,
-            total=0,
-            succeeded=0,
-            failed=0,
-            results=[],
-            saved=False,
-        )
+        raise ValueError(f"ops must be a JSON array, got {type(operations).__name__}")
 
     for i, op_obj in enumerate(operations):
         if not isinstance(op_obj, dict):
-            return EditResult(
-                success=False,
-                message=f"ops[{i}] is not an object",
-                error=f"Expected object at index {i}, got {type(op_obj).__name__}",
-                total=0,
-                succeeded=0,
-                failed=0,
-                results=[],
-                saved=False,
-            )
+            raise ValueError(f"ops[{i}] must be an object, got {type(op_obj).__name__}")
 
     if len(operations) == 0:
         return EditResult(
@@ -1548,55 +1490,26 @@ def edit(
         )
 
     if len(operations) > 500:
-        return EditResult(
-            success=False,
-            message=f"Too many operations: {len(operations)} (max 500)",
-            error="Operation count exceeds limit of 500",
-            total=len(operations),
-            succeeded=0,
-            failed=0,
-            results=[],
-            saved=False,
-        )
+        raise ValueError(f"Too many operations: {len(operations)} (max 500)")
 
     for i, op_obj in enumerate(operations):
         if "op" not in op_obj:
-            return EditResult(
-                success=False,
-                message=f"ops[{i}] missing 'op' field",
-                error=f"Operation at index {i} has no 'op' field",
-                total=len(operations),
-                succeeded=0,
-                failed=0,
-                results=[],
-                saved=False,
-            )
-    try:
-        if os.path.exists(file_path):
-            pkg = WordPackage.open(file_path)
-        else:
-            from mcp_handley_lab.microsoft.word.constants import qn
+            raise ValueError(f"ops[{i}] missing 'op' field")
 
-            pkg = WordPackage.new()
-            # Strip default empty paragraphs so ops start with a clean body
-            for p in list(pkg.body.findall(qn("w:p"))):
-                pkg.body.remove(p)
-    except Exception as e:
-        return EditResult(
-            success=False,
-            message="Failed to open document",
-            error=str(e),
-            total=len(operations),
-            succeeded=0,
-            failed=0,
-            results=[],
-            saved=False,
-        )
+    # Open document - raises on failure
+    if os.path.exists(file_path):
+        pkg = WordPackage.open(file_path)
+    else:
+        from mcp_handley_lab.microsoft.word.constants import qn
+
+        pkg = WordPackage.new()
+        # Strip default empty paragraphs so ops start with a clean body
+        for p in list(pkg.body.findall(qn("w:p"))):
+            pkg.body.remove(p)
 
     results: list[OpResult] = []
     element_ids: list[str] = []
     succeeded = 0
-    failed = 0
     last_element_id = ""
     last_comment_id = None
 
@@ -1609,118 +1522,42 @@ def edit(
             if match:
                 ref_idx = int(match.group(1))
                 if ref_idx >= i:
-                    result = OpResult(
-                        index=i,
-                        op=op_name,
-                        success=False,
-                        element_id="",
-                        error=f"Invalid $prev reference: $prev[{ref_idx}] references index >= current ({i})",
+                    raise ValueError(
+                        f"ops[{i}] ({op_name}): Invalid $prev reference - "
+                        f"$prev[{ref_idx}] references index >= current ({i})"
                     )
-                    results.append(result)
-                    element_ids.append("")
-                    failed += 1
-                    break
                 resolved_id = element_ids[ref_idx]
                 if not resolved_id:
-                    result = OpResult(
-                        index=i,
-                        op=op_name,
-                        success=False,
-                        element_id="",
-                        error=f"Invalid $prev reference: $prev[{ref_idx}] has empty element_id",
+                    raise ValueError(
+                        f"ops[{i}] ({op_name}): Invalid $prev reference - "
+                        f"$prev[{ref_idx}] has empty element_id"
                     )
-                    results.append(result)
-                    element_ids.append("")
-                    failed += 1
-                    break
                 op_obj = dict(op_obj)
                 op_obj["target_id"] = resolved_id
 
-        try:
-            op_result = _apply_operation(pkg, file_path, op_obj)
-            op_result.index = i
-            op_result.op = op_name
-            results.append(op_result)
-            element_ids.append(op_result.element_id)
+        op_result = _apply_operation(pkg, file_path, op_obj)
+        op_result.index = i
+        op_result.op = op_name
+        results.append(op_result)
+        element_ids.append(op_result.element_id)
 
-            if op_result.success:
-                succeeded += 1
-                last_element_id = op_result.element_id
-                if op_result.comment_id is not None:
-                    last_comment_id = op_result.comment_id
-            else:
-                failed += 1
-                break
+        succeeded += 1
+        last_element_id = op_result.element_id
+        if op_result.comment_id is not None:
+            last_comment_id = op_result.comment_id
 
-        except Exception as e:
-            result = OpResult(
-                index=i,
-                op=op_name,
-                success=False,
-                element_id="",
-                error=str(e),
-            )
-            results.append(result)
-            element_ids.append("")
-            failed += 1
-            break
-
-    saved = False
-    if mode == "atomic":
-        if failed == 0 and succeeded > 0:
-            try:
-                pkg.save(file_path)
-                saved = True
-            except Exception as e:
-                return EditResult(
-                    success=False,
-                    element_id=last_element_id,
-                    comment_id=last_comment_id,
-                    message="All operations succeeded but save failed",
-                    error=f"Save failed: {e}",
-                    total=len(operations),
-                    succeeded=succeeded,
-                    failed=1,
-                    results=results,
-                    saved=False,
-                )
-    else:
-        if succeeded > 0:
-            try:
-                pkg.save(file_path)
-                saved = True
-            except Exception as e:
-                return EditResult(
-                    success=False,
-                    element_id=last_element_id,
-                    comment_id=last_comment_id,
-                    message=f"{succeeded} ops succeeded but save failed",
-                    error=f"Save failed: {e}",
-                    total=len(operations),
-                    succeeded=succeeded,
-                    failed=failed,
-                    results=results,
-                    saved=False,
-                )
-
-    all_success = failed == 0 and succeeded == len(operations)
-    if all_success:
-        message = f"Completed {succeeded} operation(s)"
-    elif succeeded > 0 and failed > 0:
-        message = f"{succeeded} succeeded, {failed} failed"
-    elif failed > 0:
-        message = f"Failed at operation {len(results) - 1}"
-    else:
-        message = "No operations executed"
+    # Save document - raises on failure
+    if succeeded > 0:
+        pkg.save(file_path)
 
     return EditResult(
-        success=all_success,
+        success=True,
         element_id=last_element_id,
         comment_id=last_comment_id,
-        message=message,
+        message=f"Completed {succeeded} operation(s)",
         total=len(operations),
         succeeded=succeeded,
-        failed=failed,
+        failed=0,
         results=results,
-        saved=saved,
+        saved=succeeded > 0,
     )

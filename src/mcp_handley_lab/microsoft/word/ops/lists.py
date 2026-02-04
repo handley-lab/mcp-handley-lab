@@ -229,32 +229,42 @@ def set_list_level(pkg, p_el: etree._Element, level: int) -> None:
 
 
 def promote_list_item(pkg, p_el: etree._Element) -> int:
-    """Decrease level (move left). Min level is 0. Returns new level.
+    """Decrease level (move left). Returns new level.
 
     Args:
         pkg: WordPackage
         p_el: w:p element
+
+    Raises:
+        ValueError: If already at minimum level (0).
     """
     numPr = _require_numPr(p_el)
     ilvl_el = numPr.find(qn("w:ilvl"))
     current = int(ilvl_el.get(qn("w:val"))) if ilvl_el is not None else 0
-    new_level = max(0, current - 1)
+    if current == 0:
+        raise ValueError("Cannot promote: already at minimum level (0)")
+    new_level = current - 1
     _ensure_ilvl(numPr).set(qn("w:val"), str(new_level))
     mark_dirty(pkg)
     return new_level
 
 
 def demote_list_item(pkg, p_el: etree._Element) -> int:
-    """Increase level (move right). Max level is 8. Returns new level.
+    """Increase level (move right). Returns new level.
 
     Args:
         pkg: WordPackage
         p_el: w:p element
+
+    Raises:
+        ValueError: If already at maximum level (8).
     """
     numPr = _require_numPr(p_el)
     ilvl_el = numPr.find(qn("w:ilvl"))
     current = int(ilvl_el.get(qn("w:val"))) if ilvl_el is not None else 0
-    new_level = min(8, current + 1)
+    if current == 8:
+        raise ValueError("Cannot demote: already at maximum level (8)")
+    new_level = current + 1
     _ensure_ilvl(numPr).set(qn("w:val"), str(new_level))
     mark_dirty(pkg)
     return new_level

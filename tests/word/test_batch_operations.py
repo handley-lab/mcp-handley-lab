@@ -1,7 +1,7 @@
 """Tests for Word document batch operations (Issue #127).
 
-Tests the ops array interface, $prev[N] chaining, atomic/partial modes,
-and batch-specific error handling.
+Tests the ops array interface, $prev[N] chaining, fail-fast error handling,
+and validation.
 """
 
 import json
@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 
 from mcp_handley_lab.microsoft.word.package import WordPackage
 from mcp_handley_lab.microsoft.word.tool import mcp
@@ -229,53 +230,54 @@ async def test_prev_chaining_append_then_style(empty_docx):
 
 @pytest.mark.asyncio
 async def test_prev_reference_invalid_future_index(empty_docx):
-    """$prev[N] where N >= current index fails."""
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(empty_docx),
-            "ops": json.dumps(
-                [
-                    {"op": "style", "target_id": "$prev[0]", "style_name": "Heading 1"},
-                ]
-            ),
-        },
-    )
+    """$prev[N] where N >= current index raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(empty_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "style",
+                            "target_id": "$prev[0]",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
 
-    assert result["success"] is False
-    assert result["failed"] == 1
-    assert "Invalid $prev reference" in result["results"][0]["error"]
-    assert "index >= current" in result["results"][0]["error"]
-    assert result["saved"] is False
+    assert "Invalid $prev reference" in str(exc_info.value)
+    assert "index >= current" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_prev_reference_empty_element_id(sample_docx):
-    """$prev[N] referencing an op with empty element_id fails."""
+    """$prev[N] referencing an op with empty element_id raises ValueError."""
     # set_property returns empty element_id, then try to reference it
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": json.dumps(
-                [
-                    {
-                        "op": "set_property",
-                        "content_data": json.dumps({"title": "New Title"}),
-                    },
-                    {"op": "style", "target_id": "$prev[0]", "style_name": "Heading 1"},
-                ]
-            ),
-        },
-    )
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "set_property",
+                            "content_data": json.dumps({"title": "New Title"}),
+                        },
+                        {
+                            "op": "style",
+                            "target_id": "$prev[0]",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
 
-    assert result["success"] is False
-    # First op succeeds
-    assert result["results"][0]["success"] is True
-    assert result["results"][0]["element_id"] == ""
-    # Second op fails due to empty element_id
-    assert result["results"][1]["success"] is False
-    assert "empty element_id" in result["results"][1]["error"]
+    assert "empty element_id" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -313,50 +315,49 @@ async def test_prev_literal_in_content_data_not_substituted(empty_docx):
 
 
 @pytest.mark.asyncio
-async def test_atomic_mode_failure_leaves_file_unchanged(sample_docx):
-    """Atomic mode: failure means file is not modified at all."""
+async def test_failure_leaves_file_unchanged(sample_docx):
+    """Failure raises exception and file is not modified."""
     original_bytes = sample_docx.read_bytes()
 
-    # First op succeeds, second fails
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "mode": "atomic",
-            "ops": json.dumps(
-                [
-                    {
-                        "op": "append",
-                        "content_type": "paragraph",
-                        "content_data": "This should not be saved",
-                    },
-                    {
-                        "op": "style",
-                        "target_id": "nonexistent_id_12345",
-                        "style_name": "Heading 1",
-                    },
-                ]
-            ),
-        },
-    )
+    # First op succeeds, second fails - raises immediately
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "append",
+                            "content_type": "paragraph",
+                            "content_data": "This should not be saved",
+                        },
+                        {
+                            "op": "style",
+                            "target_id": "nonexistent_id_12345",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
 
-    assert result["success"] is False
-    assert result["succeeded"] == 1
-    assert result["failed"] == 1
-    assert result["saved"] is False
+    assert (
+        "nonexistent_id_12345" in str(exc_info.value)
+        or "not found" in str(exc_info.value).lower()
+    )
 
     # File must be unchanged
     assert sample_docx.read_bytes() == original_bytes
 
 
 @pytest.mark.asyncio
-async def test_atomic_mode_success_saves_all(empty_docx):
-    """Atomic mode: all operations succeed, file is saved."""
+async def test_success_saves_all(empty_docx):
+    """All operations succeed, file is saved."""
     _, result = await mcp.call_tool(
         "edit",
         {
             "file_path": str(empty_docx),
-            "mode": "atomic",
             "ops": json.dumps(
                 [
                     {
@@ -395,80 +396,68 @@ async def test_atomic_mode_success_saves_all(empty_docx):
 
 
 # =============================================================================
-# Partial Mode (save successful ops before failure)
+# Fail-Fast Error Handling
 # =============================================================================
 
 
 @pytest.mark.asyncio
-async def test_partial_mode_saves_successful_ops(sample_docx):
-    """Partial mode: successful ops are saved before failure."""
+async def test_midway_failure_raises(sample_docx):
+    """Failure raises exception immediately (fail-fast)."""
     original_bytes = sample_docx.read_bytes()
 
-    # First op succeeds, second fails
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "mode": "partial",
-            "ops": json.dumps(
-                [
-                    {
-                        "op": "append",
-                        "content_type": "paragraph",
-                        "content_data": "This should be saved",
-                    },
-                    {
-                        "op": "style",
-                        "target_id": "nonexistent_id_12345",
-                        "style_name": "Heading 1",
-                    },
-                ]
-            ),
-        },
+    # First op succeeds, second fails - raises immediately, no save
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "append",
+                            "content_type": "paragraph",
+                            "content_data": "This should not be saved",
+                        },
+                        {
+                            "op": "style",
+                            "target_id": "nonexistent_id_12345",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
+
+    assert (
+        "nonexistent_id_12345" in str(exc_info.value)
+        or "not found" in str(exc_info.value).lower()
     )
 
-    assert result["success"] is False
-    assert result["succeeded"] == 1
-    assert result["failed"] == 1
-    assert result["saved"] is True  # Prior success was saved
-
-    # File should be modified (unlike atomic)
-    assert sample_docx.read_bytes() != original_bytes
-
-    # Verify first operation was saved
-    _, read_result = await mcp.call_tool(
-        "read", {"file_path": str(sample_docx), "scope": "blocks"}
-    )
-    texts = [b.get("text", "") for b in read_result["blocks"]]
-    assert "This should be saved" in texts
+    # File should be unchanged (fail-fast means no partial save)
+    assert sample_docx.read_bytes() == original_bytes
 
 
 @pytest.mark.asyncio
-async def test_partial_mode_all_fail_no_save(sample_docx):
-    """Partial mode: if first op fails, nothing is saved."""
+async def test_first_op_failure_no_save(sample_docx):
+    """First op failure raises exception, nothing is saved."""
     original_bytes = sample_docx.read_bytes()
 
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "mode": "partial",
-            "ops": json.dumps(
-                [
-                    {
-                        "op": "style",
-                        "target_id": "nonexistent_id_12345",
-                        "style_name": "Heading 1",
-                    },
-                ]
-            ),
-        },
-    )
-
-    assert result["success"] is False
-    assert result["succeeded"] == 0
-    assert result["failed"] == 1
-    assert result["saved"] is False
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "style",
+                            "target_id": "nonexistent_id_12345",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
 
     # File unchanged when nothing succeeded
     assert sample_docx.read_bytes() == original_bytes
@@ -481,75 +470,69 @@ async def test_partial_mode_all_fail_no_save(sample_docx):
 
 @pytest.mark.asyncio
 async def test_invalid_json_ops(sample_docx):
-    """Invalid JSON in ops returns error without opening document."""
+    """Invalid JSON in ops raises JSONDecodeError."""
     original_bytes = sample_docx.read_bytes()
 
-    _, result = await mcp.call_tool(
-        "edit",
-        {"file_path": str(sample_docx), "ops": "not valid json {"},
-    )
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {"file_path": str(sample_docx), "ops": "not valid json {"},
+        )
 
-    assert result["success"] is False
-    assert "JSON parse error" in result["error"]
-    assert result["total"] == 0
-    assert result["results"] == []
-    assert result["saved"] is False
+    assert "JSON" in str(exc_info.value) or "Expecting" in str(exc_info.value)
     assert sample_docx.read_bytes() == original_bytes
 
 
 @pytest.mark.asyncio
 async def test_ops_not_array(sample_docx):
-    """ops must be a JSON array."""
-    _, result = await mcp.call_tool(
-        "edit",
-        {"file_path": str(sample_docx), "ops": json.dumps({"op": "append"})},
-    )
+    """ops must be a JSON array - raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {"file_path": str(sample_docx), "ops": json.dumps({"op": "append"})},
+        )
 
-    assert result["success"] is False
-    assert "must be a JSON array" in result["message"]
-    assert result["results"] == []
-    assert result["saved"] is False
+    assert "must be a JSON array" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_ops_item_not_dict(sample_docx):
-    """Each item in ops must be an object."""
-    _, result = await mcp.call_tool(
-        "edit",
-        {"file_path": str(sample_docx), "ops": json.dumps(["not a dict"])},
-    )
+    """Each item in ops must be an object - raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {"file_path": str(sample_docx), "ops": json.dumps(["not a dict"])},
+        )
 
-    assert result["success"] is False
-    assert "is not an object" in result["message"]
-    assert result["results"] == []
-    assert result["saved"] is False
+    assert "must be an object" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_ops_missing_op_field(sample_docx):
-    """Each operation must have an 'op' field."""
-    _, result = await mcp.call_tool(
-        "edit",
-        {"file_path": str(sample_docx), "ops": json.dumps([{"content_data": "test"}])},
-    )
+    """Each operation must have an 'op' field - raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": json.dumps([{"content_data": "test"}]),
+            },
+        )
 
-    assert result["success"] is False
-    assert "missing 'op'" in result["message"]
-    assert result["saved"] is False
+    assert "missing 'op'" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_ops_limit_500(sample_docx):
-    """Maximum 500 operations per batch."""
+    """Maximum 500 operations per batch - raises ValueError."""
     ops = [{"op": "append", "content_data": f"para {i}"} for i in range(501)]
-    _, result = await mcp.call_tool(
-        "edit",
-        {"file_path": str(sample_docx), "ops": json.dumps(ops)},
-    )
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {"file_path": str(sample_docx), "ops": json.dumps(ops)},
+        )
 
-    assert result["success"] is False
-    assert "500" in result["message"]
-    assert result["saved"] is False
+    assert "500" in str(exc_info.value)
 
 
 # =============================================================================
@@ -559,13 +542,12 @@ async def test_ops_limit_500(sample_docx):
 
 @pytest.mark.asyncio
 async def test_batch_footnote_atomic(empty_docx):
-    """Footnotes work in batch mode without breaking atomicity."""
+    """Footnotes work in batch mode."""
     # Add a paragraph then add footnote to it in one batch
     _, result = await mcp.call_tool(
         "edit",
         {
             "file_path": str(empty_docx),
-            "mode": "atomic",
             "ops": json.dumps(
                 [
                     {
@@ -599,42 +581,37 @@ async def test_batch_footnote_atomic(empty_docx):
 
 @pytest.mark.asyncio
 async def test_batch_footnote_atomic_failure_no_save(empty_docx):
-    """Footnote op followed by failure leaves file unchanged in atomic mode."""
+    """Failure raises exception and file is unchanged (fail-fast)."""
     original_bytes = empty_docx.read_bytes()
 
-    _, result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(empty_docx),
-            "mode": "atomic",
-            "ops": json.dumps(
-                [
-                    {
-                        "op": "append",
-                        "content_type": "paragraph",
-                        "content_data": "Main text",
-                    },
-                    {
-                        "op": "add_footnote",
-                        "target_id": "$prev[0]",
-                        "content_data": json.dumps({"text": "Footnote text"}),
-                    },
-                    {
-                        "op": "style",
-                        "target_id": "nonexistent",
-                        "style_name": "Heading 1",
-                    },
-                ]
-            ),
-        },
-    )
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(empty_docx),
+                "ops": json.dumps(
+                    [
+                        {
+                            "op": "append",
+                            "content_type": "paragraph",
+                            "content_data": "Main text",
+                        },
+                        {
+                            "op": "add_footnote",
+                            "target_id": "$prev[0]",
+                            "content_data": json.dumps({"text": "Footnote text"}),
+                        },
+                        {
+                            "op": "style",
+                            "target_id": "nonexistent",
+                            "style_name": "Heading 1",
+                        },
+                    ]
+                ),
+            },
+        )
 
-    assert result["success"] is False
-    assert result["succeeded"] == 2  # append and add_footnote succeeded
-    assert result["failed"] == 1
-    assert result["saved"] is False  # atomic mode: nothing saved
-
-    # File must be unchanged
+    # File must be unchanged (fail-fast raises before save)
     assert empty_docx.read_bytes() == original_bytes
 
 

@@ -828,20 +828,29 @@ def _create_style_ooxml(
     return style_id
 
 
-def delete_style(pkg, style_name: str) -> bool:
-    """Delete a custom style. Returns True if deleted, False if builtin or not found.
+def delete_style(pkg, style_name: str) -> None:
+    """Delete a custom style.
 
     Args:
         pkg: WordPackage
         style_name: Name or ID of the style to delete
+
+    Raises:
+        KeyError: If style not found.
+        ValueError: If style is a builtin style (cannot be deleted).
     """
-    return _delete_style_ooxml(pkg, style_name)
+    _delete_style_ooxml(pkg, style_name)
 
 
-def _delete_style_ooxml(pkg, style_name: str) -> bool:
-    """Delete a custom style via pure OOXML."""
+def _delete_style_ooxml(pkg, style_name: str) -> None:
+    """Delete a custom style via pure OOXML.
+
+    Raises:
+        KeyError: If style not found or no styles.xml part exists.
+        ValueError: If style is builtin (cannot be deleted).
+    """
     if not pkg.has_part("/word/styles.xml"):
-        return False
+        raise KeyError(f"Style not found: {style_name}")
 
     styles_xml = pkg.styles_xml
 
@@ -857,18 +866,17 @@ def _delete_style_ooxml(pkg, style_name: str) -> bool:
             break
 
     if style_el is None:
-        return False
+        raise KeyError(f"Style not found: {style_name}")
 
     # Check if it's a custom style (w:customStyle="1" means custom)
     # Absence of customStyle or customStyle="0" means builtin
     custom_attr = style_el.get(qn("w:customStyle"))
     if custom_attr != "1":
-        return False
+        raise ValueError(f"Cannot delete builtin style: {style_name}")
 
     # Remove the style
     styles_xml.remove(style_el)
     pkg.mark_xml_dirty("/word/styles.xml")
-    return True
 
 
 # =============================================================================

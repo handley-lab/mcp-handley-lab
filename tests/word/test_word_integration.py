@@ -429,63 +429,63 @@ async def test_edit_cell(sample_docx):
 
 @pytest.mark.asyncio
 async def test_edit_cell_out_of_range(sample_docx):
-    """Test that editing out-of-range cell fails."""
+    """Test that editing out-of-range cell raises ValueError."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(sample_docx), "scope": "blocks"}
     )
     table_block = next(b for b in blocks_result["blocks"] if b["type"] == "table")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "edit_cell",
-                            "target_id": table_block["id"],
-                            "row": 99,
-                            "col": 1,
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "out of range" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "edit_cell",
+                                "target_id": table_block["id"],
+                                "row": 99,
+                                "col": 1,
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "out of range" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_edit_cell_on_non_table(sample_docx):
-    """Test that editing cell on non-table block fails (underlying library error)."""
+    """Test that editing cell on non-table block raises error."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(sample_docx), "scope": "blocks"}
     )
     para_block = next(b for b in blocks_result["blocks"] if b["type"] == "paragraph")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "edit_cell",
-                            "target_id": para_block["id"],
-                            "row": 1,
-                            "col": 1,
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "edit_cell",
+                                "target_id": para_block["id"],
+                                "row": 1,
+                                "col": 1,
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 @pytest.fixture
@@ -652,32 +652,32 @@ async def test_edit_run_formatting(formatted_docx):
 
 @pytest.mark.asyncio
 async def test_edit_run_out_of_range(formatted_docx):
-    """Test that editing out-of-range run fails."""
+    """Test that editing out-of-range run raises ValueError."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(formatted_docx), "scope": "blocks"}
     )
     para_block = next(b for b in blocks_result["blocks"] if b["type"] == "paragraph")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(formatted_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "edit_run",
-                            "target_id": para_block["id"],
-                            "run_index": 99,
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "out of range" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(formatted_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "edit_run",
+                                "target_id": para_block["id"],
+                                "run_index": 99,
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "out of range" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -701,31 +701,31 @@ async def test_read_runs_on_table_fails(sample_docx):
 
 @pytest.mark.asyncio
 async def test_edit_run_on_table_fails(sample_docx):
-    """Test that editing run on a table fails (underlying library error)."""
+    """Test that editing run on a table raises error."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(sample_docx), "scope": "blocks"}
     )
     table_block = next(b for b in blocks_result["blocks"] if b["type"] == "table")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "edit_run",
-                            "target_id": table_block["id"],
-                            "run_index": 0,
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "edit_run",
+                                "target_id": table_block["id"],
+                                "run_index": 0,
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 @pytest.mark.asyncio
@@ -884,24 +884,24 @@ async def test_add_comment_to_table_fails(sample_docx):
     )
     table_block = next(b for b in blocks_result["blocks"] if b["type"] == "table")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "add_comment",
-                            "target_id": table_block["id"],
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "add_comment",
+                                "target_id": table_block["id"],
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 # --- Headers/Footers tests ---
@@ -982,26 +982,26 @@ async def test_set_footer(sample_docx):
 
 @pytest.mark.asyncio
 async def test_set_header_invalid_section(sample_docx):
-    """Test that setting header on invalid section fails."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "set_header",
-                            "section_index": 99,
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "out of range" in edit_result["results"][0]["error"]
+    """Test that setting header on invalid section raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "set_header",
+                                "section_index": 99,
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "out of range" in str(exc_info.value)
 
 
 # --- Page Setup tests ---
@@ -1210,24 +1210,24 @@ async def test_set_orientation_landscape(sample_docx):
 
 @pytest.mark.asyncio
 async def test_set_margins_missing_formatting(sample_docx):
-    """Test that set_margins without formatting fails."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "set_margins",
-                            "section_index": 0,
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    """Test that set_margins without formatting raises ValueError."""
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "set_margins",
+                                "section_index": 0,
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 # --- File error handling tests ---
@@ -1248,24 +1248,24 @@ async def test_read_missing_file():
 
 @pytest.mark.asyncio
 async def test_edit_missing_file():
-    """Test that editing a missing file raises error."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": "/nonexistent/path/to/file.docx",
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "append",
-                            "content_data": "Should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    """Test that editing in nonexistent directory raises error."""
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": "/nonexistent/path/to/file.docx",
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "append",
+                                "content_data": "Should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 @pytest.mark.asyncio
@@ -1613,24 +1613,24 @@ async def test_multiple_same_images(sample_image):
 
 @pytest.mark.asyncio
 async def test_delete_image_invalid_id(sample_docx):
-    """Test that deleting with invalid image ID fails."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "delete_image",
-                            "target_id": "image_nonexist_0",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    """Test that deleting with invalid image ID raises error."""
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "delete_image",
+                                "target_id": "image_nonexist_0",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 @pytest.mark.asyncio
@@ -3322,62 +3322,62 @@ async def test_add_hyperlink_mailto(sample_docx):
 
 @pytest.mark.asyncio
 async def test_add_hyperlink_empty_text_error(sample_docx):
-    """Test that empty text raises error."""
+    """Test that empty text raises ValueError."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(sample_docx), "scope": "blocks"}
     )
     para = blocks_result["blocks"][0]
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "add_hyperlink",
-                            "target_id": para["id"],
-                            "content_data": json.dumps(
-                                {"text": "", "address": "https://example.com"}
-                            ),
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "empty" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "add_hyperlink",
+                                "target_id": para["id"],
+                                "content_data": json.dumps(
+                                    {"text": "", "address": "https://example.com"}
+                                ),
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "empty" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
 async def test_add_hyperlink_no_address_or_fragment_error(sample_docx):
-    """Test that missing both address and fragment raises error."""
+    """Test that missing both address and fragment raises ValueError."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(sample_docx), "scope": "blocks"}
     )
     para = blocks_result["blocks"][0]
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "add_hyperlink",
-                            "target_id": para["id"],
-                            "content_data": json.dumps({"text": "Orphan link"}),
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "address or fragment" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "add_hyperlink",
+                                "target_id": para["id"],
+                                "content_data": json.dumps({"text": "Orphan link"}),
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "address or fragment" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -5804,27 +5804,26 @@ async def test_delete_style(sample_docx):
 
 @pytest.mark.asyncio
 async def test_cannot_delete_builtin_style(sample_docx):
-    """Test that builtin styles cannot be deleted."""
-    _, edit_result = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "delete_style",
-                            "target_id": "Normal",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert edit_result["success"]  # Operation succeeds but reports not found/builtin
+    """Test that builtin styles cannot be deleted - raises error."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "delete_style",
+                                "target_id": "Normal",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
     assert (
-        "builtin" in edit_result["results"][0]["message"]
-        or "not found" in edit_result["results"][0]["message"]
+        "builtin" in str(exc_info.value) or "not found" in str(exc_info.value).lower()
     )
 
 
@@ -6973,25 +6972,25 @@ async def test_accept_all_round_trip(tracked_changes_copy):
 
 @pytest.mark.asyncio
 async def test_invalid_change_id_raises_error(tracked_changes_copy):
-    """Test that accepting/rejecting invalid change ID raises error."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(tracked_changes_copy),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "accept_change",
-                            "target_id": "nonexistent_id_99999",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "not found" in edit_result["results"][0]["error"].lower()
+    """Test that accepting/rejecting invalid change ID raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(tracked_changes_copy),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "accept_change",
+                                "target_id": "nonexistent_id_99999",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "not found" in str(exc_info.value).lower()
 
 
 # --- Additional tests per review ---
@@ -7965,7 +7964,7 @@ async def test_remove_list_formatting(list_fixture_copy):
 
 @pytest.mark.asyncio
 async def test_set_list_level_fails_on_non_list(list_fixture_copy):
-    """Test that set_list_level fails on non-list paragraph."""
+    """Test that set_list_level fails on non-list paragraph - raises error."""
     _, blocks_result = await mcp.call_tool(
         "read", {"file_path": str(list_fixture_copy), "scope": "blocks"}
     )
@@ -7981,24 +7980,24 @@ async def test_set_list_level_fails_on_non_list(list_fixture_copy):
         pytest.skip("Regular paragraph not found")
 
     # Should fail because it's not a list
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(list_fixture_copy),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "set_list_level",
-                            "target_id": regular_para["id"],
-                            "content_data": "1",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
+    with pytest.raises(ToolError):
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(list_fixture_copy),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "set_list_level",
+                                "target_id": regular_para["id"],
+                                "content_data": "1",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
 
 
 @pytest.mark.asyncio
@@ -8069,46 +8068,46 @@ async def test_list_level_bounds(list_fixture_copy):
         pytest.skip("List paragraph not found")
 
     # Level -1 should fail
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(list_fixture_copy),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "set_list_level",
-                            "target_id": list_para["id"],
-                            "content_data": "-1",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "0-8" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(list_fixture_copy),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "set_list_level",
+                                "target_id": list_para["id"],
+                                "content_data": "-1",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "0-8" in str(exc_info.value)
 
     # Level 9 should fail
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(list_fixture_copy),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "set_list_level",
-                            "target_id": list_para["id"],
-                            "content_data": "9",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "0-8" in edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(list_fixture_copy),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "set_list_level",
+                                "target_id": list_para["id"],
+                                "content_data": "9",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "0-8" in str(exc_info.value)
 
     # Level 0 should succeed
     _, result = await mcp.call_tool(
@@ -9021,26 +9020,26 @@ async def test_reply_to_comment_creates_reply(sample_docx):
 
 @pytest.mark.asyncio
 async def test_reply_to_nonexistent_comment_raises_error(sample_docx):
-    """Test that replying to non-existent comment raises error."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "reply_comment",
-                            "target_id": "9999",  # Non-existent comment ID
-                            "content_data": "This should fail",
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    assert "not found" in edit_result["results"][0]["error"].lower()
+    """Test that replying to non-existent comment raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "reply_comment",
+                                "target_id": "9999",  # Non-existent comment ID
+                                "content_data": "This should fail",
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    assert "not found" in str(exc_info.value).lower()
 
 
 @pytest.mark.asyncio
@@ -9102,25 +9101,25 @@ async def test_resolve_comment_validates_comment_exists(sample_docx):
 
 @pytest.mark.asyncio
 async def test_resolve_nonexistent_comment_raises_error(sample_docx):
-    """Test that resolving non-existent comment raises error."""
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(sample_docx),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "resolve_comment",
-                            "target_id": "9999",
-                        }
-                    ]
-                )
-            ),  # Non-existent comment ID
-        },
-    )
-    assert not edit_result["success"]
-    assert "not found" in edit_result["results"][0]["error"].lower()
+    """Test that resolving non-existent comment raises ValueError."""
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(sample_docx),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "resolve_comment",
+                                "target_id": "9999",
+                            }
+                        ]
+                    )
+                ),  # Non-existent comment ID
+            },
+        )
+    assert "not found" in str(exc_info.value).lower()
 
 
 @pytest.mark.asyncio
@@ -10222,24 +10221,24 @@ async def test_set_content_control_invalid_id():
     )
 
     try:
-        (_, edit_result) = await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(file_path),
-                "ops": (
-                    _ops(
-                        [
-                            {
-                                "op": "set_content_control",
-                                "target_id": "999999",
-                                "content_data": "Some value",
-                            }
-                        ]
-                    )
-                ),
-            },
-        )
-        assert not edit_result["success"]
+        with pytest.raises(ToolError):
+            await mcp.call_tool(
+                "edit",
+                {
+                    "file_path": str(file_path),
+                    "ops": (
+                        _ops(
+                            [
+                                {
+                                    "op": "set_content_control",
+                                    "target_id": "999999",
+                                    "content_data": "Some value",
+                                }
+                            ]
+                        )
+                    ),
+                },
+            )
     finally:
         file_path.unlink(missing_ok=True)
 
@@ -10271,24 +10270,24 @@ async def test_set_content_control_dropdown_invalid_value():
 
     try:
         # Try to set an invalid value not in options
-        (_, edit_result) = await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(file_path),
-                "ops": (
-                    _ops(
-                        [
-                            {
-                                "op": "set_content_control",
-                                "target_id": "888888",
-                                "content_data": "Invalid Option",
-                            }
-                        ]
-                    )
-                ),  # Not in ["Low", "Medium", "High"]
-            },
-        )
-        assert not edit_result["success"]
+        with pytest.raises(ToolError):
+            await mcp.call_tool(
+                "edit",
+                {
+                    "file_path": str(file_path),
+                    "ops": (
+                        _ops(
+                            [
+                                {
+                                    "op": "set_content_control",
+                                    "target_id": "888888",
+                                    "content_data": "Invalid Option",
+                                }
+                            ]
+                        )
+                    ),  # Not in ["Low", "Medium", "High"]
+                },
+            )
 
         # Verify original value is unchanged
         _, result = await mcp.call_tool(
@@ -11002,25 +11001,25 @@ async def test_add_to_list_fails_on_non_list(list_fixture_copy):
     if regular_para is None:
         pytest.skip("Regular paragraph not found")
 
-    (_, edit_result) = await mcp.call_tool(
-        "edit",
-        {
-            "file_path": str(list_fixture_copy),
-            "ops": (
-                _ops(
-                    [
-                        {
-                            "op": "add_to_list",
-                            "target_id": regular_para["id"],
-                            "content_data": json.dumps({"text": "Should fail"}),
-                        }
-                    ]
-                )
-            ),
-        },
-    )
-    assert not edit_result["success"]
-    error_msg = edit_result["results"][0]["error"]
+    with pytest.raises(ToolError) as exc_info:
+        await mcp.call_tool(
+            "edit",
+            {
+                "file_path": str(list_fixture_copy),
+                "ops": (
+                    _ops(
+                        [
+                            {
+                                "op": "add_to_list",
+                                "target_id": regular_para["id"],
+                                "content_data": json.dumps({"text": "Should fail"}),
+                            }
+                        ]
+                    )
+                ),
+            },
+        )
+    error_msg = str(exc_info.value)
     assert (
         "w:numPr" in error_msg
         or "not in a list" in error_msg

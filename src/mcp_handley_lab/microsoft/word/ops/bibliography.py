@@ -77,15 +77,12 @@ def _find_sources_part(pkg: WordPackage) -> tuple[str, etree._Element] | None:
             # Normalize path
             part_path = f"/{target}" if not target.startswith("/") else target
 
-            # Try to parse and check root element by namespace URI + localname
-            try:
-                if not pkg.has_part(part_path):
-                    continue
-                xml_el = pkg.get_xml(part_path)
-                if xml_el is not None and xml_el.tag == f"{{{NS_BIB}}}Sources":
-                    return part_path, xml_el
-            except (KeyError, etree.XMLSyntaxError):
+            # Check root element by namespace URI + localname
+            if not pkg.has_part(part_path):
                 continue
+            xml_el = pkg.get_xml(part_path)
+            if xml_el is not None and xml_el.tag == f"{{{NS_BIB}}}Sources":
+                return part_path, xml_el
 
     return None
 
@@ -243,19 +240,19 @@ def add_source(
     return tag
 
 
-def delete_source(pkg: WordPackage, tag: str) -> bool:
+def delete_source(pkg: WordPackage, tag: str) -> None:
     """Delete a bibliography source by tag.
 
     Args:
         pkg: WordPackage
         tag: Source tag to delete
 
-    Returns:
-        True if source was deleted, False if not found.
+    Raises:
+        KeyError: If no bibliography sources part exists or source not found.
     """
     result = _find_sources_part(pkg)
     if not result:
-        return False
+        raise KeyError("No bibliography sources part found in document")
 
     part_path, sources_el = result
 
@@ -264,9 +261,9 @@ def delete_source(pkg: WordPackage, tag: str) -> bool:
         if existing_tag == tag:
             sources_el.remove(source)
             pkg.mark_xml_dirty(part_path)
-            return True
+            return
 
-    return False
+    raise KeyError(f"Bibliography source not found: {tag}")
 
 
 def build_sources(pkg: WordPackage) -> list[dict]:

@@ -11,7 +11,12 @@ from mcp_handley_lab.microsoft.common.batch import (
     convert_custom_property_value,
     run_batch_edit,
 )
-from mcp_handley_lab.microsoft.common.properties import get_core_properties
+from mcp_handley_lab.microsoft.common.properties import (
+    delete_custom_property,
+    get_core_properties,
+    set_core_properties,
+    set_custom_property,
+)
 from mcp_handley_lab.microsoft.visio.models import (
     DocumentProperties,
     VisioEditResult,
@@ -34,11 +39,6 @@ from mcp_handley_lab.microsoft.visio.ops.masters import (
     list_masters,
 )
 from mcp_handley_lab.microsoft.visio.ops.pages import list_pages
-from mcp_handley_lab.microsoft.visio.ops.properties import (
-    delete_custom_property,
-    set_custom_property,
-    set_property,
-)
 from mcp_handley_lab.microsoft.visio.ops.shapes import (
     add_connector,
     add_shape_from_master,
@@ -461,7 +461,7 @@ def _op_set_property(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any
         raise ValueError("property_name required for set_property")
     if value is None:
         raise ValueError("property_value required for set_property")
-    set_property(pkg, name, str(value))
+    set_core_properties(pkg, **{name: str(value)})
     return {"message": f"Set core property '{name}'", "element_id": ""}
 
 
@@ -651,10 +651,13 @@ def render(
 
     from mcp.types import ImageContent, TextContent
 
-    from mcp_handley_lab.microsoft.visio.ops import render as _render_mod
+    from mcp_handley_lab.microsoft.common.render import (
+        convert_to_pdf,
+        render_pages_to_images,
+    )
 
     if output == "pdf":
-        pdf_bytes = _render_mod.render_to_pdf(file_path)
+        pdf_bytes = convert_to_pdf(file_path)
         return [
             TextContent(type="text", text=f"PDF ({len(pdf_bytes):,} bytes)"),
             ImageContent(
@@ -673,7 +676,7 @@ def render(
         raise ValueError("dpi max is 300")
 
     result = []
-    for page_num, png_bytes in _render_mod.render_to_images(file_path, pages, dpi):
+    for page_num, png_bytes in render_pages_to_images(file_path, pages, dpi):
         result.append(TextContent(type="text", text=f"Page {page_num}:"))
         result.append(
             ImageContent(

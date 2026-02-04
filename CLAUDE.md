@@ -153,11 +153,11 @@ git commit --no-verify -m "bypass hooks"
 
 **Prefer fewer tools with more operations over many specialized tools.**
 
-- **Tool count matters**: Each MCP tool consumes context and increases cognitive load for Claude Code. Aim for the minimum number of tools that cover the use cases.
 - **Operations over tools**: Prefer a single tool with an `operation` or `action` parameter over multiple tools (e.g., `memory(action="fork")` not `memory_fork()`, `memory_edit()`, `memory_list()`).
 - **Claude Code recognizes patterns**: Design tool signatures that Claude naturally understands - simple parameters, clear names, predictable behavior.
 - **Avoid tool sprawl**: Before adding a new tool, ask: can this be an operation on an existing tool? Can this be a parameter variation?
-- **Context is precious**: Every tool description injected into Claude's context reduces available space for actual work. Keep descriptions concise.
+- **Descriptions should be complete**: With deferred MCP tools, context consumption is less important. What matters is that when Claude selects a tool, the description provides enough context to use it correctly. List all operations, scopes, and parameters - don't be terse.
+- **Async tools don't parallelize**: MCP tools are async, so calling multiple tools "in parallel" provides no speedup. Call them sequentially for clarity.
 
 Example of what NOT to do:
 ```python

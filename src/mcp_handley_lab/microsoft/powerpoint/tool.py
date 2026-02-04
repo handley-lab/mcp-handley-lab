@@ -103,7 +103,7 @@ def edit(
         - add_chart: Add chart {slide_num, chart_type, data, x, y, width, height, title}
         - delete_chart: Delete chart {slide_num, shape_key}
         - update_chart_data: Update chart {slide_num, shape_key, data}
-        - find_replace: Find/replace text {find, replace, slide_num?, case_sensitive?, whole_words?}
+        - find_replace: Find/replace text {search, replace, slide_num?, match_case?}
         - group_shapes: Group shapes {slide_num, shape_keys} (shape_keys is list of "slide:id" strings)
         - ungroup: Ungroup a group {shape_key}
 

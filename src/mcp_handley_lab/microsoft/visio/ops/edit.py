@@ -11,6 +11,7 @@ from lxml import etree
 
 from mcp_handley_lab.microsoft.visio.constants import (
     CT,
+    NS_REL,
     NS_VISIO_2012,
     RT,
     find_v,
@@ -21,7 +22,6 @@ from mcp_handley_lab.microsoft.visio.ops.shapes import find_shape_element
 from mcp_handley_lab.microsoft.visio.package import VisioPackage
 
 NS = NS_VISIO_2012
-NS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
 
 # =============================================================================
@@ -248,10 +248,14 @@ def delete_page(pkg: VisioPackage, page_num: int) -> None:
 
     # Remove the page XML part
     page_paths = pkg.get_page_paths()
+    part_dropped = False
     for num, _rid, partname in page_paths:
         if num == page_num:
             pkg.drop_part(partname)
+            part_dropped = True
             break
+    if not part_dropped:
+        raise ValueError(f"No page part found for page {page_num}")
 
     # Remove from pages.xml
     pages_xml.remove(page_el)

@@ -367,10 +367,9 @@ def set_z_order(
     if not shapes:
         return False
 
-    try:
-        shape_idx = shapes.index(shape_el)
-    except ValueError:
-        return False
+    shape_idx = shapes.index(
+        shape_el
+    )  # Should always succeed if shape_el came from this parent
 
     # Apply z-order action (swap semantics)
     if action == "bring_to_front":
@@ -413,12 +412,9 @@ def _get_max_shape_id(pkg: VisioPackage, page_num: int) -> int:
         for shape in findall_v(parent, "Shape"):
             id_str = shape.get("ID")
             if id_str:
-                try:
-                    shape_id = int(id_str)
-                    if shape_id > max_id:
-                        max_id = shape_id
-                except ValueError:
-                    pass
+                shape_id = int(id_str)  # Malformed ID should raise
+                if shape_id > max_id:
+                    max_id = shape_id
             # Recurse into nested Shapes containers (groups)
             for shapes_container in findall_v(shape, "Shapes"):
                 scan_shapes(shapes_container)

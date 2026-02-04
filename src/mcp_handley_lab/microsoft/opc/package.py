@@ -37,7 +37,6 @@ class OpcPackage:
         self._bytes: dict[str, bytes] = {}  # Original bytes from ZIP
         self._xml: dict[str, etree._Element] = {}  # Parsed XML (lazy)
         self._dirty_xml: set[str] = set()  # Partnames with modified XML
-        self._dirty_bytes: set[str] = set()  # Partnames with new/modified bytes
         self._content_types = ContentTypeMap(defaults)
         self._pkg_rels = Relationships()  # /_rels/.rels
         self._part_rels: dict[str, Relationships] = {}  # partname -> Relationships
@@ -68,9 +67,8 @@ class OpcPackage:
         return self._bytes[partname]
 
     def set_bytes(self, partname: str, data: bytes, content_type: str = "") -> None:
-        """Set bytes for a part. Marks as dirty."""
+        """Set bytes for a part."""
         self._bytes[partname] = data
-        self._dirty_bytes.add(partname)
         if content_type:
             self._content_types[partname] = content_type
 
@@ -101,7 +99,6 @@ class OpcPackage:
         self._xml.pop(partname, None)
         self._part_rels.pop(partname, None)
         self._dirty_xml.discard(partname)
-        self._dirty_bytes.discard(partname)
         self._dirty_rels.discard(partname)
         self._content_types.drop_override(partname)
 

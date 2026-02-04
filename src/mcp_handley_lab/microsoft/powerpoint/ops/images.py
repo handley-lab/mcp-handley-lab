@@ -69,9 +69,6 @@ def add_image(
     # Get image dimensions if width/height not specified
     if width is None or height is None:
         img_width, img_height = _get_image_dimensions(image_data, mime_type)
-        # Guard against zero/invalid dimensions from corrupted images
-        if img_width <= 0 or img_height <= 0:
-            img_width, img_height = 640, 480
         if width is None and height is None:
             # Auto-size: use image dimensions at 96 DPI
             width = img_width / 96.0
@@ -172,13 +169,16 @@ def _get_image_dimensions(data: bytes, mime_type: str) -> tuple[int, int]:
         mime_type: MIME type (unused, kept for API compatibility)
 
     Returns:
-        (width, height) tuple in pixels, or (640, 480) fallback for corrupted/unknown formats
+        (width, height) tuple in pixels
+
+    Raises:
+        ValueError: If image cannot be parsed or has invalid dimensions
     """
-    try:
-        with Image.open(io.BytesIO(data)) as img:
-            return img.size
-    except Exception:
-        return (640, 480)
+    with Image.open(io.BytesIO(data)) as img:
+        width, height = img.size
+        if width <= 0 or height <= 0:
+            raise ValueError(f"Invalid image dimensions: {width}x{height}")
+        return width, height
 
 
 def list_images(
@@ -260,7 +260,7 @@ def list_images(
     return images
 
 
-def delete_image(pkg: PowerPointPackage, slide_num: int, shape_id: int) -> bool:
+def delete_image(pkg: PowerPointPackage, slide_num: int, shape_id: int) -> None:
     """Delete an image from a slide.
 
     Args:
@@ -268,14 +268,14 @@ def delete_image(pkg: PowerPointPackage, slide_num: int, shape_id: int) -> bool:
         slide_num: Slide number
         shape_id: Shape ID of the image to delete
 
-    Returns:
-        True if deleted, False if not found
+    Raises:
+        ValueError: If slide has no shape tree or image not found
     """
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
     # Find the p:pic element with matching shape_id
     for pic in sp_tree.findall(qn("p:pic"), NSMAP):
@@ -295,6 +295,6 @@ def delete_image(pkg: PowerPointPackage, slide_num: int, shape_id: int) -> bool:
 
             sp_tree.remove(pic)
             pkg.mark_xml_dirty(slide_partname)
-            return True
+            return
 
-    return False
+    raise ValueError(f"Image {shape_id} not found on slide {slide_num}")

@@ -17,7 +17,7 @@ def set_slide_background(
     pkg: PowerPointPackage,
     slide_num: int,
     color: str,
-) -> bool:
+) -> None:
     """Set a solid color background on a slide.
 
     Args:
@@ -25,15 +25,15 @@ def set_slide_background(
         slide_num: Slide number (1-based)
         color: Hex color without # (e.g., "FF0000" for red)
 
-    Returns:
-        True if successful
+    Raises:
+        ValueError: If slide has no cSld element
     """
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
 
     cSld = slide_xml.find(qn("p:cSld"), NSMAP)
     if cSld is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no cSld element")
 
     # Remove existing background if present
     existing_bg = cSld.find(qn("p:bg"), NSMAP)
@@ -54,14 +54,13 @@ def set_slide_background(
     cSld.insert(0, bg)
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def set_shape_fill(
     pkg: PowerPointPackage,
     shape_key: str,
     color: str,
-) -> bool:
+) -> None:
     """Set the fill color of a shape.
 
     Args:
@@ -69,8 +68,8 @@ def set_shape_fill(
         shape_key: Shape identifier (slide_num:shape_id)
         color: Hex color without # (e.g., "FF0000" for red)
 
-    Returns:
-        True if successful, False if shape not found
+    Raises:
+        ValueError: If shape not found or is not a fillable shape type
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_partname = pkg.get_slide_partname(slide_num)
@@ -78,12 +77,12 @@ def set_shape_fill(
 
     shape = find_shape_by_id(slide_xml, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Only apply fill to standard shapes and connectors
     tag = etree.QName(shape.tag).localname
     if tag not in ("sp", "cxnSp"):
-        return False
+        raise ValueError(f"Cannot set fill on {tag} element (only sp, cxnSp supported)")
 
     # Get or create spPr
     spPr = shape.find(qn("p:spPr"), NSMAP)
@@ -107,7 +106,6 @@ def set_shape_fill(
     srgb_clr.set("val", color.upper().lstrip("#"))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def set_shape_line(
@@ -115,7 +113,7 @@ def set_shape_line(
     shape_key: str,
     color: str | None = None,
     width: float | None = None,
-) -> bool:
+) -> None:
     """Set the outline/border of a shape.
 
     Args:
@@ -124,8 +122,8 @@ def set_shape_line(
         color: Hex color without # (e.g., "000000" for black)
         width: Line width in points
 
-    Returns:
-        True if successful, False if shape not found
+    Raises:
+        ValueError: If shape not found
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_partname = pkg.get_slide_partname(slide_num)
@@ -133,7 +131,7 @@ def set_shape_line(
 
     shape = find_shape_by_id(slide_xml, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Get or create spPr
     spPr = shape.find(qn("p:spPr"), NSMAP)
@@ -163,7 +161,6 @@ def set_shape_line(
         srgb_clr.set("val", color.upper().lstrip("#"))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def _set_font_on_rPr(rPr: etree._Element, font: str) -> None:
@@ -191,7 +188,7 @@ def set_text_style(
     color: str | None = None,
     alignment: str | None = None,
     font: str | None = None,
-) -> bool:
+) -> None:
     """Set text style properties for all text in a shape.
 
     Args:
@@ -204,8 +201,8 @@ def set_text_style(
         alignment: Text alignment ("left", "center", "right", "justify")
         font: Font family name (e.g., "Arial", "Times New Roman")
 
-    Returns:
-        True if successful, False if shape not found or has no text
+    Raises:
+        ValueError: If shape not found, has no text body, or no paragraphs
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_partname = pkg.get_slide_partname(slide_num)
@@ -213,12 +210,12 @@ def set_text_style(
 
     shape = find_shape_by_id(slide_xml, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Find txBody
     txBody = shape.find(qn("p:txBody"), NSMAP)
     if txBody is None:
-        return False
+        raise ValueError(f"Shape {shape_id} has no text body")
 
     # Map alignment values to OOXML values
     align_map = {
@@ -231,7 +228,7 @@ def set_text_style(
     # Apply styles to all paragraphs and runs
     paragraphs = txBody.findall(qn("a:p"), NSMAP)
     if not paragraphs:
-        return False
+        raise ValueError(f"Shape {shape_id} text body has no paragraphs")
 
     for p in paragraphs:
         # Apply alignment at paragraph level
@@ -332,4 +329,3 @@ def set_text_style(
             _set_font_on_rPr(defRPr, font)
 
     pkg.mark_xml_dirty(slide_partname)
-    return True

@@ -587,11 +587,7 @@ def _op_set_placeholder(
         raise ValueError("slide_num required for set_placeholder")
     if text is None:
         raise ValueError("text required for set_placeholder")
-    result = set_placeholder_text(
-        pkg, slide_num, text, placeholder_type, placeholder_idx
-    )
-    if not result:
-        raise ValueError(f"Placeholder not found on slide {slide_num}")
+    set_placeholder_text(pkg, slide_num, text, placeholder_type, placeholder_idx)
     return {
         "message": f"Set placeholder text on slide {slide_num}",
         "element_id": "",

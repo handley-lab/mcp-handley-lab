@@ -96,12 +96,11 @@ class VisioPackage(OpcPackage):
                 rid_to_path[rid] = self.resolve_rel_target(pages_path, rid)
 
         # Parse Page elements from pages.xml to get order and rId mapping
-        ns_rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         result = []
         page_els = findall_v(pages_xml, "Page")
         for idx, page_el in enumerate(page_els, start=1):
             # r:id attribute (standard OPC relationship reference)
-            rid = page_el.get(f"{{{ns_rel}}}id")
+            rid = page_el.get(f"{{{NS_REL}}}id")
             if rid and rid in rid_to_path:
                 result.append((idx, rid, rid_to_path[rid]))
 
@@ -169,9 +168,7 @@ class VisioPackage(OpcPackage):
             if master_id_str is None:
                 continue
             master_id = int(master_id_str)
-            rid = master_el.get(
-                "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
-            )
+            rid = master_el.get(f"{{{NS_REL}}}id")
             if rid and rid in rid_to_path:
                 result.append((master_id, rid, rid_to_path[rid]))
 

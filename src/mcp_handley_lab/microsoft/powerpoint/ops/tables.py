@@ -78,7 +78,7 @@ def set_table_cell(
     row: int,
     col: int,
     text: str,
-) -> bool:
+) -> None:
     """Set text in a table cell.
 
     Args:
@@ -88,15 +88,15 @@ def set_table_cell(
         col: Column index (0-based)
         text: Text to set
 
-    Returns:
-        True if successful, False if cell not found
+    Raises:
+        ValueError: If table not found or cell out of range
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
     # Find the graphic frame with matching shape_id
     for gf in sp_tree.findall(qn("p:graphicFrame"), NSMAP):
@@ -107,25 +107,29 @@ def set_table_cell(
                 qn("a:graphic") + "/" + qn("a:graphicData") + "/" + qn("a:tbl"), NSMAP
             )
             if tbl is None:
-                return False
+                raise ValueError(f"Shape {shape_id} is not a table")
 
             # Find the cell
             tr_list = tbl.findall(qn("a:tr"), NSMAP)
             if row >= len(tr_list):
-                return False
+                raise ValueError(
+                    f"Row {row} out of range (table has {len(tr_list)} rows)"
+                )
 
             tc_list = tr_list[row].findall(qn("a:tc"), NSMAP)
             if col >= len(tc_list):
-                return False
+                raise ValueError(
+                    f"Column {col} out of range (row has {len(tc_list)} columns)"
+                )
 
             tc = tc_list[col]
 
             # Update the cell text
             _set_cell_text(tc, text)
             pkg.mark_xml_dirty(slide_partname)
-            return True
+            return
 
-    return False
+    raise ValueError(f"Table {shape_id} not found on slide {slide_num}")
 
 
 def _create_table_graphic_frame(
@@ -396,18 +400,21 @@ def _extract_cell_text(tc: etree._Element) -> str:
 
 def _find_table(
     pkg: PowerPointPackage, shape_key: str
-) -> tuple[etree._Element, etree._Element, str] | None:
+) -> tuple[etree._Element, etree._Element, str]:
     """Find a table by shape_key.
 
     Returns:
-        Tuple of (tbl element, graphicFrame element, slide_partname) or None if not found
+        Tuple of (tbl element, graphicFrame element, slide_partname)
+
+    Raises:
+        ValueError: If table not found or shape is not a table
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return None
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
     for gf in sp_tree.findall(qn("p:graphicFrame"), NSMAP):
         gf_id = get_shape_id(gf)
@@ -417,15 +424,16 @@ def _find_table(
             )
             if tbl is not None:
                 return tbl, gf, slide_partname
+            raise ValueError(f"Shape {shape_id} is not a table")
 
-    return None
+    raise ValueError(f"Table {shape_id} not found on slide {slide_num}")
 
 
 def add_table_row(
     pkg: PowerPointPackage,
     shape_key: str,
     position: int | None = None,
-) -> bool:
+) -> None:
     """Add a row to an existing table.
 
     Copies the structure and formatting from an adjacent row (the row before
@@ -437,19 +445,15 @@ def add_table_row(
         shape_key: Table shape key (slide_num:shape_id)
         position: Row index to insert at (0-based). None or -1 appends to end.
 
-    Returns:
-        True if successful, False if table not found
+    Raises:
+        ValueError: If table not found or empty
     """
-    result = _find_table(pkg, shape_key)
-    if result is None:
-        return False
-
-    tbl, gf, slide_partname = result
+    tbl, gf, slide_partname = _find_table(pkg, shape_key)
     tr_list = tbl.findall(qn("a:tr"), NSMAP)
     num_rows = len(tr_list)
 
     if num_rows == 0:
-        return False  # Empty table, can't determine structure to copy
+        raise ValueError("Cannot add row to empty table")
 
     # Calculate position
     if position is None or position < 0 or position >= num_rows:
@@ -485,14 +489,13 @@ def add_table_row(
             ext.set("cy", str(current_height + row_height))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def add_table_column(
     pkg: PowerPointPackage,
     shape_key: str,
     position: int | None = None,
-) -> bool:
+) -> None:
     """Add a column to an existing table.
 
     Copies the structure and formatting from an adjacent cell (the cell before
@@ -504,25 +507,21 @@ def add_table_column(
         shape_key: Table shape key (slide_num:shape_id)
         position: Column index to insert at (0-based). None or -1 appends to end.
 
-    Returns:
-        True if successful, False if table not found
+    Raises:
+        ValueError: If table not found, has no grid, or is empty
     """
-    result = _find_table(pkg, shape_key)
-    if result is None:
-        return False
-
-    tbl, gf, slide_partname = result
+    tbl, gf, slide_partname = _find_table(pkg, shape_key)
 
     # Find tblGrid
     tbl_grid = tbl.find(qn("a:tblGrid"), NSMAP)
     if tbl_grid is None:
-        return False
+        raise ValueError("Table has no grid definition")
 
     grid_cols = tbl_grid.findall(qn("a:gridCol"), NSMAP)
     num_cols = len(grid_cols)
 
     if num_cols == 0:
-        return False  # Empty table, can't determine structure to copy
+        raise ValueError("Cannot add column to empty table")
 
     # Calculate position
     if position is None or position < 0 or position >= num_cols:
@@ -569,14 +568,13 @@ def add_table_column(
             ext.set("cx", str(current_width + col_width))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def delete_table_row(
     pkg: PowerPointPackage,
     shape_key: str,
     row: int,
-) -> bool:
+) -> None:
     """Delete a row from an existing table.
 
     Args:
@@ -584,22 +582,18 @@ def delete_table_row(
         shape_key: Table shape key (slide_num:shape_id)
         row: Row index to delete (0-based)
 
-    Returns:
-        True if successful, False if row not found
+    Raises:
+        ValueError: If table not found, row out of range, or would delete last row
     """
-    result = _find_table(pkg, shape_key)
-    if result is None:
-        return False
-
-    tbl, gf, slide_partname = result
+    tbl, gf, slide_partname = _find_table(pkg, shape_key)
     tr_list = tbl.findall(qn("a:tr"), NSMAP)
 
     if row < 0 or row >= len(tr_list):
-        return False
+        raise ValueError(f"Row {row} out of range (table has {len(tr_list)} rows)")
 
     # Must keep at least one row
     if len(tr_list) <= 1:
-        return False
+        raise ValueError("Cannot delete last row from table")
 
     tr_to_delete = tr_list[row]
     row_height = int(tr_to_delete.get("h", "0"))
@@ -615,14 +609,13 @@ def delete_table_row(
             ext.set("cy", str(new_height))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def delete_table_column(
     pkg: PowerPointPackage,
     shape_key: str,
     col: int,
-) -> bool:
+) -> None:
     """Delete a column from an existing table.
 
     Args:
@@ -630,28 +623,26 @@ def delete_table_column(
         shape_key: Table shape key (slide_num:shape_id)
         col: Column index to delete (0-based)
 
-    Returns:
-        True if successful, False if column not found
+    Raises:
+        ValueError: If table not found, column out of range, or would delete last column
     """
-    result = _find_table(pkg, shape_key)
-    if result is None:
-        return False
-
-    tbl, gf, slide_partname = result
+    tbl, gf, slide_partname = _find_table(pkg, shape_key)
 
     # Find tblGrid
     tbl_grid = tbl.find(qn("a:tblGrid"), NSMAP)
     if tbl_grid is None:
-        return False
+        raise ValueError("Table has no grid definition")
 
     grid_cols = tbl_grid.findall(qn("a:gridCol"), NSMAP)
 
     if col < 0 or col >= len(grid_cols):
-        return False
+        raise ValueError(
+            f"Column {col} out of range (table has {len(grid_cols)} columns)"
+        )
 
     # Must keep at least one column
     if len(grid_cols) <= 1:
-        return False
+        raise ValueError("Cannot delete last column from table")
 
     # Get column width before removing
     col_width = int(grid_cols[col].get("w", "0"))
@@ -673,4 +664,3 @@ def delete_table_column(
             ext.set("cx", str(new_width))
 
     pkg.mark_xml_dirty(slide_partname)
-    return True

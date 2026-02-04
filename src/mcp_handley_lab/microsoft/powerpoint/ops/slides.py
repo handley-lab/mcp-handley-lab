@@ -559,7 +559,7 @@ def _create_minimal_slide() -> etree._Element:
     return slide
 
 
-def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> bool:
+def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> None:
     """Hide or show a slide.
 
     Hidden slides are skipped during slideshow playback but remain visible
@@ -570,20 +570,22 @@ def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> b
         slide_num: Slide number (1-based)
         hidden: True to hide, False to show
 
-    Returns:
-        True if slide visibility was changed, False if slide not found
+    Raises:
+        ValueError: If slide not found
     """
     pres = pkg.presentation_xml
     pres_path = pkg.presentation_path
 
     sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
     if sld_id_lst is None:
-        return False
+        raise ValueError("Presentation has no slide list")
 
     # Find the sldId element at the given position
     sld_ids = list(sld_id_lst.findall(qn("p:sldId"), NSMAP))
     if slide_num < 1 or slide_num > len(sld_ids):
-        return False
+        raise ValueError(
+            f"Slide {slide_num} not found (presentation has {len(sld_ids)} slides)"
+        )
 
     sld_id = sld_ids[slide_num - 1]
 
@@ -595,10 +597,9 @@ def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> b
         sld_id.attrib.pop("show", None)
 
     pkg.mark_xml_dirty(pres_path)
-    return True
 
 
-def is_slide_hidden(pkg: PowerPointPackage, slide_num: int) -> bool | None:
+def is_slide_hidden(pkg: PowerPointPackage, slide_num: int) -> bool:
     """Check if a slide is hidden.
 
     Args:
@@ -606,17 +607,22 @@ def is_slide_hidden(pkg: PowerPointPackage, slide_num: int) -> bool | None:
         slide_num: Slide number (1-based)
 
     Returns:
-        True if hidden, False if visible, None if slide not found
+        True if hidden, False if visible
+
+    Raises:
+        ValueError: If slide not found
     """
     pres = pkg.presentation_xml
 
     sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
     if sld_id_lst is None:
-        return None
+        raise ValueError("Presentation has no slide list")
 
     sld_ids = list(sld_id_lst.findall(qn("p:sldId"), NSMAP))
     if slide_num < 1 or slide_num > len(sld_ids):
-        return None
+        raise ValueError(
+            f"Slide {slide_num} not found (presentation has {len(sld_ids)} slides)"
+        )
 
     sld_id = sld_ids[slide_num - 1]
     return sld_id.get("show") == "0"

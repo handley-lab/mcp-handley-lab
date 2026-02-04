@@ -358,7 +358,7 @@ def add_hyperlink(
     url: str | None = None,
     tooltip: str | None = None,
     target_slide: int | None = None,
-) -> bool:
+) -> None:
     """Add a hyperlink to all text runs in a shape.
 
     Supports both external URLs and internal slide links.
@@ -370,11 +370,9 @@ def add_hyperlink(
         tooltip: Optional tooltip text
         target_slide: Slide number (1-based) for internal link (mutually exclusive with url)
 
-    Returns:
-        True if hyperlink was added, False if shape not found or has no text runs
-
     Raises:
-        ValueError: If neither url nor target_slide provided, or both provided
+        ValueError: If neither url nor target_slide provided, or both provided,
+            or if shape not found or has no text runs
     """
     from mcp_handley_lab.microsoft.powerpoint.constants import RT
     from mcp_handley_lab.microsoft.powerpoint.ops.core import (
@@ -394,18 +392,18 @@ def add_hyperlink(
 
     shape = find_shape_by_id(slide_xml, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     txBody = shape.find(qn("p:txBody"), NSMAP)
     if txBody is None:
-        return False
+        raise ValueError(f"Shape {shape_id} has no text body")
 
     # Find all runs (a:r) and fields (a:fld) across all paragraphs
     elements = txBody.findall(".//" + qn("a:r"), NSMAP) + txBody.findall(
         ".//" + qn("a:fld"), NSMAP
     )
     if not elements:
-        return False
+        raise ValueError(f"Shape {shape_id} has no text runs to add hyperlink to")
 
     slide_rels = pkg.get_rels(slide_partname)
 
@@ -451,4 +449,3 @@ def add_hyperlink(
 
     pkg.mark_xml_dirty(slide_partname)
     pkg._dirty_rels.add(slide_partname)
-    return True

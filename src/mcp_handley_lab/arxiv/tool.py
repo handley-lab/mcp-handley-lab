@@ -284,7 +284,9 @@ def download(
     ),
 ) -> DownloadResult:
     if format not in ["src", "pdf", "tex", "bibtex"]:
-        raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', 'tex', or 'bibtex'")
+        raise ValueError(
+            f"Invalid format '{format}'. Must be 'src', 'pdf', 'tex', or 'bibtex'"
+        )
 
     if not output_path:
         if format == "pdf":

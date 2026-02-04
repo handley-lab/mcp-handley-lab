@@ -11,7 +11,12 @@ from mcp_handley_lab.microsoft.common.batch import (
     convert_custom_property_value,
     run_batch_edit,
 )
-from mcp_handley_lab.microsoft.common.properties import get_core_properties
+from mcp_handley_lab.microsoft.common.properties import (
+    delete_custom_property,
+    get_core_properties,
+    set_core_properties,
+    set_custom_property,
+)
 from mcp_handley_lab.microsoft.visio.models import (
     DocumentProperties,
     VisioEditResult,
@@ -34,11 +39,6 @@ from mcp_handley_lab.microsoft.visio.ops.masters import (
     list_masters,
 )
 from mcp_handley_lab.microsoft.visio.ops.pages import list_pages
-from mcp_handley_lab.microsoft.visio.ops.properties import (
-    delete_custom_property,
-    set_custom_property,
-    set_property,
-)
 from mcp_handley_lab.microsoft.visio.ops.shapes import (
     add_connector,
     add_shape_from_master,
@@ -252,14 +252,10 @@ def edit(
         description='JSON array of operation objects. Each object has "op" (operation name) '
         "plus operation-specific fields. Use $prev[N] to reference element_id from operation N."
     ),
-    mode: str = Field(
-        default="atomic",
-        description="'atomic' (save only if all succeed) or 'partial' (save if any succeed)",
-    ),
 ) -> dict[str, Any]:
     """Edit a Visio diagram using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover pages, shapes, and structure.
 
     Args:
@@ -267,7 +263,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "set_text", "page_num": 1, "shape_id": 1, "text": "Hello"},
              {"op": "set_cell", "shape_key": "$prev[0]", "cell_name": "Width", "value": "3.0"}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops)
 
     Available operations:
         Shape operations:
@@ -302,7 +297,6 @@ def edit(
     return run_batch_edit(
         file_path=file_path,
         ops=ops,
-        mode=mode,
         open_pkg=VisioPackage.open,
         new_pkg=VisioPackage.new,
         apply_op=_apply_op,
@@ -461,7 +455,7 @@ def _op_set_property(pkg: VisioPackage, params: dict[str, Any]) -> dict[str, Any
         raise ValueError("property_name required for set_property")
     if value is None:
         raise ValueError("property_value required for set_property")
-    set_property(pkg, name, str(value))
+    set_core_properties(pkg, **{name: str(value)})
     return {"message": f"Set core property '{name}'", "element_id": ""}
 
 
@@ -651,10 +645,13 @@ def render(
 
     from mcp.types import ImageContent, TextContent
 
-    from mcp_handley_lab.microsoft.visio.ops import render as _render_mod
+    from mcp_handley_lab.microsoft.visio.ops.render import (
+        render_to_images,
+        render_to_pdf,
+    )
 
     if output == "pdf":
-        pdf_bytes = _render_mod.render_to_pdf(file_path)
+        pdf_bytes = render_to_pdf(file_path)
         return [
             TextContent(type="text", text=f"PDF ({len(pdf_bytes):,} bytes)"),
             ImageContent(
@@ -673,7 +670,7 @@ def render(
         raise ValueError("dpi max is 300")
 
     result = []
-    for page_num, png_bytes in _render_mod.render_to_images(file_path, pages, dpi):
+    for page_num, png_bytes in render_to_images(file_path, pages, dpi):
         result.append(TextContent(type="text", text=f"Page {page_num}:"))
         result.append(
             ImageContent(

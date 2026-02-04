@@ -12,6 +12,8 @@ Key concepts:
 - Data fields: Aggregated values (sum, count, average, etc.)
 """
 
+import re
+
 from lxml import etree
 
 from mcp_handley_lab.microsoft.excel.constants import CT, RT, qn
@@ -360,18 +362,17 @@ def _get_source_headers(
     return headers
 
 
+_CACHE_DEF_PATTERN = re.compile(r"^/xl/pivotCache/pivotCacheDefinition(\d+)\.xml$")
+_PIVOT_TABLE_PATTERN = re.compile(r"^/xl/pivotTables/pivotTable(\d+)\.xml$")
+
+
 def _next_cache_num(pkg: ExcelPackage) -> int:
     """Find next available cache number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith(
-            "/xl/pivotCache/pivotCacheDefinition"
-        ) and partname.endswith(".xml"):
-            try:
-                num = int(partname[35:-4])  # Extract number from path
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _CACHE_DEF_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -379,14 +380,9 @@ def _next_pivot_num(pkg: ExcelPackage) -> int:
     """Find next available pivot table number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith("/xl/pivotTables/pivotTable") and partname.endswith(
-            ".xml"
-        ):
-            try:
-                num = int(partname[26:-4])  # Extract number from path
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _PIVOT_TABLE_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -810,17 +806,17 @@ def refresh_pivot(pkg: ExcelPackage, sheet_name: str, pivot_id: str) -> None:
     cache_xml = pkg.get_xml(cache_path)
     cache_source = cache_xml.find(qn("x:cacheSource"))
     if cache_source is None:
-        return
+        raise ValueError("Pivot cache has no cacheSource element")
 
     ws_source = cache_source.find(qn("x:worksheetSource"))
     if ws_source is None:
-        return
+        raise ValueError("Pivot cache has no worksheetSource element")
 
     source_ref = ws_source.get("ref", "")
     source_sheet = ws_source.get("sheet", "")
 
     if not source_ref or not source_sheet:
-        return
+        raise ValueError("Pivot cache worksheetSource missing ref or sheet attribute")
 
     # Get field names
     field_names = []
@@ -838,7 +834,7 @@ def refresh_pivot(pkg: ExcelPackage, sheet_name: str, pivot_id: str) -> None:
         break
 
     if cache_rec_path is None:
-        return
+        raise KeyError("Pivot cache records not found")
 
     # Rebuild cache records
     new_cache_rec = _create_cache_records(pkg, source_sheet, source_ref, field_names)

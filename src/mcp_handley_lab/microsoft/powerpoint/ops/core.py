@@ -190,13 +190,21 @@ def find_shape_by_id(slide_xml: etree._Element, shape_id: int) -> etree._Element
     if sp_tree is None:
         return None
 
-    return _find_shape_recursive(sp_tree, shape_id)
+    return find_shape_in_tree(sp_tree, shape_id)
 
 
-def _find_shape_recursive(
+def find_shape_in_tree(
     container: etree._Element, shape_id: int
 ) -> etree._Element | None:
-    """Recursively find a shape by ID, searching into groups."""
+    """Find a shape by ID within a shape tree or group (recursive).
+
+    Args:
+        container: Shape tree (p:spTree) or group element to search
+        shape_id: Shape ID to find
+
+    Returns:
+        Shape element or None if not found
+    """
     shape_tags = {"sp", "pic", "graphicFrame", "grpSp", "cxnSp"}
 
     for child in container:
@@ -210,7 +218,7 @@ def _find_shape_recursive(
 
         # Recursively search groups
         if tag == "grpSp":
-            found = _find_shape_recursive(child, shape_id)
+            found = find_shape_in_tree(child, shape_id)
             if found is not None:
                 return found
 

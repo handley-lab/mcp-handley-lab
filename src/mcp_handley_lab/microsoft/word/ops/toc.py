@@ -269,7 +269,7 @@ def insert_toc(
 # =============================================================================
 
 
-def update_toc_field(pkg) -> bool:
+def update_toc_field(pkg) -> None:
     """Set dirty flag on TOC field begin marker.
 
     Args:
@@ -279,7 +279,8 @@ def update_toc_field(pkg) -> bool:
     or w:dirty="true" on w:fldSimple for simple fields.
     Word recalculates field values when document opens.
 
-    Returns True if TOC was found and updated, False otherwise.
+    Raises:
+        ValueError: If no TOC field is found in the document.
     """
     # Find complex field with TOC
     for instr_el in _toc_xpath(_get_document_xml(pkg), ".//w:instrText"):
@@ -293,7 +294,7 @@ def update_toc_field(pkg) -> bool:
                         if fld_char.get(qn("w:fldCharType")) == "begin":
                             fld_char.set(qn("w:dirty"), "true")
                             mark_dirty(pkg)
-                            return True
+                            return
                     break
                 parent = parent.getparent()
             break
@@ -304,6 +305,6 @@ def update_toc_field(pkg) -> bool:
         if instr.strip().upper().startswith("TOC"):
             fld.set(qn("w:dirty"), "true")
             mark_dirty(pkg)
-            return True
+            return
 
-    return False
+    raise ValueError("No TOC field found in document")

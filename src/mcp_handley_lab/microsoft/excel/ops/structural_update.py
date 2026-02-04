@@ -92,11 +92,11 @@ def _shift_range_ref(
     """Shift a range reference after insert/delete.
 
     Returns updated ref, or None if range is completely deleted.
+
+    Raises:
+        ValueError: If range_ref is malformed.
     """
-    try:
-        start_ref, end_ref = parse_range_ref(range_ref)
-    except ValueError:
-        return range_ref  # Not a valid range, return as-is
+    start_ref, end_ref = parse_range_ref(range_ref)
 
     s_col, s_row, s_col_abs, s_row_abs = parse_cell_ref(start_ref)
     e_col, e_row, e_col_abs, e_row_abs = parse_cell_ref(end_ref)
@@ -173,32 +173,29 @@ def _shift_sqref(
             new_part = _shift_range_ref(part, index, count, is_row, is_delete)
         else:
             # Single cell reference
-            try:
-                col, row, col_abs, row_abs = parse_cell_ref(part)
-                col_idx = column_letter_to_index(col)
+            col, row, col_abs, row_abs = parse_cell_ref(part)
+            col_idx = column_letter_to_index(col)
 
-                if is_row:
-                    if is_delete:
-                        if index <= row < index + count:
-                            continue  # Cell deleted
-                        if row >= index + count:
-                            row -= count
-                    else:
-                        if row >= index:
-                            row += count
+            if is_row:
+                if is_delete:
+                    if index <= row < index + count:
+                        continue  # Cell deleted
+                    if row >= index + count:
+                        row -= count
                 else:
-                    if is_delete:
-                        if index <= col_idx < index + count:
-                            continue  # Cell deleted
-                        if col_idx >= index + count:
-                            col_idx -= count
-                    else:
-                        if col_idx >= index:
-                            col_idx += count
+                    if row >= index:
+                        row += count
+            else:
+                if is_delete:
+                    if index <= col_idx < index + count:
+                        continue  # Cell deleted
+                    if col_idx >= index + count:
+                        col_idx -= count
+                else:
+                    if col_idx >= index:
+                        col_idx += count
 
-                new_part = make_cell_ref(col_idx, row, col_abs=col_abs, row_abs=row_abs)
-            except ValueError:
-                new_part = part  # Invalid ref, keep as-is
+            new_part = make_cell_ref(col_idx, row, col_abs=col_abs, row_abs=row_abs)
 
         if new_part:
             updated_parts.append(new_part)

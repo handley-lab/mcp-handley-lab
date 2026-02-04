@@ -270,11 +270,10 @@ def find_cells(
 def edit(
     file_path: str,
     ops: str,
-    mode: str = "atomic",
 ) -> dict[str, Any]:
     """Edit an Excel workbook using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover sheets, cells, and tables.
 
     Args:
@@ -282,7 +281,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "set_cell", "sheet": "Sheet1", "cell_ref": "A1", "value": "Hello"},
              {"op": "set_style", "sheet": "Sheet1", "cell_ref": "$prev[0]", "style_index": 1}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops).
 
     Available operations:
         - set_cell, set_formula, set_range, set_style
@@ -311,11 +309,14 @@ def edit(
 
     Returns:
         Dict with success status, counts, and per-operation results.
+
+    Raises:
+        ValueError: Invalid JSON, invalid operation, missing required params.
+        RuntimeError: Save failed after successful operations.
     """
     return run_batch_edit(
         file_path=file_path,
         ops=ops,
-        mode=mode,
         open_pkg=ExcelPackage.open,
         new_pkg=ExcelPackage.new,
         apply_op=_apply_op,
@@ -1498,12 +1499,8 @@ def _op_delete_custom_property(
 ) -> dict[str, Any]:
     """Delete custom document property."""
     name = require(params, "property_name", "delete_custom_property")
-
-    deleted = delete_custom_property(pkg, name)
-    if deleted:
-        return {"message": f"Deleted custom property '{name}'", "element_id": ""}
-    else:
-        raise ValueError(f"Custom property '{name}' not found")
+    delete_custom_property(pkg, name)  # Raises KeyError if not found
+    return {"message": f"Deleted custom property '{name}'", "element_id": ""}
 
 
 # =============================================================================

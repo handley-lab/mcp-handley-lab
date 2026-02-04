@@ -7,7 +7,7 @@ from lxml import etree
 from mcp_handley_lab.microsoft.opc.constants import CT as OPC_CT
 from mcp_handley_lab.microsoft.opc.constants import RT as OPC_RT
 
-__all__ = ["NSMAP", "qn", "find_v", "findall_v", "CT", "RT"]
+__all__ = ["NSMAP", "NS_REL", "NS_VISIO_2012", "qn", "find_v", "findall_v", "CT", "RT"]
 
 # Visio namespace variants — real files may use either
 NS_VISIO_2012 = "http://schemas.microsoft.com/office/visio/2012/main"

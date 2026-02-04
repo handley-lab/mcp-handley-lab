@@ -54,14 +54,10 @@ def edit(
         description='JSON array of operation objects. Each object has "op" (operation name) '
         "plus operation-specific fields. Use $prev[N] to reference element_id from operation N."
     ),
-    mode: str = Field(
-        default="atomic",
-        description="'atomic' (save only if all succeed) or 'partial' (save if any succeed)",
-    ),
 ) -> dict[str, Any]:
     """Edit a PowerPoint presentation using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover slides, shapes, and layouts.
 
     Args:
@@ -69,7 +65,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "add_shape", "slide_num": 1, "x": 1.0, "y": 1.0, "width": 4.0, "height": 1.0, "text": "Title"},
              {"op": "set_text_style", "shape_key": "$prev[0]", "bold": true}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops)
 
     Available operations:
         - add_slide: Add slide {layout_name}
@@ -103,7 +98,7 @@ def edit(
         - add_chart: Add chart {slide_num, chart_type, data, x, y, width, height, title}
         - delete_chart: Delete chart {slide_num, shape_key}
         - update_chart_data: Update chart {slide_num, shape_key, data}
-        - find_replace: Find/replace text {find, replace, slide_num?, case_sensitive?, whole_words?}
+        - find_replace: Find/replace text {search, replace, slide_num?, match_case?}
         - group_shapes: Group shapes {slide_num, shape_keys} (shape_keys is list of "slide:id" strings)
         - ungroup: Ungroup a group {shape_key}
 
@@ -116,7 +111,7 @@ def edit(
     """
     from mcp_handley_lab.microsoft.powerpoint.shared import edit as _edit
 
-    return _edit(file_path=file_path, ops=ops, mode=mode)
+    return _edit(file_path=file_path, ops=ops)
 
 
 # =============================================================================

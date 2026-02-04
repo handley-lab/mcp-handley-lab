@@ -104,13 +104,14 @@ def set_placeholder_text(
     text: str,
     placeholder_type: str | None = None,
     idx: int | None = None,
-) -> bool:
+) -> None:
     """Set text in a placeholder.
 
     If placeholder exists on slide, updates it.
     If placeholder is inherited from layout/master, materializes it on slide.
 
-    Returns True if successful, False if placeholder not found.
+    Raises:
+        ValueError: If placeholder_type and idx are both None, or placeholder not found.
     """
     if placeholder_type is None and idx is None:
         raise ValueError("Must specify placeholder_type or idx")
@@ -125,13 +126,13 @@ def set_placeholder_text(
         # Update existing placeholder
         set_shape_text(placeholder, text)
         pkg.mark_xml_dirty(slide_partname)
-        return True
+        return
 
     # Not on slide - try to get from layout and materialize
     slide_rels = pkg.get_rels(slide_partname)
     layout_rid = slide_rels.rId_for_reltype(RT.SLIDE_LAYOUT)
     if layout_rid is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no layout relationship")
 
     layout_path = pkg.resolve_rel_target(slide_partname, layout_rid)
     layout_xml = pkg.get_xml(layout_path)
@@ -149,18 +150,17 @@ def set_placeholder_text(
             )
 
     if layout_placeholder is None:
-        return False
+        ph_desc = f"type={placeholder_type}" if placeholder_type else f"idx={idx}"
+        raise ValueError(f"Placeholder {ph_desc} not found on slide {slide_num}")
 
     # Materialize placeholder on slide
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
     new_sp = _materialize_placeholder(layout_placeholder, sp_tree)
     set_shape_text(new_sp, text)
     pkg.mark_xml_dirty(slide_partname)
-
-    return True
 
 
 def _materialize_placeholder(

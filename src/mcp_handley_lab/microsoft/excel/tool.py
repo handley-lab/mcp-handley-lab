@@ -113,14 +113,10 @@ def edit(
         description='JSON array of operation objects. Each object has "op" (operation name) '
         "plus operation-specific fields. Use $prev[N] to reference element_id from operation N."
     ),
-    mode: str = Field(
-        default="atomic",
-        description="'atomic' (save only if all succeed) or 'partial' (save if any succeed)",
-    ),
 ) -> dict[str, Any]:
     """Edit an Excel workbook using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover sheets, cells, and tables.
 
     Args:
@@ -128,7 +124,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "set_cell", "sheet": "Sheet1", "cell_ref": "A1", "value": "Hello"},
              {"op": "set_style", "sheet": "Sheet1", "cell_ref": "$prev[0]", "style_index": 1}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops)
 
     Available operations:
         - set_cell: Set cell value {sheet, cell_ref, value}
@@ -182,7 +177,7 @@ def edit(
     """
     from mcp_handley_lab.microsoft.excel.shared import edit as _edit
 
-    return _edit(file_path=file_path, ops=ops, mode=mode)
+    return _edit(file_path=file_path, ops=ops)
 
 
 # =============================================================================

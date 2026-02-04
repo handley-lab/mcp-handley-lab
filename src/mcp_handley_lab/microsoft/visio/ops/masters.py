@@ -56,13 +56,10 @@ def list_masters(pkg: VisioPackage) -> list[MasterInfo]:
         # Count shapes in master page
         shape_count = 0
         if master_id in path_by_id:
-            try:
-                master_xml = pkg.get_xml(path_by_id[master_id])
-                shapes = findall_v(master_xml, "Shapes")
-                if shapes:
-                    shape_count = len(findall_v(shapes[0], "Shape"))
-            except (KeyError, IndexError):
-                pass
+            master_xml = pkg.get_xml(path_by_id[master_id])
+            shapes = findall_v(master_xml, "Shapes")
+            if shapes:
+                shape_count = len(findall_v(shapes[0], "Shape"))
 
         results.append(
             MasterInfo(

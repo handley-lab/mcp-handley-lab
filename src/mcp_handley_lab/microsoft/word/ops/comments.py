@@ -501,6 +501,9 @@ def unresolve_comment(pkg, comment_id: int) -> None:
     Args:
         pkg: WordPackage
         comment_id: ID of comment to unresolve
+
+    Raises:
+        ValueError: If comment not found.
     """
     # Validate comment exists and get para_id
     comment_el, para_id = _get_comment_by_id(pkg, comment_id)
@@ -508,14 +511,12 @@ def unresolve_comment(pkg, comment_id: int) -> None:
         raise ValueError(f"Comment not found: {comment_id}")
 
     if not para_id:
-        # No para_id means no extended info, nothing to unresolve
-        return
+        # Generate para_id if missing (older docs)
+        para_id = _generate_para_id()
+        comment_el.set(f"{{{_W15_NS}}}paraId", para_id)
+        pkg.mark_xml_dirty("/word/comments.xml")
 
-    # Set done="0" in commentsExtended.xml (or remove done attr)
-    if pkg.has_part("/word/commentsExtended.xml"):
-        ext_xml = pkg.get_xml("/word/commentsExtended.xml")
-        for comment_ex in ext_xml.iter(f"{{{_W15_NS}}}commentEx"):
-            if comment_ex.get(f"{{{_W15_NS}}}paraId") == para_id:
-                comment_ex.set(f"{{{_W15_NS}}}done", "0")
-                pkg.mark_xml_dirty("/word/commentsExtended.xml")
-                return
+    # Set done="0" in commentsExtended.xml (create if needed)
+    comment_ex = _find_or_create_comment_ex(pkg, para_id)
+    comment_ex.set(f"{{{_W15_NS}}}done", "0")
+    pkg.mark_xml_dirty("/word/commentsExtended.xml")

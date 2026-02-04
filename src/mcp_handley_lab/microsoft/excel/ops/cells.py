@@ -101,11 +101,8 @@ def get_cells_in_range(
             if not cell_ref:
                 continue
 
-            try:
-                col, _, _, _ = parse_cell_ref(cell_ref)
-                col_idx = column_letter_to_index(col)
-            except ValueError:
-                continue
+            col, _, _, _ = parse_cell_ref(cell_ref)
+            col_idx = column_letter_to_index(col)
 
             if start_col_idx <= col_idx <= end_col_idx:
                 value, type_code, formula = _extract_cell_data(pkg, cell)
@@ -220,14 +217,14 @@ def _parse_number(text: str) -> int | float:
     """Parse numeric string to int or float.
 
     Returns int if value is whole number, float otherwise.
+
+    Raises:
+        ValueError: If text cannot be parsed as a number.
     """
-    try:
-        f = float(text)
-        if f.is_integer():
-            return int(f)
-        return f
-    except ValueError:
-        return text  # Fallback to string if unparseable
+    f = float(text)  # Let ValueError propagate
+    if f.is_integer():
+        return int(f)
+    return f
 
 
 # =============================================================================

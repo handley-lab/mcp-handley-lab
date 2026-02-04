@@ -106,14 +106,14 @@ def set_custom_property(pkg, name: str, value: str, prop_type: str = "string") -
     _set_custom_property(pkg, name, value, prop_type)
 
 
-def delete_custom_property(pkg, name: str) -> bool:
+def delete_custom_property(pkg, name: str) -> None:
     """Delete a custom document property.
 
     Args:
         pkg: WordPackage
         name: Property name to delete
 
-    Returns:
-        True if property was found and deleted, False if not found
+    Raises:
+        KeyError: If property not found.
     """
-    return _delete_custom_property(pkg, name)
+    _delete_custom_property(pkg, name)

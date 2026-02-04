@@ -9,6 +9,7 @@ from mcp_handley_lab.microsoft.powerpoint.models import ShapeInfo
 from mcp_handley_lab.microsoft.powerpoint.ops.core import (
     emu_to_inches,
     find_shape_by_id,
+    find_shape_in_tree,
     get_group_transform,
     get_placeholder_info,
     get_shape_id,
@@ -195,42 +196,6 @@ def get_text_in_reading_order(pkg: PowerPointPackage, slide_num: int) -> str:
     return "\n\n".join(texts)
 
 
-def _find_shape_by_id(sp_tree: etree._Element, shape_id: int) -> etree._Element | None:
-    """Find a shape element by its cNvPr id."""
-    shape_tags = {"sp", "pic", "graphicFrame", "grpSp", "cxnSp"}
-
-    for child in sp_tree:
-        tag = etree.QName(child).localname
-        if tag not in shape_tags:
-            continue
-
-        # Check this shape's id
-        nvSpPr = child.find(qn("p:nvSpPr"), NSMAP)
-        if nvSpPr is None:
-            nvSpPr = child.find(qn("p:nvPicPr"), NSMAP)
-        if nvSpPr is None:
-            nvSpPr = child.find(qn("p:nvGraphicFramePr"), NSMAP)
-        if nvSpPr is None:
-            nvSpPr = child.find(qn("p:nvGrpSpPr"), NSMAP)
-        if nvSpPr is None:
-            nvSpPr = child.find(qn("p:nvCxnSpPr"), NSMAP)
-
-        if nvSpPr is not None:
-            cNvPr = nvSpPr.find(qn("p:cNvPr"), NSMAP)
-            if cNvPr is not None:
-                id_str = cNvPr.get("id")
-                if id_str and id_str.isdigit() and int(id_str) == shape_id:
-                    return child
-
-        # Recurse into groups
-        if tag == "grpSp":
-            found = _find_shape_by_id(child, shape_id)
-            if found is not None:
-                return found
-
-    return None
-
-
 def _get_next_shape_id(sp_tree: etree._Element) -> int:
     """Get the next available shape ID."""
     max_id = 0
@@ -239,37 +204,6 @@ def _get_next_shape_id(sp_tree: etree._Element) -> int:
         if id_str.isdigit():
             max_id = max(max_id, int(id_str))
     return max_id + 1
-
-
-def _get_shape_id(shape: etree._Element) -> int | None:
-    """Get the shape ID from a shape element's cNvPr."""
-    tag = etree.QName(shape).localname
-
-    # Map shape type to non-visual properties element name
-    nv_map = {
-        "sp": "p:nvSpPr",
-        "pic": "p:nvPicPr",
-        "graphicFrame": "p:nvGraphicFramePr",
-        "grpSp": "p:nvGrpSpPr",
-        "cxnSp": "p:nvCxnSpPr",
-    }
-
-    nv_tag = nv_map.get(tag)
-    if not nv_tag:
-        return None
-
-    nvPr = shape.find(qn(nv_tag), NSMAP)
-    if nvPr is None:
-        return None
-
-    cNvPr = nvPr.find(qn("p:cNvPr"), NSMAP)
-    if cNvPr is None:
-        return None
-
-    id_str = cNvPr.get("id")
-    if id_str and id_str.isdigit():
-        return int(id_str)
-    return None
 
 
 # Valid ECMA-376 preset geometry types (subset of commonly used shapes)
@@ -561,7 +495,7 @@ def edit_shape(
     shape_key: str,
     text: str,
     bullet_style: str | None = None,
-) -> bool:
+) -> None:
     """Edit text in an existing shape.
 
     Args:
@@ -570,8 +504,8 @@ def edit_shape(
         text: New text content
         bullet_style: Optional bullet style ("bullet", "dash", "number", "none")
 
-    Returns:
-        True if successful, False if shape not found
+    Raises:
+        ValueError: If shape not found or is not a text shape
     """
     slide_num, shape_id = parse_shape_key(shape_key)
 
@@ -580,34 +514,33 @@ def edit_shape(
 
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
-    shape = _find_shape_by_id(sp_tree, shape_id)
+    shape = find_shape_in_tree(sp_tree, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Only allow editing text in sp (shape) elements
     tag = etree.QName(shape).localname
     if tag != "sp":
-        return False
+        raise ValueError(f"Shape {shape_id} is a {tag}, not a text shape")
 
     set_shape_text(shape, text, bullet_style=bullet_style)
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 def delete_shape(
     pkg: PowerPointPackage,
     shape_key: str,
-) -> bool:
+) -> None:
     """Delete a shape from a slide.
 
     Args:
         pkg: PowerPoint package
         shape_key: Shape identifier (slide_num:shape_id)
 
-    Returns:
-        True if successful, False if shape not found
+    Raises:
+        ValueError: If shape not found
     """
     slide_num, shape_id = parse_shape_key(shape_key)
 
@@ -616,20 +549,18 @@ def delete_shape(
 
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
-    shape = _find_shape_by_id(sp_tree, shape_id)
+    shape = find_shape_in_tree(sp_tree, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Remove from parent
     parent = shape.getparent()
-    if parent is not None:
-        parent.remove(shape)
-        pkg.mark_xml_dirty(slide_partname)
-        return True
-
-    return False
+    if parent is None:
+        raise ValueError(f"Shape {shape_id} has no parent element")
+    parent.remove(shape)
+    pkg.mark_xml_dirty(slide_partname)
 
 
 def set_shape_transform(
@@ -639,7 +570,7 @@ def set_shape_transform(
     y: float | None = None,
     width: float | None = None,
     height: float | None = None,
-) -> bool:
+) -> None:
     """Set the position and/or size of a shape.
 
     Args:
@@ -650,11 +581,8 @@ def set_shape_transform(
         width: Width in inches (None = keep current)
         height: Height in inches (None = keep current)
 
-    Returns:
-        True if successful, False if shape not found
-
     Raises:
-        ValueError: If shape is inside a group or has inherited position
+        ValueError: If shape not found, inside a group, or has inherited position
     """
     slide_num, shape_id = parse_shape_key(shape_key)
     slide_xml = pkg.get_slide_xml(slide_num)
@@ -662,7 +590,7 @@ def set_shape_transform(
 
     shape = find_shape_by_id(slide_xml, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Check if shape is inside a group (parent is grpSp)
     parent = shape.getparent()
@@ -740,7 +668,6 @@ def set_shape_transform(
     # (they are not touched since we only modify off and ext elements)
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 # Shape element tags (drawable elements)
@@ -751,7 +678,7 @@ def set_z_order(
     pkg: PowerPointPackage,
     shape_key: str,
     action: str,
-) -> bool:
+) -> None:
     """Change the z-order (stacking order) of a shape.
 
     Z-order controls which shapes appear on top of others. Higher z-order shapes
@@ -771,11 +698,8 @@ def set_z_order(
             - "bring_forward": Move shape one level up
             - "send_backward": Move shape one level down
 
-    Returns:
-        True if successful, False if shape not found
-
     Raises:
-        ValueError: If action is invalid or shape is inside a group.
+        ValueError: If action is invalid, shape not found, or shape is inside a group.
     """
     valid_actions = {"bring_to_front", "send_to_back", "bring_forward", "send_backward"}
     if action not in valid_actions:
@@ -789,16 +713,16 @@ def set_z_order(
 
     sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
     if sp_tree is None:
-        return False
+        raise ValueError(f"Slide {slide_num} has no shape tree")
 
-    shape = _find_shape_by_id(sp_tree, shape_id)
+    shape = find_shape_in_tree(sp_tree, shape_id)
     if shape is None:
-        return False
+        raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
     # Check if shape is inside a group
     parent = shape.getparent()
     if parent is None:
-        return False
+        raise ValueError(f"Shape {shape_id} has no parent element")
 
     parent_tag = etree.QName(parent).localname
     if parent_tag == "grpSp":
@@ -815,13 +739,10 @@ def set_z_order(
     shapes = [c for _, c in shapes_with_idx]
 
     if not shapes:
-        return False
+        raise ValueError(f"No shapes found in parent container on slide {slide_num}")
 
     # Find shape in list
-    try:
-        shape_idx = shapes.index(shape)
-    except ValueError:
-        return False
+    shape_idx = shapes.index(shape)  # Should always succeed
 
     # Record first shape's parent index (to preserve non-shape nodes)
     first_shape_parent_idx = shapes_with_idx[0][0] if shapes_with_idx else len(parent)
@@ -853,7 +774,6 @@ def set_z_order(
         parent.insert(first_shape_parent_idx + i, s)
 
     pkg.mark_xml_dirty(slide_partname)
-    return True
 
 
 # Valid connector types
@@ -968,8 +888,8 @@ def add_connector(
         raise ValueError(f"Slide {slide_num} has no shape tree")
 
     # Find source and destination shapes
-    from_shape = _find_shape_by_id(sp_tree, from_id)
-    to_shape = _find_shape_by_id(sp_tree, to_id)
+    from_shape = find_shape_in_tree(sp_tree, from_id)
+    to_shape = find_shape_in_tree(sp_tree, to_id)
 
     if from_shape is None:
         raise ValueError(f"Source shape {from_shape_key} not found")
@@ -1234,7 +1154,7 @@ def group_shapes(
         if localname not in DRAWABLE_SHAPE_TAGS:
             continue
 
-        shape_id = _get_shape_id(shape)
+        shape_id = get_shape_id(shape)
         if shape_id in shape_ids:
             # Validate shape
             if _is_connector(shape):
@@ -1280,13 +1200,13 @@ def group_shapes(
             shapes_to_group.append((shape, bounds))
 
     if len(shapes_to_group) != len(shape_keys):
-        found_ids = {_get_shape_id(s) for s, _ in shapes_to_group}
+        found_ids = {get_shape_id(s) for s, _ in shapes_to_group}
         missing = set(shape_ids) - found_ids
 
         # Check if missing shapes are nested in existing groups
         nested_shapes = []
         for mid in missing:
-            shape_el = _find_shape_by_id(spTree, mid)
+            shape_el = find_shape_in_tree(spTree, mid)
             if shape_el is not None:
                 nested_shapes.append(mid)
 
@@ -1400,7 +1320,7 @@ def ungroup(
     group = None
     group_idx = None
     for idx, shape in enumerate(spTree):
-        if etree.QName(shape).localname == "grpSp" and _get_shape_id(shape) == shape_id:
+        if etree.QName(shape).localname == "grpSp" and get_shape_id(shape) == shape_id:
             group = shape
             group_idx = idx
             break
@@ -1458,7 +1378,7 @@ def ungroup(
                 child_off.set("x", str(old_x + group_off_x))
                 child_off.set("y", str(old_y + group_off_y))
 
-        child_id = _get_shape_id(child)
+        child_id = get_shape_id(child)
         result_keys.append(make_shape_key(slide_num, child_id))
 
     # Move children to spTree at group's position, preserving order

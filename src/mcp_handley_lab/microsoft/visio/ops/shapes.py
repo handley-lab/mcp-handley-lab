@@ -293,7 +293,7 @@ def set_z_order(
     page_num: int,
     shape_id: int,
     action: str,
-) -> bool:
+) -> None:
     """Change the z-order (stacking order) of a shape.
 
     Z-order in Visio is determined by position in the Shapes container.
@@ -309,11 +309,8 @@ def set_z_order(
             - "bring_forward": Move shape one level up
             - "send_backward": Move shape one level down
 
-    Returns:
-        True if successful, False if shape not found
-
     Raises:
-        ValueError: If action is invalid or shape is inside a group.
+        ValueError: If action invalid, shape not found, or shape is inside a group.
     """
     valid_actions = {"bring_to_front", "send_to_back", "bring_forward", "send_backward"}
     if action not in valid_actions:
@@ -326,7 +323,7 @@ def set_z_order(
     # Find the top-level Shapes container(s)
     shapes_containers = findall_v(page_xml, "Shapes")
     if not shapes_containers:
-        return False
+        raise ValueError(f"Page {page_num} has no shapes container")
 
     # Find the shape and its direct parent
     shape_el = None
@@ -360,17 +357,16 @@ def set_z_order(
                             "Use group's shape_id instead."
                         )
                     ancestor = ancestor.getparent()
-        return False
+        raise ValueError(f"Shape {shape_id} not found on page {page_num}")
 
     # Build list of Shape elements in order
     shapes = list(findall_v(parent, "Shape"))
     if not shapes:
-        return False
+        raise ValueError(f"No shapes found in container for shape {shape_id}")
 
-    try:
-        shape_idx = shapes.index(shape_el)
-    except ValueError:
-        return False
+    shape_idx = shapes.index(
+        shape_el
+    )  # Should always succeed if shape_el came from this parent
 
     # Apply z-order action (swap semantics)
     if action == "bring_to_front":
@@ -399,7 +395,6 @@ def set_z_order(
         parent.append(s)
 
     pkg.mark_page_dirty(page_num)
-    return True
 
 
 def _get_max_shape_id(pkg: VisioPackage, page_num: int) -> int:
@@ -413,12 +408,9 @@ def _get_max_shape_id(pkg: VisioPackage, page_num: int) -> int:
         for shape in findall_v(parent, "Shape"):
             id_str = shape.get("ID")
             if id_str:
-                try:
-                    shape_id = int(id_str)
-                    if shape_id > max_id:
-                        max_id = shape_id
-                except ValueError:
-                    pass
+                shape_id = int(id_str)  # Malformed ID should raise
+                if shape_id > max_id:
+                    max_id = shape_id
             # Recurse into nested Shapes containers (groups)
             for shapes_container in findall_v(shape, "Shapes"):
                 scan_shapes(shapes_container)

@@ -5,7 +5,6 @@ Cell addressing, ID generation, and common helpers.
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import re
 from typing import TYPE_CHECKING
@@ -152,8 +151,9 @@ def make_chart_id(chart_path: str, ordinal: int = 0) -> str:
     # Extract chart number from path like /xl/charts/chart1.xml
     num = "0"
     if "chart" in chart_path:
-        with contextlib.suppress(IndexError, ValueError):
-            num = chart_path.split("chart")[-1].split(".")[0]
+        parts = chart_path.split("chart")[-1].split(".")
+        if parts and parts[0].isdigit():
+            num = parts[0]
     return f"chart_{num}_{content_hash}_{ordinal}"
 
 
@@ -170,8 +170,9 @@ def make_pivot_id(pivot_path: str, ordinal: int = 0) -> str:
     content_hash = _hash_content(pivot_path)
     num = "0"
     if "pivotTable" in pivot_path:
-        with contextlib.suppress(IndexError, ValueError):
-            num = pivot_path.split("pivotTable")[-1].split(".")[0]
+        parts = pivot_path.split("pivotTable")[-1].split(".")
+        if parts and parts[0].isdigit():
+            num = parts[0]
     return f"pivot_{num}_{content_hash}_{ordinal}"
 
 

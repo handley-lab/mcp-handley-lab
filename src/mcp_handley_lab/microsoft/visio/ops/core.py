@@ -89,14 +89,14 @@ def get_section_rows(parent: etree._Element, section_name: str) -> list[dict[str
 
 
 def get_cell_float(parent: etree._Element, cell_name: str) -> float | None:
-    """Get cell value as float, returning None if missing or non-numeric."""
+    """Get cell value as float, returning None if cell missing.
+
+    Raises ValueError if cell exists but value is not numeric.
+    """
     val = get_cell_value(parent, cell_name)
     if val is None:
         return None
-    try:
-        return float(val)
-    except (ValueError, TypeError):
-        return None
+    return float(val)  # Let ValueError propagate for malformed data
 
 
 def make_shape_key(page_num: int, shape_id: int) -> str:

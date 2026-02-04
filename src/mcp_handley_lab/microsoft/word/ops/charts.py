@@ -6,6 +6,8 @@ Charts are placed inline using wp:inline within w:drawing elements.
 
 from __future__ import annotations
 
+import re
+
 from lxml import etree
 
 from mcp_handley_lab.microsoft.common.charts import (
@@ -30,17 +32,19 @@ from mcp_handley_lab.microsoft.word.package import WordPackage
 
 _EMU_PER_INCH = 914400
 
+# Regex patterns for parsing part names
+_CHART_PATTERN = re.compile(r"^/word/charts/chart(\d+)\.xml$")
+_EMBED_PATTERN = re.compile(r"^/word/embeddings/Microsoft_Excel_Worksheet(\d+)\.xlsx$")
+_DOCPR_ID_PATTERN = re.compile(r"^\d+$")
+
 
 def _next_chart_number(pkg: WordPackage) -> int:
     """Find next available chart number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith("/word/charts/chart") and partname.endswith(".xml"):
-            try:
-                num = int(partname[len("/word/charts/chart") : -4])
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _CHART_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -48,16 +52,9 @@ def _next_embed_number(pkg: WordPackage) -> int:
     """Find next available embedding number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith(
-            "/word/embeddings/Microsoft_Excel_Worksheet"
-        ) and partname.endswith(".xlsx"):
-            try:
-                num = int(
-                    partname[len("/word/embeddings/Microsoft_Excel_Worksheet") : -5]
-                )
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _EMBED_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -68,10 +65,9 @@ def _next_docPr_id(pkg: WordPackage) -> int:
     for elem in doc.iter():
         tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
         if tag == "docPr":
-            try:
-                max_id = max(max_id, int(elem.get("id", "0")))
-            except ValueError:
-                pass
+            id_val = elem.get("id", "")
+            if _DOCPR_ID_PATTERN.match(id_val):
+                max_id = max(max_id, int(id_val))
     return max_id + 1
 
 

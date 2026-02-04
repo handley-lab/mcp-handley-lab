@@ -85,11 +85,8 @@ def get_used_range(pkg: ExcelPackage, sheet_name: str) -> str | None:
             if v_el is None and is_el is None and f_el is None:
                 continue
 
-            try:
-                col, cell_row, _, _ = parse_cell_ref(cell_ref)
-                col_idx = column_letter_to_index(col)
-            except ValueError:
-                continue
+            col, cell_row, _, _ = parse_cell_ref(cell_ref)
+            col_idx = column_letter_to_index(col)
 
             has_data = True
             min_row = min(min_row, cell_row)

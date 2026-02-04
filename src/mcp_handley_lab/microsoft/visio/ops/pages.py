@@ -40,13 +40,10 @@ def list_pages(pkg: VisioPackage) -> list[PageInfo]:
         # Count shapes on this page
         shape_count = 0
         if idx in path_by_num:
-            try:
-                page_xml = pkg.get_xml(path_by_num[idx])
-                shapes = findall_v(page_xml, "Shapes")
-                if shapes:
-                    shape_count = len(findall_v(shapes[0], "Shape"))
-            except (KeyError, IndexError):
-                pass
+            page_xml = pkg.get_xml(path_by_num[idx])
+            shapes = findall_v(page_xml, "Shapes")
+            if shapes:
+                shape_count = len(findall_v(shapes[0], "Shape"))
 
         results.append(
             PageInfo(
@@ -65,21 +62,25 @@ def list_pages(pkg: VisioPackage) -> list[PageInfo]:
 def get_page_dimensions(pkg: VisioPackage, page_num: int) -> tuple[float, float]:
     """Get page dimensions (width, height) in inches.
 
-    Returns (width, height) or (8.5, 11.0) as default if not found.
+    Raises ValueError if page not found or dimensions unavailable.
     """
     pages_xml = pkg.get_pages_xml()
     if pages_xml is None:
-        return (8.5, 11.0)
+        raise ValueError("No pages.xml found in document")
 
     page_els = findall_v(pages_xml, "Page")
     if page_num < 1 or page_num > len(page_els):
-        return (8.5, 11.0)
+        raise ValueError(
+            f"Page {page_num} not found (document has {len(page_els)} pages)"
+        )
 
     page_el = page_els[page_num - 1]
     page_sheet = find_v(page_el, "PageSheet")
     if page_sheet is None:
-        return (8.5, 11.0)
+        raise ValueError(f"Page {page_num} has no PageSheet element")
 
-    width = get_cell_float(page_sheet, "PageWidth") or 8.5
-    height = get_cell_float(page_sheet, "PageHeight") or 11.0
+    width = get_cell_float(page_sheet, "PageWidth")
+    height = get_cell_float(page_sheet, "PageHeight")
+    if width is None or height is None:
+        raise ValueError(f"Page {page_num} missing PageWidth or PageHeight")
     return (width, height)

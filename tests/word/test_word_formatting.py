@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 
 from mcp_handley_lab.microsoft.word.constants import qn
 from mcp_handley_lab.microsoft.word.package import WordPackage
@@ -413,45 +414,45 @@ class TestTableCreation:
 
     @pytest.mark.asyncio
     async def test_table_invalid_dimensions(self, temp_docx):
-        """Invalid table dimensions raise error."""
-        _, result = await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(temp_docx),
-                "ops": _ops(
-                    [
-                        {
-                            "op": "append",
-                            "content_type": "table",
-                            "content_data": {"rows": 0, "cols": 2},
-                        }
-                    ]
-                ),
-            },
-        )
-        assert result["success"] is False
-        assert "at least 1 row" in result["results"][0]["error"]
+        """Invalid table dimensions raise ValueError."""
+        with pytest.raises(ToolError) as exc_info:
+            await mcp.call_tool(
+                "edit",
+                {
+                    "file_path": str(temp_docx),
+                    "ops": _ops(
+                        [
+                            {
+                                "op": "append",
+                                "content_type": "table",
+                                "content_data": {"rows": 0, "cols": 2},
+                            }
+                        ]
+                    ),
+                },
+            )
+        assert "at least 1 row" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_table_excessive_size(self, temp_docx):
-        """Excessively large table raises error."""
-        _, result = await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(temp_docx),
-                "ops": _ops(
-                    [
-                        {
-                            "op": "append",
-                            "content_type": "table",
-                            "content_data": {"rows": 200, "cols": 200},
-                        }
-                    ]
-                ),
-            },
-        )
-        assert result["success"] is False
-        assert "exceeds maximum" in result["results"][0]["error"]
+        """Excessively large table raises ValueError."""
+        with pytest.raises(ToolError) as exc_info:
+            await mcp.call_tool(
+                "edit",
+                {
+                    "file_path": str(temp_docx),
+                    "ops": _ops(
+                        [
+                            {
+                                "op": "append",
+                                "content_type": "table",
+                                "content_data": {"rows": 200, "cols": 200},
+                            }
+                        ]
+                    ),
+                },
+            )
+        assert "exceeds maximum" in str(exc_info.value)
 
 
 class TestInsertFormatting:

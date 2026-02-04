@@ -210,11 +210,10 @@ def read(
 def edit(
     file_path: str,
     ops: str,
-    mode: str = "atomic",
 ) -> dict[str, Any]:
     """Edit a PowerPoint presentation using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover slides, shapes, and layouts.
 
     Args:
@@ -222,7 +221,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "add_shape", "slide_num": 1, "x": 1.0, "y": 1.0, "width": 4.0, "height": 1.0, "text": "Title"},
              {"op": "set_text_style", "shape_key": "$prev[0]", "bold": true}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops).
 
     Available operations:
         - add_slide, delete_slide, reorder_slide, duplicate_slide, hide_slide
@@ -240,11 +238,14 @@ def edit(
 
     Returns:
         Dict with success status, counts, and per-operation results.
+
+    Raises:
+        ValueError: Invalid JSON, invalid operation, missing required params.
+        RuntimeError: Save failed after successful operations.
     """
     return run_batch_edit(
         file_path=file_path,
         ops=ops,
-        mode=mode,
         open_pkg=PowerPointPackage.open,
         new_pkg=PowerPointPackage.new,
         apply_op=_apply_op,
@@ -587,11 +588,7 @@ def _op_set_placeholder(
         raise ValueError("slide_num required for set_placeholder")
     if text is None:
         raise ValueError("text required for set_placeholder")
-    result = set_placeholder_text(
-        pkg, slide_num, text, placeholder_type, placeholder_idx
-    )
-    if not result:
-        raise ValueError(f"Placeholder not found on slide {slide_num}")
+    set_placeholder_text(pkg, slide_num, text, placeholder_type, placeholder_idx)
     return {
         "message": f"Set placeholder text on slide {slide_num}",
         "element_id": "",

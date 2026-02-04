@@ -1,7 +1,7 @@
 """Shared batch edit utilities for Microsoft format MCP tools.
 
 Provides the common batch processing pattern: parse ops JSON, resolve $prev
-references, normalize text, execute operations, handle save with atomic/partial modes.
+references, normalize text, execute operations with fail-fast semantics.
 """
 
 from __future__ import annotations
@@ -93,7 +93,6 @@ def run_batch_edit(
     *,
     file_path: str,
     ops: str,
-    mode: str,
     open_pkg: Callable[[str], Any],
     new_pkg: Callable[[], Any],
     apply_op: Callable[[Any, str, dict[str, Any]], dict[str, Any]],
@@ -103,67 +102,53 @@ def run_batch_edit(
     text_fields: dict[str, set[str]],
     excluded_ops: set[str] | None = None,
 ) -> dict[str, Any]:
-    """Execute batch operations with atomic/partial save semantics.
+    """Execute batch operations with fail-fast semantics.
+
+    All operations execute in sequence. On first failure, raises immediately
+    without saving (file unchanged). On success of all operations, saves file.
 
     Args:
         file_path: Path to the document file
         ops: JSON array of operation objects
-        mode: 'atomic' or 'partial'
         open_pkg: Callable to open an existing package from file_path
         new_pkg: Callable to create a new empty package
-        apply_op: Callable(pkg, op_name, params) -> dict with message/element_id
+        apply_op: Callable(pkg, op_name, params) -> dict with message/element_id.
+            MUST raise an exception on failure (fail-fast contract).
         make_op_result: Callable to construct per-operation result objects
         make_edit_result: Callable to construct the batch edit result object
         prev_fields: Set of field names that support $prev[N] references
         text_fields: Dict mapping op names to sets of field names for text normalization
         excluded_ops: Set of op names not allowed in batch mode
-    """
-    if not isinstance(mode, str):
-        mode = "atomic"
 
+    Raises:
+        ValueError: Invalid JSON, empty ops, invalid operation structure,
+                   or any operation failure (propagated from apply_op).
+        RuntimeError: Save failed after successful operations.
+    """
     try:
         operations = json.loads(ops)
     except json.JSONDecodeError as e:
-        return make_edit_result(
-            success=False, message=f"Invalid JSON in ops: {e}"
-        ).model_dump(exclude_none=True)
+        raise ValueError(f"Invalid JSON in ops: {e}") from e
 
     if not isinstance(operations, list):
-        return make_edit_result(
-            success=False, message="ops must be a JSON array"
-        ).model_dump(exclude_none=True)
+        raise ValueError("ops must be a JSON array")
 
     if len(operations) == 0:
-        return make_edit_result(success=False, message="ops array is empty").model_dump(
-            exclude_none=True
-        )
+        raise ValueError("ops array is empty")
 
     if len(operations) > _MAX_OPS:
-        return make_edit_result(
-            success=False, message=f"ops array exceeds maximum of {_MAX_OPS} operations"
-        ).model_dump(exclude_none=True)
-
-    if mode not in ("atomic", "partial"):
-        return make_edit_result(
-            success=False,
-            message=f"Invalid mode '{mode}': must be 'atomic' or 'partial'",
-        ).model_dump(exclude_none=True)
+        raise ValueError(f"ops array exceeds maximum of {_MAX_OPS} operations")
 
     excluded = excluded_ops or set()
     for i, op_dict in enumerate(operations):
         if not isinstance(op_dict, dict):
-            return make_edit_result(
-                success=False, message=f"Operation at index {i} is not an object"
-            ).model_dump(exclude_none=True)
+            raise ValueError(f"Operation at index {i} is not an object")
         if "op" not in op_dict:
-            return make_edit_result(
-                success=False, message=f"Operation at index {i} missing 'op' field"
-            ).model_dump(exclude_none=True)
+            raise ValueError(f"Operation at index {i} missing 'op' field")
         if op_dict["op"] in excluded:
-            return make_edit_result(
-                success=False,
-                message=f"Operation '{op_dict['op']}' at index {i} is not allowed in batch mode",
-            ).model_dump(exclude_none=True)
+            raise ValueError(
+                f"Operation '{op_dict['op']}' at index {i} is not allowed in batch mode"
+            )
 
     pkg = open_pkg(file_path) if os.path.exists(file_path) else new_pkg()
     results: list = []
@@ -172,74 +157,35 @@ def run_batch_edit(
         op_name = op_dict["op"]
         params = {k: v for k, v in op_dict.items() if k != "op"}
 
-        try:
-            params = resolve_prev_refs(params, results, i, prev_fields)
-            params = normalize_text(op_name, params, text_fields)
-            result = apply_op(pkg, op_name, params)
-            results.append(
-                make_op_result(
-                    index=i,
-                    op=op_name,
-                    success=True,
-                    element_id=result.get("element_id", ""),
-                    message=result.get("message", ""),
-                )
+        # Let exceptions propagate (fail-fast)
+        params = resolve_prev_refs(params, results, i, prev_fields)
+        params = normalize_text(op_name, params, text_fields)
+        result = apply_op(pkg, op_name, params)
+        results.append(
+            make_op_result(
+                index=i,
+                op=op_name,
+                success=True,
+                element_id=result.get("element_id", ""),
+                message=result.get("message", ""),
             )
-        except Exception as e:
-            results.append(
-                make_op_result(
-                    index=i,
-                    op=op_name,
-                    success=False,
-                    error=str(e),
-                )
-            )
-            if mode == "atomic":
-                break
-
-    succeeded = sum(1 for r in results if r.success)
-    failed = sum(1 for r in results if not r.success)
-    total = len(operations)
-
-    should_save = (failed == 0 and succeeded > 0) if mode == "atomic" else succeeded > 0
-
-    saved = False
-    if should_save:
-        try:
-            pkg.save(file_path)
-            saved = True
-        except Exception as e:
-            return make_edit_result(
-                success=False,
-                message=f"Operations succeeded but save failed: {e}",
-                total=total,
-                succeeded=succeeded,
-                failed=failed,
-                results=results,
-                saved=False,
-            ).model_dump(exclude_none=True)
-
-    if mode == "atomic":
-        if failed > 0:
-            message = f"Batch failed: {failed} operation(s) failed, file unchanged"
-            success = False
-        else:
-            message = f"Batch completed: {succeeded}/{total} operation(s) succeeded"
-            success = True
-    else:
-        message = (
-            f"Batch completed: {succeeded}/{total} succeeded, {failed}/{total} failed"
         )
-        success = succeeded > 0
+
+    # All operations succeeded - save
+    total = len(operations)
+    try:
+        pkg.save(file_path)
+    except Exception as e:
+        raise RuntimeError(f"Operations succeeded but save failed: {e}") from e
 
     return make_edit_result(
-        success=success,
-        message=message,
+        success=True,
+        message=f"Batch completed: {total}/{total} operation(s) succeeded",
         total=total,
-        succeeded=succeeded,
-        failed=failed,
+        succeeded=total,
+        failed=0,
         results=results,
-        saved=saved,
+        saved=True,
     ).model_dump(exclude_none=True)
 
 

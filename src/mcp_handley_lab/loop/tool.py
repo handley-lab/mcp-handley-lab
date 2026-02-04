@@ -259,7 +259,7 @@ def manage(params: ManageArgs) -> ManageResult:
     - terminate: Send Ctrl-C to interrupt. Params: loop_id
     - kill: Force-kill loop. Params: loop_id
 
-    Available backends: bash, zsh, python, ipython, julia, R, clojure, apl, maple, ollama, mathematica
+    Available backends: bash, zsh, python, ipython, julia, R, clojure, apl, maple, ollama, mathematica, claude, gemini, openai
 
     Args:
         params: ManageArgs with action and action-specific fields

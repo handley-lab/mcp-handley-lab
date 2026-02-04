@@ -108,6 +108,10 @@ def get_backend(name: str) -> Any:
     """Get a backend instance by name."""
     if name == "claude":
         return ClaudeBackend()
+    if name == "gemini":
+        return GeminiBackend()
+    if name == "openai":
+        return OpenAIBackend()
     if name in BACKENDS:
         return TmuxBackend(BACKENDS[name])
     raise NotImplementedError(f"backend '{name}' not implemented")
@@ -578,3 +582,231 @@ class ClaudeBackend:
             for pipe in (proc.stdin, proc.stdout):
                 if pipe:
                     pipe.close()
+
+
+# Gemini SDK state - keyed by loop_id
+_gemini_state: dict[str, dict[str, Any]] = {}
+_gemini_lock = threading.Lock()
+
+
+class GeminiBackend:
+    """Backend for Google Gemini via Python SDK."""
+
+    def spawn(
+        self,
+        label: str,
+        name: str | None,
+        args: str | None,
+        child_allowed_tools: list[str],
+        socket_path: str = "",
+    ) -> tuple[str, str]:
+        """Spawn a new Gemini session. Returns (loop_id, loop_id)."""
+        # Validate API key upfront
+        if not os.environ.get("GEMINI_API_KEY"):
+            raise ValueError("GEMINI_API_KEY environment variable required")
+
+        timestamp = datetime.now().strftime("%H%M%S")
+        loop_id = f"gemini-{name or timestamp}"
+
+        # Parse model from args if provided (e.g., "--model gemini-2.0-flash")
+        model = "gemini-2.0-flash"
+        if args:
+            import shlex
+
+            arg_list = shlex.split(args)
+            for i, arg in enumerate(arg_list):
+                if arg == "--model" and i + 1 < len(arg_list):
+                    model = arg_list[i + 1]
+                elif arg.startswith("--model="):
+                    model = arg.split("=", 1)[1]
+
+        with _gemini_lock:
+            _gemini_state[loop_id] = {
+                "history": [],
+                "model": model,
+                "cells": [],
+            }
+
+        return loop_id, loop_id
+
+    def eval(
+        self, pane_id: str, code: str, check_cancelled: Callable[[], bool]
+    ) -> dict[str, Any]:
+        """Send message to Gemini and wait for response."""
+        import google.genai as genai
+
+        with _gemini_lock:
+            state = _gemini_state.get(pane_id)
+            if not state:
+                raise RuntimeError(f"Gemini session not found: {pane_id}")
+            history = list(state["history"])  # Copy for thread safety
+            model = state["model"]
+
+        # Create client and chat
+        client = genai.Client()
+        chat = client.chats.create(model=model, history=history)
+
+        # Stream response
+        output_parts: list[str] = []
+        try:
+            for chunk in chat.send_message_stream(code):
+                if check_cancelled():
+                    return {
+                        "output": "".join(output_parts) + "\n[cancelled]",
+                        "cell_index": len(state["cells"]),
+                    }
+                if hasattr(chunk, "text") and chunk.text:
+                    output_parts.append(chunk.text)
+        except Exception as e:
+            raise RuntimeError(f"Gemini API error: {e}") from e
+
+        output = "".join(output_parts)
+
+        # Update state
+        with _gemini_lock:
+            state["history"].append({"role": "user", "parts": [code]})
+            state["history"].append({"role": "model", "parts": [output]})
+            cell_index = len(state["cells"])
+            state["cells"].append(
+                {"index": cell_index, "input": code, "output": output}
+            )
+
+        return {"output": output, "cell_index": cell_index}
+
+    def read(self, pane_id: str) -> list[dict[str, Any]]:
+        """Read conversation cells."""
+        with _gemini_lock:
+            state = _gemini_state.get(pane_id)
+            return list(state["cells"]) if state else []
+
+    def read_raw(self, pane_id: str) -> str:
+        """Read raw output (returns JSON of cells)."""
+        with _gemini_lock:
+            state = _gemini_state.get(pane_id)
+            return json.dumps(state["cells"], indent=2) if state else "[]"
+
+    def terminate(self, pane_id: str) -> None:
+        """Terminate is a no-op for SDK backends (cancellation via check_cancelled)."""
+        pass
+
+    def kill(self, pane_id: str) -> None:
+        """Remove session state."""
+        with _gemini_lock:
+            _gemini_state.pop(pane_id, None)
+
+
+# OpenAI SDK state - keyed by loop_id
+_openai_state: dict[str, dict[str, Any]] = {}
+_openai_lock = threading.Lock()
+
+
+class OpenAIBackend:
+    """Backend for OpenAI via Python SDK."""
+
+    def spawn(
+        self,
+        label: str,
+        name: str | None,
+        args: str | None,
+        child_allowed_tools: list[str],
+        socket_path: str = "",
+    ) -> tuple[str, str]:
+        """Spawn a new OpenAI session. Returns (loop_id, loop_id)."""
+        # Validate API key upfront
+        if not os.environ.get("OPENAI_API_KEY"):
+            raise ValueError("OPENAI_API_KEY environment variable required")
+
+        timestamp = datetime.now().strftime("%H%M%S")
+        loop_id = f"openai-{name or timestamp}"
+
+        # Parse model from args if provided
+        model = "gpt-4o"
+        if args:
+            import shlex
+
+            arg_list = shlex.split(args)
+            for i, arg in enumerate(arg_list):
+                if arg == "--model" and i + 1 < len(arg_list):
+                    model = arg_list[i + 1]
+                elif arg.startswith("--model="):
+                    model = arg.split("=", 1)[1]
+
+        with _openai_lock:
+            _openai_state[loop_id] = {
+                "messages": [],
+                "model": model,
+                "cells": [],
+            }
+
+        return loop_id, loop_id
+
+    def eval(
+        self, pane_id: str, code: str, check_cancelled: Callable[[], bool]
+    ) -> dict[str, Any]:
+        """Send message to OpenAI and wait for response."""
+        from openai import OpenAI
+
+        with _openai_lock:
+            state = _openai_state.get(pane_id)
+            if not state:
+                raise RuntimeError(f"OpenAI session not found: {pane_id}")
+            messages = list(state["messages"])  # Copy for thread safety
+            model = state["model"]
+
+        messages.append({"role": "user", "content": code})
+
+        # Create client with timeout
+        client = OpenAI(timeout=60.0)
+
+        # Stream response
+        output_parts: list[str] = []
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                stream=True,
+            )
+            for chunk in response:
+                if check_cancelled():
+                    return {
+                        "output": "".join(output_parts) + "\n[cancelled]",
+                        "cell_index": len(state["cells"]),
+                    }
+                if chunk.choices and chunk.choices[0].delta.content:
+                    output_parts.append(chunk.choices[0].delta.content)
+        except Exception as e:
+            raise RuntimeError(f"OpenAI API error: {e}") from e
+
+        output = "".join(output_parts)
+
+        # Update state
+        with _openai_lock:
+            state["messages"].append({"role": "user", "content": code})
+            state["messages"].append({"role": "assistant", "content": output})
+            cell_index = len(state["cells"])
+            state["cells"].append(
+                {"index": cell_index, "input": code, "output": output}
+            )
+
+        return {"output": output, "cell_index": cell_index}
+
+    def read(self, pane_id: str) -> list[dict[str, Any]]:
+        """Read conversation cells."""
+        with _openai_lock:
+            state = _openai_state.get(pane_id)
+            return list(state["cells"]) if state else []
+
+    def read_raw(self, pane_id: str) -> str:
+        """Read raw output (returns JSON of cells)."""
+        with _openai_lock:
+            state = _openai_state.get(pane_id)
+            return json.dumps(state["cells"], indent=2) if state else "[]"
+
+    def terminate(self, pane_id: str) -> None:
+        """Terminate is a no-op for SDK backends (cancellation via check_cancelled)."""
+        pass
+
+    def kill(self, pane_id: str) -> None:
+        """Remove session state."""
+        with _openai_lock:
+            _openai_state.pop(pane_id, None)

@@ -68,12 +68,13 @@ class Relationships(dict):
         """Get all relationships matching a relationship type."""
         return [rel for rel in self.values() if rel.reltype == reltype]
 
-    def remove(self, rId: str) -> bool:
-        """Remove relationship by rId. Returns True if removed."""
-        if rId in self:
-            del self[rId]
-            return True
-        return False
+    def remove(self, rId: str) -> None:
+        """Remove relationship by rId.
+
+        Raises:
+            KeyError: If rId not found.
+        """
+        del self[rId]  # Raises KeyError if not found
 
     @classmethod
     def from_xml(cls, xml_bytes: bytes, base_uri: str = "") -> Relationships:

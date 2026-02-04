@@ -206,7 +206,6 @@ def _add_series_common(
     parent: etree._Element,
     idx: int,
     name_ref: str,
-    name_text: str,
 ) -> etree._Element:
     """Add common series elements (idx, order, serTx). Returns the c:ser element."""
     ser = etree.SubElement(parent, _qn_c("ser"))
@@ -267,8 +266,8 @@ def _add_bar_chart(
     etree.SubElement(bar_chart, _qn_c("grouping"), val="clustered")
     etree.SubElement(bar_chart, _qn_c("varyColors"), val="0")
 
-    for idx, (name_ref, name_text, values_range) in enumerate(series):
-        ser = _add_series_common(bar_chart, idx, name_ref, name_text)
+    for idx, (name_ref, _name_text, values_range) in enumerate(series):
+        ser = _add_series_common(bar_chart, idx, name_ref)
         _add_cat_ref(ser, categories_range)
         _add_val_ref(ser, values_range)
 
@@ -288,8 +287,8 @@ def _add_line_chart(
     etree.SubElement(line_chart, _qn_c("grouping"), val="standard")
     etree.SubElement(line_chart, _qn_c("varyColors"), val="0")
 
-    for idx, (name_ref, name_text, values_range) in enumerate(series):
-        ser = _add_series_common(line_chart, idx, name_ref, name_text)
+    for idx, (name_ref, _name_text, values_range) in enumerate(series):
+        ser = _add_series_common(line_chart, idx, name_ref)
         marker = etree.SubElement(ser, _qn_c("marker"))
         etree.SubElement(marker, _qn_c("symbol"), val="none")
         _add_cat_ref(ser, categories_range)
@@ -312,8 +311,8 @@ def _add_pie_chart(
 
     # Pie charts use only the first series
     if series:
-        name_ref, name_text, values_range = series[0]
-        ser = _add_series_common(pie_chart, 0, name_ref, name_text)
+        name_ref, _name_text, values_range = series[0]
+        ser = _add_series_common(pie_chart, 0, name_ref)
         _add_cat_ref(ser, categories_range)
         _add_val_ref(ser, values_range)
 
@@ -334,8 +333,8 @@ def _add_scatter_chart(
     etree.SubElement(scatter_chart, _qn_c("scatterStyle"), val="lineMarker")
     etree.SubElement(scatter_chart, _qn_c("varyColors"), val="0")
 
-    for idx, (name_ref, name_text, values_range) in enumerate(series):
-        ser = _add_series_common(scatter_chart, idx, name_ref, name_text)
+    for idx, (name_ref, _name_text, values_range) in enumerate(series):
+        ser = _add_series_common(scatter_chart, idx, name_ref)
 
         marker = etree.SubElement(ser, _qn_c("marker"))
         etree.SubElement(marker, _qn_c("symbol"), val="circle")
@@ -371,8 +370,8 @@ def _add_area_chart(
     etree.SubElement(area_chart, _qn_c("grouping"), val="standard")
     etree.SubElement(area_chart, _qn_c("varyColors"), val="0")
 
-    for idx, (name_ref, name_text, values_range) in enumerate(series):
-        ser = _add_series_common(area_chart, idx, name_ref, name_text)
+    for idx, (name_ref, _name_text, values_range) in enumerate(series):
+        ser = _add_series_common(area_chart, idx, name_ref)
         _add_cat_ref(ser, categories_range)
         _add_val_ref(ser, values_range)
 

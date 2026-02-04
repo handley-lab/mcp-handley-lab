@@ -111,7 +111,7 @@ def insert_rows(
     sheet_data = sheet.find(qn("x:sheetData"))
 
     if sheet_data is None:
-        return
+        raise ValueError(f"Sheet '{sheet_name}' has no sheetData element")
 
     # Shift existing rows down
     for row_el in sheet_data.findall(qn("x:row")):
@@ -161,7 +161,7 @@ def delete_rows(
     sheet_data = sheet.find(qn("x:sheetData"))
 
     if sheet_data is None:
-        return
+        raise ValueError(f"Sheet '{sheet_name}' has no sheetData element")
 
     # Remove rows in the deletion range
     rows_to_remove = []
@@ -224,7 +224,7 @@ def insert_columns(
     sheet_data = sheet.find(qn("x:sheetData"))
 
     if sheet_data is None:
-        return
+        raise ValueError(f"Sheet '{sheet_name}' has no sheetData element")
 
     # Update cell references in all rows
     for row_el in sheet_data.findall(qn("x:row")):
@@ -277,7 +277,7 @@ def delete_columns(
     sheet_data = sheet.find(qn("x:sheetData"))
 
     if sheet_data is None:
-        return
+        raise ValueError(f"Sheet '{sheet_name}' has no sheetData element")
 
     # Process each row
     for row_el in sheet_data.findall(qn("x:row")):
@@ -507,8 +507,8 @@ def _shift_merge_cells(
             )
             merge_cell.set("ref", f"{new_start}:{new_end}")
 
-        except ValueError:
-            continue
+        except ValueError as e:
+            raise ValueError(f"Invalid mergeCell ref '{old_ref}': {e}") from e
 
     for merge_cell in merges_to_remove:
         merge_cells_el.remove(merge_cell)
@@ -522,35 +522,36 @@ def _shift_merge_cells(
 
 
 def _ranges_overlap(range1: str, range2: str) -> bool:
-    """Check if two ranges overlap."""
-    try:
-        s1, e1 = parse_range_ref(range1)
-        s2, e2 = parse_range_ref(range2)
+    """Check if two ranges overlap.
 
-        s1_col, s1_row, _, _ = parse_cell_ref(s1)
-        e1_col, e1_row, _, _ = parse_cell_ref(e1)
-        s2_col, s2_row, _, _ = parse_cell_ref(s2)
-        e2_col, e2_row, _, _ = parse_cell_ref(e2)
+    Raises:
+        ValueError: If either range reference is invalid.
+    """
+    s1, e1 = parse_range_ref(range1)
+    s2, e2 = parse_range_ref(range2)
 
-        s1_col_idx = column_letter_to_index(s1_col)
-        e1_col_idx = column_letter_to_index(e1_col)
-        s2_col_idx = column_letter_to_index(s2_col)
-        e2_col_idx = column_letter_to_index(e2_col)
+    s1_col, s1_row, _, _ = parse_cell_ref(s1)
+    e1_col, e1_row, _, _ = parse_cell_ref(e1)
+    s2_col, s2_row, _, _ = parse_cell_ref(s2)
+    e2_col, e2_row, _, _ = parse_cell_ref(e2)
 
-        # Normalize ranges
-        if s1_col_idx > e1_col_idx:
-            s1_col_idx, e1_col_idx = e1_col_idx, s1_col_idx
-        if s1_row > e1_row:
-            s1_row, e1_row = e1_row, s1_row
-        if s2_col_idx > e2_col_idx:
-            s2_col_idx, e2_col_idx = e2_col_idx, s2_col_idx
-        if s2_row > e2_row:
-            s2_row, e2_row = e2_row, s2_row
+    s1_col_idx = column_letter_to_index(s1_col)
+    e1_col_idx = column_letter_to_index(e1_col)
+    s2_col_idx = column_letter_to_index(s2_col)
+    e2_col_idx = column_letter_to_index(e2_col)
 
-        # Check for overlap
-        col_overlap = s1_col_idx <= e2_col_idx and e1_col_idx >= s2_col_idx
-        row_overlap = s1_row <= e2_row and e1_row >= s2_row
+    # Normalize ranges
+    if s1_col_idx > e1_col_idx:
+        s1_col_idx, e1_col_idx = e1_col_idx, s1_col_idx
+    if s1_row > e1_row:
+        s1_row, e1_row = e1_row, s1_row
+    if s2_col_idx > e2_col_idx:
+        s2_col_idx, e2_col_idx = e2_col_idx, s2_col_idx
+    if s2_row > e2_row:
+        s2_row, e2_row = e2_row, s2_row
 
-        return col_overlap and row_overlap
-    except ValueError:
-        return False
+    # Check for overlap
+    col_overlap = s1_col_idx <= e2_col_idx and e1_col_idx >= s2_col_idx
+    row_overlap = s1_row <= e2_row and e1_row >= s2_row
+
+    return col_overlap and row_overlap

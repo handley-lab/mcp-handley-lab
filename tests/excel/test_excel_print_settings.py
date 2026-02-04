@@ -2,6 +2,8 @@
 
 import io
 
+import pytest
+
 from mcp_handley_lab.microsoft.excel.ops.print_settings import (
     add_column_page_break,
     add_row_page_break,
@@ -267,29 +269,19 @@ class TestScale:
         assert page_setup is not None
         assert page_setup.get("scale") == "50"
 
-    def test_set_scale_clamps_minimum(self) -> None:
-        """Scale is clamped to minimum 10."""
+    def test_set_scale_rejects_below_minimum(self) -> None:
+        """Scale below 10 raises ValueError."""
         pkg = ExcelPackage.new()
-        set_scale(pkg, "Sheet1", 5)
+        with pytest.raises(ValueError) as exc_info:
+            set_scale(pkg, "Sheet1", 5)
+        assert "between 10 and 400" in str(exc_info.value)
 
-        sheet_xml = pkg.get_sheet_xml("Sheet1")
-        from mcp_handley_lab.microsoft.excel.constants import qn
-
-        page_setup = sheet_xml.find(qn("x:pageSetup"))
-        assert page_setup is not None
-        assert page_setup.get("scale") == "10"
-
-    def test_set_scale_clamps_maximum(self) -> None:
-        """Scale is clamped to maximum 400."""
+    def test_set_scale_rejects_above_maximum(self) -> None:
+        """Scale above 400 raises ValueError."""
         pkg = ExcelPackage.new()
-        set_scale(pkg, "Sheet1", 500)
-
-        sheet_xml = pkg.get_sheet_xml("Sheet1")
-        from mcp_handley_lab.microsoft.excel.constants import qn
-
-        page_setup = sheet_xml.find(qn("x:pageSetup"))
-        assert page_setup is not None
-        assert page_setup.get("scale") == "400"
+        with pytest.raises(ValueError) as exc_info:
+            set_scale(pkg, "Sheet1", 500)
+        assert "between 10 and 400" in str(exc_info.value)
 
 
 class TestFitToPage:

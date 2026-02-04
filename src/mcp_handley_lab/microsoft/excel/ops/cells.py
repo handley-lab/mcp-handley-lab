@@ -101,11 +101,8 @@ def get_cells_in_range(
             if not cell_ref:
                 continue
 
-            try:
-                col, _, _, _ = parse_cell_ref(cell_ref)
-                col_idx = column_letter_to_index(col)
-            except ValueError:
-                continue
+            col, _, _, _ = parse_cell_ref(cell_ref)
+            col_idx = column_letter_to_index(col)
 
             if start_col_idx <= col_idx <= end_col_idx:
                 value, type_code, formula = _extract_cell_data(pkg, cell)

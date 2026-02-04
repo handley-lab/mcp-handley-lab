@@ -10,7 +10,7 @@ models as needed.
 
 from __future__ import annotations
 
-import contextlib
+import re
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -98,9 +98,8 @@ def get_core_properties(pkg: OpcPackage) -> dict:
 
     # Revision is an integer
     rev_el = core_xml.find(f"{{{NS_CP}}}revision")
-    if rev_el is not None and rev_el.text:
-        with contextlib.suppress(ValueError):
-            result["revision"] = int(rev_el.text)
+    if rev_el is not None and rev_el.text and re.match(r"^\d+$", rev_el.text):
+        result["revision"] = int(rev_el.text)
 
     return result
 
@@ -324,13 +323,14 @@ def set_custom_property(
     max_pid = 1
     for prop in custom_xml.findall(f"{{{NS_CUSTOM}}}property"):
         pid_str = prop.get("pid", "1")
-        try:
-            pid = int(pid_str)
-            if pid > max_pid:
-                max_pid = pid
-        except ValueError:
-            # Malformed pid - skip for max calculation
-            pass
+        if not pid_str.isdigit():
+            prop_name = prop.get("name", "<unnamed>")
+            raise ValueError(
+                f"Malformed custom property pid '{pid_str}' on property '{prop_name}'"
+            )
+        pid = int(pid_str)
+        if pid > max_pid:
+            max_pid = pid
         if prop.get("name") == name:
             existing = prop
 
@@ -352,19 +352,20 @@ def set_custom_property(
     pkg.mark_xml_dirty("/docProps/custom.xml")
 
 
-def delete_custom_property(pkg: OpcPackage, name: str) -> bool:
+def delete_custom_property(pkg: OpcPackage, name: str) -> None:
     """Delete a custom document property.
 
-    Returns True if property was found and deleted, False if not found.
+    Raises:
+        KeyError: If property not found or custom.xml doesn't exist.
     """
     if not pkg.has_part("/docProps/custom.xml"):
-        return False
+        raise KeyError(f"Custom property not found: {name}")
 
     custom_xml = pkg.get_xml("/docProps/custom.xml")
     for prop in custom_xml.findall(f"{{{NS_CUSTOM}}}property"):
         if prop.get("name") == name:
             custom_xml.remove(prop)
             pkg.mark_xml_dirty("/docProps/custom.xml")
-            return True
+            return
 
-    return False
+    raise KeyError(f"Custom property not found: {name}")

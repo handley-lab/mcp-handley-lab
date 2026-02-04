@@ -55,10 +55,11 @@ def list_names(pkg: ExcelPackage) -> list[NameInfo]:
         scope = None
         local_sheet_id = dn.get("localSheetId")
         if local_sheet_id is not None:
-            try:
-                scope = _get_sheet_name_by_index(pkg, int(local_sheet_id))
-            except (IndexError, ValueError):
-                scope = f"sheet_{local_sheet_id}"  # Fallback if sheet not found
+            if not local_sheet_id.isdigit():
+                raise ValueError(
+                    f"Invalid localSheetId '{local_sheet_id}' for definedName '{name}'"
+                )
+            scope = _get_sheet_name_by_index(pkg, int(local_sheet_id))
 
         comment = dn.get("comment")
 

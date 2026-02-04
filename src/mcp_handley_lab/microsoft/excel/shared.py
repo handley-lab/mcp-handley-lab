@@ -1498,12 +1498,8 @@ def _op_delete_custom_property(
 ) -> dict[str, Any]:
     """Delete custom document property."""
     name = require(params, "property_name", "delete_custom_property")
-
-    deleted = delete_custom_property(pkg, name)
-    if deleted:
-        return {"message": f"Deleted custom property '{name}'", "element_id": ""}
-    else:
-        raise ValueError(f"Custom property '{name}' not found")
+    delete_custom_property(pkg, name)  # Raises KeyError if not found
+    return {"message": f"Deleted custom property '{name}'", "element_id": ""}
 
 
 # =============================================================================

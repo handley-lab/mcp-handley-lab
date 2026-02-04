@@ -183,18 +183,25 @@ def _time_to_fraction(t: time) -> float:
 
 
 def _fraction_to_time(fraction: float) -> time:
-    """Convert fraction of day to time."""
+    """Convert fraction of day to time.
+
+    Args:
+        fraction: Fraction of day (0.0 to <1.0)
+
+    Returns:
+        time object
+
+    Raises:
+        ValueError: If fraction is outside valid range [0.0, 1.0)
+    """
+    if not 0.0 <= fraction < 1.0:
+        raise ValueError(f"Time fraction must be in [0.0, 1.0), got {fraction}")
+
     total_seconds = fraction * 86400
     hours = int(total_seconds // 3600)
     remaining = total_seconds - hours * 3600
     minutes = int(remaining // 60)
     seconds = int(remaining - minutes * 60)
     microseconds = int((remaining - minutes * 60 - seconds) * 1_000_000)
-
-    # Clamp to valid range
-    hours = min(hours, 23)
-    minutes = min(minutes, 59)
-    seconds = min(seconds, 59)
-    microseconds = min(microseconds, 999999)
 
     return time(hours, minutes, seconds, microseconds)

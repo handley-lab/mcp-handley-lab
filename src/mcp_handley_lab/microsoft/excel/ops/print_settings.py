@@ -384,7 +384,13 @@ def set_scale(pkg: ExcelPackage, sheet_name: str, scale: int) -> None:
     Args:
         sheet_name: Name of the sheet.
         scale: Scale percentage (10-400).
+
+    Raises:
+        ValueError: If scale is outside valid range [10, 400].
     """
+    if not 10 <= scale <= 400:
+        raise ValueError(f"Scale must be between 10 and 400, got {scale}")
+
     sheet_xml = pkg.get_sheet_xml(sheet_name)
     sheet_path = _get_sheet_path(pkg, sheet_name)
 
@@ -397,7 +403,7 @@ def set_scale(pkg: ExcelPackage, sheet_name: str, scale: int) -> None:
     page_setup.attrib.pop("fitToWidth", None)
     page_setup.attrib.pop("fitToHeight", None)
 
-    page_setup.set("scale", str(max(10, min(400, scale))))
+    page_setup.set("scale", str(scale))
 
     pkg.mark_xml_dirty(sheet_path)
 

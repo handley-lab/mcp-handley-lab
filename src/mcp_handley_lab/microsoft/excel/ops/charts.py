@@ -9,7 +9,7 @@ Charts in OOXML consist of multiple related parts:
 Supports: bar, column, line, pie, scatter, area chart types.
 """
 
-import contextlib
+import re
 
 from lxml import etree
 
@@ -109,16 +109,17 @@ def _get_or_create_drawing(
     raise KeyError(f"Sheet not found: {sheet_name}")
 
 
+_DRAWING_PATTERN = re.compile(r"^/xl/drawings/drawing(\d+)\.xml$")
+_CHART_PATTERN = re.compile(r"^/xl/charts/chart(\d+)\.xml$")
+
+
 def _find_next_drawing_number(pkg: ExcelPackage) -> int:
     """Find next available drawing number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith("/xl/drawings/drawing") and partname.endswith(".xml"):
-            try:
-                num = int(partname[20:-4])  # Extract number from path
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _DRAWING_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -126,12 +127,9 @@ def _find_next_chart_number(pkg: ExcelPackage) -> int:
     """Find next available chart number."""
     max_num = 0
     for partname in pkg.iter_partnames():
-        if partname.startswith("/xl/charts/chart") and partname.endswith(".xml"):
-            try:
-                num = int(partname[16:-4])  # Extract number from path
-                max_num = max(max_num, num)
-            except ValueError:
-                pass
+        match = _CHART_PATTERN.match(partname)
+        if match:
+            max_num = max(max_num, int(match.group(1)))
     return max_num + 1
 
 
@@ -155,9 +153,8 @@ def _next_drawing_object_id(drawing_xml: etree._Element) -> int:
         tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
         if tag == "cNvPr":
             id_str = elem.get("id")
-            if id_str:
-                with contextlib.suppress(ValueError):
-                    max_id = max(max_id, int(id_str))
+            if id_str and id_str.isdigit():
+                max_id = max(max_id, int(id_str))
     return max_id + 1
 
 

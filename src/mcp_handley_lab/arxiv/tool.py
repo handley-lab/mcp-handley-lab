@@ -267,7 +267,7 @@ def _build_download_result(
 
 
 @mcp.tool(
-    description="Downloads an ArXiv paper by ID in various formats ('src', 'pdf', 'tex') or lists its source files. Use search to find arxiv IDs by author or topic."
+    description="Downloads an ArXiv paper by ID in various formats ('src', 'pdf', 'tex', 'bibtex') or lists its source files. Use search to find arxiv IDs by author or topic."
 )
 def download(
     arxiv_id: str = Field(
@@ -276,18 +276,23 @@ def download(
     ),
     format: str = Field(
         "src",
-        description="The format of the paper to download. Valid options are 'src', 'pdf', or 'tex'.",
+        description="The format of the paper to download. Valid options are 'src', 'pdf', 'tex', or 'bibtex'.",
     ),
     output_path: str = Field(
         "",
         description="Path to save the content. For 'pdf' format: saves as a single file. For 'src' and 'tex' formats: creates a directory with this name and extracts files into it. If empty, defaults to '<arxiv_id>.pdf' for pdf or '<arxiv_id>' for source formats. Use '-' to list file info to stdout instead of saving.",
     ),
 ) -> DownloadResult:
-    if format not in ["src", "pdf", "tex"]:
-        raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', or 'tex'")
+    if format not in ["src", "pdf", "tex", "bibtex"]:
+        raise ValueError(f"Invalid format '{format}'. Must be 'src', 'pdf', 'tex', or 'bibtex'")
 
     if not output_path:
-        output_path = f"{arxiv_id}.pdf" if format == "pdf" else arxiv_id
+        if format == "pdf":
+            output_path = f"{arxiv_id}.pdf"
+        elif format == "bibtex":
+            output_path = f"{arxiv_id}.bib"
+        else:
+            output_path = arxiv_id
 
     if format == "pdf":
         url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
@@ -315,6 +320,37 @@ def download(
                 output_path,
                 size_bytes,
                 f"ArXiv PDF saved to: {output_path}",
+                [output_path],
+            )
+
+    elif format == "bibtex":
+        url = f"https://arxiv.org/bibtex/{arxiv_id}"
+
+        with httpx.Client(follow_redirects=True) as client:
+            response = client.get(url)
+            response.raise_for_status()
+
+        bibtex_content = response.text
+        size_bytes = len(bibtex_content.encode("utf-8"))
+
+        if output_path == "-":
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                bibtex_content,
+                [f"{arxiv_id}.bib"],
+            )
+        else:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(bibtex_content)
+            return _build_download_result(
+                arxiv_id,
+                format,
+                output_path,
+                size_bytes,
+                f"ArXiv BibTeX saved to: {output_path}",
                 [output_path],
             )
 
@@ -516,6 +552,6 @@ def server_info() -> ServerInfo:
         dependencies={
             "httpx": "latest",
             "pydantic": "latest",
-            "supported_formats": "src,pdf,tex",
+            "supported_formats": "src,pdf,tex,bibtex",
         },
     )

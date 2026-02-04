@@ -263,7 +263,7 @@ Provider-agnostic LLM tools supporting Gemini, OpenAI, Claude, Grok, Mistral, an
 
 ### ArXiv Tool ✓
 - **Location**: `src/mcp_handley_lab/arxiv/`
-- **Functions**: `download`, `list_files`
+- **Functions**: `download` (formats: src, pdf, tex, bibtex), `search`
 
 ## Running Tools
 

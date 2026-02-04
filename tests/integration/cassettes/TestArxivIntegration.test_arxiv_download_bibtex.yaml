@@ -1,0 +1,110 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - arxiv.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://arxiv.org/bibtex/2301.07041
+  response:
+    body:
+      string: "@misc{viand2023verifiablefullyhomomorphicencryption,\n      title={Verifiable
+        Fully Homomorphic Encryption}, \n      author={Alexander Viand and Christian
+        Knabenhans and Anwar Hithnawi},\n      year={2023},\n      eprint={2301.07041},\n
+        \     archivePrefix={arXiv},\n      primaryClass={cs.CR},\n      url={https://arxiv.org/abs/2301.07041},
+        \n}"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '575'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '336'
+      Date:
+      - Wed, 04 Feb 2026 15:25:25 GMT
+      X-Cache:
+      - MISS, MISS, HIT
+      X-Served-By:
+      - cache-lga21989-LGA, cache-lga21965-LGA, cache-lhr-egll1980040-LHR
+      X-Timer:
+      - S1770218725.006167,VS0,VE1
+      content-security-policy:
+      - frame-ancestors 'none'
+      content-type:
+      - text/plain; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 google, 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - b932a37575f049522b3c41ea8a9a8e47
+      x-frame-options:
+      - SAMEORIGIN
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - arxiv.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://arxiv.org/bibtex/2301.07041
+  response:
+    body:
+      string: "@misc{viand2023verifiablefullyhomomorphicencryption,\n      title={Verifiable
+        Fully Homomorphic Encryption}, \n      author={Alexander Viand and Christian
+        Knabenhans and Anwar Hithnawi},\n      year={2023},\n      eprint={2301.07041},\n
+        \     archivePrefix={arXiv},\n      primaryClass={cs.CR},\n      url={https://arxiv.org/abs/2301.07041},
+        \n}"
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '0'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '336'
+      Date:
+      - Wed, 04 Feb 2026 15:25:25 GMT
+      X-Cache:
+      - MISS, HIT, MISS
+      X-Served-By:
+      - cache-lga21989-LGA, cache-lga21965-LGA, cache-lon420103-LON
+      X-Timer:
+      - S1770218725.035934,VS0,VE77
+      content-security-policy:
+      - frame-ancestors 'none'
+      content-type:
+      - text/plain; charset=utf-8
+      server:
+      - Google Frontend
+      via:
+      - 1.1 google, 1.1 varnish, 1.1 varnish, 1.1 varnish
+      x-cloud-trace-context:
+      - b932a37575f049522b3c41ea8a9a8e47
+      x-frame-options:
+      - SAMEORIGIN
+    status:
+      code: 200
+      message: OK
+version: 1

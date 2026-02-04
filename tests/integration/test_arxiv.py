@@ -240,6 +240,37 @@ class TestArxivIntegration:
             )
             assert os.path.exists(save_path)
 
+    @pytest.mark.vcr(cassette_library_dir="tests/integration/cassettes")
+    @pytest.mark.integration
+    def test_arxiv_download_bibtex(self):
+        """Test bibtex download format."""
+        arxiv_id = "2301.07041"
+
+        # Test bibtex to stdout
+        result = download(arxiv_id, format="bibtex", output_path="-")
+        assert result.arxiv_id == arxiv_id
+        assert result.format == "bibtex"
+        assert result.output_path == "-"
+        assert result.size_bytes > 0
+        # The message contains the bibtex content when output_path is "-"
+        assert "@misc{" in result.message or "@article{" in result.message
+
+        # Test bibtex to file
+        with tempfile.TemporaryDirectory() as temp_dir:
+            save_path = os.path.join(temp_dir, "test.bib")
+            result = download(arxiv_id, format="bibtex", output_path=save_path)
+            assert result.arxiv_id == arxiv_id
+            assert result.format == "bibtex"
+            assert result.output_path == save_path
+            assert "ArXiv BibTeX saved to:" in result.message
+            assert os.path.exists(save_path)
+
+            # Verify file content
+            with open(save_path, encoding="utf-8") as f:
+                content = f.read()
+            assert "@misc{" in content or "@article{" in content
+            assert arxiv_id in content
+
     def test_server_info(self):
         """Test server info function (no VCR needed for local function)."""
         info = server_info()
@@ -250,9 +281,7 @@ class TestArxivIntegration:
         assert "search" in str(info.capabilities)
         assert "download" in str(info.capabilities)
         assert "server_info" in str(info.capabilities)
-        assert "src,pdf,tex" in info.dependencies["supported_formats"]
-        assert "pdf" in info.dependencies["supported_formats"]
-        assert "tex" in info.dependencies["supported_formats"]
+        assert info.dependencies["supported_formats"] == "src,pdf,tex,bibtex"
 
     def test_download_invalid_format(self):
         """Test download with invalid format (no VCR needed for validation)."""

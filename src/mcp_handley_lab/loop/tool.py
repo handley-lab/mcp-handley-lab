@@ -81,7 +81,7 @@ class ManageArgs(BaseModel):
     """Input arguments for manage action."""
 
     action: str
-    namespace: str
+    namespace: str = ""
     loop_id: str = ""
     backend: str = ""
     name: str = ""

@@ -33,6 +33,10 @@ def set_custom_property(
     _set_custom(pkg, name, value, prop_type)
 
 
-def delete_custom_property(pkg: VisioPackage, name: str) -> bool:
-    """Delete a custom document property. Returns True if found."""
-    return _delete_custom(pkg, name)
+def delete_custom_property(pkg: VisioPackage, name: str) -> None:
+    """Delete a custom document property.
+
+    Raises:
+        KeyError: If property not found.
+    """
+    _delete_custom(pkg, name)

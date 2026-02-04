@@ -232,8 +232,8 @@ class TestExcelFindReplace:
     def test_find_replace_empty_search_error(self, sample_workbook: Path):
         """Empty search string raises error."""
         ops = json.dumps([{"op": "find_replace", "search": "", "replace": "X"}])
-        result = shared.edit(str(sample_workbook), ops)
-        assert not result["success"]
+        with pytest.raises(ValueError, match="search"):
+            shared.edit(str(sample_workbook), ops)
 
     def test_find_replace_partial_match(self, sample_workbook: Path):
         """Partial string matches are replaced."""

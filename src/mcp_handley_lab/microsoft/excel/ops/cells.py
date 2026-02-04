@@ -217,14 +217,14 @@ def _parse_number(text: str) -> int | float:
     """Parse numeric string to int or float.
 
     Returns int if value is whole number, float otherwise.
+
+    Raises:
+        ValueError: If text cannot be parsed as a number.
     """
-    try:
-        f = float(text)
-        if f.is_integer():
-            return int(f)
-        return f
-    except ValueError:
-        return text  # Fallback to string if unparseable
+    f = float(text)  # Let ValueError propagate
+    if f.is_integer():
+        return int(f)
+    return f
 
 
 # =============================================================================

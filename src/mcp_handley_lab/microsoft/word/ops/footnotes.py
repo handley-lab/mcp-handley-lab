@@ -149,15 +149,16 @@ def build_footnotes(pkg) -> list[dict]:
 
 
 def _get_safe_note_id(notes_root, ns: dict) -> int:
-    """Get a safe footnote/endnote ID avoiding reserved values."""
+    """Get a safe footnote/endnote ID avoiding reserved values.
+
+    Raises:
+        ValueError: If an existing note has a malformed (non-integer) ID.
+    """
     used_ids: set[int] = set()
     for fn in _fn_xpath(notes_root, "//w:footnote | //w:endnote", ns):
         fn_id = fn.get(f"{{{_FN_W_NS}}}id")
         if fn_id:
-            try:
-                used_ids.add(int(fn_id))
-            except ValueError:
-                pass
+            used_ids.add(int(fn_id))  # Let ValueError propagate for malformed IDs
 
     candidate_id = 1  # User notes start at 1, reserved are -1 and 0
     while candidate_id in used_ids or candidate_id in _RESERVED_NOTE_IDS:

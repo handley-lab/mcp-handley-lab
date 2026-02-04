@@ -215,9 +215,9 @@ async def test_prev_ref_chaining(pptx_path):
 
 
 @pytest.mark.asyncio
-async def test_atomic_mode_rollback(pptx_with_slide):
-    """Atomic mode: failure rolls back (doesn't save)."""
-    result = _parse_result(
+async def test_fail_fast_on_error(pptx_with_slide):
+    """Fail-fast: failure raises exception, file unchanged."""
+    with pytest.raises(Exception, match="(?i)slide.*not found|999"):
         await mcp.call_tool(
             "edit",
             {
@@ -239,49 +239,8 @@ async def test_atomic_mode_rollback(pptx_with_slide):
                         },
                     ]
                 ),
-                "mode": "atomic",
             },
         )
-    )
-
-    assert result["success"] is False
-    assert result["saved"] is False
-
-
-@pytest.mark.asyncio
-async def test_partial_mode_saves_successes(pptx_with_slide):
-    """Partial mode: saves successful ops even if some fail."""
-    result = _parse_result(
-        await mcp.call_tool(
-            "edit",
-            {
-                "file_path": str(pptx_with_slide),
-                "ops": json.dumps(
-                    [
-                        {
-                            "op": "add_shape",
-                            "slide_num": 1,
-                            "x": 1.0,
-                            "y": 1.0,
-                            "width": 4.0,
-                            "height": 1.0,
-                            "text": "Partial OK",
-                        },
-                        {
-                            "op": "delete_slide",
-                            "slide_num": 999,
-                        },
-                    ]
-                ),
-                "mode": "partial",
-            },
-        )
-    )
-
-    assert result["success"] is True
-    assert result["succeeded"] == 1
-    assert result["failed"] == 1
-    assert result["saved"] is True
 
 
 # =============================================================================
@@ -346,22 +305,18 @@ async def test_table_workflow(pptx_path):
 
 @pytest.mark.asyncio
 async def test_invalid_json_ops(pptx_with_slide):
-    """Invalid JSON in ops returns error."""
-    result = _parse_result(
+    """Invalid JSON in ops raises error."""
+    with pytest.raises(Exception, match="(?i)invalid json"):
         await mcp.call_tool(
             "edit",
             {"file_path": str(pptx_with_slide), "ops": "not json"},
         )
-    )
-
-    assert result["success"] is False
-    assert "Invalid JSON" in result["message"]
 
 
 @pytest.mark.asyncio
 async def test_unknown_operation(pptx_with_slide):
-    """Unknown op name returns error."""
-    result = _parse_result(
+    """Unknown op name raises error."""
+    with pytest.raises(Exception, match="(?i)unknown"):
         await mcp.call_tool(
             "edit",
             {
@@ -369,9 +324,6 @@ async def test_unknown_operation(pptx_with_slide):
                 "ops": json.dumps([{"op": "nonexistent_op"}]),
             },
         )
-    )
-
-    assert result["success"] is False
 
 
 @pytest.mark.asyncio

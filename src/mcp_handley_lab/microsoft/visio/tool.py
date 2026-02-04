@@ -252,14 +252,10 @@ def edit(
         description='JSON array of operation objects. Each object has "op" (operation name) '
         "plus operation-specific fields. Use $prev[N] to reference element_id from operation N."
     ),
-    mode: str = Field(
-        default="atomic",
-        description="'atomic' (save only if all succeed) or 'partial' (save if any succeed)",
-    ),
 ) -> dict[str, Any]:
     """Edit a Visio diagram using batch operations. Creates a new file if file_path doesn't exist.
 
-    Batch operations allow multiple edits in a single call with $prev chaining.
+    Fail-fast semantics: raises on first operation error, file unchanged on any failure.
     Use read() first to discover pages, shapes, and structure.
 
     Args:
@@ -267,7 +263,6 @@ def edit(
         ops: JSON array of operation objects, e.g.:
             [{"op": "set_text", "page_num": 1, "shape_id": 1, "text": "Hello"},
              {"op": "set_cell", "shape_key": "$prev[0]", "cell_name": "Width", "value": "3.0"}]
-        mode: 'atomic' (all-or-nothing) or 'partial' (save successful ops)
 
     Available operations:
         Shape operations:
@@ -302,7 +297,6 @@ def edit(
     return run_batch_edit(
         file_path=file_path,
         ops=ops,
-        mode=mode,
         open_pkg=VisioPackage.open,
         new_pkg=VisioPackage.new,
         apply_op=_apply_op,

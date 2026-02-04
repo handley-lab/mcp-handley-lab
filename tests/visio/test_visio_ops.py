@@ -2041,46 +2041,12 @@ class TestEditTool:
         path = tmp_path / "test.vsdx"
         path.write_bytes(buf.getvalue())
 
-        result = edit(
-            str(path),
-            ops='[{"op": "set_text", "page_num": 1, "shape_id": 1, "text": "Changed"}, '
-            '{"op": "set_text", "page_num": 1, "shape_id": 99, "text": "Fail"}]',
-            mode="atomic",
-        )
-        assert not result["success"]
-        assert not result["saved"]
-
-    def test_edit_partial_mode(self, tmp_path):
-        from mcp_handley_lab.microsoft.visio.tool import edit
-
-        buf = _build_minimal_vsdx(
-            shapes_per_page=[
-                [
-                    {
-                        "id": 1,
-                        "name": "Box",
-                        "pin_x": 1.0,
-                        "pin_y": 1.0,
-                        "width": 1.0,
-                        "height": 1.0,
-                        "text": "Old",
-                    }
-                ]
-            ]
-        )
-        path = tmp_path / "test.vsdx"
-        path.write_bytes(buf.getvalue())
-
-        result = edit(
-            str(path),
-            ops='[{"op": "set_text", "page_num": 1, "shape_id": 1, "text": "OK"}, '
-            '{"op": "set_text", "page_num": 1, "shape_id": 99, "text": "Fail"}]',
-            mode="partial",
-        )
-        assert result["success"]
-        assert result["saved"]
-        assert result["succeeded"] == 1
-        assert result["failed"] == 1
+        with pytest.raises(ValueError, match="(?i)shape.*not found|99"):
+            edit(
+                str(path),
+                ops='[{"op": "set_text", "page_num": 1, "shape_id": 1, "text": "Changed"}, '
+                '{"op": "set_text", "page_num": 1, "shape_id": 99, "text": "Fail"}]',
+            )
 
     def test_edit_prev_chaining(self, tmp_path):
         from mcp_handley_lab.microsoft.visio.tool import edit
@@ -2139,9 +2105,8 @@ class TestEditTool:
         path = tmp_path / "test.vsdx"
         path.write_bytes(buf.getvalue())
 
-        result = edit(str(path), ops="not json")
-        assert not result["success"]
-        assert "Invalid JSON" in result["message"]
+        with pytest.raises(ValueError, match="Invalid JSON"):
+            edit(str(path), ops="not json")
 
     def test_edit_empty_ops(self, tmp_path):
         from mcp_handley_lab.microsoft.visio.tool import edit
@@ -2150,9 +2115,8 @@ class TestEditTool:
         path = tmp_path / "test.vsdx"
         path.write_bytes(buf.getvalue())
 
-        result = edit(str(path), ops="[]")
-        assert not result["success"]
-        assert "empty" in result["message"]
+        with pytest.raises(ValueError, match="empty"):
+            edit(str(path), ops="[]")
 
     def test_edit_unknown_op(self, tmp_path):
         from mcp_handley_lab.microsoft.visio.tool import edit
@@ -2161,8 +2125,8 @@ class TestEditTool:
         path = tmp_path / "test.vsdx"
         path.write_bytes(buf.getvalue())
 
-        result = edit(str(path), ops='[{"op": "bogus"}]')
-        assert not result["success"]
+        with pytest.raises(ValueError, match="(?i)unknown"):
+            edit(str(path), ops='[{"op": "bogus"}]')
 
     def test_edit_add_and_rename_page(self, tmp_path):
         from mcp_handley_lab.microsoft.visio.tool import edit
@@ -2216,11 +2180,11 @@ class TestEditTool:
         path = tmp_path / "test.vsdx"
         path.write_bytes(buf.getvalue())
 
-        result = edit(
-            str(path),
-            ops='[{"op": "delete_custom_property", "property_name": "NonExistent"}]',
-        )
-        assert not result["success"]
+        with pytest.raises(KeyError, match="not found"):
+            edit(
+                str(path),
+                ops='[{"op": "delete_custom_property", "property_name": "NonExistent"}]',
+            )
 
     def test_edit_text_normalization(self, tmp_path):
         from mcp_handley_lab.microsoft.visio.tool import edit

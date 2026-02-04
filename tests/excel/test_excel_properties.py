@@ -406,15 +406,14 @@ class TestDeleteCustomProperty:
         assert len(props["custom_properties"]) == 0
 
     def test_delete_custom_property_not_found(self, workbook):
-        """Test deleting non-existent property returns failure."""
-        result = edit(
-            workbook,
-            ops=json.dumps(
-                [{"op": "delete_custom_property", "property_name": "DoesNotExist"}]
-            ),
-        )
-        assert result["success"] is False
-        assert "not found" in result["results"][0]["error"]
+        """Test deleting non-existent property raises error."""
+        with pytest.raises(KeyError, match="not found"):
+            edit(
+                workbook,
+                ops=json.dumps(
+                    [{"op": "delete_custom_property", "property_name": "DoesNotExist"}]
+                ),
+            )
 
     def test_delete_preserves_other_properties(self, workbook):
         """Test deleting one property preserves others."""
@@ -532,22 +531,21 @@ class TestPropertiesPersistence:
 class TestSetPropertyValidation:
     """Tests for set_property validation."""
 
-    def test_invalid_property_name_returns_failure(self, workbook):
-        """Test that invalid property names return a failed batch result."""
-        result = edit(
-            workbook,
-            ops=json.dumps(
-                [
-                    {
-                        "op": "set_property",
-                        "property_name": "invalid_property",
-                        "property_value": "value",
-                    }
-                ]
-            ),
-        )
-        assert result["success"] is False
-        assert "invalid_property" in result["results"][0]["error"]
+    def test_invalid_property_name_raises_error(self, workbook):
+        """Test that invalid property names raise ValueError."""
+        with pytest.raises(ValueError, match="invalid_property"):
+            edit(
+                workbook,
+                ops=json.dumps(
+                    [
+                        {
+                            "op": "set_property",
+                            "property_name": "invalid_property",
+                            "property_value": "value",
+                        }
+                    ]
+                ),
+            )
 
     def test_valid_property_names_accepted(self, workbook):
         """Test that all documented property names are accepted."""

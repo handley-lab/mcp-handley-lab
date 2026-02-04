@@ -92,11 +92,10 @@ class TestGroupShapes:
         ]
         assert len(shape_keys) == 1
 
-        # Try to group single shape
+        # Try to group single shape - raises error
         group_ops = [{"op": "group_shapes", "slide_num": 1, "shape_keys": shape_keys}]
-        result = edit(temp_pptx, json.dumps(group_ops))
-        assert not result["success"]
-        assert "at least 2" in result["results"][0]["error"].lower()
+        with pytest.raises(ValueError, match="(?i)at least 2"):
+            edit(temp_pptx, json.dumps(group_ops))
 
     def test_group_preserves_z_order(self, temp_pptx):
         """Test that grouping preserves the z-order of shapes within group."""
@@ -265,8 +264,8 @@ class TestUngroup:
                 assert abs(shape["x_inches"] - orig_x) < 0.01, f"{text} x mismatch"
                 assert abs(shape["y_inches"] - orig_y) < 0.01, f"{text} y mismatch"
 
-    def test_ungroup_non_group_fails(self, temp_pptx):
-        """Test that ungrouping a non-group shape fails."""
+    def test_ungroup_non_group_raises(self, temp_pptx):
+        """Test that ungrouping a non-group shape raises error."""
         create_ops = [
             {"op": "add_slide"},
             {
@@ -285,16 +284,15 @@ class TestUngroup:
         shape_key = shapes_result["shapes"][0]["shape_key"]
 
         ungroup_ops = [{"op": "ungroup", "shape_key": shape_key}]
-        result = edit(temp_pptx, json.dumps(ungroup_ops))
-        assert not result["success"]
-        assert "not found" in result["results"][0]["error"].lower()
+        with pytest.raises(ValueError, match="(?i)not found"):
+            edit(temp_pptx, json.dumps(ungroup_ops))
 
 
 class TestGroupUngroupV1Constraints:
     """Tests for V1 constraints on group/ungroup."""
 
     def test_group_rejects_missing_shape(self, temp_pptx):
-        """Test that grouping with invalid shape key fails."""
+        """Test that grouping with invalid shape key raises error."""
         create_ops = [
             {"op": "add_slide"},
             {
@@ -312,13 +310,12 @@ class TestGroupUngroupV1Constraints:
         shapes_result = read(temp_pptx, scope="shapes", slide_num=1)
         shape_key = shapes_result["shapes"][0]["shape_key"]
 
-        # Try to group with a nonexistent shape
+        # Try to group with a nonexistent shape - raises error
         group_ops = [
             {"op": "group_shapes", "slide_num": 1, "shape_keys": [shape_key, "1:9999"]}
         ]
-        result = edit(temp_pptx, json.dumps(group_ops))
-        assert not result["success"]
-        assert "not found" in result["results"][0]["error"].lower()
+        with pytest.raises(ValueError, match="(?i)not found"):
+            edit(temp_pptx, json.dumps(group_ops))
 
     def test_group_wrong_slide_fails(self, temp_pptx):
         """Test that grouping with shape key from different slide fails."""
@@ -349,10 +346,10 @@ class TestGroupUngroupV1Constraints:
             s["shape_key"] for s in shapes_result["shapes"] if s["type"] == "shape"
         ]
 
-        # Try to group on slide 2 (wrong slide)
+        # Try to group on slide 2 (wrong slide) - raises error
         group_ops = [{"op": "group_shapes", "slide_num": 2, "shape_keys": shape_keys}]
-        result = edit(temp_pptx, json.dumps(group_ops))
-        assert not result["success"]
+        with pytest.raises(ValueError):
+            edit(temp_pptx, json.dumps(group_ops))
 
     def test_group_rejects_existing_group(self, temp_pptx):
         """Test that grouping a group is rejected (no nested groups)."""
@@ -402,7 +399,7 @@ class TestGroupUngroupV1Constraints:
         assert result["success"]
         group_key = result["results"][0]["element_id"]
 
-        # Try to group the group with the third shape
+        # Try to group the group with the third shape - raises error
         group_ops = [
             {
                 "op": "group_shapes",
@@ -410,9 +407,8 @@ class TestGroupUngroupV1Constraints:
                 "shape_keys": [group_key, shape_keys[2]],
             }
         ]
-        result = edit(temp_pptx, json.dumps(group_ops))
-        assert not result["success"]
-        assert "cannot group a group" in result["results"][0]["error"].lower()
+        with pytest.raises(ValueError, match="(?i)cannot group a group"):
+            edit(temp_pptx, json.dumps(group_ops))
 
     def test_ungroup_rejects_nested_groups(self, temp_pptx):
         """Test that ungrouping a group containing nested groups is rejected.
@@ -515,6 +511,5 @@ class TestGroupUngroupV1Constraints:
 
         # Now try to ungroup - should fail with nested groups error
         ungroup_ops = [{"op": "ungroup", "shape_key": group_key}]
-        result = edit(temp_pptx, json.dumps(ungroup_ops))
-        assert not result["success"]
-        assert "nested groups" in result["results"][0]["error"].lower()
+        with pytest.raises(ValueError, match="(?i)nested groups"):
+            edit(temp_pptx, json.dumps(ungroup_ops))

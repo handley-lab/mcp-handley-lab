@@ -5,6 +5,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from mcp_handley_lab.microsoft.powerpoint.constants import EMU_PER_INCH, NSMAP, qn
 from mcp_handley_lab.microsoft.powerpoint.ops.core import (
     emu_to_inches,
@@ -176,16 +178,17 @@ class TestImageDimensions:
         assert width == 128
         assert height == 96
 
-    def test_corrupted_image_fallback(self):
+    def test_corrupted_image_raises(self):
+        from PIL import UnidentifiedImageError
+
         from mcp_handley_lab.microsoft.powerpoint.ops.images import (
             _get_image_dimensions,
         )
 
-        # Invalid/corrupted data should return fallback dimensions
+        # Invalid/corrupted data should raise
         corrupted_data = b"not a valid image"
-        width, height = _get_image_dimensions(corrupted_data, "image/png")
-        assert width == 640
-        assert height == 480
+        with pytest.raises(UnidentifiedImageError):
+            _get_image_dimensions(corrupted_data, "image/png")
 
 
 class TestPhase12BugFixes:
@@ -368,8 +371,7 @@ class TestPhase13SlideBackground:
         pkg = PowerPointPackage.new()
         _add_test_slide(pkg)
 
-        result = set_slide_background(pkg, 1, "FF0000")
-        assert result is True
+        set_slide_background(pkg, 1, "FF0000")
 
         slide_xml = pkg.get_slide_xml(1)
         c_sld = slide_xml.find(qn("p:cSld"), NSMAP)
@@ -553,8 +555,7 @@ class TestPhase14Hyperlinks:
         slide_partname = pkg.get_slide_partname(1)
         pkg.mark_xml_dirty(slide_partname)
 
-        result = add_hyperlink(pkg, "1:100", "https://example.com", "Example")
-        assert result is True
+        add_hyperlink(pkg, "1:100", "https://example.com", "Example")
 
         # Verify a:hlinkClick was added
         hlink = r_pr.find(qn("a:hlinkClick"), NSMAP)
@@ -609,8 +610,8 @@ class TestPhase14Hyperlinks:
         assert len(hlinks) == 1
         assert hlinks[0].get("tooltip") == "New Link"
 
-    def test_hyperlink_no_text_returns_false(self):
-        """Hyperlink on shape with no text returns False."""
+    def test_hyperlink_no_text_raises(self):
+        """Hyperlink on shape with no text raises ValueError."""
         from lxml import etree
 
         from mcp_handley_lab.microsoft.powerpoint.ops.text import add_hyperlink
@@ -633,8 +634,8 @@ class TestPhase14Hyperlinks:
         etree.SubElement(tx_body, qn("a:p"))  # Empty paragraph, no runs
         pkg.mark_xml_dirty(pkg.get_slide_partname(1))
 
-        result = add_hyperlink(pkg, "1:102", url="https://example.com")
-        assert result is False
+        with pytest.raises(ValueError, match="no text runs"):
+            add_hyperlink(pkg, "1:102", url="https://example.com")
 
     def test_internal_slide_hyperlink(self):
         """Adding an internal hyperlink links to another slide."""
@@ -687,8 +688,7 @@ class TestPhase14Hyperlinks:
         slide_partname = pkg.get_slide_partname(1)
         pkg.mark_xml_dirty(slide_partname)
 
-        result = add_hyperlink(pkg, "1:103", target_slide=2, tooltip="Jump to slide 2")
-        assert result is True
+        add_hyperlink(pkg, "1:103", target_slide=2, tooltip="Jump to slide 2")
 
         # Verify a:hlinkClick was added with action attribute
         hlink = r_pr.find(qn("a:hlinkClick"), NSMAP)
@@ -923,8 +923,7 @@ class TestPhase18bShapeTransform:
         shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test")
 
         # Move to (2, 3)
-        result = set_shape_transform(pkg, shape_key, x=2.0, y=3.0)
-        assert result is True
+        set_shape_transform(pkg, shape_key, x=2.0, y=3.0)
 
         # Verify position changed
         slide_xml = pkg.get_slide_xml(1)
@@ -953,8 +952,7 @@ class TestPhase18bShapeTransform:
         shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test")
 
         # Resize to 4x3 inches
-        result = set_shape_transform(pkg, shape_key, width=4.0, height=3.0)
-        assert result is True
+        set_shape_transform(pkg, shape_key, width=4.0, height=3.0)
 
         # Verify size changed
         slide_xml = pkg.get_slide_xml(1)
@@ -983,10 +981,7 @@ class TestPhase18bShapeTransform:
         shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test")
 
         # Move and resize
-        result = set_shape_transform(
-            pkg, shape_key, x=0.5, y=0.5, width=5.0, height=2.5
-        )
-        assert result is True
+        set_shape_transform(pkg, shape_key, x=0.5, y=0.5, width=5.0, height=2.5)
 
         slide_xml = pkg.get_slide_xml(1)
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
@@ -1001,16 +996,16 @@ class TestPhase18bShapeTransform:
         assert ext.get("cx") == str(int(5.0 * EMU_PER_INCH))
         assert ext.get("cy") == str(int(2.5 * EMU_PER_INCH))
 
-    def test_transform_nonexistent_shape_returns_false(self):
-        """Test that transforming a nonexistent shape returns False."""
+    def test_transform_nonexistent_shape_raises(self):
+        """Test that transforming a nonexistent shape raises ValueError."""
         from mcp_handley_lab.microsoft.powerpoint.ops.shapes import set_shape_transform
 
         pkg = PowerPointPackage.new()
         _add_test_slide(pkg)
 
         # Shape 999 doesn't exist
-        result = set_shape_transform(pkg, "1:999", x=1.0, y=1.0)
-        assert result is False
+        with pytest.raises(ValueError, match="not found"):
+            set_shape_transform(pkg, "1:999", x=1.0, y=1.0)
 
     def test_transform_preserves_rotation(self):
         """Test that transforming a shape preserves rotation attributes."""
@@ -1040,8 +1035,7 @@ class TestPhase18bShapeTransform:
         pkg.mark_xml_dirty(pkg.get_slide_partname(1))
 
         # Transform the shape
-        result = set_shape_transform(pkg, "1:50", x=2.0, y=2.0, width=3.0, height=3.0)
-        assert result is True
+        set_shape_transform(pkg, "1:50", x=2.0, y=2.0, width=3.0, height=3.0)
 
         # Verify rotation is preserved
         xfrm = sp.find(qn("p:spPr") + "/" + qn("a:xfrm"), NSMAP)
@@ -1192,8 +1186,7 @@ class TestPhase18dFontSelection:
         shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test text")
 
         # Set font
-        result = set_text_style(pkg, shape_key, font="Arial")
-        assert result is True
+        set_text_style(pkg, shape_key, font="Arial")
 
         # Verify a:latin element was added
         slide_xml = pkg.get_slide_xml(1)
@@ -1264,8 +1257,7 @@ class TestPhase18dFontSelection:
         pkg.mark_xml_dirty(pkg.get_slide_partname(1))
 
         # Set font
-        result = set_text_style(pkg, "1:100", font="Georgia")
-        assert result is True
+        set_text_style(pkg, "1:100", font="Georgia")
 
         # Verify endParaRPr has font
         end_para_r_pr = p.find(qn("a:endParaRPr"), NSMAP)
@@ -1284,8 +1276,7 @@ class TestPhase18dFontSelection:
         shape_key = add_shape(pkg, 1, 1.0, 1.0, 2.0, 1.0, "Test")
 
         # Set font along with size and bold
-        result = set_text_style(pkg, shape_key, font="Courier New", size=14, bold=True)
-        assert result is True
+        set_text_style(pkg, shape_key, font="Courier New", size=14, bold=True)
 
         # Verify all styles applied
         slide_xml = pkg.get_slide_xml(1)
@@ -1377,13 +1368,12 @@ class TestPhase17cDocumentProperties:
         assert len(get_custom_properties(pkg)) == 1
 
         # Delete it
-        result = delete_custom_property(pkg, "ToDelete")
-        assert result is True
+        delete_custom_property(pkg, "ToDelete")
         assert len(get_custom_properties(pkg)) == 0
 
-        # Deleting non-existent returns False
-        result = delete_custom_property(pkg, "NonExistent")
-        assert result is False
+        # Deleting non-existent raises KeyError
+        with pytest.raises(KeyError, match="NonExistent"):
+            delete_custom_property(pkg, "NonExistent")
 
     def test_properties_persist_after_save(self):
         """Test that properties persist through save/reload cycle."""
@@ -1494,8 +1484,7 @@ class TestPhase19bHideSlides:
         assert is_slide_hidden(pkg, 1) is False
 
         # Hide the slide
-        result = hide_slide(pkg, 1, hidden=True)
-        assert result is True
+        hide_slide(pkg, 1, hidden=True)
         assert is_slide_hidden(pkg, 1) is True
 
     def test_show_hidden_slide(self):
@@ -1515,27 +1504,27 @@ class TestPhase19bHideSlides:
         hide_slide(pkg, 1, hidden=False)
         assert is_slide_hidden(pkg, 1) is False
 
-    def test_hide_nonexistent_slide_returns_false(self):
-        """Test that hiding a non-existent slide returns False."""
+    def test_hide_nonexistent_slide_raises(self):
+        """Test that hiding a non-existent slide raises ValueError."""
         from mcp_handley_lab.microsoft.powerpoint.ops.slides import hide_slide
 
         pkg = PowerPointPackage.new()
         _add_test_slide(pkg)
 
         # Slide 99 doesn't exist
-        result = hide_slide(pkg, 99, hidden=True)
-        assert result is False
+        with pytest.raises(ValueError, match="Slide 99 not found"):
+            hide_slide(pkg, 99, hidden=True)
 
-    def test_is_slide_hidden_nonexistent_returns_none(self):
-        """Test that checking hidden state of non-existent slide returns None."""
+    def test_is_slide_hidden_nonexistent_raises(self):
+        """Test that checking hidden state of non-existent slide raises ValueError."""
         from mcp_handley_lab.microsoft.powerpoint.ops.slides import is_slide_hidden
 
         pkg = PowerPointPackage.new()
         _add_test_slide(pkg)
 
         # Slide 99 doesn't exist
-        result = is_slide_hidden(pkg, 99)
-        assert result is None
+        with pytest.raises(ValueError, match="Slide 99 not found"):
+            is_slide_hidden(pkg, 99)
 
     def test_hide_slide_persists_after_save(self):
         """Test that hidden state persists through save/reload."""
@@ -1629,8 +1618,7 @@ class TestPhase19cTableRowColumnOps:
         assert tables[0]["rows"] == 2
 
         # Add row at end
-        result = add_table_row(pkg, shape_key)
-        assert result is True
+        add_table_row(pkg, shape_key)
 
         # Now 3 rows
         tables = list_tables(pkg, 1)
@@ -1651,8 +1639,7 @@ class TestPhase19cTableRowColumnOps:
         set_table_cell(pkg, shape_key, 1, 0, "Row1")
 
         # Add row at position 1
-        result = add_table_row(pkg, shape_key, position=1)
-        assert result is True
+        add_table_row(pkg, shape_key, position=1)
 
         # Now 3 rows
         tables = list_tables(pkg, 1)
@@ -1678,8 +1665,7 @@ class TestPhase19cTableRowColumnOps:
         assert tables[0]["cols"] == 3
 
         # Add column at end
-        result = add_table_column(pkg, shape_key)
-        assert result is True
+        add_table_column(pkg, shape_key)
 
         # Now 4 columns
         tables = list_tables(pkg, 1)
@@ -1701,8 +1687,7 @@ class TestPhase19cTableRowColumnOps:
         set_table_cell(pkg, shape_key, 0, 2, "Col2")
 
         # Add column at position 1
-        result = add_table_column(pkg, shape_key, position=1)
-        assert result is True
+        add_table_column(pkg, shape_key, position=1)
 
         # Now 4 columns
         tables = list_tables(pkg, 1)
@@ -1731,8 +1716,7 @@ class TestPhase19cTableRowColumnOps:
         set_table_cell(pkg, shape_key, 1, 0, "Row1")
 
         # Delete row 0
-        result = delete_table_row(pkg, shape_key, 0)
-        assert result is True
+        delete_table_row(pkg, shape_key, 0)
 
         # Now 1 row
         tables = list_tables(pkg, 1)
@@ -1758,8 +1742,7 @@ class TestPhase19cTableRowColumnOps:
         set_table_cell(pkg, shape_key, 0, 2, "Col2")
 
         # Delete column 1 (middle)
-        result = delete_table_column(pkg, shape_key, 1)
-        assert result is True
+        delete_table_column(pkg, shape_key, 1)
 
         # Now 2 columns
         tables = list_tables(pkg, 1)
@@ -1770,8 +1753,8 @@ class TestPhase19cTableRowColumnOps:
         assert cells[(0, 0)] == "Col0"
         assert cells[(0, 1)] == "Col2"
 
-    def test_delete_last_row_fails(self):
-        """Test that deleting the last row fails."""
+    def test_delete_last_row_raises(self):
+        """Test that deleting the last row raises ValueError."""
         from mcp_handley_lab.microsoft.powerpoint.ops.tables import (
             add_table,
             delete_table_row,
@@ -1783,12 +1766,12 @@ class TestPhase19cTableRowColumnOps:
         # Create a 1x1 table
         shape_key = add_table(pkg, 1, rows=1, cols=1)
 
-        # Deleting the last row should fail
-        result = delete_table_row(pkg, shape_key, 0)
-        assert result is False
+        # Deleting the last row should raise
+        with pytest.raises(ValueError, match="Cannot delete last row"):
+            delete_table_row(pkg, shape_key, 0)
 
-    def test_delete_last_column_fails(self):
-        """Test that deleting the last column fails."""
+    def test_delete_last_column_raises(self):
+        """Test that deleting the last column raises ValueError."""
         from mcp_handley_lab.microsoft.powerpoint.ops.tables import (
             add_table,
             delete_table_column,
@@ -1800,9 +1783,9 @@ class TestPhase19cTableRowColumnOps:
         # Create a 1x1 table
         shape_key = add_table(pkg, 1, rows=1, cols=1)
 
-        # Deleting the last column should fail
-        result = delete_table_column(pkg, shape_key, 0)
-        assert result is False
+        # Deleting the last column should raise
+        with pytest.raises(ValueError, match="Cannot delete last column"):
+            delete_table_column(pkg, shape_key, 0)
 
     def test_table_ops_via_tool(self):
         """Test table operations via the edit tool interface."""

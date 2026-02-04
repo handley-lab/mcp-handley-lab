@@ -378,8 +378,11 @@ class TestCoreOps:
         _sub(shape, "Cell", {"N": "Label", "V": "not-a-number"})
 
         assert get_cell_float(shape, "PinX") == 2.5
-        assert get_cell_float(shape, "Label") is None
         assert get_cell_float(shape, "Missing") is None
+
+        # Non-numeric value raises ValueError
+        with pytest.raises(ValueError, match="could not convert"):
+            get_cell_float(shape, "Label")
 
     def test_get_all_cells(self):
         shape = _el("Shape")

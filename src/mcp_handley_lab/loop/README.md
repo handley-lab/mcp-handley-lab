@@ -2,6 +2,14 @@
 
 Persistent REPL loop daemon with parent-child orchestration.
 
+## Background
+
+This implementation draws on two key concepts:
+
+**Recursive Language Models (RLM)** ([arXiv:2512.24601](https://arxiv.org/abs/2512.24601)) - Zhang, Kraska, Khattab (Dec 2025) introduce a paradigm where LLMs recursively call themselves to process arbitrarily long inputs. MCP Loop extends this: any REPL (LLM or code-based) can spawn and orchestrate other REPLs, enabling recursive computation across heterogeneous backends.
+
+**OpenClaw** - A reference implementation for LLM session management (listing, history, spawn, send, memory). MCP Loop adopts the Unix process model (loop_id like PID, parent_id like PPID) rather than OpenClaw's WebSocket gateway, using a Unix socket daemon pattern like ssh-agent.
+
 ## Features
 
 - **Persistent loops**: Python, Bash, Julia, R, and other REPLs that survive across tool calls

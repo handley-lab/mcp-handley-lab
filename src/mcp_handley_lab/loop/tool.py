@@ -77,13 +77,13 @@ class ManageResult(BaseModel):
         return {k: v for k, v in self.__dict__.items() if v is not None}
 
 
-class EvalResult(BaseModel):
-    """Result of code evaluation in a loop."""
+class RunResult(BaseModel):
+    """Result of running input through a loop."""
 
     output: str = ""
     cell_index: int = 0
     elapsed_seconds: float = 0.0
-    running: bool = False  # True if eval still running in background
+    running: bool = False  # True if run still executing in background
 
 
 class ManageArgs(BaseModel):
@@ -255,7 +255,7 @@ def manage(params: ManageArgs) -> ManageResult:
     - list: List loops. Params: parent_id (direct children), descendants_of (subtree)
     - read: Get cells from loop. Params: loop_id
     - read_raw: Get raw terminal capture. Params: loop_id
-    - status: Check if eval is running. Params: loop_id
+    - status: Check if run is in progress. Params: loop_id
     - terminate: Send Ctrl-C to interrupt. Params: loop_id
     - kill: Force-kill loop. Params: loop_id
 
@@ -320,26 +320,26 @@ def manage(params: ManageArgs) -> ManageResult:
 
 
 @mcp.tool()
-def eval(loop_id: str, code: str, sync_timeout: float = 1.0) -> EvalResult:
+def run(loop_id: str, input: str, sync_timeout: float = 1.0) -> RunResult:
     """
-    Evaluate code in a loop.
+    Run input through a loop.
 
-    If eval completes within sync_timeout, returns result directly.
-    If eval takes longer, returns immediately with running=True; use status/read to check progress.
+    If run completes within sync_timeout, returns result directly.
+    If run takes longer, returns immediately with running=True; use status/read to check progress.
     To interrupt, use manage(action="terminate") to send Ctrl-C.
 
     Args:
         loop_id: Target loop ID from spawn
-        code: Code to evaluate
+        input: Input to run (code for Python/Bash, natural language for Claude)
         sync_timeout: Seconds to wait (default 1.0). 0=return immediately, negative=block until done.
 
     Returns:
-        EvalResult with output, cell_index, elapsed_seconds. If running=True, eval continues in background.
+        RunResult with output, cell_index, elapsed_seconds. If running=True, run continues in background.
     """
     request = Request(
-        action="eval",
+        action="run",
         loop_id=loop_id,
-        code=code,
+        input=input,
         sync_timeout=sync_timeout,
     )
 
@@ -348,7 +348,7 @@ def eval(loop_id: str, code: str, sync_timeout: float = 1.0) -> EvalResult:
     if not response.ok:
         raise RuntimeError(f"{response.error_code}: {response.error}")
 
-    return EvalResult(
+    return RunResult(
         output=response.output,
         cell_index=response.cell_index,
         elapsed_seconds=response.elapsed_seconds,

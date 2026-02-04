@@ -152,8 +152,8 @@ class LoopDaemon:
 
         if action == "spawn":
             return await self._spawn(request)
-        elif action == "eval":
-            return await self._eval(request)
+        elif action == "run":
+            return await self._run(request)
         elif action == "read":
             return await self._read(request)
         elif action == "read_raw":
@@ -207,18 +207,18 @@ class LoopDaemon:
             ok=True, loop_id=loop_id, parent_id=request.parent_id, label=label
         )
 
-    async def _eval(self, request: Request) -> Response:
-        """Evaluate code in a loop. Returns immediately if takes longer than sync_timeout."""
+    async def _run(self, request: Request) -> Response:
+        """Run input through a loop. Returns immediately if takes longer than sync_timeout."""
         loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
             )
 
-        # Reject if eval already running (no queuing)
+        # Reject if already running (no queuing)
         if loop.eval_running:
             return Response.error_response(
-                f"eval already running on {request.loop_id}", ERROR_INVALID_REQUEST
+                f"run already in progress on {request.loop_id}", ERROR_INVALID_REQUEST
             )
 
         loop.cancelled = False
@@ -230,7 +230,7 @@ class LoopDaemon:
             asyncio.to_thread(
                 backend.eval,
                 loop.pane_id,
-                request.code,
+                request.input,
                 lambda: loop.cancelled,
             )
         )
@@ -262,8 +262,8 @@ class LoopDaemon:
                 elapsed_seconds=elapsed,
             )
         except asyncio.TimeoutError:
-            # Eval still running - return immediately, task continues in background
-            asyncio.create_task(self._background_eval_cleanup(loop, task))
+            # Still running - return immediately, task continues in background
+            asyncio.create_task(self._background_run_cleanup(loop, task))
             elapsed = time.time() - loop.eval_started_at
             return Response(
                 ok=True,
@@ -275,12 +275,12 @@ class LoopDaemon:
             loop.eval_started_at = 0.0
             return Response.error_response(str(e), ERROR_BACKEND_ERROR)
 
-    async def _background_eval_cleanup(self, loop: LoopState, task: asyncio.Task):
-        """Wait for background eval to complete and update state."""
+    async def _background_run_cleanup(self, loop: LoopState, task: asyncio.Task):
+        """Wait for background run to complete and update state."""
         try:
             await task
         except Exception as e:
-            logging.error(f"Background eval error on {loop.loop_id}: {e}")
+            logging.error(f"Background run error on {loop.loop_id}: {e}")
         finally:
             loop.eval_running = False
             loop.eval_started_at = 0.0

@@ -18,12 +18,12 @@ ERROR_CANCELLED = "cancelled"
 class Request:
     """Request to the loop daemon."""
 
-    action: str  # spawn, eval, read, read_raw, list, status, terminate, kill
+    action: str  # spawn, run, read, read_raw, list, status, terminate, kill
     loop_id: str = ""  # for operations on existing loops
     parent_id: str = ""  # for spawn: session_id or parent loop_id
     label: str = ""  # for spawn: optional human-readable tag for tmux window
     backend: str = ""  # for spawn
-    code: str = ""  # for eval
+    input: str = ""  # for run
     prompt: str = ""  # for spawn (claude)
     name: str = ""  # optional name for spawn
     args: str = ""  # backend-specific args
@@ -41,7 +41,7 @@ class Request:
             "parent_id": self.parent_id,
             "label": self.label,
             "backend": self.backend,
-            "code": self.code,
+            "input": self.input,
             "prompt": self.prompt,
             "name": self.name,
             "args": self.args,
@@ -59,7 +59,7 @@ class Request:
             parent_id=d.get("parent_id", ""),
             label=d.get("label", ""),
             backend=d.get("backend", ""),
-            code=d.get("code", ""),
+            input=d.get("input", ""),
             prompt=d.get("prompt", ""),
             name=d.get("name", ""),
             args=d.get("args", ""),

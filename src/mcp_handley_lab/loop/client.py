@@ -104,26 +104,26 @@ def spawn(
     return response["loop_id"]
 
 
-def eval_code(loop_id: str, code: str, sync_timeout: float = 30.0) -> str:
-    """Evaluate code in a loop.
+def run(loop_id: str, input: str, sync_timeout: float = 30.0) -> str:
+    """Run input through a loop.
 
     Args:
         loop_id: Target loop
-        code: Code to evaluate
+        input: Input to run (code for Python/Bash, natural language for Claude)
         sync_timeout: Seconds to wait for completion (default 30s)
 
     Returns:
         Output string
     """
     request = {
-        "action": "eval",
+        "action": "run",
         "loop_id": loop_id,
-        "code": code,
+        "input": input,
         "sync_timeout": sync_timeout,
     }
     response = _send_request(request)
     if response.get("running"):
-        raise RuntimeError("Eval timed out - use status() to check progress")
+        raise RuntimeError("Run timed out - use status() to check progress")
     return response.get("output", response.get("raw_output", ""))
 
 

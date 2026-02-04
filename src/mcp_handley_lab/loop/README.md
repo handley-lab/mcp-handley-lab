@@ -24,8 +24,8 @@ This implementation draws on two key concepts:
 mcp__loop__manage(action="spawn", backend="python", label="worker")
 # Returns: {"loop_id": "python-123456", "parent_id": "session-...", "ok": true}
 
-# Eval code
-mcp__loop__eval(loop_id="python-123456", code="2 + 2")
+# Run input through the loop
+mcp__loop__run(loop_id="python-123456", input="2 + 2")
 # Returns: {"output": "4", "cell_index": 0, "elapsed_seconds": 0.4}
 
 # List all loops
@@ -75,13 +75,13 @@ Python code running inside a loop can spawn child loops:
 # Inside a Python loop:
 import sys
 sys.path.insert(0, '/path/to/mcp-handley-lab/src')
-from mcp_handley_lab.loop.client import spawn, eval_code, list_loops
+from mcp_handley_lab.loop.client import spawn, run, list_loops
 
 # Spawn a child
 child_id = spawn('bash', label='worker')
 
-# Eval in child
-result = eval_code(child_id, 'echo hello')
+# Run input in child
+result = run(child_id, 'echo hello')
 print(result)  # "hello"
 
 # List loops

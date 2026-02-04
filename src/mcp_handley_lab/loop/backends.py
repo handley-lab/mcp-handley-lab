@@ -246,7 +246,7 @@ class TmuxBackend:
 
     def spawn(
         self,
-        namespace: str,
+        label: str,
         name: str | None,
         args: str | None,
         child_allowed_tools: list[str],
@@ -280,7 +280,7 @@ class TmuxBackend:
 
         timestamp = datetime.now().strftime("%H%M%S")
         loop_id = f"{self.config.name}-{name or timestamp}"
-        window_name = f"{namespace}-{loop_id}"
+        window_name = f"{label}-{loop_id}"
 
         result = _run(
             [
@@ -371,7 +371,7 @@ class ClaudeBackend:
 
     def spawn(
         self,
-        namespace: str,
+        label: str,
         name: str | None,
         args: str | None,
         child_allowed_tools: list[str],

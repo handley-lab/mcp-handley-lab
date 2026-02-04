@@ -1,6 +1,11 @@
-"""MCP Loop Tool - REPL orchestration with hierarchical namespaces."""
+"""MCP Loop Tool - REPL orchestration with parent-child model.
+
+Uses Unix process model: each loop has loop_id (like PID) and parent_id (like PPID).
+No access control - if you know the loop_id, you can operate on it.
+"""
 
 import fcntl
+import hashlib
 import json
 import os
 import socket
@@ -17,6 +22,7 @@ from mcp_handley_lab.loop.protocol import Request, Response
 # Daemon paths
 RUN_DIR = Path.home() / ".local" / "run"
 STATE_DIR = Path.home() / ".local" / "state" / "mcp-loop"
+SESSION_DIR = STATE_DIR / "sessions"
 SOCKET_PATH = RUN_DIR / "mcp-loop.sock"
 PID_PATH = RUN_DIR / "mcp-loop.pid"
 LOCK_PATH = RUN_DIR / "mcp-loop.lock"
@@ -30,7 +36,8 @@ class LoopInfo(BaseModel):
 
     loop_id: str
     backend: str
-    namespace: str
+    parent_id: str
+    label: str
 
 
 class Cell(BaseModel):
@@ -48,9 +55,11 @@ class ManageResult(BaseModel):
 
     # spawn
     loop_id: str | None = None
-    namespace: str | None = None
+    parent_id: str | None = None
+    label: str | None = None
     # list
     loops: list[LoopInfo] | None = None
+    current_session_id: str | None = None  # for list: caller's session for context
     # read
     cells: list[Cell] | None = None
     # read_raw
@@ -81,12 +90,38 @@ class ManageArgs(BaseModel):
     """Input arguments for manage action."""
 
     action: str
-    namespace: str = ""
     loop_id: str = ""
+    parent_id: str = ""  # for spawn: session_id or parent loop_id
+    label: str = ""  # for spawn: optional tag for tmux window naming
     backend: str = ""
     name: str = ""
     args: str = ""
+    descendants_of: str = ""  # for list: filter to subtree
     child_allowed_tools: list[str] = Field(default_factory=list)
+
+
+def _get_session_id() -> str:
+    """Get current session ID from hook file (keyed by git root hash)."""
+    try:
+        cwd = os.getcwd()
+        # Normalize to git root
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            cwd=cwd,
+        )
+        root = result.stdout.strip() if result.returncode == 0 else cwd
+        root_hash = hashlib.md5(root.encode()).hexdigest()
+        session_file = SESSION_DIR / root_hash
+        if session_file.exists():
+            return session_file.read_text().strip()
+    except Exception as e:
+        # Session tracking is optional - log but don't fail
+        import sys
+
+        print(f"mcp-loop: warning: could not read session_id: {e}", file=sys.stderr)
+    return ""
 
 
 def _socket_connectable() -> bool:
@@ -212,11 +247,12 @@ def manage(params: ManageArgs) -> ManageResult:
     Manage loops: spawn, list, read, read_raw, status, terminate, kill.
 
     Loops are persistent REPL sessions (Python, Bash, Julia, etc.) that run in tmux.
-    Each loop has a namespace for isolation. Spawned loops get child namespaces.
+    Uses Unix process model: each loop has loop_id (like PID) and parent_id (like PPID).
+    If you know the loop_id, you can operate on it.
 
     Actions:
-    - spawn: Create new loop. Params: backend (required), name (optional), args (optional)
-    - list: List loops visible to namespace
+    - spawn: Create new loop. Params: backend (required), parent_id (optional), label (optional)
+    - list: List loops. Params: parent_id (direct children), descendants_of (subtree)
     - read: Get cells from loop. Params: loop_id
     - read_raw: Get raw terminal capture. Params: loop_id
     - status: Check if eval is running. Params: loop_id
@@ -226,19 +262,29 @@ def manage(params: ManageArgs) -> ManageResult:
     Available backends: bash, zsh, python, ipython, julia, R, clojure, apl, maple, ollama, mathematica
 
     Args:
-        params: ManageArgs with action, namespace, and action-specific fields
+        params: ManageArgs with action and action-specific fields
 
     Returns:
-        ManageResult with action-specific fields populated
+        ManageResult with action-specific fields populated. List includes current_session_id for context.
     """
+    # For spawn: use provided parent_id, or fall back to session_id from hook file
+    # For list: include current session_id for context in response
+    session_id = _get_session_id()
+    parent_id = params.parent_id
+    if params.action == "spawn" and not parent_id:
+        parent_id = session_id
+
     request = Request(
         action=params.action,
-        namespace=params.namespace,
         loop_id=params.loop_id,
+        parent_id=parent_id,
+        label=params.label,
         backend=params.backend,
         name=params.name,
         args=params.args,
         child_allowed_tools=params.child_allowed_tools,
+        descendants_of=params.descendants_of,
+        current_session_id=session_id if params.action == "list" else "",
     )
 
     response = _send_request(request)
@@ -251,8 +297,12 @@ def manage(params: ManageArgs) -> ManageResult:
 
     if response.loop_id:
         result.loop_id = response.loop_id
-    if response.namespace:
-        result.namespace = response.namespace
+    if response.parent_id:
+        result.parent_id = response.parent_id
+    if response.label:
+        result.label = response.label
+    if response.current_session_id:
+        result.current_session_id = response.current_session_id
     if response.loops:
         result.loops = [LoopInfo(**loop) for loop in response.loops]
     if response.cells:
@@ -270,9 +320,7 @@ def manage(params: ManageArgs) -> ManageResult:
 
 
 @mcp.tool()
-def eval(
-    loop_id: str, code: str, namespace: str, sync_timeout: float = 1.0
-) -> EvalResult:
+def eval(loop_id: str, code: str, sync_timeout: float = 1.0) -> EvalResult:
     """
     Evaluate code in a loop.
 
@@ -283,7 +331,6 @@ def eval(
     Args:
         loop_id: Target loop ID from spawn
         code: Code to evaluate
-        namespace: Root namespace
         sync_timeout: Seconds to wait (default 1.0). 0=return immediately, negative=block until done.
 
     Returns:
@@ -291,7 +338,6 @@ def eval(
     """
     request = Request(
         action="eval",
-        namespace=namespace,
         loop_id=loop_id,
         code=code,
         sync_timeout=sync_timeout,

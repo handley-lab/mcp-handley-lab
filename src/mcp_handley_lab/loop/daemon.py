@@ -1,9 +1,14 @@
-"""Loop daemon - asyncio Unix socket server with namespace enforcement."""
+"""Loop daemon - asyncio Unix socket server.
+
+Uses Unix process model: each loop has loop_id (like PID) and parent_id (like PPID).
+No access control - if you know the loop_id, you can operate on it.
+"""
 
 import asyncio
 import json
 import logging
 import os
+import re
 import signal
 import socket
 import time
@@ -31,13 +36,21 @@ LOG_PATH = STATE_DIR / "daemon.log"
 IDLE_TIMEOUT = 30 * 60  # 30 minutes
 
 
+def sanitize_label(label: str, fallback: str = "loop") -> str:
+    """Sanitize label for tmux window naming compatibility."""
+    # Replace spaces with dashes, remove special chars
+    result = re.sub(r"[^a-zA-Z0-9_-]", "-", label).strip("-")
+    return result if result else fallback
+
+
 @dataclass
 class LoopState:
     """State for a single loop."""
 
     loop_id: str
     backend: str
-    namespace: str
+    parent_id: str  # session_id or loop_id of spawner
+    label: str  # human-readable tag for tmux window naming
     pane_id: str = ""  # for tmux backend
     cancelled: bool = False
     eval_running: bool = False
@@ -48,22 +61,39 @@ class LoopState:
         return {
             "loop_id": self.loop_id,
             "backend": self.backend,
-            "namespace": self.namespace,
+            "parent_id": self.parent_id,
+            "label": self.label,
             "pane_id": self.pane_id,
         }
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "LoopState":
+        # Migration: handle old state.json with 'namespace' field
+        if "namespace" in d and "parent_id" not in d:
+            namespace = d["namespace"]
+            # Extract last component for label, parent_id is unknown
+            label = namespace.split("/")[-1] if namespace else d.get("backend", "")
+            logging.warning(
+                f"Migrating loop {d['loop_id']} from namespace to parent-child model"
+            )
+            return cls(
+                loop_id=d["loop_id"],
+                backend=d["backend"],
+                parent_id="",  # Unknown after migration
+                label=label,
+                pane_id=d.get("pane_id", ""),
+            )
         return cls(
             loop_id=d["loop_id"],
             backend=d["backend"],
-            namespace=d["namespace"],
+            parent_id=d.get("parent_id", ""),
+            label=d.get("label", d.get("backend", "")),
             pane_id=d.get("pane_id", ""),
         )
 
 
 class LoopDaemon:
-    """Loop daemon managing namespaces and loops."""
+    """Loop daemon managing loops with parent-child relationships."""
 
     def __init__(self):
         self.loops: dict[str, LoopState] = {}  # loop_id -> LoopState
@@ -89,19 +119,28 @@ class LoopDaemon:
         tmp_path.write_text(json.dumps(data, indent=2))
         tmp_path.rename(STATE_PATH)
 
-    def _namespace_allows(self, caller_ns: str, target_ns: str) -> bool:
-        """Check if caller namespace can access target namespace."""
-        # Empty namespace = root access (can see all)
-        if not caller_ns:
-            return True
-        return target_ns == caller_ns or target_ns.startswith(caller_ns + "/")
+    def _get_loop(self, loop_id: str) -> LoopState | None:
+        """Get loop by ID (Unix philosophy: if you have the ID, you can use it)."""
+        return self.loops.get(loop_id)
 
-    def _get_loop(self, namespace: str, loop_id: str) -> LoopState | None:
-        """Get loop if namespace has access."""
-        loop = self.loops.get(loop_id)
-        if loop and self._namespace_allows(namespace, loop.namespace):
-            return loop
-        return None
+    def _get_descendants(
+        self, parent_id: str, _visited: set[str] | None = None
+    ) -> list[LoopState]:
+        """Get all loops that are descendants of the given parent."""
+        if _visited is None:
+            _visited = set()
+        if parent_id in _visited:
+            return []  # Cycle detected - stop recursion
+        _visited.add(parent_id)
+
+        result = []
+        # Direct children
+        direct = [loop for loop in self.loops.values() if loop.parent_id == parent_id]
+        result.extend(direct)
+        # Recurse for grandchildren
+        for child in direct:
+            result.extend(self._get_descendants(child.loop_id, _visited))
+        return result
 
     async def handle_request(self, request: Request) -> Response:
         """Handle a single request."""
@@ -109,9 +148,7 @@ class LoopDaemon:
 
         action = request.action
 
-        # Namespace required for all actions except list
-        if not request.namespace and action != "list":
-            return Response.error_response("namespace required", ERROR_INVALID_REQUEST)
+        # No namespace check - Unix philosophy: operations just need loop_id
 
         if action == "spawn":
             return await self._spawn(request)
@@ -137,11 +174,17 @@ class LoopDaemon:
         if not request.backend:
             return Response.error_response("backend required", ERROR_INVALID_REQUEST)
 
+        # Use provided label or default to backend name (both sanitized for tmux)
+        label = sanitize_label(
+            request.label if request.label else request.backend,
+            fallback=request.backend,
+        )
+
         try:
             backend = self._get_backend(request.backend)
             loop_id, pane_id = await asyncio.to_thread(
                 backend.spawn,
-                request.namespace,
+                label,  # Use label for tmux window naming
                 request.name,
                 request.args,
                 request.child_allowed_tools,
@@ -149,21 +192,23 @@ class LoopDaemon:
         except Exception as e:
             return Response.error_response(str(e), ERROR_BACKEND_ERROR)
 
-        child_namespace = f"{request.namespace}/{loop_id}"
         state = LoopState(
             loop_id=loop_id,
             backend=request.backend,
-            namespace=child_namespace,
+            parent_id=request.parent_id,
+            label=label,
             pane_id=pane_id,
         )
         self.loops[loop_id] = state
         self.save_state()
 
-        return Response(ok=True, loop_id=loop_id, namespace=child_namespace)
+        return Response(
+            ok=True, loop_id=loop_id, parent_id=request.parent_id, label=label
+        )
 
     async def _eval(self, request: Request) -> Response:
         """Evaluate code in a loop. Returns immediately if takes longer than sync_timeout."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
@@ -242,7 +287,7 @@ class LoopDaemon:
 
     async def _read(self, request: Request) -> Response:
         """Read cells from a loop (does not acquire lock)."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
@@ -257,7 +302,7 @@ class LoopDaemon:
 
     async def _read_raw(self, request: Request) -> Response:
         """Read raw terminal output from a loop."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
@@ -271,22 +316,40 @@ class LoopDaemon:
             return Response.error_response(str(e), ERROR_BACKEND_ERROR)
 
     async def _list(self, request: Request) -> Response:
-        """List loops visible to namespace."""
+        """List loops, optionally filtered by parent_id or descendants_of."""
         visible = []
-        for loop in self.loops.values():
-            if self._namespace_allows(request.namespace, loop.namespace):
-                visible.append(
-                    {
-                        "loop_id": loop.loop_id,
-                        "backend": loop.backend,
-                        "namespace": loop.namespace,
-                    }
-                )
-        return Response(ok=True, loops=visible)
+
+        if request.descendants_of:
+            # Get full subtree under this parent
+            loops_to_show = self._get_descendants(request.descendants_of)
+        elif request.parent_id:
+            # Get direct children only
+            loops_to_show = [
+                loop
+                for loop in self.loops.values()
+                if loop.parent_id == request.parent_id
+            ]
+        else:
+            # Show all loops
+            loops_to_show = list(self.loops.values())
+
+        for loop in loops_to_show:
+            visible.append(
+                {
+                    "loop_id": loop.loop_id,
+                    "backend": loop.backend,
+                    "parent_id": loop.parent_id,
+                    "label": loop.label,
+                }
+            )
+        # Echo caller's session_id back for context (daemon is stateless re: sessions)
+        return Response(
+            ok=True, loops=visible, current_session_id=request.current_session_id
+        )
 
     async def _status(self, request: Request) -> Response:
         """Get status of a loop."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
@@ -308,7 +371,7 @@ class LoopDaemon:
 
     async def _terminate(self, request: Request) -> Response:
         """Terminate (Ctrl-C) a loop's running eval."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND
@@ -325,7 +388,7 @@ class LoopDaemon:
 
     async def _kill(self, request: Request) -> Response:
         """Force-kill a loop."""
-        loop = self._get_loop(request.namespace, request.loop_id)
+        loop = self._get_loop(request.loop_id)
         if not loop:
             return Response.error_response(
                 f"loop not found: {request.loop_id}", ERROR_NOT_FOUND

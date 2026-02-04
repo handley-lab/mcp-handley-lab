@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 from mcp_handley_lab.loop.protocol import Request, Response
 
@@ -61,6 +61,11 @@ class ManageResult(BaseModel):
     elapsed_seconds: float | None = None
     # always present
     ok: bool = True
+
+    @model_serializer
+    def serialize(self) -> dict:
+        """Exclude None fields from serialization."""
+        return {k: v for k, v in self.__dict__.items() if v is not None}
 
 
 class EvalResult(BaseModel):

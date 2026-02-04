@@ -914,3 +914,131 @@ async def test_llm_prompt_file_xor_validation(
     with pytest.raises(ToolError) as exc_info:
         await mcp.call_tool("chat", base_params)
     assert "exactly one of 'prompt' or 'prompt_file'" in str(exc_info.value).lower()
+
+
+class TestAsyncConcurrency:
+    """Test async concurrency behavior - verify event loop isn't blocked."""
+
+    @pytest.mark.vcr
+    @pytest.mark.asyncio
+    async def test_concurrent_native_async_providers(
+        self, skip_if_no_api_key, test_output_file, tmp_path
+    ):
+        """Test concurrent requests to native async providers (OpenAI + Claude)."""
+        skip_if_no_api_key("OPENAI_API_KEY")
+        skip_if_no_api_key("ANTHROPIC_API_KEY")
+
+        import asyncio
+
+        output1 = tmp_path / "openai.txt"
+        output2 = tmp_path / "claude.txt"
+
+        # Both providers use native async - should run truly concurrently
+        tasks = [
+            mcp.call_tool(
+                "chat",
+                {
+                    "prompt": "What is 2+2? Answer with just the number.",
+                    "output_file": str(output1),
+                    "model": "gpt-4o-mini",
+                    "branch": "",
+                    "temperature": 0.0,
+                },
+            ),
+            mcp.call_tool(
+                "chat",
+                {
+                    "prompt": "What is 3+3? Answer with just the number.",
+                    "output_file": str(output2),
+                    "model": "claude-haiku-4-5-20251001",
+                    "branch": "",
+                    "temperature": 0.0,
+                },
+            ),
+        ]
+        results = await asyncio.gather(*tasks)
+
+        # Both should succeed
+        for _, response in results:
+            assert "error" not in response, response.get("error")
+            assert response["content"] is not None
+
+        # Verify outputs
+        assert "4" in output1.read_text()
+        assert "6" in output2.read_text()
+
+    @pytest.mark.vcr
+    @pytest.mark.asyncio
+    async def test_mixed_async_and_threaded_providers(
+        self, skip_if_no_api_key, test_output_file, tmp_path
+    ):
+        """Test native async (OpenAI) alongside thread-wrapped (Gemini)."""
+        skip_if_no_api_key("OPENAI_API_KEY")
+        skip_if_no_api_key("GEMINI_API_KEY")
+
+        import asyncio
+
+        output1 = tmp_path / "openai.txt"
+        output2 = tmp_path / "gemini.txt"
+
+        # OpenAI is native async, Gemini uses anyio.to_thread wrapping
+        tasks = [
+            mcp.call_tool(
+                "chat",
+                {
+                    "prompt": "What is 5+5? Answer with just the number.",
+                    "output_file": str(output1),
+                    "model": "gpt-4o-mini",
+                    "branch": "",
+                    "temperature": 0.0,
+                },
+            ),
+            mcp.call_tool(
+                "chat",
+                {
+                    "prompt": "What is 7+7? Answer with just the number.",
+                    "output_file": str(output2),
+                    "model": "gemini-2.5-flash",
+                    "branch": "",
+                    "temperature": 0.0,
+                },
+            ),
+        ]
+        results = await asyncio.gather(*tasks)
+
+        # Both should succeed
+        for _, response in results:
+            assert "error" not in response, response.get("error")
+            assert response["content"] is not None
+
+        # Verify outputs
+        assert "10" in output1.read_text()
+        assert "14" in output2.read_text()
+
+    @pytest.mark.asyncio
+    async def test_concurrency_not_blocked(self):
+        """Deterministic test: verify event loop isn't blocked (no external APIs).
+
+        Two "slow" operations using asyncio.to_thread should complete
+        in ~0.2s, not ~0.4s (sequential would take ~0.4s).
+        """
+        import asyncio
+        import time
+
+        async def slow_operation():
+            """Simulate a slow blocking operation wrapped for async."""
+            await asyncio.to_thread(time.sleep, 0.2)
+            return "done"
+
+        start = time.monotonic()
+        results = await asyncio.gather(slow_operation(), slow_operation())
+        elapsed = time.monotonic() - start
+
+        # Both should complete
+        assert results == ["done", "done"]
+
+        # Should complete in parallel (~0.2s) not sequentially (~0.4s)
+        # Use 0.35s threshold to allow some overhead
+        assert elapsed < 0.35, (
+            f"Expected ~0.2s for parallel execution, got {elapsed:.2f}s"
+        )

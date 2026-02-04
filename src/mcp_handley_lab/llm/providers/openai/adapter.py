@@ -5,12 +5,11 @@ These adapters are used by the unified mcp-chat tool.
 """
 
 import base64
-import threading
 from typing import Any
 
 import httpx
 import openai
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -19,20 +18,15 @@ from mcp_handley_lab.llm.common import (
     resolve_images_for_multimodal_prompt,
 )
 
-# Lazy initialization of OpenAI client
-_client: OpenAI | None = None
-_client_lock = threading.Lock()
+# Lazy initialization of async OpenAI client
+_client: AsyncOpenAI | None = None
 
 
-def get_client() -> OpenAI:
-    """Get or create the global OpenAI client with thread safety."""
+def get_client() -> AsyncOpenAI:
+    """Get or create the global async OpenAI client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            try:
-                _client = OpenAI(api_key=settings.openai_api_key)
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize OpenAI client: {e}") from e
+    if _client is None:
+        _client = AsyncOpenAI(api_key=settings.openai_api_key)
     return _client
 
 
@@ -45,7 +39,7 @@ def get_model_config(model: str) -> dict:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-def generation_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -125,7 +119,7 @@ def generation_adapter(
         request_params["tools"] = [{"type": "web_search_preview"}]
 
     # Make Responses API call
-    response = get_client().responses.create(**request_params)
+    response = await get_client().responses.create(**request_params)
 
     # Extract primary output text via helper property
     text = getattr(response, "output_text", None)
@@ -200,7 +194,7 @@ def generation_adapter(
     }
 
 
-def image_analysis_adapter(
+async def image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -273,7 +267,7 @@ def image_analysis_adapter(
 
     request_params["max_output_tokens"] = default_tokens
 
-    response = get_client().responses.create(**request_params)
+    response = await get_client().responses.create(**request_params)
 
     text = getattr(response, "output_text", None)
     if text is None:
@@ -315,7 +309,7 @@ def image_analysis_adapter(
     }
 
 
-def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+async def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     """OpenAI-specific image generation function with comprehensive metadata extraction."""
     size = kwargs.get("size", "1024x1024")
     quality = kwargs.get("quality", "standard")
@@ -328,23 +322,20 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
         params["quality"] = quality
 
     try:
-        response = get_client().images.generate(**params)
+        response = await get_client().images.generate(**params)
     except openai.BadRequestError as e:
-        raise ValueError(f"OpenAI image generation error: {str(e)}") from e
-    except Exception as e:
         raise ValueError(f"OpenAI image generation error: {str(e)}") from e
 
     image = response.data[0]
 
     # Get image bytes based on response format
     if is_gpt_image or getattr(image, "b64_json", None):
-        # Decode base64 response
         image_bytes = base64.b64decode(image.b64_json)
         original_url = None
     else:
-        # Download from URL
-        with httpx.Client() as http_client:
-            image_response = http_client.get(image.url)
+        # Download from URL using async httpx
+        async with httpx.AsyncClient() as http_client:
+            image_response = await http_client.get(image.url)
             image_response.raise_for_status()
             image_bytes = image_response.content
         original_url = image.url
@@ -371,13 +362,13 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     }
 
 
-def list_api_models() -> set[str]:
+async def list_api_models() -> set[str]:
     """List model IDs available from the OpenAI API."""
-    api_models = get_client().models.list()
+    api_models = await get_client().models.list()
     return {m.id for m in api_models.data}
 
 
-def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
+async def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
     """Generate embeddings for a list of texts."""
-    response = get_client().embeddings.create(model=model, input=texts)
+    response = await get_client().embeddings.create(model=model, input=texts)
     return [item.embedding for item in response.data]

@@ -4,9 +4,10 @@ Contains provider-specific generation functions that implement the Gemini API ca
 These adapters are used by the unified mcp-chat tool.
 """
 
+import asyncio
 import base64
+import functools
 import io
-import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -40,26 +41,20 @@ GEMINI_INLINE_FILE_LIMIT_BYTES = 20 * 1024 * 1024  # 20MB
 
 # Lazy initialization of Gemini client
 _client: google_genai.Client | None = None
-_client_lock = threading.Lock()
 
 
 def get_client() -> google_genai.Client:
-    """Get or create the global Gemini client with thread safety."""
+    """Get or create the global Gemini client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            try:
-                _client = google_genai.Client(api_key=settings.gemini_api_key)
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize Gemini client: {e}") from e
+    if _client is None:
+        _client = google_genai.Client(api_key=settings.gemini_api_key)
     return _client
 
 
 def reset_client() -> None:
     """Reset the global client. Used by tests to ensure VCR can intercept requests."""
     global _client
-    with _client_lock:
-        _client = None
+    _client = None
 
 
 # Load model configurations using shared loader
@@ -134,14 +129,14 @@ def resolve_images(images: list[str] | None = None) -> list[Image.Image]:
     return image_list
 
 
-def generation_adapter(
+def _sync_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Gemini-specific text generation function for the shared processor."""
+    """Sync Gemini text generation (internal)."""
     # Extract Gemini-specific parameters from options dict
     options = kwargs.get("options", {})
     temperature = kwargs.get("temperature", 1.0)
@@ -343,14 +338,34 @@ def generation_adapter(
     }
 
 
-def image_analysis_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Gemini-specific image analysis function for the shared processor."""
+    """Gemini text generation wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_generation_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
+
+
+def _sync_image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Sync Gemini image analysis (internal)."""
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
 
@@ -388,6 +403,26 @@ def image_analysis_adapter(
         "output_tokens": response.usage_metadata.candidates_token_count,
         "total_tokens": getattr(response.usage_metadata, "total_token_count", 0) or 0,
     }
+
+
+async def image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Gemini image analysis wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_image_analysis_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
 
 
 def _is_nano_banana_model(model: str) -> bool:
@@ -533,36 +568,49 @@ def _generate_with_imagen(prompt: str, model: str, **kwargs) -> dict:
     }
 
 
-def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """Gemini-specific image generation function.
-
-    Routes to appropriate API based on model type:
-    - Nano Banana models (gemini-*-image*): uses generate_content API
-    - Imagen models: uses generate_images API
-    """
+def _sync_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Sync Gemini image generation (internal)."""
     if _is_nano_banana_model(model):
         return _generate_with_nano_banana(prompt, model, **kwargs)
     else:
         return _generate_with_imagen(prompt, model, **kwargs)
 
 
-def list_api_models() -> set[str]:
-    """List model names available from the Gemini API."""
+async def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Gemini image generation wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(_sync_image_generation_adapter, prompt, model, **kwargs)
+    )
+
+
+def _sync_list_api_models() -> set[str]:
+    """Sync list models (internal)."""
     models_response = get_client().models.list()
     return {model.name.split("/")[-1] for model in models_response}
 
 
-def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
-    """Generate embeddings for a list of texts."""
+async def list_api_models() -> set[str]:
+    """List model names available from the Gemini API."""
+    return await asyncio.to_thread(_sync_list_api_models)
+
+
+def _sync_embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
+    """Sync embeddings (internal)."""
     result = []
     for text in texts:
         response = get_client().models.embed_content(model=model, contents=text)
-        # response.embeddings is a list of ContentEmbedding, each has .values
         result.append(response.embeddings[0].values)
     return result
 
 
-def deep_research_adapter(
+async def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
+    """Generate embeddings for a list of texts."""
+    return await asyncio.to_thread(
+        functools.partial(_sync_embeddings_adapter, texts, model)
+    )
+
+
+def _sync_deep_research_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -668,3 +716,23 @@ def deep_research_adapter(
         "response_id": interaction_id,
         "grounding_metadata": grounding_metadata,
     }
+
+
+async def deep_research_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Gemini Deep Research wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_deep_research_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )

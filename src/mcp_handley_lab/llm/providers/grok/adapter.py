@@ -4,7 +4,8 @@ Contains provider-specific generation functions that implement the Grok API call
 These adapters are used by the unified mcp-chat tool.
 """
 
-import threading
+import asyncio
+import functools
 from typing import Any
 
 from xai_sdk import Client
@@ -18,18 +19,13 @@ from mcp_handley_lab.llm.common import (
 
 # Lazy initialization of Grok client
 _client: Client | None = None
-_client_lock = threading.Lock()
 
 
 def get_client() -> Client:
-    """Get or create the global Grok client with thread safety."""
+    """Get or create the global Grok client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            try:
-                _client = Client(api_key=settings.xai_api_key)
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize Grok client: {e}") from e
+    if _client is None:
+        _client = Client(api_key=settings.xai_api_key)
     return _client
 
 
@@ -42,14 +38,14 @@ def get_model_config(model: str) -> dict:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-def generation_adapter(
+def _sync_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Grok-specific text generation function for the shared processor."""
+    """Sync Grok text generation (internal)."""
     from xai_sdk import chat
 
     # Extract Grok-specific parameters
@@ -169,14 +165,34 @@ def generation_adapter(
     }
 
 
-def image_analysis_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Grok-specific image analysis function for the shared processor."""
+    """Grok text generation wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_generation_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
+
+
+def _sync_image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Sync Grok image analysis (internal)."""
     from xai_sdk import chat
 
     # Extract image analysis specific parameters
@@ -256,8 +272,28 @@ def image_analysis_adapter(
     }
 
 
-def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
-    """Grok-specific image generation function with comprehensive metadata extraction."""
+async def image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Grok image analysis wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_image_analysis_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
+
+
+def _sync_image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Sync Grok image generation (internal)."""
     # Use xai-sdk's image.sample method
     # image_format="base64" returns raw bytes via response.image
     response = get_client().image.sample(
@@ -287,8 +323,15 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
     }
 
 
-def list_api_models() -> set[str]:
-    """List model names available from the Grok API."""
+async def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Grok image generation wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(_sync_image_generation_adapter, prompt, model, **kwargs)
+    )
+
+
+def _sync_list_api_models() -> set[str]:
+    """Sync list models (internal)."""
     language_models = get_client().models.list_language_models()
     api_model_ids = {m.name for m in language_models}
 
@@ -297,3 +340,8 @@ def list_api_models() -> set[str]:
     api_model_ids.update({m.name for m in image_models})
 
     return api_model_ids
+
+
+async def list_api_models() -> set[str]:
+    """List model names available from the Grok API."""
+    return await asyncio.to_thread(_sync_list_api_models)

@@ -4,10 +4,9 @@ Contains provider-specific generation functions that implement the Anthropic API
 These adapters are used by the unified mcp-chat tool.
 """
 
-import threading
 from typing import Any
 
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -16,20 +15,15 @@ from mcp_handley_lab.llm.common import (
     resolve_images_for_multimodal_prompt,
 )
 
-# Lazy initialization of Claude client
-_client: Anthropic | None = None
-_client_lock = threading.Lock()
+# Lazy initialization of async Claude client
+_client: AsyncAnthropic | None = None
 
 
-def get_client() -> Anthropic:
-    """Get or create the global Claude client with thread safety."""
+def get_client() -> AsyncAnthropic:
+    """Get or create the global async Claude client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            try:
-                _client = Anthropic(api_key=settings.anthropic_api_key)
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize Claude client: {e}") from e
+    if _client is None:
+        _client = AsyncAnthropic(api_key=settings.anthropic_api_key)
     return _client
 
 
@@ -124,7 +118,7 @@ def resolve_images_to_content_blocks(
     return claude_image_blocks
 
 
-def generation_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -180,10 +174,7 @@ def generation_adapter(
         request_params["system"] = system_instruction
 
     # Make API call
-    try:
-        response = get_client().messages.create(**request_params)
-    except Exception as e:
-        raise ValueError(f"Claude API error: {str(e)}") from e
+    response = await get_client().messages.create(**request_params)
 
     # Extract text and thinking from response content blocks
     text_parts = []
@@ -249,7 +240,7 @@ def generation_adapter(
     }
 
 
-def image_analysis_adapter(
+async def image_analysis_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -293,10 +284,7 @@ def image_analysis_adapter(
     if system_instruction:
         request_params["system"] = system_instruction
 
-    try:
-        response = get_client().messages.create(**request_params)
-    except Exception as e:
-        raise ValueError(f"Claude API error: {str(e)}") from e
+    response = await get_client().messages.create(**request_params)
 
     # Extract citations from content blocks
     citations = []

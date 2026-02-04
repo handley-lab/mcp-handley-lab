@@ -35,13 +35,13 @@ def _resolve_embedding_provider(model: str) -> str:
     )
 
 
-def _get_embeddings(texts: list[str], model: str) -> list[list[float]]:
+async def _get_embeddings(texts: list[str], model: str) -> list[list[float]]:
     """Get embeddings using the appropriate provider via registry."""
     from mcp_handley_lab.llm.registry import get_adapter
 
     provider = _resolve_embedding_provider(model)
     adapter = get_adapter(provider, "embeddings")
-    return adapter(texts, model)
+    return await adapter(texts, model)
 
 
 def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
@@ -61,7 +61,7 @@ def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
     "Related: index_documents, search_documents, calculate_similarity. "
     "Returns: {embeddings: [[float]], model, provider, dimensions, count}."
 )
-def get_embeddings(
+async def get_embeddings(
     texts: list[str] = Field(
         ...,
         description="Text strings to embed. Max 16 for Mistral.",
@@ -82,7 +82,7 @@ def get_embeddings(
     if provider == "mistral" and len(texts) > 16:
         raise ValueError(f"Mistral: maximum 16 texts per request (got {len(texts)})")
 
-    embeddings = _get_embeddings(texts, model)
+    embeddings = await _get_embeddings(texts, model)
 
     result = {
         "embeddings": embeddings,
@@ -105,7 +105,7 @@ def get_embeddings(
     "Related: get_embeddings, index_documents, search_documents. "
     "Returns: {similarity: float (-1.0 to 1.0), model, provider}."
 )
-def calculate_similarity(
+async def calculate_similarity(
     text1: str = Field(
         ...,
         description="First text for comparison.",
@@ -120,7 +120,7 @@ def calculate_similarity(
     ),
 ) -> dict[str, Any]:
     """Calculate cosine similarity between two texts."""
-    embeddings = _get_embeddings([text1, text2], model)
+    embeddings = await _get_embeddings([text1, text2], model)
 
     similarity = _cosine_similarity(embeddings[0], embeddings[1])
 
@@ -137,7 +137,7 @@ def calculate_similarity(
     "Use search_documents to query the index. "
     "Returns: {message, index_path, model, document_count}."
 )
-def index_documents(
+async def index_documents(
     document_paths: list[str] = Field(
         ...,
         description="File paths to text documents to index.",
@@ -161,7 +161,7 @@ def index_documents(
 
     # Get embeddings for all documents
     texts = [doc["content"] for doc in documents]
-    embeddings = _get_embeddings(texts, model)
+    embeddings = await _get_embeddings(texts, model)
 
     # Build index
     index = {
@@ -191,7 +191,7 @@ def index_documents(
     "Returns: {query, model, results: [{path, similarity}]}. "
     "Model defaults to index model if not specified."
 )
-def search_documents(
+async def search_documents(
     query: str = Field(
         ...,
         description="Search query.",
@@ -226,7 +226,7 @@ def search_documents(
         )
 
     # Get query embedding
-    query_embedding = _get_embeddings([query], search_model)[0]
+    query_embedding = (await _get_embeddings([query], search_model))[0]
 
     # Calculate similarities
     results = []

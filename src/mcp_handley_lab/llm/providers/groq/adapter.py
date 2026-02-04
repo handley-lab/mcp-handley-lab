@@ -5,10 +5,9 @@ These adapters are used by the unified mcp-chat tool.
 """
 
 import os
-import threading
 from typing import Any
 
-from openai import BadRequestError, OpenAI
+from openai import AsyncOpenAI, BadRequestError
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -16,22 +15,19 @@ from mcp_handley_lab.llm.common import (
     resolve_files_for_llm,
 )
 
-# Lazy initialization of Groq client
-_client: OpenAI | None = None
-_client_lock = threading.Lock()
+# Lazy initialization of async Groq client
+_client: AsyncOpenAI | None = None
 
 
-def get_client() -> OpenAI:
-    """Get or create the global Groq client with thread safety."""
+def get_client() -> AsyncOpenAI:
+    """Get or create the global async Groq client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            # Check env var directly (for tests) or fall back to settings
-            api_key = os.environ.get("GROQ_API_KEY") or settings.groq_api_key
-            _client = OpenAI(
-                api_key=api_key,
-                base_url="https://api.groq.com/openai/v1",
-            )
+    if _client is None:
+        api_key = os.environ.get("GROQ_API_KEY") or settings.groq_api_key
+        _client = AsyncOpenAI(
+            api_key=api_key,
+            base_url="https://api.groq.com/openai/v1",
+        )
     return _client
 
 
@@ -44,7 +40,7 @@ def get_model_config(model: str) -> dict:
     return MODEL_CONFIGS.get(model, MODEL_CONFIGS[DEFAULT_MODEL])
 
 
-def generation_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
@@ -84,10 +80,8 @@ def generation_adapter(
     }
 
     try:
-        response = get_client().chat.completions.create(**request_params)
+        response = await get_client().chat.completions.create(**request_params)
     except BadRequestError as e:
-        raise ValueError(f"Groq API error: {str(e)}") from e
-    except Exception as e:
         raise ValueError(f"Groq API error: {str(e)}") from e
 
     # Extract timing information from usage (Groq-specific latency breakdown)
@@ -126,7 +120,7 @@ def generation_adapter(
     }
 
 
-def list_api_models() -> set[str]:
+async def list_api_models() -> set[str]:
     """List model IDs available from the Groq API."""
-    api_models = get_client().models.list()
+    api_models = await get_client().models.list()
     return {m.id for m in api_models.data}

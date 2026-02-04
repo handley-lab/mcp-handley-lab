@@ -66,7 +66,7 @@ def _detect_image_format(data: bytes) -> str:
     "For vision/image analysis, provide images parameter with local paths or data URIs. "
     "Returns: {content, usage: {input_tokens, output_tokens, cost, model_used}, branch, commit_sha}."
 )
-def chat(
+async def chat(
     prompt: str = Field(
         default="",
         description="The message to send to the LLM.",
@@ -160,7 +160,7 @@ def chat(
         kwargs["images"] = images
         kwargs["focus"] = focus
 
-    return process_llm_request(
+    return await process_llm_request(
         prompt=prompt or None,
         output_file=output_file,
         branch=resolved_branch,
@@ -225,7 +225,7 @@ def conversation(
     "Returns: [TextContent(JSON metadata), Image(preview)]. "
     "Metadata includes: file_path, file_size_bytes, model, provider, cost, detected_format, enhanced_prompt, original_prompt."
 )
-def generate_image(
+async def generate_image(
     prompt: str = Field(
         default="",
         description="Text description of the image to generate.",
@@ -292,7 +292,7 @@ def generate_image(
     if input_images:
         kwargs["input_images"] = input_images
 
-    response_data = generation_func(
+    response_data = await generation_func(
         prompt=final_prompt, model=canonical_model, **kwargs
     )
 
@@ -358,7 +358,7 @@ def generate_image(
     "Supports MP3, WAV, FLAC, OGG, M4A. Use model://list resource to discover audio models. "
     "Returns: {text, segments?: [{start, end, text}]}. Segments included if include_timestamps=true."
 )
-def transcribe(
+async def transcribe(
     audio_path: str = Field(
         ...,
         description="Path to audio file or URL.",
@@ -378,7 +378,7 @@ def transcribe(
 ) -> dict[str, Any]:
     """Transcribe audio using Mistral Voxtral model."""
     adapter = get_adapter("mistral", "audio_transcription")
-    result = adapter(
+    result = await adapter(
         audio_path=audio_path,
         language=language,
         include_timestamps=include_timestamps,
@@ -397,7 +397,7 @@ def transcribe(
     "Supports PDFs, images (PNG, JPG), PPTX, and DOCX. Use model://list resource to discover OCR models. "
     "Returns: {status, pages, output_file?, message}. Full OCR JSON saved to output_file if provided."
 )
-def ocr(
+async def ocr(
     document_path: str = Field(
         ...,
         description="Path to document file or URL. Supports PDF, images, PPTX, DOCX.",
@@ -413,7 +413,7 @@ def ocr(
 ) -> dict[str, Any]:
     """Process document with Mistral OCR for text extraction."""
     adapter = get_adapter("mistral", "ocr")
-    result = adapter(document_path, include_images)
+    result = await adapter(document_path, include_images)
 
     pages = result.get("pages", [])
     response: dict[str, Any] = {

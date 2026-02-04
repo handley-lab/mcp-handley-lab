@@ -257,7 +257,7 @@ def _save_conversation_turn(
     return memory.write_conversation(project_dir, branch, content, commit_message)
 
 
-def process_llm_request(
+async def process_llm_request(
     prompt: str | None,
     output_file: str,
     branch: str,
@@ -275,7 +275,7 @@ def process_llm_request(
         branch: Already resolved branch name (callers handle "session" resolution)
         model: Model identifier
         provider: Provider name
-        generation_func: Provider-specific generation function
+        generation_func: Provider-specific async generation function
         from_ref: Optional ref to fork from when creating new branch
         **kwargs: Additional arguments for the generation function
     """
@@ -311,8 +311,8 @@ def process_llm_request(
         final_prompt, user_prompt, kwargs
     )
 
-    # Call provider-specific generation function
-    response_data = generation_func(
+    # Call provider-specific async generation function
+    response_data = await generation_func(
         prompt=final_prompt,
         model=model,
         history=history,
@@ -392,7 +392,7 @@ def process_llm_request(
 # =============================================================================
 
 
-def chat(
+async def chat(
     prompt: str | None = None,
     prompt_file: str | None = None,
     prompt_vars: dict[str, str] | None = None,
@@ -454,7 +454,7 @@ def chat(
         kwargs["images"] = images
         kwargs["focus"] = focus
 
-    return process_llm_request(
+    return await process_llm_request(
         prompt=prompt,
         output_file=output_file,
         branch=actual_branch,

@@ -4,8 +4,9 @@ Contains provider-specific generation functions that implement the Mistral API c
 These adapters are used by the unified mcp-chat tool.
 """
 
+import asyncio
 import base64
-import threading
+import functools
 from pathlib import Path
 from typing import Any
 
@@ -21,18 +22,13 @@ from mcp_handley_lab.llm.common import (
 
 # Lazy initialization of Mistral client
 _client: Mistral | None = None
-_client_lock = threading.Lock()
 
 
 def get_client() -> Mistral:
-    """Get or create the global Mistral client with thread safety."""
+    """Get or create the global Mistral client."""
     global _client
-    with _client_lock:
-        if _client is None:
-            try:
-                _client = Mistral(api_key=settings.mistral_api_key)
-            except Exception as e:
-                raise RuntimeError(f"Failed to initialize Mistral client: {e}") from e
+    if _client is None:
+        _client = Mistral(api_key=settings.mistral_api_key)
     return _client
 
 
@@ -113,14 +109,14 @@ def resolve_files(files: list[str]) -> list[dict[str, Any]]:
     return content_parts
 
 
-def generation_adapter(
+def _sync_generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Mistral-specific text generation function for the shared processor."""
+    """Sync Mistral text generation (internal)."""
     # Extract Mistral-specific parameters from options dict
     options = kwargs.get("options", {})
     temperature = kwargs.get("temperature", 1.0)
@@ -188,14 +184,34 @@ def generation_adapter(
     }
 
 
-def image_analysis_adapter(
+async def generation_adapter(
     prompt: str,
     model: str,
     history: list[dict[str, str]],
     system_instruction: str,
     **kwargs,
 ) -> dict[str, Any]:
-    """Mistral-specific image analysis function for the shared processor."""
+    """Mistral text generation wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_generation_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
+
+
+def _sync_image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Sync Mistral image analysis (internal)."""
     # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
@@ -268,8 +284,30 @@ def image_analysis_adapter(
     }
 
 
-def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, Any]:
-    """Mistral-specific OCR function for document processing."""
+async def image_analysis_adapter(
+    prompt: str,
+    model: str,
+    history: list[dict[str, str]],
+    system_instruction: str,
+    **kwargs,
+) -> dict[str, Any]:
+    """Mistral image analysis wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_image_analysis_adapter,
+            prompt,
+            model,
+            history,
+            system_instruction,
+            **kwargs,
+        )
+    )
+
+
+def _sync_ocr_adapter(
+    document_path: str, include_images: bool = True
+) -> dict[str, Any]:
+    """Sync Mistral OCR (internal)."""
     # Determine input type and format
     document_input = {}
 
@@ -341,12 +379,21 @@ def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, An
     }
 
 
-def audio_transcription_adapter(
+async def ocr_adapter(
+    document_path: str, include_images: bool = True
+) -> dict[str, Any]:
+    """Mistral OCR wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(_sync_ocr_adapter, document_path, include_images)
+    )
+
+
+def _sync_audio_transcription_adapter(
     audio_path: str,
     language: str = "",
     include_timestamps: bool = False,
 ) -> dict[str, Any]:
-    """Mistral-specific audio transcription function."""
+    """Sync Mistral audio transcription (internal)."""
     # Prepare transcription request
     transcription_params = {
         "model": "voxtral-mini-latest",
@@ -393,14 +440,34 @@ def audio_transcription_adapter(
     return result
 
 
-def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
-    """Generate embeddings for a list of texts."""
+async def audio_transcription_adapter(
+    audio_path: str,
+    language: str = "",
+    include_timestamps: bool = False,
+) -> dict[str, Any]:
+    """Mistral audio transcription wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_audio_transcription_adapter, audio_path, language, include_timestamps
+        )
+    )
+
+
+def _sync_embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
+    """Sync embeddings (internal)."""
     response = get_client().embeddings.create(model=model, inputs=texts)
     return [item.embedding for item in response.data]
 
 
-def moderation_adapter(text: str) -> dict[str, Any]:
-    """Mistral-specific content moderation function."""
+async def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
+    """Generate embeddings for a list of texts."""
+    return await asyncio.to_thread(
+        functools.partial(_sync_embeddings_adapter, texts, model)
+    )
+
+
+def _sync_moderation_adapter(text: str) -> dict[str, Any]:
+    """Sync moderation (internal)."""
     # Call Mistral moderation API
     response = get_client().classifiers.moderate_chat(
         model="mistral-moderation-latest",
@@ -443,7 +510,12 @@ def moderation_adapter(text: str) -> dict[str, Any]:
     }
 
 
-def fill_in_middle_adapter(
+async def moderation_adapter(text: str) -> dict[str, Any]:
+    """Mistral moderation wrapped for async."""
+    return await asyncio.to_thread(functools.partial(_sync_moderation_adapter, text))
+
+
+def _sync_fill_in_middle_adapter(
     prefix: str,
     suffix: str = "",
     model: str = "codestral-latest",
@@ -451,7 +523,7 @@ def fill_in_middle_adapter(
     temperature: float = 0.0,
     stop: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Mistral-specific fill-in-the-middle code completion."""
+    """Sync FIM (internal)."""
     # Build FIM request
     fim_params = {
         "model": model,
@@ -485,7 +557,34 @@ def fill_in_middle_adapter(
     }
 
 
-def list_api_models() -> set[str]:
-    """List model IDs available from the Mistral API."""
+async def fill_in_middle_adapter(
+    prefix: str,
+    suffix: str = "",
+    model: str = "codestral-latest",
+    max_tokens: int = 256,
+    temperature: float = 0.0,
+    stop: list[str] | None = None,
+) -> dict[str, Any]:
+    """Mistral FIM wrapped for async."""
+    return await asyncio.to_thread(
+        functools.partial(
+            _sync_fill_in_middle_adapter,
+            prefix,
+            suffix,
+            model,
+            max_tokens,
+            temperature,
+            stop,
+        )
+    )
+
+
+def _sync_list_api_models() -> set[str]:
+    """Sync list models (internal)."""
     models_response = get_client().models.list()
     return {model.id for model in models_response.data}
+
+
+async def list_api_models() -> set[str]:
+    """List model IDs available from the Mistral API."""
+    return await asyncio.to_thread(_sync_list_api_models)

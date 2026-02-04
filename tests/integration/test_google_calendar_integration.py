@@ -2,18 +2,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from mcp_handley_lab.google_calendar.tool import calendar_list, mcp
-
-
-@pytest.mark.vcr
-def test_google_calendar_list_calendars_resource(google_calendar_test_config):
-    """Test the calendar://list resource."""
-    result = calendar_list()
-
-    assert isinstance(result, list)
-    assert len(result) > 0
-    # Check if we have at least one calendar
-    assert any("primary" in cal.id or "gmail.com" in cal.id for cal in result)
+from mcp_handley_lab.google_calendar.shared import list_calendars
+from mcp_handley_lab.google_calendar.tool import mcp
 
 
 @pytest.mark.vcr
@@ -141,8 +131,8 @@ async def test_google_calendar_read_search_text(google_calendar_test_config):
 @pytest.mark.asyncio
 async def test_google_calendar_update_with_move(google_calendar_test_config):
     """Test moving an event via update() with destination_calendar_id."""
-    # First get available calendars via resource
-    calendars = calendar_list()
+    # First get available calendars
+    calendars = list_calendars()
 
     # Find two calendars with write access
     writable_calendars = [

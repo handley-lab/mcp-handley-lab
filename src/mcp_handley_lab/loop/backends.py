@@ -54,7 +54,6 @@ BACKENDS = {
         "IPython",
         r"^In \[\d+\]: ?$",
         r"^   \.\.\.:",
-        default_args="--matplotlib",
     ),
     "julia": BackendConfig(
         "julia", ["julia"], "Julia", r"^julia> ?$", soft_newline=True

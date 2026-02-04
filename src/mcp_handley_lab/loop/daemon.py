@@ -91,6 +91,9 @@ class LoopDaemon:
 
     def _namespace_allows(self, caller_ns: str, target_ns: str) -> bool:
         """Check if caller namespace can access target namespace."""
+        # Empty namespace = root access (can see all)
+        if not caller_ns:
+            return True
         return target_ns == caller_ns or target_ns.startswith(caller_ns + "/")
 
     def _get_loop(self, namespace: str, loop_id: str) -> LoopState | None:
@@ -104,10 +107,12 @@ class LoopDaemon:
         """Handle a single request."""
         self.last_activity = time.time()
 
-        if not request.namespace:
+        action = request.action
+
+        # Namespace required for all actions except list
+        if not request.namespace and action != "list":
             return Response.error_response("namespace required", ERROR_INVALID_REQUEST)
 
-        action = request.action
         if action == "spawn":
             return await self._spawn(request)
         elif action == "eval":

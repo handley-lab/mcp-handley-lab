@@ -1,7 +1,7 @@
 """Shared batch edit utilities for Microsoft format MCP tools.
 
 Provides the common batch processing pattern: parse ops JSON, resolve $prev
-references, normalize text, execute operations, handle save with atomic/partial modes.
+references, normalize text, execute operations with fail-fast semantics.
 """
 
 from __future__ import annotations
@@ -112,7 +112,8 @@ def run_batch_edit(
         ops: JSON array of operation objects
         open_pkg: Callable to open an existing package from file_path
         new_pkg: Callable to create a new empty package
-        apply_op: Callable(pkg, op_name, params) -> dict with message/element_id
+        apply_op: Callable(pkg, op_name, params) -> dict with message/element_id.
+            MUST raise an exception on failure (fail-fast contract).
         make_op_result: Callable to construct per-operation result objects
         make_edit_result: Callable to construct the batch edit result object
         prev_fields: Set of field names that support $prev[N] references
@@ -121,7 +122,7 @@ def run_batch_edit(
 
     Raises:
         ValueError: Invalid JSON, empty ops, invalid operation structure,
-                   or any operation failure.
+                   or any operation failure (propagated from apply_op).
         RuntimeError: Save failed after successful operations.
     """
     try:

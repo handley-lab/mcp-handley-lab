@@ -61,10 +61,16 @@ BACKENDS = {
     "R": BackendConfig("R", ["R"], "R", r"^> ?$", r"^\+ ?$"),
     "clojure": BackendConfig(
         "clojure",
-        ["clojure"],
-        "Clojure",
+        [
+            "clojure",
+            "-Sdeps",
+            '{:deps {com.bhauman/rebel-readline {:mvn/version "0.1.5"}}}',
+            "-M",
+            "-m",
+            "rebel-readline.main",
+        ],
+        "Clojure (rebel-readline)",
         r"^[a-zA-Z0-9._-]+=> ?$",
-        supports_bracketed_paste=False,
     ),
     "apl": BackendConfig(
         "apl",

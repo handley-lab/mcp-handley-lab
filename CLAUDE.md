@@ -195,11 +195,14 @@ def memory(
 - **Document limitations explicitly**: If a feature has known limitations, document them clearly rather than silently working around them
 - **Test-driven fixes**: When something breaks, write a test that reproduces the issue, then fix both the test and the implementation
 
+**Exceptions - graceful handling is allowed for:**
+- **Discovery/injection helpers**: Functions that inject optional context into tool descriptions (e.g., listing available accounts, tags, calendars) may return empty results when optional dependencies are not configured. These enhance UX but tools must still function without them.
+
 Examples of prohibited patterns:
 - Wrapping API calls in `try/except` that silently continue without the feature
 - Adding configuration flags to "disable problematic features"
 - Implementing fallback modes that hide broken functionality
-- Using `pass` statements to ignore exceptions without user notification
+- Using `pass` statements to ignore exceptions without user notification (except for documented discovery helpers)
 
 Examples of what to avoid:
 - Checking if a file exists before reading (let it fail with FileNotFoundError)
@@ -604,15 +607,13 @@ mcp__llm__chat prompt="Review this code for improvements" agent_name="code_revie
 
 MCP resources provide read-only discovery data that can be cached by clients. Check relevant resources before making tool calls that need discovery info.
 
+Note: Calendar and email discovery data (calendars, tags, folders, accounts) are now injected directly into tool descriptions at module load time, so explicit resource queries are no longer needed for those.
+
 ### Available Resources
 
 | Resource URI | Server | Description |
 |-------------|--------|-------------|
-| `calendar://list` | mcp-google-calendar | All accessible calendars with IDs, names, access levels |
 | `model://list` | mcp-llm | All LLM models grouped by provider with capabilities and pricing |
-| `email://tags` | mcp-email | All tags in the notmuch database |
-| `email://folders` | mcp-email | All maildir folders (Account/Folder format) |
-| `email://accounts` | mcp-email | All configured msmtp email accounts |
 | `repl://backends` | mcp-repl | All available REPL backends (bash, python, julia, etc.) |
 
 ### Usage via JSON-RPC
@@ -627,7 +628,7 @@ MCP resources provide read-only discovery data that can be cached by clients. Ch
 
 ### When to Use Resources vs Tools
 
-- **Resources**: Discovery, listing, static/semi-static data (calendars, models, folders)
+- **Resources**: Discovery, listing, static/semi-static data (models, REPL backends)
 - **Tools**: Actions, mutations, queries with parameters (send email, create event, chat)
 
 ## Reference Documentation

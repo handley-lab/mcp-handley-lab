@@ -1,6 +1,7 @@
 """Notmuch email search and indexing provider."""
 
 import json
+import logging
 import os
 import re
 from email import policy
@@ -18,6 +19,8 @@ from mcp_handley_lab.email.extraction import (
     EmailPartInfo,
     extract_email_content,
 )
+
+logger = logging.getLogger(__name__)
 
 MAILDIR_LEAFS = {"cur", "new", "tmp"}
 
@@ -836,52 +839,12 @@ def _list_folders() -> list[str]:
     return sorted(folders)
 
 
-def _list_accounts(config_file: str = "") -> list[str]:
-    """List available msmtp accounts by parsing msmtp config."""
-    msmtprc_path = Path(config_file) if config_file else Path.home() / ".msmtprc"
-
-    accounts = []
-    with open(msmtprc_path) as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("account ") and not line.startswith("account default"):
-                account_name = line.split()[1]
-                accounts.append(account_name)
-    return accounts
-
-
-# =============================================================================
-# MCP Resources: Email Discovery
-# =============================================================================
-
-
-@mcp.resource("email://tags")
-def email_tags() -> list[str]:
-    """All tags in the notmuch email database."""
-    return _list_tags()
-
-
-@mcp.resource("email://folders")
-def email_folders() -> list[str]:
-    """All maildir folders in format 'Account/Folder'."""
-    return _list_folders()
-
-
-@mcp.resource("email://accounts")
-def email_accounts() -> list[str]:
-    """All configured msmtp email accounts."""
-    try:
-        return _list_accounts()
-    except FileNotFoundError:
-        return []  # No msmtprc configured
-
-
 # ============================================================================
-# Unified Tools (registered via _TOOL_CONFIGS for lifespan injection)
+# Unified Tools with Module-Level Description Injection
 # ============================================================================
 
-# Base descriptions (will have tags/folders appended at startup)
-_READ_DESCRIPTION = """Search and read emails. Returns message IDs needed by send (for replies) and update (for tagging/moving). Use email://tags, email://folders, email://accounts resources to discover available options. Supports notmuch query language: sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
+# Base descriptions (will have tags/folders appended at module load)
+_READ_DESCRIPTION = """Search and read emails. Returns message IDs needed by send (for replies) and update (for tagging/moving). Supports notmuch query language: sender, subject, date ranges, tags, attachments, and body content filtering with boolean operators."""
 
 _UPDATE_DESCRIPTION = """Update email metadata. Requires message_ids from the read tool. Actions: 'tag' (add/remove tags), 'move' (relocate to folder), 'archive' (move to Archive folder)."""
 
@@ -978,11 +941,36 @@ def update(
 
 
 # =============================================================================
-# Tool Registration (explicit for lifespan-based description injection)
+# Tool Registration with Module-Level Description Injection
 # =============================================================================
 
 _TOOL_CONFIGS["read"] = {"fn": read, "description": _READ_DESCRIPTION}
 _TOOL_CONFIGS["update"] = {"fn": update, "description": _UPDATE_DESCRIPTION}
+
+
+def _inject_email_context() -> None:
+    """Inject tags/folders into tool descriptions at module load."""
+    try:
+        tags = _list_tags()
+        folders = _list_folders()
+    except Exception:
+        logger.warning("Failed to fetch email context for injection", exc_info=True)
+        return
+
+    tags_text = "\n".join(f"- {t}" for t in sorted(tags)[:50])
+    if len(tags) > 50:
+        tags_text += f"\n... and {len(tags) - 50} more tags"
+    folders_text = "\n".join(f"- {f}" for f in sorted(folders))
+
+    if "read" in _TOOL_CONFIGS:
+        _TOOL_CONFIGS["read"]["description"] += f"\n\nAvailable tags:\n{tags_text}"
+    if "update" in _TOOL_CONFIGS:
+        _TOOL_CONFIGS["update"]["description"] += (
+            f"\n\nAvailable tags:\n{tags_text}\n\nAvailable folders:\n{folders_text}"
+        )
+
+
+_inject_email_context()
 
 for _name, _config in [
     ("read", _TOOL_CONFIGS["read"]),

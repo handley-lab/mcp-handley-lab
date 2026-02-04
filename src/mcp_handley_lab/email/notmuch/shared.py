@@ -3,6 +3,7 @@
 Identical interface to MCP tools, usable without MCP server.
 """
 
+from mcp_handley_lab.email.common import _list_accounts
 from mcp_handley_lab.email.notmuch.tool import (
     Contact,
     EmailContent,
@@ -10,7 +11,6 @@ from mcp_handley_lab.email.notmuch.tool import (
     SearchResult,
     TagResult,
     _find_contacts,
-    _list_accounts,
     _list_folders,
     _list_tags,
     _move_emails,

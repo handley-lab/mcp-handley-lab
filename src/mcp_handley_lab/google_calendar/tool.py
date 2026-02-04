@@ -1,11 +1,9 @@
 """Google Calendar tool for calendar management via MCP."""
 
-import asyncio
 import logging
 import pickle
 import zoneinfo
 from collections.abc import Callable
-from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, TypedDict
 
@@ -206,47 +204,12 @@ def _fetch_calendars_text() -> str:
         lines.append(f"- {cid} ({summary})")
 
     if not lines:
-        return "(No calendars found; use 'primary' or read calendar://list resource)"
+        return "(No calendars found; use 'primary' for default calendar)"
 
     return "\n".join(lines)
 
 
-@asynccontextmanager
-async def _lifespan(app: FastMCP):
-    """Inject available calendars into tool descriptions at server startup.
-
-    Only attempts fetch if valid cached credentials exist (avoids interactive OAuth).
-    """
-    # Check credentials synchronously first - fast and safe
-    if not _has_valid_cached_credentials():
-        logger.info("No valid cached credentials; skipping calendar list injection")
-        yield
-        return
-
-    try:
-        calendar_text = await asyncio.wait_for(
-            asyncio.to_thread(_fetch_calendars_text),
-            timeout=3.0,
-        )
-    except Exception:
-        logger.warning("Failed to fetch calendar list", exc_info=True)
-        yield
-        return
-
-    for name, config in _TOOL_CONFIGS.items():
-        try:
-            app.remove_tool(name)
-            app.add_tool(
-                config["fn"],
-                name=name,
-                description=f"{config['description']}\n\nAvailable calendars:\n{calendar_text}",
-            )
-        except Exception:
-            logger.warning(f"Failed to inject calendar list into {name}", exc_info=True)
-    yield
-
-
-mcp = FastMCP("Google Calendar Tool", lifespan=_lifespan)
+mcp = FastMCP("Google Calendar Tool")
 
 # Google Calendar API scopes
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -749,37 +712,6 @@ def _validate_recurrence(recurrence: list[str]) -> None:
 
 
 # =============================================================================
-# MCP Resource: Calendars
-# =============================================================================
-
-
-@mcp.resource("calendar://list")
-def calendar_list() -> list[CalendarInfo]:
-    """All accessible calendars with IDs, names, and access levels."""
-    service = _get_calendar_service()
-    items = []
-    page_token = None
-    while True:
-        resp = (
-            service.calendarList().list(pageToken=page_token, maxResults=100).execute()
-        )
-        items.extend(resp.get("items", []))
-        page_token = resp.get("nextPageToken")
-        if not page_token:
-            break
-    return [
-        CalendarInfo(
-            id=cal["id"],
-            summary=cal.get("summary", "Unknown"),
-            accessRole=cal.get("accessRole", "unknown"),
-            colorId=cal.get("colorId", ""),
-        )
-        for cal in items
-        if "id" in cal  # Skip malformed entries (should never happen)
-    ]
-
-
-# =============================================================================
 # MCP Tools: CRUD Operations
 # =============================================================================
 
@@ -868,7 +800,7 @@ def create(
     ),
     calendar_id: str = Field(
         "primary",
-        description="The ID or name of the calendar to add the event to. Use calendar://list resource to discover options. Defaults to 'primary'.",
+        description="The ID or name of the calendar to add the event to. Available calendars shown in tool description. Defaults to 'primary'.",
     ),
     start_timezone: str = Field(
         "",
@@ -996,7 +928,7 @@ def delete(
 
 
 # =============================================================================
-# Tool Registration (explicit for lifespan-based description injection)
+# Tool Registration with Module-Level Description Injection
 # =============================================================================
 
 _TOOL_CONFIGS["read"] = {
@@ -1015,6 +947,25 @@ _TOOL_CONFIGS["delete"] = {
     "fn": delete,
     "description": "Delete a calendar event permanently. WARNING: Irreversible.",
 }
+
+
+def _inject_calendars_into_descriptions() -> None:
+    """Inject calendar list into tool descriptions at module load."""
+    if not _has_valid_cached_credentials():
+        logger.info("No cached credentials; skipping calendar injection")
+        return
+    try:
+        calendar_text = _fetch_calendars_text()
+    except Exception:
+        logger.warning("Failed to fetch calendars for injection", exc_info=True)
+        return
+    for config in _TOOL_CONFIGS.values():
+        config["description"] = (
+            f"{config['description']}\n\nAvailable calendars:\n{calendar_text}"
+        )
+
+
+_inject_calendars_into_descriptions()
 
 for _name, _config in _TOOL_CONFIGS.items():
     mcp.add_tool(_config["fn"], name=_name, description=_config["description"])

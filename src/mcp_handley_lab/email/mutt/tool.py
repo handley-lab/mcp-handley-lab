@@ -16,7 +16,7 @@ from pydantic import Field
 
 from mcp_handley_lab.common.process import run_command
 from mcp_handley_lab.common.terminal import launch_interactive
-from mcp_handley_lab.email.common import mcp
+from mcp_handley_lab.email.common import _list_accounts, mcp
 from mcp_handley_lab.shared.models import OperationResult
 
 # Capture directory for msmtp wrapper
@@ -698,9 +698,25 @@ def _compose_email(
         )
 
 
-@mcp.tool(
-    description="""Send an email via Mutt. For reply/forward modes, use message_id from the read tool. Supports compose (new), reply, and forward modes. All emails open in Mutt for user sign-off before sending."""
-)
+# =============================================================================
+# Tool Registration with Module-Level Description Injection
+# =============================================================================
+
+_SEND_DESCRIPTION = """Send an email via Mutt. For reply/forward modes, use message_id from the read tool. Supports compose (new), reply, and forward modes. All emails open in Mutt for user sign-off before sending."""
+
+
+def _inject_accounts() -> None:
+    """Inject available accounts into send description."""
+    global _SEND_DESCRIPTION
+    accounts = _list_accounts()
+    if accounts:
+        accounts_text = "\n".join(f"- {a}" for a in accounts)
+        _SEND_DESCRIPTION += f"\n\nAvailable accounts:\n{accounts_text}"
+
+
+_inject_accounts()
+
+
 def send(
     to: str = Field(
         default="",
@@ -760,3 +776,6 @@ def send(
         reply_all=reply_all,
         thread_context=thread_context,
     )
+
+
+mcp.add_tool(send, name="send", description=_SEND_DESCRIPTION)

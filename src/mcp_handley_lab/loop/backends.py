@@ -250,8 +250,17 @@ class TmuxBackend:
         name: str | None,
         args: str | None,
         child_allowed_tools: list[str],
+        socket_path: str = "",
     ) -> tuple[str, str]:
-        """Spawn a new REPL. Returns (loop_id, pane_id)."""
+        """Spawn a new REPL. Returns (loop_id, pane_id).
+
+        Args:
+            label: Human-readable label for tmux window
+            name: Optional name suffix for loop_id
+            args: Extra arguments for the backend
+            child_allowed_tools: Tools the loop can use (for Claude backend)
+            socket_path: Daemon socket path to inject as MCP_LOOP_SOCKET
+        """
         # Create session if it doesn't exist
         default_window = None
         if not _session_exists():
@@ -263,23 +272,30 @@ class TmuxBackend:
         extra_args = args or self.config.default_args
         base_command = self.config.command + (extra_args.split() if extra_args else [])
 
+        # Generate loop_id
+        timestamp = datetime.now().strftime("%H%M%S")
+        loop_id = f"{self.config.name}-{name or timestamp}"
+
         # Strip venv from environment so tmux windows start clean
         clean_path = os.pathsep.join(
             p
             for p in os.environ.get("PATH", "").split(os.pathsep)
             if not p.startswith(sys.prefix)
         )
-        command = [
+        env_cmd = [
             "env",
             "-u",
             "VIRTUAL_ENV",
             "-u",
             "PYTHONPATH",
             f"PATH={clean_path}",
-        ] + base_command
+        ]
+        # Inject loop env vars for client library
+        if socket_path:
+            env_cmd.append(f"MCP_LOOP_SOCKET={socket_path}")
+            env_cmd.append(f"MCP_LOOP_PARENT_ID={loop_id}")
 
-        timestamp = datetime.now().strftime("%H%M%S")
-        loop_id = f"{self.config.name}-{name or timestamp}"
+        command = env_cmd + base_command
         window_name = f"{label}-{loop_id}"
 
         result = _run(
@@ -375,8 +391,13 @@ class ClaudeBackend:
         name: str | None,
         args: str | None,
         child_allowed_tools: list[str],
+        socket_path: str = "",
     ) -> tuple[str, str]:
-        """Spawn a new Claude session. Returns (loop_id, loop_id)."""
+        """Spawn a new Claude session. Returns (loop_id, loop_id).
+
+        Note: socket_path is accepted for API consistency but not used
+        (Claude Code has its own MCP integration).
+        """
         timestamp = datetime.now().strftime("%H%M%S")
         loop_id = f"claude-{name or timestamp}"
 

@@ -25,8 +25,14 @@ class BackendConfig(NamedTuple):
     prompt_regex: str
     continuation_regex: str = ""
     supports_bracketed_paste: bool = True
+    force_bracketed_paste: bool = False  # Wrap text directly with escape codes
     echo_commands: bool = True
     default_args: str = ""
+
+
+# Bracketed paste escape sequences
+BRACKETED_PASTE_START = "\x1b[200~"
+BRACKETED_PASTE_END = "\x1b[201~"
 
 
 BACKENDS = {
@@ -49,7 +55,9 @@ BACKENDS = {
         r"^   \.\.\.:",
         default_args="--matplotlib",
     ),
-    "julia": BackendConfig("julia", ["julia"], "Julia", r"^julia> ?$"),
+    "julia": BackendConfig(
+        "julia", ["julia"], "Julia", r"^julia> ?$", force_bracketed_paste=True
+    ),
     "R": BackendConfig("R", ["R"], "R", r"^> ?$", r"^\+ ?$"),
     "clojure": BackendConfig(
         "clojure",
@@ -333,7 +341,12 @@ class TmuxBackend:
 
         # Send code
         code_text = code.rstrip("\n") + ("\n" if "\n" in code else "")
-        if self.config.supports_bracketed_paste:
+        if self.config.force_bracketed_paste:
+            # Wrap text directly with escape sequences (for REPLs that don't
+            # request bracketed paste mode from tmux, e.g. Julia)
+            wrapped = f"{BRACKETED_PASTE_START}{code_text}{BRACKETED_PASTE_END}"
+            _run(["send-keys", "-t", pane_id, "-l", wrapped])
+        elif self.config.supports_bracketed_paste:
             _run(["load-buffer", "-"], input=code_text)
             _run(["paste-buffer", "-p", "-d", "-t", pane_id])
         else:

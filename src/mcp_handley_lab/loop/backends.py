@@ -26,6 +26,7 @@ class BackendConfig(NamedTuple):
     continuation_regex: str = ""
     supports_bracketed_paste: bool = True
     force_bracketed_paste: bool = False  # Wrap text directly with escape codes
+    soft_newline: bool = False  # Use Escape+Enter for newlines (Julia-style)
     echo_commands: bool = True
     default_args: str = ""
 
@@ -56,7 +57,7 @@ BACKENDS = {
         default_args="--matplotlib",
     ),
     "julia": BackendConfig(
-        "julia", ["julia"], "Julia", r"^julia> ?$", force_bracketed_paste=True
+        "julia", ["julia"], "Julia", r"^julia> ?$", soft_newline=True
     ),
     "R": BackendConfig("R", ["R"], "R", r"^> ?$", r"^\+ ?$"),
     "clojure": BackendConfig(
@@ -341,17 +342,28 @@ class TmuxBackend:
 
         # Send code
         code_text = code.rstrip("\n") + ("\n" if "\n" in code else "")
-        if self.config.force_bracketed_paste:
+        if self.config.soft_newline and "\n" in code:
+            # Use Escape+Enter for newlines (Julia-style multi-line input)
+            lines = code.rstrip("\n").split("\n")
+            for i, line in enumerate(lines):
+                _run(["send-keys", "-t", pane_id, "-l", line])
+                if i < len(lines) - 1:
+                    _run(["send-keys", "-t", pane_id, "Escape", "Enter"])
+                else:
+                    _run(["send-keys", "-t", pane_id, "Enter"])
+        elif self.config.force_bracketed_paste:
             # Wrap text directly with escape sequences (for REPLs that don't
             # request bracketed paste mode from tmux, e.g. Julia)
             wrapped = f"{BRACKETED_PASTE_START}{code_text}{BRACKETED_PASTE_END}"
             _run(["send-keys", "-t", pane_id, "-l", wrapped])
+            _run(["send-keys", "-t", pane_id, "Enter"])
         elif self.config.supports_bracketed_paste:
             _run(["load-buffer", "-"], input=code_text)
             _run(["paste-buffer", "-p", "-d", "-t", pane_id])
+            _run(["send-keys", "-t", pane_id, "Enter"])
         else:
             _run(["send-keys", "-t", pane_id, "-l", code_text])
-        _run(["send-keys", "-t", pane_id, "Enter"])
+            _run(["send-keys", "-t", pane_id, "Enter"])
 
         out, cancelled = _wait_for_completion(cap, base, prompt, check_cancelled)
         if cancelled:

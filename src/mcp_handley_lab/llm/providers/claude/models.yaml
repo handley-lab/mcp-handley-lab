@@ -1,9 +1,28 @@
 models:
+  claude-opus-4-6:
+    # Model metadata
+    description: "Most intelligent Claude model for building agents and coding"
+    capabilities: "🌟 Best for: Complex reasoning, agents, coding, extended thinking, adaptive thinking"
+    tags: ["claude-4.6", "opus", "premium", "latest"]
+    context_window: "200,000 tokens / 1M tokens (beta)"
+    input_tokens: 200000
+    output_tokens: 128000
+
+    # Capabilities
+    supports_vision: true
+    supports_system_prompt: true
+    supports_extended_thinking: true
+    supports_adaptive_thinking: true
+
+    # Pricing
+    input_per_1m: 5.00
+    output_per_1m: 25.00
+
   claude-opus-4-5-20251101:
     # Model metadata
-    description: "Most powerful Claude model for complex reasoning and analysis"
+    description: "Previous most powerful Claude model for complex reasoning and analysis"
     capabilities: "🌟 Best for: Complex reasoning, research, detailed analysis, extended thinking"
-    tags: ["claude-4.5", "opus", "premium", "latest"]
+    tags: ["claude-4.5", "opus", "premium"]
     context_window: "200,000 tokens (~150,000 words)"
     input_tokens: 200000
     output_tokens: 64000
@@ -62,8 +81,10 @@ models:
     output_per_1m: 5.00
 
 # Cache pricing (optional feature)
+# 5-minute cache writes are 1.25x base input; 1-hour cache writes are 2x base input; cache reads are 0.1x base input
 cache_pricing:
   cache_write:
+    claude-opus-4-6: 6.25
     claude-opus-4-5-20251101: 6.25
     claude-sonnet-4-5-20250929:
       - threshold: 200000
@@ -72,7 +93,18 @@ cache_pricing:
         price: 7.50
     claude-haiku-4-5-20251001: 1.25
 
+  cache_write_1h:
+    claude-opus-4-6: 10.00
+    claude-opus-4-5-20251101: 10.00
+    claude-sonnet-4-5-20250929:
+      - threshold: 200000
+        price: 6.00
+      - threshold: .inf
+        price: 12.00
+    claude-haiku-4-5-20251001: 2.00
+
   cache_read:
+    claude-opus-4-6: 0.50
     claude-opus-4-5-20251101: 0.50
     claude-sonnet-4-5-20250929:
       - threshold: 200000
@@ -83,26 +115,32 @@ cache_pricing:
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
+  - name: "🚀 Claude 4.6 Series"
+    tags: ["claude-4.6"]
+    description: "Latest generation Claude model with adaptive thinking and 128K output"
   - name: "🚀 Claude 4.5 Series"
     tags: ["claude-4.5"]
-    description: "Latest generation Claude models with extended thinking and enhanced capabilities"
+    description: "Claude models with extended thinking and enhanced capabilities"
 
 # Default model
 default_model: "claude-sonnet-4-5-20250929"
 
 # Usage notes
 usage_notes:
-  - "All Claude 4.5 models have 200,000 token context windows and 64K output"
-  - "Claude Sonnet 4.5 supports 1M token context window with beta header"
+  - "Claude Opus 4.6 has 200K context (1M beta) and 128K max output"
+  - "Claude Opus 4.6 and Sonnet 4.5 support 1M token context window with beta header (context-1m-2025-08-07)"
+  - "Long context pricing: requests >200K input tokens charged at 2x input and 1.5x output rates"
   - "All models support vision and image analysis capabilities"
   - "All models support extended thinking for complex reasoning tasks"
+  - "Claude Opus 4.6 supports adaptive thinking (unique to Opus 4.6)"
   - "System prompts supported via separate parameter"
-  - "Prompt caching: cache_write on first request, cache_read on subsequent hits"
-  - "Claude Opus 4.5: Most powerful for complex reasoning ($5/$25 per 1M tokens)"
-  - "Claude Sonnet 4.5: Recommended for most use cases (best balance of intelligence and cost)"
-  - "Claude Haiku 4.5: Near-frontier intelligence with fastest latency and lowest cost"
+  - "Prompt caching: 5-minute cache write (1.25x), 1-hour cache write (2x), cache read (0.1x)"
+  - "Claude Opus 4.6: Most intelligent for agents and coding ($5/$25 per 1M tokens)"
+  - "Claude Sonnet 4.5: Best combination of speed and intelligence ($3/$15 per 1M tokens)"
+  - "Claude Haiku 4.5: Near-frontier intelligence with fastest latency and lowest cost ($1/$5 per 1M tokens)"
   - "Web search costs $10 per 1,000 searches"
-  - "Code execution: $0.05/hour with 50 free hours daily per organization"
+  - "Code execution: $0.05/hour with 1,550 free hours per month per organization"
   - "Batch processing offers 50% discount for asynchronous workloads"
   - "Service tiers: Standard (default), Priority (SLA), Batch (50% discount)"
   - "Extended thinking costs additional per reasoning token generated"
+  - "Data residency (US-only inference): 1.1x multiplier on all token pricing (Opus 4.6+ only)"

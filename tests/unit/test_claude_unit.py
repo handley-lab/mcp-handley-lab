@@ -14,6 +14,7 @@ class TestClaudeModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Claude models are in MODEL_CONFIGS."""
         expected_models = {
+            "claude-opus-4-6",
             "claude-opus-4-5-20251101",
             "claude-sonnet-4-5-20250929",
             "claude-haiku-4-5-20251001",
@@ -56,7 +57,7 @@ class TestClaudeModelConfiguration:
 
     def test_resolve_model_alias(self):
         """Test model alias resolution."""
-        assert resolve_model_alias("opus") == "claude-opus-4-5-20251101"
+        assert resolve_model_alias("opus") == "claude-opus-4-6"
         assert resolve_model_alias("sonnet") == "claude-sonnet-4-5-20250929"
         assert resolve_model_alias("haiku") == "claude-haiku-4-5-20251001"
 

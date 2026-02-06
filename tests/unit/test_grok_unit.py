@@ -37,8 +37,8 @@ class TestGrokModelConfiguration:
         assert MODEL_CONFIGS["grok-3"]["output_tokens"] == 65536
         assert MODEL_CONFIGS["grok-3-mini"]["output_tokens"] == 65536
 
-        # Grok 2 series (text models) - 8K context per official pricing
-        assert MODEL_CONFIGS["grok-2-vision-1212"]["output_tokens"] == 8192
+        # Grok 2 series (text models) - 32K context per official pricing
+        assert MODEL_CONFIGS["grok-2-vision-1212"]["output_tokens"] == 32768
 
         # Grok 2 image generation model has None (doesn't use token limits)
         assert MODEL_CONFIGS["grok-2-image-1212"]["output_tokens"] is None

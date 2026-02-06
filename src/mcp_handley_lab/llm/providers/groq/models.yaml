@@ -142,10 +142,10 @@ models:
     output_per_1m: 0.59
 
   # Text-to-Speech Models
-  playai-tts:
-    description: "PlayAI Dialog v1.0 - high-quality text-to-speech model."
-    capabilities: "Best for: Natural speech synthesis, conversational audio generation."
-    tags: ["tts", "audio", "speech"]
+  canopylabs/orpheus-tts-en:
+    description: "Canopy Labs Orpheus English - high-quality English TTS model."
+    capabilities: "Best for: English speech synthesis, natural voice generation."
+    tags: ["tts", "audio", "speech", "english"]
     context_window: "N/A (TTS)"
     output_tokens: 0  # TTS outputs audio, not tokens
     param: "max_tokens"  # Not used for TTS
@@ -153,8 +153,8 @@ models:
     supports_vision: false
     supports_tool_calling: false
     supports_system_prompt: false
-    # Pricing: $50.00 per million characters
-    price_per_1m_chars: 50.00
+    # Pricing: $22.00 per million characters
+    price_per_1m_chars: 22.00
     pricing_type: "per_character"
     # NOTE: Audio output handling not fully implemented
 
@@ -239,6 +239,6 @@ usage_notes:
   - "Llama 4 models support vision/multimodal inputs."
   - "Context windows: Most models support 131K tokens, Kimi supports 262K tokens."
   - "Preview models may be deprecated with short notice."
-  - "TTS models: PlayAI ($50/M chars), Orpheus Arabic ($40/M chars)"
+  - "TTS models: Orpheus English ($22/M chars), Orpheus Arabic ($40/M chars)"
   - "ASR models: Whisper v3 ($0.111/hr), Whisper Turbo ($0.04/hr) - billed min 10s"
   - "⚠️ Audio I/O handling not fully implemented - models listed for completeness"

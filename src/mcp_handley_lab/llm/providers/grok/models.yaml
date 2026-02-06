@@ -139,8 +139,8 @@ models:
     description: "Multimodal Grok model capable of analyzing images and responding to text prompts"
     capabilities: "👁️ Best for: Image analysis, multimodal tasks, visual content understanding"
     tags: ["multimodal", "vision", "general", "legacy"]
-    context_window: "8,192 tokens"
-    output_tokens: 8192
+    context_window: "32,768 tokens"
+    output_tokens: 32768
     param: "max_tokens"
     supports_temperature: true
     supports_vision: true
@@ -149,7 +149,7 @@ models:
 
     # Pricing
     input_per_1m: 2.00
-    output_per_1m: 1.00
+    output_per_1m: 10.00
 
   grok-2-image-1212:
     # Model metadata

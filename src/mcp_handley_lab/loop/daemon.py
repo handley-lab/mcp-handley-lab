@@ -192,6 +192,7 @@ class LoopDaemon:
                 request.venv,  # Venv path (created with --system-site-packages if missing)
                 request.cwd,
                 request.prompt,
+                sandbox=request.sandbox,
             )
         except Exception as e:
             return Response.error_response(str(e), ERROR_BACKEND_ERROR)
@@ -479,6 +480,11 @@ async def run_daemon():
         format="%(asctime)s %(levelname)s %(message)s",
     )
     logging.info("Loop daemon starting")
+
+    # Write sandbox launcher script (used by sandbox_cmd when spawning sandboxed loops)
+    from mcp_handley_lab.loop.sandbox import write_launcher_script
+
+    write_launcher_script()
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)
 

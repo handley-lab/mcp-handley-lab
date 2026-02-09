@@ -162,6 +162,7 @@ def spawn(
     cwd: str = "",
     prompt: str = "",
     child_allowed_tools: list[str] | None = None,
+    sandbox: dict[str, list[str]] | None = None,
 ) -> str:
     """Spawn a child loop.
 
@@ -174,6 +175,7 @@ def spawn(
         cwd: Working directory for the spawned loop
         prompt: System prompt (for claude backend)
         child_allowed_tools: Tools the loop can use (for claude backend)
+        sandbox: Mount spec {guest_path: [host_path, mode]} for namespace isolation
 
     Returns:
         loop_id of spawned child
@@ -189,6 +191,8 @@ def spawn(
         "prompt": prompt,
         "child_allowed_tools": child_allowed_tools or [],
     }
+    if sandbox:
+        request["sandbox"] = sandbox
     response = _send_request(request)
     return response["loop_id"]
 

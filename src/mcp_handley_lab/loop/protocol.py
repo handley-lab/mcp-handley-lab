@@ -37,6 +37,9 @@ class Request:
     venv: str = (
         ""  # for spawn: venv path (created with --system-site-packages if missing)
     )
+    sandbox: dict[str, list[str]] = field(
+        default_factory=dict
+    )  # for spawn: {guest_path: [host_path, mode]}
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -55,6 +58,7 @@ class Request:
             "descendants_of": self.descendants_of,
             "current_session_id": self.current_session_id,
             "venv": self.venv,
+            "sandbox": self.sandbox,
         }
 
     @classmethod
@@ -75,6 +79,7 @@ class Request:
             descendants_of=d.get("descendants_of", ""),
             current_session_id=d.get("current_session_id", ""),
             venv=d.get("venv", ""),
+            sandbox=d.get("sandbox", {}),
         )
 
 

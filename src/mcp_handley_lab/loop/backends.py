@@ -273,6 +273,8 @@ class TmuxBackend:
         venv: str = "",
         cwd: str = "",
         prompt: str = "",
+        *,
+        sandbox: dict[str, list[str]] | None = None,
     ) -> tuple[str, str]:
         """Spawn a new REPL. Returns (loop_id, pane_id).
 
@@ -285,6 +287,7 @@ class TmuxBackend:
             venv: Path to venv (created with --system-site-packages if missing)
             cwd: Working directory (unused for tmux backend)
             prompt: System prompt (unused for tmux backend)
+            sandbox: Ignored (tmux windows can't be namespaced)
         """
         # Create session if it doesn't exist
         default_window = None
@@ -476,6 +479,8 @@ class ClaudeBackend:
         venv: str = "",
         cwd: str = "",
         prompt: str = "",
+        *,
+        sandbox: dict[str, list[str]] | None = None,
     ) -> tuple[str, str]:
         """Spawn a new Claude session. Returns (loop_id, loop_id).
 
@@ -488,6 +493,7 @@ class ClaudeBackend:
             venv: Accepted for API consistency (unused)
             cwd: Working directory for the Claude process
             prompt: System prompt (passed as --append-system-prompt)
+            sandbox: Mount spec for namespace isolation
         """
         import shlex
 
@@ -518,6 +524,14 @@ class ClaudeBackend:
 
         env = _subscription_env("ANTHROPIC_API_KEY")
 
+        # Wrap command with sandbox if requested
+        popen_cwd = cwd or None
+        if sandbox:
+            from mcp_handley_lab.loop.sandbox import sandbox_cmd
+
+            cmd, popen_cwd = sandbox_cmd(cmd, cwd, sandbox, "claude", env=env)
+            env = None  # env is baked into sandbox config
+
         proc = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE,
@@ -526,7 +540,7 @@ class ClaudeBackend:
             text=True,
             bufsize=1,  # Line buffered
             env=env,
-            cwd=cwd or None,
+            cwd=popen_cwd,
         )
 
         # Don't wait for init - Claude only sends it after first user message
@@ -671,6 +685,8 @@ class GeminiBackend:
         venv: str = "",
         cwd: str = "",
         prompt: str = "",
+        *,
+        sandbox: dict[str, list[str]] | None = None,
     ) -> tuple[str, str]:
         """Spawn a new Gemini session. Returns (loop_id, loop_id)."""
         timestamp = datetime.now().strftime("%H%M%S")
@@ -694,6 +710,8 @@ class GeminiBackend:
                 "model": model,
                 "cells": [],
                 "proc": None,
+                "sandbox": sandbox or {},
+                "cwd": cwd,
             }
 
         return loop_id, loop_id
@@ -708,6 +726,8 @@ class GeminiBackend:
                 raise RuntimeError(f"Gemini session not found: {pane_id}")
             session_id = state["session_id"]
             model = state["model"]
+            loop_sandbox = state.get("sandbox", {})
+            loop_cwd = state.get("cwd", "")
 
         # Build command
         cmd = ["gemini", "--output-format", "stream-json"]
@@ -717,6 +737,15 @@ class GeminiBackend:
             cmd.extend(["--model", model])
 
         env = _subscription_env("GEMINI_API_KEY")
+
+        # Wrap command with sandbox if requested
+        popen_cwd = None
+        if loop_sandbox:
+            from mcp_handley_lab.loop.sandbox import sandbox_cmd
+
+            cmd, popen_cwd = sandbox_cmd(cmd, loop_cwd, loop_sandbox, "gemini", env=env)
+            env = None  # env is baked into sandbox config
+
         proc = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE,
@@ -725,6 +754,7 @@ class GeminiBackend:
             text=True,
             bufsize=1,
             env=env,
+            cwd=popen_cwd,
         )
 
         with _gemini_lock:
@@ -843,6 +873,8 @@ class OpenAIBackend:
         venv: str = "",
         cwd: str = "",
         prompt: str = "",
+        *,
+        sandbox: dict[str, list[str]] | None = None,
     ) -> tuple[str, str]:
         """Spawn a new Codex session. Returns (loop_id, loop_id)."""
         timestamp = datetime.now().strftime("%H%M%S")
@@ -866,6 +898,8 @@ class OpenAIBackend:
                 "model": model,
                 "cells": [],
                 "proc": None,
+                "sandbox": sandbox or {},
+                "cwd": cwd,
             }
 
         return loop_id, loop_id
@@ -880,6 +914,8 @@ class OpenAIBackend:
                 raise RuntimeError(f"Codex session not found: {pane_id}")
             thread_id = state["thread_id"]
             model = state["model"]
+            loop_sandbox = state.get("sandbox", {})
+            loop_cwd = state.get("cwd", "")
 
         # Build command
         if thread_id:
@@ -890,6 +926,15 @@ class OpenAIBackend:
             cmd.extend(["--model", model])
 
         env = _subscription_env("OPENAI_API_KEY")
+
+        # Wrap command with sandbox if requested
+        popen_cwd = None
+        if loop_sandbox:
+            from mcp_handley_lab.loop.sandbox import sandbox_cmd
+
+            cmd, popen_cwd = sandbox_cmd(cmd, loop_cwd, loop_sandbox, "openai", env=env)
+            env = None  # env is baked into sandbox config
+
         proc = subprocess.Popen(
             cmd,
             stdin=subprocess.DEVNULL,
@@ -898,6 +943,7 @@ class OpenAIBackend:
             text=True,
             bufsize=1,
             env=env,
+            cwd=popen_cwd,
         )
 
         with _openai_lock:

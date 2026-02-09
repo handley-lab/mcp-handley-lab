@@ -93,6 +93,7 @@ class ManageArgs(BaseModel):
     venv: str = (
         ""  # for spawn: path to venv (created with --system-site-packages if missing)
     )
+    sandbox: str = ""  # for spawn: JSON mount spec {"guest": ["host", "rw|ro"], ...}
 
 
 def _get_session_id() -> str:
@@ -170,6 +171,8 @@ def manage(params: ManageArgs) -> ManageResult:
     if params.action == "spawn" and not parent_id:
         parent_id = session_id
 
+    sandbox = json.loads(params.sandbox) if params.sandbox else {}
+
     request = Request(
         action=params.action,
         loop_id=params.loop_id,
@@ -184,6 +187,7 @@ def manage(params: ManageArgs) -> ManageResult:
         descendants_of=params.descendants_of,
         current_session_id=session_id if params.action == "list" else "",
         venv=params.venv,
+        sandbox=sandbox,
     )
 
     response = _send_request(request)

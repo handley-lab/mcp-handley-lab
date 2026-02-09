@@ -30,25 +30,22 @@ _SYSTEM_MOUNTS: dict[str, tuple[str, str]] = {
     "/etc/ld.so.cache": ("/etc/ld.so.cache", "ro"),
 }
 
-# Per-backend CLI config mounts (rw — CLIs write session state)
-_BACKEND_MOUNTS: dict[str, dict[str, tuple[str, str]]] = {}
 
-
-def _backend_mounts() -> dict[str, dict[str, tuple[str, str]]]:
-    """Lazily compute per-backend mounts (needs Path.home() at runtime)."""
-    if not _BACKEND_MOUNTS:
-        home = str(Path.home())
-        _BACKEND_MOUNTS["claude"] = {
+def _backend_mounts(backend: str) -> dict[str, tuple[str, str]]:
+    """Return per-backend CLI config mounts (rw — CLIs write session state)."""
+    home = str(Path.home())
+    return {
+        "claude": {
             f"{home}/.claude.json": (f"{home}/.claude.json", "rw"),
             f"{home}/.claude": (f"{home}/.claude", "rw"),
-        }
-        _BACKEND_MOUNTS["gemini"] = {
+        },
+        "gemini": {
             f"{home}/.gemini": (f"{home}/.gemini", "rw"),
-        }
-        _BACKEND_MOUNTS["openai"] = {
+        },
+        "openai": {
             f"{home}/.codex": (f"{home}/.codex", "rw"),
-        }
-    return _BACKEND_MOUNTS
+        },
+    }.get(backend, {})
 
 
 def default_mounts(backend: str) -> dict[str, tuple[str, str]]:
@@ -61,7 +58,7 @@ def default_mounts(backend: str) -> dict[str, tuple[str, str]]:
     for guest, (host, mode) in _SYSTEM_MOUNTS.items():
         if os.path.exists(host):
             mounts[guest] = (host, mode)
-    for guest, (host, mode) in _backend_mounts().get(backend, {}).items():
+    for guest, (host, mode) in _backend_mounts(backend).items():
         if os.path.exists(host):
             mounts[guest] = (host, mode)
     return mounts

@@ -161,10 +161,21 @@ class TestWriteLauncherScript:
 
 
 def _has_user_namespaces():
-    """Check if unprivileged user namespaces are available."""
+    """Check if unprivileged user namespaces are fully functional.
+
+    Tests unshare + setgroups/uid_map/gid_map writes, since some CI environments
+    allow unshare but block /proc/self/setgroups writes.
+    """
     try:
+        script = (
+            "import os\n"
+            "os.unshare(os.CLONE_NEWUSER)\n"
+            "open('/proc/self/setgroups', 'w').write('deny\\n')\n"
+            "open('/proc/self/uid_map', 'w').write(f'0 {os.getuid()} 1\\n')\n"
+            "open('/proc/self/gid_map', 'w').write(f'0 {os.getgid()} 1\\n')\n"
+        )
         result = subprocess.run(
-            [sys.executable, "-c", "import os; os.unshare(os.CLONE_NEWUSER)"],
+            [sys.executable, "-c", script],
             capture_output=True,
             timeout=5,
         )

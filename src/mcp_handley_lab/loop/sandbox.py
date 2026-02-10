@@ -158,7 +158,8 @@ def main():
             os.makedirs(target, exist_ok=True)
         _mount(host, target, None, MS_BIND | MS_REC)
         if mode == "ro":
-            _mount(host, target, None, MS_REMOUNT | MS_BIND | MS_REC | MS_RDONLY)
+            current = os.statvfs(target).f_flag
+            _mount(host, target, None, MS_REMOUNT | MS_BIND | MS_REC | current | MS_RDONLY)
 
     # 6. Essential mounts under new_root
     for d in ("proc", "dev", "tmp"):

@@ -252,6 +252,21 @@ class TestSandboxIntegration:
         # Verify it appeared on the host
         assert Path(self.host_dir, "new.txt").read_text().strip() == "test"
 
+    def test_user_defined_ro_mount(self):
+        """User-defined ro mounts from tmpfs paths must work (issue #259)."""
+        extra = tempfile.mkdtemp(prefix="sandbox-extra-")
+        with open(os.path.join(extra, "data.txt"), "w") as f:
+            f.write("readonly content")
+        cmd, _ = sandbox_cmd(
+            ["bash", "-c", "cat /extra/data.txt && touch /extra/nope 2>&1"],
+            "/workspace",
+            {"/workspace": [self.host_dir, "rw"], "/extra": [extra, "ro"]},
+            "claude",
+        )
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        assert "readonly content" in proc.stdout
+        assert "Read-only" in proc.stdout or "Read-only" in proc.stderr
+
     def test_etc_shadow_not_accessible(self):
         proc = self._run_sandboxed("cat /etc/shadow 2>&1")
         assert proc.returncode != 0

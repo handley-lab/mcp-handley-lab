@@ -354,14 +354,14 @@ def generate_image(
 
 
 @mcp.tool(
-    description="Transcribe audio to text using Mistral Voxtral. "
+    description="Transcribe audio to text using Groq Whisper. "
     "Supports MP3, WAV, FLAC, OGG, M4A. Use model://list resource to discover audio models. "
     "Returns: {text, segments?: [{start, end, text}]}. Segments included if include_timestamps=true."
 )
 def transcribe(
     audio_path: str = Field(
         ...,
-        description="Path to audio file or URL.",
+        description="Path to audio file.",
     ),
     output_file: str = Field(
         default="",
@@ -376,8 +376,8 @@ def transcribe(
         description="Include segment-level timestamps in output.",
     ),
 ) -> dict[str, Any]:
-    """Transcribe audio using Mistral Voxtral model."""
-    adapter = get_adapter("mistral", "audio_transcription")
+    """Transcribe audio using Groq Whisper."""
+    adapter = get_adapter("groq", "audio_transcription")
     result = adapter(
         audio_path=audio_path,
         language=language,

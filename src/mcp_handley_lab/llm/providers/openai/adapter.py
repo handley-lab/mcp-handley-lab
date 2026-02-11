@@ -6,6 +6,7 @@ These adapters are used by the unified mcp-chat tool.
 
 import base64
 import threading
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -375,6 +376,29 @@ def list_api_models() -> set[str]:
     """List model IDs available from the OpenAI API."""
     api_models = get_client().models.list()
     return {m.id for m in api_models.data}
+
+
+def audio_transcription_adapter(
+    audio_path: str,
+    language: str = "",
+    include_timestamps: bool = False,
+) -> dict[str, Any]:
+    """OpenAI Whisper audio transcription."""
+    file_path = Path(audio_path).expanduser()
+    with open(file_path, "rb") as f:
+        params = {"model": "whisper-1", "file": f}
+        if language:
+            params["language"] = language
+        if include_timestamps:
+            params["response_format"] = "verbose_json"
+            params["timestamp_granularities"] = ["segment"]
+        response = get_client().audio.transcriptions.create(**params)
+    result = {"text": response.text}
+    if include_timestamps and hasattr(response, "segments"):
+        result["segments"] = [
+            {"start": s.start, "end": s.end, "text": s.text} for s in response.segments
+        ]
+    return result
 
 
 def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:

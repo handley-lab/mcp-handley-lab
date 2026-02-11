@@ -720,9 +720,17 @@ class ChatActor:
                     path = _download_tg_media(
                         event.media_id, media_dir, event.media_type
                     )
-                media_ref = (
-                    f"[User sent {event.media_type}: {path.relative_to(self.cwd)}]"
-                )
+                if event.media_type == "audio":
+                    from mcp_handley_lab.llm.registry import get_adapter
+
+                    transcribe = get_adapter("groq", "audio_transcription")
+                    result = transcribe(str(path))
+                    self._last_transcription = result["text"]
+                    media_ref = f"[Voice message transcription: {result['text']}]"
+                else:
+                    media_ref = (
+                        f"[User sent {event.media_type}: {path.relative_to(self.cwd)}]"
+                    )
                 text = f"{media_ref}\n{text}" if text else media_ref
             except Exception as e:
                 print(f"Media download failed: {e}", flush=True)
@@ -750,6 +758,10 @@ class ChatActor:
         for attempt in (1, 2):
             try:
                 output = await asyncio.to_thread(self._query, text)
+                transcription = getattr(self, "_last_transcription", None)
+                if transcription:
+                    output = f"> {transcription.strip()}\n\n{output}"
+                    self._last_transcription = None
                 self._send_response(output, reply_to=event.message_id)
                 return
             except RuntimeError as e:

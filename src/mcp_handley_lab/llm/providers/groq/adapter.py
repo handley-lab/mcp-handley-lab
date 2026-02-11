@@ -6,6 +6,7 @@ These adapters are used by the unified mcp-chat tool.
 
 import os
 import threading
+from pathlib import Path
 from typing import Any
 
 from openai import BadRequestError, OpenAI
@@ -124,6 +125,29 @@ def generation_adapter(
         "timing": timing,
         "groq_metadata": groq_metadata,
     }
+
+
+def audio_transcription_adapter(
+    audio_path: str,
+    language: str = "",
+    include_timestamps: bool = False,
+) -> dict[str, Any]:
+    """Groq Whisper audio transcription (whisper-large-v3-turbo)."""
+    file_path = Path(audio_path).expanduser()
+    with open(file_path, "rb") as f:
+        params = {"model": "whisper-large-v3-turbo", "file": f}
+        if language:
+            params["language"] = language
+        if include_timestamps:
+            params["response_format"] = "verbose_json"
+            params["timestamp_granularities"] = ["segment"]
+        response = get_client().audio.transcriptions.create(**params)
+    result = {"text": response.text}
+    if include_timestamps and hasattr(response, "segments"):
+        result["segments"] = [
+            {"start": s.start, "end": s.end, "text": s.text} for s in response.segments
+        ]
+    return result
 
 
 def list_api_models() -> set[str]:

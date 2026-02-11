@@ -427,6 +427,7 @@ def get_adapter(provider: str, adapter_type: str):
             "image_analysis": adapter.image_analysis_adapter,
             "image_generation": adapter.image_generation_adapter,
             "embeddings": adapter.embeddings_adapter,
+            "audio_transcription": adapter.audio_transcription_adapter,
         }
     elif provider == "claude":
         from mcp_handley_lab.llm.providers.claude import adapter
@@ -458,7 +459,10 @@ def get_adapter(provider: str, adapter_type: str):
     elif provider == "groq":
         from mcp_handley_lab.llm.providers.groq import adapter
 
-        adapters = {"generation": adapter.generation_adapter}
+        adapters = {
+            "generation": adapter.generation_adapter,
+            "audio_transcription": adapter.audio_transcription_adapter,
+        }
     else:
         raise ValueError(f"Unknown provider: {provider}")
 

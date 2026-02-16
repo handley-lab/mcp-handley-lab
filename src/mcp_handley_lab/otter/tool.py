@@ -28,8 +28,8 @@ Actions:
   Optional: limit (default 10).
 - search: Filter recent meetings by title (client-side, most recent 50).
   Required: query. Optional: limit (default 10).
-- refresh: Refresh session cookies using Playwright headless with Chrome profile.
-  No params. Requires: playwright installed, Chrome profile at configured path.
+- refresh: Refresh session cookies using Playwright headless.
+  No params. Auto-copies Chrome profile on first run. Requires: playwright installed.
 """
 )
 def otter(

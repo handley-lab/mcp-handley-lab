@@ -314,6 +314,25 @@ with open(output_file, "w") as f:
 """
 
 
+_MANAGED_MARKER = ".mcp_otter_managed"
+
+# Directories to exclude when copying Chrome profile (~300MB vs ~4GB)
+_PROFILE_SKIP = {
+    "Cache",
+    "Code Cache",
+    "GPUCache",
+    "CacheStorage",
+    "DawnCache",
+    "Service Worker",
+    "WebStorage",
+    "File System",
+    "IndexedDB",
+    "SingletonLock",
+    "SingletonCookie",
+    "SingletonSocket",
+}
+
+
 def _ensure_chrome_profile():
     """Ensure the Otter Chrome profile exists, copying from the system Chrome profile."""
     import shutil
@@ -322,7 +341,6 @@ def _ensure_chrome_profile():
     if chrome_profile.exists() and (chrome_profile / "Default").exists():
         return
 
-    # Standard Chrome profile location
     source = Path.home() / ".config" / "google-chrome"
     if not (source / "Default").exists():
         raise RuntimeError(
@@ -330,32 +348,21 @@ def _ensure_chrome_profile():
             "Start Chrome at least once, then retry."
         )
 
-    # Copy profile excluding caches, storage, and lock files (~200MB vs ~4GB)
-    skip = {
-        "Cache",
-        "Code Cache",
-        "GPUCache",
-        "CacheStorage",
-        "DawnCache",
-        "Service Worker",
-        "WebStorage",
-        "File System",
-        "IndexedDB",
-        "SingletonLock",
-        "SingletonCookie",
-        "SingletonSocket",
-    }
+    # Remove stale/incomplete copies (only if we created them)
     if chrome_profile.exists():
-        if not (chrome_profile / "Default").exists():
+        if not (chrome_profile / _MANAGED_MARKER).exists():
             raise RuntimeError(
-                f"Refusing to delete {chrome_profile} — does not look like a Chrome profile."
+                f"{chrome_profile} exists but is not managed by mcp-otter. "
+                "Delete it manually if safe, then retry."
             )
         shutil.rmtree(chrome_profile)
+
     shutil.copytree(
         str(source),
         str(chrome_profile),
-        ignore=shutil.ignore_patterns(*skip),
+        ignore=shutil.ignore_patterns(*_PROFILE_SKIP),
     )
+    (chrome_profile / _MANAGED_MARKER).touch()
 
 
 def refresh_session() -> RefreshResult:

@@ -33,7 +33,6 @@ class MeetingSummary(BaseModel):
     live_status: str = Field(
         default="", description="Meeting status (e.g., 'live', 'ended')."
     )
-    duration_seconds: int = Field(default=0, description="Meeting duration in seconds.")
 
 
 class TranscriptSegment(BaseModel):
@@ -165,9 +164,6 @@ def _parse_meeting(raw: dict) -> MeetingSummary | None:
             title=raw.get("title", ""),
             created_at=raw.get("created_at", 0),
             live_status=raw.get("live_status", ""),
-            duration_seconds=raw.get("process_finished", 0) - raw.get("created_at", 0)
-            if raw.get("process_finished")
-            else 0,
         )
     except (KeyError, TypeError):
         return None
@@ -222,7 +218,7 @@ def _format_transcript(
 
 def find_live_meetings() -> list[MeetingSummary]:
     """Find all currently live meetings."""
-    data = _api_get("speeches", {"page_size": 10})
+    data = _api_get("speeches", {"page_size": 50})
     results = []
     for raw in data.get("speeches", []):
         if raw.get("live_status") == "live":

@@ -20,7 +20,7 @@ mcp = FastMCP("Otter Tool")
 Requires session cookies (use 'refresh' action to update, or run otter-refresh-session externally).
 
 Actions:
-- live: List currently live meetings (title, otid, status, duration).
+- live: List currently live meetings (title, otid, status).
   No required params.
 - transcript: Get full transcript for a meeting (live or recent).
   Required: otid. Optional: max_segments (0=all, default 0).

@@ -241,9 +241,10 @@ def get_transcript(otid: str, max_segments: int = 0) -> TranscriptResult:
     transcripts = speech.get("transcripts", [])
 
     if max_segments > 0:
-        # Sort and truncate raw transcripts before formatting
-        transcripts.sort(key=lambda t: (t.get("start_offset", 0),))
-        transcripts = transcripts[-max_segments:]
+        # Sort with stable tiebreaker (matching _format_transcript), keep last N
+        indexed = list(enumerate(transcripts))
+        indexed.sort(key=lambda x: (x[1].get("start_offset", 0), x[0]))
+        transcripts = [t for _, t in indexed[-max_segments:]]
 
     formatted_text, segments = _format_transcript(transcripts, speakers)
 
@@ -345,6 +346,10 @@ def _ensure_chrome_profile():
         "SingletonSocket",
     }
     if chrome_profile.exists():
+        if not (chrome_profile / "Default").exists():
+            raise RuntimeError(
+                f"Refusing to delete {chrome_profile} — does not look like a Chrome profile."
+            )
         shutil.rmtree(chrome_profile)
     shutil.copytree(
         str(source),

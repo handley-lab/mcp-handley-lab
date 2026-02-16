@@ -43,7 +43,8 @@ def otter(
     ),
     limit: int = Field(default=10, description="Max results (for 'recent'/'search')."),
     max_segments: int = Field(
-        default=0, description="Max transcript segments, 0=all (for 'transcript')."
+        default=0,
+        description="Return last N segments (most recent), 0=all (for 'transcript').",
     ),
 ) -> OtterResult:
     """Dispatch to the appropriate Otter.ai operation."""

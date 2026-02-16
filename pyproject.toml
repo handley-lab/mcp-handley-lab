@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-handley-lab"
-version = "0.28.4"
+version = "0.29.0"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -62,6 +62,9 @@ dev = [
     "pre-commit>=3.0.0",
     "tomli>=2.0.0",
 ]
+otter = [
+    "playwright>=1.40.0",
+]
 
 [project.scripts]
 # Unified LLM tools
@@ -84,6 +87,7 @@ mcp-excel = "mcp_handley_lab.microsoft.excel.tool:mcp.run"
 mcp-powerpoint = "mcp_handley_lab.microsoft.powerpoint.tool:mcp.run"
 mcp-visio = "mcp_handley_lab.microsoft.visio.tool:mcp.run"
 mcp-mathematica = "mcp_handley_lab.mathematica.cli:main"
+mcp-otter = "mcp_handley_lab.otter.tool:mcp.run"
 messenger = "mcp_handley_lab.messenger.server:main"
 mcp-handley-lab = "mcp_handley_lab.__main__:main"
 mcp-cli = "mcp_handley_lab.cli.main:cli"

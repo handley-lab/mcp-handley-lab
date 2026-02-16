@@ -1,7 +1,7 @@
 # Maintainer: Will Handley <wh260@cam.ac.uk>
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
-pkgver=0.28.4
+pkgver=0.29.0
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -75,6 +75,7 @@ optdepends=(
     'maim: Screenshot capture'
     'wmctrl: Window listing for screenshots'
     'tmux: REPL session management'
+    'python-playwright: Otter.ai session refresh via headless browser'
 )
 source=()
 sha256sums=()

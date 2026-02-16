@@ -61,6 +61,16 @@ class Settings(BaseSettings):
         description="Path to Google Photos session file with cookies and WIZ tokens.",
     )
 
+    # Otter.ai (undocumented API, session-based auth)
+    otter_session_file: str = Field(
+        default="~/.local/share/otter/session.json",
+        description="Path to Otter.ai session file with cookies.",
+    )
+    otter_chrome_profile: str = Field(
+        default="~/.local/share/otter/chrome-profile",
+        description="Path to dedicated Chrome profile for Otter.ai Playwright refresh.",
+    )
+
     @property
     def google_credentials_path(self) -> Path:
         """Get resolved path for Google credentials."""
@@ -75,6 +85,16 @@ class Settings(BaseSettings):
     def google_photos_session_path(self) -> Path:
         """Get resolved path for Google Photos session."""
         return Path(self.google_photos_session_file).expanduser()
+
+    @property
+    def otter_session_path(self) -> Path:
+        """Get resolved path for Otter.ai session."""
+        return Path(self.otter_session_file).expanduser()
+
+    @property
+    def otter_chrome_profile_path(self) -> Path:
+        """Get resolved path for Otter.ai Chrome profile."""
+        return Path(self.otter_chrome_profile).expanduser()
 
 
 settings = Settings()

@@ -53,6 +53,7 @@ When you encounter a bug or issue in an MCP tool, file a GitHub issue with `gh i
 | `mcp-screenshot` | `src/mcp_handley_lab/screenshot/tool.py` | Window/screen capture |
 | `mcp-code2prompt` | `src/mcp_handley_lab/code2prompt/tool.py` | Codebase summarization |
 | `mcp-arxiv` | `src/mcp_handley_lab/arxiv/tool.py` | ArXiv paper download |
+| `mcp-otter` | `src/mcp_handley_lab/otter/tool.py` | Otter.ai live meeting transcripts |
 
 ### Issue Template
 

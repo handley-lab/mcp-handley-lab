@@ -26,7 +26,7 @@ Actions:
   Required: otid. Optional: max_segments (0=all, default 0).
 - recent: List recent meetings.
   Optional: limit (default 10).
-- search: Search meetings by title.
+- search: Filter recent meetings by title (client-side, most recent 50).
   Required: query. Optional: limit (default 10).
 - refresh: Refresh session cookies using Playwright headless with Chrome profile.
   No params. Requires: playwright installed, Chrome profile at configured path.

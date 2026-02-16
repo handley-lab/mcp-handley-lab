@@ -17,7 +17,6 @@ from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.shared.models import ServerInfo
 
 API_BASE = "https://otter.ai/forward/api/v1"
-REQUIRED_COOKIES = {"sessionid", "csrftoken"}
 
 
 # --- Response Models ---
@@ -119,41 +118,40 @@ def _clear_session_cache():
 # --- API helpers ---
 
 
+_SESSION_EXPIRED = (
+    "Otter session expired. Call otter(action='refresh') or run otter-refresh-session."
+)
+
+
+def _parse_json(resp: httpx.Response) -> dict:
+    """Parse JSON from response, raising RuntimeError on HTML login redirects."""
+    if "<html" in resp.text[:500].lower():
+        raise RuntimeError("HTML login redirect")
+    return resp.json()
+
+
 def _api_get(path: str, params: dict | None = None) -> dict:
     """GET an Otter API endpoint with session cookies. Retries once on auth failure."""
     client = _get_session()
     resp = client.get(f"{API_BASE}/{path}", params=params)
 
-    # Pass 1: HTTP status retry
     if resp.status_code in (400, 401, 403):
         _clear_session_cache()
         client = _get_session(force_reload=True)
         resp = client.get(f"{API_BASE}/{path}", params=params)
         if resp.status_code in (400, 401, 403):
-            raise RuntimeError(
-                "Otter session expired. Call otter(action='refresh') or run otter-refresh-session."
-            )
+            raise RuntimeError(_SESSION_EXPIRED)
 
     resp.raise_for_status()
 
-    # Pass 2: response parsing with HTML redirect detection
     try:
-        if "<html" in resp.text[:500].lower():
-            raise ValueError("HTML login redirect")
-        return resp.json()
-    except (ValueError, json.JSONDecodeError):
+        return _parse_json(resp)
+    except (RuntimeError, json.JSONDecodeError):
         _clear_session_cache()
         client = _get_session(force_reload=True)
         resp = client.get(f"{API_BASE}/{path}", params=params)
         resp.raise_for_status()
-        try:
-            if "<html" in resp.text[:500].lower():
-                raise ValueError("HTML login redirect")
-            return resp.json()
-        except (ValueError, json.JSONDecodeError) as err:
-            raise RuntimeError(
-                "Otter session expired. Call otter(action='refresh') or run otter-refresh-session."
-            ) from err
+        return _parse_json(resp)
 
 
 # --- Parsing helpers ---
@@ -241,24 +239,13 @@ def get_transcript(otid: str, max_segments: int = 0) -> TranscriptResult:
 
     speakers = _get_speakers(otid)
     transcripts = speech.get("transcripts", [])
-    formatted_text, segments = _format_transcript(transcripts, speakers)
 
     if max_segments > 0:
-        segments = segments[-max_segments:]
-        # Reformat text for truncated segments
-        lines = []
-        for seg in segments:
-            total_secs = seg.start_offset_ms // 1000
-            mins = total_secs // 60
-            secs = total_secs % 60
-            lines.append(f"[{mins:02d}:{secs:02d}] **{seg.speaker_name}**: {seg.text}")
-        formatted_text = "\n\n".join(lines)
+        # Sort and truncate raw transcripts before formatting
+        transcripts.sort(key=lambda t: (t.get("start_offset", 0),))
+        transcripts = transcripts[-max_segments:]
 
-    # Extract active speaker names
-    seen_names = []
-    for seg in segments:
-        if seg.speaker_name not in seen_names:
-            seen_names.append(seg.speaker_name)
+    formatted_text, segments = _format_transcript(transcripts, speakers)
 
     return TranscriptResult(
         title=speech.get("title", ""),
@@ -266,7 +253,7 @@ def get_transcript(otid: str, max_segments: int = 0) -> TranscriptResult:
         live_status=speech.get("live_status", ""),
         created_at=speech.get("created_at", 0),
         url=f"https://otter.ai/u/{otid}",
-        speakers=sorted(seen_names),
+        speakers=sorted({seg.speaker_name for seg in segments}),
         segments=segments,
         formatted_text=formatted_text,
     )
@@ -284,7 +271,7 @@ def list_recent_meetings(limit: int = 10) -> list[MeetingSummary]:
 
 
 def search_meetings(query: str, limit: int = 10) -> list[MeetingSummary]:
-    """Search meetings by title. Limited to most recent 50 meetings."""
+    """Client-side title filter over most recent 50 meetings."""
     data = _api_get("speeches", {"page_size": 50})
     query_lower = query.lower()
     results = []
@@ -387,7 +374,7 @@ def refresh_session() -> RefreshResult:
             [sys.executable, "-c", _REFRESH_SCRIPT, str(chrome_profile), tmp_cookies],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=60,
         )
         if result.returncode != 0:
             raise RuntimeError(f"Refresh failed: {result.stderr.strip()}")

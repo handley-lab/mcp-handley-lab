@@ -134,16 +134,18 @@ def _build_request(wiz_data: dict, rpcid: str, args: list) -> tuple[str, str]:
     return url, body
 
 
-def _parse_response(text: str):
+def _parse_response(resp: httpx.Response):
     """Parse batchexecute response: strip XSSI prefix, extract JSON payload.
 
     Detects HTML login redirects and raises RuntimeError.
     """
-    if "<html" in text[:500].lower() or "accounts.google.com" in text[:1000]:
+    content_type = resp.headers.get("content-type", "")
+    if "text/html" in content_type:
         raise RuntimeError(
             "Session expired (redirected to login). Run gphotos-refresh-session."
         )
 
+    text = resp.text
     if text.startswith(")]}'"):
         text = text[4:]
     text = text.strip()
@@ -178,14 +180,14 @@ def _execute_rpc(client: httpx.Client, wiz_data: dict, rpcid: str, args: list):
     resp.raise_for_status()
 
     try:
-        return _parse_response(resp.text)
+        return _parse_response(resp)
     except RuntimeError:
         _clear_session_cache()
         client, wiz_data = _get_session(force_reload=True)
         url, body = _build_request(wiz_data, rpcid, args)
         resp = client.post(url, content=body, headers={"Content-Type": CONTENT_TYPE})
         resp.raise_for_status()
-        return _parse_response(resp.text)
+        return _parse_response(resp)
 
 
 def _parse_item(item: list) -> PhotoItem | None:
@@ -375,7 +377,7 @@ def show_photo(media_key: str) -> list:
 
     content_type = resp.headers.get("content-type", "image/jpeg")
     fmt = content_type.split("/")[-1].split(";")[0]
-    if fmt == "jpg":
+    if fmt not in {"jpeg", "png", "webp", "gif"}:
         fmt = "jpeg"
 
     return [

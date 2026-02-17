@@ -123,7 +123,7 @@ _SESSION_EXPIRED = (
 
 def _parse_json(resp: httpx.Response) -> dict:
     """Parse JSON from response, raising RuntimeError on HTML login redirects."""
-    content_type = resp.headers.get("content-type", "")
+    content_type = resp.headers.get("content-type", "").lower()
     if "text/html" in content_type:
         raise RuntimeError("HTML login redirect")
     return resp.json()
@@ -174,7 +174,8 @@ def _get_speakers(otid: str) -> dict[int, str]:
     data = _api_get("speakers", {"otid": otid})
     mapping = {}
     for speaker in data.get("speakers", []):
-        mapping[speaker["id"]] = speaker.get("speaker_name", "Unknown")
+        if "id" in speaker:
+            mapping[speaker["id"]] = speaker.get("speaker_name", "Unknown")
     return mapping
 
 

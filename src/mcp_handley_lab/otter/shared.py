@@ -219,7 +219,7 @@ def _format_transcript(
 
 def find_live_meetings() -> list[MeetingSummary]:
     """Find all currently live meetings."""
-    data = _api_get("speeches", {"page_size": 50})
+    data = _api_get("speeches", {"page_size": 10})
     results = []
     for raw in data.get("speeches", []):
         if raw.get("live_status") == "live":

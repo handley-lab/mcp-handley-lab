@@ -100,7 +100,9 @@ def _get_session(force_reload: bool = False) -> httpx.Client:
         domain = c.get("domain") or ".otter.ai"
         cookies.set(c["name"], c["value"], domain=domain, path=c.get("path", "/"))
 
-    client = httpx.Client(cookies=cookies, follow_redirects=True, timeout=30)
+    client = httpx.Client(
+        cookies=cookies, follow_redirects=True, timeout=settings.otter_timeout
+    )
     _session_cache = client
     return _session_cache
 
@@ -219,7 +221,7 @@ def _format_transcript(
 
 def find_live_meetings() -> list[MeetingSummary]:
     """Find all currently live meetings."""
-    data = _api_get("speeches", {"page_size": 50})
+    data = _api_get("speeches", {"page_size": 10})
     results = []
     for raw in data.get("speeches", []):
         if raw.get("live_status") == "live":
@@ -269,8 +271,8 @@ def list_recent_meetings(limit: int = 10) -> list[MeetingSummary]:
 
 
 def search_meetings(query: str, limit: int = 10) -> list[MeetingSummary]:
-    """Client-side title filter over most recent 50 meetings."""
-    data = _api_get("speeches", {"page_size": 50})
+    """Client-side title filter over most recent meetings."""
+    data = _api_get("speeches", {"page_size": 10})
     query_lower = query.lower()
     results = []
     for raw in data.get("speeches", []):

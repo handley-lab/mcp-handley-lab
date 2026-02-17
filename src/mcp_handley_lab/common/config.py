@@ -70,6 +70,10 @@ class Settings(BaseSettings):
         default="~/.local/share/otter/chrome-profile",
         description="Path to dedicated Chrome profile for Otter.ai Playwright refresh.",
     )
+    otter_timeout: int = Field(
+        default=30,
+        description="HTTP timeout in seconds for Otter.ai API requests.",
+    )
 
     @property
     def google_credentials_path(self) -> Path:

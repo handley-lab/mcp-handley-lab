@@ -1,0 +1,2054 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - otter.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://otter.ai/forward/api/v1/speeches?page_size=10
+  response:
+    body:
+      string: '{"status": "OK", "last_load_ts": 1770985437, "end_of_list": false,
+        "speeches": [{"access_request": null, "access_seconds": null, "access_status":
+        1, "action_item_count": null, "agent_session": null, "allow_transcript_copy":
+        true, "appid": "otter-android", "audio_enabled": true, "auto_record": false,
+        "auto_snapshot_enabled": true, "block_summary_display": false, "block_transcript_display":
+        false, "calendar_guests": null, "calendar_meeting_id": null, "can_comment":
+        true, "can_edit": true, "can_export": true, "can_highlight": true, "chat_status":
+        {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out": false, "can_edit_chat":
+        true}, "conf_image_url": null, "conf_join_url": null, "create_method": "record",
+        "created_at": 1771315948, "deleted": false, "displayed_start_time": 1771315948,
+        "download_url": "https://api.aisense.com/audio/AOJlmcqnR1OC6ZhzTYmO2J0c5ak",
+        "duration": 730, "end_time": 1771316678, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771316873, "non_member_shared_groups": [], "otid": "AOJlmcqnR1OC6ZhzTYmO2J0c5ak",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBRTQ3VjNKQkkiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.cbAxpzNINLM7yFZRX0Uf5MAYaGncSqglX0hcHrRDAts",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [], "shared_with": [], "short_abstract_summary": null, "speakers": [], "speech_id":
+        "2DTRMZHAE47V3JBI", "speech_metadata": {}, "speech_outline": [{"id": 10606043860,
+        "text": "Weak Employment Market and Youth Unemployment", "start_offset": 14336,
+        "end_offset": 1966848, "start_word_offset": 0, "end_word_offset": 347, "segments":
+        [{"id": 10606043861, "text": "Unknown Speaker highlights the weak employment
+        market, particularly in retail and hospitality sectors.", "start_offset":
+        14336, "end_offset": 284096, "start_word_offset": 0, "end_word_offset": 47,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043862, "text": "Speaker
+        1 discusses the impact of automation and AI on employment, noting the higher
+        costs and risks associated with hiring people.", "start_offset": 286016, "end_offset":
+        573440, "start_word_offset": 48, "end_word_offset": 97, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10606043863, "text": "Alan Milburn''s review
+        on young people and work is mentioned, emphasizing the risk of a lost generation
+        with 1 million young people economically inactive.", "start_offset": 576319,
+        "end_offset": 1091648, "start_word_offset": 98, "end_word_offset": 197, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10606043864, "text": "Speaker 1 notes
+        that youth employment rates have been falling for four years, with 60% of
+        the 1 million young people being economically inactive.", "start_offset":
+        1091648, "end_offset": 1966848, "start_word_offset": 198, "end_word_offset":
+        347, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10606043865, "text": "Structural Issues and Downward Escalator", "start_offset":
+        1969728, "end_offset": 5994240, "start_word_offset": 348, "end_word_offset":
+        1047, "segments": [{"id": 10606043866, "text": "Speaker 1 explains the concept
+        of a \"downward escalator,\" where young people with poor health and education
+        end up on benefits.", "start_offset": 1969728, "end_offset": 2926975, "start_word_offset":
+        348, "end_word_offset": 497, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10606043867, "text": "The need for decent jobs, better opportunities, and
+        good training is emphasized, with the government''s efforts being insufficient.",
+        "start_offset": 2926975, "end_offset": 3162176, "start_word_offset": 498,
+        "end_word_offset": 547, "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043868,
+        "text": "The discussion touches on the mental health issues of young people,
+        with rising neurodiversity conditions leading to economic inactivity.", "start_offset":
+        3162176, "end_offset": 4153407, "start_word_offset": 548, "end_word_offset":
+        697, "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043869, "text":
+        "Speaker 1 mentions the need for fundamental reform across early years, schools,
+        skills, mental health, and welfare systems.", "start_offset": 4161087, "end_offset":
+        5994240, "start_word_offset": 698, "end_word_offset": 1047, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10606043870, "text":
+        "Economic and Social Implications", "start_offset": 5994240, "end_offset":
+        6827520, "start_word_offset": 1048, "end_word_offset": 1197, "segments": [{"id":
+        10606043871, "text": "Speaker 1 discusses the broader systemic failures, including
+        early years, schools, skills, mental health, and welfare.", "start_offset":
+        5994240, "end_offset": 6137600, "start_word_offset": 1048, "end_word_offset":
+        1072, "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043872, "text":
+        "The youth guarantee introduced by the government is seen as a good down payment
+        but insufficient.", "start_offset": 6137600, "end_offset": 6263360, "start_word_offset":
+        1073, "end_word_offset": 1097, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10606043873, "text": "The conversation highlights the social injustice and
+        disadvantage associated with becoming NEET, with young people from disadvantaged
+        backgrounds being more likely to be NEET.", "start_offset": 6272000, "end_offset":
+        6547968, "start_word_offset": 1098, "end_word_offset": 1147, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10606043874, "text": "Speaker 1 emphasizes
+        the existential nature of the issue, calling it an economic, social, and moral
+        problem.", "start_offset": 6547968, "end_offset": 6827520, "start_word_offset":
+        1148, "end_word_offset": 1197, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10606043875, "text": "Employer Concerns and
+        Radical Change", "start_offset": 6827520, "end_offset": 9334720, "start_word_offset":
+        1198, "end_word_offset": 1537, "segments": [{"id": 10606043876, "text": "Speaker
+        1 notes the increased risks for employers hiring young people due to the minimum
+        wage and the right to work.", "start_offset": 6827520, "end_offset": 7614848,
+        "start_word_offset": 1198, "end_word_offset": 1347, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10606043877, "text": "The conversation touches on the need
+        to minimize risks and maximize opportunities for young people.", "start_offset":
+        7614848, "end_offset": 7881599, "start_word_offset": 1348, "end_word_offset":
+        1389, "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043878, "text":
+        "Speaker 1 calls for radical change to address the systemic issues affecting
+        young people.", "start_offset": 7886399, "end_offset": 8669760, "start_word_offset":
+        1390, "end_word_offset": 1437, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10606043879, "text": "The discussion emphasizes the importance of change for
+        the Labor Party, with the review being about changing a system that isn''t
+        working.", "start_offset": 8754240, "end_offset": 9334720, "start_word_offset":
+        1438, "end_word_offset": 1537, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10606043880, "text": "National Year of Reading
+        and Podcasts", "start_offset": 9334720, "end_offset": 11670720, "start_word_offset":
+        1538, "end_word_offset": 1995, "segments": [{"id": 10606043882, "text": "Speaker
+        2 introduces the topic of the National Year of Reading, aiming to get the
+        nation back into reading.", "start_offset": 9334720, "end_offset": 9827520,
+        "start_word_offset": 1538, "end_word_offset": 1630, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10606043883, "text": "Dominic Stanbrook from the Rest is
+        History podcast discusses a new podcast about books and school.", "start_offset":
+        9827520, "end_offset": 10284224, "start_word_offset": 1631, "end_word_offset":
+        1730, "segments": null, "pipeline": "f_kaldi"}, {"id": 10606043885, "text":
+        "The conversation highlights the decline in nonfiction book sales and the
+        rise of podcasts as an alternative.", "start_offset": 10284224, "end_offset":
+        10728000, "start_word_offset": 1731, "end_word_offset": 1822, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10606043886, "text": "Speaker 1 emphasizes
+        the importance of fiction in opening a window into different worlds and providing
+        a sense of empathy.", "start_offset": 10728000, "end_offset": 11670720, "start_word_offset":
+        1823, "end_word_offset": 1995, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}], "speech_outline_status": "u", "speech_settings":
+        {"allow_topics": true, "language": true, "allow_collaborators_to_share": true,
+        "allow_viewers_to_export": true}, "start_time": 1771315948, "summary": "Youth
+        unemployment, economic inactivity, labor market, automation, AI deployment,
+        downward escalator, mental health, neurodiversity, special educational needs,
+        benefit system, early years, skills training, apprenticeships, social injustice,
+        radical change.", "timecode_offset": null, "timezone": null, "title": "Note",
+        "transcript_updated_at": 1771316845, "unshared": false, "upload_finished":
+        true, "word_clouds": [{"word": "Youth unemployment", "score": "1.000", "variants":
+        ["Youth unemployment"]}, {"word": "economic inactivity", "score": "1.000",
+        "variants": ["economic inactivity"]}, {"word": "labor market", "score": "1.000",
+        "variants": ["labor market"]}, {"word": "automation", "score": "1.000", "variants":
+        ["automation"]}, {"word": "AI deployment", "score": "1.000", "variants": ["AI
+        deployment"]}, {"word": "downward escalator", "score": "1.000", "variants":
+        ["downward escalator"]}, {"word": "mental health", "score": "1.000", "variants":
+        ["mental health"]}, {"word": "neurodiversity", "score": "1.000", "variants":
+        ["neurodiversity"]}, {"word": "special educational needs", "score": "1.000",
+        "variants": ["special educational needs"]}, {"word": "benefit system", "score":
+        "1.000", "variants": ["benefit system"]}, {"word": "early years", "score":
+        "1.000", "variants": ["early years"]}, {"word": "skills training", "score":
+        "1.000", "variants": ["skills training"]}, {"word": "apprenticeships", "score":
+        "1.000", "variants": ["apprenticeships"]}, {"word": "social injustice", "score":
+        "1.000", "variants": ["social injustice"]}, {"word": "radical change.", "score":
+        "1.000", "variants": ["radical change."]}], "current_oa_status": null, "can_be_stopped_by_non_owner":
+        false, "who_can_stop_OA": "speech_owner_only"}, {"access_request": null, "access_seconds":
+        null, "access_status": 1, "action_item_count": null, "agent_session": null,
+        "allow_transcript_copy": true, "appid": "otter-android", "audio_enabled":
+        true, "auto_record": false, "auto_snapshot_enabled": true, "block_summary_display":
+        false, "block_transcript_display": false, "calendar_guests": null, "calendar_meeting_id":
+        null, "can_comment": true, "can_edit": true, "can_export": true, "can_highlight":
+        true, "chat_status": {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out":
+        false, "can_edit_chat": true}, "conf_image_url": null, "conf_join_url": null,
+        "create_method": "record", "created_at": 1771265790, "deleted": false, "displayed_start_time":
+        1771265790, "download_url": "https://api.aisense.com/audio/qPMnwvGW9uUfUH7VXRJ9N_B5QLo",
+        "duration": 2771, "end_time": 1771268561, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308315, "non_member_shared_groups": [], "otid": "qPMnwvGW9uUfUH7VXRJ9N_B5QLo",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBRFBYWlJaRVQiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.lQmDdCEL7ZfYbFEuS0HwgVtcnAmrEo_LeGERhdaiE4U",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-16 10:16:37", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        31497359, "created_at": "2025-12-22 01:07:11", "last_modified_at": "2026-02-16
+        11:02:52", "name": "James Alvey", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-16 18:16:37", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 2, "message_count": 3, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "gtd", "score": "0.009", "variants": ["gtd"]}, {"word": "agents",
+        "score": "0.006", "variants": ["agents", "agent"]}, {"word": "run", "score":
+        "0.005", "variants": ["running", "run", "ran", "runs"]}, {"word": "idea",
+        "score": "0.005", "variants": ["idea", "ideas"]}, {"word": "point", "score":
+        "0.004", "variants": ["point", "pointing", "points", "pointed"]}, {"word":
+        "thinking", "score": "0.004", "variants": ["thought", "thinking", "thinks"]},
+        {"word": "bit", "score": "0.004", "variants": ["bit", "bits"]}, {"word": "code",
+        "score": "0.004", "variants": ["code", "coded", "codes"]}, {"word": "good",
+        "score": "0.004", "variants": ["good"]}, {"word": "data", "score": "0.004",
+        "variants": ["data"]}, {"word": "ai", "score": "0.004", "variants": ["ai"]},
+        {"word": "work", "score": "0.003", "variants": ["work", "worked", "works"]},
+        {"word": "task", "score": "0.003", "variants": ["task", "tasks"]}, {"word":
+        "claude", "score": "0.003", "variants": ["claude"]}, {"word": "build", "score":
+        "0.003", "variants": ["built", "building", "build"]}, {"word": "mcp", "score":
+        "0.003", "variants": ["mcp"]}, {"word": "phase", "score": "0.003", "variants":
+        ["phase", "phases"]}, {"word": "paper", "score": "0.003", "variants": ["paper",
+        "papers"]}, {"word": "system", "score": "0.003", "variants": ["system", "systems"]},
+        {"word": "human", "score": "0.003", "variants": ["human", "humans"]}], "external_url":
+        null, "dm_name": null, "has_live_speech": false, "is_dm_visible": false, "is_autoshare_group":
+        false, "discoverability": "private"}, "group_message_id": 52743431}], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [], "speech_id": "2DTRMZHADPXZRZET",
+        "speech_metadata": {}, "speech_outline": [{"id": 10600290917, "text": "Tutoring
+        Job and Polish Army Conscription", "start_offset": 93120, "end_offset": 2117759,
+        "start_word_offset": 0, "end_word_offset": 237, "segments": [{"id": 10600290919,
+        "text": "Speaker 1 discusses a serious tutoring job on Friday, which is ongoing.",
+        "start_offset": 93120, "end_offset": 1035840, "start_word_offset": 0, "end_word_offset":
+        90, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290920, "text":
+        "Speaker 1 mentions being conscripted to the Polish army, needing a letter
+        by Sunday.", "start_offset": 1035840, "end_offset": 1493120, "start_word_offset":
+        91, "end_word_offset": 140, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290921, "text": "Speaker 1 had to write the letter themselves as the
+        official letter was not received in time.", "start_offset": 1501760, "end_offset":
+        1784320, "start_word_offset": 141, "end_word_offset": 187, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10600290922, "text": "Speaker 1 expresses frustration
+        over the tutor not showing up to meetings and working on a Saturday morning.",
+        "start_offset": 1831359, "end_offset": 2117759, "start_word_offset": 188,
+        "end_word_offset": 237, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10600290923, "text": "Introduction to Jose and Lensing
+        Stuff", "start_offset": 2117759, "end_offset": 3055680, "start_word_offset":
+        238, "end_word_offset": 377, "segments": [{"id": 10600290924, "text": "Speaker
+        1 introduces Jose, who works in NBR and does lensing stuff, including LIGO.",
+        "start_offset": 2117759, "end_offset": 2709759, "start_word_offset": 238,
+        "end_word_offset": 305, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290925,
+        "text": "Speaker 2 mentions seeing Jose in Valencia.", "start_offset": 2713600,
+        "end_offset": 2836480, "start_word_offset": 306, "end_word_offset": 327, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10600290926, "text": "Speaker 1 describes
+        a short grant application and the potential of using a live otter to write
+        it.", "start_offset": 2837440, "end_offset": 2941440, "start_word_offset":
+        328, "end_word_offset": 352, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290927, "text": "Speaker 1 shares an experience of showing Paul code,
+        which impressed someone in Texas.", "start_offset": 2941440, "end_offset":
+        3055680, "start_word_offset": 353, "end_word_offset": 377, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10600290928, "text":
+        "Claude Code and Transcription Services", "start_offset": 3056640, "end_offset":
+        6710080, "start_word_offset": 378, "end_word_offset": 947, "segments": [{"id":
+        10600290929, "text": "Speaker 3 discusses the underlying hack of logging in
+        once to use Claude code for a few weeks.", "start_offset": 3056640, "end_offset":
+        4554880, "start_word_offset": 378, "end_word_offset": 621, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10600290930, "text": "Speaker 1 and Speaker
+        3 talk about the lack of a functioning transcription service and the use of
+        fireflies and other alternatives.", "start_offset": 4554880, "end_offset":
+        4850880, "start_word_offset": 622, "end_word_offset": 665, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10600290931, "text": "Speaker 3 mentions the
+        high cost of paying for transcription services like Grok or Whisper.", "start_offset":
+        4850880, "end_offset": 5564800, "start_word_offset": 666, "end_word_offset":
+        807, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290932, "text":
+        "Speaker 1 and Speaker 3 agree on the importance of being able to easily share
+        transcriptions.", "start_offset": 5564800, "end_offset": 6710080, "start_word_offset":
+        808, "end_word_offset": 947, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10600290933, "text": "Research Projects and Budget Updates",
+        "start_offset": 6710080, "end_offset": 7964160, "start_word_offset": 948,
+        "end_word_offset": 1174, "segments": [{"id": 10600290935, "text": "Speaker
+        1 talks about working on the budget and joining, removing the SSH hack for
+        now.", "start_offset": 6710080, "end_offset": 6932160, "start_word_offset":
+        948, "end_word_offset": 994, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290937, "text": "Speaker 3 mentions the importance of the SSH thing working
+        better on Linux.", "start_offset": 6932160, "end_offset": 7136960, "start_word_offset":
+        995, "end_word_offset": 1039, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290938, "text": "Speaker 1 describes the notification system when a human
+        joins a session, which can be a bit creepy.", "start_offset": 7136959, "end_offset":
+        7545280, "start_word_offset": 1040, "end_word_offset": 1130, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10600290939, "text": "Speaker 3 suggests not
+        announcing oneself and just joining the session silently.", "start_offset":
+        7545280, "end_offset": 7964160, "start_word_offset": 1131, "end_word_offset":
+        1174, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10600290940, "text": "MCP Server and Research Practices", "start_offset":
+        7964160, "end_offset": 10896320, "start_word_offset": 1175, "end_word_offset":
+        1652, "segments": [{"id": 10600290941, "text": "Speaker 1 explains the MCP
+        server inside Claude, which allows for direct interaction without reading
+        through everything.", "start_offset": 7964160, "end_offset": 8422720, "start_word_offset":
+        1175, "end_word_offset": 1270, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290942, "text": "Speaker 3 mentions manually reading points and the new
+        system''s ability to do the same thing automatically.", "start_offset": 8422720,
+        "end_offset": 8662720, "start_word_offset": 1271, "end_word_offset": 1319,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290943, "text": "Speaker
+        1 describes the message board and postings, and the ability to receive messages
+        and have an inbox.", "start_offset": 8662720, "end_offset": 9107840, "start_word_offset":
+        1320, "end_word_offset": 1419, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290944, "text": "Speaker 3 and Speaker 1 discuss the importance of the
+        MCP server in research practices.", "start_offset": 9107840, "end_offset":
+        10896320, "start_word_offset": 1420, "end_word_offset": 1652, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10600290945,
+        "text": "Evolving Research Teams and Market Potential", "start_offset": 10921280,
+        "end_offset": 23449280, "start_word_offset": 1653, "end_word_offset": 3363,
+        "segments": [{"id": 10600290946, "text": "Speaker 1 envisions evolving research
+        teams in specific fields and the potential market for this product.", "start_offset":
+        10921280, "end_offset": 11774400, "start_word_offset": 1653, "end_word_offset":
+        1799, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290947, "text":
+        "Speaker 3 suggests showing early results to demonstrate the system''s capability.",
+        "start_offset": 11775360, "end_offset": 11988800, "start_word_offset": 1800,
+        "end_word_offset": 1843, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290949, "text": "Speaker 1 talks about the importance of the internal
+        data and state of the system.", "start_offset": 11989760, "end_offset": 13432960,
+        "start_word_offset": 1844, "end_word_offset": 2084, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10600290951, "text": "Speaker 3 mentions the need to show
+        that the system can learn long-term and generate valuable results.", "start_offset":
+        13432960, "end_offset": 23449280, "start_word_offset": 2085, "end_word_offset":
+        3363, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10600290952, "text": "Challenges and Solutions in Research", "start_offset":
+        23819200, "end_offset": 24296640, "start_word_offset": 3364, "end_word_offset":
+        3413, "segments": [{"id": 10600290953, "text": "Speaker 1 and Speaker 3 discuss
+        the challenges of scaling the system and the importance of academic freedom.",
+        "start_offset": 23819200, "end_offset": 24078720, "start_word_offset": 3364,
+        "end_word_offset": 3375, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290954, "text": "Speaker 3 suggests explaining the system to trusted
+        individuals to see if they can replicate it.", "start_offset": 24078720, "end_offset":
+        24175680, "start_word_offset": 3376, "end_word_offset": 3388, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10600290955, "text": "Speaker 1 talks
+        about the importance of initial results and the potential for long-term learning.",
+        "start_offset": 24175680, "end_offset": 24235200, "start_word_offset": 3389,
+        "end_word_offset": 3401, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290956, "text": "Speaker 3 mentions the need for a compelling VC pitch
+        to secure funding and resources.", "start_offset": 24235200, "end_offset":
+        24296640, "start_word_offset": 3402, "end_word_offset": 3413, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10600290957,
+        "text": "Improving the System and Research Output", "start_offset": 24296640,
+        "end_offset": 35224960, "start_word_offset": 3414, "end_word_offset": 4994,
+        "segments": [{"id": 10600290958, "text": "Speaker 1 and Speaker 3 discuss
+        the importance of improving the system''s interface and research cadence.",
+        "start_offset": 24296640, "end_offset": 25750720, "start_word_offset": 3414,
+        "end_word_offset": 3650, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290959, "text": "Speaker 1 mentions the need for a better way to drop
+        in information and results.", "start_offset": 25750720, "end_offset": 25974720,
+        "start_word_offset": 3651, "end_word_offset": 3691, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10600290960, "text": "Speaker 3 talks about the importance
+        of publishing high-quality research and the impact of time constraints.",
+        "start_offset": 25974720, "end_offset": 26316800, "start_word_offset": 3692,
+        "end_word_offset": 3734, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290961, "text": "Speaker 1 suggests combining compute time and research
+        output to create a natural cadence.", "start_offset": 26324479, "end_offset":
+        35224960, "start_word_offset": 3735, "end_word_offset": 4994, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10600290962,
+        "text": "Collaboration and Expertise in Research", "start_offset": 35225920,
+        "end_offset": 41478720, "start_word_offset": 4995, "end_word_offset": 5901,
+        "segments": [{"id": 10600290963, "text": "Speaker 1 and Speaker 3 discuss
+        the importance of collaboration and expertise in research.", "start_offset":
+        35225920, "end_offset": 35912000, "start_word_offset": 4995, "end_word_offset":
+        5087, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290964, "text":
+        "Speaker 1 mentions the need for great researchers to interact and play with
+        the system.", "start_offset": 35912000, "end_offset": 40873280, "start_word_offset":
+        5088, "end_word_offset": 5801, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290965, "text": "Speaker 3 talks about the potential for evolving research
+        teams in specific fields.", "start_offset": 40873280, "end_offset": 41198080,
+        "start_word_offset": 5802, "end_word_offset": 5851, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10600290966, "text": "Speaker 1 suggests the importance
+        of having a subscription to the system and targeting specific fields.", "start_offset":
+        41198080, "end_offset": 41478720, "start_word_offset": 5852, "end_word_offset":
+        5901, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10600290967, "text": "Final Thoughts and Next Steps", "start_offset": 41483519,
+        "end_offset": 44309759, "start_word_offset": 5902, "end_word_offset": 6292,
+        "segments": [{"id": 10600290968, "text": "Speaker 1 and Speaker 3 discuss
+        the importance of demonstrating the system''s capability with defensible experiments.",
+        "start_offset": 41483519, "end_offset": 42070720, "start_word_offset": 5902,
+        "end_word_offset": 5994, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290969, "text": "Speaker 3 mentions the need for early data to show the
+        system''s potential.", "start_offset": 42096640, "end_offset": 42385919, "start_word_offset":
+        5995, "end_word_offset": 6039, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10600290970, "text": "Speaker 1 talks about the importance of having a minimum
+        viable product (MVP) and the need for further research.", "start_offset":
+        42426239, "end_offset": 43748480, "start_word_offset": 6040, "end_word_offset":
+        6274, "segments": null, "pipeline": "f_kaldi"}, {"id": 10600290972, "text":
+        "Speaker 3 suggests continuing the conversation and doing more research around
+        the system''s potential.", "start_offset": 43748480, "end_offset": 44309759,
+        "start_word_offset": 6275, "end_word_offset": 6292, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}], "speech_outline_status": "u", "speech_settings":
+        {"allow_topics": true, "language": true, "allow_collaborators_to_share": true,
+        "allow_viewers_to_export": true}, "start_time": 1771265790, "summary": "tutoring
+        job, Polish army, letter, tutor meetings, gravitation, LIGO, grant application,
+        Claude code, transcription, research practices, agent teams, institutional
+        memory, computational chemistry, academic research, VC pitch", "timecode_offset":
+        null, "timezone": null, "title": "2026-02-16:18:16:30 Note", "transcript_updated_at":
+        1771269063, "unshared": false, "upload_finished": true, "word_clouds": [{"word":
+        "tutoring job", "score": "1.000", "variants": ["tutoring job"]}, {"word":
+        "Polish army", "score": "1.000", "variants": ["Polish army"]}, {"word": "letter",
+        "score": "1.000", "variants": ["letter"]}, {"word": "tutor meetings", "score":
+        "1.000", "variants": ["tutor meetings"]}, {"word": "gravitation", "score":
+        "1.000", "variants": ["gravitation"]}, {"word": "LIGO", "score": "1.000",
+        "variants": ["LIGO"]}, {"word": "grant application", "score": "1.000", "variants":
+        ["grant application"]}, {"word": "Claude code", "score": "1.000", "variants":
+        ["Claude code"]}, {"word": "transcription", "score": "1.000", "variants":
+        ["transcription"]}, {"word": "research practices", "score": "1.000", "variants":
+        ["research practices"]}, {"word": "agent teams", "score": "1.000", "variants":
+        ["agent teams"]}, {"word": "institutional memory", "score": "1.000", "variants":
+        ["institutional memory"]}, {"word": "computational chemistry", "score": "1.000",
+        "variants": ["computational chemistry"]}, {"word": "academic research", "score":
+        "1.000", "variants": ["academic research"]}, {"word": "VC pitch", "score":
+        "1.000", "variants": ["VC pitch"]}], "current_oa_status": null, "can_be_stopped_by_non_owner":
+        false, "who_can_stop_OA": "speech_owner_only"}, {"access_request": null, "access_seconds":
+        null, "access_status": 1, "action_item_count": null, "agent_session": null,
+        "allow_transcript_copy": true, "appid": "otter-android", "audio_enabled":
+        true, "auto_record": false, "auto_snapshot_enabled": true, "block_summary_display":
+        false, "block_transcript_display": false, "calendar_guests": null, "calendar_meeting_id":
+        null, "can_comment": true, "can_edit": true, "can_export": true, "can_highlight":
+        true, "chat_status": {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out":
+        false, "can_edit_chat": true}, "conf_image_url": null, "conf_join_url": null,
+        "create_method": "record", "created_at": 1771262503, "deleted": false, "displayed_start_time":
+        1771262504, "download_url": "https://api.aisense.com/audio/hQYUlSEVg8JGS1PVVhZuyiUbVCk",
+        "duration": 2678, "end_time": 1771265182, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308347, "non_member_shared_groups": [], "otid": "hQYUlSEVg8JGS1PVVhZuyiUbVCk",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBRFA2RTNaUzIiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.objuozjp92r9c1OYQkXJZRUJhJQWYeVdkybgueTI70M",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-16 09:23:20", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        23584976, "created_at": "2025-05-27 07:11:46", "last_modified_at": "2026-02-16
+        10:06:34", "name": "Namu Kroupa", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-16 17:23:20", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 4, "message_count": 1, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "sampling", "score": "0.008", "variants": ["sampling", "samplings"]},
+        {"word": "model", "score": "0.008", "variants": ["model", "models", "modeled"]},
+        {"word": "good", "score": "0.005", "variants": ["good"]}, {"word": "atoms",
+        "score": "0.004", "variants": ["atoms", "atom"]}, {"word": "linear model",
+        "score": "0.004", "variants": ["linear model", "linear models", "linear modeling"]},
+        {"word": "parameters", "score": "0.004", "variants": ["parameters", "parameter"]},
+        {"word": "run", "score": "0.004", "variants": ["run", "running", "ran", "runs"]},
+        {"word": "point", "score": "0.004", "variants": ["point", "points", "pointing"]},
+        {"word": "linear", "score": "0.004", "variants": ["linear"]}, {"word": "liquid",
+        "score": "0.003", "variants": ["liquid"]}, {"word": "thinking", "score": "0.003",
+        "variants": ["thinking", "thought", "thinks"]}, {"word": "system", "score":
+        "0.003", "variants": ["system", "systems"]}, {"word": "temperature", "score":
+        "0.003", "variants": ["temperatures", "temperature"]}, {"word": "number",
+        "score": "0.003", "variants": ["number", "numbers"]}, {"word": "find", "score":
+        "0.003", "variants": ["find", "finding", "finds"]}, {"word": "mace", "score":
+        "0.003", "variants": ["mace"]}, {"word": "nested", "score": "0.003", "variants":
+        ["nest", "nested"]}, {"word": "energy", "score": "0.003", "variants": ["energy"]},
+        {"word": "steps", "score": "0.003", "variants": ["step", "steps"]}, {"word":
+        "solid", "score": "0.003", "variants": ["solid", "solids"]}], "external_url":
+        null, "dm_name": null, "has_live_speech": false, "is_dm_visible": false, "is_autoshare_group":
+        false, "discoverability": "private"}, "group_message_id": 52739604}], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [], "speech_id": "2DTRMZHADP6E3ZS2",
+        "speech_metadata": {}, "speech_outline": [{"id": 10599422302, "text": "Legislative
+        Structure and Legal Frameworks", "start_offset": 4096, "end_offset": 2268800,
+        "start_word_offset": 0, "end_word_offset": 193, "segments": [{"id": 10599422303,
+        "text": "Speaker 1 discusses the legislative plumbing and the legal structure''s
+        ability to handle certain issues.", "start_offset": 4096, "end_offset": 546560,
+        "start_word_offset": 0, "end_word_offset": 48, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10599422305, "text": "Speaker 2 mentions that many firms
+        can handle such tasks and that it is feasible.", "start_offset": 546560, "end_offset":
+        1562240, "start_word_offset": 49, "end_word_offset": 93, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10599422307, "text": "Speaker 3 talks about
+        progressing with partial appointments and mentions the Pembroke.", "start_offset":
+        1562240, "end_offset": 1890879, "start_word_offset": 94, "end_word_offset":
+        143, "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422309, "text":
+        "Speaker 4 updates on the progress of writing a copy of the trace and reproducing
+        accuracy.", "start_offset": 1890879, "end_offset": 2268800, "start_word_offset":
+        144, "end_word_offset": 193, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10599422310, "text": "Model Training and Error Analysis",
+        "start_offset": 2268800, "end_offset": 5291840, "start_word_offset": 194,
+        "end_word_offset": 617, "segments": [{"id": 10599422312, "text": "Speaker
+        4 explains the process of starting from scratch and adding layers to the model.",
+        "start_offset": 2268800, "end_offset": 2699200, "start_word_offset": 194,
+        "end_word_offset": 242, "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422314,
+        "text": "The training run is mentioned, and the impact of adding an MLP is
+        discussed.", "start_offset": 2738560, "end_offset": 3120000, "start_word_offset":
+        243, "end_word_offset": 290, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422315, "text": "Speaker 3 questions the contradiction in the model''s
+        performance with different layers.", "start_offset": 3143040, "end_offset":
+        4969983, "start_word_offset": 291, "end_word_offset": 571, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10599422317, "text": "Speaker 4 expresses frustration
+        with the complexities and contradictions in the code.", "start_offset": 4978624,
+        "end_offset": 5291840, "start_word_offset": 572, "end_word_offset": 617, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10599422319,
+        "text": "Linear Models and Receptive Fields", "start_offset": 5291840, "end_offset":
+        8068160, "start_word_offset": 618, "end_word_offset": 1013, "segments": [{"id":
+        10599422320, "text": "Speaker 3 discusses the receptive field and the impact
+        of adding layers to the model.", "start_offset": 5291840, "end_offset": 5544640,
+        "start_word_offset": 618, "end_word_offset": 667, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10599422322, "text": "Speaker 4 questions why the two-layer
+        model performs worse.", "start_offset": 5544640, "end_offset": 5888640, "start_word_offset":
+        668, "end_word_offset": 716, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422324, "text": "Speaker 3 explains the differences in information transmission
+        with single and two-layer models.", "start_offset": 5908800, "end_offset":
+        7253120, "start_word_offset": 717, "end_word_offset": 915, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10599422325, "text": "The concept of fixed
+        data, compute, and resolution is introduced.", "start_offset": 7256000, "end_offset":
+        8068160, "start_word_offset": 916, "end_word_offset": 1013, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10599422327, "text":
+        "Basis Functions and Data Constraints", "start_offset": 8089280, "end_offset":
+        13133119, "start_word_offset": 1014, "end_word_offset": 1681, "segments":
+        [{"id": 10599422328, "text": "Speaker 3 explains the differences in basis
+        functions and their impact on the model.", "start_offset": 8089280, "end_offset":
+        9405760, "start_word_offset": 1014, "end_word_offset": 1207, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10599422330, "text": "The concept of a restricted
+        subset of basis functions is discussed.", "start_offset": 9405760, "end_offset":
+        9703680, "start_word_offset": 1208, "end_word_offset": 1250, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10599422332, "text": "Speaker 3 suggests numerical
+        tests to evince the narrative.", "start_offset": 9730560, "end_offset": 10122176,
+        "start_word_offset": 1251, "end_word_offset": 1299, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10599422334, "text": "Speaker 4 mentions the spectrum of
+        the design matrix and its conditioning.", "start_offset": 10191295, "end_offset":
+        13133119, "start_word_offset": 1300, "end_word_offset": 1681, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10599422335,
+        "text": "Bayesian Models and Mutual Information", "start_offset": 13133120,
+        "end_offset": 13990400, "start_word_offset": 1682, "end_word_offset": 1816,
+        "segments": [{"id": 10599422336, "text": "Speaker 3 suggests using Bayesian
+        models to analyze the linear and non-linear models.", "start_offset": 13133120,
+        "end_offset": 13366720, "start_word_offset": 1682, "end_word_offset": 1726,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422337, "text": "Speaker
+        5 mentions mutual information between parameters.", "start_offset": 13366720,
+        "end_offset": 13618560, "start_word_offset": 1727, "end_word_offset": 1767,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422339, "text": "Speaker
+        3 discusses the advantages of treating the linear model as a baseline.", "start_offset":
+        13618560, "end_offset": 13781760, "start_word_offset": 1768, "end_word_offset":
+        1791, "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422341, "text":
+        "The concept of using linear solves in subspaces is introduced.", "start_offset":
+        13781760, "end_offset": 13990400, "start_word_offset": 1792, "end_word_offset":
+        1816, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10599422342, "text": "Verified Theorems and Mathematical Calculations", "start_offset":
+        13990400, "end_offset": 15976640, "start_word_offset": 1817, "end_word_offset":
+        2050, "segments": [{"id": 10599422343, "text": "Speaker 3 talks about formalizing
+        verified theorems and the challenges involved.", "start_offset": 13990400,
+        "end_offset": 14797760, "start_word_offset": 1817, "end_word_offset": 1907,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422344, "text": "Speaker
+        5 mentions the gap in the market for tools that can handle these calculations.",
+        "start_offset": 14797760, "end_offset": 15087040, "start_word_offset": 1908,
+        "end_word_offset": 1957, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422345, "text": "Speaker 3 discusses the importance of having a significantly
+        better model.", "start_offset": 15087040, "end_offset": 15587520, "start_word_offset":
+        1958, "end_word_offset": 2000, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422346, "text": "The concept of scaling the model and its impact on the
+        data is discussed.", "start_offset": 15626880, "end_offset": 15976640, "start_word_offset":
+        2001, "end_word_offset": 2050, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10599422347, "text": "Statistical Learning
+        Assumptions", "start_offset": 15976640, "end_offset": 19790720, "start_word_offset":
+        2051, "end_word_offset": 2526, "segments": [{"id": 10599422348, "text": "Speaker
+        4 discusses testing statistical learning assumptions and the regime of deep
+        learning.", "start_offset": 15976640, "end_offset": 17441087, "start_word_offset":
+        2051, "end_word_offset": 2244, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422349, "text": "The impact of data correlation on the model''s performance
+        is mentioned.", "start_offset": 17456447, "end_offset": 17666240, "start_word_offset":
+        2245, "end_word_offset": 2289, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422350, "text": "Speaker 3 emphasizes the importance of understanding
+        the regime for better model performance.", "start_offset": 17666240, "end_offset":
+        18090879, "start_word_offset": 2290, "end_word_offset": 2338, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10599422351, "text": "Speaker 4 mentions
+        testing the model without a prior and its impact on accuracy.", "start_offset":
+        18090879, "end_offset": 19790720, "start_word_offset": 2339, "end_word_offset":
+        2526, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10599422352, "text": "Vacuum Cluster Expansion and Decay Rates", "start_offset":
+        19793600, "end_offset": 39391680, "start_word_offset": 2527, "end_word_offset":
+        4796, "segments": [{"id": 10599422353, "text": "Speaker 4 explains the concept
+        of vacuum cluster expansion and its implications.", "start_offset": 19793600,
+        "end_offset": 27649600, "start_word_offset": 2527, "end_word_offset": 3139,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422354, "text": "The
+        decay rate of the vacuum cluster expansion is discussed.", "start_offset":
+        27649600, "end_offset": 29363840, "start_word_offset": 3140, "end_word_offset":
+        3377, "segments": null, "pipeline": "f_kaldi"}, {"id": 10599422355, "text":
+        "Speaker 3 questions the representativeness of the large T limit in real materials.",
+        "start_offset": 29363840, "end_offset": 31204160, "start_word_offset": 3378,
+        "end_word_offset": 3664, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422356, "text": "The concept of exponential decay in coupling constants
+        is introduced.", "start_offset": 31207040, "end_offset": 39391680, "start_word_offset":
+        3665, "end_word_offset": 4796, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10599422357, "text": "Numerical Tests and Analytic
+        Solutions", "start_offset": 39391680, "end_offset": 39807680, "start_word_offset":
+        4797, "end_word_offset": 4846, "segments": [{"id": 10599422358, "text": "Speaker
+        4 discusses the possibility of numerical tests to check the decay rate.",
+        "start_offset": 39391680, "end_offset": 39460799, "start_word_offset": 4797,
+        "end_word_offset": 4808, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422359, "text": "Speaker 3 suggests looking at the slow decay of exponential
+        coupling.", "start_offset": 39475200, "end_offset": 39566399, "start_word_offset":
+        4809, "end_word_offset": 4821, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422360, "text": "The concept of dense cluster expansions and their divergence
+        is mentioned.", "start_offset": 39566399, "end_offset": 39648960, "start_word_offset":
+        4822, "end_word_offset": 4834, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422362, "text": "Speaker 4 questions the implications of the results
+        for machine learning and modeling.", "start_offset": 39648960, "end_offset":
+        39807680, "start_word_offset": 4835, "end_word_offset": 4846, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10599422364,
+        "text": "Referee Selection and Collaboration", "start_offset": 39807680, "end_offset":
+        42709760, "start_word_offset": 4847, "end_word_offset": 5177, "segments":
+        [{"id": 10599422365, "text": "Speaker 4 asks about selecting referees for
+        a project and potential collaborators.", "start_offset": 39807680, "end_offset":
+        40980159, "start_word_offset": 4847, "end_word_offset": 4977, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10599422367, "text": "Speaker 3 advises
+        on the number of referees needed and the importance of external referees.",
+        "start_offset": 41006080, "end_offset": 41705600, "start_word_offset": 4978,
+        "end_word_offset": 5069, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422368, "text": "The challenges of engaging certain collaborators are
+        discussed.", "start_offset": 41710400, "end_offset": 41997760, "start_word_offset":
+        5070, "end_word_offset": 5113, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10599422369, "text": "Speaker 4 mentions the need for references and potential
+        collaborators for future projects.", "start_offset": 41997760, "end_offset":
+        42709760, "start_word_offset": 5114, "end_word_offset": 5177, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}], "speech_outline_status":
+        "u", "speech_settings": {"allow_topics": true, "language": true, "allow_collaborators_to_share":
+        true, "allow_viewers_to_export": true}, "start_time": 1771262504, "summary":
+        "Legal structure, legislative plumbing, partial appointment, trace accuracy,
+        training run, MLP, receptive field, message passing, linear model, Bayesian
+        analysis, mutual information, vacuum cluster expansion, exponential decay,
+        numerical tests, referee selection.", "timecode_offset": null, "timezone":
+        null, "title": "2026-02-16:17:21:44 Note", "transcript_updated_at": 1771265416,
+        "unshared": false, "upload_finished": true, "word_clouds": [{"word": "Legal
+        structure", "score": "1.000", "variants": ["Legal structure"]}, {"word": "legislative
+        plumbing", "score": "1.000", "variants": ["legislative plumbing"]}, {"word":
+        "partial appointment", "score": "1.000", "variants": ["partial appointment"]},
+        {"word": "trace accuracy", "score": "1.000", "variants": ["trace accuracy"]},
+        {"word": "training run", "score": "1.000", "variants": ["training run"]},
+        {"word": "MLP", "score": "1.000", "variants": ["MLP"]}, {"word": "receptive
+        field", "score": "1.000", "variants": ["receptive field"]}, {"word": "message
+        passing", "score": "1.000", "variants": ["message passing"]}, {"word": "linear
+        model", "score": "1.000", "variants": ["linear model"]}, {"word": "Bayesian
+        analysis", "score": "1.000", "variants": ["Bayesian analysis"]}, {"word":
+        "mutual information", "score": "1.000", "variants": ["mutual information"]},
+        {"word": "vacuum cluster expansion", "score": "1.000", "variants": ["vacuum
+        cluster expansion"]}, {"word": "exponential decay", "score": "1.000", "variants":
+        ["exponential decay"]}, {"word": "numerical tests", "score": "1.000", "variants":
+        ["numerical tests"]}, {"word": "referee selection.", "score": "1.000", "variants":
+        ["referee selection."]}], "current_oa_status": null, "can_be_stopped_by_non_owner":
+        false, "who_can_stop_OA": "speech_owner_only"}, {"access_request": null, "access_seconds":
+        null, "access_status": 1, "action_item_count": null, "agent_session": null,
+        "allow_transcript_copy": true, "appid": "otter-android", "audio_enabled":
+        true, "auto_record": false, "auto_snapshot_enabled": true, "block_summary_display":
+        false, "block_transcript_display": false, "calendar_guests": null, "calendar_meeting_id":
+        null, "can_comment": true, "can_edit": true, "can_export": true, "can_highlight":
+        true, "chat_status": {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out":
+        false, "can_edit_chat": true}, "conf_image_url": null, "conf_join_url": null,
+        "create_method": "record", "created_at": 1771251084, "deleted": false, "displayed_start_time":
+        1771251084, "download_url": "https://api.aisense.com/audio/xBx5madhNwhXnNg9JYbxbXZeBPs",
+        "duration": 5902, "end_time": 1771256986, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308400, "non_member_shared_groups": [], "otid": "xBx5madhNwhXnNg9JYbxbXZeBPs",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBRE1GNTU1SEMiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.LM6Fjb056ltwLNUxAW4cdZxSOSOyhjQF2A8wlbaiQXM",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [], "shared_with": [], "short_abstract_summary": null, "speakers": [], "speech_id":
+        "2DTRMZHADMF555HC", "speech_metadata": {}, "speech_outline": [{"id": 10597291815,
+        "text": "Testing the New MCP and Playwright Integration", "start_offset":
+        23040, "end_offset": 72686720, "start_word_offset": 0, "end_word_offset":
+        195, "segments": [{"id": 10597291817, "text": "Speaker 1 initiates the session
+        to test the capability of participants in using the new MCP.", "start_offset":
+        23040, "end_offset": 9281920, "start_word_offset": 0, "end_word_offset": 49,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10597291819, "text": "The
+        task is to repeat the phrase \"Blue Monkey\" to prove understanding.", "start_offset":
+        10240000, "end_offset": 17327680, "start_word_offset": 50, "end_word_offset":
+        99, "segments": null, "pipeline": "f_kaldi"}, {"id": 10597291822, "text":
+        "Speaker 1 mentions that the polling requires Playwright Python but not Claude
+        code.", "start_offset": 17600000, "end_offset": 41281920, "start_word_offset":
+        100, "end_word_offset": 145, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10597291825, "text": "There is a discussion about the timing to refresh for
+        future work, with Speaker 1 noting they have just refreshed.", "start_offset":
+        41963840, "end_offset": 72686720, "start_word_offset": 146, "end_word_offset":
+        195, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10597291827, "text": "General Changes and Standardization", "start_offset":
+        73276031, "end_offset": 81087680, "start_word_offset": 196, "end_word_offset":
+        286, "segments": [{"id": 10597291829, "text": "Speaker 1 informs that general
+        changes have been made and should be standardized across all things.", "start_offset":
+        73276031, "end_offset": 80655040, "start_word_offset": 196, "end_word_offset":
+        215, "segments": null, "pipeline": "f_kaldi"}, {"id": 10597291830, "text":
+        "The speaker advises against being too talkative in comments, suggesting a
+        more standard approach.", "start_offset": 80655040, "end_offset": 80792640,
+        "start_word_offset": 216, "end_word_offset": 236, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10597291832, "text": "There is a specific concern about
+        the maturity of Natalie''s work, which was mentioned in a meeting and excites
+        her.", "start_offset": 80795520, "end_offset": 80956800, "start_word_offset":
+        237, "end_word_offset": 261, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10597291834, "text": "Speaker 1 notes that Natalie is currently very busy
+        and may not be able to produce the work.", "start_offset": 80956800, "end_offset":
+        81087680, "start_word_offset": 262, "end_word_offset": 286, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10597291836, "text":
+        "Reviewing Vignettes and Making Adjustments", "start_offset": 81087680, "end_offset":
+        94427520, "start_word_offset": 287, "end_word_offset": 360, "segments": [{"id":
+        10597291838, "text": "Speaker 1 questions whether the current vignette is
+        necessary or if other vignettes could be used instead.", "start_offset": 81087680,
+        "end_offset": 81225920, "start_word_offset": 287, "end_word_offset": 311,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10597291840, "text": "The
+        speaker suggests reviewing changes made over time to determine the best vignette
+        to use.", "start_offset": 81225920, "end_offset": 81314560, "start_word_offset":
+        312, "end_word_offset": 336, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10597291842, "text": "There is a brief exchange where participants express
+        gratitude and acknowledge the changes.", "start_offset": 81600000, "end_offset":
+        87361920, "start_word_offset": 337, "end_word_offset": 348, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10597291844, "text": "The conversation ends
+        with a note of thanks and a mention of the need to review and standardize
+        further.", "start_offset": 87928320, "end_offset": 94427520, "start_word_offset":
+        349, "end_word_offset": 360, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}], "speech_outline_status": "u", "speech_settings": {"allow_topics":
+        true, "language": true, "allow_collaborators_to_share": true, "allow_viewers_to_export":
+        true}, "start_time": 1771251084, "summary": "MCP test, Playwright Python,
+        Claude code, timing refresh, general changes, standardize, Natalie''s work,
+        vignettes, reviews, main vignettes, polling, future work, maturity, busy schedule,
+        comments.", "timecode_offset": null, "timezone": null, "title": "2026-02-16:14:11:24
+        Note", "transcript_updated_at": 1771257388, "unshared": false, "upload_finished":
+        true, "word_clouds": [{"word": "MCP test", "score": "1.000", "variants": ["MCP
+        test"]}, {"word": "Playwright Python", "score": "1.000", "variants": ["Playwright
+        Python"]}, {"word": "Claude code", "score": "1.000", "variants": ["Claude
+        code"]}, {"word": "timing refresh", "score": "1.000", "variants": ["timing
+        refresh"]}, {"word": "general changes", "score": "1.000", "variants": ["general
+        changes"]}, {"word": "standardize", "score": "1.000", "variants": ["standardize"]},
+        {"word": "Natalie''s work", "score": "1.000", "variants": ["Natalie''s work"]},
+        {"word": "vignettes", "score": "1.000", "variants": ["vignettes"]}, {"word":
+        "reviews", "score": "1.000", "variants": ["reviews"]}, {"word": "main vignettes",
+        "score": "1.000", "variants": ["main vignettes"]}, {"word": "polling", "score":
+        "1.000", "variants": ["polling"]}, {"word": "future work", "score": "1.000",
+        "variants": ["future work"]}, {"word": "maturity", "score": "1.000", "variants":
+        ["maturity"]}, {"word": "busy schedule", "score": "1.000", "variants": ["busy
+        schedule"]}, {"word": "comments.", "score": "1.000", "variants": ["comments."]}],
+        "current_oa_status": null, "can_be_stopped_by_non_owner": false, "who_can_stop_OA":
+        "speech_owner_only"}, {"access_request": null, "access_seconds": null, "access_status":
+        1, "action_item_count": null, "agent_session": null, "allow_transcript_copy":
+        true, "appid": "otter-va", "audio_enabled": true, "auto_record": false, "auto_snapshot_enabled":
+        true, "block_summary_display": false, "block_transcript_display": false, "calendar_guests":
+        null, "calendar_meeting_id": 5980916043, "can_comment": true, "can_edit":
+        true, "can_export": true, "can_highlight": true, "chat_status": {"show_chat":
+        true, "owner_chat_enabled": true, "viewer_opt_out": false, "can_edit_chat":
+        true}, "conf_image_url": "https://public.otter.ai/img/conf_join_zoom_48.png",
+        "conf_join_url": "https://cam-ac-uk.zoom.us/j/9750808857", "create_method":
+        "record", "created_at": 1771001952, "deleted": false, "displayed_start_time":
+        1771002220, "download_url": "https://api.aisense.com/audio/9UZLR533eMnuKXXarDVrA8rB6JU",
+        "duration": 1656, "end_time": 1771003882, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        true, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": true, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": "-XJMc91gZDXfU1GoaKKmd6BCt_w",
+        "modified_time": 1771308460, "non_member_shared_groups": [], "otid": "9UZLR533eMnuKXXarDVrA8rB6JU",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQlBLUzNQVEoiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci12YSIsImFnZW50X3Nlc3Npb25fZW5hYmxlZCI6ZmFsc2V9._A1KRv2VcNOQd2qOoQ0Cf564RiBjlnqsa5jqqewnsrs",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-14 00:26:21", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        31497359, "created_at": "2025-12-22 01:07:11", "last_modified_at": "2026-02-16
+        11:02:52", "name": "James Alvey", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-16 18:16:37", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 2, "message_count": 3, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "gtd", "score": "0.009", "variants": ["gtd"]}, {"word": "agents",
+        "score": "0.006", "variants": ["agents", "agent"]}, {"word": "run", "score":
+        "0.005", "variants": ["running", "run", "ran", "runs"]}, {"word": "idea",
+        "score": "0.005", "variants": ["idea", "ideas"]}, {"word": "point", "score":
+        "0.004", "variants": ["point", "pointing", "points", "pointed"]}, {"word":
+        "thinking", "score": "0.004", "variants": ["thought", "thinking", "thinks"]},
+        {"word": "bit", "score": "0.004", "variants": ["bit", "bits"]}, {"word": "code",
+        "score": "0.004", "variants": ["code", "coded", "codes"]}, {"word": "good",
+        "score": "0.004", "variants": ["good"]}, {"word": "data", "score": "0.004",
+        "variants": ["data"]}, {"word": "ai", "score": "0.004", "variants": ["ai"]},
+        {"word": "work", "score": "0.003", "variants": ["work", "worked", "works"]},
+        {"word": "task", "score": "0.003", "variants": ["task", "tasks"]}, {"word":
+        "claude", "score": "0.003", "variants": ["claude"]}, {"word": "build", "score":
+        "0.003", "variants": ["built", "building", "build"]}, {"word": "mcp", "score":
+        "0.003", "variants": ["mcp"]}, {"word": "phase", "score": "0.003", "variants":
+        ["phase", "phases"]}, {"word": "paper", "score": "0.003", "variants": ["paper",
+        "papers"]}, {"word": "system", "score": "0.003", "variants": ["system", "systems"]},
+        {"word": "human", "score": "0.003", "variants": ["human", "humans"]}], "external_url":
+        null, "dm_name": null, "has_live_speech": false, "is_dm_visible": false, "is_autoshare_group":
+        false, "discoverability": "private"}, "group_message_id": 52676392}], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [{"id": 13957359, "created_at":
+        "2022-08-10 06:17:34", "speaker_name": "Will Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u9411757/spkr13957359-1660137454",
+        "user_id": 9411757, "self_speaker": true, "speaker_email": null, "workspace_id":
+        null, "non_taggable": false}, {"id": 98407686, "created_at": "2025-11-14 02:06:14",
+        "speaker_name": "James Alvey", "url": null, "user_id": 20561086, "self_speaker":
+        false, "speaker_email": null, "workspace_id": 2851628, "non_taggable": false}],
+        "speech_id": "2DTRMZHABPKS3PTJ", "speech_metadata": {}, "speech_outline":
+        [{"id": 10579767801, "text": "Discussion on Lab Preferences and Moat Needs",
+        "start_offset": 2240000, "end_offset": 6322880, "start_word_offset": 0, "end_word_offset":
+        560, "segments": [{"id": 10579767802, "text": "James Alvey discusses the lack
+        of interest in theory and measurement among lab enthusiasts, highlighting
+        a disconnect between practical lab work and traditional academic methods.",
+        "start_offset": 2240000, "end_offset": 3245120, "start_word_offset": 0, "end_word_offset":
+        85, "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767803, "text":
+        "Will Handley and James Alvey humorously discuss the need for a moat, with
+        James emphasizing its necessity.", "start_offset": 3260480, "end_offset":
+        3933120, "start_word_offset": 86, "end_word_offset": 182, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10579767804, "text": "Will Handley inquires
+        about the Google X project, leading to a discussion about the Bennett Innovation
+        Lab and its focus on aerospace and defense.", "start_offset": 3936960, "end_offset":
+        4463360, "start_word_offset": 183, "end_word_offset": 268, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10579767805, "text": "James Alvey mentions
+        the government''s interest in AI labs and the need for a company to manage
+        investments and resources effectively.", "start_offset": 4463360, "end_offset":
+        6322880, "start_word_offset": 269, "end_word_offset": 560, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10579767806, "text":
+        "Google''s Financial Strategy and AI Investments", "start_offset": 6322880,
+        "end_offset": 9612160, "start_word_offset": 561, "end_word_offset": 1046,
+        "segments": [{"id": 10579767807, "text": "James Alvey notes Google''s infinite
+        financial resources and their strategic investments in AI and other technologies.",
+        "start_offset": 6322880, "end_offset": 7292480, "start_word_offset": 561,
+        "end_word_offset": 701, "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767808,
+        "text": "Will Handley and James Alvey discuss Google''s recent move to offer
+        100-year bonds, expressing concerns about the long-term financial implications.",
+        "start_offset": 7292480, "end_offset": 8185280, "start_word_offset": 702,
+        "end_word_offset": 846, "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767809,
+        "text": "James Alvey highlights Google''s strategic decision to invest in
+        manufacturing capabilities, emphasizing the importance of having a unique
+        value proposition (moat) in the market.", "start_offset": 8185280, "end_offset":
+        8471680, "start_word_offset": 847, "end_word_offset": 896, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10579767810, "text": "Will Handley and James
+        Alvey brainstorm about the need for a different moat for their project, considering
+        their academic background and domain expertise.", "start_offset": 8471680,
+        "end_offset": 9612160, "start_word_offset": 897, "end_word_offset": 1046,
+        "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10579767812, "text": "Exploring Differentiation and Market Positioning", "start_offset":
+        9612160, "end_offset": 11841920, "start_word_offset": 1047, "end_word_offset":
+        1384, "segments": [{"id": 10579767814, "text": "Will Handley and James Alvey
+        discuss the challenges of differentiating their project from other AI and
+        academic initiatives.", "start_offset": 9612160, "end_offset": 10478080, "start_word_offset":
+        1047, "end_word_offset": 1190, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10579767815, "text": "James Alvey suggests tying their project to specific
+        applications, such as agriculture, to create a unique value proposition.",
+        "start_offset": 10478080, "end_offset": 10960831, "start_word_offset": 1191,
+        "end_word_offset": 1240, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10579767816, "text": "Will Handley mentions the importance of having scalable
+        data and resources to support their project.", "start_offset": 10960831, "end_offset":
+        11419840, "start_word_offset": 1241, "end_word_offset": 1335, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10579767817, "text": "James Alvey proposes
+        integrating human-in-the-loop elements and hardware to create a comprehensive
+        offering that goes beyond software.", "start_offset": 11419840, "end_offset":
+        11841920, "start_word_offset": 1336, "end_word_offset": 1384, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10579767818,
+        "text": "Potential Applications and Market Offerings", "start_offset": 11874560,
+        "end_offset": 22140480, "start_word_offset": 1385, "end_word_offset": 2895,
+        "segments": [{"id": 10579767819, "text": "Will Handley and James Alvey explore
+        the idea of providing a complete setup, including hardware and software, to
+        small startups and academic institutions.", "start_offset": 11874560, "end_offset":
+        13851199, "start_word_offset": 1385, "end_word_offset": 1720, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10579767820, "text": "James Alvey suggests
+        that the offering could include a mix of software and hardware, such as microphones
+        and cameras, to create a tactile and interactive system.", "start_offset":
+        13851199, "end_offset": 15413760, "start_word_offset": 1721, "end_word_offset":
+        1898, "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767821, "text":
+        "Will Handley emphasizes the importance of ambient AI and its potential applications
+        in innovative R&D.", "start_offset": 15413760, "end_offset": 21416640, "start_word_offset":
+        1899, "end_word_offset": 2801, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10579767822, "text": "James Alvey proposes connecting their project to real-world
+        experiments to create a unique and valuable offering.", "start_offset": 21416640,
+        "end_offset": 22140480, "start_word_offset": 2802, "end_word_offset": 2895,
+        "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10579767823, "text": "Challenges and Implementation Strategies", "start_offset":
+        22140480, "end_offset": 25824640, "start_word_offset": 2896, "end_word_offset":
+        3498, "segments": [{"id": 10579767824, "text": "Will Handley and James Alvey
+        discuss the potential challenges of building and scaling their project, including
+        the need for additional resources and support.", "start_offset": 22140480,
+        "end_offset": 23670080, "start_word_offset": 2896, "end_word_offset": 3133,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767825, "text": "James
+        Alvey suggests implementing a system to manage and share resources among agents,
+        ensuring efficient use of computational power.", "start_offset": 23702720,
+        "end_offset": 24645760, "start_word_offset": 3134, "end_word_offset": 3321,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767826, "text": "Will
+        Handley highlights the importance of maintaining a user base and gathering
+        feedback to improve their project.", "start_offset": 24692800, "end_offset":
+        24914560, "start_word_offset": 3322, "end_word_offset": 3366, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10579767827, "text": "James Alvey plans
+        to code and test various components of their project, aiming to create a robust
+        and scalable system.", "start_offset": 24914560, "end_offset": 25824640, "start_word_offset":
+        3367, "end_word_offset": 3498, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10579767828, "text": "Final Thoughts and Next
+        Steps", "start_offset": 25824640, "end_offset": 26486720, "start_word_offset":
+        3499, "end_word_offset": 3628, "segments": [{"id": 10579767829, "text": "Will
+        Handley and James Alvey discuss the importance of continuous improvement and
+        adaptation to stay competitive in the market.", "start_offset": 25824640,
+        "end_offset": 25986240, "start_word_offset": 3499, "end_word_offset": 3523,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10579767830, "text": "James
+        Alvey plans to explore different data sources and modalities to enhance their
+        project''s capabilities.", "start_offset": 25986240, "end_offset": 26084160,
+        "start_word_offset": 3524, "end_word_offset": 3548, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10579767831, "text": "Will Handley emphasizes the need
+        for a clear and compelling value proposition to attract users and investors.",
+        "start_offset": 26085120, "end_offset": 26166719, "start_word_offset": 3549,
+        "end_word_offset": 3568, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10579767832, "text": "James Alvey and Will Handley agree to continue building
+        and refining their project, aiming to create a unique and valuable offering
+        in the market.", "start_offset": 26166719, "end_offset": 26486720, "start_word_offset":
+        3569, "end_word_offset": 3628, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}], "speech_outline_status": "u", "speech_settings":
+        {"allow_topics": true, "language": true, "allow_collaborators_to_share": true,
+        "allow_viewers_to_export": true}, "start_time": 1771002220, "summary": "Google
+        X, Bennett Innovation Lab, AI labs, government interest, company structure,
+        moat, academic credibility, hardware setup, ambient AI, live transcription,
+        data input, polycord, resource sharing, CPU hours, Claude code.", "timecode_offset":
+        null, "timezone": null, "title": "2026-02-13:17:03:40 handleylab''s Meeting
+        Notes", "transcript_updated_at": 1771004127, "unshared": false, "upload_finished":
+        true, "word_clouds": [{"word": "Google X", "score": "1.000", "variants": ["Google
+        X"]}, {"word": "Bennett Innovation Lab", "score": "1.000", "variants": ["Bennett
+        Innovation Lab"]}, {"word": "AI labs", "score": "1.000", "variants": ["AI
+        labs"]}, {"word": "government interest", "score": "1.000", "variants": ["government
+        interest"]}, {"word": "company structure", "score": "1.000", "variants": ["company
+        structure"]}, {"word": "moat", "score": "1.000", "variants": ["moat"]}, {"word":
+        "academic credibility", "score": "1.000", "variants": ["academic credibility"]},
+        {"word": "hardware setup", "score": "1.000", "variants": ["hardware setup"]},
+        {"word": "ambient AI", "score": "1.000", "variants": ["ambient AI"]}, {"word":
+        "live transcription", "score": "1.000", "variants": ["live transcription"]},
+        {"word": "data input", "score": "1.000", "variants": ["data input"]}, {"word":
+        "polycord", "score": "1.000", "variants": ["polycord"]}, {"word": "resource
+        sharing", "score": "1.000", "variants": ["resource sharing"]}, {"word": "CPU
+        hours", "score": "1.000", "variants": ["CPU hours"]}, {"word": "Claude code.",
+        "score": "1.000", "variants": ["Claude code."]}], "current_oa_status": null,
+        "can_be_stopped_by_non_owner": false, "who_can_stop_OA": "speech_owner_only"},
+        {"access_request": null, "access_seconds": null, "access_status": 1, "action_item_count":
+        null, "agent_session": null, "allow_transcript_copy": true, "appid": "otter-android",
+        "audio_enabled": true, "auto_record": false, "auto_snapshot_enabled": true,
+        "block_summary_display": false, "block_transcript_display": false, "calendar_guests":
+        null, "calendar_meeting_id": null, "can_comment": true, "can_edit": true,
+        "can_export": true, "can_highlight": true, "chat_status": {"show_chat": true,
+        "owner_chat_enabled": true, "viewer_opt_out": false, "can_edit_chat": true},
+        "conf_image_url": null, "conf_join_url": null, "create_method": "record",
+        "created_at": 1770998641, "deleted": false, "displayed_start_time": 1770998641,
+        "download_url": "https://api.aisense.com/audio/zpZwJFpmCheAO67R4lEe4xQmqO0",
+        "duration": 1503, "end_time": 1771000143, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308492, "non_member_shared_groups": [], "otid": "zpZwJFpmCheAO67R4lEe4xQmqO0",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQk9RV0VBUU0iLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.xGZS5XtnsVcBqLda3PX_WRBJ8wLfUaZLar75HXvBCiU",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-13 08:04:08", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        29080310, "created_at": "2025-10-17 08:01:31", "last_modified_at": "2026-02-13
+        08:29:15", "name": "rose luo", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-13 16:04:08", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 2, "message_count": 1, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "cosmos", "score": "0.010", "variants": ["cosmos"]}, {"word": "galaxies",
+        "score": "0.010", "variants": ["galaxy", "galaxies"]}, {"word": "paper", "score":
+        "0.008", "variants": ["paper", "papers"]}, {"word": "data", "score": "0.007",
+        "variants": ["data"]}, {"word": "spectroscopy", "score": "0.006", "variants":
+        ["spectroscopy"]}, {"word": "work", "score": "0.005", "variants": ["work",
+        "working", "works"]}, {"word": "parameters", "score": "0.005", "variants":
+        ["parameters", "parameter"]}, {"word": "sps", "score": "0.005", "variants":
+        ["sps"]}, {"word": "sampling", "score": "0.005", "variants": ["sampling",
+        "sample", "samples"]}, {"word": "point", "score": "0.005", "variants": ["point",
+        "points", "pointing"]}, {"word": "people", "score": "0.005", "variants": ["people"]},
+        {"word": "selection", "score": "0.005", "variants": ["selection", "selections"]},
+        {"word": "thinking", "score": "0.005", "variants": ["thinking", "thought"]},
+        {"word": "selecting", "score": "0.005", "variants": ["select", "selecting",
+        "selected"]}, {"word": "good", "score": "0.004", "variants": ["good"]}, {"word":
+        "code", "score": "0.004", "variants": ["code", "codes"]}, {"word": "put",
+        "score": "0.004", "variants": ["putting", "put"]}, {"word": "plot", "score":
+        "0.004", "variants": ["plot", "plots"]}, {"word": "give", "score": "0.004",
+        "variants": ["giving", "give", "gave"]}, {"word": "understand", "score": "0.004",
+        "variants": ["understand", "understood"]}], "external_url": null, "dm_name":
+        null, "has_live_speech": false, "is_dm_visible": false, "is_autoshare_group":
+        false, "discoverability": "private"}, "group_message_id": 52646388}], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [{"id": 13957359, "created_at":
+        "2022-08-10 06:17:34", "speaker_name": "Will Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u9411757/spkr13957359-1660137454",
+        "user_id": 9411757, "self_speaker": true, "speaker_email": null, "workspace_id":
+        null, "non_taggable": false}], "speech_id": "2DTRMZHABOQWEAQM", "speech_metadata":
+        {}, "speech_outline": [{"id": 10578259405, "text": "Preparation for International
+        Women''s Day Talk", "start_offset": 18944, "end_offset": 807040, "start_word_offset":
+        0, "end_word_offset": 44, "segments": [{"id": 10578259406, "text": "Speaker
+        1 confirms the successful invitation of Joseph for the International Women''s
+        Day event.", "start_offset": 18944, "end_offset": 165823, "start_word_offset":
+        0, "end_word_offset": 10, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259407, "text": "Will Handley mentions the talk is scheduled for 5 o''clock
+        at RDC.", "start_offset": 175423, "end_offset": 328640, "start_word_offset":
+        11, "end_word_offset": 21, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259408, "text": "Speaker 1 expresses excitement about their first significant
+        event.", "start_offset": 344000, "end_offset": 425600, "start_word_offset":
+        22, "end_word_offset": 33, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259409, "text": "Will Handley inquires about the progress of the week,
+        and Speaker 1 shares their efforts and challenges.", "start_offset": 425600,
+        "end_offset": 807040, "start_word_offset": 34, "end_word_offset": 44, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10578259411,
+        "text": "Exploring Cosmos 2020 Data and Spectroscopy", "start_offset": 807040,
+        "end_offset": 3044160, "start_word_offset": 45, "end_word_offset": 342, "segments":
+        [{"id": 10578259415, "text": "Speaker 1 discusses their initial idea of using
+        Cosmos 2020 data but faced issues with visual data.", "start_offset": 807040,
+        "end_offset": 1211520, "start_word_offset": 45, "end_word_offset": 92, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10578259417, "text": "They decided to
+        produce spectroscopy using Cosmos data and FSPs from the Uranos group.", "start_offset":
+        1211520, "end_offset": 1589120, "start_word_offset": 93, "end_word_offset":
+        142, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259418, "text":
+        "Speaker 1 mentions the need to change the star formation history and the
+        challenges in imposing it.", "start_offset": 1597760, "end_offset": 1950720,
+        "start_word_offset": 143, "end_word_offset": 192, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10578259419, "text": "They have fitted physical parameters
+        from Pop Cosmos galaxies and performed equivalent width calculations.", "start_offset":
+        1956480, "end_offset": 3044160, "start_word_offset": 193, "end_word_offset":
+        342, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10578259420, "text": "Curve Fitting and Gaussian Likelihood", "start_offset":
+        3044160, "end_offset": 5083199, "start_word_offset": 343, "end_word_offset":
+        623, "segments": [{"id": 10578259421, "text": "Will Handley asks about the
+        resources Speaker 1 uses to check their work.", "start_offset": 3044160, "end_offset":
+        3491840, "start_word_offset": 343, "end_word_offset": 432, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10578259422, "text": "Speaker 1 explains they
+        checked every parameter and used a curve fitting code from a friend.", "start_offset":
+        3500480, "end_offset": 4509760, "start_word_offset": 433, "end_word_offset":
+        525, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259423, "text":
+        "Will Handley confirms the use of Gaussian likelihood and discusses the standard
+        Gaussian profile.", "start_offset": 4510720, "end_offset": 4830719, "start_word_offset":
+        526, "end_word_offset": 573, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259424, "text": "They discuss the possibility of using test sampling
+        for fitting curves.", "start_offset": 4830719, "end_offset": 5083199, "start_word_offset":
+        574, "end_word_offset": 623, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10578259425, "text": "End Goal and Emission Line Selection",
+        "start_offset": 5130239, "end_offset": 8272639, "start_word_offset": 624,
+        "end_word_offset": 1104, "segments": [{"id": 10578259426, "text": "Speaker
+        1 explains the end goal of fitting various population synthesis models to
+        get the equivalent width.", "start_offset": 5130239, "end_offset": 5392640,
+        "start_word_offset": 624, "end_word_offset": 666, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10578259427, "text": "They are focusing on the O2 emission
+        line, a prominent source for star formation rate.", "start_offset": 5392640,
+        "end_offset": 6134720, "start_word_offset": 667, "end_word_offset": 766, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10578259429, "text": "Speaker 1 mentions
+        the bimodality issue and the need to cross-check with observational features.",
+        "start_offset": 6134720, "end_offset": 7702080, "start_word_offset": 767,
+        "end_word_offset": 1009, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259431, "text": "Will Handley summarizes the goal of achieving a clean
+        upper population and the potential issues with spectral line selection.",
+        "start_offset": 7702080, "end_offset": 8272639, "start_word_offset": 1010,
+        "end_word_offset": 1104, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10578259432, "text": "Hypotheses and Ground Truth", "start_offset":
+        8272639, "end_offset": 13451520, "start_word_offset": 1105, "end_word_offset":
+        1904, "segments": [{"id": 10578259433, "text": "Speaker 1 hypothesizes that
+        other researchers might have made errors in spectral line selection.", "start_offset":
+        8272639, "end_offset": 9386560, "start_word_offset": 1105, "end_word_offset":
+        1249, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259435, "text":
+        "Will Handley questions the severity of such errors and the potential impact
+        on results.", "start_offset": 9391360, "end_offset": 10040000, "start_word_offset":
+        1250, "end_word_offset": 1333, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259438, "text": "Speaker 1 acknowledges the off-value of the history
+        of value and the need for better spectral line selection.", "start_offset":
+        10058240, "end_offset": 10414720, "start_word_offset": 1334, "end_word_offset":
+        1383, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259440, "text":
+        "They discuss the possibility of using ground truth data to extract the oxygen
+        line.", "start_offset": 10414720, "end_offset": 13451520, "start_word_offset":
+        1384, "end_word_offset": 1904, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10578259445, "text": "Spectral Fitting and
+        Systematic Errors", "start_offset": 13451520, "end_offset": 16299520, "start_word_offset":
+        1905, "end_word_offset": 2187, "segments": [{"id": 10578259448, "text": "Will
+        Handley suggests contacting the Cosmos group for better methods and intermediate
+        products.", "start_offset": 13451520, "end_offset": 13658880, "start_word_offset":
+        1905, "end_word_offset": 1954, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259450, "text": "Speaker 1 considers the possibility of systematic errors
+        and the need to address them.", "start_offset": 13658880, "end_offset": 13985600,
+        "start_word_offset": 1955, "end_word_offset": 2000, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10578259451, "text": "They discuss the importance of maintaining
+        optimism and having a plan for null results.", "start_offset": 13985600, "end_offset":
+        15283840, "start_word_offset": 2001, "end_word_offset": 2041, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10578259452, "text": "Speaker 1 mentions
+        the potential role of metallicity and age in the bimodality issue.", "start_offset":
+        15283840, "end_offset": 16299520, "start_word_offset": 2042, "end_word_offset":
+        2187, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10578259453, "text": "Reconstructing Cosmic Parameters", "start_offset": 16299520,
+        "end_offset": 20244479, "start_word_offset": 2188, "end_word_offset": 2804,
+        "segments": [{"id": 10578259455, "text": "Speaker 1 explains the reconstruction
+        process of cosmic parameters from ground truth data.", "start_offset": 16299520,
+        "end_offset": 17329920, "start_word_offset": 2188, "end_word_offset": 2278,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259457, "text": "They
+        discuss the various selection methods and their effectiveness.", "start_offset":
+        17352960, "end_offset": 19093120, "start_word_offset": 2279, "end_word_offset":
+        2564, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259458, "text":
+        "Will Handley emphasizes the importance of comparing observed data with ground
+        truth.", "start_offset": 19096960, "end_offset": 20028159, "start_word_offset":
+        2565, "end_word_offset": 2754, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259459, "text": "Speaker 1 shares their efforts in replicating the pipeline
+        and the results from Pop Cosmos data.", "start_offset": 20028159, "end_offset":
+        20244479, "start_word_offset": 2755, "end_word_offset": 2804, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10578259460,
+        "text": "Future Steps and Systematic Errors", "start_offset": 20254079, "end_offset":
+        22246080, "start_word_offset": 2805, "end_word_offset": 3099, "segments":
+        [{"id": 10578259461, "text": "Speaker 1 mentions a paper suggesting fitting
+        for the upper envelope as a method.", "start_offset": 20254079, "end_offset":
+        21264000, "start_word_offset": 2805, "end_word_offset": 2954, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10578259462, "text": "They discuss the
+        practicality and potential of this method.", "start_offset": 21264000, "end_offset":
+        21547520, "start_word_offset": 2955, "end_word_offset": 3004, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10578259463, "text": "Will Handley advises
+        focusing on systematic errors and the impact of contaminations.", "start_offset":
+        21547520, "end_offset": 22027840, "start_word_offset": 3005, "end_word_offset":
+        3054, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259464, "text":
+        "Speaker 1 plans to start looking at systematic errors and long-term goals.",
+        "start_offset": 22033600, "end_offset": 22246080, "start_word_offset": 3055,
+        "end_word_offset": 3099, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10578259466, "text": "Scheduling and Final Remarks", "start_offset":
+        22246080, "end_offset": 24035200, "start_word_offset": 3100, "end_word_offset":
+        3239, "segments": [{"id": 10578259470, "text": "Will Handley and Speaker 1
+        discuss their availability for the next week.", "start_offset": 22246080,
+        "end_offset": 22338240, "start_word_offset": 3100, "end_word_offset": 3124,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259471, "text": "They
+        agree to meet at 1:30 PM on Wednesday for further discussions.", "start_offset":
+        22338240, "end_offset": 22523840, "start_word_offset": 3125, "end_word_offset":
+        3149, "segments": null, "pipeline": "f_kaldi"}, {"id": 10578259473, "text":
+        "Speaker 1 reflects on the quick passage of time and the start of week four.",
+        "start_offset": 22523840, "end_offset": 23586560, "start_word_offset": 3150,
+        "end_word_offset": 3215, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10578259476, "text": "The meeting concludes with mutual thanks and plans for
+        the next steps.", "start_offset": 23586560, "end_offset": 24035200, "start_word_offset":
+        3216, "end_word_offset": 3239, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}], "speech_outline_status": "u", "speech_settings":
+        {"allow_topics": true, "language": true, "allow_collaborators_to_share": true,
+        "allow_viewers_to_export": true}, "start_time": 1770998641, "summary": "International
+        Women''s Day, spectroscopy, star formation history, equivalent width, Gaussian
+        likelihood, population synthesis, emission line, bimodality, spectral line
+        selection, metallicity, systematic errors, ground truth, cosmic chronometers,
+        data fitting, cosmos group.", "timecode_offset": null, "timezone": null, "title":
+        "2026-02-13:16:04:01 Note", "transcript_updated_at": 1771000365, "unshared":
+        false, "upload_finished": true, "word_clouds": [{"word": "International Women''s
+        Day", "score": "1.000", "variants": ["International Women''s Day"]}, {"word":
+        "spectroscopy", "score": "1.000", "variants": ["spectroscopy"]}, {"word":
+        "star formation history", "score": "1.000", "variants": ["star formation history"]},
+        {"word": "equivalent width", "score": "1.000", "variants": ["equivalent width"]},
+        {"word": "Gaussian likelihood", "score": "1.000", "variants": ["Gaussian likelihood"]},
+        {"word": "population synthesis", "score": "1.000", "variants": ["population
+        synthesis"]}, {"word": "emission line", "score": "1.000", "variants": ["emission
+        line"]}, {"word": "bimodality", "score": "1.000", "variants": ["bimodality"]},
+        {"word": "spectral line selection", "score": "1.000", "variants": ["spectral
+        line selection"]}, {"word": "metallicity", "score": "1.000", "variants": ["metallicity"]},
+        {"word": "systematic errors", "score": "1.000", "variants": ["systematic errors"]},
+        {"word": "ground truth", "score": "1.000", "variants": ["ground truth"]},
+        {"word": "cosmic chronometers", "score": "1.000", "variants": ["cosmic chronometers"]},
+        {"word": "data fitting", "score": "1.000", "variants": ["data fitting"]},
+        {"word": "cosmos group.", "score": "1.000", "variants": ["cosmos group."]}],
+        "current_oa_status": null, "can_be_stopped_by_non_owner": false, "who_can_stop_OA":
+        "speech_owner_only"}, {"access_request": null, "access_seconds": null, "access_status":
+        1, "action_item_count": null, "agent_session": null, "allow_transcript_copy":
+        true, "appid": "otter-android", "audio_enabled": true, "auto_record": false,
+        "auto_snapshot_enabled": true, "block_summary_display": false, "block_transcript_display":
+        false, "calendar_guests": null, "calendar_meeting_id": null, "can_comment":
+        true, "can_edit": true, "can_export": true, "can_highlight": true, "chat_status":
+        {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out": false, "can_edit_chat":
+        true}, "conf_image_url": null, "conf_join_url": null, "create_method": "record",
+        "created_at": 1770996691, "deleted": false, "displayed_start_time": 1770996691,
+        "download_url": "https://api.aisense.com/audio/7IEZqhHnulpBO5q1bEcD0wJQ7KY",
+        "duration": 1790, "end_time": 1770998481, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": true, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308521, "non_member_shared_groups": [], "otid": "7IEZqhHnulpBO5q1bEcD0wJQ7KY",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQk9CT1Q0RTIiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.Miw0oDIp6SoOw9E3ouvLGkoBjZutxWa0kbTRLuzssa0",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-13 07:31:37", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        29079190, "created_at": "2025-10-17 07:35:49", "last_modified_at": "2026-02-13
+        08:01:33", "name": "Alex drane", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-13 15:31:37", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 2, "message_count": 1, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "samples", "score": "0.007", "variants": ["sample", "samples", "sampling"]},
+        {"word": "good", "score": "0.006", "variants": ["good"]}, {"word": "find",
+        "score": "0.006", "variants": ["finds", "find", "finding"]}, {"word": "run",
+        "score": "0.006", "variants": ["run", "runs", "running", "ran"]}, {"word":
+        "points", "score": "0.005", "variants": ["points", "point", "pointing"]},
+        {"word": "work", "score": "0.004", "variants": ["works", "working", "work",
+        "worked"]}, {"word": "data", "score": "0.004", "variants": ["data"]}, {"word":
+        "peak", "score": "0.003", "variants": ["peak", "peaks"]}, {"word": "put",
+        "score": "0.003", "variants": ["put", "putting", "puts"]}, {"word": "space",
+        "score": "0.003", "variants": ["spacing", "space", "spaced", "spaces"]}, {"word":
+        "distribution", "score": "0.003", "variants": ["distribution", "distributions"]},
+        {"word": "problem", "score": "0.003", "variants": ["problem", "problems"]},
+        {"word": "talk", "score": "0.003", "variants": ["talking", "talked", "talk",
+        "talks"]}, {"word": "likelihood", "score": "0.003", "variants": ["likelihood",
+        "likelihoods"]}, {"word": "method", "score": "0.003", "variants": ["method",
+        "methods"]}, {"word": "hessian", "score": "0.003", "variants": ["hessian"]},
+        {"word": "day", "score": "0.003", "variants": ["days", "day"]}, {"word": "nice",
+        "score": "0.003", "variants": ["nice"]}, {"word": "year", "score": "0.002",
+        "variants": ["year", "years"]}, {"word": "parameters", "score": "0.002", "variants":
+        ["parameter", "parameters"]}], "external_url": null, "dm_name": null, "has_live_speech":
+        false, "is_dm_visible": false, "is_autoshare_group": false, "discoverability":
+        "private"}, "group_message_id": 52643048}], "shared_with": [], "short_abstract_summary":
+        null, "speakers": [], "speech_id": "2DTRMZHABOBOT4E2", "speech_metadata":
+        {}, "speech_outline": [{"id": 10577655779, "text": "Setup and Initial Updates",
+        "start_offset": 20800, "end_offset": 1663360, "start_word_offset": 0, "end_word_offset":
+        174, "segments": [{"id": 10577655781, "text": "Speaker 1 mentions CPU days
+        and big data sets.", "start_offset": 20800, "end_offset": 397759, "start_word_offset":
+        0, "end_word_offset": 40, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655784, "text": "Speaker 2 inquires about the review status of archives.",
+        "start_offset": 452479, "end_offset": 896320, "start_word_offset": 41, "end_word_offset":
+        82, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655785, "text":
+        "Speaker 1 confirms sending back one review and plans to send another soon.",
+        "start_offset": 896320, "end_offset": 1143360, "start_word_offset": 83, "end_word_offset":
+        131, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655787, "text":
+        "Speaker 3 discusses setting up Shing into HPC with VS code and improving
+        admin processes.", "start_offset": 1161600, "end_offset": 1663360, "start_word_offset":
+        132, "end_word_offset": 174, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10577655790, "text": "Data Generation and Interactive Environments",
+        "start_offset": 1663360, "end_offset": 3701439, "start_word_offset": 175,
+        "end_word_offset": 524, "segments": [{"id": 10577655791, "text": "Speaker
+        3 explains the process of generating data and using interactive environments.",
+        "start_offset": 1663360, "end_offset": 1932480, "start_word_offset": 175,
+        "end_word_offset": 224, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655793,
+        "text": "Speaker 2 and Unknown Speaker discuss the value of using GPUs for
+        data processing.", "start_offset": 1932480, "end_offset": 2673279, "start_word_offset":
+        225, "end_word_offset": 324, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655796, "text": "Speaker 3 mentions the need for a script to handle long
+        runs and ensure data integrity.", "start_offset": 2673279, "end_offset": 2944319,
+        "start_word_offset": 325, "end_word_offset": 374, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10577655798, "text": "Speaker 3 plans to modify an existing
+        script for their purposes.", "start_offset": 2945279, "end_offset": 3701439,
+        "start_word_offset": 375, "end_word_offset": 524, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10577655800, "text": "Convergence
+        Criteria and Laplace Approximation", "start_offset": 3701439, "end_offset":
+        7358720, "start_word_offset": 525, "end_word_offset": 1066, "segments": [{"id":
+        10577655802, "text": "Speaker 3 discusses the potential issues with using
+        the Laplace approximation for convergence criteria.", "start_offset": 3701439,
+        "end_offset": 4123199, "start_word_offset": 525, "end_word_offset": 574, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10577655804, "text": "Speaker 1 explains
+        the use of 10 sigma for calibration to avoid issues with high values.", "start_offset":
+        4123199, "end_offset": 4816320, "start_word_offset": 575, "end_word_offset":
+        672, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655807, "text":
+        "Speaker 3 expresses concerns about the sample mean method and its potential
+        inaccuracies.", "start_offset": 4816320, "end_offset": 6493120, "start_word_offset":
+        673, "end_word_offset": 917, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655809, "text": "Speaker 3 suggests using a high-resolution run and a
+        KS test for more accurate evaluation.", "start_offset": 6493120, "end_offset":
+        7358720, "start_word_offset": 918, "end_word_offset": 1066, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10577655812, "text":
+        "Mathematical Analysis and Likelihood Behavior", "start_offset": 7361600,
+        "end_offset": 18337920, "start_word_offset": 1067, "end_word_offset": 2780,
+        "segments": [{"id": 10577655813, "text": "Speaker 3 conducts a mathematical
+        analysis of the covariance matrix and its impact on log likelihood.", "start_offset":
+        7361600, "end_offset": 8737919, "start_word_offset": 1067, "end_word_offset":
+        1260, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655816, "text":
+        "Speaker 3 observes that troughs in the likelihood are more representative
+        of true data clashes.", "start_offset": 8741759, "end_offset": 9755519, "start_word_offset":
+        1261, "end_word_offset": 1410, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655818, "text": "Speaker 3 discusses the interplay between true GP likelihood
+        and the length scale of the kernel.", "start_offset": 9755519, "end_offset":
+        13965440, "start_word_offset": 1411, "end_word_offset": 2098, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10577655820, "text": "Speaker 3 suggests
+        that larger length scales may smooth over data points, improving likelihood
+        exploration.", "start_offset": 13965440, "end_offset": 18337920, "start_word_offset":
+        2099, "end_word_offset": 2780, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10577655822, "text": "Implementation and Identifiability
+        Transform", "start_offset": 18337920, "end_offset": 26780800, "start_word_offset":
+        2781, "end_word_offset": 3795, "segments": [{"id": 10577655824, "text": "Speaker
+        2 and Speaker 1 discuss the implementation of the forced identifiability transform
+        in Blackjacks.", "start_offset": 18337920, "end_offset": 20254080, "start_word_offset":
+        2781, "end_word_offset": 3012, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655827, "text": "Speaker 2 explains the issues with non-reversible transforms
+        like reflections and sorting.", "start_offset": 20254080, "end_offset": 24754239,
+        "start_word_offset": 3013, "end_word_offset": 3503, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10577655829, "text": "Speaker 1 suggests using sorted forms
+        and avoiding the forced identifiability transform.", "start_offset": 24777280,
+        "end_offset": 25258560, "start_word_offset": 3504, "end_word_offset": 3545,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655831, "text": "Speaker
+        3 plans to test different methods for generating plots and evaluating time
+        delays.", "start_offset": 25328128, "end_offset": 26780800, "start_word_offset":
+        3546, "end_word_offset": 3795, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10577655833, "text": "Next Steps and Testing
+        Strategies", "start_offset": 26780800, "end_offset": 28633600, "start_word_offset":
+        3796, "end_word_offset": 3957, "segments": [{"id": 10577655835, "text": "Speaker
+        3 considers the next steps for testing and refining their methods.", "start_offset":
+        26780800, "end_offset": 27090239, "start_word_offset": 3796, "end_word_offset":
+        3840, "segments": null, "pipeline": "f_kaldi"}, {"id": 10577655837, "text":
+        "Speaker 1 suggests focusing on testing rather than extensive theoretical
+        analysis.", "start_offset": 27090239, "end_offset": 27320000, "start_word_offset":
+        3841, "end_word_offset": 3884, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10577655841, "text": "Speaker 3 plans to choose a different problem to test
+        their method''s effectiveness.", "start_offset": 27320960, "end_offset": 27782080,
+        "start_word_offset": 3885, "end_word_offset": 3934, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10577655843, "text": "Speaker 2 and Speaker 1 agree on
+        the importance of practical testing over extensive theoretical work.", "start_offset":
+        27885760, "end_offset": 28633600, "start_word_offset": 3935, "end_word_offset":
+        3957, "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}],
+        "speech_outline_status": "u", "speech_settings": {"allow_topics": true, "language":
+        true, "allow_collaborators_to_share": true, "allow_viewers_to_export": true},
+        "start_time": 1770996691, "summary": "big data, CPU days, archive review,
+        HPC setup, VS code, password setup, interactive environment, batch request,
+        GPU usage, script modification, Laplace approximation, sample mean, length
+        scale, likelihood behavior, parameter estimation", "timecode_offset": null,
+        "timezone": null, "title": "2026-02-13:15:31:31 Note", "transcript_updated_at":
+        1770998838, "unshared": false, "upload_finished": true, "word_clouds": [{"word":
+        "big data", "score": "1.000", "variants": ["big data"]}, {"word": "CPU days",
+        "score": "1.000", "variants": ["CPU days"]}, {"word": "archive review", "score":
+        "1.000", "variants": ["archive review"]}, {"word": "HPC setup", "score": "1.000",
+        "variants": ["HPC setup"]}, {"word": "VS code", "score": "1.000", "variants":
+        ["VS code"]}, {"word": "password setup", "score": "1.000", "variants": ["password
+        setup"]}, {"word": "interactive environment", "score": "1.000", "variants":
+        ["interactive environment"]}, {"word": "batch request", "score": "1.000",
+        "variants": ["batch request"]}, {"word": "GPU usage", "score": "1.000", "variants":
+        ["GPU usage"]}, {"word": "script modification", "score": "1.000", "variants":
+        ["script modification"]}, {"word": "Laplace approximation", "score": "1.000",
+        "variants": ["Laplace approximation"]}, {"word": "sample mean", "score": "1.000",
+        "variants": ["sample mean"]}, {"word": "length scale", "score": "1.000", "variants":
+        ["length scale"]}, {"word": "likelihood behavior", "score": "1.000", "variants":
+        ["likelihood behavior"]}, {"word": "parameter estimation", "score": "1.000",
+        "variants": ["parameter estimation"]}], "current_oa_status": null, "can_be_stopped_by_non_owner":
+        false, "who_can_stop_OA": "speech_owner_only"}, {"access_request": null, "access_seconds":
+        null, "access_status": 1, "action_item_count": null, "agent_session": null,
+        "allow_transcript_copy": true, "appid": "otter-va", "audio_enabled": true,
+        "auto_record": false, "auto_snapshot_enabled": true, "block_summary_display":
+        false, "block_transcript_display": false, "calendar_guests": null, "calendar_meeting_id":
+        5980326370, "can_comment": true, "can_edit": true, "can_export": true, "can_highlight":
+        true, "chat_status": {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out":
+        false, "can_edit_chat": true}, "conf_image_url": "https://public.otter.ai/img/conf_join_zoom_48.png",
+        "conf_join_url": "https://cam-ac-uk.zoom.us/j/9750808857", "create_method":
+        "record", "created_at": 1770995915, "deleted": false, "displayed_start_time":
+        1770995931, "download_url": "https://api.aisense.com/audio/R4M1Ptfutm4ykpy_YGQm1HmggJA",
+        "duration": 747, "end_time": 1770996684, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        true, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": true, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": "BLE0VCJR9EvlQVqEoAN1wgqpk3A",
+        "modified_time": 1771308574, "non_member_shared_groups": [], "otid": "R4M1Ptfutm4ykpy_YGQm1HmggJA",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQk8zTU1KV1QiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci12YSIsImFnZW50X3Nlc3Npb25fZW5hYmxlZCI6ZmFsc2V9.OCpWSaGs82xx64UPeLXH4uKJjp0bHKFN37orNESqZzY",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-13 07:18:35", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        31497359, "created_at": "2025-12-22 01:07:11", "last_modified_at": "2026-02-16
+        11:02:52", "name": "James Alvey", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-16 18:16:37", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 2, "message_count": 3, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "gtd", "score": "0.009", "variants": ["gtd"]}, {"word": "agents",
+        "score": "0.006", "variants": ["agents", "agent"]}, {"word": "run", "score":
+        "0.005", "variants": ["running", "run", "ran", "runs"]}, {"word": "idea",
+        "score": "0.005", "variants": ["idea", "ideas"]}, {"word": "point", "score":
+        "0.004", "variants": ["point", "pointing", "points", "pointed"]}, {"word":
+        "thinking", "score": "0.004", "variants": ["thought", "thinking", "thinks"]},
+        {"word": "bit", "score": "0.004", "variants": ["bit", "bits"]}, {"word": "code",
+        "score": "0.004", "variants": ["code", "coded", "codes"]}, {"word": "good",
+        "score": "0.004", "variants": ["good"]}, {"word": "data", "score": "0.004",
+        "variants": ["data"]}, {"word": "ai", "score": "0.004", "variants": ["ai"]},
+        {"word": "work", "score": "0.003", "variants": ["work", "worked", "works"]},
+        {"word": "task", "score": "0.003", "variants": ["task", "tasks"]}, {"word":
+        "claude", "score": "0.003", "variants": ["claude"]}, {"word": "build", "score":
+        "0.003", "variants": ["built", "building", "build"]}, {"word": "mcp", "score":
+        "0.003", "variants": ["mcp"]}, {"word": "phase", "score": "0.003", "variants":
+        ["phase", "phases"]}, {"word": "paper", "score": "0.003", "variants": ["paper",
+        "papers"]}, {"word": "system", "score": "0.003", "variants": ["system", "systems"]},
+        {"word": "human", "score": "0.003", "variants": ["human", "humans"]}], "external_url":
+        null, "dm_name": null, "has_live_speech": false, "is_dm_visible": false, "is_autoshare_group":
+        false, "discoverability": "private"}, "group_message_id": 52641957}], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [{"id": 13957359, "created_at":
+        "2022-08-10 06:17:34", "speaker_name": "Will Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u9411757/spkr13957359-1660137454",
+        "user_id": 9411757, "self_speaker": true, "speaker_email": null, "workspace_id":
+        null, "non_taggable": false}, {"id": 98407686, "created_at": "2025-11-14 02:06:14",
+        "speaker_name": "James Alvey", "url": null, "user_id": 20561086, "self_speaker":
+        false, "speaker_email": null, "workspace_id": 2851628, "non_taggable": false}],
+        "speech_id": "2DTRMZHABO3MMJWT", "speech_metadata": {}, "speech_outline":
+        [{"id": 10576958941, "text": "Citation System Improvements", "start_offset":
+        1536, "end_offset": 1402880, "start_word_offset": 0, "end_word_offset": 241,
+        "segments": [{"id": 10576958942, "text": "Will Handley discusses the upgrades
+        made to the citation system, emphasizing the need for proper formatting and
+        the introduction of positive and negative citations.", "start_offset": 1536,
+        "end_offset": 510080, "start_word_offset": 0, "end_word_offset": 91, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10576958945, "text": "The new system
+        now records links to other records as citations, ensuring consistency and
+        proper formatting.", "start_offset": 510080, "end_offset": 834879, "start_word_offset":
+        92, "end_word_offset": 141, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958947, "text": "Will mentions the addition of a pulse feature that alerts
+        users about their citations and community citations, aiming to encourage better
+        citation practices.", "start_offset": 834879, "end_offset": 1126080, "start_word_offset":
+        142, "end_word_offset": 191, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958951, "text": "James Alvey questions the necessity of the new citation
+        system, suggesting that the current academic credibility system might not
+        necessarily produce better results.", "start_offset": 1126080, "end_offset":
+        1402880, "start_word_offset": 192, "end_word_offset": 241, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576958955, "text":
+        "Encouraging Credibility and Budgeting", "start_offset": 1404800, "end_offset":
+        5316799, "start_word_offset": 242, "end_word_offset": 823, "segments": [{"id":
+        10576958959, "text": "Will Handley expresses uncertainty about how to implement
+        organic pressure to cite others, currently relying on prompts.", "start_offset":
+        1404800, "end_offset": 1951678, "start_word_offset": 242, "end_word_offset":
+        338, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576958963, "text":
+        "James Alvey suggests that introducing constraints, such as resource allocation
+        based on credibility, could encourage better citation practices.", "start_offset":
+        1951678, "end_offset": 3568000, "start_word_offset": 339, "end_word_offset":
+        534, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576958966, "text":
+        "The conversation shifts to the need for better budgeting and time management
+        within the system, with Will noting the lack of accurate time estimation by
+        users.", "start_offset": 3568000, "end_offset": 4526080, "start_word_offset":
+        535, "end_word_offset": 673, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958969, "text": "James proposes the idea of a research day timeline,
+        similar to archive postings, to encourage timely completion of tasks and better
+        resource management.", "start_offset": 4541440, "end_offset": 5316799, "start_word_offset":
+        674, "end_word_offset": 823, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10576958972, "text": "Implementing Research Day Timeline",
+        "start_offset": 5316799, "end_offset": 8216000, "start_word_offset": 824,
+        "end_word_offset": 1255, "segments": [{"id": 10576958974, "text": "James Alvey
+        elaborates on the concept of a research day timeline, suggesting that users
+        receive notifications when their day ends, encouraging them to manage their
+        time better.", "start_offset": 5316799, "end_offset": 6433599, "start_word_offset":
+        824, "end_word_offset": 1016, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958977, "text": "Will Handley questions how to quantify compute resources
+        and define a research day, considering the non-interruptable nature of certain
+        tasks.", "start_offset": 6433599, "end_offset": 7408000, "start_word_offset":
+        1017, "end_word_offset": 1157, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958980, "text": "The discussion highlights the challenge of implementing
+        such a system and the potential benefits of hooks to manage time and resources
+        more effectively.", "start_offset": 7408000, "end_offset": 7832640, "start_word_offset":
+        1158, "end_word_offset": 1205, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958984, "text": "James suggests using Slurm and a budget resource submission
+        system to manage compute balances and prevent excessive resource usage.",
+        "start_offset": 7832640, "end_offset": 8216000, "start_word_offset": 1206,
+        "end_word_offset": 1255, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10576958987, "text": "Challenges with Current System and
+        Future Developments", "start_offset": 8357120, "end_offset": 11912960, "start_word_offset":
+        1256, "end_word_offset": 1917, "segments": [{"id": 10576958988, "text": "Will
+        Handley mentions the current limitations of the system, such as the inability
+        to run multiple agent runs efficiently due to resource constraints.", "start_offset":
+        8357120, "end_offset": 9233599, "start_word_offset": 1256, "end_word_offset":
+        1404, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576958989, "text":
+        "James Alvey discusses the potential for development work without running
+        massive runs, focusing on improving the system''s efficiency and scalability.",
+        "start_offset": 9233599, "end_offset": 11282560, "start_word_offset": 1405,
+        "end_word_offset": 1778, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576958990, "text": "Will highlights the progress made in multi-author paper
+        submissions, allowing for collaborative editing and signing of drafts.", "start_offset":
+        11282560, "end_offset": 11500480, "start_word_offset": 1779, "end_word_offset":
+        1825, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576958991, "text":
+        "The conversation concludes with a focus on exploring hooks and budgeting
+        mechanisms to improve time management and resource allocation within the system.",
+        "start_offset": 11500480, "end_offset": 11912960, "start_word_offset": 1826,
+        "end_word_offset": 1917, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}], "speech_outline_status": "u", "speech_settings": {"allow_topics":
+        true, "language": true, "allow_collaborators_to_share": true, "allow_viewers_to_export":
+        true}, "start_time": 1770995931, "summary": "citation system, research day,
+        budgeting, compute resources, multi-author papers, time estimation, Claude
+        code, agent runs, credibility, academic trust, research timeline, Slurm submission,
+        feedback hooks, resource allocation, model serving", "timecode_offset": null,
+        "timezone": null, "title": "2026-02-13:15:18:51 handleylab''s Meeting Notes",
+        "transcript_updated_at": 1770997012, "unshared": false, "upload_finished":
+        true, "word_clouds": [{"word": "citation system", "score": "1.000", "variants":
+        ["citation system"]}, {"word": "research day", "score": "1.000", "variants":
+        ["research day"]}, {"word": "budgeting", "score": "1.000", "variants": ["budgeting"]},
+        {"word": "compute resources", "score": "1.000", "variants": ["compute resources"]},
+        {"word": "multi-author papers", "score": "1.000", "variants": ["multi-author
+        papers"]}, {"word": "time estimation", "score": "1.000", "variants": ["time
+        estimation"]}, {"word": "Claude code", "score": "1.000", "variants": ["Claude
+        code"]}, {"word": "agent runs", "score": "1.000", "variants": ["agent runs"]},
+        {"word": "credibility", "score": "1.000", "variants": ["credibility"]}, {"word":
+        "academic trust", "score": "1.000", "variants": ["academic trust"]}, {"word":
+        "research timeline", "score": "1.000", "variants": ["research timeline"]},
+        {"word": "Slurm submission", "score": "1.000", "variants": ["Slurm submission"]},
+        {"word": "feedback hooks", "score": "1.000", "variants": ["feedback hooks"]},
+        {"word": "resource allocation", "score": "1.000", "variants": ["resource allocation"]},
+        {"word": "model serving", "score": "1.000", "variants": ["model serving"]}],
+        "current_oa_status": null, "can_be_stopped_by_non_owner": false, "who_can_stop_OA":
+        "speech_owner_only"}, {"access_request": null, "access_seconds": null, "access_status":
+        1, "action_item_count": null, "agent_session": null, "allow_transcript_copy":
+        true, "appid": "otter-android", "audio_enabled": true, "auto_record": false,
+        "auto_snapshot_enabled": true, "block_summary_display": false, "block_transcript_display":
+        false, "calendar_guests": null, "calendar_meeting_id": null, "can_comment":
+        true, "can_edit": true, "can_export": true, "can_highlight": true, "chat_status":
+        {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out": false, "can_edit_chat":
+        true}, "conf_image_url": null, "conf_join_url": null, "create_method": "record",
+        "created_at": 1770991280, "deleted": false, "displayed_start_time": 1770991280,
+        "download_url": "https://api.aisense.com/audio/mMdIO16655FAZRNshSDGbh7_9M8",
+        "duration": 3555, "end_time": 1770994835, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308604, "non_member_shared_groups": [], "otid": "mMdIO16655FAZRNshSDGbh7_9M8",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQk1YRzJMUUYiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.Uhzas6-pODbZXMmVnWJNaOe-NZFIpHYi8760c1RWBZ8",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [], "shared_groups":
+        [{"shared_at": "2026-02-13 06:59:40", "entire_speech": true, "snippets": [],
+        "landing_offset": 0, "note": null, "permission": "collaborate", "group": {"id":
+        30604889, "created_at": "2025-12-03 14:16:46", "last_modified_at": "2026-02-13
+        07:00:46", "name": "Matthew Dubery", "owner": {"id": 20561086, "name": "handleylab",
+        "email": "handleylab@gmail.com", "first_name": "handleylab", "last_name":
+        "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS"},
+        "is_deleted": false, "latest_message_time": "2026-02-13 14:59:40", "is_public":
+        false, "public_name": null, "cover_photo_url": null, "avatar_url": null, "description":
+        null, "member_count": 1, "message_count": 1, "open_invite": true, "open_post":
+        true, "can_post": true, "can_invite": true, "is_guest_viewable": false, "summary":
+        [{"word": "squared", "score": "0.009", "variants": ["squared", "square", "squares"]},
+        {"word": "gamma", "score": "0.008", "variants": ["gamma"]}, {"word": "write",
+        "score": "0.007", "variants": ["write", "writing", "written", "writes", "wrote"]},
+        {"word": "equation", "score": "0.007", "variants": ["equation", "equations"]},
+        {"word": "theta", "score": "0.006", "variants": ["theta", "thetas"]}, {"word":
+        "question", "score": "0.006", "variants": ["questions", "question"]}, {"word":
+        "good", "score": "0.005", "variants": ["good"]}, {"word": "vector", "score":
+        "0.005", "variants": ["vector", "vectors"]}, {"word": "moving", "score": "0.005",
+        "variants": ["moving", "move", "moves", "moved"]}, {"word": "terms", "score":
+        "0.005", "variants": ["term", "terms"]}, {"word": "work", "score": "0.005",
+        "variants": ["work", "worked", "works", "working"]}, {"word": "coordinates",
+        "score": "0.005", "variants": ["coordinates", "coordinate", "coordinated"]},
+        {"word": "indices", "score": "0.004", "variants": ["index", "indices"]}, {"word":
+        "bit", "score": "0.004", "variants": ["bit", "bits"]}, {"word": "equals",
+        "score": "0.004", "variants": ["equals", "equal"]}, {"word": "means", "score":
+        "0.004", "variants": ["means", "meant", "meaning"]}, {"word": "dot", "score":
+        "0.004", "variants": ["dot", "dots", "dotted"]}, {"word": "frame", "score":
+        "0.004", "variants": ["frame", "frames"]}, {"word": "velocity", "score": "0.004",
+        "variants": ["velocity", "velocities"]}, {"word": "dt", "score": "0.004",
+        "variants": ["dt"]}], "external_url": null, "dm_name": null, "has_live_speech":
+        false, "is_dm_visible": false, "is_autoshare_group": false, "discoverability":
+        "private"}, "group_message_id": 52639814}], "shared_with": [], "short_abstract_summary":
+        null, "speakers": [{"id": 13957359, "created_at": "2022-08-10 06:17:34", "speaker_name":
+        "Will Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u9411757/spkr13957359-1660137454",
+        "user_id": 9411757, "self_speaker": true, "speaker_email": null, "workspace_id":
+        null, "non_taggable": false}], "speech_id": "2DTRMZHABMXG2LQF", "speech_metadata":
+        {}, "speech_outline": [{"id": 10576375773, "text": "Discussion on Past Paper
+        Questions and Initial Impressions", "start_offset": 0, "end_offset": 3410240,
+        "start_word_offset": 0, "end_word_offset": 376, "segments": [{"id": 10576375775,
+        "text": "Speaker 1 mentions not having marked the paper yet but wants to check
+        progress.", "start_offset": 0, "end_offset": 575360, "start_word_offset":
+        0, "end_word_offset": 44, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375776, "text": "Speaker 3 discusses analytic answers, noting one method
+        didn''t work and wants to understand why.", "start_offset": 575360, "end_offset":
+        990720, "start_word_offset": 45, "end_word_offset": 94, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10576375777, "text": "Speaker 4 confirms there
+        are nine questions, with the first five already attempted.", "start_offset":
+        990720, "end_offset": 1782399, "start_word_offset": 95, "end_word_offset":
+        137, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375778, "text":
+        "Speaker 3 explains the difficulty of understanding streamlines due to lack
+        of detailed lecture workings.", "start_offset": 1782399, "end_offset": 2363840,
+        "start_word_offset": 138, "end_word_offset": 237, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375779, "text": "Will Handley suggests describing
+        each question one by one for clarity.", "start_offset": 2369600, "end_offset":
+        3410240, "start_word_offset": 238, "end_word_offset": 376, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375780, "text":
+        "Explanation of Streamlines and Particle Paths", "start_offset": 3429439,
+        "end_offset": 5220800, "start_word_offset": 377, "end_word_offset": 697, "segments":
+        [{"id": 10576375781, "text": "Speaker 3 describes the first question about
+        finding streamlines given a flow.", "start_offset": 3429439, "end_offset":
+        4147200, "start_word_offset": 377, "end_word_offset": 509, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10576375782, "text": "Speaker 5 explains streamlines
+        as the vector velocity field.", "start_offset": 4147200, "end_offset": 4490560,
+        "start_word_offset": 510, "end_word_offset": 557, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375783, "text": "Speaker 6 and Will Handley discuss
+        the physical interpretation of streamlines and particle paths.", "start_offset":
+        4492480, "end_offset": 4778559, "start_word_offset": 558, "end_word_offset":
+        604, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375784, "text":
+        "Speaker 3 mentions streak lines as the locus of points passing through a
+        set region.", "start_offset": 4778559, "end_offset": 4959359, "start_word_offset":
+        605, "end_word_offset": 647, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375785, "text": "Will Handley and Speaker 3 discuss the practicality
+        of defining streak lines experimentally.", "start_offset": 4959359, "end_offset":
+        5220800, "start_word_offset": 648, "end_word_offset": 697, "segments": null,
+        "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375786, "text":
+        "Detailed Analysis of Streamlines and Pressure", "start_offset": 5237120,
+        "end_offset": 7255040, "start_word_offset": 698, "end_word_offset": 978, "segments":
+        [{"id": 10576375787, "text": "Will Handley asks Speaker 3 to show their answers
+        for the first question.", "start_offset": 5237120, "end_offset": 5592640,
+        "start_word_offset": 698, "end_word_offset": 745, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375788, "text": "Speaker 3 explains the difference
+        in pressure for the same streamlines due to scaling of the velocity field.",
+        "start_offset": 5592640, "end_offset": 6024128, "start_word_offset": 746,
+        "end_word_offset": 789, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375789,
+        "text": "Speaker 3 discusses the material derivative and its implications
+        for density along streamlines.", "start_offset": 6051968, "end_offset": 6356480,
+        "start_word_offset": 790, "end_word_offset": 839, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375790, "text": "Speaker 2 and Speaker 3 delve into
+        the Eulerian form and its implications for density constancy.", "start_offset":
+        6356480, "end_offset": 7026240, "start_word_offset": 840, "end_word_offset":
+        936, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375791, "text":
+        "Will Handley and Speaker 3 discuss the necessity and sufficiency of incompressibility
+        conditions.", "start_offset": 7026240, "end_offset": 7255040, "start_word_offset":
+        937, "end_word_offset": 978, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10576375792, "text": "Fluid Equations and Their Implications",
+        "start_offset": 7264640, "end_offset": 8215039, "start_word_offset": 979,
+        "end_word_offset": 1067, "segments": [{"id": 10576375793, "text": "Speaker
+        1 and Speaker 2 list the master equations for conservation of mass and momentum.",
+        "start_offset": 7264640, "end_offset": 7597120, "start_word_offset": 979,
+        "end_word_offset": 1019, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375794, "text": "Will Handley explains the abbreviation of equations
+        for clarity and practicality.", "start_offset": 7651840, "end_offset": 7885440,
+        "start_word_offset": 1020, "end_word_offset": 1031, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375795, "text": "Speaker 3 and Will Handley discuss
+        the nonlinearity of fluid dynamics equations.", "start_offset": 7885440, "end_offset":
+        7975679, "start_word_offset": 1032, "end_word_offset": 1043, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10576375796, "text": "Speaker 6 and Speaker
+        3 explain the product rule and its application to fluid dynamics equations.",
+        "start_offset": 7975679, "end_offset": 8053759, "start_word_offset": 1044,
+        "end_word_offset": 1055, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375797, "text": "Will Handley and Speaker 3 discuss the conditions under
+        which fluid equations are linear or nonlinear.", "start_offset": 8053759,
+        "end_offset": 8215039, "start_word_offset": 1056, "end_word_offset": 1067,
+        "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id":
+        10576375798, "text": "Proving Identities and Vorticity", "start_offset": 8218879,
+        "end_offset": 33826559, "start_word_offset": 1068, "end_word_offset": 4204,
+        "segments": [{"id": 10576375799, "text": "Will Handley and Speaker 3 work
+        through proving identities related to curl u and pressure functions.", "start_offset":
+        8218879, "end_offset": 30252800, "start_word_offset": 1068, "end_word_offset":
+        3778, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375800, "text":
+        "Speaker 6 explains the chain rule and its application to fluid dynamics equations.",
+        "start_offset": 30252800, "end_offset": 30638079, "start_word_offset": 3779,
+        "end_word_offset": 3821, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375801, "text": "Speaker 3 and Will Handley discuss the implications
+        of vorticity remaining zero.", "start_offset": 30650560, "end_offset": 32818559,
+        "start_word_offset": 3822, "end_word_offset": 4106, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375802, "text": "Speaker 6 and Speaker 3 explain the
+        assumptions and simplifications made in proving identities.", "start_offset":
+        32840640, "end_offset": 33503679, "start_word_offset": 4107, "end_word_offset":
+        4155, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375803, "text":
+        "Will Handley emphasizes the importance of understanding the nonlinearity
+        in fluid dynamics equations.", "start_offset": 33515199, "end_offset": 33826559,
+        "start_word_offset": 4156, "end_word_offset": 4204, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375804, "text": "Separability
+        and Solutions in Fluid Dynamics", "start_offset": 33826559, "end_offset":
+        40833024, "start_word_offset": 4205, "end_word_offset": 5137, "segments":
+        [{"id": 10576375806, "text": "Speaker 3 discusses the concept of separability
+        in fluid dynamics solutions.", "start_offset": 33826559, "end_offset": 35950400,
+        "start_word_offset": 4205, "end_word_offset": 4496, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375808, "text": "Will Handley explains the significance
+        of separability in solving complex fluid dynamics problems.", "start_offset":
+        35950400, "end_offset": 36138560, "start_word_offset": 4497, "end_word_offset":
+        4538, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375811, "text":
+        "Speaker 3 and Will Handley discuss the completeness of the solution basis
+        derived from separability.", "start_offset": 36138560, "end_offset": 36709439,
+        "start_word_offset": 4539, "end_word_offset": 4636, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375813, "text": "Speaker 3 mentions the practical
+        application of separability in solving 2D flow problems.", "start_offset":
+        36709439, "end_offset": 37263040, "start_word_offset": 4637, "end_word_offset":
+        4718, "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375815, "text":
+        "Will Handley and Speaker 3 discuss the physical interpretation of separable
+        solutions in fluid dynamics.", "start_offset": 37264000, "end_offset": 40833024,
+        "start_word_offset": 4719, "end_word_offset": 5137, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375816, "text": "Detailed
+        Analysis of Fluid Flow Around a Pipe", "start_offset": 40833024, "end_offset":
+        52601920, "start_word_offset": 5138, "end_word_offset": 6585, "segments":
+        [{"id": 10576375818, "text": "Speaker 3 explains the process of sketching
+        contour lines for fluid flow around a pipe.", "start_offset": 40833024, "end_offset":
+        41622080, "start_word_offset": 5138, "end_word_offset": 5229, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10576375821, "text": "Will Handley and
+        Speaker 3 discuss the physical interpretation of streamlines and their continuity.",
+        "start_offset": 41622080, "end_offset": 50900159, "start_word_offset": 5230,
+        "end_word_offset": 6305, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375824, "text": "Speaker 3 describes the mathematical steps involved
+        in solving the fluid flow problem.", "start_offset": 50938560, "end_offset":
+        51259520, "start_word_offset": 6306, "end_word_offset": 6355, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10576375825, "text": "Will Handley and
+        Speaker 3 discuss the implications of the solution for fluid flow around a
+        pipe.", "start_offset": 51259520, "end_offset": 52428799, "start_word_offset":
+        6356, "end_word_offset": 6542, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375826, "text": "Speaker 3 mentions the agreement with AI in solving
+        the fluid flow problem.", "start_offset": 52428799, "end_offset": 52601920,
+        "start_word_offset": 6543, "end_word_offset": 6585, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375827, "text": "Discussion
+        on Course Content and Future Plans", "start_offset": 52630719, "end_offset":
+        56694720, "start_word_offset": 6586, "end_word_offset": 7282, "segments":
+        [{"id": 10576375828, "text": "Speaker 3 expresses concerns about the heavy
+        course content and the need to focus on key topics.", "start_offset": 52630719,
+        "end_offset": 55175360, "start_word_offset": 6586, "end_word_offset": 7007,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375829, "text": "Will
+        Handley and Speaker 3 discuss the importance of understanding the course''s
+        foundational concepts.", "start_offset": 55175360, "end_offset": 55445440,
+        "start_word_offset": 7008, "end_word_offset": 7051, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10576375830, "text": "Speaker 3 mentions the overlap with
+        other courses and the need to manage time effectively.", "start_offset": 55445440,
+        "end_offset": 55805760, "start_word_offset": 7052, "end_word_offset": 7101,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375831, "text": "Will
+        Handley and Speaker 3 discuss the practical application of fluid dynamics
+        in various fields.", "start_offset": 55805760, "end_offset": 55998720, "start_word_offset":
+        7102, "end_word_offset": 7144, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375832, "text": "Speaker 3 plans to specialize next year and sees the
+        current course as a valuable foundation.", "start_offset": 56003520, "end_offset":
+        56694720, "start_word_offset": 7145, "end_word_offset": 7282, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10576375833,
+        "text": "Final Remarks and Scheduling Future Meetings", "start_offset": 56694719,
+        "end_offset": 56849278, "start_word_offset": 7283, "end_word_offset": 7304,
+        "segments": [{"id": 10576375834, "text": "Speaker 3 and Will Handley discuss
+        the importance of understanding the course''s equations and derivations.",
+        "start_offset": 56694719, "end_offset": 56776318, "start_word_offset": 7283,
+        "end_word_offset": 7293, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375835, "text": "Speaker 3 mentions the need to balance the course with
+        other academic responsibilities.", "start_offset": 56776318, "end_offset":
+        56795519, "start_word_offset": 7294, "end_word_offset": 7296, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10576375836, "text": "Will Handley and
+        Speaker 3 agree on the next meeting time and place.", "start_offset": 56795519,
+        "end_offset": 56802238, "start_word_offset": 7297, "end_word_offset": 7298,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10576375837, "text": "Speaker
+        3 expresses a positive outlook on the course and its relevance to future studies.",
+        "start_offset": 56802238, "end_offset": 56838719, "start_word_offset": 7299,
+        "end_word_offset": 7301, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10576375838, "text": "Will Handley and Speaker 3 conclude the meeting with
+        a plan to continue discussing the course in detail.", "start_offset": 56839679,
+        "end_offset": 56849278, "start_word_offset": 7302, "end_word_offset": 7304,
+        "segments": null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}], "speech_outline_status":
+        "u", "speech_settings": {"allow_topics": true, "language": true, "allow_collaborators_to_share":
+        true, "allow_viewers_to_export": true}, "start_time": 1770991280, "summary":
+        "fluid dynamics, streamlines, velocity field, material derivative, conservation
+        of mass, conservation of momentum, nonlinear equations, vorticity, separability,
+        surface density, particle paths, incompressibility, pressure, density, flow
+        equations", "timecode_offset": null, "timezone": null, "title": "2026-02-13:14:01:20
+        Note", "transcript_updated_at": 1770995184, "unshared": false, "upload_finished":
+        true, "word_clouds": [{"word": "fluid dynamics", "score": "1.000", "variants":
+        ["fluid dynamics"]}, {"word": "streamlines", "score": "1.000", "variants":
+        ["streamlines"]}, {"word": "velocity field", "score": "1.000", "variants":
+        ["velocity field"]}, {"word": "material derivative", "score": "1.000", "variants":
+        ["material derivative"]}, {"word": "conservation of mass", "score": "1.000",
+        "variants": ["conservation of mass"]}, {"word": "conservation of momentum",
+        "score": "1.000", "variants": ["conservation of momentum"]}, {"word": "nonlinear
+        equations", "score": "1.000", "variants": ["nonlinear equations"]}, {"word":
+        "vorticity", "score": "1.000", "variants": ["vorticity"]}, {"word": "separability",
+        "score": "1.000", "variants": ["separability"]}, {"word": "surface density",
+        "score": "1.000", "variants": ["surface density"]}, {"word": "particle paths",
+        "score": "1.000", "variants": ["particle paths"]}, {"word": "incompressibility",
+        "score": "1.000", "variants": ["incompressibility"]}, {"word": "pressure",
+        "score": "1.000", "variants": ["pressure"]}, {"word": "density", "score":
+        "1.000", "variants": ["density"]}, {"word": "flow equations", "score": "1.000",
+        "variants": ["flow equations"]}], "current_oa_status": null, "can_be_stopped_by_non_owner":
+        false, "who_can_stop_OA": "speech_owner_only"}, {"access_request": null, "access_seconds":
+        null, "access_status": 1, "action_item_count": null, "agent_session": null,
+        "allow_transcript_copy": true, "appid": "otter-android", "audio_enabled":
+        true, "auto_record": false, "auto_snapshot_enabled": true, "block_summary_display":
+        false, "block_transcript_display": false, "calendar_guests": null, "calendar_meeting_id":
+        null, "can_comment": true, "can_edit": true, "can_export": true, "can_highlight":
+        true, "chat_status": {"show_chat": true, "owner_chat_enabled": true, "viewer_opt_out":
+        false, "can_edit_chat": true}, "conf_image_url": null, "conf_join_url": null,
+        "create_method": "record", "created_at": 1770985437, "deleted": false, "displayed_start_time":
+        1770985437, "download_url": "https://api.aisense.com/audio/4bvKe7827r_48K1niQDviaWGkl0",
+        "duration": 5115, "end_time": 1770990541, "first_shared_group_name": null,
+        "folder": null, "from_shared": false, "hasPhotos": 0, "has_meeting_series_access":
+        false, "has_started": true, "image_urls": null, "images": [], "is_low_confidence":
+        false, "is_meeting_series": false, "is_read": false, "language": "en", "link_share":
+        {"scope": null, "permission": null, "workspace_id": null}, "live_status":
+        "none", "live_status_message": "", "meeting_otid": null, "modified_time":
+        1771308637, "non_member_shared_groups": [], "otid": "4bvKe7827r_48K1niQDviaWGkl0",
+        "owner": {"id": 20561086, "name": "handleylab", "email": "handleylab@gmail.com",
+        "first_name": "handleylab", "last_name": "", "avatar_url": "https://profile.otter.ai/AJZXS7M4DBVLK2JN/AJZXS7M4DBVLLOQS",
+        "workspace": {"id": 2851628, "name": "handleylab"}}, "permissions": {"highlight":
+        {"create": true, "delete": true}, "comment": {"create": true, "delete": true},
+        "text_note": {"create": true, "delete": true}, "chat": {"create": true, "delete":
+        true}, "speech_share": {"share": true, "share_button": true}, "assign": true,
+        "reorder": true, "share": true, "export": true, "emoji_react": true}, "process_failed":
+        false, "process_finished": true, "process_status": {"abstract_summary": "finished",
+        "action_item": "finished", "speech_outline": "success"}, "public_share_url":
+        null, "public_view": false, "pubsub_jwt": null, "pubsub_jwt_persistent": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDU2MTA4NiwiZXhwIjoxNzczOTE0OTg0LCJpc3MiOiJhcGktcHJvZCIsImF1ZCI6IndzLXByb2QiLCJwZXJtaXNzaW9uIjoidmlldyIsInNwZWVjaF9pZCI6IjJEVFJNWkhBQkxKUkdGS0YiLCJhY2Nlc3Nfc2Vjb25kcyI6bnVsbCwiYXBwaWQiOiJvdHRlci1hbmRyb2lkIiwiYWdlbnRfc2Vzc2lvbl9lbmFibGVkIjpmYWxzZX0.AD5N919Nul8jIDxGxiOlOWXIKmw-ZVS6xMTBPdI4vo0",
+        "sales_call_qualified": false, "shared_by": null, "shared_emails": [{"id":
+        167885624, "speech_id": "2DTRMZHABLJRGFKF", "email": "adam.ormondroyd@polychord.co.uk",
+        "user": {"id": 13772514, "name": "Adam Ormondroyd", "email": "adam.ormondroyd@polychord.co.uk",
+        "first_name": "Adam", "last_name": "Ormondroyd", "avatar_url": "https://profile.otter.ai/AGSE3RMUFWEZ6ZRM/AGSE3RMUFWEZ26Q6"},
+        "permission": "collaborate", "note": null, "shared_by": 20561086, "landing_offset":
+        0, "speech_otid": "4bvKe7827r_48K1niQDviaWGkl0"}], "shared_groups": [], "shared_with":
+        [], "short_abstract_summary": null, "speakers": [{"id": 13957359, "created_at":
+        "2022-08-10 06:17:34", "speaker_name": "Will Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u9411757/spkr13957359-1660137454",
+        "user_id": 9411757, "self_speaker": true, "speaker_email": null, "workspace_id":
+        null, "non_taggable": false}, {"id": 34466943, "created_at": "2024-10-04 09:36:12",
+        "speaker_name": "William Handley", "url": "https://s3.us-west-2.amazonaws.com/userprof-prod/u20429695/spkr34466943-1728059772",
+        "user_id": 20429695, "self_speaker": true, "speaker_email": "williamjameshandley@gmail.com",
+        "workspace_id": null, "non_taggable": false}], "speech_id": "2DTRMZHABLJRGFKF",
+        "speech_metadata": {}, "speech_outline": [{"id": 10575359840, "text": "Understanding
+        RE Analysis and Error Bars", "start_offset": 0, "end_offset": 2351359, "start_word_offset":
+        0, "end_word_offset": 285, "segments": [{"id": 10575359842, "text": "Speaker
+        1 questions the lack of change in the RE analysis and its impact on evidence
+        for an offset.", "start_offset": 0, "end_offset": 445760, "start_word_offset":
+        0, "end_word_offset": 41, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359844, "text": "William Handley mentions the error bar and praises the
+        excellent work done, highlighting the success of NSS.", "start_offset": 515840,
+        "end_offset": 881920, "start_word_offset": 42, "end_word_offset": 91, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10575359846, "text": "Discussion on the
+        importance of careful introduction of new stepper functions to avoid bugs.",
+        "start_offset": 881920, "end_offset": 1289280, "start_word_offset": 92, "end_word_offset":
+        141, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359847, "text":
+        "Speaker 2 and William Handley discuss the technical aspects of replacing
+        cat functions and the importance of no side effects.", "start_offset": 1289280,
+        "end_offset": 2351359, "start_word_offset": 142, "end_word_offset": 285, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10575359850,
+        "text": "Clustering and Global Covariance Matrix", "start_offset": 2379200,
+        "end_offset": 3444160, "start_word_offset": 286, "end_word_offset": 428, "segments":
+        [{"id": 10575359853, "text": "William Handley notes that clustering is not
+        necessary and a global covariance matrix works well in most cases.", "start_offset":
+        2379200, "end_offset": 2615680, "start_word_offset": 286, "end_word_offset":
+        331, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359854, "text":
+        "Speaker 2 and William Handley discuss the smoothness of modes and the effectiveness
+        of slice sampling.", "start_offset": 2660800, "end_offset": 3131840, "start_word_offset":
+        332, "end_word_offset": 378, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359855, "text": "William Handley explains the importance of aggressive
+        slice sampling for long steps and exponential contraction.", "start_offset":
+        3173120, "end_offset": 3290240, "start_word_offset": 379, "end_word_offset":
+        403, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359856, "text":
+        "Discussion on the use of LBFGS and BFGS algorithms, including their efficiency
+        and the use of Hessian.", "start_offset": 3294080, "end_offset": 3444160,
+        "start_word_offset": 404, "end_word_offset": 428, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10575359857, "text": "BFGS Algorithm
+        and Hessian Computation", "start_offset": 3444160, "end_offset": 12250240,
+        "start_word_offset": 429, "end_word_offset": 1115, "segments": [{"id": 10575359858,
+        "text": "Speaker 4 explains the standard gradient descent algorithm BFGS and
+        its use of Hessian to encode step dimensions.", "start_offset": 3444160, "end_offset":
+        8509119, "start_word_offset": 429, "end_word_offset": 791, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10575359859, "text": "William Handley and Speaker
+        4 discuss the dimensionality of Hessian and the efficiency of LBFGS in estimating
+        Hessian without direct computation.", "start_offset": 8509119, "end_offset":
+        8841599, "start_word_offset": 792, "end_word_offset": 833, "segments": null,
+        "pipeline": "f_kaldi"}, {"id": 10575359860, "text": "Explanation of how LBFGS
+        uses gradients to learn Hessian and the importance of reversibility.", "start_offset":
+        8843519, "end_offset": 9533440, "start_word_offset": 834, "end_word_offset":
+        930, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359861, "text":
+        "Discussion on the local approximation of Hessian and its application across
+        particles.", "start_offset": 9533440, "end_offset": 12250240, "start_word_offset":
+        931, "end_word_offset": 1115, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10575359862, "text": "Mike''s Work on Engines and Local
+        Hessian Estimation", "start_offset": 12250240, "end_offset": 17787200, "start_word_offset":
+        1116, "end_word_offset": 1479, "segments": [{"id": 10575359863, "text": "Speaker
+        4 mentions Mike''s work on engines and the challenges faced in estimating
+        Hessian locally.", "start_offset": 12250240, "end_offset": 13578240, "start_word_offset":
+        1116, "end_word_offset": 1207, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359864, "text": "Discussion on the advantages of the proposed system
+        in avoiding large Hessian or covariance matrix computations.", "start_offset":
+        13578240, "end_offset": 14176000, "start_word_offset": 1208, "end_word_offset":
+        1250, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359865, "text":
+        "William Handley and Speaker 4 discuss the handling of large steps and the
+        role of Hessian in curvature estimation.", "start_offset": 14196160, "end_offset":
+        14694720, "start_word_offset": 1251, "end_word_offset": 1298, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10575359866, "text": "Speaker 6 and Speaker
+        1 discuss the log-likelihood and the specificity of Hessian to Gaussian models.",
+        "start_offset": 14702400, "end_offset": 17787200, "start_word_offset": 1299,
+        "end_word_offset": 1479, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10575359867, "text": "Experimental Methods and Diminishing
+        Returns", "start_offset": 17787200, "end_offset": 23103359, "start_word_offset":
+        1480, "end_word_offset": 2043, "segments": [{"id": 10575359868, "text": "Speaker
+        2 and Speaker 4 discuss the diminishing returns in experimental methods and
+        the importance of automation.", "start_offset": 17787200, "end_offset": 18755840,
+        "start_word_offset": 1480, "end_word_offset": 1579, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359869, "text": "William Handley criticizes the route
+        10 method in terms of convergence and its implications for experimental science.",
+        "start_offset": 18755840, "end_offset": 21980800, "start_word_offset": 1580,
+        "end_word_offset": 1902, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359870, "text": "Discussion on the importance of learning Jax and the
+        cognitive load of new tools and plugins.", "start_offset": 21989440, "end_offset":
+        22586240, "start_word_offset": 1903, "end_word_offset": 1993, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10575359871, "text": "Speaker 1 and Speaker
+        7 discuss the balance between sharpening tools and using them effectively.",
+        "start_offset": 22588160, "end_offset": 23103359, "start_word_offset": 1994,
+        "end_word_offset": 2043, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10575359872, "text": "AI and Scientific Discovery", "start_offset":
+        23103359, "end_offset": 35936960, "start_word_offset": 2044, "end_word_offset":
+        3252, "segments": [{"id": 10575359873, "text": "Speaker 1 shares thoughts
+        on David Hogg''s book \"AI, Why Do We Do Astrophysics?\" and the importance
+        of scientific discovery.", "start_offset": 23103359, "end_offset": 27635200,
+        "start_word_offset": 2044, "end_word_offset": 2356, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359874, "text": "Discussion on the osmosis of information
+        from the world into human brains and the role of scientific discovery.", "start_offset":
+        27635200, "end_offset": 28981440, "start_word_offset": 2357, "end_word_offset":
+        2456, "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359876, "text":
+        "William Handley emphasizes the importance of spending time on drafting and
+        redrafting documents.", "start_offset": 28981440, "end_offset": 29586879,
+        "start_word_offset": 2457, "end_word_offset": 2545, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359878, "text": "Speaker 7 and Speaker 1 discuss the
+        challenges of using Claude coding and the need for nuanced understanding.",
+        "start_offset": 29586879, "end_offset": 35936960, "start_word_offset": 2546,
+        "end_word_offset": 3252, "segments": null, "pipeline": "f_kaldi"}], "pipeline":
+        "f_kaldi"}, {"id": 10575359879, "text": "Project Management and Code Tidying",
+        "start_offset": 35937920, "end_offset": 63231040, "start_word_offset": 3253,
+        "end_word_offset": 6984, "segments": [{"id": 10575359880, "text": "Speaker
+        10 and Speaker 9 discuss the need for tidying up the code and removing unnecessary
+        elements.", "start_offset": 35937920, "end_offset": 36317439, "start_word_offset":
+        3253, "end_word_offset": 3302, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359881, "text": "Discussion on the importance of polishing the interface
+        and improving the user experience.", "start_offset": 36317439, "end_offset":
+        36593280, "start_word_offset": 3303, "end_word_offset": 3351, "segments":
+        null, "pipeline": "f_kaldi"}, {"id": 10575359882, "text": "Speaker 1 mentions
+        the need for intelligent hiders and the role of continuous representation
+        in improving efficiency.", "start_offset": 36593280, "end_offset": 57253760,
+        "start_word_offset": 3352, "end_word_offset": 6159, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359883, "text": "Speaker 10 and Speaker 9 discuss
+        the potential for different bands of activity and the implications for coverage
+        and power usage.", "start_offset": 57283520, "end_offset": 63231040, "start_word_offset":
+        6160, "end_word_offset": 6984, "segments": null, "pipeline": "f_kaldi"}],
+        "pipeline": "f_kaldi"}, {"id": 10575359884, "text": "Next Phase and Technical
+        Proposal", "start_offset": 63242560, "end_offset": 77504320, "start_word_offset":
+        6985, "end_word_offset": 8652, "segments": [{"id": 10575359885, "text": "Speaker
+        10 and Speaker 9 discuss the follow-on proposal and the need for a response
+        within a week.", "start_offset": 63242560, "end_offset": 63976640, "start_word_offset":
+        6985, "end_word_offset": 7079, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359886, "text": "Discussion on the importance of attending a special
+        event in October and the value of demonstrating technology to stakeholders.",
+        "start_offset": 63977600, "end_offset": 64259200, "start_word_offset": 7080,
+        "end_word_offset": 7121, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359888, "text": "Speaker 10 suggests a meeting next week to discuss the
+        technical proposal and the time budgeted for tasks.", "start_offset": 64259200,
+        "end_offset": 74791296, "start_word_offset": 7122, "end_word_offset": 8476,
+        "segments": null, "pipeline": "f_kaldi"}, {"id": 10575359890, "text": "Speaker
+        8 and Speaker 10 agree to schedule a meeting on Thursday to go through the
+        details and ensure alignment.", "start_offset": 74880000, "end_offset": 77504320,
+        "start_word_offset": 8477, "end_word_offset": 8652, "segments": null, "pipeline":
+        "f_kaldi"}], "pipeline": "f_kaldi"}, {"id": 10575359892, "text": "Final Remarks
+        and Future Plans", "start_offset": 77504320, "end_offset": 81601919, "start_word_offset":
+        8653, "end_word_offset": 9186, "segments": [{"id": 10575359893, "text": "Speaker
+        10 and Speaker 8 discuss the importance of having a detailed Gantt chart and
+        the need for adjustments.", "start_offset": 77504320, "end_offset": 77904000,
+        "start_word_offset": 8653, "end_word_offset": 8702, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359894, "text": "Speaker 10 mentions the potential
+        for Thomas to contribute to the conversation and the importance of different
+        skill sets.", "start_offset": 77904000, "end_offset": 78181760, "start_word_offset":
+        8703, "end_word_offset": 8752, "segments": null, "pipeline": "f_kaldi"}, {"id":
+        10575359895, "text": "Speaker 8 shares the full Gantt chart and suggests looking
+        at it for potential tweaks.", "start_offset": 78188480, "end_offset": 78958080,
+        "start_word_offset": 8753, "end_word_offset": 8845, "segments": null, "pipeline":
+        "f_kaldi"}, {"id": 10575359896, "text": "Speaker 10 and Speaker 8 agree to
+        have a detailed discussion next week to finalize the technical proposal and
+        ensure alignment on tasks and timelines.", "start_offset": 78958080, "end_offset":
+        81601919, "start_word_offset": 8846, "end_word_offset": 9186, "segments":
+        null, "pipeline": "f_kaldi"}], "pipeline": "f_kaldi"}], "speech_outline_status":
+        "u", "speech_settings": {"allow_topics": true, "language": true, "allow_collaborators_to_share":
+        true, "allow_viewers_to_export": true}, "start_time": 1770985437, "summary":
+        "NSS, error bar, origami sorting, gradient descent, Hessian, covariance matrix,
+        slice sampling, BFGS, LBFGS, maximum entropy, utility function, Nash equilibrium,
+        frequency bands, API interface, Gantt chart.", "timecode_offset": null, "timezone":
+        null, "title": "2026-02-13:12:23:57 Note", "transcript_updated_at": 1770990986,
+        "unshared": false, "upload_finished": true, "word_clouds": [{"word": "NSS",
+        "score": "1.000", "variants": ["NSS"]}, {"word": "error bar", "score": "1.000",
+        "variants": ["error bar"]}, {"word": "origami sorting", "score": "1.000",
+        "variants": ["origami sorting"]}, {"word": "gradient descent", "score": "1.000",
+        "variants": ["gradient descent"]}, {"word": "Hessian", "score": "1.000", "variants":
+        ["Hessian"]}, {"word": "covariance matrix", "score": "1.000", "variants":
+        ["covariance matrix"]}, {"word": "slice sampling", "score": "1.000", "variants":
+        ["slice sampling"]}, {"word": "BFGS", "score": "1.000", "variants": ["BFGS"]},
+        {"word": "LBFGS", "score": "1.000", "variants": ["LBFGS"]}, {"word": "maximum
+        entropy", "score": "1.000", "variants": ["maximum entropy"]}, {"word": "utility
+        function", "score": "1.000", "variants": ["utility function"]}, {"word": "Nash
+        equilibrium", "score": "1.000", "variants": ["Nash equilibrium"]}, {"word":
+        "frequency bands", "score": "1.000", "variants": ["frequency bands"]}, {"word":
+        "API interface", "score": "1.000", "variants": ["API interface"]}, {"word":
+        "Gantt chart.", "score": "1.000", "variants": ["Gantt chart."]}], "current_oa_status":
+        null, "can_be_stopped_by_non_owner": false, "who_can_stop_OA": "speech_owner_only"}],
+        "last_modified_at": 1771322983}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - 'frame-ancestors https://outlook.office.com https://*.office365.com https://outlook.office365.com
+        https://outlook.live.com; script-src ''unsafe-inline'' ''unsafe-eval'' ''self''
+        *.otter.ai https://ajax.aspnetcdn.com https://appsforoffice.microsoft.com/
+        https://tracking.g2crowd.com/ https://action.dstillery.com/ https://cdn.amplitude.com
+        https://cdn.lr-ingest.io https://www.google-analytics.com https://www.googletagmanager.com
+        https://connect.facebook.net https://www.facebook.com https://apis.google.com
+        https://secure.aadcdn.microsoftonline-p.com https://appleid.cdn-apple.com
+        https://d.impactradius-event.com https://js.stripe.com https://checkout.stripe.com
+        https://www.dropbox.com https://cdn.onesignal.com https://onesignal.com https://static.ads-twitter.com
+        https://bat.bing.com https://www.redditstatic.com https://analytics.twitter.com
+        *.sentry.io https://cdnjs.cloudflare.com https://connect.facebook.net https://www.google.com
+        https://ws-assets.zoominfo.com https://ws.zoominfo.com https://www.gstatic.com
+        https://embed.typeform.com https://services.otter.ai js.hs-scripts.com snap.licdn.com
+        cdn.pdst.fm js.hs-banner.com js.hs-analytics.net *.clarity.ms *.googleadservices.com
+        www.googleoptimize.com platform.twitter.com js.appboycdn.com accounts.google.com
+        *.optimizely.com cdn.jsdelivr.net d2hrivdxn8ekm8.cloudfront.net d1lu3pmaz2ilpx.cloudfront.net
+        dvqigh9b7wa32.cloudfront.net d330aiyvva2oww.cloudfront.net https://api.sprig.com
+        https://cdn.sprig.com https://analytics.tiktok.com https://cdn.cookielaw.org
+        https://rudder-cdn.staging.otter.ai https://rudder-cdn.otter.ai https://statsig.staging.otter.ai
+        https://c.amazon-adsystem.com https://acdn.adnxs.com https://js.hubspot.com
+        https://js.hsadspixel.net https://zoom.us *.zoom.us sunbpxua.usv.stape.io
+        njmeuybc.usv.stape.io https://stapecdn.com https://cdn.rudderlabs.com https://cdn.cr-relay.com;
+        worker-src ''self'' *.otter.ai blob:'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 17 Feb 2026 10:09:45 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin, Cookie
+      X-Content-Type-Options:
+      - nosniff
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      - SAMEORIGIN
+      X-Request-ID:
+      - 5720be59-375d-410b-af82-e0687beabccf
+      X-Response-Time:
+      - 1726.21 ms
+      content-length:
+      - '161600'
+    status:
+      code: 200
+      message: OK
+version: 1

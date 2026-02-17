@@ -111,6 +111,7 @@ claude mcp add google-maps --scope user mcp-google-maps
 # claude mcp add excel --scope user mcp-excel                      # Excel spreadsheet editing
 # claude mcp add mathematica --scope user mcp-mathematica
 # claude mcp add loop --scope user mcp-loop
+# claude mcp add otter --scope user mcp-otter                      # Otter.ai transcripts
 # claude mcp add screenshot --scope user mcp-screenshot
 # claude mcp add search --scope user mcp-search                    # Transcript search
 ```
@@ -236,6 +237,14 @@ Bridge WhatsApp and Telegram to Claude via persistent loop sessions
      ```
   4. Run `messenger` (or `messenger 9090` for a custom port)
   5. For WhatsApp: point your webhook URL to `http://your-server:8080/webhook`
+
+### 🎙️ **Otter.ai Transcripts** (`otter`)
+Access live and recent Otter.ai meeting transcripts
+  - List live meetings and fetch real-time transcripts
+  - Browse and search recent meetings by title
+  - Refresh session cookies via headless Playwright
+  - _Claude example_: `> what's being said in my current meeting?`
+  - **Requires**: Otter.ai account logged in via Chrome; `pip install -e '.[otter]'` for session refresh
 
 ### 📸 **Screenshot Capture** (`screenshot`)
 Capture screenshots of windows or the full screen

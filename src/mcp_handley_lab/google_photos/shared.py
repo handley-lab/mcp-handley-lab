@@ -182,19 +182,14 @@ def _execute_rpc(client: httpx.Client, wiz_data: dict, rpcid: str, args: list):
     resp.raise_for_status()
 
     try:
-        result = _parse_response(resp.text)
+        return _parse_response(resp.text)
     except RuntimeError:
-        result = None
-
-    if result is None:
         _clear_session_cache()
         client, wiz_data = _get_session(force_reload=True)
         url, body = _build_request(wiz_data, rpcid, args)
         resp = client.post(url, content=body, headers={"Content-Type": CONTENT_TYPE})
         resp.raise_for_status()
         return _parse_response(resp.text)
-
-    return result
 
 
 def _parse_item(item: list) -> PhotoItem | None:
@@ -203,9 +198,10 @@ def _parse_item(item: list) -> PhotoItem | None:
         media_key = item[0]
         if not isinstance(media_key, str):
             return None
-        url = item[1][0] if isinstance(item[1], list) and len(item[1]) >= 3 else ""
-        width = item[1][1] if isinstance(item[1], list) and len(item[1]) >= 3 else 0
-        height = item[1][2] if isinstance(item[1], list) and len(item[1]) >= 3 else 0
+        info = item[1] if isinstance(item[1], list) else []
+        url = info[0] if len(info) > 0 else ""
+        width = info[1] if len(info) > 1 else 0
+        height = info[2] if len(info) > 2 else 0
         timestamp = int(item[2]) // 1000 if isinstance(item[2], int | float) else 0
         return PhotoItem(
             media_key=media_key,
@@ -387,9 +383,12 @@ def show_photo(media_key: str) -> list:
     if detail.camera_make:
         meta += f" — {detail.camera_make} {detail.camera_model}"
 
+    content_type = resp.headers.get("content-type", "image/jpeg")
+    fmt = content_type.split("/")[-1].split(";")[0]  # "image/jpeg" -> "jpeg"
+
     return [
         TextContent(type="text", text=meta),
-        Image(data=resp.content, format="jpeg"),
+        Image(data=resp.content, format=fmt),
     ]
 
 

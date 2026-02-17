@@ -10,7 +10,6 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
 from mcp_handley_lab.otter.shared import OtterResult
-from mcp_handley_lab.shared.models import ServerInfo
 
 mcp = FastMCP("Otter Tool")
 
@@ -71,11 +70,3 @@ def otter(
     elif action == "refresh":
         return OtterResult(refresh=refresh_session())
     raise ValueError(f"Unknown action: {action}")
-
-
-@mcp.tool(description="Get Otter Tool server information and capabilities.")
-def server_info() -> ServerInfo:
-    """Get server information."""
-    from mcp_handley_lab.otter.shared import server_info as _server_info
-
-    return _server_info()

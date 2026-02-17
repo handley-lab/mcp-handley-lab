@@ -14,7 +14,6 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 from mcp_handley_lab.common.config import settings
-from mcp_handley_lab.shared.models import ServerInfo
 
 API_BASE = "https://otter.ai/forward/api/v1"
 
@@ -124,7 +123,8 @@ _SESSION_EXPIRED = (
 
 def _parse_json(resp: httpx.Response) -> dict:
     """Parse JSON from response, raising RuntimeError on HTML login redirects."""
-    if "<html" in resp.text[:500].lower():
+    content_type = resp.headers.get("content-type", "")
+    if "text/html" in content_type:
         raise RuntimeError("HTML login redirect")
     return resp.json()
 
@@ -419,24 +419,4 @@ def refresh_session() -> RefreshResult:
         refreshed_at=session_data["refreshed_at"],
         cookie_count=len(cookies),
         session_path=str(session_path),
-    )
-
-
-def server_info() -> ServerInfo:
-    """Get server info and session status."""
-    session_path = settings.otter_session_path
-    session_exists = session_path.exists()
-    return ServerInfo(
-        name="Otter Tool",
-        version="0.1.0",
-        status="active" if session_exists else "no_session",
-        capabilities=[
-            "live",
-            "transcript",
-            "recent",
-            "search",
-            "refresh",
-            "server_info",
-        ],
-        dependencies={"session_file": str(session_path)},
     )

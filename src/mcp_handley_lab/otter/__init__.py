@@ -10,7 +10,6 @@ from mcp_handley_lab.otter.shared import (
     list_recent_meetings,
     refresh_session,
     search_meetings,
-    server_info,
 )
 
 __all__ = [
@@ -19,5 +18,4 @@ __all__ = [
     "list_recent_meetings",
     "refresh_session",
     "search_meetings",
-    "server_info",
 ]

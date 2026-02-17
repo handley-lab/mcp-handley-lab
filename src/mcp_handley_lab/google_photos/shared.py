@@ -34,10 +34,6 @@ class PhotoItem(BaseModel):
     )
     width: int = Field(default=0, description="Image width in pixels.")
     height: int = Field(default=0, description="Image height in pixels.")
-    is_video: bool | None = Field(
-        default=None,
-        description="Whether this is a video. None if unknown (use detail action to check).",
-    )
 
 
 class PhotoDetail(BaseModel):
@@ -323,16 +319,14 @@ def download_photos(
 ) -> DownloadResult:
     """Download photos by media key. Skips videos."""
     os.makedirs(output_dir, exist_ok=True)
+    client, _ = _get_session()
     downloaded = []
-    failed = []
+    skipped = []
 
     for key in media_keys:
         detail = get_photo_detail(key)
-        if not detail.download_url:
-            failed.append(key)
-            continue
-        if detail.is_video:
-            failed.append(key)
+        if not detail.download_url or detail.is_video:
+            skipped.append(key)
             continue
 
         filename = detail.filename or f"{key[:20]}.jpg"
@@ -344,23 +338,19 @@ def download_photos(
         safe_name = f"{ts_prefix}_{key[:8]}_{filename}"
         output_path = os.path.join(output_dir, safe_name)
 
-        client, _ = _get_session()
+        resp = client.get(detail.download_url, follow_redirects=True)
+        resp.raise_for_status()
+        fd, tmp_path = tempfile.mkstemp(dir=output_dir, suffix=".tmp")
         try:
-            resp = client.get(detail.download_url, follow_redirects=True)
-            resp.raise_for_status()
-            fd, tmp_path = tempfile.mkstemp(dir=output_dir, suffix=".tmp")
-            try:
-                with os.fdopen(fd, "wb") as f:
-                    f.write(resp.content)
-                os.rename(tmp_path, output_path)
-                downloaded.append(output_path)
-            except Exception:
-                os.unlink(tmp_path)
-                raise
+            with os.fdopen(fd, "wb") as f:
+                f.write(resp.content)
+            os.rename(tmp_path, output_path)
         except Exception:
-            failed.append(key)
+            os.unlink(tmp_path)
+            raise
+        downloaded.append(output_path)
 
-    return DownloadResult(downloaded=downloaded, failed=failed, output_dir=output_dir)
+    return DownloadResult(downloaded=downloaded, failed=skipped, output_dir=output_dir)
 
 
 def show_photo(media_key: str) -> list:
@@ -384,7 +374,9 @@ def show_photo(media_key: str) -> list:
         meta += f" — {detail.camera_make} {detail.camera_model}"
 
     content_type = resp.headers.get("content-type", "image/jpeg")
-    fmt = content_type.split("/")[-1].split(";")[0]  # "image/jpeg" -> "jpeg"
+    fmt = content_type.split("/")[-1].split(";")[0]
+    if fmt == "jpg":
+        fmt = "jpeg"
 
     return [
         TextContent(type="text", text=meta),

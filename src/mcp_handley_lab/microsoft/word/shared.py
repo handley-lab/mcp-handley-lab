@@ -276,60 +276,141 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
     if operation in ("insert_before", "insert_after"):
         t = word_ops.resolve_target(pkg, target_id)
         position = "before" if operation == "insert_before" else "after"
-        el = word_ops.insert_content_ooxml(
-            pkg,
-            t.leaf_el,
-            position,
-            content_type,
-            content_data,
-            style_name,
-            heading_level,
-        )
-        # Apply formatting if provided
-        fmt = _parse_json_param(formatting, "formatting") or {}
-        if fmt:
-            from mcp_handley_lab.microsoft.word.constants import qn as _qn
+        if content_type == "paragraph" and "\n" in (content_data or ""):
+            blocks = word_ops.expand_markdown_content(content_data)
+            if operation == "insert_before":
+                # Insert first block before target
+                first_el = word_ops.create_paragraph_ooxml(blocks[0][1], style_name)
+                word_ops._insert_at(t.leaf_el, first_el, "before")
+                first_list_type = (
+                    blocks[0][0] if blocks[0][0] in ("bullet", "numbered") else None
+                )
+                if first_list_type:
+                    word_ops.create_list(pkg, first_el, first_list_type, blocks[0][2])
+                all_els = [first_el]
+                if len(blocks) > 1:
+                    last_el, created = word_ops.insert_markdown_blocks(
+                        pkg,
+                        first_el,
+                        blocks[1:],
+                        style_name=style_name,
+                        continue_list_type=first_list_type,
+                    )
+                    all_els.extend(created)
+                else:
+                    last_el = first_el
+            else:  # insert_after
+                last_el, all_els = word_ops.insert_markdown_blocks(
+                    pkg,
+                    t.leaf_el,
+                    blocks,
+                    style_name=style_name,
+                )
+            # Apply formatting to all created elements
+            fmt = _parse_json_param(formatting, "formatting") or {}
+            if fmt:
+                for el in all_els:
+                    if "style" in fmt:
+                        word_ops.set_paragraph_style_ooxml(el, fmt["style"])
+                    remaining = {k: v for k, v in fmt.items() if k != "style"}
+                    if remaining:
+                        word_ops.apply_paragraph_formatting(el, remaining)
+            element_id = word_ops.get_element_id_ooxml(pkg, last_el)
+            pkg.mark_xml_dirty("/word/document.xml")
+            message = f"Inserted {content_type} {position} {target_id}"
+        else:
+            el = word_ops.insert_content_ooxml(
+                pkg,
+                t.leaf_el,
+                position,
+                content_type,
+                content_data,
+                style_name,
+                heading_level,
+            )
+            # Apply formatting if provided
+            fmt = _parse_json_param(formatting, "formatting") or {}
+            if fmt:
+                from mcp_handley_lab.microsoft.word.constants import qn as _qn
 
-            if el.tag == _qn("w:p"):  # paragraph or heading
-                if "style" in fmt:
-                    word_ops.set_paragraph_style_ooxml(el, fmt.pop("style"))
-                if fmt:  # remaining formatting keys
-                    word_ops.apply_paragraph_formatting(el, fmt)
-            elif el.tag == _qn("w:tbl"):  # table
-                if "style" in fmt:
-                    word_ops.set_table_style(el, fmt["style"])
-        level = heading_level if content_type == "heading" else 0
-        element_id = word_ops.get_element_id_ooxml(pkg, el, level)
-        pkg.mark_xml_dirty("/word/document.xml")
-        message = f"Inserted {content_type} {position} {target_id}"
+                if el.tag == _qn("w:p"):  # paragraph or heading
+                    if "style" in fmt:
+                        word_ops.set_paragraph_style_ooxml(el, fmt.pop("style"))
+                    if fmt:  # remaining formatting keys
+                        word_ops.apply_paragraph_formatting(el, fmt)
+                elif el.tag == _qn("w:tbl"):  # table
+                    if "style" in fmt:
+                        word_ops.set_table_style(el, fmt["style"])
+            level = heading_level if content_type == "heading" else 0
+            element_id = word_ops.get_element_id_ooxml(pkg, el, level)
+            pkg.mark_xml_dirty("/word/document.xml")
+            message = f"Inserted {content_type} {position} {target_id}"
 
     elif operation == "append":
-        el = word_ops.append_content_ooxml(
-            pkg, content_type, content_data, style_name, heading_level
-        )
-        # Apply formatting if provided
-        fmt = _parse_json_param(formatting, "formatting") or {}
-        style_override = False
-        if fmt:
-            from mcp_handley_lab.microsoft.word.constants import qn as _qn
+        if content_type == "paragraph" and "\n" in (content_data or ""):
+            blocks = word_ops.expand_markdown_content(content_data)
+            # Append first block normally
+            first_el = word_ops.append_content_ooxml(
+                pkg, "paragraph", blocks[0][1], style_name, 0
+            )
+            first_list_type = (
+                blocks[0][0] if blocks[0][0] in ("bullet", "numbered") else None
+            )
+            if first_list_type:
+                word_ops.create_list(pkg, first_el, first_list_type, blocks[0][2])
+            all_els = [first_el]
+            if len(blocks) > 1:
+                last_el, created = word_ops.insert_markdown_blocks(
+                    pkg,
+                    first_el,
+                    blocks[1:],
+                    style_name=style_name,
+                    continue_list_type=first_list_type,
+                )
+                all_els.extend(created)
+            else:
+                last_el = first_el
+            # Apply formatting to all created elements
+            fmt = _parse_json_param(formatting, "formatting") or {}
+            if fmt:
+                for el in all_els:
+                    if "style" in fmt:
+                        word_ops.set_paragraph_style_ooxml(el, fmt["style"])
+                    remaining = {k: v for k, v in fmt.items() if k != "style"}
+                    if remaining:
+                        word_ops.apply_paragraph_formatting(el, remaining)
+            element_id = word_ops.get_element_id_ooxml(pkg, last_el)
+            pkg.mark_xml_dirty("/word/document.xml")
+            message = f"Appended {content_type} to document"
+        else:
+            el = word_ops.append_content_ooxml(
+                pkg, content_type, content_data, style_name, heading_level
+            )
+            # Apply formatting if provided
+            fmt = _parse_json_param(formatting, "formatting") or {}
+            style_override = False
+            if fmt:
+                from mcp_handley_lab.microsoft.word.constants import qn as _qn
 
-            if el.tag == _qn("w:p"):  # paragraph or heading
-                if "style" in fmt:
-                    word_ops.set_paragraph_style_ooxml(el, fmt.pop("style"))
-                    style_override = True
-                if fmt:  # remaining formatting keys
-                    word_ops.apply_paragraph_formatting(el, fmt)
-            elif el.tag == _qn("w:tbl"):  # table
-                if "style" in fmt:
-                    word_ops.set_table_style(el, fmt["style"])
-        # If style was overridden, use level=0 to let paragraph_kind_and_level
-        # determine the block type from the actual style
-        level = (
-            0 if style_override else (heading_level if content_type == "heading" else 0)
-        )
-        element_id = word_ops.get_element_id_ooxml(pkg, el, level)
-        pkg.mark_xml_dirty("/word/document.xml")
-        message = f"Appended {content_type} to document"
+                if el.tag == _qn("w:p"):  # paragraph or heading
+                    if "style" in fmt:
+                        word_ops.set_paragraph_style_ooxml(el, fmt.pop("style"))
+                        style_override = True
+                    if fmt:  # remaining formatting keys
+                        word_ops.apply_paragraph_formatting(el, fmt)
+                elif el.tag == _qn("w:tbl"):  # table
+                    if "style" in fmt:
+                        word_ops.set_table_style(el, fmt["style"])
+            # If style was overridden, use level=0 to let paragraph_kind_and_level
+            # determine the block type from the actual style
+            level = (
+                0
+                if style_override
+                else (heading_level if content_type == "heading" else 0)
+            )
+            element_id = word_ops.get_element_id_ooxml(pkg, el, level)
+            pkg.mark_xml_dirty("/word/document.xml")
+            message = f"Appended {content_type} to document"
 
     elif operation == "edit_style":
         fmt = _parse_json_param(formatting, "formatting") or {}
@@ -346,8 +427,41 @@ def _apply_operation(pkg: WordPackage, file_path: str, params: dict) -> OpResult
     elif operation == "replace":
         t = word_ops.resolve_target(pkg, target_id)
         if t.leaf_kind.startswith("heading") or t.leaf_kind == "paragraph":
-            word_ops.set_paragraph_text_ooxml(t.leaf_el, content_data)
-            element_id = _recalc_block_id(pkg, t)
+            if "\n" in (content_data or ""):
+                blocks = word_ops.expand_markdown_content(content_data)
+                base_style = word_ops.get_paragraph_style(t.leaf_el)
+                # First block replaces target paragraph text
+                word_ops.set_paragraph_text_ooxml(t.leaf_el, blocks[0][1])
+                if blocks[0][0] in ("bullet", "numbered"):
+                    word_ops.create_list(pkg, t.leaf_el, blocks[0][0], blocks[0][2])
+                first_list_type = (
+                    blocks[0][0] if blocks[0][0] in ("bullet", "numbered") else None
+                )
+                all_els = [t.leaf_el]
+                if len(blocks) > 1:
+                    last_el, created = word_ops.insert_markdown_blocks(
+                        pkg,
+                        t.leaf_el,
+                        blocks[1:],
+                        style_name=base_style,
+                        continue_list_type=first_list_type,
+                    )
+                    all_els.extend(created)
+                else:
+                    last_el = t.leaf_el
+                # Apply formatting to all created elements
+                fmt = _parse_json_param(formatting, "formatting") or {}
+                if fmt:
+                    for el in all_els:
+                        if "style" in fmt:
+                            word_ops.set_paragraph_style_ooxml(el, fmt["style"])
+                        remaining = {k: v for k, v in fmt.items() if k != "style"}
+                        if remaining:
+                            word_ops.apply_paragraph_formatting(el, remaining)
+                element_id = word_ops.get_element_id_ooxml(pkg, last_el)
+            else:
+                word_ops.set_paragraph_text_ooxml(t.leaf_el, content_data)
+                element_id = _recalc_block_id(pkg, t)
         elif t.leaf_kind == "table":
             table_data = _parse_json_param(content_data, "content_data", list) or []
             new_tbl_el = word_ops.replace_table(t.leaf_el, table_data)

@@ -1057,3 +1057,105 @@ def mail_merge(
         pkg.mark_xml_dirty(part_name)
 
     return total_count
+
+
+# =============================================================================
+# Markdown Content Expansion
+# =============================================================================
+
+_NUMBERED_RE = re.compile(r"^\d+\.\s+")
+
+
+def insert_markdown_blocks(
+    pkg,
+    anchor_el: etree._Element,
+    blocks: list[tuple[str, str, int]],
+    style_name: str = "",
+    continue_list_type: str | None = None,
+) -> tuple[etree._Element, list[etree._Element]]:
+    """Insert multiple content blocks after anchor_el.
+
+    Handles paragraph creation, list grouping (consecutive items of the same
+    type share a single list), and style application.
+
+    Args:
+        pkg: WordPackage
+        anchor_el: Element to insert after (cursor moves forward)
+        blocks: Output from expand_markdown_content()
+        style_name: Style to apply to all created paragraphs
+        continue_list_type: If anchor_el is already a list item of this type,
+            the first matching block will continue that list via add_to_list
+            instead of creating a new list.
+
+    Returns (last_inserted_element, all_created_elements).
+    """
+    from mcp_handley_lab.microsoft.word.ops.lists import add_to_list, create_list
+
+    cursor = anchor_el
+    created: list[etree._Element] = []
+    # Track current list run for grouping consecutive items
+    current_list_type: str | None = continue_list_type
+    current_list_first_el: etree._Element | None = (
+        anchor_el if continue_list_type else None
+    )
+
+    for block_type, text, level in blocks:
+        if block_type in ("bullet", "numbered"):
+            if current_list_type == block_type and current_list_first_el is not None:
+                # Continue existing list run
+                new_p = add_to_list(pkg, cursor, text, "after", level)
+            else:
+                # Start new list run
+                new_p = create_paragraph_ooxml(text, style_name)
+                _insert_at(cursor, new_p, "after")
+                create_list(pkg, new_p, block_type, level)
+                current_list_type = block_type
+                current_list_first_el = new_p
+            if style_name:
+                set_paragraph_style_ooxml(new_p, style_name)
+            cursor = new_p
+            created.append(new_p)
+        else:
+            # Plain paragraph — breaks any list run
+            current_list_type = None
+            current_list_first_el = None
+            new_p = create_paragraph_ooxml(text, style_name)
+            _insert_at(cursor, new_p, "after")
+            cursor = new_p
+            created.append(new_p)
+
+    pkg.mark_xml_dirty("/word/document.xml")
+    return cursor, created
+
+
+def expand_markdown_content(text: str) -> list[tuple[str, str, int]]:
+    """Parse lightweight markdown into structured content blocks.
+
+    Returns list of (block_type, text, indent_level) tuples:
+    - ("paragraph", "text", 0) for plain text
+    - ("bullet", "item text", level) for bullet items (- or *)
+    - ("numbered", "item text", level) for numbered items (1. text)
+    - ("paragraph", "", 0) for blank lines (empty paragraph)
+
+    Works on any input. Callers check for '\\n' in content_data before
+    calling to preserve backward compatibility with single-line content.
+    """
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    blocks: list[tuple[str, str, int]] = []
+    for line in text.split("\n"):
+        if not line.strip():
+            blocks.append(("paragraph", "", 0))
+            continue
+        # Count indent level (2 spaces per level, capped at 8)
+        stripped = line.lstrip(" ")
+        indent = min((len(line) - len(stripped)) // 2, 8)
+        # Bullet: - or * followed by space
+        if stripped.startswith("- ") or stripped.startswith("* "):
+            blocks.append(("bullet", stripped[2:], indent))
+        # Numbered: digits + dot + space
+        elif _NUMBERED_RE.match(stripped):
+            item_text = _NUMBERED_RE.sub("", stripped, count=1)
+            blocks.append(("numbered", item_text, indent))
+        else:
+            blocks.append(("paragraph", stripped, indent))
+    return blocks

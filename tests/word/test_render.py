@@ -262,16 +262,10 @@ async def test_mcp_render_png_output(sample_docx):
 @pytest.mark.asyncio
 async def test_mcp_render_pdf_output(sample_docx):
     """Test MCP render tool with PDF output."""
-    import base64
-
     result = await mcp.call_tool(
         "render",
         {"file_path": str(sample_docx), "output": "pdf"},
     )
-    # Returns list with TextContent label and Image (PDF bytes)
-    assert len(result) == 2
-    assert "PDF" in result[0].text
-    assert "bytes" in result[0].text
-    # MCP Image returns base64-encoded data
-    pdf_bytes = base64.b64decode(result[1].data)
-    assert pdf_bytes[:4] == b"%PDF"
+    # Returns TextContent with path to saved PDF
+    assert len(result) == 1
+    assert "PDF saved to" in result[0].text

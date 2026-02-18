@@ -3,6 +3,8 @@
 Identical interface to MCP tools, usable without MCP server.
 """
 
+import re
+import tempfile
 from email.parser import HeaderParser
 from pathlib import Path
 
@@ -278,14 +280,37 @@ def send(
             else f"{forward_intro}\n{header_block}\n\n{forwarded_content}\n\n{forward_trailer}"
         )
 
-        return _compose_email(
-            to=to,
-            cc=cc,
-            bcc=bcc,
-            subject=forward_subject,
-            body=complete_forward_body,
-            attachments=attachments,
-        )
+        # Extract original attachments to temp dir for forwarding
+        with tempfile.TemporaryDirectory(prefix="mcp-fwd-") as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            original_attachments = []
+            for part in raw_msg.walk():
+                if part.get_content_disposition() != "attachment":
+                    continue
+                if part_filename := part.get_filename():
+                    clean_filename = re.sub(
+                        r'[\\/*?:"<>|]', "_", Path(part_filename).name
+                    )
+                    file_path = tmpdir_path / clean_filename
+                    counter = 1
+                    stem, suffix = file_path.stem, file_path.suffix
+                    while file_path.exists():
+                        file_path = tmpdir_path / f"{stem}_{counter}{suffix}"
+                        counter += 1
+                    if payload := part.get_payload(decode=True):
+                        file_path.write_bytes(payload)
+                        original_attachments.append(str(file_path))
+
+            all_attachments = original_attachments + (attachments or [])
+
+            return _compose_email(
+                to=to,
+                cc=cc,
+                bcc=bcc,
+                subject=forward_subject,
+                body=complete_forward_body,
+                attachments=all_attachments or None,
+            )
 
     else:
         raise ValueError(f"Unknown mode: {mode}. Use 'compose', 'reply', or 'forward'.")

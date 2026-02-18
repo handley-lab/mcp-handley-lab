@@ -3,6 +3,8 @@
 Identical interface to MCP tools, usable without MCP server.
 """
 
+import re
+
 from mcp_handley_lab.email.common import _list_accounts
 from mcp_handley_lab.email.notmuch.tool import (
     Contact,
@@ -20,6 +22,24 @@ from mcp_handley_lab.email.notmuch.tool import (
     _show_email,
     _tag_email,
 )
+
+
+def _normalize_folder_query(query: str) -> str:
+    """Normalize partially-quoted folder: terms in notmuch queries.
+
+    Rewrites e.g. folder:Hermes/"Sent Items.2024" to folder:"Hermes/Sent Items.2024".
+    Already fully-quoted values are left unchanged.
+    """
+    pattern = re.compile(r'folder:("(?:[^"\\]|\\.)*"|[^\s\)\]\}]+)')
+
+    def _rewrite(match: re.Match) -> str:
+        value = match.group(1)
+        if value.startswith('"') and value.endswith('"'):
+            return match.group(0)
+        clean = value.replace('"', "")
+        return f'folder:"{clean}"'
+
+    return pattern.sub(_rewrite, query)
 
 
 def read(
@@ -80,6 +100,10 @@ def read(
     # Resolve abbreviated message IDs in query (supports id: and mid: terms)
     if "id:" in query or "mid:" in query:
         query = _resolve_id_in_query(query)
+
+    # Normalize folder: quoting (e.g. folder:Hermes/"Sent Items" → folder:"Hermes/Sent Items")
+    if "folder:" in query:
+        query = _normalize_folder_query(query)
 
     # Headers mode: lightweight search (no body parsing)
     if mode == "headers":

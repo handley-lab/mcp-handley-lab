@@ -21,6 +21,7 @@ from mcp_handley_lab.google_calendar.tool import (
     _is_all_day_event,
     _parse_datetime_to_utc,
     _prepare_event_datetime,
+    _resolve_attachments,
     _resolve_calendar_id,
     _validate_recurrence,
     _would_be_timed_event,
@@ -251,6 +252,7 @@ def create(
     end_timezone: str = "",
     attendees: list[str] | None = None,
     recurrence: list[str] | None = None,
+    attachments: list[str] | None = None,
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing.
 
@@ -265,6 +267,7 @@ def create(
         end_timezone: Explicit IANA timezone for the end time.
         attendees: A list of attendee email addresses to invite.
         recurrence: Recurrence rules as RRULE strings (e.g., ['RRULE:FREQ=WEEKLY;COUNT=10']).
+        attachments: Files to attach (local paths or Google Drive URLs).
 
     Returns:
         CreatedEventResult with event details.
@@ -312,9 +315,17 @@ def create(
     if recurrence:
         event_body["recurrence"] = recurrence
 
+    if attachments:
+        event_body["attachments"] = _resolve_attachments(attachments)
+
     created_event = (
         service.events()
-        .insert(calendarId=resolved_id, body=event_body, sendUpdates="all")
+        .insert(
+            calendarId=resolved_id,
+            body=event_body,
+            sendUpdates="all",
+            supportsAttachments=True,
+        )
         .execute()
     )
 
@@ -377,6 +388,7 @@ def update(
     normalize_timezone: bool = False,
     update_series: bool = False,
     recurrence: list[str] | None = None,
+    attachments: list[str] | None = None,
 ) -> UpdateEventResult:
     """Update or move a calendar event.
 
@@ -395,6 +407,7 @@ def update(
         normalize_timezone: Fix timezone inconsistencies (UTC time with non-UTC label).
         update_series: If True, update the entire recurring series (resolves instance to master).
         recurrence: New recurrence rules. None=no change. []=remove recurrence.
+        attachments: Files to attach (local paths or Google Drive URLs). Replaces existing.
 
     Returns:
         UpdateEventResult with update details.
@@ -539,6 +552,10 @@ def update(
             update_body["end"] = _prepare_event_datetime(end_datetime, target_tz)
             updated_fields.append("end_datetime")
 
+    if attachments is not None:
+        update_body["attachments"] = _resolve_attachments(attachments)
+        updated_fields.append("attachments")
+
     if not update_body:
         return UpdateEventResult(
             event_id=event_id,
@@ -554,6 +571,7 @@ def update(
             eventId=target_event_id,
             body=update_body,
             sendUpdates="all",
+            supportsAttachments=True,
         )
         .execute()
     )

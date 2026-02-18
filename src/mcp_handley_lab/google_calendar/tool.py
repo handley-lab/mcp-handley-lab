@@ -5,6 +5,7 @@ import pickle
 import zoneinfo
 from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, TypedDict
 
 import dateparser
@@ -50,6 +51,14 @@ class EventDateTime(BaseModel):
     )
 
 
+class EventAttachment(BaseModel):
+    """Calendar event attachment (Google Drive file)."""
+
+    title: str = Field(default="", description="File name.")
+    fileUrl: str = Field(..., description="Google Drive URL.")
+    mimeType: str = Field(default="", description="MIME type.")
+
+
 class CalendarEvent(BaseModel):
     """Calendar event details."""
 
@@ -91,6 +100,10 @@ class CalendarEvent(BaseModel):
     originalStartTime: EventDateTime | None = Field(
         default=None,
         description="For instances: scheduled start per recurrence rule (may differ from actual start if rescheduled).",
+    )
+    attachments: list[EventAttachment] = Field(
+        default_factory=list,
+        description="Google Drive file attachments.",
     )
 
 
@@ -451,7 +464,78 @@ def _build_event_model(event_data: dict) -> CalendarEvent:
         recurrence=event_data.get("recurrence", []),
         recurringEventId=event_data.get("recurringEventId", ""),
         originalStartTime=original_start,
+        attachments=[
+            EventAttachment(
+                title=att.get("title", ""),
+                fileUrl=att.get("fileUrl", ""),
+                mimeType=att.get("mimeType", ""),
+            )
+            for att in event_data.get("attachments", [])
+        ],
     )
+
+
+def _upload_to_drive(local_path: str, remote: str = "gdrive") -> tuple[str, str]:
+    """Upload a local file to Google Drive via rclone, return (fileUrl, fileId)."""
+    import json
+    import subprocess
+    import uuid
+
+    path = Path(local_path).expanduser()
+    folder = f"mcp-calendar-attachments/{uuid.uuid4()}"
+    dest = f"{remote}:{folder}/"
+
+    subprocess.run(["rclone", "copy", str(path), dest], check=True)
+
+    # Get file ID from rclone
+    result = subprocess.run(
+        ["rclone", "lsjson", f"{remote}:{folder}/{path.name}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    file_info = json.loads(result.stdout)[0]
+    file_id = file_info["ID"]
+
+    # Set public sharing permissions
+    subprocess.run(
+        ["rclone", "link", f"{remote}:{folder}/{path.name}"],
+        capture_output=True,
+        check=True,
+    )
+
+    return f"https://drive.google.com/open?id={file_id}", file_id
+
+
+def _resolve_attachments(attachments: list[str]) -> list[dict[str, str]]:
+    """Resolve file paths/URLs to Calendar API attachment dicts."""
+    import mimetypes
+    from urllib.parse import parse_qs, urlparse
+
+    resolved = []
+    for entry in attachments:
+        if entry.startswith("https://drive.google.com/"):
+            # Passthrough Drive URL — extract fileId if possible
+            parsed = urlparse(entry)
+            file_id = parse_qs(parsed.query).get("id", [""])[0]
+            att = {"fileUrl": entry, "title": "Drive attachment"}
+            if file_id:
+                att["fileId"] = file_id
+            resolved.append(att)
+        else:
+            # Local file — upload to Drive
+            path = Path(entry).expanduser()
+            file_url, file_id = _upload_to_drive(entry)
+            mime_type = mimetypes.guess_type(path.name)[0] or ""
+            resolved.append(
+                {
+                    "fileUrl": file_url,
+                    "fileId": file_id,
+                    "title": path.name,
+                    "mimeType": mime_type,
+                }
+            )
+    return resolved
 
 
 def _get_normalization_patch(event_data: dict) -> dict:
@@ -818,6 +902,11 @@ def create(
         None,
         description="Recurrence rules as RRULE strings (e.g., ['RRULE:FREQ=WEEKLY;COUNT=10']). None for single event.",
     ),
+    attachments: list[str] = Field(
+        default_factory=list,
+        description="Files to attach. Accepts local paths (uploaded to Google Drive via rclone) "
+        "or existing Google Drive URLs.",
+    ),
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing and flexible timezone handling."""
     from mcp_handley_lab.google_calendar.shared import create as _create
@@ -833,6 +922,7 @@ def create(
         end_timezone=end_timezone,
         attendees=attendees,
         recurrence=recurrence,
+        attachments=attachments or None,
     )
 
 
@@ -885,6 +975,11 @@ def update(
         None,
         description="New recurrence rules. None=no change. Empty list=remove recurrence (convert to single event). Only valid with update_series=True.",
     ),
+    attachments: list[str] = Field(
+        default_factory=list,
+        description="Files to attach. Accepts local paths (uploaded to Google Drive via rclone) "
+        "or existing Google Drive URLs. Replaces all existing attachments.",
+    ),
 ) -> UpdateEventResult:
     """Update or move an event. Move and update are mutually exclusive."""
     from mcp_handley_lab.google_calendar.shared import update as _update
@@ -903,6 +998,7 @@ def update(
         normalize_timezone=normalize_timezone,
         update_series=update_series,
         recurrence=recurrence,
+        attachments=attachments or None,
     )
 
 

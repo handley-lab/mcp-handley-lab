@@ -49,7 +49,6 @@ def _build_smtp_dict(data: dict) -> dict:
     """Build normalized smtp structure from msmtp log data."""
     return {
         "message_id": data.get("message_id", ""),
-        "recipients": data.get("all_recipients", []),
         "mail_size_bytes": data.get("mail_size_bytes", 0),
         "status_code": data.get("smtp_status_code", ""),
     }
@@ -502,32 +501,27 @@ def _parse_msmtp_log_entry(log_line: str) -> dict:
     return data
 
 
-def _check_recent_send() -> tuple[bool, bool, dict]:
+def _check_recent_send(start_offset: int, end_offset: int) -> tuple[bool, bool, dict]:
     """Check if a recent send occurred and extract detailed information.
 
-    Only call after confirming log file exists and grew (via _get_msmtp_log_size).
+    Reads only the byte range [start_offset, end_offset) from the msmtp log,
+    bounding the read to bytes appended during this session's mutt invocation.
 
     Returns:
         (send_occurred, send_successful, data_dict)
     """
     log_path = os.path.expanduser("~/.msmtp.log")
-    with builtins.open(log_path) as f:
-        lines = f.readlines()
-        if not lines:
-            return False, False, {}
+    with builtins.open(log_path, "rb") as f:
+        f.seek(start_offset)
+        chunk = f.read(end_offset - start_offset)
+    lines = chunk.decode(errors="replace").splitlines()
 
-        # Get the last line (most recent entry)
-        last_line = lines[-1].strip()
-        if not last_line:
-            return False, False, {}
-
-        # Check if it contains exitcode info (indicates a send attempt)
-        if "exitcode=" in last_line:
-            # Parse the log entry for detailed data
-            data = _parse_msmtp_log_entry(last_line)
-
-            # Check if it was successful (EX_OK = 0)
-            send_successful = "exitcode=EX_OK" in last_line
+    # Find last line with exitcode= (our send attempt), scanning in reverse
+    for line in reversed(lines):
+        line = line.strip()
+        if line and "exitcode=" in line:
+            data = _parse_msmtp_log_entry(line)
+            send_successful = "exitcode=EX_OK" in line
             return True, send_successful, data
 
     return False, False, {}
@@ -551,7 +545,9 @@ def _execute_mutt_interactive(
 
     # If log size increased, check the recent send status
     if log_size_after > log_size_before:
-        send_occurred, send_successful, data = _check_recent_send()
+        send_occurred, send_successful, data = _check_recent_send(
+            log_size_before, log_size_after
+        )
         if send_occurred:
             return exit_code, "success" if send_successful else "error", data
 

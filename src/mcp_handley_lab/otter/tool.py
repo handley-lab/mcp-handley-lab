@@ -1,7 +1,7 @@
 """Otter.ai MCP tool for accessing live meeting transcripts.
 
 Uses undocumented Otter.ai API with session cookies.
-Session must be refreshed via 'refresh' action or otter-refresh-session.
+Cookies auto-extracted from browser (Chrome/Chromium/Brave/Firefox) via pycookiecheat.
 """
 
 from typing import Literal
@@ -28,8 +28,9 @@ Actions:
   Optional: limit (default 10).
 - search: Filter recent meetings by title (client-side).
   Required: query. Optional: limit (default 10).
-- refresh: Refresh session cookies using Playwright headless.
-  No params. Auto-copies Chrome profile on first run. Requires: playwright installed.
+- refresh: Refresh session cookies from browser cookie store.
+  Tries Chrome, Chromium, Brave, Firefox. If not logged in, opens otter.ai sign-in page.
+  Note: API calls auto-refresh on auth failure, so explicit refresh is rarely needed.
 """
 )
 def otter(

@@ -5,10 +5,8 @@ All functions are usable without MCP server.
 
 import json
 import os
-import sys
 import tempfile
 from datetime import datetime
-from pathlib import Path
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
@@ -127,8 +125,9 @@ def _clear_session_cache():
 # --- API helpers ---
 
 
-_SESSION_EXPIRED = (
-    "Otter session expired. Call otter(action='refresh') or run otter-refresh-session."
+_NOT_LOGGED_IN = (
+    "No Otter.ai session found in any browser (tried Chrome, Chromium, Brave, Firefox). "
+    "Please log in at https://otter.ai in your browser, then retry."
 )
 
 
@@ -140,17 +139,37 @@ def _parse_json(resp: httpx.Response) -> dict:
     return resp.json()
 
 
+def _auto_refresh() -> bool:
+    """Try to refresh session from browser cookies. Returns True if successful."""
+    try:
+        refresh_session()
+        return True
+    except RuntimeError:
+        return False
+
+
 def _api_get(path: str, params: dict | None = None) -> dict:
-    """GET an Otter API endpoint with session cookies. Retries once on auth failure."""
+    """GET an Otter API endpoint with session cookies.
+
+    On auth failure: reloads session file, then auto-refreshes from browser cookies.
+    """
     client = _get_session()
     resp = client.get(f"{API_BASE}/{path}", params=params)
 
     if resp.status_code in (400, 401, 403):
+        # Try reloading from disk first (another process may have refreshed)
         _clear_session_cache()
         client = _get_session(force_reload=True)
         resp = client.get(f"{API_BASE}/{path}", params=params)
+
         if resp.status_code in (400, 401, 403):
-            raise RuntimeError(_SESSION_EXPIRED)
+            # Auto-refresh from browser cookies
+            if not _auto_refresh():
+                raise RuntimeError(_NOT_LOGGED_IN)
+            client = _get_session(force_reload=True)
+            resp = client.get(f"{API_BASE}/{path}", params=params)
+            if resp.status_code in (400, 401, 403):
+                raise RuntimeError(_NOT_LOGGED_IN)
 
     resp.raise_for_status()
 
@@ -158,6 +177,8 @@ def _api_get(path: str, params: dict | None = None) -> dict:
         return _parse_json(resp)
     except (RuntimeError, json.JSONDecodeError):
         _clear_session_cache()
+        if not _auto_refresh():
+            raise RuntimeError(_NOT_LOGGED_IN) from None
         client = _get_session(force_reload=True)
         resp = client.get(f"{API_BASE}/{path}", params=params)
         resp.raise_for_status()
@@ -318,119 +339,47 @@ def search_meetings(query: str, limit: int = 10) -> list[MeetingSummary]:
     return results
 
 
-_REFRESH_SCRIPT = """
-import json, sys
-from playwright.sync_api import sync_playwright
+def _extract_browser_cookies() -> dict:
+    """Try extracting otter.ai cookies from installed browsers.
 
-chrome_profile = sys.argv[1]
-output_file = sys.argv[2]
+    Tries Chrome, Chromium, Brave, then Firefox. Returns the first cookie jar
+    that contains a sessionid, or raises RuntimeError.
+    """
+    from pycookiecheat import BrowserType, chrome_cookies, firefox_cookies
 
-with sync_playwright() as p:
-    browser = p.chromium.launch_persistent_context(
-        user_data_dir=chrome_profile, headless=True, channel="chrome",
-    )
+    for browser in (BrowserType.CHROME, BrowserType.CHROMIUM, BrowserType.BRAVE):
+        try:
+            cookies = chrome_cookies("https://otter.ai", browser=browser)
+            if "sessionid" in cookies:
+                return cookies
+        except Exception:
+            continue
+
     try:
-        page = browser.pages[0] if browser.pages else browser.new_page()
-        page.goto("https://otter.ai/home", wait_until="domcontentloaded")
-        page.wait_for_timeout(5000)
-        all_cookies = browser.cookies("https://otter.ai")
-        cookies = [
-            {"name": c["name"], "value": c["value"],
-             "domain": c.get("domain", "otter.ai"), "path": c.get("path", "/")}
-            for c in all_cookies if "otter.ai" in c.get("domain", "")
-        ]
-    finally:
-        browser.close()
-with open(output_file, "w") as f:
-    json.dump(cookies, f)
-"""
+        cookies = firefox_cookies("https://otter.ai")
+        if "sessionid" in cookies:
+            return cookies
+    except Exception:
+        pass
 
+    import webbrowser
 
-_MANAGED_MARKER = ".mcp_otter_managed"
-
-# Directories to exclude when copying Chrome profile (~300MB vs ~4GB)
-_PROFILE_SKIP = {
-    "Cache",
-    "Code Cache",
-    "GPUCache",
-    "CacheStorage",
-    "DawnCache",
-    "Service Worker",
-    "WebStorage",
-    "File System",
-    "IndexedDB",
-    "SingletonLock",
-    "SingletonCookie",
-    "SingletonSocket",
-}
-
-
-def _ensure_chrome_profile():
-    """Ensure the Otter Chrome profile exists, copying from the system Chrome profile."""
-    import shutil
-
-    chrome_profile = settings.otter_chrome_profile_path
-    if chrome_profile.exists() and (chrome_profile / "Default").exists():
-        return
-
-    source = Path.home() / ".config" / "google-chrome"
-    if not (source / "Default").exists():
-        raise RuntimeError(
-            f"Chrome profile not found at {source}. "
-            "Start Chrome at least once, then retry."
-        )
-
-    # Remove stale/incomplete copies (only if we created them)
-    if chrome_profile.exists():
-        if not (chrome_profile / _MANAGED_MARKER).exists():
-            raise RuntimeError(
-                f"{chrome_profile} exists but is not managed by mcp-otter. "
-                "Delete it manually if safe, then retry."
-            )
-        shutil.rmtree(chrome_profile)
-
-    shutil.copytree(
-        str(source),
-        str(chrome_profile),
-        ignore=shutil.ignore_patterns(*_PROFILE_SKIP),
-    )
-    (chrome_profile / _MANAGED_MARKER).touch()
+    webbrowser.open("https://otter.ai/signin")
+    raise RuntimeError(_NOT_LOGGED_IN)
 
 
 def refresh_session() -> RefreshResult:
-    """Refresh Otter.ai session using Playwright headless with a Chrome profile copy.
+    """Refresh Otter.ai session by extracting cookies from the user's browser.
 
-    Runs in a subprocess to avoid asyncio loop conflicts with FastMCP.
+    Tries Chrome, Chromium, Brave, and Firefox via pycookiecheat.
+    If no browser has a valid session, opens otter.ai sign-in page and raises an error.
     """
-    import subprocess
+    raw_cookies = _extract_browser_cookies()
 
-    _ensure_chrome_profile()
-    chrome_profile = settings.otter_chrome_profile_path
-
-    session_path = settings.otter_session_path
-    session_path.parent.mkdir(parents=True, exist_ok=True)
-
-    fd, tmp_cookies = tempfile.mkstemp(suffix=".json")
-    os.close(fd)
-
-    try:
-        result = subprocess.run(
-            [sys.executable, "-c", _REFRESH_SCRIPT, str(chrome_profile), tmp_cookies],
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Refresh failed: {result.stderr.strip()}")
-
-        with open(tmp_cookies) as f:
-            cookies = json.load(f)
-    finally:
-        if os.path.exists(tmp_cookies):
-            os.unlink(tmp_cookies)
-
-    if not any(c["name"] == "sessionid" for c in cookies):
-        raise RuntimeError("Not logged in to Otter.ai. Log in via Chrome, then retry.")
+    cookies = [
+        {"name": name, "value": value, "domain": ".otter.ai", "path": "/"}
+        for name, value in raw_cookies.items()
+    ]
 
     session_data = {
         "cookies": cookies,

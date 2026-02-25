@@ -66,10 +66,6 @@ class Settings(BaseSettings):
         default="~/.local/share/otter/session.json",
         description="Path to Otter.ai session file with cookies.",
     )
-    otter_chrome_profile: str = Field(
-        default="~/.local/share/otter/chrome-profile",
-        description="Path to dedicated Chrome profile for Otter.ai Playwright refresh.",
-    )
     otter_timeout: int = Field(
         default=30,
         description="HTTP timeout in seconds for Otter.ai API requests.",
@@ -94,11 +90,6 @@ class Settings(BaseSettings):
     def otter_session_path(self) -> Path:
         """Get resolved path for Otter.ai session."""
         return Path(self.otter_session_file).expanduser()
-
-    @property
-    def otter_chrome_profile_path(self) -> Path:
-        """Get resolved path for Otter.ai Chrome profile."""
-        return Path(self.otter_chrome_profile).expanduser()
 
 
 settings = Settings()

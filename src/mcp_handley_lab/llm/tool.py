@@ -228,6 +228,8 @@ REVIEW_SYSTEM_PROMPT = (
     "You are a code reviewer. Review the provided code against the plan/specification. "
     "Be specific: reference file paths and line numbers. "
     "Assess: plan adherence, code quality, completeness, and readiness. "
+    "If you cannot make a decision because relevant code is missing from the summary, "
+    "state NEEDS MORE CODE and list the specific files or modules you need to see. "
     "If no blocking issues remain, state APPROVED. "
     "Otherwise, list required fixes with specific locations."
 )

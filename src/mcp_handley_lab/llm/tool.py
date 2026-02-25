@@ -225,7 +225,7 @@ def conversation(
 
 
 REVIEW_SYSTEM_PROMPT = (
-    "You are a code reviewer. Review the provided code against the plan/specification. "
+    "You are a code reviewer. Review the provided code against any plan/specification. "
     "Be specific: reference file paths and line numbers. "
     "Assess: plan adherence, code quality, completeness, and readiness. "
     "If you cannot make a decision because relevant code is missing from the summary, "
@@ -235,21 +235,22 @@ REVIEW_SYSTEM_PROMPT = (
 )
 
 DEFAULT_REVIEW_PROMPT = (
-    "Review this implementation against the plan. "
-    "Check plan adherence, code quality, completeness, and readiness to proceed."
+    "Review this implementation. "
+    "Check code quality, completeness, and readiness to proceed."
 )
 
 
 @mcp.tool(
     description="Review code with an external LLM. Runs code2prompt internally "
-    "(with --line-numbers), then sends the summary + plan file + any extra files "
-    "to the LLM for review. Replaces the manual code2prompt -> chat workflow. "
+    "(with --line-numbers) from the current directory, then sends the summary + "
+    "plan + any extra files to the LLM for review. "
     "Returns: {content, usage, branch, commit_sha}."
 )
 def review(
-    path: str = Field(..., description="Path to the codebase or directory to review."),
     plan: str = Field(
-        ..., description="Path to the plan/specification file to review against."
+        default="",
+        description="Path to plan/specification file to review against. "
+        "Strongly recommended so the reviewer has a spec to assess compliance.",
     ),
     prompt: str = Field(
         default="",
@@ -275,8 +276,7 @@ def review(
     ),
     files: list[str] = Field(
         default_factory=list,
-        description="Additional context files (e.g., CLAUDE.md). "
-        "Plan is included automatically.",
+        description="Additional context files (e.g., CLAUDE.md).",
     ),
     output_file: str = Field(
         default="",
@@ -290,20 +290,17 @@ def review(
     """Review code by running code2prompt and sending to an LLM."""
     import tempfile
 
-    # Expand ~ in all paths
-    path = str(Path(path).expanduser())
-    plan = str(Path(plan).expanduser())
-    files = [str(Path(f).expanduser()) for f in files]
+    if plan:
+        plan = str(Path(plan).expanduser())
+    files = [str(Path(f).expanduser()) for f in files if f]
     if output_file:
         output_file = str(Path(output_file).expanduser())
 
-    # Create temp file for code2prompt output
     fd, c2p_output = tempfile.mkstemp(suffix=".md", prefix="review_")
     os.close(fd)
 
     try:
-        # Build code2prompt CLI args
-        args = [path, "--output-file", c2p_output, "--line-numbers"]
+        args = [".", "--output-file", c2p_output, "--line-numbers"]
         for pat in include:
             args.extend(["--include", pat])
         for pat in exclude:
@@ -313,13 +310,11 @@ def review(
 
         run_command(["code2prompt"] + args, timeout=120)
 
-        # Assemble files and prompt
-        all_files = [c2p_output, plan] + files
+        all_files = [c2p_output] + ([plan] if plan else []) + files
         final_prompt = DEFAULT_REVIEW_PROMPT
         if prompt:
             final_prompt = f"{DEFAULT_REVIEW_PROMPT}\n\n{prompt}"
 
-        # Resolve model and call LLM
         provider, canonical_model, config = resolve_model(model)
         resolved_branch = _resolve_session_branch(branch)
         generation_func = resolve_generation_adapter(provider, config)

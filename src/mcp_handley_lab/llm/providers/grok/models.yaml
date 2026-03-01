@@ -181,6 +181,7 @@ models:
     capabilities: "🎬 Best for: Video creation, animated content with audio"
     tags: ["video-generation", "creative", "latest"]
     context_window: "131,072 tokens"
+    output_tokens: 0
 
     # Pricing (per second)
     price_per_second: 0.050

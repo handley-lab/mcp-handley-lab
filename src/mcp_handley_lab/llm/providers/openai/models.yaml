@@ -522,6 +522,8 @@ models:
     capabilities: "🎬 Best for: Video creation, motion content"
     tags: ["video-generation", "latest"]
     context_window: "N/A (Video generation)"
+    output_tokens: 0
+    param: "max_output_tokens"
 
     # Pricing (per second)
     price_per_second: 0.10
@@ -533,6 +535,8 @@ models:
     capabilities: "🎬 Best for: High-quality video creation, professional content"
     tags: ["video-generation", "premium"]
     context_window: "N/A (Video generation)"
+    output_tokens: 0
+    param: "max_output_tokens"
 
     # Pricing (per second, resolution-dependent)
     price_per_second_720p: 0.30
@@ -547,6 +551,7 @@ models:
     tags: ["tts", "audio", "speech", "cost-effective"]
     context_window: "N/A (TTS)"
     output_tokens: 0
+    param: "max_output_tokens"
 
     # Pricing (per 1M tokens)
     text_input_per_1m: 0.60
@@ -561,6 +566,7 @@ models:
     tags: ["asr", "audio", "transcription"]
     context_window: "N/A (ASR)"
     output_tokens: 0
+    param: "max_output_tokens"
 
     # Pricing (per 1M tokens)
     text_input_per_1m: 2.50
@@ -575,6 +581,7 @@ models:
     tags: ["asr", "audio", "transcription", "cost-effective"]
     context_window: "N/A (ASR)"
     output_tokens: 0
+    param: "max_output_tokens"
 
     # Pricing (per 1M tokens)
     text_input_per_1m: 1.25

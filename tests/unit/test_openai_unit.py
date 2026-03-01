@@ -23,6 +23,12 @@ class TestOpenAIModelConfiguration:
             "gpt-5-mini",
             "gpt-5-nano",
             "gpt-5-pro",
+            # GPT-5 Codex series
+            "gpt-5.3-codex",
+            "gpt-5.2-codex",
+            "gpt-5.1-codex",
+            "gpt-5.1-codex-max",
+            "gpt-5-codex",
             # O-series reasoning
             "o3",
             "o3-pro",
@@ -43,10 +49,16 @@ class TestOpenAIModelConfiguration:
             "gpt-image-1.5",
             "gpt-image-1",
             "gpt-image-1-mini",
+            # Video generation
+            "sora-2",
+            "sora-2-pro",
             # Audio models (ASR/TTS)
             "whisper-1",
             "tts-1",
             "tts-1-hd",
+            "gpt-4o-mini-tts",
+            "gpt-4o-transcribe",
+            "gpt-4o-mini-transcribe",
             # Realtime API
             "gpt-4o-realtime-preview",
             "gpt-4o-mini-realtime-preview",

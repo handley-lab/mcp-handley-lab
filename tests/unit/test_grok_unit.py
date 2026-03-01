@@ -23,6 +23,9 @@ class TestGrokModelConfiguration:
             "grok-2-vision-1212",
             "grok-2-image-1212",
             "grok-code-fast-1",
+            "grok-imagine-image",
+            "grok-imagine-image-pro",
+            "grok-imagine-video",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
 
@@ -87,5 +90,5 @@ class TestGrokErrorHandling:
 
     def test_model_count_matches_expected(self):
         """Test that we have the expected number of models."""
-        # Ensure we have all 10 expected Grok models (added grok-4-1-fast models)
-        assert len(MODEL_CONFIGS) == 10
+        # Ensure we have all 13 expected Grok models (added grok-4-1-fast and grok-imagine models)
+        assert len(MODEL_CONFIGS) == 13

@@ -64,8 +64,11 @@ class TestModelConfiguration:
             # Audio (Voxtral)
             "voxtral-small-latest",
             "voxtral-mini-latest",
+            "voxtral-mini-transcribe-26-02",
+            "voxtral-mini-transcribe-realtime-26-02",
             # Specialist
             "mistral-ocr-latest",
+            "ocr-3-25-12",
             "mistral-moderation-latest",
             # Embedding
             "mistral-embed",

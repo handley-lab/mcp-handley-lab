@@ -32,18 +32,21 @@ class TestModelConfiguration:
         expected_models = {
             "gemini-3.1-pro-preview",
             "gemini-3.1-pro-preview-customtools",
+            "gemini-3.1-flash-image-preview",
             "gemini-3-pro-preview",
             "gemini-3-flash-preview",
             "gemini-3-pro-image-preview",
             "gemini-2.5-pro",
             "gemini-2.5-flash",
             "gemini-2.5-flash-lite",
+            "gemini-2.5-flash-image",
             "gemini-deep-research",
             "imagen-4.0-generate-001",
             "imagen-4.0-fast-generate-001",
             "imagen-4.0-ultra-generate-001",
             "imagen-4.0-generate-preview-06-06",
             "veo-2.0-generate-001",
+            "veo-3.1-generate-preview",
         }
         assert set(MODEL_CONFIGS.keys()) == expected_models
 

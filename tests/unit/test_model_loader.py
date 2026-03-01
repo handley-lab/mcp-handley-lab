@@ -202,7 +202,8 @@ class TestFormatModelListing:
         # Check model categories
         assert "🌟 Gemini 3.1 Series" in listing
         assert "🚀 Gemini 2.5 Series" in listing
-        assert "🎨 Image Generation" in listing
+        assert "🎨 Native Image Generation (Nano Banana)" in listing
+        assert "🎨 Imagen Models" in listing
 
         # Check specific models
         assert "gemini-2.5-pro" in listing

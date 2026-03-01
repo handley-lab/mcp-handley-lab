@@ -196,7 +196,47 @@ models:
     output_per_1m: 0.40
     free_tier: true
 
-  # Image generation models
+  # Native image generation models (Nano Banana family)
+  gemini-3.1-flash-image-preview:
+    # Model metadata
+    description: "Nano Banana 2 - high-efficiency image generation at Flash speed"
+    capabilities: "🎨 Best for: High-volume image generation, fast iteration, text rendering"
+    tags: ["gemini-3.1", "flash", "image-generation", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 65536
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: false
+    supports_image_generation: true
+
+    # Pricing (token-based, resolution-dependent)
+    input_by_modality:
+      text: 0.15
+      image: 0.15
+    output_per_1m: 60.00
+    # ~$0.045/image at 512px, ~$0.067/image at 1K, ~$0.101/image at 2K, ~$0.151/image at 4K
+
+  gemini-2.5-flash-image:
+    # Model metadata
+    description: "Nano Banana - native image generation and editing with Flash efficiency"
+    capabilities: "🎨 Best for: Image generation, image editing, cost-effective creative tasks"
+    tags: ["gemini-2.5", "flash", "image-generation", "multimodal"]
+    context_window: "1,000,000 tokens"
+    output_tokens: 65536
+
+    # Capabilities
+    supports_vision: true
+    supports_grounding: false
+    supports_image_generation: true
+
+    # Pricing (token-based)
+    input_by_modality:
+      text: 0.15
+      image: 0.15
+    output_per_1m: 60.00
+
+  # Imagen models
   imagen-4.0-generate-001:
     # Model metadata
     description: "High-quality image generation (standard quality)"
@@ -262,11 +302,26 @@ models:
     quality: "standard"
 
   # Video generation models
+  veo-3.1-generate-preview:
+    # Model metadata
+    description: "State-of-the-art video generation with native audio (8s, up to 4K)"
+    capabilities: "🎬 Best for: Cinematic video creation, native audio, high-fidelity video"
+    tags: ["video-generation", "latest"]
+    context_window: "N/A (Video generation)"
+
+    # Capabilities
+    supports_vision: false
+    supports_grounding: false
+
+    # Pricing (per second)
+    price_per_second: 0.75
+    pricing_type: "per_second"
+
   veo-2.0-generate-001:
     # Model metadata
-    description: "High-quality video generation model"
-    capabilities: "🎬 Best for: Video content creation"
-    tags: ["video-generation", "latest"]
+    description: "Previous generation video model"
+    capabilities: "🎬 Best for: Cost-effective video generation"
+    tags: ["video-generation", "legacy"]
     context_window: "N/A (Video generation)"
 
     # Capabilities
@@ -305,9 +360,13 @@ display_categories:
   - name: "🚀 Gemini 2.5 Series"
     tags: ["gemini-2.5"]
     description: "Powerful generation with free tiers available"
-  - name: "🎨 Image Generation"
+  - name: "🎨 Native Image Generation (Nano Banana)"
+    tags: ["image-generation", "multimodal"]
+    description: "Native multimodal image generation models (Nano Banana family)"
+  - name: "🎨 Imagen Models"
     tags: ["image-generation"]
-    description: "High-quality image generation models"
+    exclude_tags: ["multimodal"]
+    description: "Dedicated image generation models (Imagen 4)"
   - name: "🎬 Video Generation"
     tags: ["video-generation"]
     description: "Video content creation models"
@@ -336,5 +395,8 @@ usage_notes:
   - "Audio input has higher costs than text/image/video for Flash models"
   - "Tiered pricing applies to Pro models based on token count thresholds"
   - "Google Search grounding: 1,500 RPD free, then additional charges apply"
+  - "Nano Banana 2 (gemini-3.1-flash-image-preview): Fast image gen ~$0.045-$0.15/image depending on resolution"
+  - "Nano Banana (gemini-2.5-flash-image): Native image generation and editing"
   - "Imagen 4 models charge per image ($0.02-$0.06)"
-  - "Video generation models charge per second ($0.35)"
+  - "Veo 3.1: State-of-the-art video generation with native audio ($0.75/sec)"
+  - "Veo 2.0: Previous generation video ($0.35/sec)"

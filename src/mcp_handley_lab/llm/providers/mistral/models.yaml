@@ -178,9 +178,47 @@ models:
     input_per_1m: 0.04
     output_per_1m: 0.04
 
+  voxtral-mini-transcribe-26-02:
+    description: "Voxtral Mini Transcribe - latest audio transcription (Feb 2026)"
+    capabilities: "🎤 Best for: High-accuracy speech-to-text, transcription"
+    tags: ["voxtral", "audio", "transcription", "latest"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_audio: true
+    supports_transcription: true
+    input_per_1m: 0.04
+    output_per_1m: 0.04
+
+  voxtral-mini-transcribe-realtime-26-02:
+    description: "Voxtral Mini Transcribe Realtime - live transcription (Feb 2026)"
+    capabilities: "🎤 Best for: Real-time transcription, live audio processing"
+    tags: ["voxtral", "audio", "transcription", "realtime", "latest"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: false
+    supports_grounding: false
+    supports_audio: true
+    supports_transcription: true
+    input_per_1m: 0.04
+    output_per_1m: 0.04
+
   # === SPECIALIST MODELS ===
+  ocr-3-25-12:
+    description: "OCR 3 - latest document text extraction model (Dec 2025)"
+    capabilities: "📄 Best for: OCR, document parsing, PDF extraction"
+    tags: ["ocr", "document-ai", "latest"]
+    context_window: "N/A (document processing)"
+    output_tokens: 0
+    supports_vision: true
+    supports_grounding: false
+    # Pricing: $2 per 1,000 pages
+    input_per_1m: 2.00
+    output_per_1m: 0.00
+
   mistral-ocr-latest:
-    description: "Dedicated OCR model for document text extraction"
+    description: "Dedicated OCR model for document text extraction (alias)"
     capabilities: "📄 Best for: OCR, document parsing, PDF extraction"
     tags: ["ocr", "document-ai"]
     context_window: "N/A (document processing)"
@@ -268,6 +306,7 @@ usage_notes:
   - "Codestral: Supports FIM (fill-in-middle) for code completion"
   - "Voxtral: Audio input for chat and transcription"
   - "Ministral: Edge-optimized models (3B, 8B, 14B) for high-volume tasks"
-  - "OCR: $2 per 1,000 pages for document extraction"
+  - "OCR 3 (ocr-3-25-12): Latest document OCR, $2 per 1,000 pages"
+  - "Voxtral Transcribe (26-02): Latest transcription models including realtime"
   - "All chat models support 128k context (except Magistral: 40k)"
   - "Free tier available for experimentation"

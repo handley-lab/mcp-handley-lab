@@ -20,6 +20,8 @@ MODEL_PREFIXES = [
     # OpenAI
     ("gpt-image", "openai"),
     ("gpt-", "openai"),
+    ("chatgpt-", "openai"),
+    ("sora-", "openai"),
     ("dall-e", "openai"),
     ("text-embedding", "openai"),
     ("o3", "openai"),
@@ -28,8 +30,12 @@ MODEL_PREFIXES = [
     ("claude-", "claude"),
     # Mistral
     ("codestral", "mistral"),
+    ("devstral", "mistral"),
     ("pixtral", "mistral"),
     ("ministral", "mistral"),
+    ("magistral", "mistral"),
+    ("voxtral", "mistral"),
+    ("ocr-", "mistral"),
     ("mistral-", "mistral"),
     ("mistral-embed", "mistral"),
     # Grok

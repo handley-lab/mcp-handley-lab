@@ -4,78 +4,14 @@ Uses Unix process model: each loop has loop_id (like PID) and parent_id (like PP
 No access control - if you know the loop_id, you can operate on it.
 """
 
-import hashlib
 import json
-import os
-import subprocess
-from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel, ConfigDict, Field, model_serializer
+from pydantic import BaseModel, Field
 
-from mcp_handley_lab.loop.client import _socket_connect
-from mcp_handley_lab.loop.protocol import Request, Response
+from mcp_handley_lab.loop.shared import ManageResult, RunResult
 
-# Session tracking paths
-STATE_DIR = Path.home() / ".local" / "state" / "mcp-loop"
-SESSION_DIR = STATE_DIR / "sessions"
-
-
-class LoopInfo(BaseModel):
-    """Information about a loop."""
-
-    loop_id: str
-    backend: str
-    parent_id: str
-    label: str
-    orphaned: bool = False
-
-
-class Cell(BaseModel):
-    """A cell from REPL output."""
-
-    index: int
-    input: str
-    output: str
-    in_progress: bool = False
-
-
-class ManageResult(BaseModel):
-    """Result of manage action. Only relevant fields are populated."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    # spawn
-    loop_id: str | None = None
-    parent_id: str | None = None
-    label: str | None = None
-    # list
-    loops: list[LoopInfo] | None = None
-    current_session_id: str | None = None  # for list: caller's session for context
-    # read
-    cells: list[Cell] | None = None
-    # read_raw
-    raw_output: str | None = None
-    # status
-    running: bool | None = None
-    started_at: str | None = None
-    elapsed_seconds: float | None = None
-    # always present
-    ok: bool = True
-
-    @model_serializer
-    def serialize(self) -> dict:
-        """Exclude None fields from serialization."""
-        return {k: v for k, v in self.__dict__.items() if v is not None}
-
-
-class RunResult(BaseModel):
-    """Result of running input through a loop."""
-
-    output: str = ""
-    cell_index: int = 0
-    elapsed_seconds: float = 0.0
-    running: bool = False  # True if run still executing in background
+mcp = FastMCP("Loop Tool")
 
 
 class ManageArgs(BaseModel):
@@ -97,48 +33,6 @@ class ManageArgs(BaseModel):
         ""  # for spawn: path to venv (created with --system-site-packages if missing)
     )
     sandbox: str = ""  # for spawn: JSON mount spec {"guest": ["host", "rw|ro"], ...}
-
-
-def _get_session_id() -> str:
-    """Get current session ID from hook file (keyed by git root hash)."""
-    try:
-        cwd = os.getcwd()
-        # Normalize to git root
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            text=True,
-            cwd=cwd,
-        )
-        root = result.stdout.strip() if result.returncode == 0 else cwd
-        root_hash = hashlib.md5(root.encode()).hexdigest()
-        session_file = SESSION_DIR / root_hash
-        if session_file.exists():
-            return session_file.read_text().strip()
-    except Exception as e:
-        import sys
-
-        print(f"mcp-loop: warning: could not read session_id: {e}", file=sys.stderr)
-    return ""
-
-
-def _send_request(request: Request) -> Response:
-    """Send request to daemon and return response."""
-    sock = _socket_connect()
-    try:
-        sock.sendall(json.dumps(request.to_dict()).encode() + b"\n")
-        data = b""
-        while b"\n" not in data:
-            chunk = sock.recv(4096)
-            if not chunk:
-                raise RuntimeError("daemon closed connection")
-            data += chunk
-        return Response.from_dict(json.loads(data.decode()))
-    finally:
-        sock.close()
-
-
-mcp = FastMCP("Loop Tool")
 
 
 @mcp.tool()
@@ -168,63 +62,26 @@ def manage(params: ManageArgs) -> ManageResult:
     Returns:
         ManageResult with action-specific fields populated. List includes current_session_id for context.
     """
-    # For spawn: use provided parent_id, or fall back to session_id from hook file
-    # For list: include current session_id for context in response
-    session_id = _get_session_id()
-    parent_id = params.parent_id
-    if params.action == "spawn" and not parent_id:
-        parent_id = session_id
+    from mcp_handley_lab.loop.shared import manage as _manage
 
-    sandbox = json.loads(params.sandbox) if params.sandbox else {}
+    sandbox = json.loads(params.sandbox) if params.sandbox else None
 
-    request = Request(
+    return _manage(
         action=params.action,
         loop_id=params.loop_id,
-        parent_id=parent_id,
+        parent_id=params.parent_id,
         label=params.label,
         backend=params.backend,
         name=params.name,
         args=params.args,
         cwd=params.cwd,
-        child_allowed_tools=params.child_allowed_tools,
         prompt=params.prompt,
         session_id=params.session_id,
         descendants_of=params.descendants_of,
-        current_session_id=session_id if params.action == "list" else "",
+        child_allowed_tools=params.child_allowed_tools,
         venv=params.venv,
         sandbox=sandbox,
     )
-
-    response = _send_request(request)
-
-    if not response.ok:
-        raise RuntimeError(f"{response.error_code}: {response.error}")
-
-    # Build result with only relevant fields (exclude_none in serialization)
-    result = ManageResult(ok=response.ok)
-
-    if response.loop_id:
-        result.loop_id = response.loop_id
-    if response.parent_id:
-        result.parent_id = response.parent_id
-    if response.label:
-        result.label = response.label
-    if response.current_session_id:
-        result.current_session_id = response.current_session_id
-    if response.loops:
-        result.loops = [LoopInfo(**loop) for loop in response.loops]
-    if response.cells:
-        result.cells = [Cell(**cell) for cell in response.cells]
-    if response.raw_output:
-        result.raw_output = response.raw_output
-    if response.running:
-        result.running = response.running
-    if response.started_at:
-        result.started_at = response.started_at
-    if response.elapsed_seconds:
-        result.elapsed_seconds = response.elapsed_seconds
-
-    return result
 
 
 @mcp.tool()
@@ -244,21 +101,6 @@ def run(loop_id: str, input: str, sync_timeout: float = 1.0) -> RunResult:
     Returns:
         RunResult with output, cell_index, elapsed_seconds. If running=True, run continues in background.
     """
-    request = Request(
-        action="run",
-        loop_id=loop_id,
-        input=input,
-        sync_timeout=sync_timeout,
-    )
+    from mcp_handley_lab.loop.shared import run as _run
 
-    response = _send_request(request)
-
-    if not response.ok:
-        raise RuntimeError(f"{response.error_code}: {response.error}")
-
-    return RunResult(
-        output=response.output,
-        cell_index=response.cell_index,
-        elapsed_seconds=response.elapsed_seconds,
-        running=response.running,
-    )
+    return _run(loop_id=loop_id, input=input, sync_timeout=sync_timeout)

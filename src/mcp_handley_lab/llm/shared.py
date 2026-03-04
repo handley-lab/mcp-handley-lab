@@ -1,5 +1,6 @@
 """Shared utilities for LLM providers."""
 
+import json
 import os
 from collections.abc import Callable
 from pathlib import Path
@@ -534,3 +535,74 @@ def conversation(
         raise ValueError(
             f"Unknown action: {action}. Valid: list, log, show, response, edit, done"
         )
+
+
+def transcribe(
+    audio_path: str,
+    output_file: str = "",
+    language: str = "",
+    include_timestamps: bool = False,
+) -> dict[str, Any]:
+    """Transcribe audio to text using Groq Whisper.
+
+    Args:
+        audio_path: Path to audio file (MP3, WAV, FLAC, OGG, M4A)
+        output_file: File path to save transcription as JSON
+        language: Language code (e.g., 'en', 'fr'). Empty for auto-detection
+        include_timestamps: Include segment-level timestamps in output
+
+    Returns:
+        Dict with text and optional segments
+    """
+    adapter = get_adapter("groq", "audio_transcription")
+    result = adapter(
+        audio_path=audio_path,
+        language=language,
+        include_timestamps=include_timestamps,
+    )
+
+    if output_file:
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(result, indent=2))
+
+    return result
+
+
+def ocr(
+    document_path: str,
+    output_file: str = "",
+    include_images: bool = False,
+) -> dict[str, Any]:
+    """Extract text from documents using Mistral OCR.
+
+    Args:
+        document_path: Path to document file or URL (PDF, images, PPTX, DOCX)
+        output_file: File path to save full OCR results as JSON
+        include_images: Include base64-encoded images with bounding boxes
+
+    Returns:
+        Dict with status, pages count, and text or output_file path
+    """
+    adapter = get_adapter("mistral", "ocr")
+    result = adapter(document_path, include_images)
+
+    pages = result.get("pages", [])
+    response: dict[str, Any] = {
+        "status": "success",
+        "pages": len(pages),
+        "message": f"OCR complete. {len(pages)} page(s) extracted.",
+    }
+
+    if output_file:
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(result, indent=2))
+        response["output_file"] = output_file
+        response["message"] += f" Full results saved to {output_file}"
+    else:
+        response["text"] = "\n\n".join(
+            page.get("markdown", page.get("text", "")) for page in pages
+        )
+
+    return response

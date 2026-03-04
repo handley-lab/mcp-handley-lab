@@ -21,8 +21,8 @@ from mcp_handley_lab.llm.registry import (
     get_adapter,
     list_all_models,
     resolve_model,
-    validate_options,
 )
+from mcp_handley_lab.llm.shared import chat as _chat
 from mcp_handley_lab.llm.shared import conversation as _conversation
 from mcp_handley_lab.llm.shared import process_llm_request, resolve_generation_adapter
 from mcp_handley_lab.shared.models import LLMResult  # noqa: F401 - used in type hints
@@ -143,34 +143,22 @@ def chat(
     ),
 ) -> LLMResult:
     """Send a message to an LLM with automatic provider detection."""
-    provider, canonical_model, config = resolve_model(model)
-    validate_options(provider, model, config, options)
-    resolved_branch = _resolve_session_branch(branch)
-    generation_func = resolve_generation_adapter(provider, config, images)
-
-    kwargs: dict[str, Any] = {
-        "prompt_file": prompt_file or None,
-        "prompt_vars": prompt_vars or None,
-        "temperature": temperature,
-        "files": files,
-        "system_prompt": system_prompt or None,
-        "system_prompt_file": system_prompt_file or None,
-        "system_prompt_vars": system_prompt_vars or None,
-        "options": options,
-    }
-    if images:
-        kwargs["images"] = images
-        kwargs["focus"] = focus
-
-    return process_llm_request(
+    return _chat(
         prompt=prompt or None,
+        prompt_file=prompt_file or None,
+        prompt_vars=prompt_vars or None,
         output_file=output_file,
-        branch=resolved_branch,
-        model=canonical_model,
-        provider=provider,
-        generation_func=generation_func,
+        branch=_resolve_session_branch(branch),
+        model=model,
+        temperature=temperature,
+        files=files,
+        images=images,
+        focus=focus,
+        system_prompt=system_prompt or None,
+        system_prompt_file=system_prompt_file or None,
+        system_prompt_vars=system_prompt_vars or None,
+        options=options,
         from_ref=from_ref or None,
-        **kwargs,
     )
 
 
@@ -509,19 +497,14 @@ def transcribe(
     ),
 ) -> dict[str, Any]:
     """Transcribe audio using Groq Whisper."""
-    adapter = get_adapter("groq", "audio_transcription")
-    result = adapter(
+    from mcp_handley_lab.llm.shared import transcribe as _transcribe
+
+    return _transcribe(
         audio_path=audio_path,
+        output_file=output_file,
         language=language,
         include_timestamps=include_timestamps,
     )
-
-    if output_file:
-        output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(result, indent=2))
-
-    return result
 
 
 @mcp.tool(
@@ -544,28 +527,13 @@ def ocr(
     ),
 ) -> dict[str, Any]:
     """Process document with Mistral OCR for text extraction."""
-    adapter = get_adapter("mistral", "ocr")
-    result = adapter(document_path, include_images)
+    from mcp_handley_lab.llm.shared import ocr as _ocr
 
-    pages = result.get("pages", [])
-    response: dict[str, Any] = {
-        "status": "success",
-        "pages": len(pages),
-        "message": f"OCR complete. {len(pages)} page(s) extracted.",
-    }
-
-    if output_file:
-        output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(result, indent=2))
-        response["output_file"] = output_file
-        response["message"] += f" Full results saved to {output_file}"
-    else:
-        response["text"] = "\n\n".join(
-            page.get("markdown", page.get("text", "")) for page in pages
-        )
-
-    return response
+    return _ocr(
+        document_path=document_path,
+        output_file=output_file,
+        include_images=include_images,
+    )
 
 
 @mcp.tool(

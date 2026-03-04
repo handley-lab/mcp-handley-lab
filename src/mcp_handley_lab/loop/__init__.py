@@ -1,5 +1,5 @@
-"""MCP Loop - REPL orchestration with parent-child model.
+"""Loop utilities for direct use (no MCP required)."""
 
-Uses Unix process model: each loop has loop_id (like PID) and parent_id (like PPID).
-No access control - if you know the loop_id, you can operate on it.
-"""
+from mcp_handley_lab.loop.shared import manage, run
+
+__all__ = ["manage", "run"]

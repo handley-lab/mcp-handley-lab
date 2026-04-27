@@ -58,16 +58,15 @@ def _load_body_file(path: str) -> tuple[str, dict[str, str]]:
 
 def _dispatch(
     draft: bool,
-    direct: bool,
     account: str,
     **email_kwargs,
 ) -> OperationResult:
-    """Route to draft save, direct send, or interactive Mutt."""
+    """Route to draft save or interactive Mutt."""
     if draft:
         return direct_mod.save_draft(account=account, **email_kwargs)
     from mcp_handley_lab.email.mutt.tool import _compose_email
 
-    return _compose_email(direct=direct, account=account, **email_kwargs)
+    return _compose_email(account=account, **email_kwargs)
 
 
 def send(
@@ -82,7 +81,6 @@ def send(
     mode: str = "compose",
     reply_all: bool = False,
     thread_context: int = 5,
-    direct: bool = False,
     draft: bool = False,
     draft_id: str = "",
     account: str = "",
@@ -154,7 +152,6 @@ def send(
             raise ValueError("'to' is required for compose mode")
         return _dispatch(
             draft=draft,
-            direct=direct,
             account=account,
             to=to,
             subject=subject,
@@ -266,7 +263,6 @@ def send(
 
         return _dispatch(
             draft=draft,
-            direct=direct,
             account=account,
             to=reply_to,
             cc=reply_cc or "",
@@ -357,7 +353,6 @@ def send(
 
             return _dispatch(
                 draft=draft,
-                direct=direct,
                 account=account,
                 to=to,
                 cc=cc or "",

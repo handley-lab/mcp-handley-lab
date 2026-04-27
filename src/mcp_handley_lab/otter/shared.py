@@ -56,8 +56,14 @@ class TranscriptResult(BaseModel):
     segments: list[TranscriptSegment] = Field(
         default_factory=list, description="Transcript segments."
     )
+    segment_count: int = Field(default=0, description="Number of transcript segments.")
     formatted_text: str | None = Field(
         default=None, description="Formatted transcript text."
+    )
+    output_file: str = Field(
+        default="",
+        description="Path to the file where the transcript was written, "
+        "if output_file was specified.",
     )
 
     @model_serializer
@@ -278,8 +284,15 @@ def get_transcript(
     max_segments: int = 0,
     since_offset_ms: int = 0,
     include_formatted_text: bool = True,
+    output_file: str = "",
 ) -> TranscriptResult:
-    """Get full transcript for a meeting."""
+    """Get full transcript for a meeting.
+
+    When `output_file` is set, the formatted transcript is written to that
+    path and the response omits the segments/formatted_text fields, returning
+    only metadata (title, speakers, segment_count, output_file). This avoids
+    flowing large transcripts through the calling agent's context.
+    """
     data = _api_get("speech", {"otid": otid})
     speech = data.get("speech", data)
 
@@ -300,6 +313,24 @@ def get_transcript(
         transcripts = transcripts[-max_segments:]
 
     segments = _build_segments(transcripts, speakers)
+    speaker_names = sorted({seg.speaker_name for seg in segments})
+
+    if output_file:
+        from pathlib import Path
+
+        path = Path(output_file).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_format_segments(segments))
+        return TranscriptResult(
+            title=speech.get("title", ""),
+            otid=otid,
+            live_status=speech.get("live_status", ""),
+            created_at=speech.get("created_at", 0),
+            url=f"https://otter.ai/u/{otid}",
+            speakers=speaker_names,
+            segment_count=len(segments),
+            output_file=str(path),
+        )
 
     return TranscriptResult(
         title=speech.get("title", ""),
@@ -307,8 +338,9 @@ def get_transcript(
         live_status=speech.get("live_status", ""),
         created_at=speech.get("created_at", 0),
         url=f"https://otter.ai/u/{otid}",
-        speakers=sorted({seg.speaker_name for seg in segments}),
+        speakers=speaker_names,
         segments=segments,
+        segment_count=len(segments),
         formatted_text=_format_segments(segments) if include_formatted_text else None,
     )
 

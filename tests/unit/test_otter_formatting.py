@@ -267,3 +267,52 @@ class TestGetTranscriptSinceOffset:
         # Excludes segments at 1000, 5000, 10000; keeps 20000 and 30000
         assert len(result.segments) == 2
         assert result.segments[0].text == "Fourth"
+
+
+class TestGetTranscriptOutputFile:
+    """#333: output_file writes the formatted transcript to disk and returns metadata only."""
+
+    def test_writes_file_and_returns_metadata(self, tmp_path):
+        out = tmp_path / "transcript.txt"
+        with _patch_api():
+            result = get_transcript("test-otid", output_file=str(out))
+
+        # File contains the formatted transcript
+        contents = out.read_text()
+        assert "Alice" in contents
+        assert "First" in contents
+        assert "Fifth" in contents
+
+        # Response is metadata-only (segments and formatted_text omitted from serialization)
+        assert result.segment_count == 5
+        assert result.output_file == str(out)
+        assert result.speakers == ["Alice", "Bob"]
+
+        data = result.model_dump()
+        assert "formatted_text" not in data
+        assert data["segments"] == []
+
+    def test_expanduser(self, tmp_path, monkeypatch):
+        """~/path is expanded to the real home directory."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+        with _patch_api():
+            result = get_transcript("test-otid", output_file="~/out.txt")
+        expected = tmp_path / "out.txt"
+        assert expected.exists()
+        assert result.output_file == str(expected)
+
+    def test_empty_output_file_uses_inline_response(self):
+        """No output_file → existing inline behavior."""
+        with _patch_api():
+            result = get_transcript("test-otid", output_file="")
+        assert len(result.segments) == 5
+        assert result.formatted_text is not None
+        assert result.output_file == ""
+
+    def test_creates_missing_parent_dirs(self, tmp_path):
+        """Nested parent directories are created automatically."""
+        out = tmp_path / "subdir" / "deep" / "transcript.txt"
+        with _patch_api():
+            get_transcript("test-otid", output_file=str(out))
+        assert out.exists()
+        assert "Alice" in out.read_text()

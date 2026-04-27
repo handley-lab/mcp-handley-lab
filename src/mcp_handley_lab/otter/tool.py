@@ -23,7 +23,8 @@ Actions:
   No required params.
 - transcript: Get full transcript for a meeting (live or recent).
   Required: otid. Optional: max_segments (0=all, default 0), since_offset_ms (0=all, for incremental reads),
-  include_formatted_text (default true; set false to omit formatted_text and reduce response size for live monitoring).
+  include_formatted_text (default true; set false to omit formatted_text and reduce response size for live monitoring),
+  output_file (write formatted transcript to file and return only metadata; useful when piping to an external LLM).
 - recent: List recent meetings.
   Optional: limit (default 10).
 - search: Filter recent meetings by title (client-side).
@@ -55,6 +56,14 @@ def otter(
         default=True,
         description="Include formatted_text in transcript response. Set false to reduce response size for live monitoring (for 'transcript').",
     ),
+    output_file: str = Field(
+        default="",
+        description="Path to write the formatted transcript to (for 'transcript'). When set, "
+        "the response returns metadata only (title, speakers, segment_count, output_file); "
+        "the segments list is empty and formatted_text is omitted. Avoids flowing large "
+        "transcripts through the calling agent's context. Parent directories are created "
+        "automatically; '~' is expanded.",
+    ),
 ) -> OtterResult:
     """Dispatch to the appropriate Otter.ai operation."""
     from mcp_handley_lab.otter.shared import (
@@ -76,6 +85,7 @@ def otter(
                 max_segments,
                 since_offset_ms,
                 include_formatted_text=include_formatted_text,
+                output_file=output_file,
             )
         )
     elif action == "recent":

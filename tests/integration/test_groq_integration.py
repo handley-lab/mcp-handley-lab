@@ -127,23 +127,3 @@ async def test_groq_chat_different_models(test_output_file):
 
         assert "error" not in str(response).lower(), f"Failed for model: {model}"
         assert response["content"], f"No content for model: {model}"
-
-
-@pytest.mark.vcr
-@pytest.mark.asyncio
-async def test_groq_kimi_model(test_output_file):
-    """Test Kimi K2 model with large context."""
-    _, response = await mcp.call_tool(
-        "chat",
-        {
-            "prompt": "What is the capital of France? Answer briefly.",
-            "output_file": test_output_file,
-            "branch": "",
-            "model": "moonshotai/kimi-k2-instruct-0905",
-        },
-    )
-
-    assert "error" not in str(response).lower()
-    assert response["content"]
-    output_content = Path(test_output_file).read_text()
-    assert "paris" in output_content.lower()

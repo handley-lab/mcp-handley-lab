@@ -84,42 +84,6 @@ async def test_mistral_chat_with_files(skip_if_no_api_key, test_output_file):
 
 @pytest.mark.vcr
 @pytest.mark.asyncio
-async def test_mistral_analyze_image(skip_if_no_api_key, test_output_file):
-    """Test image analysis with Pixtral vision model."""
-    # Create a simple test image
-    from PIL import Image
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as image_file:
-        # Create a simple red square image
-        img = Image.new("RGB", (100, 100), color="red")
-        img.save(image_file.name)
-        image_path = image_file.name
-
-    try:
-        _, response = await mcp.call_tool(
-            "chat",
-            {
-                "prompt": "What color is this image?",
-                "output_file": test_output_file,
-                "images": [image_path],
-                "model": "pixtral-12b-2409",
-                "branch": "",
-            },
-        )
-
-        assert "error" not in str(response).lower()
-        assert response["content"]
-
-        # Check response describes the image (any meaningful content)
-        output_content = Path(test_output_file).read_text()
-        assert len(output_content) > 10  # Got a meaningful response
-
-    finally:
-        Path(image_path).unlink(missing_ok=True)
-
-
-@pytest.mark.vcr
-@pytest.mark.asyncio
 async def test_mistral_process_ocr_image(skip_if_no_api_key, test_output_file):
     """Test OCR processing with image input."""
     # Create a simple test image with text

@@ -316,3 +316,91 @@ class TestGetTranscriptOutputFile:
             get_transcript("test-otid", output_file=str(out))
         assert out.exists()
         assert "Alice" in out.read_text()
+
+
+class TestOtterToolDispatch:
+    """Cover the MCP otter() tool dispatch — every action branch + arg validation."""
+
+    def test_live_dispatches_to_find_live_meetings(self):
+        from mcp_handley_lab.otter.tool import otter
+
+        meetings = [MeetingSummary(otid="x", title="A", live_status="live")]
+        with patch(
+            "mcp_handley_lab.otter.shared.find_live_meetings", return_value=meetings
+        ):
+            result = otter(action="live")
+        assert result.meetings == meetings
+
+    def test_transcript_requires_otid(self):
+        from mcp_handley_lab.otter.tool import otter
+
+        try:
+            otter(action="transcript", otid="")
+        except ValueError as e:
+            assert "otid" in str(e)
+        else:
+            raise AssertionError("Expected ValueError")
+
+    def test_transcript_dispatches_with_output_file(self, tmp_path):
+        from mcp_handley_lab.otter.tool import otter
+
+        out = tmp_path / "t.txt"
+        captured = {}
+
+        def fake_get_transcript(*args, **kwargs):
+            captured.update(kwargs)
+            return TranscriptResult(
+                otid=args[0],
+                segment_count=0,
+                speakers=[],
+                output_file=str(out),
+            )
+
+        with patch(
+            "mcp_handley_lab.otter.shared.get_transcript",
+            side_effect=fake_get_transcript,
+        ):
+            result = otter(action="transcript", otid="abc", output_file=str(out))
+        assert captured["output_file"] == str(out)
+        assert result.transcript.output_file == str(out)
+
+    def test_recent_dispatches_to_list_recent(self):
+        from mcp_handley_lab.otter.tool import otter
+
+        meetings = [MeetingSummary(otid="x", title="A")]
+        with patch(
+            "mcp_handley_lab.otter.shared.list_recent_meetings", return_value=meetings
+        ):
+            result = otter(action="recent", limit=5)
+        assert result.meetings == meetings
+
+    def test_search_requires_query(self):
+        from mcp_handley_lab.otter.tool import otter
+
+        try:
+            otter(action="search", query="")
+        except ValueError as e:
+            assert "query" in str(e)
+        else:
+            raise AssertionError("Expected ValueError")
+
+    def test_search_dispatches_to_search_meetings(self):
+        from mcp_handley_lab.otter.tool import otter
+
+        meetings = [MeetingSummary(otid="x", title="Match")]
+        with patch(
+            "mcp_handley_lab.otter.shared.search_meetings", return_value=meetings
+        ):
+            result = otter(action="search", query="match")
+        assert result.meetings == meetings
+
+    def test_refresh_dispatches_to_refresh_session(self):
+        from mcp_handley_lab.otter.shared import RefreshResult
+        from mcp_handley_lab.otter.tool import otter
+
+        rr = RefreshResult(
+            refreshed_at="2026-01-01T00:00:00Z", cookie_count=3, session_path="/tmp/s"
+        )
+        with patch("mcp_handley_lab.otter.shared.refresh_session", return_value=rr):
+            result = otter(action="refresh")
+        assert result.refresh == rr

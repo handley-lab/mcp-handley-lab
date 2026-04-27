@@ -287,6 +287,7 @@ def create(
     attendees: list[str] | None = None,
     recurrence: list[str] | None = None,
     attachments: list[str] | None = None,
+    send_updates: str = "none",
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing.
 
@@ -302,6 +303,8 @@ def create(
         attendees: A list of attendee email addresses to invite.
         recurrence: Recurrence rules as RRULE strings (e.g., ['RRULE:FREQ=WEEKLY;COUNT=10']).
         attachments: Files to attach (local paths or Google Drive URLs).
+        send_updates: Who to notify of the event. One of 'none' (default, no
+            notifications), 'externalOnly' (only non-Google attendees), or 'all'.
 
     Returns:
         CreatedEventResult with event details.
@@ -357,7 +360,7 @@ def create(
         .insert(
             calendarId=resolved_id,
             body=event_body,
-            sendUpdates="all",
+            sendUpdates=send_updates,
             supportsAttachments=True,
         )
         .execute()
@@ -423,6 +426,7 @@ def update(
     update_series: bool = False,
     recurrence: list[str] | None = None,
     attachments: list[str] | None = None,
+    send_updates: str = "none",
 ) -> UpdateEventResult:
     """Update or move a calendar event.
 
@@ -442,6 +446,9 @@ def update(
         update_series: If True, update the entire recurring series (resolves instance to master).
         recurrence: New recurrence rules. None=no change. []=remove recurrence.
         attachments: Files to attach (local paths or Google Drive URLs). Replaces existing.
+        send_updates: Who to notify of the change. One of 'none' (default, no
+            notifications), 'externalOnly' (only non-Google attendees), or 'all'.
+            Applies to both the patch path and the move path.
 
     Returns:
         UpdateEventResult with update details.
@@ -489,6 +496,7 @@ def update(
                 calendarId=resolved_id,
                 eventId=event_id,
                 destination=dest_resolved_id,
+                sendUpdates=send_updates,
             )
             .execute()
         )
@@ -604,7 +612,7 @@ def update(
             calendarId=resolved_id,
             eventId=target_event_id,
             body=update_body,
-            sendUpdates="all",
+            sendUpdates=send_updates,
             supportsAttachments=True,
         )
         .execute()

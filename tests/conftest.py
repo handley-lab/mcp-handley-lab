@@ -98,6 +98,7 @@ def vcr_config():
             "access_token",
             "api_key",
             "pageToken",  # Ignore pagination tokens for model listing
+            "sendUpdates",  # Notification preference, not core to test intent
         ],
         "filter_post_data_parameters": [
             "client_secret",

@@ -986,6 +986,12 @@ def create(
         description="Files to attach. Accepts local paths (uploaded to Google Drive via rclone) "
         "or existing Google Drive URLs.",
     ),
+    send_updates: str = Field(
+        "none",
+        description="Who to notify of the new event. 'none' (default, no notifications), "
+        "'externalOnly' (only non-Google attendees), or 'all'. Default avoids "
+        "accidental notification spam; opt in to 'all' when you intend to invite attendees.",
+    ),
 ) -> CreatedEventResult:
     """Create a new calendar event with intelligent datetime parsing and flexible timezone handling."""
     from mcp_handley_lab.google_calendar.shared import create as _create
@@ -1002,6 +1008,7 @@ def create(
         attendees=attendees,
         recurrence=recurrence,
         attachments=attachments or None,
+        send_updates=send_updates,
     )
 
 
@@ -1059,6 +1066,12 @@ def update(
         description="Files to attach. Accepts local paths (uploaded to Google Drive via rclone) "
         "or existing Google Drive URLs. Replaces all existing attachments.",
     ),
+    send_updates: str = Field(
+        "none",
+        description="Who to notify of the change. 'none' (default, no notifications), "
+        "'externalOnly' (only non-Google attendees), or 'all'. Applies to both the patch path "
+        "and the move path. Default avoids accidental notification spam.",
+    ),
 ) -> UpdateEventResult:
     """Update or move an event. Move and update are mutually exclusive."""
     from mcp_handley_lab.google_calendar.shared import update as _update
@@ -1078,6 +1091,7 @@ def update(
         update_series=update_series,
         recurrence=recurrence,
         attachments=attachments or None,
+        send_updates=send_updates,
     )
 
 

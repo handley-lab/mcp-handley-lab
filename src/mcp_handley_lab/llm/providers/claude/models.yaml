@@ -1,9 +1,28 @@
 models:
+  claude-opus-4-7:
+    # Model metadata
+    description: "Most intelligent Claude model for agents and coding (new tokenizer uses up to 35% more tokens for the same text)"
+    capabilities: "🌟 Best for: Complex reasoning, agents, coding, extended thinking, adaptive thinking"
+    tags: ["claude-4.7", "opus", "premium", "latest"]
+    context_window: "200,000 tokens / 1M tokens (beta)"
+    input_tokens: 200000
+    output_tokens: 128000
+
+    # Capabilities
+    supports_vision: true
+    supports_system_prompt: true
+    supports_extended_thinking: true
+    supports_adaptive_thinking: true
+
+    # Pricing
+    input_per_1m: 5.00
+    output_per_1m: 25.00
+
   claude-opus-4-6:
     # Model metadata
-    description: "Most intelligent Claude model for building agents and coding"
+    description: "Previous Opus generation for agents and coding"
     capabilities: "🌟 Best for: Complex reasoning, agents, coding, extended thinking, adaptive thinking"
-    tags: ["claude-4.6", "opus", "premium", "latest"]
+    tags: ["claude-4.6", "opus", "premium"]
     context_window: "200,000 tokens / 1M tokens (beta)"
     input_tokens: 200000
     output_tokens: 128000
@@ -111,6 +130,7 @@ models:
 # 5-minute cache writes are 1.25x base input; 1-hour cache writes are 2x base input; cache reads are 0.1x base input
 cache_pricing:
   cache_write:
+    claude-opus-4-7: 6.25
     claude-opus-4-6: 6.25
     claude-opus-4-5-20251101: 6.25
     claude-sonnet-4-6:
@@ -126,6 +146,7 @@ cache_pricing:
     claude-haiku-4-5-20251001: 1.25
 
   cache_write_1h:
+    claude-opus-4-7: 10.00
     claude-opus-4-6: 10.00
     claude-opus-4-5-20251101: 10.00
     claude-sonnet-4-6:
@@ -141,6 +162,7 @@ cache_pricing:
     claude-haiku-4-5-20251001: 2.00
 
   cache_read:
+    claude-opus-4-7: 0.50
     claude-opus-4-6: 0.50
     claude-opus-4-5-20251101: 0.50
     claude-sonnet-4-6:
@@ -157,30 +179,36 @@ cache_pricing:
 
 # Display categories (how to group models by tags for presentation)
 display_categories:
+  - name: "🚀 Claude 4.7 Series"
+    tags: ["claude-4.7"]
+    description: "Latest Claude generation with new tokenizer for improved performance"
   - name: "🚀 Claude 4.6 Series"
     tags: ["claude-4.6"]
-    description: "Latest generation Claude model with adaptive thinking and 128K output"
+    description: "Previous generation Claude model with adaptive thinking and 128K output"
   - name: "🚀 Claude 4.5 Series"
     tags: ["claude-4.5"]
     description: "Claude models with extended thinking and enhanced capabilities"
 
 # Default model
-default_model: "claude-opus-4-6"
+default_model: "claude-opus-4-7"
 
 # Usage notes
 usage_notes:
-  - "Claude Opus 4.6 has 200K context (1M beta) and 128K max output"
-  - "Claude Opus 4.6 and Sonnet 4.5 support 1M token context window with beta header (context-1m-2025-08-07)"
+  - "Claude Opus 4.7 is the flagship — uses a new tokenizer (up to 35% more tokens for the same text)"
+  - "Claude Opus 4.7/4.6 have 200K context (1M beta) and 128K max output"
+  - "Claude Opus 4.7/4.6 and Sonnet 4.6/4.5 support 1M token context window with beta header (context-1m-2025-08-07)"
   - "Long context pricing: requests >200K input tokens charged at 2x input and 1.5x output rates"
   - "All models support vision and image analysis capabilities"
   - "All models support extended thinking for complex reasoning tasks"
-  - "Claude Opus 4.6 supports adaptive thinking (unique to Opus 4.6)"
+  - "Claude Opus 4.7/4.6 support adaptive thinking"
   - "System prompts supported via separate parameter"
   - "Prompt caching: 5-minute cache write (1.25x), 1-hour cache write (2x), cache read (0.1x)"
-  - "Claude Opus 4.6: Most intelligent for agents and coding ($5/$25 per 1M tokens)"
+  - "Claude Opus 4.7: Most intelligent for agents and coding ($5/$25 per 1M tokens)"
+  - "Claude Opus 4.6: Previous Opus generation ($5/$25 per 1M tokens)"
   - "Claude Sonnet 4.6: Fast, intelligent model for agents and coding ($3/$15 per 1M tokens)"
   - "Claude Sonnet 4.5: Previous generation Sonnet ($3/$15 per 1M tokens)"
   - "Claude Haiku 4.5: Near-frontier intelligence with fastest latency and lowest cost ($1/$5 per 1M tokens)"
+  - "Fast mode (research preview, Opus 4.6): 6x standard rates ($30/$150 per 1M tokens)"
   - "Web search costs $10 per 1,000 searches"
   - "Code execution: $0.05/hour with 1,550 free hours per month per organization"
   - "Batch processing offers 50% discount for asynchronous workloads"

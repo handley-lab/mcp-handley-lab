@@ -1,9 +1,60 @@
 models:
+  grok-4.20-0309-reasoning:
+    # Model metadata
+    description: "Most intelligent Grok model — recommended flagship reasoning model with 2M context"
+    capabilities: "🌟 Best for: Complex reasoning, large context tasks, advanced problem solving"
+    tags: ["latest", "flagship", "reasoning", "fast"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 2.00
+    output_per_1m: 6.00
+
+  grok-4.20-0309-non-reasoning:
+    # Model metadata
+    description: "Recommended Grok flagship non-reasoning model with 2M context"
+    capabilities: "⚡ Best for: Fast responses, large context, high-throughput processing"
+    tags: ["latest", "general", "fast"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 2.00
+    output_per_1m: 6.00
+
+  grok-4.20-multi-agent-0309:
+    # Model metadata
+    description: "Grok 4.20 multi-agent variant for orchestrated, parallel reasoning workflows"
+    capabilities: "🤖 Best for: Multi-agent orchestration, parallel reasoning tasks"
+    tags: ["latest", "reasoning", "fast"]
+    context_window: "2,000,000 tokens"
+    output_tokens: 100000
+    param: "max_tokens"
+    supports_temperature: true
+    supports_vision: true
+    supports_tool_calling: true
+    supports_structured_output: true
+
+    # Pricing
+    input_per_1m: 2.00
+    output_per_1m: 6.00
+
   grok-4-1-fast-reasoning:
     # Model metadata
-    description: "Latest Grok 4.1 lightning-fast reasoning model with 2M context"
-    capabilities: "🌟 Best for: Fast reasoning, large context tasks, cost-effective complex analysis"
-    tags: ["latest", "reasoning", "fast", "cost-effective"]
+    description: "Grok 4.1 lightning-fast reasoning model with 2M context"
+    capabilities: "🎯 Best for: Fast reasoning, large context tasks, cost-effective complex analysis"
+    tags: ["reasoning", "fast", "cost-effective"]
     context_window: "2,000,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
@@ -19,9 +70,9 @@ models:
 
   grok-4-1-fast-non-reasoning:
     # Model metadata
-    description: "Latest Grok 4.1 lightning-fast non-reasoning model with 2M context"
+    description: "Grok 4.1 lightning-fast non-reasoning model with 2M context"
     capabilities: "⚡ Best for: Fast responses, large context tasks, high-throughput processing"
-    tags: ["latest", "fast", "cost-effective"]
+    tags: ["fast", "cost-effective"]
     context_window: "2,000,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
@@ -93,7 +144,7 @@ models:
     # Model metadata
     description: "Flagship model that excels at enterprise tasks like data extraction, programming, and text summarization"
     capabilities: "⚖️ Best for: Enterprise tasks, data extraction, programming, text summarization"
-    tags: ["latest", "general", "enterprise"]
+    tags: ["general", "enterprise"]
     context_window: "131,072 tokens"
     output_tokens: 65536
     param: "max_tokens"
@@ -111,7 +162,7 @@ models:
     # Model metadata
     description: "A lightweight model that thinks before responding. Excels at quantitative tasks that involve math and reasoning"
     capabilities: "⚡ Best for: Math and reasoning tasks, cost-effective analysis"
-    tags: ["latest", "cost-effective", "reasoning"]
+    tags: ["cost-effective", "reasoning"]
     context_window: "131,072 tokens"
     output_tokens: 65536
     param: "max_tokens"
@@ -129,7 +180,7 @@ models:
     # Model metadata
     description: "A lightning fast reasoning model built for agentic coding"
     capabilities: "⚡ Best for: Agentic coding, fast reasoning, development tasks"
-    tags: ["latest", "coding", "fast", "cost-effective"]
+    tags: ["coding", "fast", "cost-effective"]
     context_window: "256,000 tokens"
     output_tokens: 100000
     param: "max_tokens"
@@ -239,21 +290,21 @@ display_categories:
     description: "Previous generation Grok models"
 
 # Default model (most capable reasoning model)
-default_model: "grok-4-1-fast-reasoning"
+default_model: "grok-4.20-0309-reasoning"
 
 # Usage notes
 usage_notes:
   - "All Grok models support function calling, tool use, and structured outputs"
-  - "Grok-4.1-fast models are the latest with 2M context windows ($0.20/$0.50 per 1M tokens)"
+  - "Grok-4.20 family is the recommended flagship with 2M context ($2/$6 per 1M tokens)"
+  - "Grok-4.20 includes reasoning, non-reasoning, and multi-agent variants"
+  - "Grok-4.1-fast models offer cost-effective 2M context ($0.20/$0.50 per 1M tokens) with cached input pricing"
   - "Grok-4 fast models support vision (image analysis); grok-3 and grok-3-mini do NOT support vision"
-  - "All text models support cached input pricing for cost optimization"
   - "grok-code-fast-1 is optimized for lightning-fast agentic coding tasks"
-  - "grok-4-1-fast-reasoning and grok-4-1-fast-non-reasoning offer best cost/performance"
   - "Grok Imagine: grok-imagine-image ($0.02/image), grok-imagine-image-pro ($0.07/image)"
   - "Grok Imagine Video: $0.05/second with native audio"
   - "Legacy image generation (grok-2-image-1212): $0.07/image"
   - "Grok has less restrictive moderation compared to other providers"
   - "API is compatible with OpenAI and Anthropic SDKs for easy migration"
   - "Real-time search integration available with live web data from X"
-  - "Context windows: Grok-4.1-fast (2M), grok-code-fast-1 (256K), others (131K)"
+  - "Context windows: Grok-4.20 + 4.1-fast (2M), grok-code-fast-1 (256K), others (131K)"
   - "Image constraints: max 20MB, JPG/JPEG and PNG formats only"

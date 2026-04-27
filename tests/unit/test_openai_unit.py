@@ -16,8 +16,13 @@ class TestOpenAIModelConfiguration:
         """Test that all expected OpenAI models are in MODEL_CONFIGS."""
         expected_models = {
             # GPT-5 series
+            "gpt-5.5",
+            "gpt-5.5-pro",
             "gpt-5.4",
+            "gpt-5.4-mini",
+            "gpt-5.4-nano",
             "gpt-5.4-pro",
+            "gpt-5.3-chat-latest",
             "gpt-5.2",
             "gpt-5.2-pro",
             "gpt-5.1",
@@ -48,6 +53,7 @@ class TestOpenAIModelConfiguration:
             "gpt-4.1-nano",
             # Image generation
             "dall-e-3",
+            "gpt-image-2",
             "gpt-image-1.5",
             "gpt-image-1",
             "gpt-image-1-mini",
@@ -62,6 +68,8 @@ class TestOpenAIModelConfiguration:
             "gpt-4o-transcribe",
             "gpt-4o-mini-transcribe",
             # Realtime API
+            "gpt-realtime-1.5",
+            "gpt-realtime-mini",
             "gpt-4o-realtime-preview",
             "gpt-4o-mini-realtime-preview",
         }

@@ -13,6 +13,9 @@ class TestGrokModelConfiguration:
     def test_model_configs_all_present(self):
         """Test that all expected Grok models are in MODEL_CONFIGS."""
         expected_models = {
+            "grok-4.20-0309-reasoning",
+            "grok-4.20-0309-non-reasoning",
+            "grok-4.20-multi-agent-0309",
             "grok-4-1-fast-reasoning",
             "grok-4-1-fast-non-reasoning",
             "grok-4-fast-reasoning",
@@ -90,5 +93,4 @@ class TestGrokErrorHandling:
 
     def test_model_count_matches_expected(self):
         """Test that we have the expected number of models."""
-        # Ensure we have all 13 expected Grok models (added grok-4-1-fast and grok-imagine models)
-        assert len(MODEL_CONFIGS) == 13
+        assert len(MODEL_CONFIGS) == 16

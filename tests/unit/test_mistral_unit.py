@@ -25,7 +25,6 @@ class TestModelConfiguration:
             ("codestral-latest", 8192),
             ("devstral-small-latest", 8192),
             ("pixtral-large-latest", 8192),
-            ("pixtral-12b-2409", 8192),
             ("voxtral-small-latest", 8192),
             ("voxtral-mini-latest", 8192),
             ("mistral-ocr-latest", 0),
@@ -60,7 +59,6 @@ class TestModelConfiguration:
             "devstral-small-latest",
             # Vision (Pixtral)
             "pixtral-large-latest",
-            "pixtral-12b-2409",
             # Audio (Voxtral)
             "voxtral-small-latest",
             "voxtral-mini-latest",
@@ -70,6 +68,9 @@ class TestModelConfiguration:
             "mistral-ocr-latest",
             "ocr-3-25-12",
             "mistral-moderation-latest",
+            "mistral-moderation-26-03",
+            # Snapshots
+            "mistral-small-4-0-26-03",
             # Embedding
             "mistral-embed",
             "codestral-embed",
@@ -113,7 +114,6 @@ class TestModelConfiguration:
             "ministral-3b-latest",
             "ministral-8b-latest",
             "pixtral-large-latest",
-            "pixtral-12b-2409",
             "mistral-ocr-latest",
         ]
         for model_id in vision_models:

@@ -23,9 +23,20 @@ models:
     output_per_1m: 2.00
 
   mistral-small-latest:
-    description: "Mistral Small 3.2 - efficient general model (v25.06)"
+    description: "Mistral Small 4.0 - efficient general model (v26.03, floating tag)"
     capabilities: "⚡ Best for: Everyday tasks, cost-effective"
     tags: ["mistral-small", "latest", "cost-effective"]
+    context_window: "128,000 tokens"
+    output_tokens: 8192
+    supports_vision: true
+    supports_grounding: false
+    input_per_1m: 0.10
+    output_per_1m: 0.30
+
+  mistral-small-4-0-26-03:
+    description: "Mistral Small 4.0 - efficient general model (v26.03, snapshot)"
+    capabilities: "⚡ Best for: Everyday tasks, cost-effective"
+    tags: ["mistral-small", "snapshot"]
     context_window: "128,000 tokens"
     output_tokens: 8192
     supports_vision: true
@@ -141,17 +152,6 @@ models:
     input_per_1m: 2.00
     output_per_1m: 6.00
 
-  pixtral-12b-2409:
-    description: "DEPRECATED (retired Dec 31, 2025) - Pixtral 12B lightweight vision model"
-    capabilities: "👁️ Best for: OCR, cost-effective vision tasks (use ministral-14b-latest instead)"
-    tags: ["pixtral", "vision", "cost-effective", "deprecated"]
-    context_window: "128,000 tokens"
-    output_tokens: 8192
-    supports_vision: true
-    supports_grounding: false
-    input_per_1m: 0.15
-    output_per_1m: 0.15
-
   # === AUDIO MODELS (VOXTRAL) ===
   voxtral-small-latest:
     description: "Voxtral Small - audio chat model (v25.07)"
@@ -230,9 +230,20 @@ models:
     output_per_1m: 0.00
 
   mistral-moderation-latest:
-    description: "Content moderation model (v24.11)"
+    description: "Content moderation model (v26.03, floating tag)"
     capabilities: "🛡️ Best for: Content safety, harmful text detection"
-    tags: ["moderation", "safety"]
+    tags: ["moderation", "safety", "latest"]
+    context_window: "8,000 tokens"
+    output_tokens: 0
+    supports_vision: false
+    supports_grounding: false
+    input_per_1m: 0.10
+    output_per_1m: 0.00
+
+  mistral-moderation-26-03:
+    description: "Content moderation model (v26.03, snapshot)"
+    capabilities: "🛡️ Best for: Content safety, harmful text detection"
+    tags: ["moderation", "safety", "snapshot"]
     context_window: "8,000 tokens"
     output_tokens: 0
     supports_vision: false
@@ -308,5 +319,5 @@ usage_notes:
   - "Ministral: Edge-optimized models (3B, 8B, 14B) for high-volume tasks"
   - "OCR 3 (ocr-3-25-12): Latest document OCR, $2 per 1,000 pages"
   - "Voxtral Transcribe (26-02): Latest transcription models including realtime"
-  - "Context windows: Large/Ministral/Devstral/Magistral 256k, Codestral/Mistral-Medium/Small 128k, Voxtral 32k"
+  - "Context windows: Large/Ministral/Devstral 256k, Codestral/Magistral/Mistral-Medium/Small 128k, Voxtral 32k"
   - "Free tier available for experimentation"

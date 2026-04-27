@@ -1,9 +1,62 @@
 models:
-  gpt-5.4:
+  gpt-5.5:
     # Model metadata
-    description: "Most capable frontier model with 1M context, coding, and agentic capabilities"
+    description: "Frontier flagship model for complex production workflows, coding, and agentic tasks"
     capabilities: "🌟 Best for: Complex reasoning, coding, agentic workflows, tool use, computer use, document analysis"
     tags: ["flagship", "latest", "general", "premium", "vision"]
+    context_window: "1,050,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false  # Only supported when reasoning.effort = none
+    supports_vision: true
+    supports_reasoning: true  # Supports none, low, medium, high, xhigh (defaults to low)
+    supports_verbosity: true  # Supports low, medium (default), high
+
+    # Pricing (tiered: <272K and >272K context)
+    input_tiers:
+      - threshold: 272000
+        price: 5.00
+      - threshold: .inf
+        price: 10.00
+    output_tiers:
+      - threshold: 272000
+        price: 30.00
+      - threshold: .inf
+        price: 45.00
+    cached_input_per_1m: 0.50
+    supports_caching: true
+
+  gpt-5.5-pro:
+    # Model metadata
+    description: "Version of GPT-5.5 that uses more compute for deeper reasoning"
+    capabilities: "🎯 Best for: Tough problems requiring longer thinking, highest precision tasks"
+    tags: ["flagship", "premium", "vision", "latest"]
+    context_window: "1,050,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_vision: true
+    supports_reasoning: true
+    supports_verbosity: true
+
+    # Pricing (tiered: <272K and >272K context)
+    input_tiers:
+      - threshold: 272000
+        price: 30.00
+      - threshold: .inf
+        price: 60.00
+    output_tiers:
+      - threshold: 272000
+        price: 180.00
+      - threshold: .inf
+        price: 270.00
+    supports_caching: false
+
+  gpt-5.4:
+    # Model metadata
+    description: "Previous flagship model with 1M context, coding, and agentic capabilities"
+    capabilities: "🌟 Best for: Complex reasoning, coding, agentic workflows, tool use, computer use, document analysis"
+    tags: ["flagship", "general", "premium", "vision"]
     context_window: "1,050,000 tokens"
     output_tokens: 128000
     param: "max_output_tokens"
@@ -24,6 +77,44 @@ models:
       - threshold: .inf
         price: 22.50
     cached_input_per_1m: 0.25
+    supports_caching: true
+
+  gpt-5.4-mini:
+    # Model metadata
+    description: "Strong mini model for coding, computer use, and subagents"
+    capabilities: "⚖️ Best for: Most coding tasks, computer use, subagent delegation, balanced performance and cost"
+    tags: ["flagship", "general", "cost-effective", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_vision: true
+    supports_reasoning: true
+    supports_verbosity: true
+
+    # Pricing
+    input_per_1m: 0.75
+    output_per_1m: 4.50
+    cached_input_per_1m: 0.075
+    supports_caching: true
+
+  gpt-5.4-nano:
+    # Model metadata
+    description: "Fastest, cheapest GPT-5.4 variant for high-volume tasks"
+    capabilities: "⚡ Best for: Quick tasks, high-volume processing, cost optimization, classification"
+    tags: ["flagship", "general", "fast", "cost-effective", "vision"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: false
+    supports_vision: true
+    supports_reasoning: true
+    supports_verbosity: true
+
+    # Pricing
+    input_per_1m: 0.20
+    output_per_1m: 1.25
+    cached_input_per_1m: 0.02
     supports_caching: true
 
   gpt-5.4-pro:
@@ -51,6 +142,23 @@ models:
       - threshold: .inf
         price: 270.00
     supports_caching: false
+
+  gpt-5.3-chat-latest:
+    # Model metadata
+    description: "ChatGPT-tuned model for conversational use cases"
+    capabilities: "💬 Best for: Conversational responses, ChatGPT-style behavior, natural dialogue"
+    tags: ["specialized", "chatgpt", "general"]
+    context_window: "400,000 tokens"
+    output_tokens: 128000
+    param: "max_output_tokens"
+    supports_temperature: true
+    supports_vision: true
+
+    # Pricing
+    input_per_1m: 1.75
+    output_per_1m: 14.00
+    cached_input_per_1m: 0.175
+    supports_caching: true
 
   gpt-5.2:
     # Model metadata
@@ -130,7 +238,7 @@ models:
     # Model metadata
     description: "A faster, cheaper version of GPT-5 for well-defined tasks"
     capabilities: "⚖️ Best for: Most coding tasks, balanced performance and cost"
-    tags: ["flagship", "latest", "general", "cost-effective", "vision"]
+    tags: ["flagship", "general", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_output_tokens"
@@ -148,7 +256,7 @@ models:
     # Model metadata
     description: "The fastest, cheapest version of GPT-5—great for summarization and classification tasks"
     capabilities: "⚡ Best for: Quick tasks, high-volume processing, cost optimization, classification"
-    tags: ["flagship", "latest", "general", "fast", "cost-effective", "vision"]
+    tags: ["flagship", "general", "fast", "cost-effective", "vision"]
     context_window: "400,000 tokens"
     output_tokens: 128000
     param: "max_output_tokens"
@@ -487,11 +595,30 @@ models:
     cached_input_per_1m: 0.075
     supports_caching: true
 
-  gpt-image-1.5:
+  gpt-image-2:
     # Model metadata
-    description: "Latest multimodal image generation model with improved quality and speed"
+    description: "State-of-the-art multimodal image generation model"
     capabilities: "🎨 Best for: High-quality image creation, artistic generation, image editing"
     tags: ["image-generation", "latest", "multimodal"]
+    context_window: "N/A (Image generation)"
+    output_tokens: 16384
+    param: "max_tokens"
+    supports_temperature: true
+
+    # Pricing (per modality, per 1M tokens)
+    text_input_per_1m: 5.00
+    image_input_per_1m: 8.00
+    cached_text_input_per_1m: 1.25
+    cached_image_input_per_1m: 2.00
+    image_output_per_1m: 30.00
+    supports_caching: true
+    pricing_type: "complex"
+
+  gpt-image-1.5:
+    # Model metadata
+    description: "Previous flagship multimodal image generation model"
+    capabilities: "🎨 Best for: High-quality image creation, artistic generation, image editing"
+    tags: ["image-generation", "multimodal"]
     context_window: "N/A (Image generation)"
     output_tokens: 16384
     param: "max_tokens"
@@ -687,6 +814,50 @@ models:
     # NOTE: Audio output handling not fully implemented
 
   # Realtime API Models
+  gpt-realtime-1.5:
+    # Model metadata
+    description: "Latest realtime API model for low-latency multimodal experiences"
+    capabilities: "🔴 Best for: Voice assistants, real-time audio/text/image interaction"
+    tags: ["realtime", "audio", "multimodal", "latest"]
+    context_window: "128,000 tokens"
+    output_tokens: 4096
+    param: "max_output_tokens"
+    supports_temperature: true
+    supports_vision: true
+
+    # Pricing (per token, per modality)
+    text_input_per_1m: 4.00
+    text_output_per_1m: 16.00
+    audio_input_per_1m: 32.00
+    audio_output_per_1m: 64.00
+    image_input_per_1m: 5.00
+    cached_text_input_per_1m: 0.40
+    cached_audio_input_per_1m: 0.40
+    cached_image_input_per_1m: 0.50
+    pricing_type: "realtime"
+
+  gpt-realtime-mini:
+    # Model metadata
+    description: "Cost-effective realtime API model"
+    capabilities: "🔴 Best for: Budget voice assistants, real-time audio/text/image interaction"
+    tags: ["realtime", "audio", "multimodal", "cost-effective", "latest"]
+    context_window: "128,000 tokens"
+    output_tokens: 4096
+    param: "max_output_tokens"
+    supports_temperature: true
+    supports_vision: true
+
+    # Pricing (per token, per modality)
+    text_input_per_1m: 0.60
+    text_output_per_1m: 2.40
+    audio_input_per_1m: 10.00
+    audio_output_per_1m: 20.00
+    image_input_per_1m: 0.80
+    cached_text_input_per_1m: 0.06
+    cached_audio_input_per_1m: 0.30
+    cached_image_input_per_1m: 0.08
+    pricing_type: "realtime"
+
   gpt-4o-realtime-preview:
     # Model metadata
     description: "Realtime API model for low-latency multimodal experiences"
@@ -809,32 +980,35 @@ display_categories:
     description: "Previous generation models for established workflows"
 
 # Default model
-default_model: "gpt-5.4"
+default_model: "gpt-5.5"
 
 # Usage notes
 usage_notes:
-  - "GPT-5.4 is the flagship model with 1M context, coding, agentic capabilities, and computer use"
-  - "GPT-5.4 supports reasoning effort levels: none (default), low, medium, high, xhigh"
-  - "GPT-5.4 supports verbosity control: low (concise), medium (default), high (thorough)"
-  - "GPT-5.4 has 1,050,000 token context window; GPT-5/5.1/5.2 have 400K context"
-  - "GPT-5 models support cached input pricing for cost optimization (90% discount)"
+  - "GPT-5.5 is the flagship model for complex reasoning, coding, and agentic workflows (knowledge cutoff Dec 1 2025)"
+  - "GPT-5.5/5.4 support reasoning effort levels: none, low, medium, high, xhigh (5.5 defaults to low)"
+  - "GPT-5.5/5.4 support verbosity control: low (concise), medium (default), high (thorough)"
+  - "GPT-5.5 and GPT-5.4 have 1M-token context window; GPT-5.4-mini/nano and GPT-5/5.1/5.2 have 400K"
+  - "GPT-5.4-mini ($0.75/$4.50): strong mini for coding, computer use, subagents"
+  - "GPT-5.4-nano ($0.20/$1.25): fastest, cheapest GPT-5.4 variant"
+  - "GPT-5.3-chat-latest ($1.75/$14.00): ChatGPT-tuned model for conversational use"
+  - "GPT-5 family supports cached input pricing for cost optimization"
   - "Flagship models (GPT-5 series) support temperature only when reasoning_effort='none'"
   - "Reasoning models (o1, o3, o4) don't support temperature parameter"
   - "Vision models (gpt-4o series, gpt-5 series) support image analysis"
-  - "Image generation models charge per image quality tier, not per token"
+  - "Image generation: gpt-image-2 is current flagship; gpt-image-1.5 is the previous flagship"
   - "Use snapshots for reproducible behavior across deployments"
   - "Batch API provides 50% discount on inputs and outputs"
   - "Cached input pricing available via Responses API"
   - "Fine-tuning models have separate training costs"
   - "Built-in tools have additional per-use charges"
-  - "Realtime API available for low-latency, multimodal experiences"
+  - "Realtime API: gpt-realtime-1.5 (current), gpt-realtime-mini (cost-effective), gpt-4o-realtime-preview (legacy)"
   - "Priority processing offers reliable, high-speed performance with pay-as-you-go"
   - "Web search content tokens: free for gpt-4o/4.1 preview, fixed 8K block for mini models"
   - "TTS models: tts-1 ($15/M chars), tts-1-hd ($30/M chars)"
   - "GPT-5.3-Codex: Most capable agentic coding model ($1.75/$14.00 per 1M tokens)"
   - "Codex models support reasoning effort levels for complex coding tasks"
   - "Sora 2: Video generation ($0.10/sec standard, $0.30-$0.50/sec pro)"
-  - "GPT-4o-mini-tts: New cost-effective TTS ($0.60 text input, $12.00 audio output per 1M)"
+  - "GPT-4o-mini-tts: Cost-effective TTS ($0.60 text input, $12.00 audio output per 1M)"
   - "GPT-4o-transcribe/mini-transcribe: New transcription models replacing Whisper"
   - "ASR: whisper-1 ($0.006/min) - legacy"
   - "⚠️ Audio I/O handling not fully implemented - models listed for completeness"

@@ -15,7 +15,7 @@ class TestModelConfiguration:
     @pytest.mark.parametrize(
         "model_name,expected_output_tokens",
         [
-            ("gemini-3-pro-preview", 64000),
+            ("gemini-3.1-pro-preview", 65536),
             ("gemini-2.5-pro", 65536),
             ("gemini-2.5-flash", 65536),
             ("gemini-2.5-flash-lite", 64000),
@@ -33,8 +33,8 @@ class TestModelConfiguration:
             "gemini-3.1-pro-preview",
             "gemini-3.1-pro-preview-customtools",
             "gemini-3.1-flash-lite-preview",
+            "gemini-3.1-flash-live-preview",
             "gemini-3.1-flash-image-preview",
-            "gemini-3-pro-preview",
             "gemini-3-flash-preview",
             "gemini-3-pro-image-preview",
             "gemini-2.5-pro",
@@ -54,7 +54,7 @@ class TestModelConfiguration:
     @pytest.mark.parametrize(
         "model_name,expected_output_tokens",
         [
-            ("gemini-3-pro-preview", 64000),
+            ("gemini-3.1-pro-preview", 65536),
             ("gemini-2.5-flash", 65536),
         ],
     )

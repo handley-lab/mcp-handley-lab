@@ -155,7 +155,7 @@ def _extract_usage(cells: list[dict]) -> dict | None:
     """Extract usage info from the last cell's result event.
 
     modelUsage is keyed by model name, e.g.:
-      {"claude-opus-4-6": {"inputTokens": ..., "contextWindow": ..., "costUSD": ...}}
+      {"claude-opus-4-7": {"inputTokens": ..., "contextWindow": ..., "costUSD": ...}}
     We sum across models and take max contextWindow.
     """
     if not cells:

@@ -50,7 +50,7 @@ class TestLoadModelConfig:
         assert "dall-e-3" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "gpt-5.4"
+        assert config["default_model"] == "gpt-5.5"
 
     def test_load_model_config_claude(self):
         """Test loading Claude model configuration."""
@@ -67,7 +67,7 @@ class TestLoadModelConfig:
         assert "claude-opus-4-5-20251101" in config["models"]
 
         # Verify default model
-        assert config["default_model"] == "claude-opus-4-6"
+        assert config["default_model"] == "claude-opus-4-7"
 
     def test_load_model_config_nonexistent_provider(self):
         """Test loading configuration for non-existent provider."""
@@ -219,7 +219,7 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Openai Model Summary" in listing
-        assert "Default Model: gpt-5.4" in listing
+        assert "Default Model: gpt-5.5" in listing
 
         # Check model categories
         assert "🚀 Flagship Models" in listing
@@ -237,7 +237,7 @@ class TestFormatModelListing:
 
         # Check summary section
         assert "Claude Model Summary" in listing
-        assert "Default Model: claude-opus-4-6" in listing
+        assert "Default Model: claude-opus-4-7" in listing
 
         # Check model categories
         assert "🚀 Claude 4.5 Series" in listing

@@ -69,32 +69,26 @@ models:
     input_per_1m: 0.25
     output_per_1m: 1.50
 
-  gemini-3-pro-preview:
+  gemini-3.1-flash-live-preview:
     # Model metadata
-    description: "DEPRECATED (shutdown 2026-03-09) - Previous generation reasoning model"
-    capabilities: "🌟 Best for: Agentic workflows, autonomous coding, complex multimodal tasks, advanced reasoning"
-    tags: ["gemini-3", "pro", "multimodal", "reasoning", "deprecated"]
+    description: "Low-latency audio-to-audio model for real-time dialogue with multimodal awareness"
+    capabilities: "🔴 Best for: Real-time conversation, voice agents, multimodal live interaction"
+    tags: ["gemini-3.1", "flash", "realtime", "audio", "multimodal"]
     context_window: "1,000,000 tokens"
-    output_tokens: 64000
+    output_tokens: 8192
 
     # Capabilities
     supports_vision: true
     supports_grounding: true
-    supports_thinking_level: true
-    supports_media_resolution: true
-    supports_thought_signatures: true
 
-    # Pricing (tiered based on token count)
-    input_tiers:
-      - threshold: 200000
-        price: 2.00
-      - threshold: .inf
-        price: 4.00
-    output_tiers:
-      - threshold: 200000
-        price: 12.00
-      - threshold: .inf
-        price: 18.00
+    # Pricing (per modality, per 1M tokens) — audio output is $12/M; using text output rate as primary
+    input_by_modality:
+      text: 0.75
+      audio: 3.00
+      image: 1.00
+      video: 1.00
+    output_per_1m: 4.50
+    pricing_type: "realtime"
 
   gemini-3-flash-preview:
     # Model metadata
@@ -412,7 +406,7 @@ usage_notes:
   - "Tiered pricing applies to Pro models based on token count thresholds"
   - "Google Search grounding: 1,500 RPD free, then additional charges apply"
   - "Gemini 3.1 Flash Lite Preview: Cost-effective model ($0.25/$1.50 per 1M tokens)"
-  - "Gemini 3 Pro Preview: DEPRECATED as of 2026-03-09, use Gemini 3.1 Pro instead"
+  - "Gemini 3.1 Flash Live Preview: Audio-to-audio realtime model (text $0.75/M, audio $3/M)"
   - "Nano Banana 2 (gemini-3.1-flash-image-preview): Fast image gen ~$0.045-$0.15/image depending on resolution"
   - "Nano Banana (gemini-2.5-flash-image): Native image generation and editing"
   - "Imagen 4 models charge per image ($0.02-$0.06)"

@@ -28,20 +28,6 @@ models:
     input_per_1m: 0.59
     output_per_1m: 0.79
 
-  meta-llama/llama-guard-4-12b:
-    description: "Meta's Llama Guard 4 12B model for content moderation and safety classification."
-    capabilities: "Best for: Content moderation, safety checks, policy compliance, guardrails."
-    tags: ["llama", "safety", "moderation", "production"]
-    context_window: "131,072 tokens"
-    output_tokens: 1024
-    param: "max_tokens"
-    supports_temperature: true
-    supports_vision: true
-    supports_tool_calling: false
-    supports_system_prompt: true
-    input_per_1m: 0.20
-    output_per_1m: 0.20
-
   openai/gpt-oss-120b:
     description: "OpenAI's open-weight GPT-OSS 120B flagship model with exceptional performance across diverse tasks."
     capabilities: "Best for: Advanced reasoning, complex problem-solving, high-quality code generation, comprehensive analysis."
@@ -99,20 +85,6 @@ models:
     input_per_1m: 0.11
     output_per_1m: 0.34
 
-  moonshotai/kimi-k2-instruct-0905:
-    description: "Moonshot AI's Kimi K2 - 262K context, strong bilingual reasoning and production-grade code generation."
-    capabilities: "Best for: Long-context coding, cross-language debugging, deep reasoning, document-to-code workflows."
-    tags: ["kimi", "long-context", "reasoning", "powerful", "bilingual", "preview"]
-    context_window: "262,144 tokens"
-    output_tokens: 16384
-    param: "max_tokens"
-    supports_temperature: true
-    supports_vision: false
-    supports_tool_calling: true
-    supports_system_prompt: true
-    input_per_1m: 1.00
-    output_per_1m: 3.00
-
   qwen/qwen3-32b:
     description: "Alibaba's Qwen3 32B model with strong multilingual and reasoning capabilities."
     capabilities: "Best for: Multilingual tasks, reasoning, code generation, Chinese language support."
@@ -126,20 +98,6 @@ models:
     supports_system_prompt: true
     input_per_1m: 0.29
     output_per_1m: 0.59
-
-  meta-llama/llama-4-maverick-17b-128e-instruct:
-    description: "Meta's Llama 4 Maverick 17B with 128 experts - powerful multimodal MoE model."
-    capabilities: "Best for: Complex reasoning, multimodal tasks, high-quality generation."
-    tags: ["llama4", "multimodal", "vision", "powerful", "preview"]
-    context_window: "131,072 tokens"
-    output_tokens: 8192
-    param: "max_tokens"
-    supports_temperature: true
-    supports_vision: true
-    supports_tool_calling: true
-    supports_system_prompt: true
-    input_per_1m: 0.20
-    output_per_1m: 0.60
 
   # Safety Models (Preview)
   meta-llama/llama-prompt-guard-2-86m:
@@ -250,9 +208,6 @@ display_categories:
   - name: "OpenAI GPT-OSS Models"
     tags: ["gpt-oss"]
     description: "OpenAI's open-weight GPT models."
-  - name: "Moonshot Kimi Models"
-    tags: ["kimi"]
-    description: "Moonshot AI's long-context reasoning models."
   - name: "Qwen Models"
     tags: ["qwen"]
     description: "Alibaba's Qwen multilingual models."
@@ -269,8 +224,8 @@ usage_notes:
   - "Groq models are served via an OpenAI-compatible API."
   - "All LLM models support the 'temperature' parameter."
   - "Pricing is per million tokens (input/output) for LLMs."
-  - "Llama 4 Scout (17B/16E) and Maverick (17B/128E) support vision/multimodal inputs."
-  - "Context windows: Most models support 131K tokens, Kimi supports 262K tokens."
+  - "Llama 4 Scout (17B/16E) supports vision/multimodal inputs."
+  - "Context windows: Most models support 131K tokens."
   - "Preview models may be deprecated with short notice."
   - "TTS models: Orpheus English ($22/M chars), Orpheus Arabic ($40/M chars)"
   - "ASR models: Whisper v3 ($0.111/hr), Whisper Turbo ($0.04/hr) - billed min 10s"

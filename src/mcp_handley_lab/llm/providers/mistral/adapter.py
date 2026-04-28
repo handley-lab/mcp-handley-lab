@@ -7,9 +7,7 @@ These adapters are used by the unified mcp-chat tool.
 import base64
 import threading
 from pathlib import Path
-from typing import Any
-
-from mistralai import Mistral
+from typing import TYPE_CHECKING, Any
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -19,17 +17,22 @@ from mcp_handley_lab.llm.common import (
     resolve_image_data,
 )
 
+if TYPE_CHECKING:
+    from mistralai import Mistral
+
 # Lazy initialization of Mistral client
-_client: Mistral | None = None
+_client: "Mistral | None" = None
 _client_lock = threading.Lock()
 
 
-def get_client() -> Mistral:
+def get_client() -> "Mistral":
     """Get or create the global Mistral client with thread safety."""
     global _client
     with _client_lock:
         if _client is None:
             try:
+                from mistralai import Mistral
+
                 _client = Mistral(api_key=settings.mistral_api_key)
             except Exception as e:
                 raise RuntimeError(f"Failed to initialize Mistral client: {e}") from e

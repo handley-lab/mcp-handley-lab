@@ -2,8 +2,8 @@
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 
-pkgver=0.31.11b3
-pkgver=0.31.11b3
+pkgver=0.31.11b4
+pkgver=0.31.11b4
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -56,6 +56,7 @@ checkdepends=(
     'python-pytest-asyncio>=0.21.0'
     'python-pytest-vcr>=1.0.0'
     'python-vcrpy>=4.0.0'
+    'python-nest-asyncio>=1.6.0'
 )
 optdepends=(
     'jq: JSON processing'

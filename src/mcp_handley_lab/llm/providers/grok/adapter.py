@@ -5,9 +5,7 @@ These adapters are used by the unified mcp-chat tool.
 """
 
 import threading
-from typing import Any
-
-from xai_sdk import Client
+from typing import TYPE_CHECKING, Any
 
 from mcp_handley_lab.common.config import settings
 from mcp_handley_lab.llm.common import (
@@ -16,17 +14,22 @@ from mcp_handley_lab.llm.common import (
     resolve_images_for_multimodal_prompt,
 )
 
+if TYPE_CHECKING:
+    from xai_sdk import Client
+
 # Lazy initialization of Grok client
-_client: Client | None = None
+_client: "Client | None" = None
 _client_lock = threading.Lock()
 
 
-def get_client() -> Client:
+def get_client() -> "Client":
     """Get or create the global Grok client with thread safety."""
     global _client
     with _client_lock:
         if _client is None:
             try:
+                from xai_sdk import Client
+
                 _client = Client(api_key=settings.xai_api_key)
             except Exception as e:
                 raise RuntimeError(f"Failed to initialize Grok client: {e}") from e

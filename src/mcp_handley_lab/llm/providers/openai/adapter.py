@@ -79,20 +79,18 @@ def generation_adapter(
         user_content += "\n\n" + "\n\n".join(inline_content)
 
     # Build input with conversation history (Responses API supports array format)
-    if history:
-        input_messages = []
-        for msg in history:
-            role = msg.get("role", "user")
-            input_messages.append({"role": role, "content": msg.get("content", "")})
-        input_messages.append({"role": "user", "content": user_content})
-        input_value: str | list = input_messages
-    else:
-        input_value = user_content
+    input_messages: list = []
+    for msg in history:
+        role = msg.get("role", "user")
+        input_messages.append({"role": role, "content": msg.get("content", "")})
+    input_messages.append({"role": "user", "content": user_content})
+    input_value: list = input_messages
 
     # Build request parameters for Responses API
     request_params: dict[str, Any] = {
         "model": model,
         "input": input_value,
+        "stream": False,
     }
 
     if system_instruction:

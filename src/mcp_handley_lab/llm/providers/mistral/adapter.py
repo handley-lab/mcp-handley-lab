@@ -18,7 +18,10 @@ from mcp_handley_lab.llm.common import (
 )
 
 if TYPE_CHECKING:
-    from mistralai import Mistral
+    try:
+        from mistralai.client import Mistral
+    except ImportError:
+        from mistralai import Mistral
 
 # Lazy initialization of Mistral client
 _client: "Mistral | None" = None
@@ -31,7 +34,10 @@ def get_client() -> "Mistral":
     with _client_lock:
         if _client is None:
             try:
-                from mistralai import Mistral
+                try:
+                    from mistralai.client import Mistral
+                except ImportError:
+                    from mistralai import Mistral
 
                 _client = Mistral(api_key=settings.mistral_api_key)
             except Exception as e:

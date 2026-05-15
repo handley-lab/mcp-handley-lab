@@ -90,6 +90,67 @@ export GOOGLE_MAPS_API_KEY="AIza..."
 # Note: Google Calendar requires OAuth setup (see tool description below)
 ```
 
+### Using a ChatGPT Subscription via Codex Proxy (Optional)
+
+If you have a ChatGPT Plus / Pro / Business subscription and would prefer to spend
+those bundled Codex tokens rather than pay-as-you-go OpenAI API credits, you can
+point `mcp-llm` at a local **codex-proxy** instance. The proxy exposes an
+OpenAI-compatible `/v1` endpoint backed by your subscription's Codex session.
+
+1. **Install the proxy.** On Arch Linux it is available from the AUR as
+   [`codex-proxy`](https://github.com/icebear0828/codex-proxy):
+
+   ```bash
+   paru -S codex-proxy
+   systemctl --user enable --now codex-proxy.service
+   ```
+
+   On other systems, follow the upstream install instructions and run
+   `codex-proxy` as a long-lived process (it listens on `http://localhost:8080`
+   by default).
+
+2. **Sign in once.** Open `http://localhost:8080/` in a browser and authenticate
+   with the ChatGPT account that holds the subscription. The proxy stores the
+   session locally and refreshes it transparently.
+
+3. **Verify it's running.** The proxy advertises the models it can route to:
+
+   ```bash
+   curl -s http://localhost:8080/v1/models | jq '.data[].id'
+   # → "gpt-5.2", "gpt-5-codex", "gpt-oss-120b", ...
+   ```
+
+4. **Register `mcp-llm` against the proxy** by overriding the OpenAI base URL.
+   With Claude Code:
+
+   ```bash
+   claude mcp add llm --scope user \
+     --env OPENAI_BASE_URL=http://localhost:8080/v1 \
+     --env OPENAI_API_KEY=pwd \
+     mcp-llm
+   ```
+
+   `OPENAI_API_KEY` is only used as the proxy's local password (set to whatever
+   you configured in the proxy dashboard — `pwd` is the default). No
+   `sk-…` key is sent anywhere; requests never leave your machine for the
+   public OpenAI API.
+
+5. **Use it from any LLM call.** Any OpenAI model (e.g. `gpt-5.2`,
+   `gpt-5-codex`) routed through `mcp-llm` will now be billed against your
+   ChatGPT subscription quota instead of the OpenAI API:
+
+   ```text
+   > ask gpt-5.2 to review the diff
+   ```
+
+   Other providers (Gemini, Claude, Mistral, …) are unaffected and continue to
+   use their own API keys.
+
+> **Caveats**: `codex-proxy` is a third-party project, not affiliated with
+> OpenAI. Treat it as you would any browser session — read the upstream
+> [README](https://github.com/icebear0828/codex-proxy) and OpenAI's terms before
+> relying on it for production work.
+
 ### Register Tools with Claude
 
 Register only the tools you need to avoid context bloat:

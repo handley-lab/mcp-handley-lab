@@ -159,3 +159,22 @@ skills:
     domain: global
     status: experimental
     tags: [review, swarm, hostile, critique]
+
+  # Research + evidence base (the standardised support scheme)
+  evidence_ledger:
+    phase: verify
+    domain: global
+    status: experimental
+    backing: scripts/check_ledger.py
+    tags: [evidence, claims, literature, support, ledger, consistency]
+  evidence_alignment:
+    phase: verify
+    domain: global
+    status: experimental
+    backing: scripts/align_evidence.py
+    tags: [evidence, goals, gaps, support, coverage, orient, research]
+  literature_scout:
+    phase: execute
+    domain: global
+    status: experimental
+    tags: [research, literature, arxiv, citations, references, evidence]

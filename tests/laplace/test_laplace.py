@@ -172,3 +172,51 @@ def test_sync_renders_each_client(client):
 def test_sync_claude_has_skill_frontmatter():
     res = render.sync("claude", write=False)
     assert res["content"].startswith("---\nname: laplace\n")
+
+
+# ---------------------------------------------------------------------------
+# evidence skills (ledger completeness + alignment)
+# ---------------------------------------------------------------------------
+
+LEDGER = """# Evidence Ledger
+
+## EPT-CLM-001: Strong claim about gain
+**Claim:** The gain scales as sqrt(N).
+**Derivation:** Appendix A.
+**Literature:** Condorcet (1785).
+**Numerical:** validate_gain().
+**Status:** Proved.
+
+## EPT-CLM-002: Weak claim about depth
+**Claim:** Hierarchy depth must exceed three.
+**Derivation:** Sketch only.
+**Literature:** none
+**Numerical:** TODO
+**Status:** conjecture, gap remains.
+"""
+
+
+def test_evidence_ledger_flags_incomplete_and_weak(tmp_path):
+    led = tmp_path / "evidence_ledger.md"
+    led.write_text(LEDGER, encoding="utf-8")
+    r = verify.run_backing("evidence_ledger", target=str(led))
+    out = r["stdout"]
+    assert "Records: 2" in out
+    assert "EPT-CLM-002" in out  # weak/incomplete flagged
+    assert "EPT-CLM-001" not in out.split("Incomplete")[-1].split("Non-affirmative")[0] \
+        if "Incomplete" in out else True  # strong claim not in incomplete section
+    assert r["returncode"] == 1  # incomplete records => exit 1
+
+
+def test_evidence_alignment_tiers_and_finds_uncovered_goal(tmp_path):
+    led = tmp_path / "evidence_ledger.md"
+    led.write_text(LEDGER, encoding="utf-8")
+    r = verify.run_backing(
+        "evidence_alignment", target=str(led),
+        args=["--goals", "gain, teleportation"],
+    )
+    out = r["stdout"]
+    assert "1 strong, 0 partial, 1 weak" in out
+    assert "gain" in out
+    assert "teleportation" in out and "uncovered" in out.lower()
+    assert (tmp_path / "support_map.md").exists()

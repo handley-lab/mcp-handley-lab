@@ -19,8 +19,8 @@ def parse_tex(filepath):
 
     # Find all equation labels
     labels = re.findall(r'\\label\{eq:([^}]+)\}', content)
-    # Find all references
-    refs = re.findall(r'\\ref\{eq:([^}]+)\}', content)
+    # Find all references (every cross-ref command, not just \ref)
+    refs = re.findall(r'\\(?:ref|eqref|autoref|cref|Cref)\{eq:([^}]+)\}', content)
     
     orphans = set(labels) - set(refs)
 
@@ -35,7 +35,7 @@ def parse_tex(filepath):
             # Strip comments
             sec_text = re.sub(r'%.*?$', '', sec_text, flags=re.MULTILINE)
             # Find math environments or refs
-            has_math = re.search(r'\$|\\\[|\\begin\{equation\}|\\ref\{eq:', sec_text)
+            has_math = re.search(r'\$|\\\[|\\begin\{equation\}|\\(?:eq|auto|c|C)?ref\{eq:', sec_text)
             word_count = len(sec_text.split())
             
             # If a section is purely textual and lengthy, it's a naked claim

@@ -143,9 +143,7 @@ def laplace_run(
     args: list[str] = Field(default_factory=list, description="Extra CLI args, e.g. ['--auto-fix'] or ['--source', '...', '--start', '10']."),
 ) -> dict[str, Any]:
     """Execute a skill's backing script for its full artifact (graph, PDF, report)."""
-    result = _verify.run_backing(skill, target, args)
-    _telemetry.log("execute", skill=skill, ok=bool(result.get("ok")), target=target)
-    return result
+    return _verify.run_backing(skill, target, args)  # telemetry logged inside run_backing
 
 
 # ---------------------------------------------------------------------------
@@ -166,13 +164,7 @@ def laplace_verify(
     The third of the loop. A non-passing report is the signal to re-orient; the
     pass/fail outcome is also logged and feeds skill-fitness assessment.
     """
-    report = _verify.verify(target, checks)
-    for check, res in report["checks"].items():
-        skill = _assess.CHECK_SKILL.get(check)
-        if skill and res.get("pass") is not None:
-            _telemetry.log("verify_check", skill=skill, check=check, passed=bool(res["pass"]))
-    _telemetry.log("verify", target=target, passed=report["passed"], issue_count=report["issue_count"])
-    return report
+    return _verify.verify(target, checks)  # telemetry logged inside verify.verify
 
 
 # ---------------------------------------------------------------------------

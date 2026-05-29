@@ -43,6 +43,22 @@ def parse_records(text):
     return records
 
 
+_STOP = {"the", "a", "an", "of", "in", "and", "to", "is", "for", "with", "on",
+         "by", "as", "at", "or", "its", "via", "per", "vs"}
+
+
+def _tokens(text):
+    return {w for w in re.findall(r"[a-z0-9]+", text.lower())
+            if len(w) > 2 and w not in _STOP}
+
+
+def _goal_matches(goal, rec):
+    """Lexical token-overlap match (a goal matches a claim sharing >=1 keyword)."""
+    gtok = _tokens(goal)
+    blob = _tokens(rec["title"] + " " + rec["fields"].get("Claim", ""))
+    return bool(gtok & blob)
+
+
 def _has(fields, key):
     v = fields.get(key, "")
     return bool(v) and not PLACEHOLDER.search(v)
@@ -82,10 +98,10 @@ def main():
 
     if goals:
         lines.append("## Coverage by goal")
+        lines.append("> Matching is lexical (keyword overlap), not semantic. Read an "
+                     "'uncovered' verdict with the ledger open before trusting it.")
         for g in goals:
-            gl = g.lower()
-            matched = [r for r in records
-                       if gl in r["title"].lower() or gl in r["fields"].get("Claim", "").lower()]
+            matched = [r for r in records if _goal_matches(g, r)]
             if not matched:
                 lines.append(f"- **{g}**: NO matching claim - uncovered. Scout literature or derive.")
                 continue

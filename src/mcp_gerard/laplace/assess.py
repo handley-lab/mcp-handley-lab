@@ -18,14 +18,9 @@ from typing import Any
 
 from mcp_gerard.laplace import telemetry
 from mcp_gerard.laplace.canon import Canon, get_canon
+from mcp_gerard.laplace.verify import CHECK_SKILL  # re-exported for callers
 
-# Which verify check attributes its pass/fail to which skill.
-CHECK_SKILL = {
-    "epistemic": "epistemic_ledger",
-    "voice": "latex_forge",
-    "crossref": "global_weaver",
-    "empirical": "empirical_ledger",
-}
+__all__ = ["assess", "CHECK_SKILL"]
 
 # Fitness weights (sum to 1).
 W_USAGE, W_QUALITY, W_FEEDBACK, W_RETENTION = 0.30, 0.40, 0.15, 0.15

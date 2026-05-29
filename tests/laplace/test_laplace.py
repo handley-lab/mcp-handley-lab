@@ -76,6 +76,24 @@ def test_verify_flags_seeded_errors(tmp_path):
     assert any(b["ref"] == "eq:missing" for b in rep["checks"]["crossref"]["broken_refs"])
 
 
+def test_epistemic_counts_eqref_not_just_ref(tmp_path):
+    # A label referenced only via \eqref must not be reported as an orphan.
+    tex = tmp_path / "eqref.tex"
+    tex.write_text(
+        r"\begin{equation}\label{eq:a} x=1 \end{equation} see \eqref{eq:a}." + "\n",
+        encoding="utf-8",
+    )
+    rep = verify.verify(str(tex), checks=["epistemic"])
+    assert rep["checks"]["epistemic"]["orphans"] == []
+
+
+def test_voice_flags_unicode_emdash(tmp_path):
+    tex = tmp_path / "uni.tex"
+    tex.write_text("This clause — an aside — lingers.\n", encoding="utf-8")
+    rep = verify.verify(str(tex), checks=["voice"])
+    assert any(f["kind"] == "vonnegut" for f in rep["checks"]["voice"]["violations"])
+
+
 def test_verify_clean_file_passes(tmp_path):
     tex = tmp_path / "clean.tex"
     tex.write_text(

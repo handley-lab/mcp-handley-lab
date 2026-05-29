@@ -35,8 +35,8 @@ def weave(target_dir):
                 global_labels[lbl] = []
             global_labels[lbl].append(filename)
             
-        # Find refs
-        refs = re.findall(r'\\ref\{([^}]+)\}', content)
+        # Find refs (every cross-ref command, not just \ref)
+        refs = re.findall(r'\\(?:ref|eqref|autoref|cref|Cref)\{([^}]+)\}', content)
         if filename not in references_map:
             references_map[filename] = []
         references_map[filename].extend(refs)

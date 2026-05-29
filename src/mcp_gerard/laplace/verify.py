@@ -18,7 +18,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from mcp_gerard.laplace import telemetry
 from mcp_gerard.laplace.canon import Canon, get_canon
+
+# Which verify check attributes its pass/fail to which skill (the fitness signal).
+CHECK_SKILL = {
+    "epistemic": "epistemic_ledger",
+    "voice": "latex_forge",
+    "crossref": "global_weaver",
+    "empirical": "empirical_ledger",
+}
 
 
 def read_safe(path: str | Path) -> str:
@@ -37,7 +46,8 @@ def read_safe(path: str | Path) -> str:
 
 def check_epistemic(text: str) -> dict[str, Any]:
     labels = re.findall(r"\\label\{eq:([^}]+)\}", text)
-    refs = re.findall(r"\\ref\{eq:([^}]+)\}", text)
+    # Count every cross-reference command, not just \ref (manuscripts use \eqref).
+    refs = re.findall(r"\\(?:ref|eqref|autoref|cref|Cref)\{eq:([^}]+)\}", text)
     orphans = sorted(set(labels) - set(refs))
 
     sections = re.split(r"\\section\{([^}]+)\}", text)
@@ -46,7 +56,7 @@ def check_epistemic(text: str) -> dict[str, Any]:
         for i in range(1, len(sections), 2):
             name = sections[i]
             body = re.sub(r"%.*?$", "", sections[i + 1], flags=re.MULTILINE)
-            has_math = re.search(r"\$|\\\[|\\begin\{equation\}|\\ref\{eq:", body)
+            has_math = re.search(r"\$|\\\[|\\begin\{equation\}|\\(?:eq|auto|c|C)?ref\{eq:", body)
             if len(body.split()) > 150 and not has_math:
                 naked.append(name)
 
@@ -92,6 +102,8 @@ _VONNEGUT = [
     (r";", "Vonnegut Rule: eradicate semi-colons (unless required by TikZ syntax)."),
     (r"---", "Vonnegut Rule: use spaced hyphens ( - ), not em-dashes (---)."),
     (r"(?<!\-)--(?!\-)", "Vonnegut Rule: use spaced hyphens ( - ), not en-dashes (--)."),
+    ("—", "Vonnegut Rule: unicode em-dash (—) found; use spaced hyphens ( - )."),
+    ("–", "Vonnegut Rule: unicode en-dash (–) found; use spaced hyphens ( - )."),
 ]
 
 
@@ -158,7 +170,9 @@ def check_crossref(target: str | Path) -> dict[str, Any]:
         name = fp.name
         for lbl in re.findall(r"\\label\{([^}]+)\}", content):
             global_labels.setdefault(lbl, []).append(name)
-        references_map.setdefault(name, []).extend(re.findall(r"\\ref\{([^}]+)\}", content))
+        references_map.setdefault(name, []).extend(
+            re.findall(r"\\(?:ref|eqref|autoref|cref|Cref)\{([^}]+)\}", content)
+        )
 
     broken = [
         {"file": fn, "ref": ref}
@@ -210,12 +224,20 @@ def verify(
         else:
             results[check] = {"pass": None, "error": f"unknown check {check!r}"}
 
+    # Instrument here (not in the MCP wrapper) so any driver - MCP, Python API, a
+    # subagent - feeds the fitness assessment identically.
+    for check, res in results.items():
+        skill = CHECK_SKILL.get(check)
+        if skill and res.get("pass") is not None:
+            telemetry.log("verify_check", skill=skill, check=check, passed=bool(res["pass"]))
+
     decided = [r["pass"] for r in results.values() if r.get("pass") is not None]
     passed = all(decided) if decided else None
     n_issues = sum(
         len(r.get("violations", [])) + len(r.get("orphans", [])) + len(r.get("naked_claims", [])) + len(r.get("broken_refs", [])) + len(r.get("duplicate_labels", {}))
         for r in results.values()
     )
+    telemetry.log("verify", target=str(target), passed=passed, issue_count=n_issues)
     return {
         "target": str(target),
         "checks": results,
@@ -254,7 +276,9 @@ def run_backing(
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        telemetry.log("execute", skill=skill, ok=False, target=target)
         return {"error": f"execution failed: {e}", "cmd": cmd}
+    telemetry.log("execute", skill=skill, ok=proc.returncode == 0, target=target)
     return {
         "skill": skill,
         "cmd": cmd,

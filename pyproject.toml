@@ -68,13 +68,14 @@ mcp-blog = "mcp_gerard.blog:main"
 mcp-overleaf = "mcp_gerard.overleaf:main"
 mcp-vault = "mcp_gerard.vault:main"
 mcp-projects = "mcp_gerard.projects:main"
+mcp-laplace = "mcp_gerard.laplace.tool:main"
 
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mcp_gerard = ["py.typed", "llm/providers/*/models.yaml", "tool_schemas.json", "_shared/*"]
+mcp_gerard = ["py.typed", "llm/providers/*/models.yaml", "tool_schemas.json", "_shared/*", "laplace/canon/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

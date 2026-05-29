@@ -1,0 +1,161 @@
+# The Laplace Canon manifest.
+#
+# This is the machine-readable overlay the engine uses for relevance selection
+# (laplace_orient) and lifecycle/fitness tracking (laplace_assess / laplace_dream).
+#
+# The loader DISCOVERS files on disk (wiki/**.md, skills/*/SKILL.md); this file
+# only supplies overlay metadata keyed by ref/name. Missing entries fall back to
+# sensible defaults (status inferred from an [EXPERIMENTAL] tag, phase=execute,
+# domain=global, tags derived from the path). The dreamer writes status + fitness
+# back into this file, so it is the single mutable record of canon health.
+version: 1
+
+# ---------------------------------------------------------------------------
+# Wiki nodes. `scope: global` nodes are always offered by orient; `scope: domain`
+# nodes are offered only when their domain matches the active goal.
+# ---------------------------------------------------------------------------
+wiki:
+  aesthetics/voice_and_style:
+    title: The Laplace Voice
+    scope: global
+    tags: [style, writing, voice, prose, tone]
+  aesthetics/tikz_guidelines:
+    title: TikZ Guidelines
+    scope: global
+    tags: [figures, tikz, plots, visual]
+  aesthetics/typography_and_layout:
+    title: Typography and Layout
+    scope: global
+    tags: [layout, columns, typography, visual]
+  aesthetics/visual_mechanics:
+    title: Visual Mechanics
+    scope: global
+    tags: [figures, visual, schematic]
+  structure/pedagogical_segregation:
+    title: Pedagogical Segregation
+    scope: global
+    tags: [structure, appendix, narrative, derivation]
+  workflow/iterative_review_schema:
+    title: Iterative Review Schema
+    scope: global
+    tags: [workflow, review, swarm, critical-regime]
+  operations/compilation_and_release:
+    title: Compilation & Release
+    scope: global
+    tags: [ops, compile, release, ci]
+  operations/git_mechanics:
+    title: Git Mechanics
+    scope: global
+    tags: [ops, git, revert, windows]
+  operations/shell_mechanics:
+    title: Shell Mechanics
+    scope: global
+    tags: [ops, shell, powershell, python, anti-laziness]
+  templates/project_scaffold:
+    title: Project Scaffold
+    scope: global
+    tags: [meta, scaffold, new-domain]
+
+# ---------------------------------------------------------------------------
+# Domains. Theory axioms + active project state, loaded by orient when relevant.
+# ---------------------------------------------------------------------------
+domains:
+  synthetics:
+    axioms: domains/synthetics/axioms
+    tags: [synthetics, closure-residue, radner-friction, hierarchy]
+    projects:
+      the_phases_of_hierarchy: domains/synthetics/projects/the_phases_of_hierarchy
+
+# ---------------------------------------------------------------------------
+# Skills. phase = which third of the tripartite loop the skill serves.
+#   orient   - understand goal / load context
+#   execute  - translate goal into a local action (transform / run)
+#   verify   - translate result back / check consistency
+# status = experimental | core | deprecated  (mutated by the dreamer on evidence)
+# backing = optional deterministic script, runnable via laplace_run / laplace_verify
+# ---------------------------------------------------------------------------
+skills:
+  mccaul_protocol:
+    phase: orient
+    domain: global
+    status: core
+    tags: [bootstrap, router, workflow]
+  synthetics_architect:
+    phase: orient
+    domain: synthetics
+    status: experimental
+    tags: [narrative, coherence, structure]
+
+  structural_mechanic:
+    phase: execute
+    domain: global
+    status: experimental
+    backing: scripts/banish_to_appendix.py
+    tags: [structure, appendix, latex]
+  tikz_mechanic:
+    phase: execute
+    domain: global
+    status: experimental
+    backing: scripts/sanitize_xcolor.py
+    tags: [tikz, xcolor, figures, compile]
+  git_mechanic:
+    phase: execute
+    domain: global
+    status: experimental
+    backing: scripts/configure_git.py
+    tags: [git, ops, revert, windows]
+  shell_mechanic:
+    phase: execute
+    domain: global
+    status: experimental
+    backing: scripts/Invoke-SafePython.ps1
+    tags: [shell, python, powershell, ops]
+  css_forge:
+    phase: execute
+    domain: web
+    status: experimental
+    tags: [css, web, layout]
+  html_mechanic:
+    phase: execute
+    domain: web
+    status: experimental
+    tags: [html, web, voice, polish]
+  web_deployment_mechanic:
+    phase: execute
+    domain: web
+    status: experimental
+    tags: [deploy, web, github-pages]
+  laplace_release_mechanic:
+    phase: execute
+    domain: global
+    status: experimental
+    tags: [release, ci, pipeline, orchestration]
+
+  epistemic_ledger:
+    phase: verify
+    domain: global
+    status: core
+    backing: scripts/map_derivations.py
+    tags: [latex, claims, derivation, structure, consistency]
+  empirical_ledger:
+    phase: verify
+    domain: global
+    status: experimental
+    tags: [data, simulation, numerical, captions, consistency]
+  global_weaver:
+    phase: verify
+    domain: global
+    status: core
+    backing: scripts/weave_orchestra.py
+    tags: [crossref, labels, refs, orchestra, consistency]
+  latex_forge:
+    phase: verify
+    domain: global
+    status: experimental
+    backing: scripts/build_and_lint.py
+    tags: [latex, lint, voice, british-english, ai-slop, compile]
+  hostile_redteam_swarm:
+    phase: verify
+    domain: global
+    status: experimental
+    tags: [review, swarm, hostile, critique]

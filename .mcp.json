@@ -9,6 +9,7 @@
     "blog": { "type": "stdio", "command": "mcp-blog", "args": [], "env": {} },
     "overleaf": { "type": "stdio", "command": "mcp-overleaf", "args": [], "env": {} },
     "vault": { "type": "stdio", "command": "mcp-vault", "args": [], "env": {} },
-    "projects": { "type": "stdio", "command": "mcp-projects", "args": [], "env": {} }
+    "projects": { "type": "stdio", "command": "mcp-projects", "args": [], "env": {} },
+    "laplace": { "type": "stdio", "command": "mcp-laplace", "args": [], "env": {} }
   }
 }

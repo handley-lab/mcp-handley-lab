@@ -1,0 +1,5 @@
+# Compilation and Release Pipeline
+
+* **Automated Formatting & The Vonnegut Linter**: Do not rely purely on manual oversight to enforce the Vonnegut Rule or the 'Child Made It' rule. Always pass `.tex` files through the `latex_forge` linter (`build_and_lint.py`) to computationally eradicate semi-colons, em-dashes, Americanisms, and TikZ color/keyword violations (e.g., using `output` as a node style crashes TikZ positioning; use `finalnode` instead).
+* **The Forge Compiler Axiom**: Never run raw `pdflatex`, `latexmk`, or `bibtex` in the terminal. You must strictly use the Forge Compiler (`latex_forge/scripts/compile_pdf.py` or `compile_orchestra.py`) for all compilations to guarantee standardized, frictionless builds. Ensure you handle PDF lock bypasses when compiling.
+* **The Release CI/CD Axiom**: To eliminate PI QA friction, you must never manually cobble together QA or deployments. You must invoke the `laplace_release_mechanic` and `web_deployment_mechanic` to execute the full rigid pipeline (Swarm -> Epistemic Sync -> Compile -> Web Deploy).

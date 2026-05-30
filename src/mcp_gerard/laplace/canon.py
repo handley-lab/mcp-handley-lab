@@ -73,7 +73,7 @@ def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
 class Skill:
     name: str
     description: str
-    phase: str  # orient | execute | verify
+    activity: str  # generating | staging | evaluating
     domain: str
     status: str  # experimental | core | deprecated
     backing: str | None
@@ -94,7 +94,7 @@ class Skill:
     def summary(self) -> dict[str, Any]:
         return {
             "name": self.name,
-            "phase": self.phase,
+            "activity": self.activity,
             "domain": self.domain,
             "status": self.status,
             "description": self.description,
@@ -179,7 +179,7 @@ class Canon:
             self.skills[name] = Skill(
                 name=name,
                 description=description,
-                phase=o.get("phase", "execute"),
+                activity=o.get("activity", "staging"),
                 domain=o.get("domain", "global"),
                 status=status,
                 backing=o.get("backing"),
@@ -320,20 +320,22 @@ class Canon:
                     }
                 )
 
-        skills = []
+        skills = {"generating": [], "staging": [], "evaluating": []}
         for sk in self.rank_skills(goal, domain):
             s = sk.summary()
             s["ref"] = f"canon://skills/{sk.name}"
             if sk.backing:
                 s["run"] = f"laplace_run(skill={sk.name!r}, target=...)"
-            skills.append(s)
+            
+            activity = sk.activity if sk.activity in skills else "staging"
+            skills[activity].append(s)
 
         return {
             "goal": goal,
             "domain": domain,
             "loop": (
-                "orient (you are here) -> execute via laplace_skill / laplace_run "
-                "-> verify via laplace_verify; mismatch re-enters orient"
+                "orient (you are here) -> select activity (generating|staging|evaluating) "
+                "-> execute via laplace_skill / laplace_run"
             ),
             "foundation": foundation,
             "domain_context": domain_context,

@@ -67,124 +67,124 @@ domains:
       the_phases_of_hierarchy: domains/synthetics/projects/the_phases_of_hierarchy
 
 # ---------------------------------------------------------------------------
-# Skills. phase = which third of the tripartite loop the skill serves.
-#   orient   - understand goal / load context
-#   execute  - translate goal into a local action (transform / run)
-#   verify   - translate result back / check consistency
+# Skills. activity = which operational bucket the skill serves.
+#   generating - doing mathematics to add to evidence, literature search
+#   staging    - manuscript drafting, workflow routing, and figure creation
+#   evaluating - structural linting, cross-referencing, verifying claims
 # status = experimental | core | deprecated  (mutated by the dreamer on evidence)
 # backing = optional deterministic script, runnable via laplace_run / laplace_verify
 # ---------------------------------------------------------------------------
 skills:
   context_firewall:
-    phase: orient
+    activity: staging
     domain: global
     status: experimental
     tags: [architecture, compartmentalisation, scrub]
   mccaul_protocol:
-    phase: orient
+    activity: staging
     domain: global
     status: core
     tags: [bootstrap, router, workflow]
   synthetics_architect:
-    phase: orient
+    activity: staging
     domain: synthetics
     status: experimental
     tags: [narrative, coherence, structure]
 
   structural_mechanic:
-    phase: execute
+    activity: staging
     domain: global
     status: experimental
     backing: scripts/banish_to_appendix.py
     tags: [structure, appendix, latex]
   tikz_mechanic:
-    phase: execute
+    activity: staging
     domain: global
     status: experimental
     backing: scripts/sanitize_xcolor.py
     tags: [tikz, xcolor, figures, compile]
   git_mechanic:
-    phase: execute
+    activity: staging
     domain: global
     status: deprecated
     backing: scripts/configure_git.py
     tags: [git, ops, revert, windows]
   shell_mechanic:
-    phase: execute
+    activity: staging
     domain: global
     status: deprecated
     backing: scripts/Invoke-SafePython.ps1
     tags: [shell, python, powershell, ops]
   css_forge:
-    phase: execute
+    activity: staging
     domain: web
     status: deprecated
     tags: [css, web, layout]
   html_mechanic:
-    phase: execute
+    activity: staging
     domain: web
     status: deprecated
     tags: [html, web, voice, polish]
   web_deployment_mechanic:
-    phase: execute
+    activity: staging
     domain: web
     status: deprecated
     tags: [deploy, web, github-pages]
   laplace_release_mechanic:
-    phase: execute
+    activity: staging
     domain: global
     status: deprecated
     tags: [release, ci, pipeline, orchestration]
 
   epistemic_ledger:
-    phase: verify
+    activity: evaluating
     domain: global
     status: core
     backing: scripts/map_derivations.py
     tags: [latex, claims, derivation, structure, consistency]
   empirical_ledger:
-    phase: verify
+    activity: generating
     domain: global
     status: experimental
     tags: [data, simulation, numerical, captions, consistency]
   global_weaver:
-    phase: verify
+    activity: evaluating
     domain: global
     status: core
     backing: scripts/weave_orchestra.py
     tags: [crossref, labels, refs, orchestra, consistency]
   latex_forge:
-    phase: verify
+    activity: evaluating
     domain: global
     status: core
     backing: scripts/build_and_lint.py
     tags: [latex, lint, voice, british-english, ai-slop, compile]
   hostile_redteam_swarm:
-    phase: verify
+    activity: evaluating
     domain: global
     status: experimental
     tags: [review, swarm, hostile, critique]
 
   # Research + evidence base (the standardised support scheme)
   evidence_ledger:
-    phase: verify
+    activity: evaluating
     domain: global
     status: experimental
     backing: scripts/check_ledger.py
     tags: [evidence, claims, literature, support, ledger, consistency]
   evidence_alignment:
-    phase: verify
+    activity: evaluating
     domain: global
     status: experimental
     backing: scripts/align_evidence.py
     tags: [evidence, goals, gaps, support, coverage, orient, research]
   literature_scout:
-    phase: execute
+    activity: generating
     domain: global
     status: experimental
     tags: [research, literature, arxiv, citations, references, evidence]
   identity_ledger:
-    phase: verify
+    activity: evaluating
     domain: global
     status: experimental
     backing: scripts/check_identity.py

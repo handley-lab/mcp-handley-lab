@@ -1,0 +1,20 @@
+# Machine-owned lifecycle overlay. The dreamer writes this; do not hand-edit.
+# It overrides skill `status` in index.yaml based on measured fitness.
+skills:
+  session_closer:
+    status: experimental
+    forged: '2026-05-30T19:40:00+00:00'
+    history:
+    - at: '2026-05-30T19:40:00+00:00'
+      from: null
+      reason: forged by dreamer (host-executed) — close-out protocol against telemetry starvation + role/API boundary breach
+      to: experimental
+  evidence_alignment:
+    fitness: 0.35
+    history:
+    - at: '2026-05-30T17:10:04.578622+00:00'
+      from: experimental
+      reason: offered 8x, never used
+      to: deprecated
+    status: deprecated
+    updated: '2026-05-30T17:10:04.578622+00:00'

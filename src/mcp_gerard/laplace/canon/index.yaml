@@ -104,6 +104,11 @@ skills:
     domain: global
     status: experimental
     tags: [propagation, commit, ledger, dependency, firewall, brief, reflexive]
+  session_closer:
+    activity: staging
+    domain: global
+    status: experimental
+    tags: [close, session, telemetry, logging, fitness, routine, role-boundary, reflexive]
   synthetics_architect:
     activity: staging
     domain: synthetics

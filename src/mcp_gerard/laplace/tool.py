@@ -54,7 +54,7 @@ def laplace_orient(
     _telemetry.log(
         "orient",
         domain=bundle["domain"],
-        offered=[s["name"] for s in bundle["skills"]],
+        offered=[s["name"] for bucket in bundle["skills"].values() for s in bucket],
     )
     return bundle
 

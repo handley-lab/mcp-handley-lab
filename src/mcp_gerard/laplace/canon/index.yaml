@@ -39,6 +39,10 @@ wiki:
     title: Iterative Review Schema
     scope: global
     tags: [workflow, review, swarm, critical-regime]
+  workflow/core_outward_trunk:
+    title: Core-Outward Trunk
+    scope: global
+    tags: [workflow, drafting, trunk, core-outward, firewall, ledger, propagation, stages]
   operations/compilation_and_release:
     title: Compilation & Release
     scope: global
@@ -85,6 +89,16 @@ skills:
     domain: global
     status: core
     tags: [bootstrap, router, workflow]
+  result_foundry:
+    activity: staging
+    domain: global
+    status: experimental
+    tags: [core, results, ledger, evidence, status, derive-not-assert, craft]
+  reconciler:
+    activity: staging
+    domain: global
+    status: experimental
+    tags: [propagation, commit, ledger, dependency, firewall, brief, reflexive]
   synthetics_architect:
     activity: staging
     domain: synthetics

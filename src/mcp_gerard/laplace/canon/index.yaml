@@ -171,6 +171,11 @@ skills:
     domain: global
     status: experimental
     tags: [archaeology, distillation, firewall, reference, retrieval, scrub]
+  focus_rail:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [focus, goal, backlog, distraction, ladder, discipline]
   global_weaver:
     activity: evaluating
     domain: global

@@ -10,16 +10,26 @@ A coarse craft skill for the **core** of a paper: the results themselves, before
 or framing. It governs the results/spine ledger — the trunk-root. Start broad; sculpt finer as
 the work teaches what a "result" should look like here.
 
-## What a locked result is
-A result is finished when it carries, explicitly:
-1. **A statement** — the claim in one precise sentence, in fixed vocabulary.
-2. **A status** — *established* / *partial-under-a-stated-restriction* / *open-gap*. The status
-   is a verification verdict, never an assertion. If you cannot say which, it is *open-gap*.
-3. **A derivation pointer** — where the argument lives.
-4. **Numerical/empirical support** — the script or data that demonstrates it, *and the verdict of
-   actually running it*. A result whose checker does not run is not "settled"; the checker's
-   failure is recorded against the result.
-5. **Dependencies** — which earlier results it rests on, so propagation can find it.
+## What a locked result is (the four faces)
+A result is finished when it carries four faces, each serving a different reader and stage. The
+heavy human derivation is *sublinked* so it stays out of the working context while the light,
+high-value content travels. The sublinked derivation is the single source of truth — the statement
+and machine map are views of it, and the `reconciler` propagates on change.
+
+1. **Statement** — the claim in one precise sentence, in fixed vocabulary, carrying its **status**
+   (*established* / *partial-under-a-stated-restriction* / *open-gap*; a verification verdict, never
+   an assertion — if you cannot say which, it is *open-gap*) and its **dependencies** (which earlier
+   results it rests on, so propagation can find it).
+2. **Pedagogical derivation** — the full human-facing argument, *sublinked* out of the working set,
+   read only to verify or to draft an appendix.
+3. **Machine map** — a compact reconstruction certificate: the assumptions used, the techniques
+   employed, a terse recipe to reach the result, and the *verdict of actually running the check*. A
+   result whose checker does not run is not "settled"; the checker's failure is recorded against it.
+4. **Contextual scaffolding** (bounded; speculative leads drain to the backlog) — what motivates the
+   assumptions, where the result sits in the literature and what it does there, the observed
+   phenomena it explains, and what it licences (which later results it unlocks). These fields are the
+   rhetorical moves of a paper pre-written, so the results ledger doubles as **pre-assembled
+   narrative** feeding the spine and the eventual draft.
 
 ## Principles (the McCaul core)
 - **Derive, do not assert.** Cut every sentence that is a position rather than a result. A naked

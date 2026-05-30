@@ -77,9 +77,11 @@ domains:
 
 # ---------------------------------------------------------------------------
 # Skills. activity = which operational bucket the skill serves.
-#   generating - doing mathematics to add to evidence, literature search
-#   staging    - manuscript drafting, workflow routing, and figure creation
-#   evaluating - structural linting, cross-referencing, verifying claims
+#   generating - raw generative acts that produce material: derive algebra, distil
+#                prior work, seed an idea, hold focus
+#   staging    - fill a trunk-root ledger (results, literature, numerics, identity)
+#                and draft the manuscript core-outward; the generation stage lives here
+#   evaluating - structural linting, cross-referencing, auditing claims against evidence
 # status = experimental | core | deprecated  (mutated by the dreamer on evidence)
 # backing = optional deterministic script, runnable via laplace_run / laplace_verify
 # ---------------------------------------------------------------------------
@@ -228,15 +230,15 @@ skills:
     status: experimental
     tags: [derivation, algebra, scaffold, structural-decisions, closure, symmetry, generate]
   numerical_evidence:
-    activity: generating
+    activity: staging  # owns the numerics rail of the ledger bus
     domain: global
     status: experimental
-    tags: [numerical, check, simulation, evidence, pass-fail, ordering, verify]
+    tags: [numerical, check, simulation, evidence, pass-fail, ordering, verify, figure, ledger, rail]
   literature_scout:
-    activity: generating
+    activity: staging  # owns the literature rail of the ledger bus
     domain: global
     status: experimental
-    tags: [research, literature, arxiv, citations, references, evidence]
+    tags: [research, literature, arxiv, citations, references, evidence, ledger, rail]
   # deep_corpus_scout: reverted (SKILL.md does not exist); pending re-forge per AUTONOMY_BACKLOG.md
   identity_ledger:
     activity: evaluating

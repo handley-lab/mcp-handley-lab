@@ -16,6 +16,11 @@ heavy human derivation is *sublinked* so it stays out of the working context whi
 high-value content travels. The sublinked derivation is the single source of truth — the statement
 and machine map are views of it, and the `reconciler` propagates on change.
 
+The four faces are filled by three peer staging skills - the three pieces of the generation stage.
+This skill owns the statement and integrates the whole. `literature_scout` owns the literature face
+(the literature rail), and `numerical_evidence` owns the machine map and its figure (the numerics
+rail). A result locks when all three rails are filled, not when its statement merely reads well.
+
 1. **Statement** — the claim in one precise sentence, in fixed vocabulary, carrying its **status**
    (*established* / *partial-under-a-stated-restriction* / *open-gap*; a verification verdict, never
    an assertion — if you cannot say which, it is *open-gap*) and its **dependencies** (which earlier

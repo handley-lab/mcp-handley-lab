@@ -6,9 +6,11 @@ context. This node defines the workflow; `reconciler` defines how a finished ele
 
 ## The three stages
 
-1. **Foundry** — perfect the *argument*, the *evidence/numerics*, and the *figures* first, and
-   iterate until they are confident. The Foundry is re-enterable: later work may kick a question
-   back down into it.
+1. **Foundry** — perfect the three pieces of a core result before any framing: the *argument*
+   (the result and its status), the *literature* (where it sits and what it does there), and the
+   *numerics* (the check that runs and the figure it produces). Each piece lands in its own
+   trunk-root ledger and iterates until confident. The Foundry is re-enterable - later work may
+   kick a question back down into it.
 2. **Spine** — establish the *narrative spine and thematic identity*: the global frame that
    constrains every element below it. Pin this before drafting any outward prose.
 3. **Trunk** — only now draft the manuscript, **element by element, core-outward**.
@@ -29,10 +31,23 @@ first — the usual default — forces premature commitment and invites drift.
 ## The ledger bus (how coherence survives isolation)
 
 Elements never load each other's raw text. They load only a small set of authoritative,
-curated **ledgers**: a results/spine ledger (what is true), an evidence ledger (provenance),
-and an identity/glossary ledger (terminology + framing). The ledgers are the propagation
-medium: a local edit updates a ledger — small and distilled — and every future context sees the
-new truth automatically. What travels between elements is the *commitment*, never the prose.
+curated **ledgers** - the trunk-roots the generation stage fills. Four rails carry the work:
+
+- **Results / spine** (owned by `result_foundry`) - the claim in locked vocabulary, with its
+  status and its dependencies.
+- **Literature** (owned by `literature_scout`) - per claim, where it sits in the literature and
+  what is established there, with citable provenance.
+- **Numerics** (owned by `numerical_evidence`) - per claim, the check that runs, its
+  machine-readable PASS/FAIL verdict, the key numbers, and a **figure artifact** linked by
+  relative path so it can be eyeballed from the ledger without rerunning anything.
+- **Identity / glossary** - the terminology and framing.
+
+The first three are the three pieces of one result - `result_foundry`'s four faces redistributed
+across peer owners - so the generation stage is just filling these rails until every face of a
+result locks. The ledgers are the propagation medium: a local edit updates a ledger - small and
+distilled - and every future context sees the new truth automatically. What travels between
+elements is the *commitment*, never the prose - except the figure, which travels as itself,
+because a plot is read, not distilled.
 
 ## The clean-context firewall
 

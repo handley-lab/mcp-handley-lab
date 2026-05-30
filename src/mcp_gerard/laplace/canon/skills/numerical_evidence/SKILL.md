@@ -6,6 +6,10 @@ description: "[EXPERIMENTAL] Produce a numerical check from a result and a concr
 
 **Status: [EXPERIMENTAL]**
 
+This skill owns the **numerics rail** of the ledger bus - one of the three pieces of the generation stage, peer to `result_foundry` (results) and `literature_scout` (literature). It does not wait for a draft to flag a gap. For each result it produces the numerics face: a check that runs, a verdict, and a figure that can be looked at.
+
+The figure here is the **simulation-data figure** - the plot of the check itself. A paper's *schematic*, *explanatory*, and *hero* figures are a separate piece, also belonging to generation stage but attached to the identity rail, and are not yet a skill. See the engine backlog, `Generation-stage rails`.
+
 A check that evaluates a formula at a single point is not evidence — it only confirms the formula is self-consistent, not that it captures the right structure. A genuine check verifies the claimed relationship across a range and does so under exactly the same assumptions as the derivation.
 
 ## What counts as a genuine check
@@ -36,22 +40,29 @@ Implement the simplest concrete instance that satisfies the model's assumptions.
 
 Run the sweep across a range spanning at least two of the three regimes. Compute the relative error between simulation and formula at each point. Determine PASS/FAIL by a stated tolerance (default: relative error < 5% in the leading-order regime, boundary value within 2% of prediction).
 
-### 4. Output format
+### 4. Plot the swept relationship and save the figure
+
+The same sweep that produces the verdict produces the figure. Plot the simulated points against the formula's prediction across the swept range, mark the predicted boundary or exponent, and save to a conventional path next to the script (default: `figs/<result-id>_check.png`). The figure is not decoration - it is the face of the result a human reads instead of rerunning the check. One plot per check, legible at single-column width, axes labelled in the result's vocabulary.
+
+The figure is a first-class artifact, not a side effect. A check that prints PASS but saves no figure is half-done: the verdict is auditable, the structure is not visible.
+
+### 5. Output format
 
 The script must print a machine-readable summary as its final output:
 
 ```
 PASS  leading_order_coeff=<value> (predicted=<value>, err=<pct>%)
 PASS  transition_boundary=<value> (predicted=<value>, err=<pct>%)
+FIGURE: figs/<result-id>_check.png
 VERDICT: PASS
 ```
 
-or equivalent FAIL lines with the discrepancy. The key numbers are printed inline so the result's machine map can be updated without re-running.
+or equivalent FAIL lines with the discrepancy. The key numbers and the figure path are printed inline so the result's machine map can be updated without re-running.
 
-### 5. Record the verdict
+### 6. Record the verdict and the figure
 
-After the script runs, update the result's machine map entry: replace the placeholder verdict with the actual PASS/FAIL and the key numbers from the output. A result whose checker has not been run is not "settled"; the checker's FAIL is recorded against the result, not suppressed.
+After the script runs, update the result's numerics ledger entry: replace the placeholder verdict with the actual PASS/FAIL and the key numbers, and add a **markdown image link to the saved figure** (`![<result-id> check](figs/<result-id>_check.png)`) so the plot renders in the ledger and can be eyeballed without opening the script. A result whose checker has not been run is not "settled" - the checker's FAIL is recorded against the result, not suppressed.
 
 ## Usage
 
-Invoke when a result has been derived and needs numerical support before it can be marked *established*. Load the result statement and the derivation's operational ordering; do not load manuscript text. The script is committed to the project's numerical directory; the result entry is updated to point to it with its verdict.
+Invoke when a result has been derived and needs numerical support before it can be marked *established*. Load the result statement and the derivation's operational ordering - do not load manuscript text. The script is committed to the project's numerical directory, the figure to its `figs/` subdirectory, and the result entry is updated to point to both with its verdict.

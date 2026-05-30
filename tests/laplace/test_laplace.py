@@ -210,6 +210,21 @@ def test_dream_noop_without_evidence(isolated_canon):
     assert out.get("commit") is None
 
 
+def test_noop_dream_does_not_advance_boundary(isolated_canon):
+    # An idle dream - empty window, nothing applied or forged - must NOT stamp the
+    # boundary, or a later dream's window would be fragmented and friction orphaned.
+    out0 = dreamer.dream(apply=True, forge=False)
+    assert out0["assessment"]["events_seen"] == 0
+    assert out0["boundary_advanced"] is False
+    assert telemetry.last_dream_ts() is None
+    # A productive dream (earns a transition) does advance the boundary.
+    for _ in range(6):
+        telemetry.log("verify_check", skill="latex_forge", check="voice", passed=True)
+    out1 = dreamer.dream(apply=True, forge=False)
+    assert out1["boundary_advanced"] is True
+    assert telemetry.last_dream_ts() is not None
+
+
 def test_events_since_filters_by_timestamp(isolated_state):
     telemetry.log("feedback", skill="latex_forge", signal=1)
     cutoff = telemetry.events()[-1]["ts"]  # timestamp of that event

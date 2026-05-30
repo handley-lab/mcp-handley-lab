@@ -205,6 +205,12 @@ def persist_forged_skill(canon: Canon, content: str) -> dict[str, Any]:
 # the cycle
 # ---------------------------------------------------------------------------
 
+# A dream that applied no transition, forged nothing, and saw fewer than this many
+# events is idle and must NOT advance the assessment boundary (see AUTONOMY_BACKLOG,
+# "No-op dream orphans evidence"). Conservative floor: only a truly empty window is
+# idle. Raise it to also treat near-empty windows as idle.
+_NOOP_EVENT_FLOOR = 1
+
 
 def dream(
     apply: bool = True,
@@ -247,7 +253,18 @@ def dream(
         out["commit"] = sha
 
     get_canon(fresh=True)  # ensure subsequent reads see the new canon
-    _telemetry.log("dream_complete", events_seen=report["events_seen"], since=since)
+
+    # Window-leak guard: only advance the assessment boundary when the dream did
+    # something. Stamping dream_complete on an idle fire would fragment the rolling
+    # window and let genuine friction slip behind the boundary, assessed once and
+    # never acted on.
+    did_apply = bool(apply and report["transitions"])
+    is_noop = not did_apply and not forge and report["events_seen"] < _NOOP_EVENT_FLOOR
+    if is_noop:
+        out["boundary_advanced"] = False
+    else:
+        _telemetry.log("dream_complete", events_seen=report["events_seen"], since=since)
+        out["boundary_advanced"] = True
     return out
 
 

@@ -11,11 +11,19 @@ def read_safe(filepath):
             return f.read()
 
 def parse_tex(filepath):
-    if not os.path.exists(filepath):
-        print(f"Error: {filepath} not found.")
-        return
+    # Honest exit contract: an unreadable target is an operational failure
+    # (exit 2), never a silent pass. Successful analysis exits 0 regardless of
+    # how many orphans or naked claims are flagged - finding them is the skill
+    # working, not failing.
+    if not os.path.isfile(filepath):
+        print(f"Error: {filepath} is not a readable file.", file=sys.stderr)
+        sys.exit(2)
 
-    content = read_safe(filepath)
+    try:
+        content = read_safe(filepath)
+    except (OSError, UnicodeError) as e:
+        print(f"Error: cannot read {filepath}: {e}", file=sys.stderr)
+        sys.exit(2)
 
     # Find all equation labels
     labels = re.findall(r'\\label\{eq:([^}]+)\}', content)
@@ -87,6 +95,7 @@ def parse_tex(filepath):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python map_derivations.py <path_to_tex_file>")
+        print("Usage: python map_derivations.py <path_to_tex_file>", file=sys.stderr)
+        sys.exit(2)
     else:
         parse_tex(sys.argv[1])

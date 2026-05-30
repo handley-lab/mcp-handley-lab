@@ -12,11 +12,18 @@ def read_safe(filepath):
             return f.readlines()
 
 def lint_file(filepath, auto_fix=False):
-    if not os.path.exists(filepath):
-        print(f"Error: File {filepath} not found.")
-        return
+    # Honest exit contract: an unreadable target is an operational failure
+    # (exit 2), never a silent pass. A report with flags is still a successful
+    # run (exit 0) - flagging slop is the skill working, not failing.
+    if not os.path.isfile(filepath):
+        print(f"Error: {filepath} is not a readable file.", file=sys.stderr)
+        sys.exit(2)
 
-    lines = read_safe(filepath)
+    try:
+        lines = read_safe(filepath)
+    except (OSError, UnicodeError) as e:
+        print(f"Error: cannot read {filepath}: {e}", file=sys.stderr)
+        sys.exit(2)
     flags = []
     
     # Dictionaries of banned syntax
@@ -142,7 +149,8 @@ def lint_file(filepath, auto_fix=False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python build_and_lint.py <path_to_tex_file> [--auto-fix]")
+        print("Usage: python build_and_lint.py <path_to_tex_file> [--auto-fix]", file=sys.stderr)
+        sys.exit(2)
     else:
         filepath = sys.argv[1]
         auto_fix = '--auto-fix' in sys.argv

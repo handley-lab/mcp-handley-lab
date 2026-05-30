@@ -162,7 +162,7 @@ skills:
     backing: scripts/map_derivations.py
     tags: [latex, claims, derivation, structure, consistency]
   empirical_ledger:
-    activity: generating
+    activity: evaluating
     domain: global
     status: experimental
     tags: [data, simulation, numerical, captions, consistency]
@@ -227,11 +227,7 @@ skills:
     domain: global
     status: experimental
     tags: [research, literature, arxiv, citations, references, evidence]
-  deep_corpus_scout:
-    activity: generating
-    domain: global
-    status: experimental
-    tags: [research, flattening, recursive, llm, corpus, code2prompt, arxiv]
+  # deep_corpus_scout: reverted (SKILL.md does not exist); pending re-forge per AUTONOMY_BACKLOG.md
   identity_ledger:
     activity: evaluating
     domain: global

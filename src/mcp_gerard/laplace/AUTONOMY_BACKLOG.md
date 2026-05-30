@@ -5,6 +5,12 @@ A standing to-do for the engine and the autonomous dreamer, captured so items ca
 ## Skills to forge or re-forge
 - **deep_corpus_scout (re-forge, decoupled).** Recursive large-corpus flattening and distillation - dense source tarballs, multi-file repositories - for evidence extraction beyond a single context pass. A prior dreamer forged it coupled to external API modules; it was reverted to keep the engine self-contained. Re-forge in decoupled, host-executed form, and decide whether it merges with `reference_archaeologist` (targeted distillation) or stands distinct (sheer volume).
 
+## Generating skills to forge-by-doing (mathematics & evidence)
+The core of the generating activity ("doing mathematics to add to evidence") and the producers of the result schema's derivation, machine-map, and empirical faces. Identified this session but deliberately NOT forged: a generating skill is earned from the friction of actually doing the act, and no derivation or numerical check has been run yet. Forge each from real friction the first time the act is performed (the first core result of a project), never from imagination.
+- **Derivation generation.** Doing the mathematics: declare the assumptions used, name and apply the technique, execute the steps to the result, and emit the compact machine-map (assumptions / techniques / recipe). Distinct from `epistemic_ledger` (evaluates derivation flow) and `result_foundry` (records the locked result) - neither does the deriving.
+- **Numerical-evidence generation.** Writing and running the demonstration that validates an analytic result and yields the verdict for its status. Distinct from `empirical_ledger`, which audits existing data against claims after the fact - this produces the evidence in the first place.
+- **Activity mislabel (related).** `empirical_ledger` is tagged `generating` but is an auditing / `evaluating` skill. Reclassify it; the mislabel helped hide the numerical-generation gap.
+
 ## Engine behaviour
 - **orient under-ranks generating skills.** `laplace_orient` returns `skills.generating == []` even when the bucket is populated. Fix the relevance ranking so generating-activity skills surface for relevant goals.
 - **Canon hot-reload.** The server caches the canon at startup, so mid-session canon edits are invisible to the live tools until a fresh session. Add cache invalidation or reload on file change.

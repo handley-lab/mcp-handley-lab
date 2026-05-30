@@ -45,6 +45,11 @@ what the session-closer runs.
    and rewrite the active project's `HANDOFF.md` last.
 6. **Sync external state.** Bring any out-of-canon record current — auto-memory, project index,
    dashboards — so the stale-context problem does not reappear from a source the canon does not own.
+   This includes the **canon project node** (`canon://domains/.../projects/<project>`): it must hold
+   only durable facts (thesis, scope, root, supersession) and **delegate per-result status to the
+   project's `HANDOFF.md`** rather than restate it. A project node that copies the result ladder is a
+   second source of truth, and the copy freezes the session it is written — confirm the node still
+   points to the handoff rather than naming a specific active result.
 
 ## Invariants
 - **Logging is non-optional and precedes the dream.** A close that dreams before logging dreams over

@@ -56,9 +56,13 @@ def _skill_signals(name: str, events: list[dict[str, Any]]) -> dict[str, Any]:
             offered += 1
         elif phase == "execute" and ev.get("skill") == name:
             usage += 1
-            exec_total += 1
-            if ev.get("ok"):
-                exec_ok += 1
+            # A script run carries an `ok` outcome and scores exec quality. A bare
+            # protocol fetch (no `ok`) counts as usage only, leaving quality neutral
+            # until a real verify/feedback outcome is observed.
+            if "ok" in ev:
+                exec_total += 1
+                if ev["ok"]:
+                    exec_ok += 1
         elif phase == "verify_check" and ev.get("skill") == name:
             usage += 1
             verify_total += 1

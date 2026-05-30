@@ -128,6 +128,11 @@ def laplace_skill(
     sk = canon.skills.get(name)
     if sk is None:
         return {"error": f"Unknown skill: {name!r}", "available": list(canon.skills)}
+    # Fetching a skill's protocol is the execute third for a judgement-only skill -
+    # the act of selecting it to follow. Log it as usage (no `ok`: a fetch has no
+    # script outcome, so it must not be scored as exec quality). This is what makes
+    # protocol-only skills measurable; without it they read usage 0 forever.
+    _telemetry.log("execute", skill=name, kind="protocol")
     info = sk.summary()
     info["protocol"] = sk.skill_md.read_text(encoding="utf-8")
     if sk.backing:

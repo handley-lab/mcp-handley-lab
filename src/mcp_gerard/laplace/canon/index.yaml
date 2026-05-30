@@ -212,6 +212,16 @@ skills:
     status: experimental
     backing: scripts/align_evidence.py
     tags: [evidence, goals, gaps, support, coverage, orient, research]
+  derivation_generator:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [derivation, algebra, scaffold, structural-decisions, closure, symmetry, generate]
+  numerical_evidence:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [numerical, check, simulation, evidence, pass-fail, ordering, verify]
   literature_scout:
     activity: generating
     domain: global

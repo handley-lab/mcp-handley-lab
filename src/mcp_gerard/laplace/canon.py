@@ -15,7 +15,6 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -354,14 +353,42 @@ def _first_heading(body: str) -> str | None:
     return None
 
 
-@lru_cache(maxsize=1)
-def _cached_canon(root_str: str) -> Canon:
-    return Canon.load(Path(root_str))
+def _canon_fingerprint(root: Path) -> tuple[tuple[str, int], ...]:
+    """A cheap signature of the canon's on-disk state: the mtime of every file
+    that feeds a load (the manifest, the lifecycle overlay, and every skill and
+    wiki source).
+
+    Any forge, lifecycle write, or hand edit changes the signature, so the live
+    tools pick up on-disk canon changes within the running server process - no
+    restart required. The cost is a few dozen ``stat`` calls per load.
+    """
+    sources = [root / "index.yaml", root / "lifecycle.yaml"]
+    sources += sorted((root / "skills").glob("*/SKILL.md"))
+    sources += sorted((root / "wiki").rglob("*.md"))
+    sig: list[tuple[str, int]] = []
+    for p in sources:
+        try:
+            sig.append((str(p), p.stat().st_mtime_ns))
+        except OSError:
+            continue
+    return tuple(sig)
+
+
+# root_str -> (fingerprint, canon). The canon is reused until its fingerprint
+# changes, so edits on disk are reflected without a fresh session.
+_CANON_CACHE: dict[str, tuple[tuple[tuple[str, int], ...], Canon]] = {}
 
 
 def get_canon(fresh: bool = False) -> Canon:
-    """Return the active canon. ``fresh=True`` reloads from disk (after edits)."""
-    root = str(canon_root())
-    if fresh:
-        _cached_canon.cache_clear()
-    return _cached_canon(root)
+    """Return the active canon, reloading automatically when the canon files on
+    disk change. ``fresh=True`` forces an immediate reload regardless.
+    """
+    root = canon_root()
+    root_str = str(root)
+    fingerprint = _canon_fingerprint(root)
+    cached = _CANON_CACHE.get(root_str)
+    if not fresh and cached is not None and cached[0] == fingerprint:
+        return cached[1]
+    canon = Canon.load(root)
+    _CANON_CACHE[root_str] = (fingerprint, canon)
+    return canon

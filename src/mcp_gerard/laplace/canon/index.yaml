@@ -62,7 +62,7 @@ wiki:
 domains:
   synthetics:
     axioms: domains/synthetics/axioms
-    tags: [synthetics, closure-residue, radner-friction, hierarchy]
+    tags: [synthetics, hierarchy]
     projects:
       the_phases_of_hierarchy: domains/synthetics/projects/the_phases_of_hierarchy
 
@@ -75,6 +75,11 @@ domains:
 # backing = optional deterministic script, runnable via laplace_run / laplace_verify
 # ---------------------------------------------------------------------------
 skills:
+  context_firewall:
+    phase: orient
+    domain: global
+    status: experimental
+    tags: [architecture, compartmentalisation, scrub]
   mccaul_protocol:
     phase: orient
     domain: global

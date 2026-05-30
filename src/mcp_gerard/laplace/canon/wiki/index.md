@@ -2,6 +2,9 @@
 
 Welcome to the Laplace operational ledger. This is a living knowledge graph tracking our architectural rules, structural aesthetics, and ongoing projects. 
 
+## 0. Who We Work For (Global)
+- [The Author](canon://author/the_author.md): the author's durable working style and how to collaborate. Load every session, alongside the Voice.
+
 ## 1. Aesthetics, Tone, & Structure (Global)
 - [Voice and Style](canon://aesthetics/voice_and_style.md): The objective wryness of Laplace, the balance of tensions.
 - [TikZ Guidelines](canon://aesthetics/tikz_guidelines.md): Nature-style TikZ constraints, zero tolerance for default charts.
@@ -21,7 +24,8 @@ Welcome to the Laplace operational ledger. This is a living knowledge graph trac
 
 ### Domain: Synthetics
 - **Theory**: [Synthetics Axioms](canon://domains/synthetics/axioms.md) (Closure Residue, Radner Friction)
-- **Active Project**: [The Phases of Hierarchy](canon://domains/synthetics/projects/the_phases_of_hierarchy.md)
+- **Active Project**: [Adaptive Normal Form](canon://domains/synthetics/projects/adaptive_normal_form.md) (Foundry stage, results phase)
+- **Quarantined Reference**: [The Phases of Hierarchy](canon://domains/synthetics/projects/the_phases_of_hierarchy.md) (superseded; one worked corner)
 
 ### Domain: [New Domain]
 - Consult the [Project Scaffold](canon://templates/project_scaffold.md) to initialize a new operational domain.

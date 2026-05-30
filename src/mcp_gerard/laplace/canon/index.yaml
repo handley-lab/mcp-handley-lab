@@ -59,6 +59,10 @@ wiki:
     title: Project Scaffold
     scope: global
     tags: [meta, scaffold, new-domain]
+  author/the_author:
+    title: The Author
+    scope: global
+    tags: [author, persona, working-style, method, collaboration]
 
 # ---------------------------------------------------------------------------
 # Domains. Theory axioms + active project state, loaded by orient when relevant.
@@ -68,6 +72,7 @@ domains:
     axioms: domains/synthetics/axioms
     tags: [synthetics, hierarchy]
     projects:
+      adaptive_normal_form: domains/synthetics/projects/adaptive_normal_form
       the_phases_of_hierarchy: domains/synthetics/projects/the_phases_of_hierarchy
 
 # ---------------------------------------------------------------------------
@@ -161,6 +166,11 @@ skills:
     domain: global
     status: experimental
     tags: [data, simulation, numerical, captions, consistency]
+  reference_archaeologist:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [archaeology, distillation, firewall, reference, retrieval, scrub]
   global_weaver:
     activity: evaluating
     domain: global

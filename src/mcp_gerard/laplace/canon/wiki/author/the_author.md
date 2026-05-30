@@ -6,19 +6,14 @@ The model of the author the Laplace identity works with and for. It captures dur
 
 ## Working principles
 
-- **General first, refine toward use.** Open every problem at its most general, most universal formulation. Let operationalisation and numerics force the narrowing, and lock scope late - at drafting, not before. Capacious now, slim by drafting.
-- **Frame positively.** State what to do and what a thing is. Negative instructions and blocklists inject the very content they name and ossify it, so disciplines are written as constructive rules and vocabulary is tracked as earned rather than forbidden.
-- **Keep context clean.** Curate what enters context, work one element in isolation, and keep heavy material - full derivations, prior drafts - sublinked and out of the working set. Distilled ledgers travel, raw text stays put.
-- **Manage attention by capture and goal.** The author follows many ideas at once. The remedy is structural: a stated goal each session to return to, and a backlog that safely parks every stray idea so it can be set down without fear of losing it. Hold the goal, catch the strays.
+- **Generality first.** Open every problem at its most general formulation and lock scope late, at drafting. The general case carries the specific, never the reverse, so a shortcut that trades structural generality for convenience is declined.
+- **Frame positively.** State what to do and what a thing is. A negative instruction injects the content it names and ossifies it, so disciplines are constructive and vocabulary is earned, not forbidden.
+- **Keep the working set clean.** Curate what enters context, work one element in isolation, and sublink the heavy material so distilled ledgers travel and raw text stays put. Hold one stated goal, and park every stray in a backlog so it can be set down without fear of losing it.
 - **Earn the work's commitments.** Names, framings, and claims are earned once the development produces what they denote. Evocative names are targets to build toward, results carry honest status, and gaps are named rather than smoothed.
-
-- **Review derivations, do not generate algebra.** The structural scaffold is what needs to be produced. Once scope, reference point, operational ordering, and closure condition are committed, the algebra is routine. The author reviews the named structural steps; symbol-pushing is delegated.
-- **One result at a time, sequenced as a hard constraint.** Treats the result ladder as load-bearing: no result is opened until its predecessor is settled. Sequencing is not a preference — it is an epistemic requirement.
-- **Architecture before implementation.** Asks the reasoning behind a decision before the decision is made. Structural and strategic questions come first; alignment precedes artifact.
-- **Generality is not a luxury.** Declines shortcuts that trade long-term structural generality for short-term convenience. The general case carries the specific; not the reverse.
-- **Synthesise, do not partition.** The instinct is to unify, not to file into separate boxes. Where a partition looks natural - by medium, by stage, by category - look first for the one underlying object that projects into each part, and structure around that object rather than the parts. A partition is a gauge choice, not a truth. (The research programme is named for this, and the principle turns back on the work itself: the voice is one mark across every medium, not a register per medium.)
-- **Engages engine architecture as first-class.** Treats the Laplace engine as part of the work, not infrastructure. Canon gaps are named in terms of systemic cost ("we're losing information that should compound").
-- **Names meta-levels explicitly.** Comfortable with recursive self-reference; does not deflect or hedge when the work folds back on itself.
+- **Structure is the work.** Choosing the scaffold - scope, reference point, ordering, closure, architecture - is the load-bearing act. Once it is locked the algebra and the prose are routine and delegated, so review the named steps, not the symbols. Alignment precedes artifact.
+- **One result at a time.** The result ladder is load-bearing - no result opens until its predecessor is settled. Sequencing is an epistemic requirement, not a preference.
+- **Synthesise, do not partition.** Where a partition looks natural - by medium, stage, category - find the one underlying object that projects into each part and structure around it. A partition is a gauge choice, not a truth. (The research programme is named for this, and it turns back on the work - the voice is one mark across every medium, not a register per medium.)
+- **Hold the meta-level.** Treat the engine and the tooling as first-class work, not infrastructure, and name gaps in systemic cost ("we're losing information that should compound"). Name recursion directly rather than hedging when the work folds back on itself.
 
 ## Collaboration register
 - Narrate the pipeline of actions, especially while a protocol is still being developed.

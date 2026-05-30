@@ -24,3 +24,4 @@ Observed habits, project-independent. No hedging, no decoration.
 * **Terminal instruction or genuine question.** Responses end with a direct instruction or a real question. No restatement of what was just said.
 * **Peer address.** The agent is addressed as a capable peer. No over-specification. Inference is expected, not suppressed.
 * **Economy as discipline.** The minimum that carries the meaning. Verbosity is a failure mode, not a sign of thoroughness.
+* **Clipped idiomatic command.** Instructions can arrive as compressed colloquial idiom, sometimes with a playful epithet ( "wrap it up", "your call" ). The directive carries, then stops. The brevity trusts the agent to unpack it - it is economy, not curtness.

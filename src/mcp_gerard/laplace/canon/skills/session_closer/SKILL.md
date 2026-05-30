@@ -6,6 +6,8 @@ description: "[EXPERIMENTAL] The single named protocol for closing a working ses
 
 **Status: [EXPERIMENTAL]**
 
+> **Earned name: Sawbones.** The index keeps `session_closer` for discovery, but the protocol earned a bedside name the session it was forged. The close is the suture - run once, at the end, by the hand putting the work down, so the session does not bleed out. Nothing dropped, nothing stale, no evidence left to evaporate on the floor. A name earned at the end, exactly as the canon asks names to be earned.
+
 ## Purpose
 A session ends the same way every time, and yet the close was reconstructed from first principles
 each time it happened. An ad hoc close drops steps, and the most damaging dropped step is per-skill

@@ -108,7 +108,7 @@ skills:
     activity: staging
     domain: global
     status: experimental
-    tags: [close, session, telemetry, logging, fitness, routine, role-boundary, reflexive]
+    tags: [close, session, telemetry, logging, fitness, routine, role-boundary, reflexive, sawbones]
   synthetics_architect:
     activity: staging
     domain: synthetics

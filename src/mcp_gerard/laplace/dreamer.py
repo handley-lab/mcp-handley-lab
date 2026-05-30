@@ -197,6 +197,7 @@ def dream(
     out: dict[str, Any] = {
         "assessment": {
             "transitions": report["transitions"],
+            "refine_recommended": report.get("refine_recommended", []),
             "unused": report["unused"],
             "events_seen": report["events_seen"],
         }

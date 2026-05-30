@@ -33,6 +33,10 @@ PROMOTE_FITNESS = 0.60
 DEPRECATE_FITNESS = 0.30
 OFFERED_UNUSED = 8      # offered this often but never used => stale
 
+# Refinement thresholds (orthogonal to lifecycle: "needs a content rewrite").
+REFINE_MIN_CONFIDENCE = 0.5  # enough evidence to trust a complaint
+REFINE_QUALITY = 0.7         # measured pass/ok-rate below this counts as friction
+
 
 def _clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
@@ -138,6 +142,46 @@ def _recommend(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> tuple[s
     return "core", "healthy"
 
 
+def _refine(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> dict[str, Any]:
+    """Does a *trusted* skill show friction worth a content rewrite?
+
+    This is orthogonal to lifecycle. Frequent use does not by itself call for
+    refinement - it makes a *complaint* trustworthy. So the refine signal fires
+    only when confidence is high enough (the skill is genuinely exercised) AND a
+    *measured* quality rate is poor or feedback is net-negative. The neutral
+    "unknown quality" default (no verify/exec data) never triggers it.
+
+    refine_signal = confidence x worst measured friction. This is exactly why a
+    high-usage, low-quality skill - which lifecycle calls "healthy" because usage
+    props up its fitness - still surfaces here: usage makes the bad quality
+    *believed*, not excused.
+    """
+    if status == "deprecated" or fit["confidence"] < REFINE_MIN_CONFIDENCE:
+        return {"needs_refine": False, "refine_signal": 0.0, "refine_reason": None}
+    frictions: list[float] = []
+    reasons: list[str] = []
+    if sig["verify_total"]:
+        rate = sig["verify_pass"] / sig["verify_total"]
+        if rate < REFINE_QUALITY:
+            frictions.append(REFINE_QUALITY - rate)
+            reasons.append(f"verify pass-rate {round(rate, 3)}")
+    if sig["exec_total"]:
+        rate = sig["exec_ok"] / sig["exec_total"]
+        if rate < REFINE_QUALITY:
+            frictions.append(REFINE_QUALITY - rate)
+            reasons.append(f"script ok-rate {round(rate, 3)}")
+    if sig["feedback"] < 0:
+        frictions.append(min(1.0, -sig["feedback"] / 3))
+        reasons.append(f"net feedback {sig['feedback']}")
+    if not frictions:
+        return {"needs_refine": False, "refine_signal": 0.0, "refine_reason": None}
+    return {
+        "needs_refine": True,
+        "refine_signal": round(fit["confidence"] * max(frictions), 3),
+        "refine_reason": "; ".join(reasons),
+    }
+
+
 def assess(canon: Canon | None = None, session: str | None = None) -> dict[str, Any]:
     """Compute the fitness report and lifecycle recommendations for all skills."""
     canon = canon or get_canon()
@@ -149,6 +193,10 @@ def assess(canon: Canon | None = None, session: str | None = None) -> dict[str, 
         sig = _skill_signals(name, evs)
         fit = _fitness(sig)
         rec, reason = _recommend(sk.status, sig, fit)
+        ref = _refine(sk.status, sig, fit)
+        # Keep "healthy" honest: a kept skill that needs a rewrite says so.
+        if ref["needs_refine"] and rec == sk.status:
+            reason = f"{reason} (refine: {ref['refine_reason']})"
         row = {
             "name": name,
             "status": sk.status,
@@ -163,6 +211,7 @@ def assess(canon: Canon | None = None, session: str | None = None) -> dict[str, 
             ),
             "feedback": sig["feedback"],
             **fit,
+            **ref,
         }
         skills_report.append(row)
         if rec != sk.status:
@@ -176,4 +225,15 @@ def assess(canon: Canon | None = None, session: str | None = None) -> dict[str, 
         "skills": skills_report,
         "transitions": transitions,
         "unused": [r["name"] for r in skills_report if r["usage"] == 0],
+        "refine_recommended": [
+            {
+                "name": r["name"],
+                "refine_signal": r["refine_signal"],
+                "refine_reason": r["refine_reason"],
+            }
+            for r in sorted(
+                skills_report, key=lambda r: r["refine_signal"], reverse=True
+            )
+            if r["needs_refine"]
+        ],
     }

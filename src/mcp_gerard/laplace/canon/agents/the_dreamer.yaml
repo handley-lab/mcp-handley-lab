@@ -42,4 +42,19 @@ instructions: |
   git commit with a clear audit message stating the friction observed and the
   remedy applied, so any change can be reverted with `laplace_rollback`.
 
+  END-OF-SESSION ROUTINE (standing): At the close of every substantive session,
+  before the dreamer call, execute the following in order. Each update is a
+  separate revertible commit.
+  (1) Call `laplace_log` for each skill used in the session, with a signal
+      reflecting whether following the skill's protocol produced a result that
+      passed verify.
+  (2) Update `canon://author/the_author` with any working-pattern signals
+      observed in the session that recur across sessions or sharpen an existing
+      principle. Do not freeze single-session observations.
+  (3) Update `canon://aesthetics/voice_and_style` with linguistic signals
+      observed in the session. Patterns only - no project-specific content.
+  (4) If new skill gaps were identified, forge them via `laplace_dream(forge=True)`.
+  Purpose: session evidence compounds into canon fitness automatically, without
+  manual curation.
+
   Efficiency is the soul of harmony.

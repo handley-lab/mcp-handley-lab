@@ -178,3 +178,9 @@ skills:
     domain: global
     status: experimental
     tags: [research, literature, arxiv, citations, references, evidence]
+  identity_ledger:
+    phase: verify
+    domain: global
+    status: experimental
+    backing: scripts/check_identity.py
+    tags: [identity, narrative, thesis, framing, branding, drift, coherence]

@@ -226,6 +226,43 @@ def test_evidence_ledger_flags_incomplete_and_weak(tmp_path):
     assert r["returncode"] == 1  # incomplete records => exit 1
 
 
+IDENTITY = """# Identity Ledger
+
+## ID-001: Widget Theorem
+**Kind:** coined-term
+**Forms:** widget theorem, WT
+**Role:** the core named result; must appear.
+**Status:** load-bearing
+
+## ID-002: Gadget framing
+**Kind:** framing
+**Forms:** gadget framing
+**Role:** preferred cross-domain bridge.
+**Status:** optional
+"""
+
+
+def test_identity_ledger_detects_drift(tmp_path):
+    man = tmp_path / "identity_ledger.md"
+    man.write_text(IDENTITY, encoding="utf-8")
+    draft = tmp_path / "draft.tex"
+    draft.write_text("This draft uses the gadget framing but never the core result.\n", encoding="utf-8")
+    r = verify.run_backing("identity_ledger", target=str(draft), args=["--manifest", str(man)])
+    assert "DRIFT" in r["stdout"]
+    assert "ID-001" in r["stdout"]  # load-bearing Widget Theorem dropped
+    assert r["returncode"] == 1
+
+
+def test_identity_ledger_passes_when_present(tmp_path):
+    man = tmp_path / "identity_ledger.md"
+    man.write_text(IDENTITY, encoding="utf-8")
+    draft = tmp_path / "draft.tex"
+    draft.write_text("We prove the Widget Theorem via the gadget framing.\n", encoding="utf-8")
+    r = verify.run_backing("identity_ledger", target=str(draft), args=["--manifest", str(man)])
+    assert "No identity drift" in r["stdout"]
+    assert r["returncode"] == 0
+
+
 def test_evidence_alignment_tiers_and_finds_uncovered_goal(tmp_path):
     led = tmp_path / "evidence_ledger.md"
     led.write_text(LEDGER, encoding="utf-8")

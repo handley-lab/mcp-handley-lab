@@ -8,8 +8,11 @@ silently reparametrises the canon:
     core, deprecate the unused or degraded - by writing the machine-owned
     ``lifecycle.yaml`` and committing it to the canon git history.
 
-  * Generative forging (optional, LLM-backed): draft or refine a SKILL.md from
-    observed friction, born ``experimental`` under the Probationary Protocol.
+  * Generative forging (host-executed): the engine is self-contained and makes no
+    external LLM API call. It hands a forging brief to the host - the most powerful
+    model already in the loop, running locally - which drafts the SKILL.md and
+    persists it via ``persist_forged_skill``, born ``experimental`` under the
+    Probationary Protocol. Judgement routes to the host; determinism stays here.
 
 Every mutation is a single scoped git commit, so ``rollback`` can undo it.
 """
@@ -117,62 +120,81 @@ def apply_transitions(canon: Canon, report: dict[str, Any]) -> dict[str, Any]:
 _NAME_RE = re.compile(r"name:\s*([a-z0-9_]+)", re.IGNORECASE)
 
 
+def _friction_from_report(report: dict[str, Any]) -> str:
+    """Synthesise a friction brief from the fitness assessment when none is supplied.
+
+    Lets the dreamer run autonomously: with no explicit friction it still hands the
+    host a substantive, assessment-driven agenda.
+    """
+    lines: list[str] = []
+    for r in report.get("refine_recommended", []):
+        lines.append(f"- refine '{r['name']}': {r['refine_reason']} (signal {r['refine_signal']}).")
+    unused = report.get("unused", [])
+    if unused:
+        lines.append("- long-unused skills to review for deprecation or merge: " + ", ".join(unused[:10]) + ".")
+    if not lines:
+        return "No explicit friction supplied. Review the session transcript for repeated manual work and conversational bottlenecks, and remedy them."
+    return "Autonomous, assessment-driven refinement agenda:\n" + "\n".join(lines)
+
+
 def forge_skill(
     canon: Canon,
     friction: str,
     transcript: str = "",
     model: str = "claude",
 ) -> dict[str, Any]:
-    """Draft a new experimental skill from observed friction, using the LLM.
+    """Produce the forging brief for the host to execute directly and locally.
 
-    Resilient: if the LLM is unavailable, returns a brief the host agent can run
-    instead, so the dreamer degrades to propose-only rather than failing.
+    The Laplace engine stands as its own object and makes no external LLM API call.
+    Forging needs maximum thought and capacity, so the brief is handed to the host -
+    the most powerful model already in the loop - which drafts the SKILL.md and
+    persists it via ``persist_forged_skill``. ``model`` is an advisory hint only.
     """
     persona = canon.resolve("agents/the_dreamer.yaml")[1] if (canon.root / "agents" / "the_dreamer.yaml").exists() else ""
     instructions = (
-        "Forge ONE new skill that would permanently eliminate the described "
-        "friction. Output a complete SKILL.md with YAML frontmatter containing "
-        "`name` (snake_case) and `description`, followed by a concise protocol. "
-        "The skill is born EXPERIMENTAL.\n\n"
+        "You are the host - the most powerful model already in the loop, running "
+        "locally. Execute this brief directly and with maximum rigour. Do not "
+        "delegate it to an external API.\n\n"
+        "Forge ONE new skill (or refine the named weak one) that would permanently "
+        "eliminate the described friction. Write a complete SKILL.md with YAML "
+        "frontmatter containing `name` (snake_case) and `description`, then a concise "
+        "protocol. The skill is born EXPERIMENTAL. Persist it via "
+        "persist_forged_skill(canon, content) and register its activity and tags in "
+        "index.yaml. Then commit the canon (a single revertible commit).\n\n"
         f"OBSERVED FRICTION:\n{friction}\n\n"
         f"RECENT TRANSCRIPT (excerpt):\n{transcript[:4000]}"
     )
-    try:
-        from mcp_gerard import llm  # imported lazily; needs API keys
+    return {
+        "forged": False,
+        "mode": "host_forge",
+        "reason": "Laplace engine is self-contained; the host model forges directly and locally.",
+        "model_hint": model,
+        "persona": persona,
+        "instructions": instructions,
+    }
 
-        result = llm.chat(
-            prompt=instructions,
-            system_prompt=persona or "You are The Dreamer, refining the Laplace canon.",
-            model=model,
-            branch="false",
-            temperature=0.4,
-        )
-        content = result.content
-    except Exception as e:  # noqa: BLE001 - degrade to a brief on any failure
-        return {
-            "forged": False,
-            "mode": "brief",
-            "reason": f"LLM unavailable ({type(e).__name__}); returning brief for host to execute.",
-            "persona": persona,
-            "instructions": instructions,
-        }
 
+def persist_forged_skill(canon: Canon, content: str) -> dict[str, Any]:
+    """Persist a host-drafted SKILL.md and register it experimental in lifecycle.
+
+    Called by the host after it has drafted the skill from the forge brief.
+    """
     m = _NAME_RE.search(content)
     if not m:
-        return {"forged": False, "mode": "draft", "draft": content, "reason": "no name in draft"}
+        return {"forged": False, "reason": "no name found in draft frontmatter"}
     name = m.group(1).lower()
     skill_dir = canon.root / "skills" / name
     skill_dir.mkdir(parents=True, exist_ok=True)
     skill_md = skill_dir / "SKILL.md"
     skill_md.write_text(content, encoding="utf-8")
 
-    # Register as experimental in the lifecycle overlay.
+    # Register as experimental in the machine-owned lifecycle overlay.
     life = dict(canon.lifecycle or {})
     life.setdefault("skills", {})
     life["skills"][name] = {
         "status": "experimental",
         "forged": _now(),
-        "history": [{"from": None, "to": "experimental", "reason": "forged by dreamer", "at": _now()}],
+        "history": [{"from": None, "to": "experimental", "reason": "forged by dreamer (host-executed)", "at": _now()}],
     }
     _save_lifecycle(canon, life)
     return {"forged": True, "name": name, "path": skill_md, "skill_md": skill_md}
@@ -209,13 +231,13 @@ def dream(
         out["curation"] = {"applied": res["applied"]}
         changed.append(res["lifecycle_path"])
 
-    if forge and friction:
+    if forge:
         canon = get_canon(fresh=True)  # pick up lifecycle write
-        fres = forge_skill(canon, friction, transcript, model)
-        out["forge"] = fres
-        if fres.get("forged"):
-            changed.append(Path(fres["skill_md"]))
-            changed.append(_lifecycle_path(canon))
+        brief_friction = friction or _friction_from_report(report)
+        # Self-contained engine: hand the brief to the host model to execute
+        # directly and locally. The host persists via persist_forged_skill and
+        # commits separately, so nothing is auto-committed here.
+        out["forge"] = forge_skill(canon, brief_friction, transcript, model)
 
     if commit and changed:
         msg = _audit_message(out)

@@ -176,6 +176,11 @@ skills:
     domain: global
     status: experimental
     tags: [focus, goal, backlog, distraction, ladder, discipline]
+  idea_foundry:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [idea, seed, thesis, scope, trunk-root, general-first, craft]
   global_weaver:
     activity: evaluating
     domain: global
@@ -212,6 +217,11 @@ skills:
     domain: global
     status: experimental
     tags: [research, literature, arxiv, citations, references, evidence]
+  deep_corpus_scout:
+    activity: generating
+    domain: global
+    status: experimental
+    tags: [research, flattening, recursive, llm, corpus, code2prompt, arxiv]
   identity_ledger:
     activity: evaluating
     domain: global

@@ -63,6 +63,10 @@ wiki:
     title: The Author
     scope: global
     tags: [author, persona, working-style, method, collaboration]
+  domains/synthetics/conjectures:
+    title: Conjectures and Parked Intuitions
+    scope: domain
+    tags: [conjecture, parked, intuition, speculative, future, inertia, mass]
 
 # ---------------------------------------------------------------------------
 # Domains. Theory axioms + active project state, loaded by orient when relevant.

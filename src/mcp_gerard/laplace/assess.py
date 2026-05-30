@@ -182,10 +182,12 @@ def _refine(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> dict[str, 
     }
 
 
-def assess(canon: Canon | None = None, session: str | None = None) -> dict[str, Any]:
+def assess(canon: Canon | None = None, session: str | None = None, since: str | None = None) -> dict[str, Any]:
     """Compute the fitness report and lifecycle recommendations for all skills."""
     canon = canon or get_canon()
-    evs = telemetry.events(since_session=session)
+    _META = {"dream_complete"}
+    evs = [ev for ev in telemetry.events(since_session=session, since=since)
+           if ev.get("phase") not in _META]
     skills_report: list[dict[str, Any]] = []
     transitions: list[dict[str, Any]] = []
 

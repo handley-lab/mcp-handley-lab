@@ -53,8 +53,8 @@ def log(phase: str, **fields: Any) -> dict[str, Any]:
     return event
 
 
-def events(since_session: str | None = None) -> list[dict[str, Any]]:
-    """Read all events (optionally filtered to one session)."""
+def events(since_session: str | None = None, since: str | None = None) -> list[dict[str, Any]]:
+    """Read all events, optionally filtered by session id or ISO timestamp cutoff."""
     path = telemetry_path()
     if not path.exists():
         return []
@@ -69,8 +69,18 @@ def events(since_session: str | None = None) -> list[dict[str, Any]]:
             continue
         if since_session and ev.get("session") != since_session:
             continue
+        if since and ev.get("ts", "") < since:
+            continue
         out.append(ev)
     return out
+
+
+def last_dream_ts() -> str | None:
+    """Return the ISO timestamp of the most recent dream_complete event, or None."""
+    for ev in reversed(events()):
+        if ev.get("phase") == "dream_complete":
+            return ev["ts"]
+    return None
 
 
 def clear() -> None:

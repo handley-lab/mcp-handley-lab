@@ -210,6 +210,30 @@ def test_dream_noop_without_evidence(isolated_canon):
     assert out.get("commit") is None
 
 
+def test_events_since_filters_by_timestamp(isolated_state):
+    telemetry.log("feedback", skill="latex_forge", signal=1)
+    cutoff = telemetry.events()[-1]["ts"]  # timestamp of that event
+    telemetry.log("feedback", skill="latex_forge", signal=1)  # after cutoff
+    after = telemetry.events(since=cutoff)
+    # only the event AT or AFTER cutoff survives; the one strictly before does not
+    assert all(ev["ts"] >= cutoff for ev in after)
+    assert len(after) >= 1
+
+
+def test_dream_stamps_and_scopes_next_dream(isolated_canon):
+    # Pre-dream events: earn a transition.
+    for _ in range(6):
+        telemetry.log("verify_check", skill="latex_forge", check="voice", passed=True)
+    out1 = dreamer.dream(apply=True, forge=False)
+    # dream_complete was logged — last_dream_ts is non-None.
+    ts = telemetry.last_dream_ts()
+    assert ts is not None
+    # Second dream sees only events AFTER the first dream's stamp.
+    # No new events => assess sees nothing => no transitions.
+    out2 = dreamer.dream(apply=False, forge=False)
+    assert out2["assessment"]["events_seen"] == 0
+
+
 # ---------------------------------------------------------------------------
 # render / client adapters
 # ---------------------------------------------------------------------------

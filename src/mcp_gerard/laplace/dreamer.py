@@ -28,6 +28,7 @@ from typing import Any
 import yaml
 
 from mcp_gerard.laplace import assess as _assess
+from mcp_gerard.laplace import telemetry as _telemetry
 from mcp_gerard.laplace.canon import Canon, get_canon
 
 # ---------------------------------------------------------------------------
@@ -214,8 +215,9 @@ def dream(
     commit: bool = True,
 ) -> dict[str, Any]:
     """Run the R&R cycle. Deterministic curation by default; forging on request."""
+    since = _telemetry.last_dream_ts()  # only assess events since the last dream
     canon = get_canon(fresh=True)
-    report = _assess.assess(canon)
+    report = _assess.assess(canon, since=since)
     out: dict[str, Any] = {
         "assessment": {
             "transitions": report["transitions"],
@@ -245,6 +247,7 @@ def dream(
         out["commit"] = sha
 
     get_canon(fresh=True)  # ensure subsequent reads see the new canon
+    _telemetry.log("dream_complete", events_seen=report["events_seen"], since=since)
     return out
 
 

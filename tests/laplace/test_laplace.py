@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 
 import pytest
+import yaml
 
 from mcp_gerard.laplace import assess, dreamer, render, telemetry, verify
 from mcp_gerard.laplace import canon as canonmod
@@ -34,8 +35,8 @@ def test_canon_loads_skills_and_wiki():
     c = Canon.load()
     assert len(c.skills) >= 10
     assert len(c.wiki) >= 8
-    # phases and statuses are constrained vocabularies
-    assert {s.phase for s in c.skills.values()} <= {"orient", "execute", "verify"}
+    # activities and statuses are constrained vocabularies
+    assert {s.activity for s in c.skills.values()} <= {"generating", "staging", "evaluating"}
     assert {s.status for s in c.skills.values()} <= {"experimental", "core", "deprecated"}
 
 
@@ -49,6 +50,26 @@ def test_canon_resolve_variants():
         c.resolve("canon://nope/nothing")
 
 
+def test_get_canon_reloads_on_disk_change(tmp_path, monkeypatch):
+    dst = tmp_path / "canon"
+    shutil.copytree(canonmod._PACKAGED_CANON, dst)
+    monkeypatch.setenv("LAPLACE_CANON", str(dst))
+    first = canonmod.get_canon(fresh=True)
+    # An unchanged canon returns the cached object - no needless reload.
+    assert canonmod.get_canon() is first
+    # A skill forged on disk (host-forge style) is visible without fresh=True:
+    # the live tools pick up the change within the running process.
+    probe = dst / "skills" / "probe_skill"
+    probe.mkdir(parents=True)
+    (probe / "SKILL.md").write_text(
+        "---\nname: probe_skill\ndescription: probe\n---\n# Probe [EXPERIMENTAL]\n",
+        encoding="utf-8",
+    )
+    reloaded = canonmod.get_canon()
+    assert reloaded is not first
+    assert "probe_skill" in reloaded.skills
+
+
 def test_orient_infers_domain_and_ranks_skills():
     c = Canon.load()
     b = c.orient("lint the latex voice and check derivations for the phases of hierarchy")
@@ -56,7 +77,8 @@ def test_orient_infers_domain_and_ranks_skills():
     # domain axioms + project are loaded with content
     refs = {d["ref"] for d in b["domain_context"]}
     assert any("synthetics/axioms" in r for r in refs)
-    names = {s["name"] for s in b["skills"]}
+    # skills are bucketed by activity (generating|staging|evaluating)
+    names = {s["name"] for bucket in b["skills"].values() for s in bucket}
     assert {"latex_forge", "epistemic_ledger"} & names
 
 
@@ -119,7 +141,9 @@ def isolated_state(tmp_path, monkeypatch):
     telemetry.clear()
 
 
-def test_fitness_promotes_and_deprecates(isolated_state):
+def test_fitness_promotes_and_deprecates(isolated_canon):
+    # isolated_canon seeds both skills experimental, so good evidence promotes
+    # latex_forge to core and sustained non-use deprecates css_forge.
     for _ in range(6):
         telemetry.log("verify_check", skill="latex_forge", check="voice", passed=True)
     for _ in range(9):
@@ -149,6 +173,18 @@ def isolated_canon(tmp_path, monkeypatch):
     monkeypatch.setenv("LAPLACE_CANON", str(dst))
     monkeypatch.setenv("LAPLACE_STATE", str(tmp_path / "state"))
     telemetry.clear()
+    # Deterministic lifecycle baseline, independent of whatever statuses the
+    # shipped manifest happens to carry: the skills these tests exercise start
+    # experimental. Committed as the repo's base so promotion/deprecation are
+    # genuine transitions and a dreamer rollback has a target to revert to.
+    seed = {"skills": {
+        "latex_forge": {"status": "experimental"},
+        "css_forge": {"status": "experimental"},
+    }}
+    (dst / "lifecycle.yaml").write_text(yaml.safe_dump(seed), encoding="utf-8")
+    dreamer._ensure_repo(dst)
+    dreamer._git(dst, "add", "-A")
+    dreamer._git(dst, "commit", "-m", "seed: experimental baseline")
     canonmod.get_canon(fresh=True)
     yield dst
     telemetry.clear()

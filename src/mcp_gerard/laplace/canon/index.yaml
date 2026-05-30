@@ -94,6 +94,11 @@ skills:
     domain: global
     status: core
     tags: [bootstrap, router, workflow]
+  orient_recovery:
+    activity: staging
+    domain: global
+    status: experimental
+    tags: [orient, routing, recovery, domain, loop-adherence, bootstrap]
   result_foundry:
     activity: staging
     domain: global

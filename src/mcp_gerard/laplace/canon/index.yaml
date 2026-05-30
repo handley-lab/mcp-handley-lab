@@ -106,34 +106,34 @@ skills:
   git_mechanic:
     phase: execute
     domain: global
-    status: experimental
+    status: deprecated
     backing: scripts/configure_git.py
     tags: [git, ops, revert, windows]
   shell_mechanic:
     phase: execute
     domain: global
-    status: experimental
+    status: deprecated
     backing: scripts/Invoke-SafePython.ps1
     tags: [shell, python, powershell, ops]
   css_forge:
     phase: execute
     domain: web
-    status: experimental
+    status: deprecated
     tags: [css, web, layout]
   html_mechanic:
     phase: execute
     domain: web
-    status: experimental
+    status: deprecated
     tags: [html, web, voice, polish]
   web_deployment_mechanic:
     phase: execute
     domain: web
-    status: experimental
+    status: deprecated
     tags: [deploy, web, github-pages]
   laplace_release_mechanic:
     phase: execute
     domain: global
-    status: experimental
+    status: deprecated
     tags: [release, ci, pipeline, orchestration]
 
   epistemic_ledger:
@@ -156,7 +156,7 @@ skills:
   latex_forge:
     phase: verify
     domain: global
-    status: experimental
+    status: core
     backing: scripts/build_and_lint.py
     tags: [latex, lint, voice, british-english, ai-slop, compile]
   hostile_redteam_swarm:

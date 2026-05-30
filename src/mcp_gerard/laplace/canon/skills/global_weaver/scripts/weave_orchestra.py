@@ -47,9 +47,11 @@ def weave(target_dir):
     duplicate_labels = {lbl: files for lbl, files in global_labels.items() if len(files) > 1}
 
     for filename, refs in references_map.items():
-        for ref in refs:
-            if ref not in global_labels:
-                broken_refs.append((filename, ref))
+        for ref_group in refs:
+            for ref in ref_group.split(','):
+                ref = ref.strip()
+                if ref not in global_labels:
+                    broken_refs.append((filename, ref))
 
     with open(out_file, 'w', encoding='utf-8') as out:
         out.write("# Global Weaver: Cross-Reference Report\n\n")

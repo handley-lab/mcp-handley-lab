@@ -13,7 +13,7 @@ The core of the generating activity ("doing mathematics to add to evidence") and
 
 ## Engine behaviour
 - **orient under-ranks generating skills.** `laplace_orient` returns `skills.generating == []` even when the bucket is populated. Fix the relevance ranking so generating-activity skills surface for relevant goals.
-- **Canon hot-reload.** The server caches the canon at startup, so mid-session canon edits are invisible to the live tools until a fresh session. Add cache invalidation or reload on file change.
+- ~~**Canon hot-reload.**~~ *Done (2026-05-30):* `get_canon()` now caches against an mtime fingerprint over the manifest, lifecycle overlay, and skill/wiki sources, reloading automatically when anything changes on disk - so host-forge writes and hand edits are live without a fresh session. `fresh=True` still forces a reload.
 - **Clean-context dreaming (top item).** The dreamer's generative step should run on distilled friction plus telemetry in an isolated context, never a long saturated session transcript - the engine's own context-firewall. Provide a way to hand the dreamer a scrubbed brief rather than a whole conversation.
 - **Dreamer reads this backlog.** Wire the autonomous agenda to consult this file alongside the fitness assessment, so deferred items resurface on their own.
 
@@ -26,7 +26,7 @@ The core of the generating activity ("doing mathematics to add to evidence") and
 - **Backing-script health.** *Exit-code honesty fixed (2026-05-30):* both evaluating scripts now exit 2 on an unreadable target and 0 on a produced report, so exec-ok means what assess assumes. Remaining: one evaluating skill still reports a low verify pass-rate; and the historical ok-rate-0.0 telemetry stays in the unbounded event log, so assess keeps surfacing a now-healthy skill - see "assess recency window" below.
 - **run_backing discards failure diagnostics.** On a non-zero backing-script exit, telemetry records only `ok=false` - no returncode, no stderr tail. A later dreamer sees "script ok-rate 0.0" with nothing to act on and must re-reproduce by hand. Capture a short failure signature (returncode + stderr tail) on execute events so refine signals are self-diagnosing.
 - **assess recency window.** Fitness is computed over the entire append-only event log, so failures from a since-fixed script (or a deleted target path) permanently depress a skill's measured quality and generate phantom refine signals that never clear. Add a decay or rolling window so the signal tracks current behaviour.
-- **Laplace test suite: 4 pre-existing failures.** `tests/laplace/test_laplace.py` has 4 failing tests on clean HEAD (canon-loads attribute error; orient ranking; fitness promotion; dream transitions) - unrelated to script health. Triage and fix.
+- ~~**Laplace test suite: 4 pre-existing failures.**~~ *Done (2026-05-30):* all four were stale assumptions, not engine breakage - `Skill.phase`→`activity`, flat-list vs activity-bucketed orient skills, and transition tests assuming pre-drift statuses. Fixed; the `isolated_canon` fixture now seeds a committed experimental baseline so promotion/deprecation are genuine and drift-proof. Suite green (21 passed), plus new hot-reload coverage.
 
 ## Architectural note
 The autonomous dreamer's generative step is host-executed - the most powerful model already in the loop, running locally - not an external API call. Deterministic curation (fitness assessment, lifecycle transitions) stays in-engine. The engine stands as its own object.

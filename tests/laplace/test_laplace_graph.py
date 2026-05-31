@@ -270,3 +270,125 @@ def test_real_canon_renders_and_reports_health():
     assert h["node_count"] > 30
     assert g.to_mermaid().startswith("graph ")
     assert isinstance(h["components"], int)
+
+
+# --- the interlock layer: claims, citations, and the figure forms -----------
+
+
+@pytest.fixture
+def rich_manuscript(tmp_path: Path) -> Path:
+    """A manuscript exercising every interlock node kind: a claim that leans on
+    an equation and a citation, section- and claim-level cites, a figure env, a
+    bare TikZ schematic, and a back-reference to the claim."""
+    p = tmp_path / "rich.tex"
+    p.write_text(
+        textwrap.dedent(
+            r"""
+            \section{Introduction}
+            Background, citing \cite{shannon1948,jaynes1957}. See \ref{fig:loop}.
+            \section{Main Result}
+            \begin{equation}\label{eq:core} F = U - TS. \end{equation}
+            \begin{result}[Closure]\label{res:closure}
+            The closure identity \eqref{eq:core} holds, following \citet{zwanzig1961}.
+            \end{result}
+            \begin{figure}
+              \includegraphics{loop.pdf}
+              \caption{The adaptive loop.}
+              \label{fig:loop}
+            \end{figure}
+            A bare schematic:
+            \begin{tikzpicture}\label{fig:bare} \draw (0,0)--(1,1); \end{tikzpicture}
+            \section{Discussion}
+            We refer back to \ref{res:closure} and cite \cite{shannon1948}.
+            """
+        ).strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    return p
+
+
+def test_claim_node_with_optional_name(rich_manuscript: Path):
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    claims = {n.id: n for n in g.nodes.values() if n.kind == "claim"}
+    assert "claim:res_closure" in claims
+    assert claims["claim:res_closure"].label == "Closure"
+    assert claims["claim:res_closure"].meta["env"] == "result"
+
+
+def test_claim_contained_and_supported_by_equation(rich_manuscript: Path):
+    """A claim belongs to its section and points at the equation it invokes -
+    the claim->evidence edge the interlock graph exists to make visible."""
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    assert _edge(g, "sec:main_result", "claim:res_closure")  # contains
+    assert any(
+        e.src == "claim:res_closure" and e.dst == "eq:eq_core" and e.rel == "supported_by"
+        for e in g.edges
+    )
+
+
+def test_citations_are_nodes_with_section_and_claim_edges(rich_manuscript: Path):
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    cites = {n.id for n in g.nodes.values() if n.kind == "citation"}
+    assert {"cite:shannon1948", "cite:jaynes1957", "cite:zwanzig1961"} <= cites
+    # section -> citation (intro cites shannon) and claim -> citation (the \citet
+    # inside the result env is attributed to the claim, not just its section).
+    assert any(e.src == "sec:introduction" and e.dst == "cite:shannon1948" and e.rel == "cites" for e in g.edges)
+    assert any(e.src == "claim:res_closure" and e.dst == "cite:zwanzig1961" and e.rel == "cites" for e in g.edges)
+
+
+def test_bare_tikz_is_a_figure_but_includegraphics_in_env_is_not_doubled(rich_manuscript: Path):
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    figs = {n.id: n for n in g.nodes.values() if n.kind == "figure"}
+    assert figs["fig:fig_bare"].meta.get("tikz") is True  # bare TikZ became a figure
+    assert "fig:fig_loop" in figs  # the figure env
+    # the \includegraphics inside that env must not spawn a second figure node
+    assert not any(n.endswith("loop_pdf") for n in figs)
+
+
+def test_backreference_to_claim_resolves(rich_manuscript: Path):
+    """A \\ref to a claim's label is a real reference edge, never a dangling one."""
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    assert _edge(g, "sec:discussion", "claim:res_closure")
+    assert not any(d["to"] == "res:closure" for d in g.health()["dangling"])
+
+
+def test_input_order_beats_sorted_filenames(tmp_path: Path):
+    """Pointed at a root file, sections follow \\input order - the case a
+    sorted-glob directory merge would get backwards."""
+    root = tmp_path / "main.tex"
+    (tmp_path / "parts").mkdir()
+    (tmp_path / "parts" / "zeta.tex").write_text(r"\section{Zeta Section}" + "\n", encoding="utf-8")
+    (tmp_path / "parts" / "alpha.tex").write_text(r"\section{Alpha Section}" + "\n", encoding="utf-8")
+    root.write_text(
+        "\\documentclass{article}\n\\begin{document}\n"
+        "\\input{parts/zeta}\n\\input{parts/alpha}\n"
+        "\\end{document}\n",
+        encoding="utf-8",
+    )
+    g = CanonGraph.from_manuscript(root)
+    order = {n.label: n.meta["order"] for n in g.nodes.values() if n.kind == "section"}
+    assert order["Zeta Section"] == 0 and order["Alpha Section"] == 1
+    assert _edge(g, "sec:zeta_section", "sec:alpha_section")  # precedes
+
+
+_LAW_OF_LAWS = Path(
+    r"C:\Users\gerar\VScodeProjects\physics_paper_orchestra"
+    r"\law-of-laws\manuscript\tex_v5\main.tex"
+)
+
+
+@pytest.mark.skipif(not _LAW_OF_LAWS.exists(), reason="orchestra manuscript not present on this machine")
+def test_real_manuscript_interlock_builds():
+    """Smoke test against a live orchestra manuscript - it must build a rich
+    interlock graph and honour \\input reading order."""
+    g = CanonGraph.from_manuscript(_LAW_OF_LAWS)
+    kinds = {n.kind for n in g.nodes.values()}
+    assert {"section", "figure", "equation", "citation"} <= kinds
+    order = {n.label: n.meta["order"] for n in g.nodes.values() if n.kind == "section"}
+    scaling = next(o for lbl, o in order.items() if "scaling" in lbl.lower())
+    discussion = next(o for lbl, o in order.items() if lbl.strip().lower() == "discussion")
+    assert scaling < discussion  # \input order; a sorted-glob merge would reverse this
+    assert g.to_mermaid().startswith("graph ")
+    json.loads(json.dumps(g.to_json()))
+    assert g.health()["node_count"] > 30

@@ -67,6 +67,14 @@ def _recent_committed_paths(root: Any, since: str | None) -> set[str] | None:
         out = subprocess.run(
             [
                 "git",
+                # core.fsmonitor=false: without it, git on Windows may spawn a
+                # detached git-fsmonitor--daemon that inherits the write end of
+                # this subprocess's stdout pipe. subprocess.run then deadlocks
+                # draining the pipe (no EOF while the daemon holds it open),
+                # defeating the timeout below and hanging the caller forever.
+                # This read-only query never needs the monitor.
+                "-c",
+                "core.fsmonitor=false",
                 "-C",
                 str(root),
                 "log",

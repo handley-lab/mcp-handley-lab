@@ -37,8 +37,12 @@ from mcp_gerard.laplace.canon import Canon, get_canon
 
 
 def _git(root: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
+    # core.fsmonitor=false: on Windows git may spawn a detached
+    # git-fsmonitor--daemon that inherits this subprocess's stdout pipe handle,
+    # deadlocking the pipe drain past the timeout and hanging the caller. The
+    # dreamer's commits never need the monitor. See assess._recent_committed_paths.
     return subprocess.run(
-        ["git", "-C", str(root), *args],
+        ["git", "-c", "core.fsmonitor=false", "-C", str(root), *args],
         capture_output=True,
         text=True,
         timeout=timeout,

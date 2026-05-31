@@ -25,8 +25,18 @@ from mcp_gerard.laplace import render as _render
 from mcp_gerard.laplace import telemetry as _telemetry
 from mcp_gerard.laplace import verify as _verify
 from mcp_gerard.laplace.canon import get_canon
+from mcp_gerard.laplace.watchdog import guard
 
 mcp = FastMCP("laplace")
+
+# Per-tool watchdog caps (seconds). No handler may hang the caller past these.
+# Read/compute tools resolve in well under a second; the cap is slack for a
+# pathological filesystem or git, not a normal budget. laplace_run and
+# laplace_dream do bounded-but-slow work (a subprocess up to 110s, a forge that
+# may call a model), so their caps sit above that inner ceiling.
+_FAST = 60.0
+_RUN = 120.0
+_DREAM = 300.0
 
 
 # ---------------------------------------------------------------------------
@@ -49,14 +59,17 @@ def laplace_orient(
     skills for the next action - full content for the most relevant items, refs
     for the rest. Start every non-trivial task here.
     """
-    canon = get_canon()
-    bundle = canon.orient(goal, domain or None)
-    _telemetry.log(
-        "orient",
-        domain=bundle["domain"],
-        offered=[s["name"] for bucket in bundle["skills"].values() for s in bucket],
-    )
-    return bundle
+    def _work() -> dict[str, Any]:
+        canon = get_canon()
+        bundle = canon.orient(goal, domain or None)
+        _telemetry.log(
+            "orient",
+            domain=bundle["domain"],
+            offered=[s["name"] for bucket in bundle["skills"].values() for s in bucket],
+        )
+        return bundle
+
+    return guard("laplace_orient", _FAST, _work)
 
 
 @mcp.tool()
@@ -65,43 +78,51 @@ def laplace_search(
     limit: int = Field(default=20, description="Maximum matches to return."),
 ) -> list[dict[str, Any]]:
     """Full-text search across wiki nodes and skills. Returns ref + line context."""
-    canon = get_canon()
-    q = query.lower()
-    out: list[dict[str, Any]] = []
-    for node in canon.wiki.values():
-        text = canon.resolve(node.ref)[1]
-        for i, line in enumerate(text.splitlines(), 1):
-            if q in line.lower():
+
+    def _work() -> list[dict[str, Any]]:
+        canon = get_canon()
+        q = query.lower()
+        out: list[dict[str, Any]] = []
+        for node in canon.wiki.values():
+            text = canon.resolve(node.ref)[1]
+            for i, line in enumerate(text.splitlines(), 1):
+                if q in line.lower():
+                    out.append(
+                        {"ref": f"canon://{node.ref}", "line": i, "match": line.strip()}
+                    )
+                    break
+        for sk in canon.skills.values():
+            blob = sk.description + " " + " ".join(sk.tags)
+            if q in blob.lower() or q in sk.name.lower():
                 out.append(
-                    {"ref": f"canon://{node.ref}", "line": i, "match": line.strip()}
+                    {
+                        "ref": f"canon://skills/{sk.name}",
+                        "status": sk.status,
+                        "match": sk.description,
+                    }
                 )
-                break
-    for sk in canon.skills.values():
-        blob = sk.description + " " + " ".join(sk.tags)
-        if q in blob.lower() or q in sk.name.lower():
-            out.append(
-                {
-                    "ref": f"canon://skills/{sk.name}",
-                    "status": sk.status,
-                    "match": sk.description,
-                }
-            )
-    return out[:limit]
+        return out[:limit]
+
+    return guard("laplace_search", _FAST, _work)
 
 
 @mcp.tool()
 def laplace_index() -> dict[str, Any]:
     """List the whole canon: wiki nodes, domains, and skills (with phase/status)."""
-    canon = get_canon()
-    return {
-        "root": str(canon.root),
-        "wiki": [
-            {"ref": f"canon://{n.ref}", "title": n.title, "scope": n.scope}
-            for n in canon.wiki.values()
-        ],
-        "domains": canon.domains(),
-        "skills": [sk.summary() for sk in canon.skills.values()],
-    }
+
+    def _work() -> dict[str, Any]:
+        canon = get_canon()
+        return {
+            "root": str(canon.root),
+            "wiki": [
+                {"ref": f"canon://{n.ref}", "title": n.title, "scope": n.scope}
+                for n in canon.wiki.values()
+            ],
+            "domains": canon.domains(),
+            "skills": [sk.summary() for sk in canon.skills.values()],
+        }
+
+    return guard("laplace_index", _FAST, _work)
 
 
 @mcp.tool()
@@ -109,9 +130,13 @@ def laplace_resolve(
     ref: str = Field(description="A canon ref, e.g. 'canon://aesthetics/voice_and_style'."),
 ) -> dict[str, Any]:
     """Fetch the full content of a single canon ref."""
-    canon = get_canon()
-    path, content = canon.resolve(ref)
-    return {"ref": ref, "path": str(path), "content": content}
+
+    def _work() -> dict[str, Any]:
+        canon = get_canon()
+        path, content = canon.resolve(ref)
+        return {"ref": ref, "path": str(path), "content": content}
+
+    return guard("laplace_resolve", _FAST, _work)
 
 
 # ---------------------------------------------------------------------------
@@ -124,21 +149,24 @@ def laplace_skill(
     name: str = Field(description="Skill name, e.g. 'epistemic_ledger'."),
 ) -> dict[str, Any]:
     """Return a skill's protocol spec (SKILL.md) and how to run its backing script."""
-    canon = get_canon()
-    sk = canon.skills.get(name)
-    if sk is None:
-        return {"error": f"Unknown skill: {name!r}", "available": list(canon.skills)}
-    # Fetching a skill's protocol is the execute third for a judgement-only skill -
-    # the act of selecting it to follow. Log it as usage (no `ok`: a fetch has no
-    # script outcome, so it must not be scored as exec quality). This is what makes
-    # protocol-only skills measurable; without it they read usage 0 forever.
-    _telemetry.log("execute", skill=name, kind="protocol")
-    info = sk.summary()
-    info["protocol"] = sk.skill_md.read_text(encoding="utf-8")
-    if sk.backing:
-        info["backing_path"] = str(sk.backing_path)
-        info["run"] = f"laplace_run(skill={name!r}, target=<path>)"
-    return info
+    def _work() -> dict[str, Any]:
+        canon = get_canon()
+        sk = canon.skills.get(name)
+        if sk is None:
+            return {"error": f"Unknown skill: {name!r}", "available": list(canon.skills)}
+        # Fetching a skill's protocol is the execute third for a judgement-only skill -
+        # the act of selecting it to follow. Log it as usage (no `ok`: a fetch has no
+        # script outcome, so it must not be scored as exec quality). This is what makes
+        # protocol-only skills measurable; without it they read usage 0 forever.
+        _telemetry.log("execute", skill=name, kind="protocol")
+        info = sk.summary()
+        info["protocol"] = sk.skill_md.read_text(encoding="utf-8")
+        if sk.backing:
+            info["backing_path"] = str(sk.backing_path)
+            info["run"] = f"laplace_run(skill={name!r}, target=<path>)"
+        return info
+
+    return guard("laplace_skill", _FAST, _work)
 
 
 @mcp.tool()
@@ -149,7 +177,12 @@ def laplace_run(
     timeout_seconds: int = Field(default=90, ge=1, le=110, description="Subprocess timeout. Kept below the MCP client timeout so hung skills return cleanly."),
 ) -> dict[str, Any]:
     """Execute a skill's backing script for its full artifact (graph, PDF, report)."""
-    return _verify.run_backing(skill, target, args, timeout=timeout_seconds)  # telemetry logged inside run_backing
+    # Watchdog sits above the script's own timeout so a wedged drain still returns.
+    return guard(
+        "laplace_run",
+        max(_RUN, timeout_seconds + 15),
+        lambda: _verify.run_backing(skill, target, args, timeout=timeout_seconds),
+    )  # telemetry logged inside run_backing
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +203,7 @@ def laplace_verify(
     The third of the loop. A non-passing report is the signal to re-orient; the
     pass/fail outcome is also logged and feeds skill-fitness assessment.
     """
-    return _verify.verify(target, checks)  # telemetry logged inside verify.verify
+    return guard("laplace_verify", _FAST, lambda: _verify.verify(target, checks))  # telemetry logged inside verify.verify
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +218,7 @@ def laplace_assess() -> dict[str, Any]:
     The selection signal: what is used, what is not, and how it affects outcomes.
     The dreamer consults this before mutating canon.
     """
-    return _assess.assess(get_canon())
+    return guard("laplace_assess", _FAST, lambda: _assess.assess(get_canon()))
 
 
 @mcp.tool()
@@ -195,7 +228,11 @@ def laplace_log(
     note: str = Field(default="", description="Optional free-text context."),
 ) -> dict[str, Any]:
     """Record explicit feedback about a skill, feeding its fitness."""
-    return _telemetry.log("feedback", skill=skill, signal=int(signal), note=note)
+    return guard(
+        "laplace_log",
+        _FAST,
+        lambda: _telemetry.log("feedback", skill=skill, signal=int(signal), note=note),
+    )
 
 
 @mcp.tool()
@@ -211,7 +248,11 @@ def laplace_dream(
     Promotes proven experimental skills to core, deprecates the unused/degraded,
     and (optionally) forges a new experimental skill - each as a revertible commit.
     """
-    return _dreamer.dream(apply=apply, forge=forge, friction=friction, transcript=transcript, model=model)
+    return guard(
+        "laplace_dream",
+        _DREAM,
+        lambda: _dreamer.dream(apply=apply, forge=forge, friction=friction, transcript=transcript, model=model),
+    )
 
 
 @mcp.tool()
@@ -219,7 +260,7 @@ def laplace_rollback(
     ref: str = Field(description="The dreamer commit to revert, e.g. a sha or 'HEAD'."),
 ) -> dict[str, Any]:
     """Revert a previous dreamer canon mutation."""
-    return _dreamer.rollback(ref)
+    return guard("laplace_rollback", _FAST, lambda: _dreamer.rollback(ref))
 
 
 # ---------------------------------------------------------------------------
@@ -233,7 +274,7 @@ def laplace_sync(
     write: bool = Field(default=False, description="Write the bootstrap to the client's native location."),
 ) -> dict[str, Any]:
     """Render (and optionally install) a client's bootstrap shim from the canon."""
-    return _render.sync(client, write=write)
+    return guard("laplace_sync", _FAST, lambda: _render.sync(client, write=write))
 
 
 def main() -> None:

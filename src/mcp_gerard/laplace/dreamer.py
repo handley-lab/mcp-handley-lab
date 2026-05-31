@@ -204,11 +204,6 @@ def persist_forged_skill(canon: Canon, content: str) -> dict[str, Any]:
 # the cycle
 # ---------------------------------------------------------------------------
 
-# A dream that applied no transition, forged nothing, and saw fewer than this many
-# events is idle and must NOT advance the assessment boundary (see AUTONOMY_BACKLOG,
-# "No-op dream orphans evidence"). Conservative floor: only a truly empty window is
-# idle. Raise it to also treat near-empty windows as idle.
-_NOOP_EVENT_FLOOR = 1
 
 
 def dream(
@@ -253,17 +248,21 @@ def dream(
 
     get_canon(fresh=True)  # ensure subsequent reads see the new canon
 
-    # Window-leak guard: only advance the assessment boundary when the dream did
-    # something. Stamping dream_complete on an idle fire would fragment the rolling
-    # window and let genuine friction slip behind the boundary, assessed once and
-    # never acted on.
+    # Window-leak guard: advance the assessment boundary only when the dream
+    # actually mutated canon - i.e. applied a lifecycle transition. A preview
+    # (apply=False) or a dream that found nothing actionable must NOT consume the
+    # window. Its evidence is unspent and has to stay visible to the next real
+    # dream, or genuine friction slips behind the boundary, assessed once and never
+    # acted on (AUTONOMY_BACKLOG, "No-op dream orphans evidence"). The earlier
+    # event-count floor missed the common case: an apply=False preview over a full
+    # window stamped the boundary and orphaned every event in it. Forging is
+    # host-executed and committed separately, so it does not advance here either.
     did_apply = bool(apply and report["transitions"])
-    is_noop = not did_apply and not forge and report["events_seen"] < _NOOP_EVENT_FLOOR
-    if is_noop:
-        out["boundary_advanced"] = False
-    else:
+    if did_apply:
         _telemetry.log("dream_complete", events_seen=report["events_seen"], since=since)
         out["boundary_advanced"] = True
+    else:
+        out["boundary_advanced"] = False
     return out
 
 

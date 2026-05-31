@@ -260,6 +260,25 @@ def test_noop_dream_does_not_advance_boundary(isolated_canon):
     assert telemetry.last_dream_ts() is not None
 
 
+def test_preview_dream_does_not_consume_window(isolated_canon):
+    # The leak that orphaned a real session: an apply=False preview over a FULL
+    # window stamped the boundary, so the next apply=True dream saw zero events and
+    # applied nothing. A preview (or any dream that applies no transition) must not
+    # consume the window - the evidence has to survive for the next real dream.
+    for _ in range(6):
+        telemetry.log("verify_check", skill="latex_forge", check="voice", passed=True)
+    preview = dreamer.dream(apply=False, forge=False)
+    assert preview["assessment"]["events_seen"] == 6
+    assert any(t["name"] == "latex_forge" for t in preview["assessment"]["transitions"])
+    assert preview["boundary_advanced"] is False  # preview did NOT consume the window
+    assert telemetry.last_dream_ts() is None
+    # the real dream still sees the same evidence and applies it
+    real = dreamer.dream(apply=True, forge=False)
+    assert real["assessment"]["events_seen"] == 6
+    assert real["boundary_advanced"] is True
+    assert canonmod.get_canon(fresh=True).skills["latex_forge"].status == "core"
+
+
 def test_events_since_filters_by_timestamp(isolated_state):
     telemetry.log("feedback", skill="latex_forge", signal=1)
     cutoff = telemetry.events()[-1]["ts"]  # timestamp of that event

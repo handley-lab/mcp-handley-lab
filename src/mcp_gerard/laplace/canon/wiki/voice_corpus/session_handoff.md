@@ -67,7 +67,7 @@ Subagent audit note:
 - A later subagent audit was run against the manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json`.
 - The audit completed `P0001-P0002` and `P0003-P0004`, and confirmed the main manuscript-register mechanics: title as compressed argument, PRL compression, structural humour under formal licence, constraint as authority, contrast as explanatory machinery, and figure logic as compression.
 - The audit did not complete the remaining chunks `P0005` and `P0006`. Do not use that audit as conclusion-level evidence.
-- Provenance mismatch RECONCILED (2026-05-31, next session): the manifest is authoritative and holds **four** chunks - `P0001-P0002`, `P0003-P0004`, `P0005-P0005`, `P0006-P0006`. The earlier four-chunk reader note was correct; the audit note that called this a "three-chunk manifest" was wrong (it conflated the two single-paragraph chunks P0005 and P0006). Net: the audit reached 2 of the 4 chunks.
+- Provenance mismatch RECONCILED (2026-05-31, next session): the manifest is authoritative and holds **four** chunks - `P0001-P0002`, `P0003-P0004`, `P0005-P0005`, `P0006-P0006`. The earlier four-chunk reader note was correct. The audit note that called this a "three-chunk manifest" was wrong - it conflated the two single-paragraph chunks P0005 and P0006. Net: the audit reached 2 of the 4 chunks.
 
 ## Emergency Handoff - 2026-05-31
 
@@ -82,7 +82,7 @@ Canon edits after that checkpoint, staged for the next commit:
 
 - `ZOTERO-UQW3Y5J2` has been admitted as the first full-text academic anchor.
 - Manuscript-register claims are provisional and PRL-specific: title as compressed argument, mischief formalised into constraint, failure converted into admissibility, compression by named machinery, and application as structural proof.
-- Author fact ledger gained only public/bibliographic facts from `ZOTERO-UQW3Y5J2`; one invalid reader fact was rejected.
+- Author fact ledger gained only public/bibliographic facts from `ZOTERO-UQW3Y5J2`. One invalid reader fact was rejected.
 
 Private cache state:
 
@@ -161,3 +161,14 @@ The next academic pass should deliberately add contrast rather than more of the 
 - one humour-bearing academic source, such as `ZOTERO-27MBG7CN`
 - one recent sole-author or first-author source, such as `ZOTERO-UNGFXZ9P` if full text is available
 - one non-manuscript register source from correspondence or admin/proposal before any top-level Voice rewrite
+
+## Backlog Triage - 2026-05-31 (next session, post engine fix)
+
+The engine hang is fixed (assess no longer deadlocks - see the gitio temp-file fix and the tool watchdog). The corpus backlog was triaged in that order:
+
+- `ZOTERO-UQW3Y5J2`: 12/12 done, synthesised, admitted. Chunk-count provenance reconciled to four chunks (above).
+- `ZOTERO-9IFREHKD`: 9/9 done and now **synthesised** at `.codex/voice_corpus_cache/ledgers/gate2_zotero_9ifrehkd_synthesis.md`. Conservative canon admission made: one public funding fact (Keck Foundation, ARO) added to the Author Fact Ledger, and a corroboration note added to the Manuscript Register. It confirms the UQW3Y5J2 mechanics, adds no new mechanic or register. Most of its reader output was topic summary and was discarded.
+- `ZOTERO-27MBG7CN`: 3/24 done. The one `blocked` job was a false block (manual interrupt at the emergency stop, not a real error) and has been reset to `pending`. State is now 3 done, 21 pending.
+- `ZOTERO-UNGFXZ9P`: 0/24 done, all pending. Raw text and queue exist, no reader outputs yet.
+
+Remaining work needs a reader pass over the 21 + 24 pending jobs. That requires the private worker (`.codex/voice_corpus_cache/tools/reader_queue_worker.py`) with a working LLM provider - the constraint here was provider quota, not the queue or the engine. Resume there when credit is available. Per the standing guardrail, run `laplace_verify` before any Dreamer lifecycle mutation, and prefer contrast sources (humour-bearing, sole-author, non-manuscript register) over more of the same.

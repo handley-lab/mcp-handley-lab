@@ -58,7 +58,7 @@ Provisional manuscript mechanics from this source:
 - **Mischief formalised into constraint.** The register permits dry irreverence only after the mathematical object exists. The imposter frame works because the paper immediately pays it off through tracking control, uniqueness conditions, and physical realisability.
 - **Failure converted into admissibility.** Singularities, dielectric breakdown, scaling limits, and transient control errors are not treated as embarrassment. They become constraints, caveats, or design conditions.
 - **Compression by named machinery.** The prose leans on a small set of formal objects - tracking Hamiltonian, target observable, control field, Fermi-Hubbard test system - then lets figures and equations carry the mechanical load.
-- **Application as structural proof.** The material-mimicry example is not merely an application section. It demonstrates that the abstract control frame can make two regimes exchange observable behaviour under specified limits.
+- **Application as structural proof.** The material-mimicry example is not a mere application section. It demonstrates that the abstract control frame can make two regimes exchange observable behaviour under specified limits.
 
 Transfer rules:
 
@@ -105,7 +105,7 @@ Public facts from the audit:
 
 Audit limits:
 
-- The audit used subagents over two of the four cached chunks (`P0001-P0004`). The manifest holds four chunks; the earlier note of four provenance units and twelve reader jobs is consistent with it.
+- The audit used subagents over two of the four cached chunks (`P0001-P0004`). The manifest holds four chunks, so the earlier note of four provenance units and twelve reader jobs is consistent with it.
 - The cached source has OCR damage, so sentence-level rhythm and exact equation transcription remain unsafe.
 - The paper is co-authored and PRL-constrained, so it is strong same-register evidence but not a sole-authored manuscript anchor.
 
@@ -126,6 +126,20 @@ What remains unproven:
 - Conclusion-level voice from chunks `P0005` and `P0006` (unread by the audit).
 - Sentence-level rhythm, because of OCR damage.
 - Whether these PRL mechanics transfer to thesis-scale, proposal-scale, or correspondence registers.
+
+## Gate 2 Corroboration: ZOTERO-9IFREHKD
+
+Source: `ZOTERO-9IFREHKD`, *Superoscillations Deliver Superspectroscopy*. Register: academic, sole/first-author. Reader pass 9/9 done over three chunks, synthesised at `.codex/voice_corpus_cache/ledgers/gate2_zotero_9ifrehkd_synthesis.md`.
+
+A second academic source, read independently, confirms the UQW3Y5J2 mechanics rather than extending them. This is the value - it moves these from one-paper PRL-specific evidence toward cross-source academic-register evidence:
+
+- failure named plainly, then converted into a constraint that warrants the method (non-convex cost, no guarantee, reliable in practice)
+- heuristic framing before the formalism (destructive interference set out conceptually, mathematics deferred)
+- a trade-off treated as a technical object that sets what is detectable (amplitude against frequency)
+- application as structural proof (superspectroscopy demonstrated with the same four waveforms used to generate the effect)
+- a coined object as a functional lock ("superspectroscopy")
+
+Most of this source's reader output was topic summary, not voice, and was discarded. No new mechanic and no new register were admitted. The reference-list chunk carries no prose voice.
 
 ## Platonic Target
 

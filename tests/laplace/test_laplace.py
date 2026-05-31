@@ -472,3 +472,48 @@ def test_voice_corpus_reader_can_prepare_restartable_queue(tmp_path):
     assert all(job["status"] == "pending" for job in jobs)
     assert all(job["attempts"] == 0 for job in jobs)
     assert all(job["output_path"].endswith(f".{job['reader_task']}.json") for job in jobs)
+
+
+# ---------------------------------------------------------------------------
+# watchdog: no handler may hang the caller (the assess-hang structural fix)
+# ---------------------------------------------------------------------------
+
+
+def test_watchdog_passes_value_through():
+    from mcp_gerard.laplace.watchdog import guard
+
+    assert guard("ok", 5, lambda: {"v": 42}) == {"v": 42}
+
+
+def test_watchdog_returns_timeout_dict_on_overrun():
+    import time
+
+    from mcp_gerard.laplace.watchdog import guard
+
+    t0 = time.time()
+    out = guard("slow", 0.3, lambda: time.sleep(10))
+    elapsed = time.time() - t0
+    assert out["timed_out"] is True
+    assert "watchdog" in out["error"]
+    assert elapsed < 2  # returned at the cap, did not wait out the 10s work
+
+
+def test_watchdog_propagates_exceptions():
+    from mcp_gerard.laplace.watchdog import guard
+
+    def boom():
+        raise ValueError("kaboom")
+
+    with pytest.raises(ValueError, match="kaboom"):
+        guard("boom", 5, boom)
+
+
+def test_engine_git_calls_disable_fsmonitor():
+    """Both engine git invocations must pass -c core.fsmonitor=false: an inherited
+    fsmonitor daemon pipe handle is what deadlocked laplace_assess on Windows."""
+    import inspect
+
+    from mcp_gerard.laplace import assess as assessmod
+
+    assert 'core.fsmonitor=false' in inspect.getsource(assessmod._recent_committed_paths)
+    assert 'core.fsmonitor=false' in inspect.getsource(dreamer._git)

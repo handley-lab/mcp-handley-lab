@@ -74,3 +74,37 @@ RC=0 but HEAD never advances, an outbound `curl` returns a false 404. Both are
 sandbox rollback, not failure. For any write or network op, **disable the
 sandbox from the first attempt**. This cost real time twice this session
 (the feature commit and the dreamer's forge commit both had to be redone).
+
+## For the meta-dreamer (cross-session transit) - 2026-05-31, interlock session
+
+Three engine-level frictions surfaced while developing the engine *on itself*.
+None is a drafting-skill gap, so none was forged. They are reconciliation work
+for the meta-level.
+
+1. **The live MCP server runs stale code for the whole session.** `mcp-laplace`
+   is a stdio server spawned once at session start. Editing `graph.py` and
+   re-running tests via `uv run` exercised the new code (66 green), but
+   `laplace_graph(manuscript=main.tex)` through the *live tool* returned an empty
+   graph - the in-process server still held the pre-edit module. `uv tool install
+   -e . --force` refreshes the binary but the running connection only picks it up
+   on a client-side reconnect. **Implication for self-development:** verify engine
+   changes via `uv run`/pytest, never via the live `laplace_*` tools in the same
+   session. A future affordance could be a `laplace_reload` or a staleness banner.
+
+2. **`laplace_assess` and `laplace_dream` disagree on the telemetry window.**
+   At close, `assess` saw **497 events** and recommended two evidence-gated
+   transitions (`session_closer` experimental->core, earned; `synthetics_architect`
+   ->deprecated). The subsequent `dream(apply=true)` reported its own assessment
+   over **58 events**, `transitions: []`, `boundary_advanced: false` - so it
+   applied neither. Likely by design (dream scopes to events since the last
+   boundary), but the effect is that an *earned* promotion `assess` reports does
+   not actually land, and a reader trusting `assess` would think it did. The
+   meta-dreamer should reconcile the two windows, or have `assess` mark which
+   recommendations are inside the current dream boundary.
+
+3. **Auto-commit machinery races the session.** Commits appeared mid-session that
+   this agent did not author (`43d54ca`, the duplicate `e2661e0`/`8eea9ac` pair),
+   plus scratch files (`.agents/`, `.codex/`, `out.json`, `request.json`). The
+   feature work survived intact, but the working-tree state was non-obvious to
+   reason about. Worth either gitignoring the scratch artifacts or making the
+   automation's commits legible (a marker in the message).

@@ -8,40 +8,47 @@ new face of the engine.
 
 **Shipped (committed on `feat/laplace-engine`):**
 
-- `71ce5fc` - `src/mcp_gerard/laplace/graph.py` + the **`laplace_graph`** MCP
-  tool. One `CanonGraph` object - nodes (wiki/skill/domain/agent), edges
+- `src/mcp_gerard/laplace/graph.py` + the **`laplace_graph`** MCP tool. One
+  `CanonGraph` object - nodes (wiki/skill/domain/agent), edges
   (`links_to`/`belongs_to_domain`/`has_axioms`/`dangling`), each edge carrying
   the prose line it was mined from as evidence - projected into four renders:
   Mermaid, Obsidian `.canvas`, Obsidian `graph.json`, JSON edge list. Skill
   nodes are sized by measured fitness from `assess.py`. `from_manuscript()`
-  builds the *same object* from a `.tex` file/dir (sections/figures/equations
-  wired by `\ref`, sections classed into core-outward rings), so the manuscript
-  interlock graph and the canon graph share every renderer. `health()` reports
-  orphans, dangling links, dead-wood-linked skills, and component count.
-  25 tests, full laplace suite green (57).
-- `76b6f6e` - dreamer-forged **`graph_ledger`** skill (experimental): canon
-  `health()` as a verify-side PASS/FAIL ledger. Frontmatter repaired and
-  cross-linked by hand (the forge's YAML was malformed and its own commit was
-  sandbox-rolled-back).
+  builds the *same object* from a `.tex` file/dir (sections/figures/equations,
+  later extended to claims/citations, wired by `\ref` with `\input` reading
+  order), so the manuscript interlock graph and the canon graph share every
+  renderer. `health()` reports orphans, dangling links, dead-wood-linked
+  skills, and component count. Full laplace suite green.
+
+**NOT built (honest correction):** the dreamer's R&R run this session surfaced
+**`graph_ledger`** - a verify-side skill that would run `CanonGraph.health()` as
+a PASS/FAIL ledger - but returned it as a *host-forge brief*, which was not
+executed. A concurrent session left a malformed `graph_ledger` stub in
+`canon/index.yaml` with no `SKILL.md`. So `graph_ledger` does **not** exist as a
+usable skill. It is the **top deferred item** below, not a shipped artifact.
 
 ## What the build revealed (live findings)
 
-- **The canon is badly under-woven: 41 connected components across 72 nodes, 39
-  orphans** (25 of 31 skills have zero prose links in or out). This is now a
-  measurable defect. `graph_ledger` is the ledger for it; **`global_weaver` owns
-  the remediation weave pass** (a chip was spawned for it).
+- **The canon is badly under-woven: ~41 connected components across 72 nodes,
+  ~39 orphans** (25 of 31 skills have zero prose links in or out). This is now a
+  measurable defect via `laplace_graph --health`. A `graph_ledger` skill (see
+  below, not yet built) would turn it into a tracked PASS/FAIL; **`global_weaver`
+  owns the remediation weave pass** (a chip was spawned for it).
 - Fixed two real parsing bugs found via the graph: a `canon://` link ending a
   sentence ate the trailing full stop; agent personas (`the_dreamer`,
   `the_empiricist`) were linked from prose but not loaded as nodes.
 
 ## Next concrete steps (to mature this capability)
 
-1. **Run the weave pass** (`global_weaver`) and use `graph_ledger` /
+1. **Forge `graph_ledger` for real** (the dreamer's outstanding host-forge
+   brief). Write `canon/skills/graph_ledger/SKILL.md` (evaluating, experimental),
+   fix the malformed `canon/index.yaml` stub a concurrent session left, and add a
+   `graph`/`topology` check to `verify.py` that calls
+   `CanonGraph.from_canon().health()` so it runs through `laplace_verify` with a
+   PASS/FAIL. This is the headline unfinished item.
+2. **Run the weave pass** (`global_weaver`) and use `graph_ledger` /
    `laplace_graph --health` as the before/after metric. Target: collapse the
    component count.
-2. **`graph_ledger` needs a `verify.py` check entry** to be runnable through
-   `laplace_verify` - right now it is protocol-only. Add a `graph`/`topology`
-   check that calls `CanonGraph.from_canon().health()`.
 3. **`focus` should match a label or path-tail**, not only a full node id or
    skill name (`--focus voice_and_style` fails today). Five-line fix in
    `graph._match_node`.

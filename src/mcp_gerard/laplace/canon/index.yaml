@@ -220,6 +220,11 @@ skills:
     status: experimental
     backing: scripts/sanitize_xcolor.py
     tags: [tikz, xcolor, figures, compile]
+  figure_standard:
+    activity: staging
+    domain: global
+    status: experimental
+    tags: [figures, house-style, render-order, placement, collision, layer, visual]
   git_mechanic:
     activity: staging
     domain: global

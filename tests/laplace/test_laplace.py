@@ -508,12 +508,31 @@ def test_watchdog_propagates_exceptions():
         guard("boom", 5, boom)
 
 
-def test_engine_git_calls_disable_fsmonitor():
-    """Both engine git invocations must pass -c core.fsmonitor=false: an inherited
-    fsmonitor daemon pipe handle is what deadlocked laplace_assess on Windows."""
+def test_engine_git_is_deadlock_proof():
+    """Engine git must (a) route through gitio.run_git, (b) disable fsmonitor, and
+    (c) capture via temp files, never pipes - an inherited fsmonitor-daemon pipe
+    handle is what deadlocked laplace_assess on Windows past its own timeout."""
     import inspect
 
     from mcp_gerard.laplace import assess as assessmod
+    from mcp_gerard.laplace import gitio
 
-    assert 'core.fsmonitor=false' in inspect.getsource(assessmod._recent_committed_paths)
-    assert 'core.fsmonitor=false' in inspect.getsource(dreamer._git)
+    # both engine git callers delegate to the one hardened helper
+    assert "run_git(" in inspect.getsource(assessmod._recent_committed_paths)
+    assert "run_git(" in inspect.getsource(dreamer._git)
+
+    # the helper disables the daemon and redirects stdout/stderr to temp files
+    # (no pipe to inherit) rather than capturing through a pipe
+    src = inspect.getsource(gitio.run_git)
+    assert "core.fsmonitor=false" in src
+    assert "TemporaryFile" in src
+    assert "stdout=out" in src and "stderr=err" in src
+
+
+def test_run_git_returns_text_output():
+    """run_git mirrors the CompletedProcess(text) shape callers expect."""
+    from mcp_gerard.laplace import gitio
+
+    proc = gitio.run_git(".", "rev-parse", "--is-inside-work-tree", timeout=10)
+    assert proc.returncode == 0
+    assert proc.stdout.strip() == "true"

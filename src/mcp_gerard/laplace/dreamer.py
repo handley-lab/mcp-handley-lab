@@ -29,6 +29,7 @@ import yaml
 
 from mcp_gerard.laplace import assess as _assess
 from mcp_gerard.laplace import telemetry as _telemetry
+from mcp_gerard.laplace.gitio import run_git
 from mcp_gerard.laplace.canon import Canon, get_canon
 
 # ---------------------------------------------------------------------------
@@ -37,16 +38,10 @@ from mcp_gerard.laplace.canon import Canon, get_canon
 
 
 def _git(root: Path, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
-    # core.fsmonitor=false: on Windows git may spawn a detached
-    # git-fsmonitor--daemon that inherits this subprocess's stdout pipe handle,
-    # deadlocking the pipe drain past the timeout and hanging the caller. The
-    # dreamer's commits never need the monitor. See assess._recent_committed_paths.
-    return subprocess.run(
-        ["git", "-c", "core.fsmonitor=false", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
+    # Deadlock-proof: captures via temp files, not pipes, so a stray
+    # git-fsmonitor--daemon can never inherit a pipe handle and hang the drain
+    # past the timeout. See gitio for the full autopsy.
+    return run_git(root, *args, timeout=timeout)
 
 
 def _ensure_repo(root: Path) -> None:

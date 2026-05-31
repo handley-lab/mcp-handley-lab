@@ -62,29 +62,20 @@ def _recent_committed_paths(root: Any, since: str | None) -> set[str] | None:
     """
     import subprocess
 
+    from mcp_gerard.laplace.gitio import run_git
+
     window = since if since else "1.day"
     try:
-        out = subprocess.run(
-            [
-                "git",
-                # core.fsmonitor=false: without it, git on Windows may spawn a
-                # detached git-fsmonitor--daemon that inherits the write end of
-                # this subprocess's stdout pipe. subprocess.run then deadlocks
-                # draining the pipe (no EOF while the daemon holds it open),
-                # defeating the timeout below and hanging the caller forever.
-                # This read-only query never needs the monitor.
-                "-c",
-                "core.fsmonitor=false",
-                "-C",
-                str(root),
-                "log",
-                f"--since={window}",
-                "--min-parents=1",
-                "--name-only",
-                "--format=",
-            ],
-            capture_output=True,
-            text=True,
+        # run_git captures via temp files, not pipes: a git-fsmonitor--daemon
+        # cannot inherit a pipe handle that never exists, so this can never
+        # deadlock past its timeout. See gitio for the full autopsy.
+        out = run_git(
+            root,
+            "log",
+            f"--since={window}",
+            "--min-parents=1",
+            "--name-only",
+            "--format=",
             timeout=10,
         )
     except (OSError, subprocess.SubprocessError):

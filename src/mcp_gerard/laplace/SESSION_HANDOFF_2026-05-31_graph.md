@@ -52,9 +52,12 @@ usable skill. It is the **top deferred item** below, not a shipped artifact.
 3. **`focus` should match a label or path-tail**, not only a full node id or
    skill name (`--focus voice_and_style` fails today). Five-line fix in
    `graph._match_node`.
-4. **Manuscript parser needs `\input`-order stitching.** law-of-laws shows 56
-   dangling refs, partly because cross-file label resolution does not yet follow
-   `\input`. Merge in document order before resolving.
+4. **DONE - manuscript `\input`-order stitching shipped** (commit `43d54ca`).
+   `from_manuscript` now flattens a root `.tex` along its `\input`/`\include`
+   tree (`_flatten_inputs`), registers section `\label` aliases, and adds the
+   full interlock layer (claims, citations, `figure`+`table` floats, bare TikZ).
+   law-of-laws `tex_v5/main.tex` went 41 -> **0 dangling**, 0 orphans, 1
+   component (228 nodes). Point it at `main.tex`, not the `sections/` dir.
 5. **Deferred from the AutoSci scout (not built):** the interactive localhost
    viewer (`serve.py` + Cytoscape `graph.js` with SSE live-reload + the
    skill-intent boundary, where the UI emits copy-paste `laplace_*` calls rather

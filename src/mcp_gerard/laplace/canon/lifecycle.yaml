@@ -1,6 +1,15 @@
 # Machine-owned lifecycle overlay. The dreamer writes this; do not hand-edit.
 # It overrides skill `status` in index.yaml based on measured fitness.
 skills:
+  corpus_librarian:
+    fitness: 0.35
+    history:
+    - at: '2026-05-31T19:55:37.270065+00:00'
+      from: experimental
+      reason: offered 9x, never used
+      to: deprecated
+    status: deprecated
+    updated: '2026-05-31T19:55:37.270065+00:00'
   evidence_alignment:
     fitness: 0.35
     history:
@@ -28,6 +37,15 @@ skills:
       to: deprecated
     status: deprecated
     updated: '2026-05-31T17:37:30.761242+00:00'
+  reconciler:
+    fitness: 0.375
+    history:
+    - at: '2026-05-31T19:55:37.270065+00:00'
+      from: experimental
+      reason: offered 8x, never used
+      to: deprecated
+    status: deprecated
+    updated: '2026-05-31T19:55:37.270065+00:00'
   session_closer:
     forged: '2026-05-30T19:40:00+00:00'
     history:

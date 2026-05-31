@@ -1,6 +1,6 @@
 # Manuscript Register
 
-**Status**: Gate 2 metadata inventory started. First academic full-text reader pass ingested.
+**Status**: Gate 2 academic evidence present. A subagent audit completed two of the four cached chunks for `ZOTERO-UQW3Y5J2` (`P0001-P0004`). The final two chunks (`P0005`, `P0006`) remain unread by that audit.
 
 This is the target register for improving manuscript drafting. It is the strictest projection of the voice, not the weakest one.
 
@@ -66,6 +66,66 @@ Transfer rules:
 - An introduction should move from a field problem to the structural object quickly, then name the failure condition the method controls.
 - Limitations should be written as part of the mechanism. Avoid separate apology paragraphs when the caveat can become a constraint.
 - PRL-style compression is useful for titles, abstracts, captions, and conclusion hinges. It is not enough evidence for the whole academic register.
+
+## Gate 2 Subagent Audit: ZOTERO-UQW3Y5J2
+
+Source: `ZOTERO-UQW3Y5J2`, `Driven Imposters: Controlling Expectations in Many-Body Systems`. Register: academic. Status: subagent audit on the cached four-chunk manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json` (reached 2 of 4 chunks).
+
+Evidence locators:
+
+- `ZOTERO-UQW3Y5J2-P0001-P0002-dde04b8142eb`, paragraphs `P0001-P0002`: completed reader pass over title, abstract, introduction, and early formal setup.
+- `ZOTERO-UQW3Y5J2-P0003-P0004-1ce3c5f4d793`, paragraphs `P0003-P0004`: completed reader pass over reference-system setup, regime comparison, figure logic, and demonstration material.
+- `ZOTERO-UQW3Y5J2-P0005-P0005-f77137074efe` and `ZOTERO-UQW3Y5J2-P0006-P0006-54f14b9ab324`, paragraphs `P0005` and `P0006` (two separate chunks): reader pass did not complete. Do not infer conclusion-level voice from this audit.
+
+Audit claims:
+
+- The title acts as a compressed argument rather than a neutral label. Its playful surface is licensed by a formal mimicry relation.
+- The opening shows PRL compression with conceptual pressure: framework, prescription, constraint, demonstration, regime contrast, coined object, and generalisation are packed into a tight sequence.
+- The introduction moves from a canonical simple law into the failure of linear intuition, then uses that failure as the entry into the technical object.
+- Limits become authority. Singularity, realisability, uniqueness, amplitude, finite-size, threshold, and feasibility conditions are written as warrants for the method rather than apologies.
+- The demonstration section treats the model system as the arena where the formalism must prove itself.
+- Contrast carries much of the exposition: metallic against Mott, conducting against insulating, reference against tracked.
+- Figures carry regime identification, threshold validation, tracking success, and spectral mimicry, leaving prose to state why those checks matter.
+- A failure of direct tracking is converted into a design constraint and then into an alternative prescription.
+
+Author-method signals:
+
+- Desired observable first, control field second.
+- Mechanism beats phenomenology.
+- Constructive exactness is preferred: prescribe, bound, prove conditions, then demonstrate in a hard case.
+- Mimicry functions as a design principle, not a decorative metaphor.
+- A separate diagnostic tests whether controlled imitation has actually changed the system in the intended way.
+
+Public facts from the audit:
+
+- Gerard McCaul is listed as first author on `ZOTERO-UQW3Y5J2`. Confidence: high. Caveat: first authorship is not sole prose ownership.
+- The paper is a 2020 Physical Review Letters article, volume 124, article 183201. Confidence: high.
+- The paper studies tracking control for expectation values in laser-driven correlated many-body electronic systems. Confidence: high.
+- The demonstration uses one-dimensional Fermi-Hubbard reference systems, including contrasting conducting and Mott-insulating regimes. Confidence: high.
+
+Audit limits:
+
+- The audit used subagents over two of the four cached chunks (`P0001-P0004`). The manifest holds four chunks; the earlier note of four provenance units and twelve reader jobs is consistent with it.
+- The cached source has OCR damage, so sentence-level rhythm and exact equation transcription remain unsafe.
+- The paper is co-authored and PRL-constrained, so it is strong same-register evidence but not a sole-authored manuscript anchor.
+
+## Gate 2 Comparison Against Gate 1 Candidates
+
+The first academic evidence confirms several Gate 1 candidates in manuscript form:
+
+- **Frame first** survives. The opening moves from general control structure to the specific nonlinear many-body problem.
+- **Mechanism before name** mostly survives. The imposter naming is authorised by the mechanism it describes.
+- **Compress after skeleton** survives strongly. Once the tracking skeleton is in place, dense figures and concise captions take over much of the labour.
+- **Expand at hinges** survives in academic form. The expansion happens where linear intuition fails, where realisability enters, and where mimicry becomes a design object.
+- **Use technical objects as thought** survives. Expectation values, tracking fields, reference systems, and diagnostics organise the argument rather than ornamenting it.
+- **Correct by constraint** survives strongly. Limits become assumptions, thresholds, and prescriptions.
+- **Deflate false solemnity** survives narrowly. Humour is present where it names the formal impersonation structure.
+
+What remains unproven:
+
+- Conclusion-level voice from chunks `P0005` and `P0006` (unread by the audit).
+- Sentence-level rhythm, because of OCR damage.
+- Whether these PRL mechanics transfer to thesis-scale, proposal-scale, or correspondence registers.
 
 ## Platonic Target
 

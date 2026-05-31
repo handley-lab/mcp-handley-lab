@@ -62,6 +62,13 @@ Correction made later:
 - Treat hanging subagents as a structural failure, not bad luck. Future academic reader passes should be serial, restartable queue jobs with one live reader call at a time. A stalled call blocks one chunk, not the session.
 - The serial queue worker caught one raw-leak attempt and one invalid fact locator before canon admission. Keep those guardrails.
 
+Subagent audit note:
+
+- A later subagent audit was run against the manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json`.
+- The audit completed `P0001-P0002` and `P0003-P0004`, and confirmed the main manuscript-register mechanics: title as compressed argument, PRL compression, structural humour under formal licence, constraint as authority, contrast as explanatory machinery, and figure logic as compression.
+- The audit did not complete the remaining chunks `P0005` and `P0006`. Do not use that audit as conclusion-level evidence.
+- Provenance mismatch RECONCILED (2026-05-31, next session): the manifest is authoritative and holds **four** chunks - `P0001-P0002`, `P0003-P0004`, `P0005-P0005`, `P0006-P0006`. The earlier four-chunk reader note was correct; the audit note that called this a "three-chunk manifest" was wrong (it conflated the two single-paragraph chunks P0005 and P0006). Net: the audit reached 2 of the 4 chunks.
+
 ## Emergency Handoff - 2026-05-31
 
 This section records the state at the user-requested stop. It is deliberately blunt so the next session can audit the damage instead of inheriting a heroic story.

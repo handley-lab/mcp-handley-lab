@@ -1,6 +1,6 @@
 # Manuscript Register
 
-**Status**: Gate 2 metadata inventory started. Academic source text has not been ingested.
+**Status**: Gate 2 metadata inventory started. First academic full-text reader pass ingested.
 
 This is the target register for improving manuscript drafting. It is the strictest projection of the voice, not the weakest one.
 
@@ -40,6 +40,32 @@ The first batch should not average the corpus. It should deliberately compare co
 - title-led framing against neutral mathematical exposition
 - older open-systems work against current reservoir and complexity work
 - solo or first-author pieces against broad collaborative pieces
+
+## Gate 2 Full-Text Evidence: Driven Imposters
+
+Source: `ZOTERO-UQW3Y5J2`, `Driven Imposters: Controlling Expectations in Many-Body Systems`. Status: first academic full-text pass, PRL-style evidence. Reader jobs: `voice`, `author_method`, and `facts` over four chunks. Treat these claims as same-register provisional evidence, not a complete manuscript ideal.
+
+Evidence quality:
+
+- Full text was chunked into four provenance units and processed through twelve serial reader jobs.
+- All reader outputs passed raw-leak checks.
+- One reader fact with an impossible byte span was rejected before canon admission.
+- The source is collaborative and venue-constrained, so it is stronger evidence for title/framing/compression than for sentence-level sole-author style.
+
+Provisional manuscript mechanics from this source:
+
+- **Title as compressed argument.** The title makes the technical result do rhetorical work: an object can be made to pass as another object under controlled observables. This is not decorative humour. It names the mechanism.
+- **Mischief formalised into constraint.** The register permits dry irreverence only after the mathematical object exists. The imposter frame works because the paper immediately pays it off through tracking control, uniqueness conditions, and physical realisability.
+- **Failure converted into admissibility.** Singularities, dielectric breakdown, scaling limits, and transient control errors are not treated as embarrassment. They become constraints, caveats, or design conditions.
+- **Compression by named machinery.** The prose leans on a small set of formal objects - tracking Hamiltonian, target observable, control field, Fermi-Hubbard test system - then lets figures and equations carry the mechanical load.
+- **Application as structural proof.** The material-mimicry example is not merely an application section. It demonstrates that the abstract control frame can make two regimes exchange observable behaviour under specified limits.
+
+Transfer rules:
+
+- In manuscript drafting, coined or playful names should arrive only when the formal object can carry them.
+- An introduction should move from a field problem to the structural object quickly, then name the failure condition the method controls.
+- Limitations should be written as part of the mechanism. Avoid separate apology paragraphs when the caveat can become a constraint.
+- PRL-style compression is useful for titles, abstracts, captions, and conclusion hinges. It is not enough evidence for the whole academic register.
 
 ## Platonic Target
 

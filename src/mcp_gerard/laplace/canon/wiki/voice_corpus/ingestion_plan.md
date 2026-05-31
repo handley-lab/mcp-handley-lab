@@ -30,7 +30,7 @@ The corpus should be admitted in gates. Each gate produces a private evidence le
 - Separate published, near-published, abandoned, and proposal-adjacent material.
 - Update [Manuscript Register](canon://voice_corpus/manuscript_register.md).
 
-**Gate 2 status on 2026-05-31**: Zotero local API is available. The `My Papers` collection has been read at metadata level only. Three Overleaf bundle downloads have been located by filename inventory only: admin/proposal, academic-review, and personal-writing bundles. No Zotero attachment, PDF, full text, or Overleaf source text has been read for Gate 2.
+**Gate 2 status on 2026-05-31**: Zotero local API is available. The `My Papers` collection has been read at metadata level. Three Overleaf bundle downloads have been located by filename inventory only: admin/proposal, academic-review, and personal-writing bundles. `ZOTERO-UQW3Y5J2` has now been read through serial full-text reader jobs as the first PRL-style academic anchor.
 
 Next Gate 2 actions:
 
@@ -39,6 +39,7 @@ Next Gate 2 actions:
 - chunk each chosen source with `voice_corpus_reader`
 - run manuscript voice, author-method, and fact readers as restartable serial queue jobs on chunk handles rather than raw dumps
 - admit only register claims that can name a source handle and locator
+- continue Gate 2 with at least one humour-bearing paper and one recent sole-author or first-author source before promoting academic claims to cross-register law
 
 Gate 2 execution constraint:
 

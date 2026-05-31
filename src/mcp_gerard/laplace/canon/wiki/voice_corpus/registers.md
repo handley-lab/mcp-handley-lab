@@ -29,6 +29,8 @@ The first calibration source suggests that the invariant is not a tone but a mov
 
 `EPPUR-PRIMARY` is currently a calibration specimen for personal writing. It is not a manuscript anchor, correspondence anchor, canon anchor, or universal ideal.
 
+`ZOTERO-UQW3Y5J2` is currently the first same-register academic anchor. It confirms that the voice can survive manuscript constraint through compressed naming, formalised mischief, and failure-to-constraint conversion. It does not yet settle sentence-level academic style.
+
 ## Register Boundaries
 
 - **Manuscript.** Permits objective claim, structural motivation, and dry conceptual framing. Restrains direct address, confessional force, and loose metaphor. Main risk: over-sanitising until the thought loses its author.

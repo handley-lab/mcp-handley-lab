@@ -49,16 +49,48 @@ Metadata admitted:
 - First reader-batch candidates are listed in the Manuscript Register.
 - Public bibliographic facts were added to the Author Fact Ledger.
 
-Contained but not read:
+Contained and read:
 
 - `ZOTERO-UQW3Y5J2`, `Driven Imposters: Controlling Expectations in Many-Body Systems`.
 - Zotero indexed full text was written to `.codex/voice_corpus_cache/raw/ZOTERO-UQW3Y5J2.txt`.
-- `voice_corpus_reader` chunked it into three academic chunks with a manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json`.
-- Subagent reader passes were attempted but failed because the session hit a usage limit. No manuscript-register claims from this paper have been admitted yet.
+- `voice_corpus_reader` chunked it into four academic chunks with a manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json`.
+- Twelve serial queue jobs completed: `voice`, `author_method`, and `facts` for each chunk.
+- Manuscript-register claims from this source have now been admitted as provisional PRL-style evidence.
 
 Correction made later:
 
 - Treat hanging subagents as a structural failure, not bad luck. Future academic reader passes should be serial, restartable queue jobs with one live reader call at a time. A stalled call blocks one chunk, not the session.
+- The serial queue worker caught one raw-leak attempt and one invalid fact locator before canon admission. Keep those guardrails.
+
+## Emergency Handoff - 2026-05-31
+
+This section records the state at the user-requested stop. It is deliberately blunt so the next session can audit the damage instead of inheriting a heroic story.
+
+Committed and pushed checkpoint:
+
+- Commit `cbd163f` on `origin/feat/laplace-engine`: `Stabilize voice corpus reader queue`.
+- That commit contains the durable queue-generation code, serial-reader protocol, timeout changes, and tests.
+
+Canon edits after that checkpoint, staged for the next commit:
+
+- `ZOTERO-UQW3Y5J2` has been admitted as the first full-text academic anchor.
+- Manuscript-register claims are provisional and PRL-specific: title as compressed argument, mischief formalised into constraint, failure converted into admissibility, compression by named machinery, and application as structural proof.
+- Author fact ledger gained only public/bibliographic facts from `ZOTERO-UQW3Y5J2`; one invalid reader fact was rejected.
+
+Private cache state:
+
+- `ZOTERO-UQW3Y5J2`: 12/12 reader jobs done, synthesised, admitted to canon as provisional Gate 2 evidence.
+- `ZOTERO-9IFREHKD`: 9/9 reader jobs done. It is **not** yet synthesised and **not** admitted to canon.
+- `ZOTERO-27MBG7CN`: 3 jobs done, 1 job manually marked `blocked` after the user interrupted the run, 20 pending. The live worker processes were stopped.
+- `ZOTERO-UNGFXZ9P`: raw text extracted and queue created, 24 jobs pending, no reader outputs.
+
+Known wreckage to audit next:
+
+- API route instability: OpenAI returned insufficient quota, Anthropic returned low-credit, Gemini flash-lite hit the free-tier daily request cap, then Gemini flash was used.
+- Reader output quality is uneven. The raw-leak detector caught over-literal outputs. One reader produced an impossible byte span and that claim was rejected.
+- The synthesis for `ZOTERO-UQW3Y5J2` contains useful signal but also generic content-summary noise in the private ledger. The canon admission intentionally kept only a narrower set of claims.
+- The private queue worker lives under `.codex/voice_corpus_cache/tools/reader_queue_worker.py`, which is ignored and not committed. The committed durable part is the queue format and protocol, not that private worker.
+- `.mcp.json` and `src/mcp_gerard/laplace/render.py` have unrelated unstaged local edits that were not part of the corpus commit.
 
 ## Top-Level Confluence
 
@@ -110,12 +142,15 @@ Do not treat that list as a lifecycle recommendation. It is a routing note.
 
 ## Next Concrete Step
 
-Run the first academic reader pass on `ZOTERO-UQW3Y5J2` using the manifest and chunks already in ignored cache. Do it as a serial reader queue, not parallel subagents. Each chunk job should return distilled observations only:
+Continue by auditing the wreckage before ingesting more. Do this order:
 
-- manuscript voice mechanics
-- author-method signals
-- factual claims, if any, with privacy tier and confidence
-- chunk IDs or paragraph ranges
-- no raw quotations beyond tiny fragments when strictly needed
+- inspect `.codex/voice_corpus_cache/readers/ZOTERO-27MBG7CN/queue.jsonl` and decide whether to retry, skip, or discard the blocked job
+- synthesise `ZOTERO-9IFREHKD` only from its completed reader JSON, then decide whether any claim is safe enough for canon
+- only then resume `ZOTERO-27MBG7CN` or `ZOTERO-UNGFXZ9P`
+- run verification before any Dreamer lifecycle mutation
 
-After that, update the Manuscript Register with provisional Gate 2 claims and compare them against the Gate 1 candidate mechanics.
+The next academic pass should deliberately add contrast rather than more of the same:
+
+- one humour-bearing academic source, such as `ZOTERO-27MBG7CN`
+- one recent sole-author or first-author source, such as `ZOTERO-UNGFXZ9P` if full text is available
+- one non-manuscript register source from correspondence or admin/proposal before any top-level Voice rewrite

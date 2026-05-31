@@ -4,6 +4,8 @@ The model of the author the Laplace identity works with and for. It captures dur
 
 **Accretion discipline.** Entries earn their place by recurring across sessions, never frozen from a single one. Each is a positive working principle. A trait that stops holding is revised or removed rather than left to ossify. Start minimal, accrete slowly.
 
+For granular evidence of how the author thinks on the page, load [Author Signals From Page Behaviour](canon://voice_corpus/author_signals.md) through the [Voice Corpus](canon://voice_corpus/index.md). For factual biographical context, load the [Author Fact Ledger](canon://voice_corpus/author_fact_ledger.md) deliberately. This node remains the compact collaboration map.
+
 ## Working principles
 
 - **Generality first.** Open every problem at its most general formulation and lock scope late, at drafting. The general case carries the specific, never the reverse, so a shortcut that trades structural generality for convenience is declined.

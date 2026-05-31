@@ -111,8 +111,24 @@ def check_voice(text: str) -> dict[str, Any]:
     flags: list[dict[str, Any]] = []
     in_figure_star = False
     in_tikz = False
+    lines = text.splitlines()
+    in_frontmatter = bool(lines and lines[0].strip() == "---")
+    in_fenced_code = False
 
-    for i, line in enumerate(text.splitlines(), 1):
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if in_frontmatter:
+            if i > 1 and stripped == "---":
+                in_frontmatter = False
+            continue
+        if stripped.startswith("```"):
+            in_fenced_code = not in_fenced_code
+            continue
+        if in_fenced_code:
+            continue
+        if re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", line):
+            continue
+
         if r"\begin{figure*}" in line:
             in_figure_star = True
         elif r"\end{figure*}" in line:

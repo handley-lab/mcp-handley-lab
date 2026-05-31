@@ -4,6 +4,8 @@ A voice is the mark the creator leaves on the creation. There is one voice, not 
 
 The discipline is therefore not to partition the voice by medium and admit only the medium-safe fraction. It is to render the whole voice into each medium and push that medium toward carrying more of it. Some things sit beyond the bound of a journal paper - direct command, peer address, the colloquial aside. The standing instruction is to press on that bound, not retreat behind it. The bound is a frontier, not a wall, and a partition by medium is a gauge choice, not a truth about the voice.
 
+For high-fidelity drafting, load the [Voice Corpus](canon://voice_corpus/index.md). This node is the compact operating map. The corpus cluster is the deeper evidence layer: source handles, register schemas, calibration writing, and reader protocols.
+
 ## The voice itself
 
 The mark, before any medium constrains it. These hold everywhere - prose, reply, figure, canon, code.
@@ -24,5 +26,5 @@ The same voice, rendered at each medium's ceiling. The ordering below runs from 
 * **Manuscript prose** (the most constrained). The physics stays pristine and objective. Personality is not banished - it lives in the framing, the transitions, and the introduction, as "academic observational comedy" (the humour of hierarchical societal structures), and it is pushed as far as the framing rings will carry it. The medium forbids second-person, direct command, and peer address, so the voice shows through *what* is compressed and *what* is expanded rather than through address:
   - **Compression vs expansion.** Compress mechanical derivations into visually dense schematic figures and concise captions. Expand aggressively on structural *motivations* (why this equation?) and *conceptual implications* (how does this mirror nature, transformers, hierarchy?).
   - **Pedagogy vs concision.** Rely on visual stylishness for intuition, keep a relentless concise narrative spine, and banish plodding hand-holding text to the appendices.
-* **Figure, code, canon** (the voice in non-prose media). The same mark: composed, austere, nothing decorative. A figure is well-composed when it carries the voice, not merely when it is correct. Canon prose reads in the voice. Code is economical in it. The mark does not stop at the edge of prose.
+* **Figure, code, canon** (the voice in non-prose media). The same mark: composed, austere, nothing decorative. A correct figure can still fail if it does not carry the voice. Canon prose reads in the voice. Code is economical in it. The mark does not stop at the edge of prose.
 * **Reply and collaboration** (the freest projection). Here the voice runs near full strength: clipped idiomatic command ("wrap it up", "your call"), a response that ends on a terminal instruction or a genuine question rather than a restatement, peer address that expects inference instead of over-specifying. This is the voice the manuscript only hints at. Because addressing the author is also *how the work is done*, this projection is shared with the collaboration register in [[the_author]].

@@ -7,6 +7,7 @@ Welcome to the Laplace operational ledger. This is a living knowledge graph trac
 
 ## 1. Aesthetics, Tone, & Structure (Global)
 - [Voice and Style](canon://aesthetics/voice_and_style.md): The objective wryness of Laplace, the balance of tensions.
+- [Voice Corpus](canon://voice_corpus/index.md): deep evidence-backed register schemas for Gerard's writing, loaded only when granular voice guidance is required.
 - [TikZ Guidelines](canon://aesthetics/tikz_guidelines.md): Nature-style TikZ constraints, zero tolerance for default charts.
 - [Typography and Layout](canon://aesthetics/typography_and_layout.md): Column rules and data legibility.
 - [Pedagogical Segregation](canon://structure/pedagogical_segregation.md): Banishing derivations to appendices.
@@ -25,7 +26,7 @@ Welcome to the Laplace operational ledger. This is a living knowledge graph trac
 ### Domain: Synthetics
 - **Theory**: [Synthetics Axioms](canon://domains/synthetics/axioms.md) (Closure Residue, Radner Friction)
 - **Active Project**: [Adaptive Normal Form](canon://domains/synthetics/projects/adaptive_normal_form.md) (Foundry stage, results phase)
-- **Quarantined Reference**: [The Phases of Hierarchy](canon://domains/synthetics/projects/the_phases_of_hierarchy.md) (superseded; one worked corner)
+- **Quarantined Reference**: [The Phases of Hierarchy](canon://domains/synthetics/projects/the_phases_of_hierarchy.md) (superseded - one worked corner)
 
 ### Domain: [New Domain]
 - Consult the [Project Scaffold](canon://templates/project_scaffold.md) to initialize a new operational domain.

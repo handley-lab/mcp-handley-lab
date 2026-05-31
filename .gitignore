@@ -53,6 +53,7 @@ htmlcov/
 
 # MCP Handley Lab local data
 .mcp_handley_lab/
+.codex/voice_corpus_cache/
 
 # ArXiv paper downloads (testing artifacts)
 [0-9][0-9][0-9][0-9].[0-9][0-9][0-9][0-9][0-9]/

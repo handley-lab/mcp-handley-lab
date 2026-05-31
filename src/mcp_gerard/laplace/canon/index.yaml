@@ -63,6 +63,62 @@ wiki:
     title: The Author
     scope: global
     tags: [author, persona, working-style, method, collaboration]
+  voice_corpus/index:
+    title: Voice Corpus
+    scope: global
+    tags: [voice, corpus, author, writing, register, evidence]
+  voice_corpus/source_map:
+    title: Voice Corpus Source Map
+    scope: global
+    tags: [voice, corpus, sources, provenance, privacy, drive, gmail, zotero]
+  voice_corpus/reader_protocol:
+    title: Voice Corpus Reader Protocol
+    scope: global
+    tags: [voice, corpus, reader, recursive-llm, subagent, firewall, provenance]
+  voice_corpus/ingestion_plan:
+    title: Voice Corpus Ingestion Plan
+    scope: global
+    tags: [voice, corpus, ingestion, plan, gmail, zotero, drive, overleaf]
+  voice_corpus/registers:
+    title: Voice Corpus Register Matrix
+    scope: global
+    tags: [voice, register, manuscript, personal, correspondence, canon]
+  voice_corpus/eppur_si_muove:
+    title: Eppur Si Muove
+    scope: global
+    tags: [voice, calibration, personal-writing, drive, eppur]
+  voice_corpus/manuscript_register:
+    title: Manuscript Register
+    scope: global
+    tags: [voice, manuscript, academic, paper, drafting]
+  voice_corpus/personal_register:
+    title: Personal Register
+    scope: global
+    tags: [voice, personal-writing, literary, reflection]
+  voice_corpus/correspondence_register:
+    title: Correspondence Register
+    scope: global
+    tags: [voice, gmail, email, correspondence, direct-address]
+  voice_corpus/admin_proposal_register:
+    title: Admin and Proposal Register
+    scope: global
+    tags: [voice, proposal, admin, failure-mode, institution]
+  voice_corpus/author_signals:
+    title: Author Signals From Page Behaviour
+    scope: global
+    tags: [author, voice, thinking, method, page-behaviour]
+  voice_corpus/author_fact_ledger:
+    title: Author Fact Ledger
+    scope: global
+    tags: [author, facts, biography, provenance, privacy, memory]
+  voice_corpus/top_level_confluence:
+    title: Top-Level Confluence Review
+    scope: global
+    tags: [voice, canon, orientation, review, top-level, confluence]
+  voice_corpus/session_handoff:
+    title: Voice Corpus Session Handoff
+    scope: global
+    tags: [voice, corpus, handoff, continuation, dreamer, close]
   domains/synthetics/conjectures:
     title: Conjectures and Parked Intuitions
     scope: domain
@@ -243,6 +299,12 @@ skills:
     domain: global
     status: experimental
     tags: [research, literature, arxiv, citations, references, evidence, ledger, rail]
+  voice_corpus_reader:
+    activity: staging
+    domain: global
+    status: experimental
+    backing: scripts/chunk_source.py
+    tags: [voice, corpus, reader, chunking, provenance, privacy, cache]
   # deep_corpus_scout: reverted (SKILL.md does not exist); pending re-forge per AUTONOMY_BACKLOG.md
   identity_ledger:
     activity: evaluating

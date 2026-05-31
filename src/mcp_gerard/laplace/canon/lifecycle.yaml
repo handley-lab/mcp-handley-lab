@@ -1,14 +1,6 @@
 # Machine-owned lifecycle overlay. The dreamer writes this; do not hand-edit.
 # It overrides skill `status` in index.yaml based on measured fitness.
 skills:
-  session_closer:
-    status: experimental
-    forged: '2026-05-30T19:40:00+00:00'
-    history:
-    - at: '2026-05-30T19:40:00+00:00'
-      from: null
-      reason: forged by dreamer (host-executed) — close-out protocol against telemetry starvation + role/API boundary breach
-      to: experimental
   evidence_alignment:
     fitness: 0.35
     history:
@@ -18,3 +10,39 @@ skills:
       to: deprecated
     status: deprecated
     updated: '2026-05-30T17:10:04.578622+00:00'
+  idea_foundry:
+    fitness: 0.35
+    history:
+    - at: '2026-05-31T17:37:30.761242+00:00'
+      from: experimental
+      reason: offered 8x, never used
+      to: deprecated
+    status: deprecated
+    updated: '2026-05-31T17:37:30.761242+00:00'
+  orient_recovery:
+    fitness: 0.35
+    history:
+    - at: '2026-05-31T17:37:30.761242+00:00'
+      from: experimental
+      reason: offered 12x, never used
+      to: deprecated
+    status: deprecated
+    updated: '2026-05-31T17:37:30.761242+00:00'
+  session_closer:
+    forged: '2026-05-30T19:40:00+00:00'
+    history:
+    - at: '2026-05-30T19:40:00+00:00'
+      from: null
+      reason: "forged by dreamer (host-executed) \u2014 close-out protocol against\
+        \ telemetry starvation + role/API boundary breach"
+      to: experimental
+    status: experimental
+  voice_corpus_reader:
+    fitness: 0.69
+    history:
+    - at: '2026-05-31T17:37:30.761242+00:00'
+      from: experimental
+      reason: 'earned promotion: 12 uses, fitness 0.69'
+      to: core
+    status: core
+    updated: '2026-05-31T17:37:30.761242+00:00'

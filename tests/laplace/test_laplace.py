@@ -130,6 +130,16 @@ def test_voice_ignores_markdown_syntax_noise(tmp_path):
     assert rep["checks"]["voice"]["violations"] == []
 
 
+def test_voice_ignores_markdown_horizontal_rule(tmp_path):
+    md = tmp_path / "rule.md"
+    md.write_text(
+        "# Heading\n\nClean prose above.\n\n---\n\nClean prose below.\n",
+        encoding="utf-8",
+    )
+    rep = verify.verify(str(md), checks=["voice"])
+    assert rep["checks"]["voice"]["violations"] == []
+
+
 def test_verify_clean_file_passes(tmp_path):
     tex = tmp_path / "clean.tex"
     tex.write_text(

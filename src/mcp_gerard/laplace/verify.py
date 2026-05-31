@@ -128,6 +128,8 @@ def check_voice(text: str) -> dict[str, Any]:
             continue
         if re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", line):
             continue
+        if re.match(r"^(-{3,}|\*{3,}|_{3,})$", stripped):
+            continue
 
         if r"\begin{figure*}" in line:
             in_figure_star = True

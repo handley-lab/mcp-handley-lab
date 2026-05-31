@@ -123,6 +123,22 @@ wiki:
     title: Conjectures and Parked Intuitions
     scope: domain
     tags: [conjecture, parked, intuition, speculative, future, inertia, mass]
+  domains/web/axioms:
+    title: Web Domain Axioms
+    scope: domain
+    tags: [web, website, jekyll, github-pages, voice, medium]
+  domains/web/projects/phujck_github_io:
+    title: 'Project: phujck.github.io'
+    scope: domain
+    tags: [web, jekyll, site, phujck, deploy]
+  domains/talks/axioms:
+    title: Talks Domain Axioms
+    scope: domain
+    tags: [talk, talks, slides, presentation, manuscript, projection, voice]
+  domains/talks/projects/talk_from_manuscript:
+    title: 'Project: Talk From Manuscript'
+    scope: domain
+    tags: [talk, slides, manuscript, spine, pipeline]
 
 # ---------------------------------------------------------------------------
 # Domains. Theory axioms + active project state, loaded by orient when relevant.
@@ -134,6 +150,16 @@ domains:
     projects:
       adaptive_normal_form: domains/synthetics/projects/adaptive_normal_form
       the_phases_of_hierarchy: domains/synthetics/projects/the_phases_of_hierarchy
+  web:
+    axioms: domains/web/axioms
+    tags: [web, website, jekyll, github-pages, site]
+    projects:
+      phujck_github_io: domains/web/projects/phujck_github_io
+  talks:
+    axioms: domains/talks/axioms
+    tags: [talk, talks, slides, presentation, manuscript, projection]
+    projects:
+      talk_from_manuscript: domains/talks/projects/talk_from_manuscript
 
 # ---------------------------------------------------------------------------
 # Skills. activity = which operational bucket the skill serves.

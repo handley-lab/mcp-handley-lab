@@ -28,5 +28,13 @@ Welcome to the Laplace operational ledger. This is a living knowledge graph trac
 - **Active Project**: [Adaptive Normal Form](canon://domains/synthetics/projects/adaptive_normal_form.md) (Foundry stage, results phase)
 - **Quarantined Reference**: [The Phases of Hierarchy](canon://domains/synthetics/projects/the_phases_of_hierarchy.md) (superseded - one worked corner)
 
+### Domain: Web (scaffold)
+- **Axioms**: [Web Domain Axioms](canon://domains/web/axioms.md) (the voice into the Jekyll medium, the generate-stage-refine slots)
+- **Active Project**: [phujck.github.io](canon://domains/web/projects/phujck_github_io.md) (scaffold - stage-third web skills await revival with real backings)
+
+### Domain: Talks (scaffold)
+- **Axioms**: [Talks Domain Axioms](canon://domains/talks/axioms.md) (a talk as the manuscript voice projected into slides, the generate-stage-refine slots)
+- **Active Project**: [Talk From Manuscript](canon://domains/talks/projects/talk_from_manuscript.md) (scaffold - spine before slides, manuscript is source of truth)
+
 ### Domain: [New Domain]
 - Consult the [Project Scaffold](canon://templates/project_scaffold.md) to initialize a new operational domain.

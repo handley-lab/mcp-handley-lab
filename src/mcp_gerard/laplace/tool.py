@@ -21,6 +21,7 @@ from pydantic import Field
 
 from mcp_gerard.laplace import assess as _assess
 from mcp_gerard.laplace import dreamer as _dreamer
+from mcp_gerard.laplace import graph as _graph
 from mcp_gerard.laplace import render as _render
 from mcp_gerard.laplace import telemetry as _telemetry
 from mcp_gerard.laplace import verify as _verify
@@ -209,6 +210,46 @@ def laplace_verify(
 # ---------------------------------------------------------------------------
 # DREAM - endogenous assessment and silent self-refinement
 # ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def laplace_graph(
+    format: str = Field(
+        default="mermaid",
+        description="Projection: 'mermaid' (embeddable diagram), 'json' (edge list + health), 'canvas' (Obsidian .canvas), 'obsidian' (graph.json colour config).",
+    ),
+    focus: str = Field(
+        default="",
+        description="Optional node to centre on (id, skill name, or label); returns its BFS neighbourhood as a radial view.",
+    ),
+    depth: int = Field(default=2, description="BFS depth for a focused view."),
+    kinds: list[str] = Field(
+        default_factory=list,
+        description="Optional node-kind filter. Canon: wiki, skill, domain, agent. Manuscript: section, figure, equation, claim, citation.",
+    ),
+    manuscript: str = Field(
+        default="",
+        description="Optional .tex file (preferred - its \\input order is authoritative) or directory. When set, builds the manuscript's interlock graph (sections, figures, equations, claims, citations) instead of the canon - same renderers.",
+    ),
+) -> dict[str, Any]:
+    """Project the canon (or a manuscript) as one typed graph - see how the pieces interlock.
+
+    The canon is already a graph: wiki pages, skills, domains, and agent personas
+    wired by [[name]] and canon:// links. A manuscript is the same graph from a
+    different source - sections (in \\input reading order), figures (env, bare
+    TikZ, or \\includegraphics), equations, claims (theorem-like envs), and
+    citations, wired by \\ref, claim->evidence, and \\cite. This renders either.
+    Every edge carries the line of prose it came from, skill nodes are sized by
+    measured fitness, and the report includes a topology health summary (orphans,
+    dangling links/refs, deprecated-but-linked skills).
+    """
+
+    def _do() -> dict[str, Any]:
+        return _graph.render(
+            format, focus or None, depth, kinds or None, manuscript=manuscript or None
+        )
+
+    return guard("laplace_graph", _FAST, _do)
 
 
 @mcp.tool()

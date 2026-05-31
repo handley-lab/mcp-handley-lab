@@ -32,6 +32,14 @@ PROMOTE_MIN_USES = 5
 PROMOTE_FITNESS = 0.60
 DEPRECATE_FITNESS = 0.30
 OFFERED_UNUSED = 8      # offered this often but never used => stale
+# Deprecation keys on usage==0, but refining or forging a SKILL.md emits no usage
+# event - so a just-improved skill reads as "never used" the same window it was
+# worked, and a blind apply would deprecate the newest, most-relevant canon. The
+# probation grace exempts a skill whose SKILL.md was *committed within the assess
+# window* (the dream judges events since the last dream, so an edit in that same
+# window is the use the telemetry missed). It is scoped to the window, not a fixed
+# span, so it spares only what was actually worked. When git authorship cannot be
+# read, there is no grace - never spare on an unreliable signal.
 
 # Refinement thresholds (orthogonal to lifecycle: "needs a content rewrite").
 REFINE_MIN_CONFIDENCE = 0.5  # enough evidence to trust a complaint
@@ -40,6 +48,55 @@ REFINE_QUALITY = 0.7         # measured pass/ok-rate below this counts as fricti
 
 def _clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
+
+
+def _recent_committed_paths(root: Any, since: str | None) -> set[str] | None:
+    """Repo-relative paths committed since ``since`` (an ISO ts), or None if git is
+    unavailable.
+
+    Git commit time reflects actual content authorship, unlike file mtime which a
+    fresh checkout resets uniformly. Scoping to ``since`` (the assess window start)
+    keeps the grace tight - it spares only skills worked in the period being judged,
+    not every skill an active repo committed in some fixed span. None means "unknown",
+    and callers fall back to mtime rather than guessing.
+    """
+    import subprocess
+
+    window = since if since else "1.day"
+    try:
+        out = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "log",
+                f"--since={window}",
+                "--min-parents=1",
+                "--name-only",
+                "--format=",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    return {line.strip().replace("\\", "/") for line in out.stdout.splitlines() if line.strip()}
+
+
+def _recently_touched(sk: Any, recent: set[str] | None) -> bool:
+    """Was this skill's SKILL.md committed within the assess window?
+
+    Conservative: when git authorship is unavailable (recent is None), there is no
+    grace. mtime reflects a checkout, not authorship, so it would wrongly spare every
+    skill in a fresh clone - better no grace than a false one.
+    """
+    if not recent:
+        return False
+    suffix = f"skills/{sk.name}/SKILL.md"
+    return any(p.endswith(suffix) for p in recent)
 
 
 def _skill_signals(name: str, events: list[dict[str, Any]]) -> dict[str, Any]:
@@ -118,7 +175,9 @@ def _fitness(sig: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _recommend(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> tuple[str, str]:
+def _recommend(
+    status: str, sig: dict[str, Any], fit: dict[str, Any], recently_touched: bool = False
+) -> tuple[str, str]:
     """Return (recommended_status, reason). Conservative: only act on evidence."""
     usage = sig["usage"]
     fitness = fit["fitness"]
@@ -133,6 +192,8 @@ def _recommend(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> tuple[s
         if usage >= PROMOTE_MIN_USES and fitness >= PROMOTE_FITNESS:
             return "core", f"earned promotion: {usage} uses, fitness {fitness}"
         if sig["offered"] >= OFFERED_UNUSED and usage == 0:
+            if recently_touched:
+                return "experimental", f"offered {sig['offered']}x, unused but newly forged/refined (grace)"
             return "deprecated", f"offered {sig['offered']}x, never used"
         if usage >= PROMOTE_MIN_USES and fitness < DEPRECATE_FITNESS:
             return "deprecated", f"used but low fitness {fitness}"
@@ -141,7 +202,7 @@ def _recommend(status: str, sig: dict[str, Any], fit: dict[str, Any]) -> tuple[s
     # status == core
     if usage >= PROMOTE_MIN_USES and fitness < DEPRECATE_FITNESS:
         return "deprecated", f"core skill degraded to fitness {fitness}"
-    if sig["offered"] >= OFFERED_UNUSED * 2 and usage == 0:
+    if sig["offered"] >= OFFERED_UNUSED * 2 and usage == 0 and not recently_touched:
         return "deprecated", f"core skill fell out of use (offered {sig['offered']}x)"
     return "core", "healthy"
 
@@ -195,10 +256,12 @@ def assess(canon: Canon | None = None, session: str | None = None, since: str | 
     skills_report: list[dict[str, Any]] = []
     transitions: list[dict[str, Any]] = []
 
+    recent = _recent_committed_paths(canon.root, since)
     for name, sk in canon.skills.items():
         sig = _skill_signals(name, evs)
         fit = _fitness(sig)
-        rec, reason = _recommend(sk.status, sig, fit)
+        recently_touched = _recently_touched(sk, recent)
+        rec, reason = _recommend(sk.status, sig, fit, recently_touched)
         ref = _refine(sk.status, sig, fit)
         # Keep "healthy" honest: a kept skill that needs a rewrite says so.
         if ref["needs_refine"] and rec == sk.status:

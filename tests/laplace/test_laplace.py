@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 
 import pytest
@@ -116,6 +117,19 @@ def test_voice_flags_unicode_emdash(tmp_path):
     assert any(f["kind"] == "vonnegut" for f in rep["checks"]["voice"]["violations"])
 
 
+def test_voice_ignores_markdown_syntax_noise(tmp_path):
+    md = tmp_path / "syntax.md"
+    md.write_text(
+        "---\nname: probe\n---\n"
+        "| A | B |\n| --- | --- |\n"
+        "```text\ncmd --source-handle TEST --cache-root tmp\n```\n"
+        "Clean prose stays here.\n",
+        encoding="utf-8",
+    )
+    rep = verify.verify(str(md), checks=["voice"])
+    assert rep["checks"]["voice"]["violations"] == []
+
+
 def test_verify_clean_file_passes(tmp_path):
     tex = tmp_path / "clean.tex"
     tex.write_text(
@@ -153,6 +167,27 @@ def test_fitness_promotes_and_deprecates(isolated_canon):
     assert moves.get("latex_forge") == "core"
     assert moves.get("css_forge") == "deprecated"
     assert "css_forge" in rep["unused"]
+
+
+def test_recently_committed_skill_is_spared_from_deprecation(isolated_canon):
+    # A skill refined/forged in the assess window is spared the "offered, never used"
+    # deprecation: refining a SKILL.md emits no usage event, so the commit is the
+    # evidence of work the telemetry missed. A blind dream must not deprecate the
+    # newest canon the same window it was built.
+    dst = isolated_canon
+    md = dst / "skills" / "css_forge" / "SKILL.md"
+    md.write_text(md.read_text(encoding="utf-8") + "\n<!-- refined this window -->\n", encoding="utf-8")
+    dreamer._git(dst, "add", "-A")
+    dreamer._git(dst, "commit", "-m", "refine css_forge")  # a non-root commit in-window
+
+    # Both offered+unused. css_forge was just committed; latex_forge was not.
+    for _ in range(9):
+        telemetry.log("orient", domain="web", offered=["css_forge"])
+        telemetry.log("orient", domain="web", offered=["latex_forge"])
+    rep = assess.assess(Canon.load())
+    moves = {t["name"]: t["to"] for t in rep["transitions"]}
+    assert moves.get("css_forge") != "deprecated"      # spared by the grace
+    assert moves.get("latex_forge") == "deprecated"    # not recently committed => deprecates
 
 
 def test_unused_experimental_not_promoted(isolated_state):
@@ -350,3 +385,48 @@ def test_evidence_alignment_tiers_and_finds_uncovered_goal(tmp_path):
     assert "gain" in out
     assert "teleportation" in out and "uncovered" in out.lower()
     assert (tmp_path / "support_map.md").exists()
+
+
+def test_voice_corpus_reader_chunks_without_leaking_source(tmp_path):
+    source = tmp_path / "source.txt"
+    source.write_text(
+        "\n\n".join(
+            [
+                "alpha private sentence " * 8,
+                "beta private sentence " * 8,
+                "gamma private sentence " * 8,
+            ]
+        ),
+        encoding="utf-8",
+    )
+    cache = tmp_path / "cache"
+    args = [
+        "--source-handle", "TEST-SOURCE",
+        "--register", "personal",
+        "--source-kind", "unit",
+        "--cache-root", str(cache),
+        "--max-chars", "120",
+        "--salt", "test-salt",
+    ]
+
+    first = verify.run_backing("voice_corpus_reader", target=str(source), args=args)
+    assert first["returncode"] == 0
+    assert "alpha private sentence" not in first["stdout"]
+    assert "beta private sentence" not in first["stdout"]
+
+    manifest_path = cache / "manifests" / "TEST-SOURCE.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["schema_version"] == "voice-corpus-chunks/0.1"
+    assert manifest["source"]["source_handle"] == "TEST-SOURCE"
+    assert manifest["source"]["register"] == "personal"
+    assert len(manifest["chunks"]) == 3
+    assert all((cache / "chunks" / "TEST-SOURCE" / f"{c['chunk_id']}.txt").exists() for c in manifest["chunks"])
+    assert all(c["byte_end"] > c["byte_start"] for c in manifest["chunks"])
+
+    first_ids = [c["chunk_id"] for c in manifest["chunks"]]
+    first_source_hash = manifest["source"]["source_id_hash"]
+    second = verify.run_backing("voice_corpus_reader", target=str(source), args=args)
+    assert second["returncode"] == 0
+    manifest2 = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert [c["chunk_id"] for c in manifest2["chunks"]] == first_ids
+    assert manifest2["source"]["source_id_hash"] == first_source_hash

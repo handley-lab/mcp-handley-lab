@@ -44,7 +44,10 @@ what the session-closer runs.
    (lateral / downward / upward), apply lateral changes to the ledgers, queue structural follow-ons,
    and rewrite the active project's `HANDOFF.md` last.
 6. **Sync external state.** Bring any out-of-canon record current — auto-memory, project index,
-   dashboards — so the stale-context problem does not reappear from a source the canon does not own.
+   dashboards, **and the shared literature corpus** — so the stale-context problem does not reappear
+   from a source the canon does not own. Run `corpus_librarian` provenance-update for the citekeys
+   this session's manuscript drew on, and ingest any new confirmed source the session gathered (as
+   `unverified` / `borrowed` - promotion to `established` is a deliberate act, not a close step).
    This includes the **canon project node** (`canon://domains/.../projects/<project>`): it must hold
    only durable facts (thesis, scope, root, supersession) and **delegate per-result status to the
    project's `HANDOFF.md`** rather than restate it. A project node that copies the result ladder is a

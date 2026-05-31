@@ -21,10 +21,27 @@ One record per load-bearing claim, tagged `<PROJECT>-CLM-NNN`:
 ## EPT-CLM-007: Self-similar hierarchy multiplies N_c by (pi/2) per layer
 **Claim:** <the precise statement, with the operative equation>
 **Derivation:** <where it is derived, or the proof sketch; cite the spine step>
-**Literature:** <prior work that grounds or contextualises it>
+**Literature:** established_by [citekeys] / contested_by [citekeys] / context: <one sentence> / novelty: <one sentence>
 **Numerical:** <the function/figure that demonstrates it>
 **Status:** <Proved / Supported / gap: ... / conjecture / assumed>
 ```
+
+## The Literature face is a query, not prose
+A record's `Literature` field is not re-written prior-work prose. It is a query into the shared
+`corpus_librarian` store - `established_by` and `contested_by` carry citekeys, plus one context
+sentence and one novelty sentence local to this claim. The reference text lives once in `corpus.bib`
+and is audited once. `established_by` resolves only to records the corpus marks `status: established` -
+provisional, borrowed, and unverified sources may appear as context but never as settled support.
+Fix a corpus record and every citing face is correct without reopening a single face.
+
+## Status is computed, not asserted
+A claim's `Status` is earned, never stamped. It is affirmative (`Proved` / `Supported` / `Established`)
+only when its check has run green against the *current* derivation - the `reconciler`'s
+header-hash. The moment the derivation's committed content changes, the record is stale until
+re-checked, and a stale record reads as not-yet-earned to the completeness check below. This is the
+two-tier trust of the corpus carried into the ledger: a claim is usable while provisional, but it
+carries settled weight only once the evidence chain is green. Trust is a function of the chain, not
+a declaration over it.
 
 The scheme is not static. During drafting you **extend the ledger to need**: when
 an argument leans on a claim that is not yet recorded, add the record and resolve

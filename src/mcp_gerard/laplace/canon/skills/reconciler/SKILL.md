@@ -50,7 +50,35 @@ poisoning vector. The dependency graph is read from the elements' declared depen
 - **The brief is reconciled last, every time.** If the brief was not touched, the pass is
   incomplete.
 
+## The staleness mechanism (how a change is detected, not just routed)
+The classification above is judgement. Detecting *that* an element changed is mechanical, and the
+mechanism must not cry wolf - a signal that fires on every typo trains the author to ignore it,
+which is worse than no signal because it gives false confidence. Three rules hold the mechanism in
+the valley:
+
+1. **Hash machine-relevant content, not bytes.** Each element's source of truth (its derivation)
+   carries a small structured header - assumptions, the stated result, the recipe. The reconciler
+   hashes *that* normalised content, not the prose narrative. A prose-only edit - rewording,
+   a fixed typo, a clearer sentence - never trips staleness. Only a change to what the element
+   *commits to* does.
+2. **Grade staleness by severity.** A dependent element carries one of two grades, never a flat flag:
+   - **STALE-direct** - this element's own header changed. Its check must be re-run before it is
+     trusted again.
+   - **STALE-upstream** - a dependency's *consumed interface* changed (see below). Advisory: review
+     whether the element still holds. Not a hard FAIL, and it does not block.
+3. **Stale a dependent only when the interface it consumes changes.** "R3 depends on R2" rarely means
+   "any edit to R2 invalidates R3" - R3 usually consumes only R2's *stated result*, not its proof.
+   The dependency edge records what is consumed, and the reconciler hashes that slot alone. An edit
+   to R2's proof that leaves its stated result intact never reaches R3. This is what stops one core
+   edit from avalanching the whole ladder to STALE.
+
+Status is computed from this, never asserted: an element is trusted (`PASS`) only after its check
+runs green against the *current* header hash. The instant the header changes, it is `STALE-direct`
+until re-checked. This is the same discipline as `derive, do not assert`, mechanised.
+
 ## Backing
-No deterministic script yet. The mechanical graph-walk (given declared dependencies, list
-candidate-affected elements) is a natural future backing script; the *semantic* classification
-stays judgement.
+`scripts/reconcile.py` - the now-forgeable graph-walk. Given the registry of elements, their declared
+dependencies (and the consumed-interface tag per edge), and the stored header hashes, it recomputes
+hashes, marks `STALE-direct` / `STALE-upstream` in dependency order, and re-runs checks for
+direct-stale elements. It propagates and grades - it does not rewrite prose. The *semantic*
+classification (lateral / downward / upward) and the handoff rewrite stay judgement.

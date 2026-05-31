@@ -20,10 +20,15 @@ Both are distinct from the reference vault, which governs how *internal prior wo
 re-enters by re-derivation - the literature rail is the *external* record of what the
 published field holds.
 
-The store's schema, its retrieval, and the manuscript-location tags that make context
-surface for the section being drafted are an **open design** - see the engine backlog,
-`Generation-stage rails`. Until it is built, keep entries in whatever form the project
-already uses, and do not bake a per-project `references.bib` in as the home.
+The store is `corpus_librarian` - one global `corpus.bib` across projects, each record carrying a
+distilled claim and a trust status. The scout is the rail front-end: it targets a claim, searches,
+reads, and decides what each source establishes. The librarian holds and synthesises. The scout
+hands a confirmed source to the librarian to ingest, and draws on its cluster guide for context.
+
+The trust boundary is enforced here, at query time. A Literature face's `established_by` is
+populated only from records the corpus marks `status: established`. Provisional, borrowed, and
+unverified records may surface as candidates pending confirmation - never as settled support. So
+ingest freely and promote trust deliberately, and the face never overstates what the field holds.
 
 This skill has no deterministic backing script - research is an act of judgement.
 It orchestrates the tools already on hand.

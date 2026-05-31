@@ -372,6 +372,40 @@ def test_input_order_beats_sorted_filenames(tmp_path: Path):
     assert _edge(g, "sec:zeta_section", "sec:alpha_section")  # precedes
 
 
+def test_rich_manuscript_renders_through_all_projections(rich_manuscript: Path):
+    g = CanonGraph.from_manuscript(rich_manuscript)
+    m = g.to_mermaid()
+    assert m.startswith("graph ")
+    assert "g_claim" in m and "g_citation" in m  # the new groups get classDefs
+    json.loads(json.dumps(g.to_json()))
+    assert g.to_canvas()["nodes"]
+
+
+def test_table_float_is_a_figure_node(tmp_path: Path):
+    """A \\begin{table} is a labelled float - it becomes a figure node so a
+    \\ref{tab:...} resolves instead of dangling."""
+    p = tmp_path / "t.tex"
+    p.write_text(
+        textwrap.dedent(
+            r"""
+            \section{Results}
+            \begin{table}
+              \caption{Closure loss by regime.}
+              \label{tab:loss}
+            \end{table}
+            As Table \ref{tab:loss} shows, it converges.
+            """
+        ).strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    g = CanonGraph.from_manuscript(p)
+    tab = g.nodes.get("fig:tab_loss")
+    assert tab is not None and tab.kind == "figure" and tab.meta["float"] == "table"
+    assert _edge(g, "sec:results", "fig:tab_loss")  # both contains and references
+    assert g.health()["dangling"] == []
+
+
 _LAW_OF_LAWS = Path(
     r"C:\Users\gerar\VScodeProjects\physics_paper_orchestra"
     r"\law-of-laws\manuscript\tex_v5\main.tex"

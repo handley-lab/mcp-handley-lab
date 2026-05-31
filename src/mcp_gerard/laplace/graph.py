@@ -310,6 +310,7 @@ class CanonGraph:
         full = _gather_manuscript_text(target)
 
         g = cls()
+        label_owner: dict[str, str] = {}
 
         # Sections -> nodes, with character spans so children can be attributed.
         spans: list[tuple[int, int, str]] = []
@@ -329,6 +330,16 @@ class CanonGraph:
             spans.append((start, end, sid))
             if i > 0:
                 g.edges.append(Edge(spans[i - 1][2], sid, "precedes", source="structure"))
+            # A section's own \label(s) sit before its first environment - a
+            # section may carry several as aliases. Register each so a
+            # \ref{sec:...} elsewhere resolves to this section (the
+            # section->section interlock) rather than dangling.
+            seg = full[start:end]
+            cutoff = seg.find(r"\begin{")
+            for lab_m in _LABEL_RE.finditer(seg):
+                if cutoff != -1 and lab_m.start() >= cutoff:
+                    break
+                label_owner.setdefault(lab_m.group(1), sid)
 
         def _owner(pos: int) -> str | None:
             for s, e, sid in spans:
@@ -336,7 +347,6 @@ class CanonGraph:
                     return sid
             return None
 
-        label_owner: dict[str, str] = {}
         fig_spans: list[tuple[int, int]] = []
 
         def _add_figure(fid: str, label: str, owner_pos: int, meta: dict[str, Any]) -> None:
@@ -345,15 +355,17 @@ class CanonGraph:
             if owner:
                 g.edges.append(Edge(owner, fid, "contains", source="structure"))
 
-        # Figure envs -> nodes; a figure belongs to the section it sits in.
-        for m in re.finditer(r"\\begin\{figure\*?\}(.*?)\\end\{figure\*?\}", full, re.DOTALL):
-            body = m.group(1)
+        # Float envs (figure, table) -> figure nodes; a float belongs to the
+        # section it sits in. A table is a labelled, captioned float that the
+        # prose \refs exactly as a figure, so it interlocks the same way.
+        for m in re.finditer(r"\\begin\{(figure|table)\*?\}(.*?)\\end\{\1\*?\}", full, re.DOTALL):
+            env, body = m.group(1), m.group(2)
             fig_spans.append((m.start(), m.end()))
             lab = _LABEL_RE.search(body)
             cap = re.search(r"\\caption\{((?:[^{}]|\{[^{}]*\})*)\}", body, re.DOTALL)
-            key = lab.group(1) if lab else f"fig_{m.start()}"
+            key = lab.group(1) if lab else f"{env}_{m.start()}"
             fid = f"fig:{_slug(key)}"
-            _add_figure(fid, cap.group(1).strip()[:48] if cap else key, m.start(), {"label": key})
+            _add_figure(fid, cap.group(1).strip()[:48] if cap else key, m.start(), {"label": key, "float": env})
             if lab:
                 label_owner[lab.group(1)] = fid
 

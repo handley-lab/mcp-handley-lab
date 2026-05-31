@@ -46,7 +46,7 @@ Drive every non-trivial task through the Laplace Engine MCP:
 2. **execute** - call `laplace_skill(name)` for a protocol, or `laplace_run(skill,
    target)` to run its backing script. This is the local action.
 3. **verify** - call `laplace_verify(target)` to check consistency (epistemic,
-   voice, crossref). A failing report means re-orient; do not present unverified work.
+   voice, crossref). A failing report means re-orient. Do not present unverified work.
 
 Record friction with `laplace_log(skill, signal)`. The canon refines itself
 between sessions via `laplace_dream` based on measured skill fitness.

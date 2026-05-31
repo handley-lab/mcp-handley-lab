@@ -56,6 +56,10 @@ Contained but not read:
 - `voice_corpus_reader` chunked it into three academic chunks with a manifest at `.codex/voice_corpus_cache/manifests/ZOTERO-UQW3Y5J2.json`.
 - Subagent reader passes were attempted but failed because the session hit a usage limit. No manuscript-register claims from this paper have been admitted yet.
 
+Correction made later:
+
+- Treat hanging subagents as a structural failure, not bad luck. Future academic reader passes should be serial, restartable queue jobs with one live reader call at a time. A stalled call blocks one chunk, not the session.
+
 ## Top-Level Confluence
 
 An advisory review was added at [Top-Level Confluence Review](canon://voice_corpus/top_level_confluence.md).
@@ -76,6 +80,7 @@ Current judgement:
 - Preprint and publication duplicates in Zotero.
 - Overleaf review bundles containing judgement voice rather than manuscript voice.
 - Subagent limits interrupting the planned multi-reader architecture.
+- Hanging subagents interrupting the close path before ledgers are written.
 - Dreamer lifecycle and assessment instability. Do not run deprecations, refinements, or forge actions from this corpus work until the close machinery is known clean.
 
 ## Navigation For The Next Session
@@ -105,7 +110,7 @@ Do not treat that list as a lifecycle recommendation. It is a routing note.
 
 ## Next Concrete Step
 
-Run the first academic reader pass on `ZOTERO-UQW3Y5J2` using the manifest and chunks already in ignored cache. The reader should return distilled observations only:
+Run the first academic reader pass on `ZOTERO-UQW3Y5J2` using the manifest and chunks already in ignored cache. Do it as a serial reader queue, not parallel subagents. Each chunk job should return distilled observations only:
 
 - manuscript voice mechanics
 - author-method signals

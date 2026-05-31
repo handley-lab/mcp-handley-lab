@@ -430,3 +430,45 @@ def test_voice_corpus_reader_chunks_without_leaking_source(tmp_path):
     manifest2 = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert [c["chunk_id"] for c in manifest2["chunks"]] == first_ids
     assert manifest2["source"]["source_id_hash"] == first_source_hash
+
+
+def test_voice_corpus_reader_can_prepare_restartable_queue(tmp_path):
+    source = tmp_path / "source.txt"
+    source.write_text(
+        "\n\n".join(
+            [
+                "first private paragraph " * 8,
+                "second private paragraph " * 8,
+            ]
+        ),
+        encoding="utf-8",
+    )
+    cache = tmp_path / "cache"
+    args = [
+        "--source-handle", "QUEUE-SOURCE",
+        "--register", "academic",
+        "--source-kind", "unit",
+        "--cache-root", str(cache),
+        "--max-chars", "120",
+        "--salt", "test-salt",
+        "--reader-queue",
+        "--reader-tasks", "voice,facts",
+    ]
+
+    result = verify.run_backing("voice_corpus_reader", target=str(source), args=args)
+    assert result["returncode"] == 0
+    assert "first private paragraph" not in result["stdout"]
+    assert "Reader queue:" in result["stdout"]
+    assert "Reader jobs: 4" in result["stdout"]
+
+    queue_path = cache / "readers" / "QUEUE-SOURCE" / "queue.jsonl"
+    queue_text = queue_path.read_text(encoding="utf-8")
+    assert "first private paragraph" not in queue_text
+    assert "second private paragraph" not in queue_text
+
+    jobs = [json.loads(line) for line in queue_text.splitlines()]
+    assert len(jobs) == 4
+    assert {job["reader_task"] for job in jobs} == {"voice", "facts"}
+    assert all(job["status"] == "pending" for job in jobs)
+    assert all(job["attempts"] == 0 for job in jobs)
+    assert all(job["output_path"].endswith(f".{job['reader_task']}.json") for job in jobs)

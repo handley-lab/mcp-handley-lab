@@ -146,9 +146,10 @@ def laplace_run(
     skill: str = Field(description="Skill whose backing script to run, e.g. 'epistemic_ledger'."),
     target: str = Field(default="", description="Positional path for the script (a .tex file or directory); omit for flags-only scripts."),
     args: list[str] = Field(default_factory=list, description="Extra CLI args, e.g. ['--auto-fix'] or ['--source', '...', '--start', '10']."),
+    timeout_seconds: int = Field(default=90, ge=1, le=110, description="Subprocess timeout. Kept below the MCP client timeout so hung skills return cleanly."),
 ) -> dict[str, Any]:
     """Execute a skill's backing script for its full artifact (graph, PDF, report)."""
-    return _verify.run_backing(skill, target, args)  # telemetry logged inside run_backing
+    return _verify.run_backing(skill, target, args, timeout=timeout_seconds)  # telemetry logged inside run_backing
 
 
 # ---------------------------------------------------------------------------

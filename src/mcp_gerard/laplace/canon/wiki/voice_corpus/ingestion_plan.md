@@ -37,8 +37,12 @@ Next Gate 2 actions:
 - choose the first academic reader batch from the source handles in [Source Map](canon://voice_corpus/source_map.md)
 - acquire full text locally only after the handle list is fixed
 - chunk each chosen source with `voice_corpus_reader`
-- run manuscript voice, author-method, and fact readers on chunk handles rather than raw dumps
+- run manuscript voice, author-method, and fact readers as restartable serial queue jobs on chunk handles rather than raw dumps
 - admit only register claims that can name a source handle and locator
+
+Gate 2 execution constraint:
+
+- Do not spawn parallel subagents for reader passes. Use one stateless reader call at a time, write the chunk ledger immediately, and mark a stalled chunk `blocked` instead of letting the whole session hang.
 
 ## Gate 3 - Personal Register
 
@@ -75,3 +79,4 @@ Next Gate 2 actions:
 - Check that deep nodes carry provenance, evidence quality, and register limits.
 - Check that factual claims carry confidence, temporal status, privacy tier, and provenance.
 - Run Laplace unit tests after canon edits.
+- Check the reader queue: no pending live worker, every chunk is `done`, `blocked`, or deliberately `skipped`.

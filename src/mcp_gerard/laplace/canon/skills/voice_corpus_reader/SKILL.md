@@ -34,6 +34,7 @@ laplace_run(
     "--register", "personal",
     "--source-kind", "google_doc",
     "--cache-root", ".codex/voice_corpus_cache",
+    "--reader-queue",
   ],
 )
 ```
@@ -42,8 +43,24 @@ The script writes:
 
 - `manifests/<source-handle>.json`
 - `chunks/<source-handle>/<chunk-id>.txt`
+- optionally, `readers/<source-handle>/queue.jsonl`
 
 It returns a summary only: source handle, chunk count, manifest path, and chunk directory.
+With `--reader-queue`, it also reports the queue path and job count. Queue rows contain chunk paths and provenance only, never raw source text, and do not call any API.
+
+## Reader Execution Discipline
+
+This skill prepares work. It does not spawn readers.
+
+For ingestion sessions, turn the manifest into restartable reader jobs and process them serially:
+
+- one chunk per job
+- one live reader call at a time
+- output path chosen before launch
+- ledger written immediately after each return
+- stalled jobs marked `blocked` with a retry note
+
+Do not launch parallel subagents for private corpus ingestion unless the user explicitly asks for that tradeoff in the current session.
 
 ## Register Values
 

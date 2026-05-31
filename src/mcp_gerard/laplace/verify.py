@@ -273,7 +273,7 @@ def run_backing(
     target: str = "",
     args: list[str] | None = None,
     canon: Canon | None = None,
-    timeout: int = 180,
+    timeout: int = 90,
 ) -> dict[str, Any]:
     """Invoke a skill's backing script as a subprocess. Returns stdout/stderr/code."""
     canon = canon or get_canon()

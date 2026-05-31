@@ -15,6 +15,7 @@ from typing import Any
 
 REGISTER_VALUES = {"calibration", "academic", "personal", "sent_gmail", "admin_proposal"}
 DEFAULT_CACHE_ROOT = Path(".codex") / "voice_corpus_cache"
+DEFAULT_READER_TASKS = ("voice", "author_method", "facts")
 
 
 @dataclass(frozen=True)
@@ -177,6 +178,65 @@ def write_outputs(manifest: dict[str, Any], chunks: list[Span], cache_root: Path
     return manifest_path, chunk_dir
 
 
+def parse_reader_tasks(value: str) -> list[str]:
+    tasks = [task.strip() for task in value.split(",") if task.strip()]
+    invalid = [task for task in tasks if not re.fullmatch(r"[a-z][a-z0-9_]*", task)]
+    if invalid:
+        raise ValueError(f"invalid reader task(s): {', '.join(invalid)}")
+    return tasks
+
+
+def write_reader_queue(
+    manifest: dict[str, Any],
+    manifest_path: Path,
+    cache_root: Path,
+    source_handle: str,
+    tasks: list[str],
+) -> Path:
+    reader_dir = cache_root / "readers" / source_handle
+    reader_dir.mkdir(parents=True, exist_ok=True)
+    queue_path = reader_dir / "queue.jsonl"
+
+    source = manifest["source"]
+    jobs = []
+    for chunk in manifest["chunks"]:
+        for task in tasks:
+            job_id = f"{chunk['chunk_id']}::{task}"
+            output_path = reader_dir / f"{chunk['chunk_id']}.{task}.json"
+            jobs.append(
+                {
+                    "schema_version": "voice-reader-queue/0.1",
+                    "job_id": job_id,
+                    "status": "pending",
+                    "reader_task": task,
+                    "source_handle": source_handle,
+                    "register": source["register"],
+                    "source_kind": source["source_kind"],
+                    "source_id_hash": source["source_id_hash"],
+                    "manifest_path": str(manifest_path.resolve()),
+                    "chunk_id": chunk["chunk_id"],
+                    "chunk_path": chunk["chunk_path"],
+                    "span": {
+                        "byte_start": chunk["byte_start"],
+                        "byte_end": chunk["byte_end"],
+                        "char_start": chunk["char_start"],
+                        "char_end": chunk["char_end"],
+                        "paragraph_start": chunk["paragraph_start"],
+                        "paragraph_end": chunk["paragraph_end"],
+                    },
+                    "output_path": str(output_path.resolve()),
+                    "attempts": 0,
+                    "last_error": None,
+                }
+            )
+
+    queue_path.write_text(
+        "".join(json.dumps(job, ensure_ascii=False) + "\n" for job in jobs),
+        encoding="utf-8",
+    )
+    return queue_path
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Prepare a Voice Corpus source for bounded readers.")
     parser.add_argument("source", help="UTF-8 or UTF-16 text file to chunk.")
@@ -186,6 +246,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--cache-root", default=str(DEFAULT_CACHE_ROOT), help="Ignored cache root.")
     parser.add_argument("--max-chars", type=int, default=120_000, help="Approximate maximum characters per chunk.")
     parser.add_argument("--salt", default=os.environ.get("VOICE_CORPUS_SALT", "voice-corpus-local"))
+    parser.add_argument(
+        "--reader-queue",
+        action="store_true",
+        help="Also write a restartable reader job queue. This does not call an LLM.",
+    )
+    parser.add_argument(
+        "--reader-tasks",
+        default=",".join(DEFAULT_READER_TASKS),
+        help="Comma-separated reader tasks for --reader-queue.",
+    )
     return parser.parse_args(argv)
 
 
@@ -197,6 +267,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.max_chars < 100:
         print("Error: --max-chars must be at least 100.", file=sys.stderr)
+        return 2
+    try:
+        reader_tasks = parse_reader_tasks(args.reader_tasks)
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    if args.reader_queue and not reader_tasks:
+        print("Error: --reader-tasks must name at least one task when --reader-queue is set.", file=sys.stderr)
         return 2
 
     text = normalise_newlines(read_text(source))
@@ -216,6 +294,9 @@ def main(argv: list[str] | None = None) -> int:
         chunk_dir=chunk_dir,
     )
     manifest_path, chunk_dir = write_outputs(manifest, chunks, cache_root, args.source_handle)
+    queue_path = None
+    if args.reader_queue:
+        queue_path = write_reader_queue(manifest, manifest_path, cache_root, args.source_handle, reader_tasks)
 
     print("# Voice Corpus Chunking")
     print(f"Source handle: {args.source_handle}")
@@ -223,6 +304,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Chunks: {len(chunks)}")
     print(f"Manifest: {manifest_path}")
     print(f"Chunk directory: {chunk_dir}")
+    if queue_path:
+        print(f"Reader queue: {queue_path}")
+        print(f"Reader jobs: {len(chunks) * len(reader_tasks)}")
     return 0
 
 

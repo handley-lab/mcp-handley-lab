@@ -331,6 +331,7 @@ def get_model_capabilities(model: str) -> dict[str, Any]:
             "reasoning": config.get("supports_reasoning", False),
             "extended_thinking": config.get("supports_extended_thinking", False),
             "image_generation": config.get("pricing_type") == "per_image",
+            "video_generation": config.get("pricing_type") == "per_second",
         },
         "supported_options": option_details,
         "constraints": _get_model_constraints(provider, config),
@@ -389,6 +390,7 @@ def list_all_models() -> dict[str, list[dict[str, Any]]]:
                         "supports_extended_thinking", False
                     ),
                     "image_generation": config.get("pricing_type") == "per_image",
+                    "video_generation": config.get("pricing_type") == "per_second",
                 },
                 "supported_options": option_details,
                 "constraints": _get_model_constraints(provider, config),
@@ -422,6 +424,7 @@ def get_adapter(provider: str, adapter_type: str):
             "generation": adapter.generation_adapter,
             "image_analysis": adapter.image_analysis_adapter,
             "image_generation": adapter.image_generation_adapter,
+            "video_generation": adapter.video_generation_adapter,
             "embeddings": adapter.embeddings_adapter,
             "deep_research": adapter.deep_research_adapter,
         }

@@ -128,9 +128,12 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 }
             elif model_info.get("pricing_type") in ["per_image", "per_second"]:
                 # Image/video generation models don't need output_tokens
-                model_configs[model_id] = {
-                    "output_tokens": None  # N/A for image/video generation
-                }
+                entry = {"output_tokens": None}  # N/A for image/video generation
+                if "default_duration_seconds" in model_info:
+                    entry["default_duration_seconds"] = model_info[
+                        "default_duration_seconds"
+                    ]
+                model_configs[model_id] = entry
             else:
                 # Text generation models require explicit values in YAML
                 if "output_tokens" not in model_info:

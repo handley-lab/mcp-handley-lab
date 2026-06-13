@@ -17,6 +17,7 @@ from google.genai.types import (
     FileData,
     GenerateContentConfig,
     GenerateImagesConfig,
+    GenerateVideosConfig,
     GoogleSearch,
     GoogleSearchRetrieval,
     ImageConfig,
@@ -25,6 +26,7 @@ from google.genai.types import (
     Tool,
     UploadFileConfig,
 )
+from google.genai.types import Image as GenAIImage
 from PIL import Image
 
 from mcp_handley_lab.common.config import settings
@@ -544,6 +546,69 @@ def image_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
         return _generate_with_nano_banana(prompt, model, **kwargs)
     else:
         return _generate_with_imagen(prompt, model, **kwargs)
+
+
+def _resolve_video_image(input_image: str) -> GenAIImage:
+    """Resolve an image-to-video input (local path or base64 data URI) to a genai Image."""
+    if input_image.startswith("data:"):
+        header, b64 = input_image.split(",", 1)
+        mime_type = header.split(":")[1].split(";")[0]
+        return GenAIImage(image_bytes=base64.b64decode(b64), mime_type=mime_type)
+    return GenAIImage.from_file(location=str(Path(input_image).expanduser()))
+
+
+def video_generation_adapter(prompt: str, model: str, **kwargs) -> dict:
+    """Gemini Veo video generation via the long-running generate_videos operation."""
+    config_params: dict[str, Any] = {}
+    if negative_prompt := kwargs.get("negative_prompt"):
+        config_params["negative_prompt"] = negative_prompt
+    if aspect_ratio := kwargs.get("aspect_ratio"):
+        config_params["aspect_ratio"] = aspect_ratio
+    if resolution := kwargs.get("resolution"):
+        config_params["resolution"] = resolution
+    if duration_seconds := kwargs.get("duration_seconds"):
+        config_params["duration_seconds"] = duration_seconds
+
+    image = (
+        _resolve_video_image(kwargs["input_image"])
+        if kwargs.get("input_image")
+        else None
+    )
+
+    poll_interval = kwargs.get("poll_interval", 10)
+    operation = get_client().models.generate_videos(
+        model=model,
+        prompt=prompt,
+        image=image,
+        config=GenerateVideosConfig(**config_params),
+    )
+    for _ in range(kwargs.get("max_polls", 60)):
+        if operation.done:
+            break
+        time.sleep(poll_interval)
+        operation = get_client().operations.get(operation)
+    if not operation.done:
+        raise TimeoutError("Video generation timed out")
+
+    if operation.error:
+        raise RuntimeError(f"Video generation failed: {operation.error}")
+
+    generated_videos = operation.response.generated_videos
+    if not generated_videos:
+        raise RuntimeError(
+            f"No video generated: {operation.response.rai_media_filtered_reasons}"
+        )
+
+    video = generated_videos[0].video
+    if not video.video_bytes:
+        get_client().files.download(file=video)
+
+    return {
+        "video_bytes": video.video_bytes,
+        "mime_type": video.mime_type or "video/mp4",
+        "duration_seconds": config_params.get("duration_seconds")
+        or get_model_config(model)["default_duration_seconds"],
+    }
 
 
 def list_api_models() -> set[str]:

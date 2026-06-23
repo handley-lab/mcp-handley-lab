@@ -103,6 +103,14 @@ class TestPricingCalculator:
         cost = calc.calculate_cost(model, 0, 0, provider, images_generated=num_images)
         assert cost == expected_cost
 
+    def test_per_request_pricing(self):
+        """Test flat per-request pricing (deep research agents)."""
+        calc = PricingCalculator()
+
+        # Cost is the flat per-request price, independent of token counts
+        cost = calc.calculate_cost("gemini-deep-research", 500000, 250000, "gemini")
+        assert cost == 3.00
+
     def test_gemini_tiered_pricing_high_usage(self):
         """Test Gemini 2.5 Pro tiered pricing for high token usage."""
         calc = PricingCalculator()

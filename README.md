@@ -157,7 +157,7 @@ Register only the tools you need to avoid context bloat:
 
 ```bash
 # Unified LLM tools (one tool handles all providers via model inference)
-claude mcp add llm --scope user mcp-llm                # Chat, vision, image gen, transcribe, OCR, models
+claude mcp add llm --scope user mcp-llm                # Chat, vision, image/video gen, transcribe, OCR, models
 
 # Other essential tools
 claude mcp add arxiv --scope user mcp-arxiv
@@ -183,7 +183,7 @@ Verify tools are working with the `/mcp` command in Claude.
 
 ### 🤖 **Unified LLM Tools** (`llm`, `llm-embeddings`)
 Connect with multiple AI providers through unified interfaces
-  - **llm**: Chat, vision, image generation, transcription, OCR, model discovery - all in one tool
+  - **llm**: Chat, vision, image generation, video generation (Veo), transcription, OCR, model discovery - all in one tool
   - **llm-embeddings**: Semantic embeddings for text (OpenAI, Gemini, Mistral)
   - Provider inferred from model name (e.g., `gpt-5.2` → OpenAI, `gemini-2.5-flash` → Gemini)
   - Persistent conversations with memory via `agent_name` parameter

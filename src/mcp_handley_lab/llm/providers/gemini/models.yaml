@@ -343,6 +343,7 @@ models:
     # Pricing (per second)
     price_per_second: 0.75
     pricing_type: "per_second"
+    default_duration_seconds: 8
 
   veo-2.0-generate-001:
     # Model metadata
@@ -358,6 +359,7 @@ models:
     # Pricing (per second)
     price_per_second: 0.35
     pricing_type: "per_second"
+    default_duration_seconds: 8
 
   # Deep research agents
   gemini-deep-research:

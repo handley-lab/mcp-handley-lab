@@ -474,6 +474,121 @@ def generate_image(
 
 
 @mcp.tool(
+    description="Generate a video from a text prompt (and optional input image) using "
+    "Google Veo. Supports Gemini Veo models (veo-3.1-generate-preview with native audio, "
+    "veo-2.0-generate-001). Long-running: polls until the video is ready, then writes it to "
+    "output_file. Unlike generate_image there is no inline preview — the tool always writes "
+    "the .mp4 to output_file and returns metadata only. "
+    "Returns: {file_path, file_size_bytes, model, provider, cost, duration_seconds, mime_type, "
+    "original_prompt}."
+)
+def generate_video(
+    output_file: str = Field(
+        ...,
+        description="File path to save the generated video (.mp4).",
+    ),
+    prompt: str = Field(
+        default="",
+        description="Text description of the video to generate.",
+    ),
+    prompt_file: str = Field(
+        default="",
+        description="Path to a file containing the prompt. Cannot be used with 'prompt'.",
+    ),
+    prompt_vars: dict[str, str] = Field(
+        default_factory=dict,
+        description="Variables for template substitution using ${var} syntax.",
+    ),
+    model: str = Field(
+        default="veo-3.1-generate-preview",
+        description="Video model. Provider auto-detected from name.",
+    ),
+    input_image: str = Field(
+        default="",
+        description="Optional image to animate (image-to-video). "
+        "Accepts a local path or a base64 data URI (data:image/png;base64,...).",
+    ),
+    negative_prompt: str = Field(
+        default="",
+        description="Description of what to avoid in the generated video.",
+    ),
+    aspect_ratio: str = Field(
+        default="",
+        description="Aspect ratio, e.g. '16:9' or '9:16'.",
+    ),
+    resolution: str = Field(
+        default="",
+        description="Output resolution, e.g. '720p' or '1080p' (veo-3.1).",
+    ),
+    duration_seconds: int = Field(
+        default=0,
+        description="Clip length in seconds. 0 uses the model default.",
+    ),
+    poll_interval: int = Field(
+        default=10,
+        description="Seconds between status polls.",
+    ),
+    max_polls: int = Field(
+        default=60,
+        description="Maximum number of status polls before timing out.",
+    ),
+) -> dict[str, Any]:
+    """Generate a video from a text prompt using Google Veo."""
+    final_prompt = load_prompt_text(
+        prompt or None, prompt_file or None, prompt_vars or None
+    )
+    if not final_prompt.strip():
+        raise ValueError("Prompt is required and cannot be empty")
+
+    provider, canonical_model, config = resolve_model(model)
+    if config.get("pricing_type") != "per_second":
+        raise ValueError(f"{canonical_model} is not a video generation model")
+
+    generation_func = get_adapter(provider, "video_generation")
+
+    kwargs: dict[str, Any] = {
+        "poll_interval": poll_interval,
+        "max_polls": max_polls,
+    }
+    if input_image:
+        kwargs["input_image"] = input_image
+    if negative_prompt:
+        kwargs["negative_prompt"] = negative_prompt
+    if aspect_ratio:
+        kwargs["aspect_ratio"] = aspect_ratio
+    if resolution:
+        kwargs["resolution"] = resolution
+    if duration_seconds:
+        kwargs["duration_seconds"] = duration_seconds
+
+    response_data = generation_func(
+        prompt=final_prompt, model=canonical_model, **kwargs
+    )
+
+    video_bytes = response_data["video_bytes"]
+    duration = response_data["duration_seconds"]
+
+    filepath = Path(output_file).expanduser()
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    filepath.write_bytes(video_bytes)
+
+    cost = calculate_cost(
+        canonical_model, provider=provider, seconds_generated=duration
+    )
+
+    return {
+        "file_path": str(filepath),
+        "file_size_bytes": len(video_bytes),
+        "model": canonical_model,
+        "provider": provider,
+        "cost": cost,
+        "duration_seconds": duration,
+        "mime_type": response_data["mime_type"],
+        "original_prompt": final_prompt,
+    }
+
+
+@mcp.tool(
     description="Transcribe audio to text using Groq Whisper. "
     "Supports MP3, WAV, FLAC, OGG, M4A. Use model://list resource to discover audio models. "
     "Returns: {text, segments?: [{start, end, text}]}. Segments included if include_timestamps=true."

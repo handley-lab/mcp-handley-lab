@@ -55,6 +55,9 @@ class PricingCalculator:
             price_per_second = model_config.get("price_per_second", 0.0)
             return seconds_generated * price_per_second
 
+        elif pricing_type == "per_request":
+            return model_config.get("price_per_request", 0.0)
+
         elif "input_tiers" in model_config:
             for tier in model_config["input_tiers"]:
                 threshold = (

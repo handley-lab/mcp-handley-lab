@@ -638,30 +638,48 @@ def deep_research_adapter(
                 f"Deep research timed out after {max_polls * poll_interval}s"
             )
 
-    # Extract and return response
-    # Response structure: {"outputs": [{"text": "...", "annotations": [...], "type": "..."}], "usage": {...}}
-    outputs = data.get("outputs", [])
-    output = outputs[0] if outputs else {}
-    usage = data.get("usage", {})
+    # Extract and return response.
+    # Completed payload structure:
+    #   {"steps": [{"type": "user_input", ...},
+    #              {"type": "model_output", "content": [{"text": "...",
+    #                                                     "annotations": [...]}]}],
+    #    "usage": {"total_input_tokens": N, "total_output_tokens": N,
+    #              "total_tokens": N, ...}}
+    steps = data.get("steps", [])
+    model_output = next(
+        (s for s in steps if s.get("type") == "model_output"), None
+    )
+    blocks = model_output.get("content", []) if model_output else []
 
-    # Convert annotations to grounding_chunks format for GroundingMetadata
-    annotations = output.get("annotations", [])
+    text = "\n".join(b["text"] for b in blocks if b.get("text"))
+
+    # Citations live at content[*].annotations, keyed by "url"
+    annotations = [a for b in blocks for a in b.get("annotations", [])]
     grounding_metadata = None
     if annotations:
         grounding_metadata = {
             "web_search_queries": [],
             "grounding_chunks": [
-                {"uri": a.get("source", ""), "title": ""}
+                {"uri": a.get("url", ""), "title": ""}
                 for a in annotations
-                if a.get("source")
+                if a.get("url")
             ],
             "grounding_supports": [],
         }
 
+    # Fail loudly on a completed task with no text, mirroring generation_adapter:
+    # a silent "" produces a 0-byte output file and an empty branch turn.
+    if status == "completed" and not text:
+        raise RuntimeError(
+            "Deep research completed but returned no report text"
+        )
+
+    usage = data.get("usage", {})
+
     return {
-        "text": output.get("text", ""),
-        "input_tokens": usage.get("input_tokens", 0),
-        "output_tokens": usage.get("output_tokens", 0),
+        "text": text,
+        "input_tokens": usage.get("total_input_tokens", 0),
+        "output_tokens": usage.get("total_output_tokens", 0),
         "total_tokens": usage.get("total_tokens", 0),
         "finish_reason": "stop" if status == "completed" else "error",
         "model_version": "deep-research-pro-preview-12-2025",

@@ -2,8 +2,10 @@
 
 import pytest
 
+from mcp_handley_lab.llm.providers.gemini import adapter as gemini_adapter
 from mcp_handley_lab.llm.providers.gemini.adapter import (
     MODEL_CONFIGS,
+    deep_research_adapter,
     get_model_config,
     resolve_files,
 )
@@ -82,3 +84,127 @@ class TestGeminiHelpers:
         # Should raise FileNotFoundError instead of adding error text
         with pytest.raises(FileNotFoundError):
             resolve_files(files)
+
+
+class _FakeHTTPResponse:
+    """Minimal stand-in for an httpx.Response."""
+
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return self._payload
+
+
+class _FakeHTTPClient:
+    """Fake httpx.Client that returns scripted POST/GET payloads."""
+
+    def __init__(self, post_payload, get_payloads, **_kwargs):
+        self._post_payload = post_payload
+        self._get_payloads = list(get_payloads)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_exc):
+        return False
+
+    def post(self, *_args, **_kwargs):
+        return _FakeHTTPResponse(self._post_payload)
+
+    def get(self, *_args, **_kwargs):
+        return _FakeHTTPResponse(self._get_payloads.pop(0))
+
+
+# Representative completed Interactions API payload (real response schema)
+COMPLETED_PAYLOAD = {
+    "id": "v1_abc123",
+    "status": "completed",
+    "steps": [
+        {"type": "user_input", "content": [{"text": "What is the capital of France?"}]},
+        {
+            "type": "model_output",
+            "content": [
+                {
+                    "text": "The capital of France is Paris.",
+                    "annotations": [
+                        {
+                            "type": "url_citation",
+                            "url": "https://en.wikipedia.org/wiki/Paris",
+                            "start_index": 0,
+                            "end_index": 10,
+                        }
+                    ],
+                }
+            ],
+        },
+    ],
+    "usage": {
+        "total_input_tokens": 1234,
+        "total_output_tokens": 5678,
+        "total_tokens": 6912,
+    },
+}
+
+
+class TestDeepResearchAdapter:
+    """Test parsing of the Interactions API completed payload."""
+
+    def _patch(self, monkeypatch, get_payloads):
+        def _factory(*args, **kwargs):
+            return _FakeHTTPClient(
+                {"id": "v1_abc123"}, get_payloads, *args, **kwargs
+            )
+
+        import httpx
+
+        monkeypatch.setattr(httpx, "Client", _factory)
+        monkeypatch.setattr(gemini_adapter.time, "sleep", lambda *_: None)
+
+    def test_parses_completed_payload(self, monkeypatch):
+        """Text, tokens, and citations are extracted from the real schema."""
+        self._patch(monkeypatch, [COMPLETED_PAYLOAD])
+
+        result = deep_research_adapter(
+            prompt="What is the capital of France?",
+            model="gemini-deep-research",
+            history=[],
+            system_instruction="",
+            options={"poll_interval": 0},
+        )
+
+        assert result["text"] == "The capital of France is Paris."
+        assert result["input_tokens"] == 1234
+        assert result["output_tokens"] == 5678
+        assert result["total_tokens"] == 6912
+        assert result["finish_reason"] == "stop"
+        assert result["response_id"] == "v1_abc123"
+        chunks = result["grounding_metadata"]["grounding_chunks"]
+        assert chunks == [
+            {"uri": "https://en.wikipedia.org/wiki/Paris", "title": ""}
+        ]
+
+    def test_completed_but_empty_text_raises(self, monkeypatch):
+        """A completed task with no report text fails loudly."""
+        empty_payload = {
+            "id": "v1_abc123",
+            "status": "completed",
+            "steps": [
+                {"type": "user_input", "content": [{"text": "q"}]},
+                {"type": "model_output", "content": [{"text": ""}]},
+            ],
+            "usage": {},
+        }
+        self._patch(monkeypatch, [empty_payload])
+
+        with pytest.raises(RuntimeError, match="no report text"):
+            deep_research_adapter(
+                prompt="q",
+                model="gemini-deep-research",
+                history=[],
+                system_instruction="",
+                options={"poll_interval": 0},
+            )

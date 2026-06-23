@@ -646,9 +646,7 @@ def deep_research_adapter(
     #    "usage": {"total_input_tokens": N, "total_output_tokens": N,
     #              "total_tokens": N, ...}}
     steps = data.get("steps", [])
-    model_output = next(
-        (s for s in steps if s.get("type") == "model_output"), None
-    )
+    model_output = next((s for s in steps if s.get("type") == "model_output"), None)
     blocks = model_output.get("content", []) if model_output else []
 
     text = "\n".join(b["text"] for b in blocks if b.get("text"))
@@ -670,9 +668,7 @@ def deep_research_adapter(
     # Fail loudly on a completed task with no text, mirroring generation_adapter:
     # a silent "" produces a 0-byte output file and an empty branch turn.
     if status == "completed" and not text:
-        raise RuntimeError(
-            "Deep research completed but returned no report text"
-        )
+        raise RuntimeError("Deep research completed but returned no report text")
 
     usage = data.get("usage", {})
 

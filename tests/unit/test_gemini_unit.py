@@ -155,9 +155,7 @@ class TestDeepResearchAdapter:
 
     def _patch(self, monkeypatch, get_payloads):
         def _factory(*args, **kwargs):
-            return _FakeHTTPClient(
-                {"id": "v1_abc123"}, get_payloads, *args, **kwargs
-            )
+            return _FakeHTTPClient({"id": "v1_abc123"}, get_payloads, *args, **kwargs)
 
         import httpx
 
@@ -183,9 +181,7 @@ class TestDeepResearchAdapter:
         assert result["finish_reason"] == "stop"
         assert result["response_id"] == "v1_abc123"
         chunks = result["grounding_metadata"]["grounding_chunks"]
-        assert chunks == [
-            {"uri": "https://en.wikipedia.org/wiki/Paris", "title": ""}
-        ]
+        assert chunks == [{"uri": "https://en.wikipedia.org/wiki/Paris", "title": ""}]
 
     def test_completed_but_empty_text_raises(self, monkeypatch):
         """A completed task with no report text fails loudly."""

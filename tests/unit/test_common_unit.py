@@ -108,9 +108,7 @@ class TestPricingCalculator:
         calc = PricingCalculator()
 
         # Cost is the flat per-request price, independent of token counts
-        cost = calc.calculate_cost(
-            "gemini-deep-research", 500000, 250000, "gemini"
-        )
+        cost = calc.calculate_cost("gemini-deep-research", 500000, 250000, "gemini")
         assert cost == 3.00
 
     def test_gemini_tiered_pricing_high_usage(self):

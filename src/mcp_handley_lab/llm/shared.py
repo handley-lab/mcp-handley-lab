@@ -16,6 +16,39 @@ from mcp_handley_lab.shared.models import (
     UsageStats,
 )
 
+# Aggressive default: a focused review is a diff or a handful of changed files,
+# not a whole-repo sweep. Whole-repo/large-context sends must be deliberate
+# (raise max_context_tokens, or 0 to disable). Tunable at server start via env.
+DEFAULT_MAX_CONTEXT_TOKENS = int(os.environ.get("MCP_LLM_MAX_CONTEXT_TOKENS", "25000"))
+
+
+def estimate_file_tokens(path: str) -> int:
+    """Rough token estimate for a file (text: chars/4; binary: base64 len/4)."""
+    data = Path(path).read_bytes()
+    try:
+        return len(data.decode("utf-8")) // 4
+    except UnicodeDecodeError:
+        import base64
+
+        return len(base64.b64encode(data)) // 4
+
+
+def enforce_context_cap(components: dict[str, int], cap: int, hint: str) -> None:
+    """Back-pressure: raise if the assembled fresh payload exceeds the cap.
+
+    components: labelled token counts (e.g. {"code": 540000, "plan": 6000}).
+    cap: token ceiling; 0 disables the check.
+    hint: tool-specific guidance on how to narrow scope.
+    """
+    total = sum(components.values())
+    if cap and total > cap:
+        parts = ", ".join(f"{k}={v // 1000}k" for k, v in components.items() if v)
+        raise ValueError(
+            f"Context payload {total // 1000}k tokens exceeds cap of {cap // 1000}k "
+            f"({parts}). {hint} To send anyway, set max_context_tokens={total + 1} "
+            f"(or 0 to disable)."
+        )
+
 
 def resolve_generation_adapter(
     provider: str, config: dict, images: list[str] | None = None

@@ -22,9 +22,15 @@ from mcp_handley_lab.llm.registry import (
     list_all_models,
     resolve_model,
 )
+from mcp_handley_lab.llm.shared import (
+    DEFAULT_MAX_CONTEXT_TOKENS,
+    enforce_context_cap,
+    estimate_file_tokens,
+    process_llm_request,
+    resolve_generation_adapter,
+)
 from mcp_handley_lab.llm.shared import chat as _chat
 from mcp_handley_lab.llm.shared import conversation as _conversation
-from mcp_handley_lab.llm.shared import process_llm_request, resolve_generation_adapter
 from mcp_handley_lab.shared.models import LLMResult  # noqa: F401 - used in type hints
 
 mcp = FastMCP("LLM Tool")
@@ -141,8 +147,22 @@ def chat(
         description="Fork from this ref when creating a new conversation branch. "
         "Use commit_sha from a previous response to fork from that point.",
     ),
+    max_context_tokens: int = Field(
+        default=DEFAULT_MAX_CONTEXT_TOKENS,
+        description="Hard cap on the prompt+files payload. Raises if exceeded, so "
+        "large code summaries must be sent deliberately. Set higher to override, "
+        "or 0 to disable.",
+    ),
 ) -> LLMResult:
     """Send a message to an LLM with automatic provider detection."""
+    components = {"prompt": len(prompt) // 4}
+    if files:
+        components["files"] = sum(estimate_file_tokens(f) for f in files)
+    enforce_context_cap(
+        components,
+        max_context_tokens,
+        "Send a smaller summary, fewer files, or split the request.",
+    )
     return _chat(
         prompt=prompt or None,
         prompt_file=prompt_file or None,
@@ -287,8 +307,16 @@ def review(
         default=False,
         description="Use git diff mode instead of full codebase scan.",
     ),
+    max_context_tokens: int = Field(
+        default=DEFAULT_MAX_CONTEXT_TOKENS,
+        description="Hard cap on the code+plan+files payload sent to the reviewer. "
+        "Raises with a scoping breakdown if exceeded, so over-broad sweeps are "
+        "forced down to a diff or the changed files. Set higher to send a large "
+        "payload deliberately, or 0 to disable.",
+    ),
 ) -> LLMResult:
     """Review code by running code2prompt and sending to an LLM."""
+    import re
     import tempfile
 
     if plan:
@@ -314,7 +342,24 @@ def review(
         if diff:
             args.append("--diff")
 
-        run_command(["code2prompt"] + args, timeout=120)
+        _, c2p_stderr = run_command(["code2prompt"] + args, timeout=120)
+
+        # code2prompt prints "Token count: N" (with thousands separators) on stderr.
+        m = re.search(r"Token count:\s*([\d,]+)", c2p_stderr.decode(errors="replace"))
+        code_tokens = (
+            int(m.group(1).replace(",", "")) if m else estimate_file_tokens(c2p_output)
+        )
+        components = {"code": code_tokens}
+        if plan:
+            components["plan"] = estimate_file_tokens(plan)
+        if files:
+            components["files"] = sum(estimate_file_tokens(f) for f in files)
+        enforce_context_cap(
+            components,
+            max_context_tokens,
+            "Narrow scope: include=[<changed package/dir>], "
+            'exclude=["**/*.md","**/*.json"], or diff=True.',
+        )
 
         all_files = [c2p_output] + ([plan] if plan else []) + files
         final_prompt = prompt if prompt else DEFAULT_REVIEW_PROMPT

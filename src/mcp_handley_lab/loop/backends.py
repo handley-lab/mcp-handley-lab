@@ -258,6 +258,15 @@ def _parse_cells(pane_id: str, config: BackendConfig) -> list[dict[str, Any]]:
     return cells
 
 
+def _venv_stripped_path(path: str) -> str:
+    """Remove the active venv's directories from a PATH string (no-op outside a venv)."""
+    if sys.prefix == sys.base_prefix:
+        return path
+    return os.pathsep.join(
+        p for p in path.split(os.pathsep) if not p.startswith(sys.prefix)
+    )
+
+
 def _session_exists() -> bool:
     """Check if the tmux session exists."""
     result = subprocess.run(
@@ -316,11 +325,7 @@ class TmuxBackend:
         loop_id = f"{self.config.name}-{name or timestamp}"
 
         # Strip venv from environment so tmux windows start clean
-        clean_path = os.pathsep.join(
-            p
-            for p in os.environ.get("PATH", "").split(os.pathsep)
-            if not p.startswith(sys.prefix)
-        )
+        clean_path = _venv_stripped_path(os.environ.get("PATH", ""))
 
         # Handle venv: create if missing, then activate
         venv_path = None

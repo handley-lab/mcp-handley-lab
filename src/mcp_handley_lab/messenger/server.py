@@ -1307,6 +1307,9 @@ for session continuity. Data is not shared with third parties.</p>
             _post_to_loop(event)
 
     def log_message(self, format, *args):
+        if format == '"%s" %s %s':
+            method, target, version = args[0].split(" ", 2)
+            args = (f"{method} {urlparse(target).path} {version}", *args[1:])
         print(f"{self.client_address[0]} - {format % args}", flush=True)
 
 

@@ -8,12 +8,28 @@ import pytest
 from mcp_handley_lab.messenger.server import (
     ChatActor,
     IncomingEvent,
+    WebhookHandler,
     _context_footer,
     _dispatch,
     _extract_usage,
     _get_or_create_actor,
     _parse_command,
 )
+
+
+def test_webhook_log_omits_query_string(capsys):
+    handler = WebhookHandler.__new__(WebhookHandler)
+    handler.client_address = ("127.0.0.1", 1234)
+    handler.log_message(
+        '"%s" %s %s',
+        "GET /webhook?hub.verify_token=secret HTTP/1.1",
+        "200",
+        "-",
+    )
+    output = capsys.readouterr().out
+    assert '"GET /webhook HTTP/1.1" 200 -' in output
+    assert "secret" not in output
+
 
 # ---------------------------------------------------------------------------
 # _parse_command tests

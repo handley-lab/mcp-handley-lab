@@ -58,7 +58,10 @@ def query(addr: str, from_addr: str, text: str, external_id: str) -> str:
         for envelope in messages:
             after = max(after, envelope["idx"])
             payload = envelope["payload"]
-            if payload.get("external_id") == external_id and payload.get("kind") == "prompt":
+            if (
+                payload.get("external_id") == external_id
+                and payload.get("kind") == "prompt"
+            ):
                 prompt_id = envelope["id"]
             if (
                 prompt_id

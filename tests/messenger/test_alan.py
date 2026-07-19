@@ -37,10 +37,12 @@ def test_query_follows_exact_prompt_through_grouped_turn(monkeypatch):
                 "parent": "claude-1#4",
                 "payload": {"kind": "claude_text", "text": "reply"},
             },
-        ]
+        ],
     ]
     monkeypatch.setattr(alan.loop, "tail_end", lambda _addr: 2)
-    monkeypatch.setattr(alan.loop, "send", lambda *args, **kwargs: sent.append((args, kwargs)))
+    monkeypatch.setattr(
+        alan.loop, "send", lambda *args, **kwargs: sent.append((args, kwargs))
+    )
     monkeypatch.setattr(alan.loop, "tail", lambda *args, **kwargs: batches.pop(0))
 
     assert alan.query("claude-1", "messenger.telegram.-1", "hello", "tg-7") == "reply"
@@ -71,7 +73,12 @@ def test_ensure_claude_resumes_saved_actor(monkeypatch):
 def test_ensure_claude_replaces_missing_saved_actor(monkeypatch):
     monkeypatch.setattr(alan.loop, "list", lambda: [])
     monkeypatch.setattr(
-        alan.loop, "spawn", lambda _addr: (_ for _ in ()).throw(alan.loop.LoopError("unknown_source"))
+        alan.loop,
+        "spawn",
+        lambda _addr: (_ for _ in ()).throw(alan.loop.LoopError("unknown_source")),
     )
     monkeypatch.setattr(alan.loop, "spawn_claude", lambda _label, _cwd: "claude-new")
-    assert alan.ensure_claude("claude-missing", "messages", "/srv/messages") == "claude-new"
+    assert (
+        alan.ensure_claude("claude-missing", "messages", "/srv/messages")
+        == "claude-new"
+    )

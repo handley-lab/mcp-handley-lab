@@ -850,7 +850,9 @@ class ChatActor:
         return text
 
     async def _handle(self, event: IncomingEvent) -> None:
-        if event.message_id and self._message_log.get(event.message_id, {}).get("completed"):
+        if event.message_id and self._message_log.get(event.message_id, {}).get(
+            "completed"
+        ):
             return
 
         # Log inbound message
@@ -908,7 +910,9 @@ class ChatActor:
         if not model_name:
             self._send_text(f"Current model: {self._model or 'default'}")
             return
-        self._send_text("Model changes are not yet supported for native Alan Claude sessions.")
+        self._send_text(
+            "Model changes are not yet supported for native Alan Claude sessions."
+        )
 
     async def _handle_status(self):
         if not self.alan_addr:

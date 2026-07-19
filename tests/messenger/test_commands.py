@@ -159,7 +159,9 @@ class TestInterruptCommands:
             actor.alan_addr = "claude-stuck"
 
             event = _make_event(cmd, platform, conversation_id=conv_id)
-            with patch("mcp_handley_lab.messenger.server.alan.interrupt") as mock_interrupt:
+            with patch(
+                "mcp_handley_lab.messenger.server.alan.interrupt"
+            ) as mock_interrupt:
                 await _dispatch(event)
                 mock_interrupt.assert_called_once_with("claude-stuck")
 
@@ -184,7 +186,9 @@ class TestInterruptCommands:
             conv_id = "test:noop"
 
             event = _make_event("/reset", platform, conversation_id=conv_id)
-            with patch("mcp_handley_lab.messenger.server.alan.interrupt") as mock_interrupt:
+            with patch(
+                "mcp_handley_lab.messenger.server.alan.interrupt"
+            ) as mock_interrupt:
                 await _dispatch(event)
                 mock_interrupt.assert_not_called()
         finally:
@@ -474,7 +478,11 @@ class TestAlanResponse:
     async def test_duplicate_platform_message_is_not_submitted_twice(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor._message_log["ev-1"] = {"role": "user", "text": "hello", "completed": True}
+        actor._message_log["ev-1"] = {
+            "role": "user",
+            "text": "hello",
+            "completed": True,
+        }
         with patch.object(actor, "_query") as query:
             await actor._handle(_make_event("hello", platform))
         query.assert_not_called()

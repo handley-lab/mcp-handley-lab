@@ -2,7 +2,7 @@
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 
-pkgver=0.33.0
+pkgver=0.33.1
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')

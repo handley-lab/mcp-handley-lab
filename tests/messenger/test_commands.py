@@ -105,7 +105,7 @@ def _make_actor(platform=None, conversation_id="test:123", tmp_path=None):
     actor = ChatActor(conversation_id, plat)
     if tmp_path:
         actor.cwd = tmp_path
-        actor._state_file = tmp_path / "loop_state.json"
+        actor._state_file = tmp_path / "alan_state.json"
         actor._msg_log_file = tmp_path / "message_log.json"
     return actor
 

@@ -1,11 +1,10 @@
 """Multi-platform Claude messenger server.
 
 Receives messages via WhatsApp webhooks and Telegram long-polling, routes
-them to persistent Claude loops (one per conversation), and relays responses
+them to persistent native Claude actors in Alan (one per conversation), and relays responses
 back. Each conversation gets a ChatActor with an asyncio queue.
 
-Uses loop daemon for Claude sessions — policy-based tool approval
-(--permission-mode acceptEdits) instead of interactive buttons.
+Alan owns actor identity, native Claude session recovery and causal delivery.
 """
 
 import asyncio
@@ -719,7 +718,7 @@ def _migrate_old_dirs():
 
 
 # ---------------------------------------------------------------------------
-# ChatActor — one per conversation, owns a persistent loop
+# ChatActor — one per conversation, owns a persistent Alan actor
 # ---------------------------------------------------------------------------
 
 

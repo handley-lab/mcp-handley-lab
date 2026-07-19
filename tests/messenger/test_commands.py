@@ -130,32 +130,19 @@ class TestHelpCommand:
 
 class TestResetCommand:
     @pytest.mark.asyncio
-    async def test_reset_clears_session_preserves_model(self, tmp_path):
+    async def test_reset_is_explicitly_unavailable(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
-        actor.session_id = "sess-abc"
-        actor._model = "opus"
-        actor._state_file.parent.mkdir(parents=True, exist_ok=True)
-        actor._save_state()
-
-        event = _make_event("/reset", platform)
-        with patch("mcp_handley_lab.messenger.server.kill") as mock_kill:
-            await actor._handle(event)
-            mock_kill.assert_called_once_with("claude-123")
-
-        assert actor.loop_id is None
-        assert actor.session_id == ""
-        assert actor._model == "opus"  # preserved
-        assert not actor._stopped  # actor stays running
-        assert "reset" in platform.sent[0][1].lower()
+        actor.alan_addr = "claude-123"
+        await actor._handle(_make_event("/reset", platform))
+        assert actor.alan_addr == "claude-123"
+        assert "not yet supported" in platform.sent[0][1].lower()
 
 
 class TestInterruptCommands:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("cmd", ["/reset", "/cancel"])
-    async def test_dispatch_terminates_running_loop(self, cmd):
-        """_dispatch sends terminate before enqueueing /reset or /cancel."""
+    async def test_dispatch_interrupts_running_actor(self, cmd):
         import mcp_handley_lab.messenger.server as srv
 
         old_actors = srv._actors
@@ -169,12 +156,12 @@ class TestInterruptCommands:
             conv_id = "test:interrupt"
 
             actor = _get_or_create_actor(conv_id, platform)
-            actor.loop_id = "claude-stuck"
+            actor.alan_addr = "claude-stuck"
 
             event = _make_event(cmd, platform, conversation_id=conv_id)
-            with patch("mcp_handley_lab.messenger.server.terminate") as mock_terminate:
+            with patch("mcp_handley_lab.messenger.server.alan.interrupt") as mock_interrupt:
                 await _dispatch(event)
-                mock_terminate.assert_called_once_with("claude-stuck")
+                mock_interrupt.assert_called_once_with("claude-stuck")
 
             assert not actor.queue.empty()
         finally:
@@ -183,8 +170,7 @@ class TestInterruptCommands:
             srv._loop = old_loop
 
     @pytest.mark.asyncio
-    async def test_dispatch_no_terminate_without_loop(self):
-        """_dispatch skips terminate when no active loop."""
+    async def test_dispatch_no_interrupt_without_actor(self):
         import mcp_handley_lab.messenger.server as srv
 
         old_actors = srv._actors
@@ -198,9 +184,9 @@ class TestInterruptCommands:
             conv_id = "test:noop"
 
             event = _make_event("/reset", platform, conversation_id=conv_id)
-            with patch("mcp_handley_lab.messenger.server.terminate") as mock_terminate:
+            with patch("mcp_handley_lab.messenger.server.alan.interrupt") as mock_interrupt:
                 await _dispatch(event)
-                mock_terminate.assert_not_called()
+                mock_interrupt.assert_not_called()
         finally:
             srv._loop.close()
             srv._actors = old_actors
@@ -212,13 +198,13 @@ class TestCancelCommand:
     async def test_cancel_sends_confirmation(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
+        actor.alan_addr = "claude-123"
 
         event = _make_event("/cancel", platform)
         await actor._handle(event)
 
         assert "cancelled" in platform.sent[0][1].lower()
-        assert actor.loop_id == "claude-123"  # session preserved
+        assert actor.alan_addr == "claude-123"
         assert not actor._stopped  # actor still running
 
 
@@ -232,8 +218,8 @@ class TestModelCommand:
         event = _make_event("/model opus", platform)
         await actor._handle(event)
 
-        assert actor._model == "opus"
-        assert "opus" in platform.sent[0][1].lower()
+        assert actor._model == ""
+        assert "not yet supported" in platform.sent[0][1].lower()
 
     @pytest.mark.asyncio
     async def test_model_query(self, tmp_path):
@@ -257,21 +243,13 @@ class TestModelCommand:
         assert "default" in platform.sent[0][1].lower()
 
     @pytest.mark.asyncio
-    async def test_model_kills_active_loop(self, tmp_path):
+    async def test_model_does_not_mutate_active_actor(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
-        actor.session_id = "sess-abc"
-        actor.cwd.mkdir(parents=True, exist_ok=True)
-
-        event = _make_event("/model opus", platform)
-        with patch("mcp_handley_lab.messenger.server.kill") as mock_kill:
-            await actor._handle(event)
-            mock_kill.assert_called_once_with("claude-123")
-
-        assert actor.loop_id is None
-        assert actor._model == "opus"
-        assert "restarted" in platform.sent[0][1].lower()
+        actor.alan_addr = "claude-123"
+        await actor._handle(_make_event("/model opus", platform))
+        assert actor.alan_addr == "claude-123"
+        assert actor._model == ""
 
 
 class TestStatusCommand:
@@ -279,19 +257,22 @@ class TestStatusCommand:
     async def test_status_active(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
-        actor.session_id = "sess-abc"
+        actor.alan_addr = "claude-123"
 
         with patch(
-            "mcp_handley_lab.messenger.server.loop_status",
-            return_value={"ok": True, "running": True, "elapsed_seconds": 42.0},
+            "mcp_handley_lab.messenger.server.alan.status",
+            return_value={
+                "addr": "claude-123",
+                "state": "working",
+                "native": {"id": "sess-abc"},
+            },
         ):
             event = _make_event("/status", platform)
             await actor._handle(event)
 
         text = platform.sent[0][1]
-        assert "running" in text.lower()
-        assert "42s" in text
+        assert "working" in text.lower()
+        assert "sess-abc" in text
 
     @pytest.mark.asyncio
     async def test_status_no_session(self, tmp_path):
@@ -304,21 +285,21 @@ class TestStatusCommand:
         assert "no active session" in platform.sent[0][1].lower()
 
     @pytest.mark.asyncio
-    async def test_status_clears_stale_loop(self, tmp_path):
+    async def test_status_reports_inactive_actor(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-dead"
+        actor.alan_addr = "claude-dead"
         actor.cwd.mkdir(parents=True, exist_ok=True)
 
         with patch(
-            "mcp_handley_lab.messenger.server.loop_status",
-            side_effect=RuntimeError("not_found: loop not found"),
+            "mcp_handley_lab.messenger.server.alan.status",
+            return_value=None,
         ):
             event = _make_event("/status", platform)
             await actor._handle(event)
 
-        assert actor.loop_id is None
-        assert "expired" in platform.sent[0][1].lower()
+        assert actor.alan_addr == "claude-dead"
+        assert "inactive" in platform.sent[0][1].lower()
 
 
 class TestActorLifecycle:
@@ -353,92 +334,49 @@ class TestActorLifecycle:
             srv._loop = old_loop
 
 
-class TestQueryThreadsModel:
-    @pytest.mark.asyncio
-    async def test_query_passes_model_in_args(self, tmp_path):
+class TestAlanQuery:
+    def test_query_uses_stable_actor_and_passive_identity(self, tmp_path):
         platform = MockPlatform()
-        actor = _make_actor(platform, tmp_path=tmp_path)
-        actor._model = "opus"
+        actor = _make_actor(platform, "telegram:-123:7", tmp_path)
         actor.cwd.mkdir(parents=True, exist_ok=True)
 
         with (
             patch(
-                "mcp_handley_lab.messenger.server.spawn",
+                "mcp_handley_lab.messenger.server.alan.ensure_claude",
                 return_value="claude-test",
-            ) as mock_spawn,
+            ) as ensure,
             patch(
-                "mcp_handley_lab.messenger.server.run",
+                "mcp_handley_lab.messenger.server.alan.query",
                 return_value="response",
-            ),
+            ) as query,
         ):
-            result = actor._query("hello")
+            result = actor._query("hello", "telegram-message-1")
 
         assert result == "response"
-        args_str = mock_spawn.call_args[1]["args"]
-        assert "--model opus" in args_str
-
-    @pytest.mark.asyncio
-    async def test_query_no_model_default(self, tmp_path):
-        platform = MockPlatform()
-        actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.cwd.mkdir(parents=True, exist_ok=True)
-
-        with (
-            patch(
-                "mcp_handley_lab.messenger.server.spawn",
-                return_value="claude-test",
-            ) as mock_spawn,
-            patch(
-                "mcp_handley_lab.messenger.server.run",
-                return_value="response",
-            ),
-        ):
-            actor._query("hello")
-
-        args_str = mock_spawn.call_args[1]["args"]
-        assert "--model" not in args_str
-
-    @pytest.mark.asyncio
-    async def test_query_disallows_plan_mode(self, tmp_path):
-        platform = MockPlatform()
-        actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.cwd.mkdir(parents=True, exist_ok=True)
-
-        with (
-            patch(
-                "mcp_handley_lab.messenger.server.spawn",
-                return_value="claude-test",
-            ) as mock_spawn,
-            patch(
-                "mcp_handley_lab.messenger.server.run",
-                return_value="response",
-            ),
-        ):
-            actor._query("hello")
-
-        args_str = mock_spawn.call_args[1]["args"]
-        assert "--disallowed-tools" in args_str
-        assert "EnterPlanMode" in args_str
+        ensure.assert_called_once_with(None, "msg-telegram:-123:7", str(tmp_path))
+        query.assert_called_once_with(
+            "claude-test",
+            actor.passive_addr,
+            "hello",
+            "telegram-message-1",
+        )
 
 
 class TestStatePersistence:
     def test_save_load_with_model(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
-        actor.session_id = "sess-abc"
+        actor.alan_addr = "claude-123"
         actor._model = "opus"
         actor.cwd.mkdir(parents=True, exist_ok=True)
         actor._save_state()
 
         actor2 = _make_actor(platform, tmp_path=tmp_path)
         actor2._load_state()
-        assert actor2.loop_id == "claude-123"
-        assert actor2.session_id == "sess-abc"
+        assert actor2.alan_addr == "claude-123"
         assert actor2._model == "opus"
 
-    def test_load_state_without_model(self, tmp_path):
-        """Old state files without model field still load correctly."""
+    def test_old_loop_state_is_not_adopted(self, tmp_path):
         import json
 
         platform = MockPlatform()
@@ -448,7 +386,7 @@ class TestStatePersistence:
             json.dumps({"loop_id": "claude-old", "session_id": "sess-old"})
         )
         actor._load_state()
-        assert actor.loop_id == "claude-old"
+        assert actor.alan_addr is None
         assert actor._model == ""
 
 
@@ -515,56 +453,28 @@ class TestContextFooter:
         assert _context_footer(usage) == ""
 
 
-class TestContextFooterOnResponse:
+class TestAlanResponse:
     @pytest.mark.asyncio
-    async def test_response_includes_footer(self, tmp_path):
+    async def test_response_comes_from_causally_correlated_query(self, tmp_path):
         platform = MockPlatform()
         actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
-        actor.cwd.mkdir(parents=True, exist_ok=True)
-
-        cells = [{"index": 0, "events": [_RESULT_EVENT]}]
-        event = _make_event("hello", platform)
-        event.kind = "text"
-
-        with (
-            patch(
-                "mcp_handley_lab.messenger.server.run",
-                return_value="Hello there!",
-            ),
-            patch(
-                "mcp_handley_lab.messenger.server.read_cells_raw",
-                return_value=cells,
-            ),
-        ):
-            await actor._handle(event)
-
-        text = platform.sent[0][1]
-        assert "Hello there!" in text
-        assert "50% context" in text
-
-    @pytest.mark.asyncio
-    async def test_response_no_footer_when_no_usage(self, tmp_path):
-        platform = MockPlatform()
-        actor = _make_actor(platform, tmp_path=tmp_path)
-        actor.loop_id = "claude-123"
         actor.cwd.mkdir(parents=True, exist_ok=True)
 
         event = _make_event("hello", platform)
         event.kind = "text"
 
-        with (
-            patch(
-                "mcp_handley_lab.messenger.server.run",
-                return_value="Hello there!",
-            ),
-            patch(
-                "mcp_handley_lab.messenger.server.read_cells_raw",
-                return_value=[],
-            ),
-        ):
+        with patch.object(actor, "_query", return_value="Hello there!") as query:
             await actor._handle(event)
 
         text = platform.sent[0][1]
         assert "Hello there!" in text
-        assert "context" not in text.lower()
+        query.assert_called_once_with("hello", "ev-1")
+
+    @pytest.mark.asyncio
+    async def test_duplicate_platform_message_is_not_submitted_twice(self, tmp_path):
+        platform = MockPlatform()
+        actor = _make_actor(platform, tmp_path=tmp_path)
+        actor._message_log["ev-1"] = {"role": "user", "text": "hello", "completed": True}
+        with patch.object(actor, "_query") as query:
+            await actor._handle(_make_event("hello", platform))
+        query.assert_not_called()

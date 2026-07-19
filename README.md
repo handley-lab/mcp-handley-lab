@@ -268,19 +268,20 @@ Manage persistent REPL and LLM sessions via a background daemon
   - **Requires**: `tmux` for terminal REPLs; `claude`, `gemini`, `codex` CLIs for LLM backends
 
 ### 💬 **Messenger** (`messenger`)
-Bridge WhatsApp and Telegram to Claude via persistent loop sessions
+Bridge WhatsApp and Telegram to persistent native Claude actors in Alan
   - One Claude session per conversation, with automatic session resume across restarts
   - WhatsApp support via webhook (requires Meta Business API setup)
   - Telegram support via long-polling (requires Bot API token from [@BotFather](https://t.me/BotFather))
-  - Commands: `/reset` or `/new` to start a fresh session
+  - `/cancel` interrupts the Alan actor; reset and model mutation remain explicit unsupported operations until native identity-preserving controls exist
+  - The packaged `alan-messenger.service` runs as the dedicated `alan-messenger` identity in `alan-ops`; add `alan-messenger` to Alan's `LOOP_TRUSTED_ASSERTERS` and configure credentials plus `LOOP_SOCKET` in `/etc/alan/messenger.env`
   - Sessions stored in `~/messenger/{platform}/{id}/`
   - **Not an MCP tool** — runs as a standalone server: `messenger [port]` (default: 8080)
-  - **Requires**: `claude` CLI ([Claude Code](https://claude.ai/code)) installed and authenticated
+  - **Requires**: a running Alan daemon with native Claude actors enabled
 
   **Setup:**
-  1. Install this package (provides the `messenger` command)
-  2. Install and authenticate the `claude` CLI
-  3. Set environment variables (see `src/mcp_handley_lab/messenger/.env.example`):
+  1. Install Alan and this package.
+  2. Add `alan-messenger` to Alan's `LOOP_TRUSTED_ASSERTERS` and restart Alan.
+  3. Put `LOOP_SOCKET` and platform credentials in `/etc/alan/messenger.env` (see `src/mcp_handley_lab/messenger/.env.example`):
      ```bash
      # Telegram (easiest — just need a bot token)
      export TELEGRAM_BOT_TOKEN="123456:ABC..."
@@ -292,11 +293,9 @@ Bridge WhatsApp and Telegram to Claude via persistent loop sessions
      export WHATSAPP_PHONE_NUMBER_ID="your-phone-number-id"
      export WHATSAPP_APP_SECRET="your-app-secret"
 
-     # Optional
-     export CLAUDE_PERMISSION_MODE="acceptEdits"  # default
-     export CLAUDE_SYSTEM_PROMPT="You are a personal assistant."  # default
+     export LOOP_SOCKET="/path/to/loop.sock"
      ```
-  4. Run `messenger` (or `messenger 9090` for a custom port)
+  4. Enable `alan-messenger.service`, or run `messenger` directly under a trusted identity.
   5. For WhatsApp: point your webhook URL to `http://your-server:8080/webhook`
 
 ### 🎙️ **Otter.ai Transcripts** (`otter`)

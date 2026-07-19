@@ -1,4 +1,29 @@
+from types import SimpleNamespace
+
+import pytest
+
 from mcp_handley_lab.messenger import alan
+
+
+@pytest.fixture(autouse=True)
+def loop_client(monkeypatch):
+    class LoopError(RuntimeError):
+        pass
+
+    monkeypatch.setattr(
+        alan,
+        "loop",
+        SimpleNamespace(
+            LoopError=LoopError,
+            interrupt=None,
+            list=None,
+            send=None,
+            spawn=None,
+            spawn_claude=None,
+            tail=None,
+            tail_end=None,
+        ),
+    )
 
 
 def test_passive_address_is_deterministic():

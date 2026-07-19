@@ -1,7 +1,16 @@
 import base64
 import time
 
-import loop
+try:
+    import loop
+except ModuleNotFoundError:
+    loop = None
+
+
+def _client():
+    if loop is None:
+        raise RuntimeError("Alan's Python loop client is not installed")
+    return loop
 
 
 def passive_addr(conversation_id: str) -> str:
@@ -11,20 +20,22 @@ def passive_addr(conversation_id: str) -> str:
 
 
 def ensure_claude(addr: str | None, label: str, cwd: str) -> str:
+    client = _client()
     if addr is None:
-        return loop.spawn_claude(label, cwd)
-    if not any(actor["addr"] == addr for actor in loop.list()):
+        return client.spawn_claude(label, cwd)
+    if not any(actor["addr"] == addr for actor in client.list()):
         try:
-            loop.spawn(addr)
-        except loop.LoopError as error:
+            client.spawn(addr)
+        except client.LoopError as error:
             if str(error) != "unknown_source":
                 raise
-            return loop.spawn_claude(label, cwd)
+            return client.spawn_claude(label, cwd)
     return addr
 
 
 def query(addr: str, from_addr: str, text: str, external_id: str) -> str:
-    history = loop.tail(addr, after=-1, limit=1_000_000)
+    client = _client()
+    history = client.tail(addr, after=-1, limit=1_000_000)
     existing = next(
         (
             envelope
@@ -38,8 +49,8 @@ def query(addr: str, from_addr: str, text: str, external_id: str) -> str:
         after = existing["idx"] - 1
         batches = [history[existing["idx"] :]]
     else:
-        after = loop.tail_end(addr)
-        loop.send(
+        after = client.tail_end(addr)
+        client.send(
             addr,
             {"kind": "prompt", "text": text, "external_id": external_id},
             from_addr=from_addr,
@@ -53,7 +64,7 @@ def query(addr: str, from_addr: str, text: str, external_id: str) -> str:
         messages = (
             batches.pop(0)
             if batches
-            else loop.tail(addr, after=after, limit=1000, wait_ms=30_000)
+            else client.tail(addr, after=after, limit=1000, wait_ms=30_000)
         )
         for envelope in messages:
             after = max(after, envelope["idx"])
@@ -88,8 +99,8 @@ def query(addr: str, from_addr: str, text: str, external_id: str) -> str:
 
 
 def interrupt(addr: str) -> None:
-    loop.interrupt(addr)
+    _client().interrupt(addr)
 
 
 def status(addr: str) -> dict | None:
-    return next((actor for actor in loop.list() if actor["addr"] == addr), None)
+    return next((actor for actor in _client().list() if actor["addr"] == addr), None)

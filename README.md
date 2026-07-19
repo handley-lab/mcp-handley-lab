@@ -15,6 +15,7 @@ A toolkit that bridges AI assistants with command-line tools and services. Built
 Some tools require additional system packages:
 - **code2prompt tool**: `cargo install code2prompt`
 - **email tools**: `mutt`, `notmuch`, `offlineimap` for email management
+- **repl tool**: `tmux` for session management
 - **screenshot tool**: `maim`, `wmctrl` for X11 window capture
 - **messenger**: `claude` CLI (Claude Code) for WhatsApp/Telegram bridge
 
@@ -170,6 +171,7 @@ claude mcp add google-maps --scope user mcp-google-maps
 # claude mcp add word --scope user mcp-word                        # Word document editing
 # claude mcp add excel --scope user mcp-excel                      # Excel spreadsheet editing
 # claude mcp add mathematica --scope user mcp-mathematica
+# claude mcp add loop --scope user mcp-loop
 # claude mcp add otter --scope user mcp-otter                      # Otter.ai transcripts
 # claude mcp add screenshot --scope user mcp-screenshot
 # claude mcp add search --scope user mcp-search                    # Transcript search
@@ -256,13 +258,14 @@ Comprehensive Word document manipulation via pure OOXML
   - **Other**: Content controls, equations, hyperlinks, custom properties
   - _Claude example_: `> read the outline of my thesis, then add a citation to Smith2020 in the introduction`
 
-### Persistent actors
-
-The former `mcp-loop` REPL daemon has been retired. Persistent Python, Codex
-and Claude work now belongs to Alan and is exposed to external clients through
-`alan-loop-mcp`; Fleet provides the human tmux/Jupyter attachment view.
-Native Gemini, Julia, R and the other former MCP Loop backend types are not
-supported actors. This does not affect direct Gemini API use through `mcp-llm`.
+### 🖥️ **Loop Sessions** (`loop`)
+Manage persistent REPL and LLM sessions via a background daemon
+  - Terminal REPLs: bash, python, ipython, julia, R, clojure, apl, maple, mathematica (via tmux)
+  - LLM backends: claude, gemini, openai (via CLI subprocesses with subscription auth)
+  - Execute code or chat and retrieve output with cell indexing
+  - Pass extra arguments to interpreters (e.g., `--matplotlib` for ipython)
+  - _Claude example_: `> start an ipython session with matplotlib, create a plot, and show me the figure`
+  - **Requires**: `tmux` for terminal REPLs; `claude`, `gemini`, `codex` CLIs for LLM backends
 
 ### 💬 **Messenger** (`messenger`)
 Bridge WhatsApp and Telegram to persistent native Claude actors in Alan

@@ -45,6 +45,7 @@ When you encounter a bug or issue in an MCP tool, file a GitHub issue with `gh i
 | `mcp-google-calendar` | `src/mcp_handley_lab/google_calendar/tool.py` | Calendar CRUD & search |
 | `mcp-google-maps` | `src/mcp_handley_lab/google_maps/tool.py` | Directions & routes |
 | `mcp-google-photos` | `src/mcp_handley_lab/google_photos/tool.py` | Photo search, browse, detail, download |
+| `mcp-loop` | `src/mcp_handley_lab/loop/tool.py` | Persistent REPL sessions (Python, Bash, Julia, R, Claude) |
 | `mcp-mathematica` | `src/mcp_handley_lab/mathematica/tool.py` | Wolfram Language evaluation |
 | `mcp-word` | `src/mcp_handley_lab/microsoft/word/tool.py` | Word document read/edit |
 | `mcp-excel` | `src/mcp_handley_lab/microsoft/excel/tool.py` | Excel workbook read/edit |
@@ -300,6 +301,7 @@ mcp-visio                                       # Visio diagram read/edit
 # Code & Research Tools
 mcp-code2prompt                                 # Codebase summarization
 mcp-arxiv                                       # ArXiv paper download
+mcp-loop                                        # Persistent REPL sessions
 mcp-mathematica                                 # Wolfram Language evaluation
 
 # Meta
@@ -635,6 +637,7 @@ Note: Calendar and email discovery data (calendars, tags, folders, accounts) are
 | Resource URI | Server | Description |
 |-------------|--------|-------------|
 | `model://list` | mcp-llm | All LLM models grouped by provider with capabilities and pricing |
+| `repl://backends` | mcp-loop | All available REPL backends (bash, python, julia, etc.) |
 
 ### Usage via JSON-RPC
 

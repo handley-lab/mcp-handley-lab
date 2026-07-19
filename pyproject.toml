@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mcp-handley-lab"
 
-version = "0.34.0"
+version = "0.33.0"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,6 +40,7 @@ dependencies = [
     "wolframclient>=1.1.0",
     "lxml>=4.9.0",
     "pycookiecheat>=0.7.0",
+    "jupyter_client>=8.0.0",
     "rapidfuzz>=3.0.0",
 ]
 
@@ -70,6 +71,7 @@ mcp-google-photos = "mcp_handley_lab.google_photos.tool:mcp.run"
 mcp-email = "mcp_handley_lab.email.tool:mcp.run"
 mcp-msmtp-capture = "mcp_handley_lab.email.mutt.capture:main"
 mcp-search = "mcp_handley_lab.search.tool:mcp.run"
+mcp-loop = "mcp_handley_lab.loop.tool:mcp.run"
 mcp-otter = "mcp_handley_lab.otter.tool:mcp.run"
 mcp-screenshot = "mcp_handley_lab.screenshot.tool:mcp.run"
 mcp-word = "mcp_handley_lab.microsoft.word.tool:mcp.run"

@@ -1,9 +1,17 @@
 """Configuration management for MCP Framework."""
 
+import os
 from pathlib import Path
 
 from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
+
+# Restore API keys saved as _<KEY> by loop backends (_subscription_env).
+# CLI auth is already locked in at startup; restoring here lets MCP servers use the keys.
+_LLM_KEYS = ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY")
+for _key in _LLM_KEYS:
+    if _key not in os.environ and f"_{_key}" in os.environ:
+        os.environ[_key] = os.environ[f"_{_key}"]
 
 
 class Settings(BaseSettings):

@@ -28,10 +28,7 @@ from urllib.parse import parse_qs, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 from uuid import uuid4
 
-from mcp_handley_lab.loop.client import kill, run, spawn, terminate
-from mcp_handley_lab.loop.client import read_raw as read_cells_raw
-from mcp_handley_lab.loop.client import session_id as get_session_id
-from mcp_handley_lab.loop.client import status as loop_status
+from mcp_handley_lab.messenger import alan
 
 # ---------------------------------------------------------------------------
 # Environment (set via systemd EnvironmentFile or shell exports)
@@ -49,8 +46,6 @@ TELEGRAM_ALLOWED_CHAT_IDS: set[int] | None = (
     else None
 )
 
-CLAUDE_PERMISSION_MODE = os.environ.get("CLAUDE_PERMISSION_MODE", "acceptEdits")
-CLAUDE_DISALLOWED_TOOLS = os.environ.get("CLAUDE_DISALLOWED_TOOLS", "EnterPlanMode")
 _APPEND_SYSTEM_PROMPT = (
     "Keep responses concise for mobile. "
     "When a user sends an image, sticker, video, or document, "
@@ -734,18 +729,21 @@ class ChatActor:
         self.platform = platform
         self.queue: asyncio.Queue[IncomingEvent | None] = asyncio.Queue(maxsize=50)
         self.cwd = _cwd_for_conversation(conversation_id)
-        self.loop_id: str | None = None
-        self.session_id: str = ""
+        self.alan_addr: str | None = None
+        self.passive_addr = alan.passive_addr(conversation_id)
         self._model: str = ""
         self._stopped = False
         self._last_transcription: str | None = None
-        self._state_file = self.cwd / "loop_state.json"
+        self._state_file = self.cwd / "alan_state.json"
         self._msg_log_file = self.cwd / "message_log.json"
         self._message_log: dict[str, dict] = {}
         self._task: asyncio.Task | None = None
 
     async def start(self):
         self.cwd.mkdir(parents=True, exist_ok=True)
+        instructions = self.cwd / "CLAUDE.md"
+        if not instructions.exists():
+            instructions.write_text(_APPEND_SYSTEM_PROMPT)
         self._load_state()
         self._load_message_log()
         if self._stopped:
@@ -852,6 +850,11 @@ class ChatActor:
         return text
 
     async def _handle(self, event: IncomingEvent) -> None:
+        if event.message_id and self._message_log.get(event.message_id, {}).get(
+            "completed"
+        ):
+            return
+
         # Log inbound message
         self._log_message(event.message_id, "user", event.text)
 
@@ -870,24 +873,15 @@ class ChatActor:
                 return
 
         text = await asyncio.to_thread(self._prepare_text, event)
-        for attempt in (1, 2):
-            try:
-                output = await asyncio.to_thread(self._query, text)
-                transcription = self._last_transcription
-                if transcription:
-                    output = f"> {transcription.strip()}\n\n{output}"
-                    self._last_transcription = None
-                # Append context usage footer
-                footer = await self._get_context_footer()
-                if footer:
-                    output = f"{output}\n\n_{footer}_"
-                self._send_response(output, reply_to=event.message_id)
-                return
-            except RuntimeError as e:
-                if attempt == 1 and "not found" in str(e):
-                    self._clear_state()
-                    continue
-                raise
+        output = await asyncio.to_thread(self._query, text, event.message_id)
+        transcription = self._last_transcription
+        if transcription:
+            output = f"> {transcription.strip()}\n\n{output}"
+            self._last_transcription = None
+        self._send_response(output, reply_to=event.message_id)
+        if event.message_id:
+            self._message_log[event.message_id]["completed"] = True
+            self._save_message_log()
 
     async def _handle_command(self, cmd: str, args: str) -> None:
         if cmd == "/help":
@@ -899,22 +893,8 @@ class ChatActor:
         elif cmd == "/status":
             await self._handle_status()
 
-    async def _kill_loop(self):
-        """Kill the active loop. Suppresses errors to avoid wedging the actor."""
-        if not self.loop_id:
-            return
-        try:
-            await asyncio.to_thread(kill, self.loop_id)
-        except Exception as e:
-            print(f"kill({self.loop_id}) failed: {e}", flush=True)
-
     async def _handle_reset(self):
-        """Handle /reset. New conversation, preserve model preference."""
-        await self._kill_loop()
-        self.loop_id = None
-        self.session_id = ""
-        self._save_state()
-        self._send_text("Session reset. Send a new message to start fresh.")
+        self._send_text("Reset is not yet supported for native Alan Claude sessions.")
 
     def _send_help(self):
         self._send_text(
@@ -930,99 +910,46 @@ class ChatActor:
         if not model_name:
             self._send_text(f"Current model: {self._model or 'default'}")
             return
-        self._model = model_name
-        self._save_state()
-        if self.loop_id:
-            if not self.session_id:
-                sid = get_session_id(self.loop_id)
-                if sid:
-                    self.session_id = sid
-            await self._kill_loop()
-            self.loop_id = None
-            self._save_state()
-            self._send_text(f"Model set to {model_name}. Session restarted.")
-        else:
-            self._send_text(f"Model set to {model_name}.")
+        self._send_text(
+            "Model changes are not yet supported for native Alan Claude sessions."
+        )
 
     async def _handle_status(self):
-        if not self.loop_id:
+        if not self.alan_addr:
             self._send_text("No active session.")
             return
-        try:
-            st = await asyncio.to_thread(loop_status, self.loop_id)
-            running = "running" if st.get("running") else "idle"
-            elapsed = f" ({st['elapsed_seconds']:.0f}s)" if st.get("running") else ""
-            lines = [f"Session: {self.loop_id}", f"Status: {running}{elapsed}"]
-            if self.session_id:
-                lines.append(f"Session ID: {self.session_id}")
-            if self._model:
-                lines.append(f"Model: {self._model}")
-            self._send_text("\n".join(lines))
-        except RuntimeError as e:
-            if "not_found" in str(e) or "not found" in str(e):
-                self.loop_id = None
-                self._save_state()
-                self._send_text("Session expired. Send a new message to start fresh.")
-            else:
-                self._send_text(f"Status error: {e}")
+        st = await asyncio.to_thread(alan.status, self.alan_addr)
+        if st is None:
+            self._send_text("Session is inactive. Send a new message to resume it.")
+            return
+        native_id = (st.get("native") or {}).get("id")
+        lines = [f"Actor: {self.alan_addr}", f"Status: {st['state']}"]
+        if native_id:
+            lines.append(f"Claude session: {native_id}")
+        self._send_text("\n".join(lines))
 
-    async def _get_context_footer(self) -> str:
-        """Get context usage footer from last cell's events."""
-        if not self.loop_id:
-            return ""
-        try:
-            cells = await asyncio.to_thread(read_cells_raw, self.loop_id)
-            usage = _extract_usage(cells)
-            if usage:
-                return _context_footer(usage)
-        except Exception:
-            pass
-        return ""
-
-    def _query(self, text: str) -> str:
-        """Ensure loop exists and run text. Called via to_thread."""
-        if not self.loop_id:
-            args = f"--permission-mode {CLAUDE_PERMISSION_MODE}"
-            if CLAUDE_DISALLOWED_TOOLS:
-                args += f" --disallowed-tools {CLAUDE_DISALLOWED_TOOLS}"
-            if self._model:
-                args += f" --model {self._model}"
-            self.loop_id = spawn(
-                "claude",
-                label=f"msg-{self.conversation_id[:20]}",
-                cwd=str(self.cwd),
-                prompt=_APPEND_SYSTEM_PROMPT,
-                args=args,
-                session_id=self.session_id,
-            )
-            self._save_state()
-        output = run(self.loop_id, text, sync_timeout=-1)
-        # Capture session_id for resume after kill/restart
-        if not self.session_id and self.loop_id:
-            sid = get_session_id(self.loop_id)
-            if sid:
-                self.session_id = sid
-                self._save_state()
-        return output
+    def _query(self, text: str, message_id: str | None) -> str:
+        self.alan_addr = alan.ensure_claude(
+            self.alan_addr,
+            f"msg-{self.conversation_id[:20]}",
+            str(self.cwd),
+        )
+        self._save_state()
+        external_id = message_id or str(uuid4())
+        return alan.query(self.alan_addr, self.passive_addr, text, external_id)
 
     def _load_state(self):
         with contextlib.suppress(FileNotFoundError, json.JSONDecodeError):
             data = json.loads(self._state_file.read_text())
-            self.loop_id = data.get("loop_id")
-            self.session_id = data.get("session_id", "")
+            self.alan_addr = data.get("alan_addr")
             self._model = data.get("model", "")
 
     def _save_state(self):
-        data = {"loop_id": self.loop_id, "session_id": self.session_id}
+        data = {"alan_addr": self.alan_addr}
         if self._model:
             data["model"] = self._model
         self._state_file.parent.mkdir(parents=True, exist_ok=True)
         self._state_file.write_text(json.dumps(data))
-
-    def _clear_state(self):
-        self.loop_id = None
-        # Preserve session_id for resume on next spawn
-        self._save_state()
 
     def _load_message_log(self):
         with contextlib.suppress(FileNotFoundError, json.JSONDecodeError):
@@ -1057,12 +984,12 @@ def _get_or_create_actor(conversation_id: str, platform: Platform) -> ChatActor:
 
 async def _dispatch(event: IncomingEvent):
     actor = _get_or_create_actor(event.conversation_id, event.platform)
-    # /reset and /cancel must interrupt a stuck _query() — terminate the loop
+    # /reset and /cancel must interrupt a stuck query before enqueueing.
     # before enqueueing so the blocked _run() unblocks.
     if event.kind == "command":
         parsed = _parse_command(event.text)
-        if parsed and parsed[0] in ("/reset", "/cancel") and actor.loop_id:
-            await asyncio.to_thread(terminate, actor.loop_id)
+        if parsed and parsed[0] in ("/reset", "/cancel") and actor.alan_addr:
+            await asyncio.to_thread(alan.interrupt, actor.alan_addr)
     try:
         actor.queue.put_nowait(event)
     except asyncio.QueueFull:

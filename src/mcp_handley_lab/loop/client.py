@@ -1,7 +1,7 @@
 """MCP Loop client - for spawning and managing loops.
 
 Provides daemon autostart and a simple dict-based API for loop operations.
-Used by both the MCP tool (tool.py) and standalone consumers (messenger).
+Used by both the MCP tool (tool.py) and standalone consumers.
 
 Usage from within a Python loop:
     from mcp_handley_lab.loop.client import spawn, run, list_loops

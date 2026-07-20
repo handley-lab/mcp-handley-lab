@@ -334,25 +334,50 @@ def _search_emails(
     offset: int = 0,
     include_excluded: bool = False,
 ) -> list[SearchResult]:
-    """Internal search implementation using notmuch show --body=false for efficiency."""
-    cmd = ["notmuch", "show", "--format=json", "--body=false"]
+    """Internal search returning exactly the messages matching the query.
+
+    Resolve matching message IDs first via `notmuch search --output=messages`, so
+    limit/offset count messages (notmuch show's --limit counts threads) and only
+    matching messages are returned. Headers are then fetched with
+    --entire-thread=false; without it notmuch show defaults to entire-thread for
+    JSON and would harvest sibling replies living in other folders (Sent, Archive),
+    breaking the folder: constraint.
+    """
+    id_cmd = ["notmuch", "search", "--format=json", "--output=messages"]
     if include_excluded:
-        cmd.append("--exclude=false")
-    cmd.extend(["--limit", str(limit), "--offset", str(offset)])
-    cmd.append(query)
-    stdout, _ = run_command(cmd)
+        id_cmd.append("--exclude=false")
+    id_cmd.extend(["--limit", str(limit), "--offset", str(offset)])
+    id_cmd.append(query)
+    stdout, _ = run_command(id_cmd)
+    message_ids = json.loads(stdout.decode().strip())
+    if not message_ids:
+        return []
+
+    show_cmd = [
+        "notmuch",
+        "show",
+        "--format=json",
+        "--body=false",
+        "--entire-thread=false",
+    ]
+    if include_excluded:
+        show_cmd.append("--exclude=false")
+    show_cmd.append(" or ".join(f"id:{mid}" for mid in message_ids))
+    stdout, _ = run_command(show_cmd)
 
     # notmuch show returns nested structure: [[thread1], [thread2], ...]
     # Each thread contains messages: [msg1, [replies...], msg2, ...]
     threads = json.loads(stdout.decode().strip())
 
-    results = []
+    collected: list[SearchResult] = []
     for thread in threads:
         for item in thread:
             # item is either a message dict or a list of replies
-            _collect_messages_from_thread(item, results)
+            _collect_messages_from_thread(item, collected)
 
-    return results
+    # Restore the search order (notmuch show reorders by thread/date)
+    by_id = {r.id: r for r in collected}
+    return [by_id[mid] for mid in message_ids if mid in by_id]
 
 
 def _collect_messages_from_thread(item, results: list[SearchResult]) -> None:

@@ -1,5 +1,6 @@
 """Tests for email search auto-relaxation, folder families, and query parsing."""
 
+import json
 from unittest.mock import MagicMock, patch
 
 from mcp_handley_lab.email.notmuch.shared import (
@@ -585,3 +586,74 @@ class TestParseQueryTokens:
         tokens = list(_parse_query_tokens("NOT\tfolder:Spam"))
         assert len(tokens) == 1
         assert tokens[0][5] is True  # negated via tab-separated NOT
+
+
+# ============================================================================
+# TestSearchEmailsThreadLeak
+# ============================================================================
+
+
+class TestSearchEmailsThreadLeak:
+    """Regression tests for the entire-thread leak (folder: constraint bypass).
+
+    notmuch show defaults to --entire-thread=true for JSON, so a folder:INBOX
+    query used to harvest sibling replies living in Sent/Archive and count
+    threads (not messages) against the limit. _search_emails must resolve
+    matching message ids first, then show only those with --entire-thread=false.
+    """
+
+    @patch("mcp_handley_lab.email.notmuch.tool.run_command")
+    def test_only_matching_messages_returned_in_order(self, mock_run):
+        from mcp_handley_lab.email.notmuch.tool import _search_emails
+
+        def _msg(mid):
+            return {"id": mid, "headers": {"Subject": mid}, "tags": []}
+
+        def _fake(cmd, **kwargs):
+            if "--output=messages" in cmd:
+                # search step: exactly the two matching (INBOX) messages, in order
+                return json.dumps(["inbox-2", "inbox-1"]).encode(), b""
+            # show step: notmuch reorders and (if entire-thread leaked) would add
+            # a sibling from another folder — the reindex must drop/ignore it
+            threads = [
+                [_msg("inbox-1"), [_msg("sent-sibling")]],
+                [_msg("inbox-2")],
+            ]
+            return json.dumps(threads).encode(), b""
+
+        mock_run.side_effect = _fake
+        results = _search_emails("folder:Hermes/INBOX", limit=10)
+
+        ids = [r.id for r in results]
+        assert ids == ["inbox-2", "inbox-1"]  # search order preserved
+        assert "sent-sibling" not in ids  # no cross-folder leak
+
+    @patch("mcp_handley_lab.email.notmuch.tool.run_command")
+    def test_limit_offset_passed_to_message_search(self, mock_run):
+        from mcp_handley_lab.email.notmuch.tool import _search_emails
+
+        calls = []
+
+        def _fake(cmd, **kwargs):
+            calls.append(cmd)
+            if "--output=messages" in cmd:
+                return json.dumps(["m1"]).encode(), b""
+            return json.dumps([[{"id": "m1", "headers": {}, "tags": []}]]).encode(), b""
+
+        mock_run.side_effect = _fake
+        _search_emails("tag:inbox", limit=25, offset=50)
+
+        search_cmd = next(c for c in calls if "--output=messages" in c)
+        assert "--limit" in search_cmd and "25" in search_cmd
+        assert "--offset" in search_cmd and "50" in search_cmd
+        show_cmd = next(c for c in calls if "show" in c)
+        assert "--entire-thread=false" in show_cmd
+
+    @patch("mcp_handley_lab.email.notmuch.tool.run_command")
+    def test_empty_result_short_circuits(self, mock_run):
+        from mcp_handley_lab.email.notmuch.tool import _search_emails
+
+        mock_run.return_value = (b"[]", b"")
+        assert _search_emails("folder:Nonexistent") == []
+        # only the id-resolution call should have run, not the show step
+        assert mock_run.call_count == 1

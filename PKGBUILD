@@ -2,7 +2,7 @@
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 
-pkgver=0.33.2
+pkgver=0.34.0
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -10,7 +10,6 @@ url="https://github.com/handley-lab/mcp-handley-lab"
 license=('custom') # TODO: Replace with actual license when specified
 conflicts=('python-mcp-handley-lab-git')
 depends=(
-    'alan>=2.0.0.a11.r82'
     'python'
     'python-mcp>=1.0.0'
     'python-pydantic>=2.0.0'
@@ -94,10 +93,6 @@ check() {
 package() {
     cd "$startdir"
     /usr/bin/python -m installer --destdir="$pkgdir" dist/mcp_handley_lab-$pkgver-py3-none-any.whl
-
-    install -Dm644 alan-messenger.service "$pkgdir/usr/lib/systemd/system/alan-messenger.service"
-    install -Dm644 alan-messenger.sysusers "$pkgdir/usr/lib/sysusers.d/alan-messenger.conf"
-    install -Dm644 alan-messenger.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/alan-messenger.conf"
 
     # Install documentation
     install -Dm644 CLAUDE.md "$pkgdir/usr/share/doc/$pkgname/CLAUDE.md"

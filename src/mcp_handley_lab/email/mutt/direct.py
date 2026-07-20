@@ -1,6 +1,6 @@
 """Direct (non-interactive) email composition: MIME construction, draft storage, msmtp piping.
 
-Used for programmatic email sending (e.g. from WhatsApp/Telegram via messenger)
+Used for programmatic email sending.
 with a two-step draft/approve workflow.
 """
 
@@ -162,7 +162,7 @@ def save_draft(
     # Cleanup expired drafts
     _cleanup_expired_drafts()
 
-    # Build preview (full body for messenger approval; truncated at 20k for safety)
+    # Build preview (full body for approval; truncated at 20k for safety)
     max_body = 20000
     attachment_names = [Path(a).name for a in attachments] if attachments else []
     preview = {

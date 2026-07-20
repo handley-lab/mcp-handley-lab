@@ -17,7 +17,6 @@ Some tools require additional system packages:
 - **email tools**: `mutt`, `notmuch`, `offlineimap` for email management
 - **repl tool**: `tmux` for session management
 - **screenshot tool**: `maim`, `wmctrl` for X11 window capture
-- **messenger**: `claude` CLI (Claude Code) for WhatsApp/Telegram bridge
 
 ## Quick Start
 
@@ -266,37 +265,6 @@ Manage persistent REPL and LLM sessions via a background daemon
   - Pass extra arguments to interpreters (e.g., `--matplotlib` for ipython)
   - _Claude example_: `> start an ipython session with matplotlib, create a plot, and show me the figure`
   - **Requires**: `tmux` for terminal REPLs; `claude`, `gemini`, `codex` CLIs for LLM backends
-
-### 💬 **Messenger** (`messenger`)
-Bridge WhatsApp and Telegram to persistent native Claude actors in Alan
-  - One Claude session per conversation, with automatic session resume across restarts
-  - WhatsApp support via webhook (requires Meta Business API setup)
-  - Telegram support via long-polling (requires Bot API token from [@BotFather](https://t.me/BotFather))
-  - `/cancel` interrupts the Alan actor; reset and model mutation remain explicit unsupported operations until native identity-preserving controls exist
-  - The packaged `alan-messenger.service` runs as the dedicated `alan-messenger` identity in `alan-ops`; add `alan-messenger` to Alan's `LOOP_TRUSTED_ASSERTERS` and configure credentials plus `LOOP_SOCKET` in `/etc/alan/messenger.env`
-  - Sessions stored in `~/messenger/{platform}/{id}/`
-  - **Not an MCP tool** — runs as a standalone server: `messenger [port]` (default: 8080)
-  - **Requires**: a running Alan daemon with native Claude actors enabled
-
-  **Setup:**
-  1. Install Alan and this package.
-  2. Add `alan-messenger` to Alan's `LOOP_TRUSTED_ASSERTERS` and restart Alan.
-  3. Put `LOOP_SOCKET` and platform credentials in `/etc/alan/messenger.env` (see `src/mcp_handley_lab/messenger/.env.example`):
-     ```bash
-     # Telegram (easiest — just need a bot token)
-     export TELEGRAM_BOT_TOKEN="123456:ABC..."
-     export TELEGRAM_ALLOWED_CHAT_IDS="12345,67890"  # comma-separated, optional allowlist
-
-     # WhatsApp (requires Meta Business API app + webhook)
-     export WHATSAPP_VERIFY_TOKEN="your-verify-token"
-     export WHATSAPP_ACCESS_TOKEN="your-access-token"
-     export WHATSAPP_PHONE_NUMBER_ID="your-phone-number-id"
-     export WHATSAPP_APP_SECRET="your-app-secret"
-
-     export LOOP_SOCKET="/path/to/loop.sock"
-     ```
-  4. Enable `alan-messenger.service`, or run `messenger` directly under a trusted identity.
-  5. For WhatsApp: point your webhook URL to `http://your-server:8080/webhook`
 
 ### 🎙️ **Otter.ai Transcripts** (`otter`)
 Access live and recent Otter.ai meeting transcripts

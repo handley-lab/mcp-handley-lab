@@ -36,8 +36,6 @@ def get_shape_type(shape: etree._Element) -> str:
     elif tag == "pic":
         return "picture"
     elif tag == "graphicFrame":
-        # Could be table, chart, diagram, etc.
-        # Check for specific content
         tbl = shape.find(".//" + qn("a:tbl"), NSMAP)
         if tbl is not None:
             return "table"
@@ -118,10 +116,8 @@ def _collect_shapes_recursive(
         z_counter[0] += 1
 
         if tag == "grpSp":
-            # Group: get transform and recurse
             group_transform = get_group_transform(child)
 
-            # Compose with parent transform if present
             if parent_transform is not None and group_transform is not None:
                 off_x, off_y, scale_x, scale_y = group_transform
                 p_off_x, p_off_y, p_scale_x, p_scale_y = parent_transform
@@ -134,18 +130,15 @@ def _collect_shapes_recursive(
             else:
                 composed = group_transform or parent_transform
 
-            # Add group shape itself
             shape_info = _parse_shape(child, slide_num, z_order, parent_transform)
             if shape_info:
                 shapes.append(shape_info)
 
-            # Recurse into group children
             child_shapes = _collect_shapes_recursive(
                 child, slide_num, z_counter, composed
             )
             shapes.extend(child_shapes)
         else:
-            # Regular shape
             shape_info = _parse_shape(child, slide_num, z_order, parent_transform)
             if shape_info:
                 shapes.append(shape_info)
@@ -165,17 +158,13 @@ def list_shapes(pkg: PowerPointPackage, slide_num: int) -> list[ShapeInfo]:
     if sp_tree is None:
         return []
 
-    # Collect all shapes with z-order
     z_counter = [0]
     shapes = _collect_shapes_recursive(sp_tree, slide_num, z_counter)
 
-    # Convert to dict for sorting
     shape_dicts = [s.model_dump() for s in shapes]
 
-    # Spatial sort
     sorted_dicts = spatial_sort_shapes(shape_dicts)
 
-    # Assign reading order and convert back
     result = []
     for idx, d in enumerate(sorted_dicts):
         d["reading_order"] = idx
@@ -438,13 +427,10 @@ def add_shape(
     if sp_tree is None:
         raise ValueError(f"Slide {slide_num} has no shape tree")
 
-    # Get next shape ID
     shape_id = _get_next_shape_id(sp_tree)
 
-    # Create shape element
     sp = etree.SubElement(sp_tree, qn("p:sp"))
 
-    # Non-visual properties - use shape type for name if not a text box
     is_textbox = shape_type == "rect" and text
     nvSpPr = etree.SubElement(sp, qn("p:nvSpPr"))
     shape_name = f"TextBox {shape_id}" if is_textbox else f"Shape {shape_id}"
@@ -454,7 +440,6 @@ def add_shape(
         cNvSpPr.set("txBox", "1")
     etree.SubElement(nvSpPr, qn("p:nvPr"))
 
-    # Shape properties with position/size
     spPr = etree.SubElement(sp, qn("p:spPr"))
     xfrm = etree.SubElement(spPr, qn("a:xfrm"))
     etree.SubElement(
@@ -470,16 +455,13 @@ def add_shape(
         cy=str(inches_to_emu(height)),
     )
 
-    # Preset geometry with specified shape type
     prstGeom = etree.SubElement(spPr, qn("a:prstGeom"), prst=shape_type)
     etree.SubElement(prstGeom, qn("a:avLst"))
 
-    # Text body
     txBody = etree.SubElement(sp, qn("p:txBody"))
     etree.SubElement(txBody, qn("a:bodyPr"), wrap="square", rtlCol="0")
     etree.SubElement(txBody, qn("a:lstStyle"))
 
-    # Add text if provided
     if text:
         set_shape_text(sp, text)
     else:
@@ -520,7 +502,6 @@ def edit_shape(
     if shape is None:
         raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
-    # Only allow editing text in sp (shape) elements
     tag = etree.QName(shape).localname
     if tag != "sp":
         raise ValueError(f"Shape {shape_id} is a {tag}, not a text shape")
@@ -555,7 +536,6 @@ def delete_shape(
     if shape is None:
         raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
-    # Remove from parent
     parent = shape.getparent()
     if parent is None:
         raise ValueError(f"Shape {shape_id} has no parent element")
@@ -592,7 +572,6 @@ def set_shape_transform(
     if shape is None:
         raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
-    # Check if shape is inside a group (parent is grpSp)
     parent = shape.getparent()
     if parent is not None:
         parent_tag = etree.QName(parent).localname
@@ -603,7 +582,6 @@ def set_shape_transform(
 
     tag = etree.QName(shape).localname
 
-    # Find the xfrm element based on shape type
     xfrm = None
 
     if tag in ("sp", "pic", "cxnSp"):
@@ -620,9 +598,7 @@ def set_shape_transform(
         if grpSpPr is not None:
             xfrm = grpSpPr.find(qn("a:xfrm"), NSMAP)
 
-    # Handle missing xfrm
     if xfrm is None:
-        # For graphicFrame without xfrm, we can create it if ALL values provided
         if tag == "graphicFrame":
             if (
                 x is not None
@@ -630,11 +606,9 @@ def set_shape_transform(
                 and width is not None
                 and height is not None
             ):
-                # Create p:xfrm for graphicFrame
                 xfrm = etree.Element(qn("p:xfrm"))
                 etree.SubElement(xfrm, qn("a:off"), x="0", y="0")
                 etree.SubElement(xfrm, qn("a:ext"), cx="0", cy="0")
-                # Insert at beginning (before a:graphic)
                 shape.insert(0, xfrm)
             else:
                 raise ValueError(
@@ -642,23 +616,19 @@ def set_shape_transform(
                     "4 values (x, y, width, height) are provided"
                 )
         else:
-            # Shape has no transform - likely inherited position
             raise ValueError("Cannot transform shape with inherited position")
 
-    # Get current values from xfrm
     off = xfrm.find(qn("a:off"), NSMAP)
     ext = xfrm.find(qn("a:ext"), NSMAP)
 
     if off is None or ext is None:
         raise ValueError("Shape transform is malformed (missing off or ext)")
 
-    # Update position if provided
     if x is not None:
         off.set("x", str(inches_to_emu(x)))
     if y is not None:
         off.set("y", str(inches_to_emu(y)))
 
-    # Update size if provided
     if width is not None:
         ext.set("cx", str(inches_to_emu(width)))
     if height is not None:
@@ -719,7 +689,6 @@ def set_z_order(
     if shape is None:
         raise ValueError(f"Shape {shape_id} not found on slide {slide_num}")
 
-    # Check if shape is inside a group
     parent = shape.getparent()
     if parent is None:
         raise ValueError(f"Shape {shape_id} has no parent element")
@@ -732,7 +701,6 @@ def set_z_order(
             "(changes entire group's z-order) or ungroup the shapes first."
         )
 
-    # Build ordered list of shape-only children with their original indices
     shapes_with_idx = [
         (i, c) for i, c in enumerate(parent) if etree.QName(c).localname in _SHAPE_TAGS
     ]
@@ -741,13 +709,10 @@ def set_z_order(
     if not shapes:
         raise ValueError(f"No shapes found in parent container on slide {slide_num}")
 
-    # Find shape in list
     shape_idx = shapes.index(shape)  # Should always succeed
 
-    # Record first shape's parent index (to preserve non-shape nodes)
     first_shape_parent_idx = shapes_with_idx[0][0] if shapes_with_idx else len(parent)
 
-    # Apply z-order action (swap semantics)
     if action == "bring_to_front":
         shapes.remove(shape)
         shapes.append(shape)
@@ -767,7 +732,6 @@ def set_z_order(
                 shapes[shape_idx],
             )
 
-    # Remove shapes from parent, reinsert at original first-shape position
     for _, c in shapes_with_idx:
         parent.remove(c)
     for i, s in enumerate(shapes):
@@ -814,7 +778,6 @@ def _get_shape_center(shape: etree._Element) -> tuple[int, int] | None:
     if xfrm is None:
         return None
 
-    # Reject rotated or flipped shapes (v1 constraint)
     if xfrm.get("rot") or xfrm.get("flipH") or xfrm.get("flipV"):
         return None
 
@@ -829,7 +792,6 @@ def _get_shape_center(shape: etree._Element) -> tuple[int, int] | None:
     cx = int(ext.get("cx", "0"))
     cy = int(ext.get("cy", "0"))
 
-    # Calculate center
     center_x = x + cx // 2
     center_y = y + cy // 2
 
@@ -845,7 +807,7 @@ def add_connector(
 ) -> str:
     """Add a connector between two shapes.
 
-    V1 constraints:
+    Constraints:
     - Only connects shapes with simple a:xfrm (no rotation/flip)
     - Rejects grouped shapes as endpoints
     - Uses center-to-center coordinates
@@ -869,11 +831,9 @@ def add_connector(
             f"Valid: {sorted(VALID_CONNECTOR_TYPES)}"
         )
 
-    # Parse shape keys
     from_slide, from_id = parse_shape_key(from_shape_key)
     to_slide, to_id = parse_shape_key(to_shape_key)
 
-    # Both shapes must be on the same slide
     if from_slide != slide_num or to_slide != slide_num:
         raise ValueError(
             f"Both shapes must be on slide {slide_num}. "
@@ -887,7 +847,6 @@ def add_connector(
     if sp_tree is None:
         raise ValueError(f"Slide {slide_num} has no shape tree")
 
-    # Find source and destination shapes
     from_shape = find_shape_in_tree(sp_tree, from_id)
     to_shape = find_shape_in_tree(sp_tree, to_id)
 
@@ -896,7 +855,6 @@ def add_connector(
     if to_shape is None:
         raise ValueError(f"Destination shape {to_shape_key} not found")
 
-    # Check if shapes are inside groups
     from_parent = from_shape.getparent()
     to_parent = to_shape.getparent()
 
@@ -911,7 +869,6 @@ def add_connector(
             "Cannot connect to grouped shapes."
         )
 
-    # Get center coordinates
     from_center = _get_shape_center(from_shape)
     to_center = _get_shape_center(to_shape)
 
@@ -929,23 +886,18 @@ def add_connector(
     from_x, from_y = from_center
     to_x, to_y = to_center
 
-    # Calculate connector bounds (min corner and size)
     min_x = min(from_x, to_x)
     min_y = min(from_y, to_y)
     cx = abs(to_x - from_x)
     cy = abs(to_y - from_y)
 
-    # Determine if we need to flip
     flip_h = from_x > to_x
     flip_v = from_y > to_y
 
-    # Get next shape ID
     shape_id = _get_next_shape_id(sp_tree)
 
-    # Create connector element
     cxnSp = etree.SubElement(sp_tree, qn("p:cxnSp"))
 
-    # Non-visual properties
     nvCxnSpPr = etree.SubElement(cxnSp, qn("p:nvCxnSpPr"))
     etree.SubElement(
         nvCxnSpPr,
@@ -953,14 +905,11 @@ def add_connector(
         id=str(shape_id),
         name=f"Connector {shape_id}",
     )
-    # Connection shape properties (can add stCxn/endCxn for glue)
     etree.SubElement(nvCxnSpPr, qn("p:cNvCxnSpPr"))
     etree.SubElement(nvCxnSpPr, qn("p:nvPr"))
 
-    # Shape properties
     spPr = etree.SubElement(cxnSp, qn("p:spPr"))
 
-    # Transform with position/size
     xfrm_attrib = {}
     if flip_h:
         xfrm_attrib["flipH"] = "1"
@@ -973,11 +922,9 @@ def add_connector(
         xfrm, qn("a:ext"), cx=str(cx if cx > 0 else 1), cy=str(cy if cy > 0 else 1)
     )
 
-    # Preset geometry for connector
     prstGeom = etree.SubElement(spPr, qn("a:prstGeom"), prst=connector_type)
     etree.SubElement(prstGeom, qn("a:avLst"))
 
-    # Line properties (default black line)
     ln = etree.SubElement(spPr, qn("a:ln"), w="9525")
     solidFill = etree.SubElement(ln, qn("a:solidFill"))
     etree.SubElement(solidFill, qn("a:schemeClr"), val="tx1")
@@ -985,10 +932,6 @@ def add_connector(
     pkg.mark_xml_dirty(slide_partname)
     return make_shape_key(slide_num, shape_id)
 
-
-# =============================================================================
-# Group/Ungroup Helper Functions
-# =============================================================================
 
 # Tags that can be grouped (excludes connectors p:cxnSp and groups p:grpSp)
 GROUPABLE_SHAPE_TAGS = {"sp", "pic", "graphicFrame"}
@@ -1078,11 +1021,9 @@ def _group_has_scaling(grp_xfrm: etree._Element) -> bool:
     if chOff is None or chExt is None or ext is None:
         return True  # Missing elements = assume scaled
 
-    # Check chOff is (0, 0)
     if chOff.get("x", "0") != "0" or chOff.get("y", "0") != "0":
         return True
 
-    # Check chExt matches ext
     return bool(chExt.get("cx") != ext.get("cx") or chExt.get("cy") != ext.get("cy"))
 
 
@@ -1097,11 +1038,6 @@ def _is_nested_in_group(shape: etree._Element) -> bool:
     if parent is None:
         return False
     return etree.QName(parent).localname == "grpSp"
-
-
-# =============================================================================
-# Group/Ungroup Operations
-# =============================================================================
 
 
 def group_shapes(
@@ -1122,7 +1058,7 @@ def group_shapes(
     Raises:
         ValueError: If shapes cannot be grouped (rotation, connectors, etc.)
 
-    V1 Constraints:
+    Constraints:
         - Only unrotated, unflipped shapes supported
         - Connectors (p:cxnSp) excluded
         - Shapes with inherited/missing transforms rejected
@@ -1131,13 +1067,11 @@ def group_shapes(
     if len(shape_keys) < 2:
         raise ValueError("At least 2 shapes required to create a group")
 
-    # Validate all shapes are on the same slide
     for key in shape_keys:
         parts = key.split(":")
         if len(parts) != 2 or int(parts[0]) != slide_num:
             raise ValueError(f"Shape key {key} is not on slide {slide_num}")
 
-    # Get slide XML via relationship-based lookup
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
 
@@ -1145,7 +1079,6 @@ def group_shapes(
     if spTree is None:
         raise ValueError("Slide has no shape tree")
 
-    # Find all shapes to group
     shapes_to_group = []
     shape_ids = [int(key.split(":")[1]) for key in shape_keys]
 
@@ -1156,14 +1089,12 @@ def group_shapes(
 
         shape_id = get_shape_id(shape)
         if shape_id in shape_ids:
-            # Validate shape
             if _is_connector(shape):
                 raise ValueError(
                     f"Cannot group connectors (shape {shape_id}). "
                     "Remove connectors from selection."
                 )
 
-            # V1: Cannot group an existing group (no nested groups)
             if localname == "grpSp":
                 raise ValueError(
                     f"Cannot group a group (shape {shape_id}). "
@@ -1190,7 +1121,6 @@ def group_shapes(
                     "Cannot group shapes without explicit bounds."
                 )
 
-            # Check if already in a group
             if _is_nested_in_group(shape):
                 raise ValueError(
                     f"Shape {shape_id} is already in a group. "
@@ -1203,7 +1133,6 @@ def group_shapes(
         found_ids = {get_shape_id(s) for s, _ in shapes_to_group}
         missing = set(shape_ids) - found_ids
 
-        # Check if missing shapes are nested in existing groups
         nested_shapes = []
         for mid in missing:
             shape_el = find_shape_in_tree(spTree, mid)
@@ -1219,7 +1148,6 @@ def group_shapes(
         else:
             raise ValueError(f"Shapes not found: {missing}")
 
-    # Calculate bounding box
     min_x = min(b[0] for _, b in shapes_to_group)
     min_y = min(b[1] for _, b in shapes_to_group)
     max_x = max(b[0] + b[2] for _, b in shapes_to_group)
@@ -1228,13 +1156,10 @@ def group_shapes(
     group_cx = max_x - min_x
     group_cy = max_y - min_y
 
-    # Allocate new shape ID
     group_id = _get_next_shape_id(spTree)
 
-    # Create group element
     grpSp = etree.Element(qn("p:grpSp"))
 
-    # Non-visual properties
     nvGrpSpPr = etree.SubElement(grpSp, qn("p:nvGrpSpPr"))
     etree.SubElement(
         nvGrpSpPr, qn("p:cNvPr"), id=str(group_id), name=f"Group {group_id}"
@@ -1242,7 +1167,6 @@ def group_shapes(
     etree.SubElement(nvGrpSpPr, qn("p:cNvGrpSpPr"))
     etree.SubElement(nvGrpSpPr, qn("p:nvPr"))
 
-    # Group shape properties with transforms
     grpSpPr = etree.SubElement(grpSp, qn("p:grpSpPr"))
     xfrm = etree.SubElement(grpSpPr, qn("a:xfrm"))
     etree.SubElement(xfrm, qn("a:off"), x=str(min_x), y=str(min_y))
@@ -1251,7 +1175,6 @@ def group_shapes(
     etree.SubElement(xfrm, qn("a:chOff"), x="0", y="0")
     etree.SubElement(xfrm, qn("a:chExt"), cx=str(group_cx), cy=str(group_cy))
 
-    # Track first shape's position for insertion
     first_shape_idx = None
     shapes_with_idx = []
 
@@ -1261,24 +1184,19 @@ def group_shapes(
                 first_shape_idx = idx
             shapes_with_idx.append((idx, child))
 
-    # Sort shapes by their original index to preserve z-order
     shapes_with_idx.sort(key=lambda x: x[0])
 
-    # Transform child coordinates and move to group
     for _, shape in shapes_with_idx:
         bounds = _get_shape_bounds(shape)
         child_xfrm = _get_shape_xfrm(shape)
 
-        # Transform to group-relative coordinates
         off = child_xfrm.find(qn("a:off"))
         off.set("x", str(bounds[0] - min_x))
         off.set("y", str(bounds[1] - min_y))
 
-        # Remove from spTree and add to group
         spTree.remove(shape)
         grpSp.append(shape)
 
-    # Insert group at first shape's original position
     spTree.insert(first_shape_idx, grpSp)
 
     pkg.mark_xml_dirty(slide_partname)
@@ -1301,14 +1219,13 @@ def ungroup(
     Raises:
         ValueError: If shape is not a group or has unsupported properties
 
-    V1 Constraints:
+    Constraints:
         - Only unrotated, unflipped groups supported
         - Groups with scaling (chOff != 0 or chExt != ext) rejected
         - Nested groups not supported
     """
     slide_num, shape_id = parse_shape_key(shape_key)
 
-    # Get slide XML via relationship-based lookup
     slide_partname = pkg.get_slide_partname(slide_num)
     slide_xml = pkg.get_slide_xml(slide_num)
 
@@ -1316,7 +1233,6 @@ def ungroup(
     if spTree is None:
         raise ValueError("Slide has no shape tree")
 
-    # Find the group
     group = None
     group_idx = None
     for idx, shape in enumerate(spTree):
@@ -1328,7 +1244,6 @@ def ungroup(
     if group is None:
         raise ValueError(f"Group {shape_key} not found")
 
-    # Validate group properties
     grp_xfrm = _get_shape_xfrm(group)
     if grp_xfrm is None:
         raise ValueError("Group has no transform")
@@ -1344,12 +1259,10 @@ def ungroup(
             "V1 only supports groups with no scaling."
         )
 
-    # Get group offset
     off = grp_xfrm.find(qn("a:off"))
     group_off_x = int(off.get("x", "0"))
     group_off_y = int(off.get("y", "0"))
 
-    # Collect children (skip non-shape elements like nvGrpSpPr, grpSpPr)
     children = []
     for child in group:
         localname = etree.QName(child).localname
@@ -1359,14 +1272,12 @@ def ungroup(
     if not children:
         raise ValueError("Group has no child shapes")
 
-    # Check for nested groups (among drawable children only)
     for child in children:
         if etree.QName(child).localname == "grpSp":
             raise ValueError(
                 "Group contains nested groups. V1 does not support ungrouping nested groups."
             )
 
-    # Transform children to absolute coordinates
     result_keys = []
     for child in children:
         child_xfrm = _get_shape_xfrm(child)
@@ -1381,12 +1292,10 @@ def ungroup(
         child_id = get_shape_id(child)
         result_keys.append(make_shape_key(slide_num, child_id))
 
-    # Move children to spTree at group's position, preserving order
     for i, child in enumerate(children):
         group.remove(child)
         spTree.insert(group_idx + i, child)
 
-    # Remove the group element
     spTree.remove(group)
 
     pkg.mark_xml_dirty(slide_partname)

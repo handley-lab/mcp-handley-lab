@@ -1,101 +1,27 @@
-# MCP Loop
+# Persistent loop actors
 
-Persistent REPL loop daemon with parent-child orchestration.
+Correct, minimal documentation is best. Omission is preferable to an
+unsupported or obsolete claim. Incorrect documentation is worst.
 
-## Background
-
-This implementation draws on two key concepts:
-
-**Recursive Language Models (RLM)** ([arXiv:2512.24601](https://arxiv.org/abs/2512.24601)) - Zhang, Kraska, Khattab (Dec 2025) introduce a paradigm where LLMs recursively call themselves to process arbitrarily long inputs. MCP Loop extends this: any REPL (LLM or code-based) can spawn and orchestrate other REPLs, enabling recursive computation across heterogeneous backends.
-
-**OpenClaw** - A reference implementation for LLM session management (listing, history, spawn, send, memory). MCP Loop adopts the Unix process model (loop_id like PID, parent_id like PPID) rather than OpenClaw's WebSocket gateway, using a Unix socket daemon pattern like ssh-agent.
-
-## Features
-
-- **Persistent loops**: Python, Bash, Julia, R, and other REPLs that survive across tool calls
-- **Claude backend**: Spawn Claude Code instances as child loops
-- **Parent-child tracking**: Unix-style hierarchy (loop_id like PID, parent_id like PPID)
-- **Orchestration**: Python code inside loops can spawn and manage child loops
-
-## Usage
+This package contains the transitional `mcp-loop` daemon and its native Python
+interface. New composition uses `mcp_handley_lab.loop.manage` and `run`; the
+FastMCP adapter and console entry point remain only for unported consumers.
 
 ```python
-# Spawn a Python loop
-mcp__loop__manage(action="spawn", backend="python", label="worker")
-# Returns: {"loop_id": "python-123456", "parent_id": "session-...", "ok": true}
+from mcp_handley_lab.loop import manage, run
 
-# Run input through the loop
-mcp__loop__run(loop_id="python-123456", input="2 + 2")
-# Returns: {"output": "4", "cell_index": 0, "elapsed_seconds": 0.4}
-
-# List all loops
-mcp__loop__manage(action="list")
-
-# Kill a loop
-mcp__loop__manage(action="kill", loop_id="python-123456")
+actor = manage("spawn", backend="python", label="worker")
+result = run(actor.loop_id, "sum(range(10))", sync_timeout=-1)
+history = manage("read", loop_id=actor.loop_id)
 ```
 
-## Session Hook Setup (Optional)
+`manage()` owns lifecycle operations: `spawn`, `list`, `read`, `read_raw`,
+`status`, `terminate`, `kill`, and `prune`. `run()` submits one input and returns
+a typed `RunResult`. Both communicate with the same Unix-socket daemon and
+autostart it when necessary.
 
-To automatically track which Claude Code session spawned each loop, install the session capture hook:
-
-1. Copy the hook script:
-```bash
-mkdir -p ~/.local/share/mcp-loop
-cp src/mcp_handley_lab/loop/hooks/session_capture.sh ~/.local/share/mcp-loop/
-chmod +x ~/.local/share/mcp-loop/session_capture.sh
-```
-
-2. Add to `~/.claude/settings.json`:
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "mcp__loop__*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/YOUR_USER/.local/share/mcp-loop/session_capture.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-3. Restart Claude Code.
-
-## Client Library (for orchestration)
-
-Python code running inside a loop can spawn child loops:
-
-```python
-# Inside a Python loop:
-import sys
-sys.path.insert(0, '/path/to/mcp-handley-lab/src')
-from mcp_handley_lab.loop.client import spawn, run, list_loops
-
-# Spawn a child
-child_id = spawn('bash', label='worker')
-
-# Run input in child
-result = run(child_id, 'echo hello')
-print(result)  # "hello"
-
-# List loops
-for loop in list_loops():
-    print(f"{loop['loop_id']} (parent: {loop['parent_id']})")
-```
-
-## Available Backends
-
-- `python` - Python 3 interpreter
-- `bash` - Bash shell
-- `ipython` - IPython (with matplotlib)
-- `julia` - Julia
-- `R` - R
-- `claude` - Claude Code (stream-json mode)
-- `mathematica` - Wolfram Mathematica
-- `clojure`, `apl`, `maple`, `ollama` - Other REPLs
+The daemon state under `~/.local/state/mcp-loop` and its socket under
+`~/.local/run` are implementation details, not a second API. Alan and Agent
+Fleet are the current estate boundary for persistent agent sessions; do not add
+new consumers to this legacy daemon while those remaining consumers are being
+ported.

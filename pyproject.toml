@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mcp-handley-lab"
 
-version = "0.34.0"
+version = "0.34.1"
 description = "MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ authors = [
     {name = "Handley Research Group", email = "wh260@cam.ac.uk"}
 ]
 dependencies = [
-    "mcp[cli]>=1.0.0",
+    "mcp[cli]>=1.0.0,<2",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "google-api-python-client>=2.0.0",

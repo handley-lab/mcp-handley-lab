@@ -2,7 +2,7 @@
 _pkgname=mcp-handley-lab
 pkgname=python-mcp-handley-lab
 
-pkgver=0.34.0
+pkgver=0.34.1
 pkgrel=1
 pkgdesc="MCP Handley Lab - A comprehensive MCP toolkit for research productivity and lab management"
 arch=('any')
@@ -11,7 +11,7 @@ license=('custom') # TODO: Replace with actual license when specified
 conflicts=('python-mcp-handley-lab-git')
 depends=(
     'python'
-    'python-mcp>=1.0.0'
+    'python-mcp>=1.0.0' 'python-mcp<2'
     'python-pydantic>=2.0.0'
     'python-pydantic-settings>=2.0.0'
     'python-google-api-python-client>=2.0.0'

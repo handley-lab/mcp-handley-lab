@@ -13,7 +13,7 @@ authors = [
     {name = "Handley Research Group", email = "wh260@cam.ac.uk"}
 ]
 dependencies = [
-    "mcp[cli]>=1.0.0",
+    "mcp[cli]>=1.0.0,<2",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "google-api-python-client>=2.0.0",

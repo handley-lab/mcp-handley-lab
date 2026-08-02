@@ -21,10 +21,6 @@ from mcp_handley_lab.microsoft.word.models import (
     TabStopInfo,
 )
 
-# =============================================================================
-# Constants
-# =============================================================================
-
 # Run formatting keys that should be applied to runs in apply_paragraph_formatting
 _RUN_FORMAT_KEYS = {
     "bold",
@@ -48,10 +44,6 @@ _RUN_FORMAT_KEYS = {
     "highlight_color",
 }
 
-
-# =============================================================================
-# Run Building
-# =============================================================================
 
 # OOXML highlight color mapping (w:highlight/@w:val -> API string)
 _HIGHLIGHT_OOXML_MAP = {
@@ -90,8 +82,6 @@ def _build_run_info_ooxml(
     hyperlink_url: str | None = None,
 ) -> RunInfo:
     """Build RunInfo from a w:r element (pure OOXML)."""
-    # Extract text from run content in document order
-    # Handle: w:t (text), w:tab (tab), w:br/w:cr (line break), special chars
     text_parts = []
     for child in run_el:
         tag = child.tag
@@ -108,17 +98,15 @@ def _build_run_info_ooxml(
             text_parts.append("\u00ad")  # Soft hyphen
     text = "".join(text_parts)
 
-    # Get run properties
     rPr = run_el.find(qn("w:rPr"))
 
-    # Font name (w:rFonts/@w:ascii)
     font_name = None
     if rPr is not None:
         rFonts = rPr.find(qn("w:rFonts"))
         if rFonts is not None:
             font_name = rFonts.get(qn("w:ascii"))
 
-    # Font size (w:sz/@w:val in half-points)
+    # w:sz stores half-points.
     font_size = None
     if rPr is not None:
         sz = rPr.find(qn("w:sz"))
@@ -126,7 +114,6 @@ def _build_run_info_ooxml(
             val = sz.get(qn("w:val"))
             font_size = int(val) / 2 if val else None
 
-    # Color (w:color/@w:val)
     color = None
     if rPr is not None:
         color_el = rPr.find(qn("w:color"))
@@ -135,7 +122,6 @@ def _build_run_info_ooxml(
             if val and val != "auto":
                 color = val.upper()
 
-    # Highlight (w:highlight/@w:val)
     highlight_color = None
     if rPr is not None:
         highlight = rPr.find(qn("w:highlight"))
@@ -143,7 +129,6 @@ def _build_run_info_ooxml(
             val = highlight.get(qn("w:val"))
             highlight_color = _HIGHLIGHT_OOXML_MAP.get(val)
 
-    # Underline (w:u presence with @w:val != "none")
     underline = None
     if rPr is not None:
         u = rPr.find(qn("w:u"))
@@ -151,7 +136,6 @@ def _build_run_info_ooxml(
             val = u.get(qn("w:val"))
             underline = val not in (None, "none", "0", "false")
 
-    # Vertical alignment (subscript/superscript)
     subscript = None
     superscript = None
     if rPr is not None:
@@ -161,7 +145,6 @@ def _build_run_info_ooxml(
             subscript = val == "subscript"
             superscript = val == "superscript"
 
-    # Character style (w:rStyle/@w:val)
     style = None
     if rPr is not None:
         rStyle = rPr.find(qn("w:rStyle"))
@@ -200,14 +183,12 @@ def _build_runs_ooxml(p_el, doc_rels) -> list[RunInfo]:
     result = []
     idx = 0
 
-    # Iterate direct children to maintain order (w:r and w:hyperlink)
     for child in p_el:
         tag = child.tag
         if tag == qn("w:r"):
             result.append(_build_run_info_ooxml(child, idx))
             idx += 1
         elif tag == qn("w:hyperlink"):
-            # Get hyperlink URL from relationships
             rId = child.get(qn("r:id"))
             anchor = child.get(qn("w:anchor"))
             url = None
@@ -218,7 +199,6 @@ def _build_runs_ooxml(p_el, doc_rels) -> list[RunInfo]:
             elif anchor:
                 url = f"#{anchor}"
 
-            # Process runs inside hyperlink (use iter for nested runs in smartTag/sdt)
             for run_el in child.iter(qn("w:r")):
                 result.append(
                     _build_run_info_ooxml(
@@ -255,33 +235,25 @@ def _build_hyperlinks_ooxml(doc_element, doc_rels) -> list[HyperlinkInfo]:
     """Build hyperlinks using pure OOXML."""
     result = []
 
-    # Find all w:hyperlink elements in body (including in tables)
     for idx, hyperlink in enumerate(doc_element.iter(qn("w:hyperlink"))):
-        # Get rId for external links
         rId = hyperlink.get(qn("r:id"))
-        # Get anchor for internal bookmarks
         anchor = hyperlink.get(qn("w:anchor"))
 
-        # Extract text from all runs
         text_parts = []
         for t in hyperlink.iter(qn("w:t")):
             if t.text:
                 text_parts.append(t.text)
         text = "".join(text_parts)
 
-        # Resolve URL from relationships
         address = ""
         is_external = False
         if rId:
             rel = doc_rels.get(rId)
             if rel:
-                # Only use target as URL if it's an external relationship
                 if rel.is_external:
                     address = rel.target
                     is_external = True
-                # Non-external hyperlinks (rare) - rel.target is a part path, not URL
 
-        # Build URL (external address or internal #fragment)
         if address:
             url = f"{address}#{anchor}" if anchor else address
         elif anchor:
@@ -332,61 +304,45 @@ def add_hyperlink(
     if not address and not fragment:
         raise ValueError("Either address or fragment must be provided")
 
-    # Normalize fragment (strip leading #)
     if fragment.startswith("#"):
         fragment = fragment[1:]
 
-    # Validate: fragment must not be empty after normalization for internal links
     if not address and not fragment:
         raise ValueError("Fragment cannot be empty for internal links")
 
-    # Create the w:hyperlink element
     hyperlink = etree.Element(qn("w:hyperlink"))
 
     if address:
-        # External link - create relationship
         full_url = f"{address}#{fragment}" if fragment else address
         r_id = pkg.relate_to(
             "/word/document.xml", full_url, RT.HYPERLINK, is_external=True
         )
         hyperlink.set(qn("r:id"), r_id)
     else:
-        # Internal link - use anchor attribute
         hyperlink.set(qn("w:anchor"), fragment)
 
-    # Set history attribute (standard Word behavior)
     hyperlink.set(qn("w:history"), "1")
 
-    # Create run with text
     run = etree.Element(qn("w:r"))
     run_text = etree.Element(qn("w:t"))
-    # Preserve whitespace if needed
     if text[:1].isspace() or text[-1:].isspace() or "  " in text:
         run_text.set(qn("xml:space"), "preserve")
     run_text.text = text
     run.append(run_text)
     hyperlink.append(run)
 
-    # Optionally clear all content (preserve only pPr) before adding
     if replace:
         pPr_tag = qn("w:pPr")
         for child in list(p_el):
             if child.tag != pPr_tag:
                 p_el.remove(child)
 
-    # Append hyperlink to paragraph
     p_el.append(hyperlink)
     pkg.mark_xml_dirty("/word/document.xml")
 
 
-# =============================================================================
-# Style Management
-# =============================================================================
-
-
 def _build_styles_ooxml(styles_xml) -> list[StyleInfo]:
     """Build styles list from styles.xml element (pure OOXML)."""
-    # Map OOXML type values to API strings
     type_map = {
         "paragraph": "paragraph",
         "character": "character",
@@ -394,7 +350,6 @@ def _build_styles_ooxml(styles_xml) -> list[StyleInfo]:
         "numbering": "list",  # OOXML uses "numbering" for list styles
     }
 
-    # First pass: build styleId -> name mapping for resolving references
     id_to_name = {}
     for style in styles_xml.findall(qn("w:style")):
         style_id = style.get(qn("w:styleId"))
@@ -403,7 +358,6 @@ def _build_styles_ooxml(styles_xml) -> list[StyleInfo]:
         if style_id:
             id_to_name[style_id] = name
 
-    # Second pass: build StyleInfo list
     result = []
     for style in styles_xml.findall(qn("w:style")):
         style_id = style.get(qn("w:styleId"))
@@ -412,30 +366,24 @@ def _build_styles_ooxml(styles_xml) -> list[StyleInfo]:
         # Absence means built-in (NOT w:default which means "default for type")
         is_builtin = style.get(qn("w:customStyle")) != "1"
 
-        # Get name
         name_el = style.find(qn("w:name"))
         name = name_el.get(qn("w:val")) if name_el is not None else style_id
 
-        # Get base style (w:basedOn)
         based_on = style.find(qn("w:basedOn"))
         base_style_id = based_on.get(qn("w:val")) if based_on is not None else None
         base_style = id_to_name.get(base_style_id) if base_style_id else None
 
-        # Get next style (w:next)
         next_el = style.find(qn("w:next"))
         next_style_id = next_el.get(qn("w:val")) if next_el is not None else None
         next_style = id_to_name.get(next_style_id) if next_style_id else None
-        # Don't report next style if it's same as current
         if next_style == name:
             next_style = None
 
-        # Check hidden (w:semiHidden or w:hidden)
         hidden = (
             style.find(qn("w:semiHidden")) is not None
             or style.find(qn("w:hidden")) is not None
         )
 
-        # Check quick style (w:qFormat)
         quick_style = style.find(qn("w:qFormat")) is not None
 
         result.append(
@@ -466,7 +414,6 @@ def build_styles(pkg) -> list[StyleInfo]:
 
 def _get_style_format_ooxml(styles_xml, style_name: str) -> StyleFormatInfo:
     """Get style formatting from styles.xml (pure OOXML)."""
-    # OOXML alignment values
     align_map = {
         "left": "left",
         "center": "center",
@@ -480,7 +427,6 @@ def _get_style_format_ooxml(styles_xml, style_name: str) -> StyleFormatInfo:
         "numbering": "list",
     }
 
-    # Find style by name (w:name/@w:val)
     style_el = None
     for s in styles_xml.findall(qn("w:style")):
         name_el = s.find(qn("w:name"))
@@ -496,7 +442,6 @@ def _get_style_format_ooxml(styles_xml, style_name: str) -> StyleFormatInfo:
     name_el = style_el.find(qn("w:name"))
     name = name_el.get(qn("w:val")) if name_el is not None else style_id
 
-    # Extract run properties (w:rPr)
     rPr = style_el.find(qn("w:rPr"))
     font_name = None
     font_size = None
@@ -505,37 +450,32 @@ def _get_style_format_ooxml(styles_xml, style_name: str) -> StyleFormatInfo:
     color = None
 
     if rPr is not None:
-        # Font name (w:rFonts/@w:ascii)
         rFonts = rPr.find(qn("w:rFonts"))
         if rFonts is not None:
             font_name = rFonts.get(qn("w:ascii"))
 
-        # Font size (w:sz/@w:val in half-points)
+        # w:sz stores half-points.
         sz = rPr.find(qn("w:sz"))
         if sz is not None:
             val = sz.get(qn("w:val"))
             font_size = int(val) / 2 if val else None  # half-points to points
 
-        # Bold (w:b presence or @w:val != "0")
         b = rPr.find(qn("w:b"))
         if b is not None:
             val = b.get(qn("w:val"))
             bold = val != "0" if val else True
 
-        # Italic (w:i)
         i = rPr.find(qn("w:i"))
         if i is not None:
             val = i.get(qn("w:val"))
             italic = val != "0" if val else True
 
-        # Color (w:color/@w:val)
         color_el = rPr.find(qn("w:color"))
         if color_el is not None:
             val = color_el.get(qn("w:val"))
             if val and val != "auto":
                 color = val.upper()
 
-    # Extract paragraph properties (w:pPr)
     pPr = style_el.find(qn("w:pPr"))
     alignment = None
     left_indent = None
@@ -544,19 +484,16 @@ def _get_style_format_ooxml(styles_xml, style_name: str) -> StyleFormatInfo:
     line_spacing = None
 
     if pPr is not None:
-        # Alignment (w:jc/@w:val)
         jc = pPr.find(qn("w:jc"))
         if jc is not None:
             alignment = align_map.get(jc.get(qn("w:val")))
 
-        # Indentation (w:ind/@w:left in twips)
         ind = pPr.find(qn("w:ind"))
         if ind is not None:
             left_val = ind.get(qn("w:left"))
             if left_val:
                 left_indent = int(left_val) / 1440  # twips to inches
 
-        # Spacing (w:spacing/@w:before, @w:after in twips)
         # w:line interpretation depends on w:lineRule:
         # - "auto" (default): 240ths of a line (240 = single, 360 = 1.5)
         # - "exact" or "atLeast": twips (20 per point)
@@ -618,7 +555,6 @@ def edit_style(pkg, style_name: str, fmt: dict) -> None:
 
     styles_xml = pkg.styles_xml
 
-    # Find the style element by name or styleId
     style_el = None
     for style in styles_xml.findall(qn("w:style")):
         name_el = style.find(qn("w:name"))
@@ -632,14 +568,12 @@ def edit_style(pkg, style_name: str, fmt: dict) -> None:
     if style_el is None:
         raise ValueError(f"Style '{style_name}' not found")
 
-    # Get or create rPr (run properties) for font formatting
     rPr = style_el.find(qn("w:rPr"))
     if rPr is None and any(
         k in fmt for k in ("font_name", "font_size", "bold", "italic", "color")
     ):
         rPr = etree.SubElement(style_el, qn("w:rPr"))
 
-    # Get or create pPr (paragraph properties)
     pPr = style_el.find(qn("w:pPr"))
     if pPr is None and any(
         k in fmt
@@ -653,7 +587,6 @@ def edit_style(pkg, style_name: str, fmt: dict) -> None:
     ):
         pPr = etree.SubElement(style_el, qn("w:pPr"))
 
-    # Apply font formatting
     if rPr is not None:
         if "font_name" in fmt:
             rFonts = rPr.find(qn("w:rFonts"))
@@ -696,7 +629,6 @@ def edit_style(pkg, style_name: str, fmt: dict) -> None:
                 color = etree.SubElement(rPr, qn("w:color"))
             color.set(qn("w:val"), fmt["color"].lstrip("#"))
 
-    # Apply paragraph formatting
     if pPr is not None:
         if "alignment" in fmt:
             # Map API values to OOXML values (OOXML uses "both" for justify)
@@ -748,7 +680,6 @@ def edit_style(pkg, style_name: str, fmt: dict) -> None:
                     spacing.set(qn("w:line"), str(int(val * 20)))  # points to twips
                     spacing.set(qn("w:lineRule"), "exact")
 
-    # Mark styles.xml as dirty so changes are saved
     pkg.mark_xml_dirty("/word/styles.xml")
 
 
@@ -779,11 +710,9 @@ def _create_style_ooxml(
     formatting: dict | None = None,
 ) -> str:
     """Create a new custom style via pure OOXML."""
-    # Type mapping to OOXML type attribute
     type_map = {"paragraph": "paragraph", "character": "character", "table": "table"}
     ooxml_type = type_map[style_type.lower()]
 
-    # Generate styleId from name (remove spaces, capitalize)
     style_id = name.replace(" ", "")
 
     if not pkg.has_part("/word/styles.xml"):
@@ -791,20 +720,16 @@ def _create_style_ooxml(
 
     styles_xml = pkg.styles_xml
 
-    # Create the style element
     style_el = etree.SubElement(
         styles_xml,
         qn("w:style"),
         {qn("w:type"): ooxml_type, qn("w:styleId"): style_id, qn("w:customStyle"): "1"},
     )
 
-    # Add name element
     name_el = etree.SubElement(style_el, qn("w:name"))
     name_el.set(qn("w:val"), name)
 
-    # Add basedOn if base_style exists
     if base_style:
-        # Find base style to get its styleId
         base_style_id = None
         for style in styles_xml.findall(qn("w:style")):
             name_elem = style.find(qn("w:name"))
@@ -821,7 +746,6 @@ def _create_style_ooxml(
 
     pkg.mark_xml_dirty("/word/styles.xml")
 
-    # Apply formatting if provided
     if formatting:
         edit_style(pkg, style_id, formatting)
 
@@ -854,7 +778,6 @@ def _delete_style_ooxml(pkg, style_name: str) -> None:
 
     styles_xml = pkg.styles_xml
 
-    # Find the style element
     style_el = None
     for style in styles_xml.findall(qn("w:style")):
         name_el = style.find(qn("w:name"))
@@ -874,16 +797,10 @@ def _delete_style_ooxml(pkg, style_name: str) -> None:
     if custom_attr != "1":
         raise ValueError(f"Cannot delete builtin style: {style_name}")
 
-    # Remove the style
     styles_xml.remove(style_el)
     pkg.mark_xml_dirty("/word/styles.xml")
 
 
-# =============================================================================
-# Paragraph Formatting
-# =============================================================================
-
-# Conversion constants
 _TWIPS_PER_INCH = 1440
 _TWIPS_PER_PT = 20  # 1 point = 20 twips
 
@@ -903,7 +820,6 @@ def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
 
     pPr = get_or_create_pPr(p_el)
 
-    # Alignment (w:jc)
     if "alignment" in fmt:
         alignment = fmt["alignment"].lower()
         jc = pPr.find(qn("w:jc"))
@@ -911,7 +827,6 @@ def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
             jc = etree.SubElement(pPr, qn("w:jc"))
         jc.set(qn("w:val"), _ALIGNMENT_OOXML_MAP.get(alignment, alignment))
 
-    # Indentation (w:ind) - values in twips
     if any(k in fmt for k in ("left_indent", "right_indent", "first_line_indent")):
         ind = pPr.find(qn("w:ind"))
         if ind is None:
@@ -924,17 +839,13 @@ def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
             first = fmt["first_line_indent"]
             if first >= 0:
                 ind.set(qn("w:firstLine"), str(int(first * _TWIPS_PER_INCH)))
-                # Remove hanging if present
                 if qn("w:hanging") in ind.attrib:
                     del ind.attrib[qn("w:hanging")]
             else:
-                # Negative first_line_indent = hanging indent
                 ind.set(qn("w:hanging"), str(int(-first * _TWIPS_PER_INCH)))
-                # Remove firstLine if present
                 if qn("w:firstLine") in ind.attrib:
                     del ind.attrib[qn("w:firstLine")]
 
-    # Spacing (w:spacing) - before/after in twips
     if any(k in fmt for k in ("space_before", "space_after", "line_spacing")):
         spacing = pPr.find(qn("w:spacing"))
         if spacing is None:
@@ -954,7 +865,6 @@ def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
                 spacing.set(qn("w:line"), str(int(ls * _TWIPS_PER_PT)))
                 spacing.set(qn("w:lineRule"), "exact")
 
-    # Boolean paragraph properties
     if "keep_with_next" in fmt:
         keepNext = pPr.find(qn("w:keepNext"))
         if fmt["keep_with_next"]:
@@ -971,7 +881,6 @@ def _apply_paragraph_formatting_ooxml(p_el: etree._Element, fmt: dict) -> None:
         elif pageBreakBefore is not None:
             pPr.remove(pageBreakBefore)
 
-    # Apply run formatting to all runs
     for run_el in p_el.iter(qn("w:r")):
         for key, value in fmt.items():
             if key in _RUN_FORMAT_KEYS:
@@ -990,7 +899,6 @@ def apply_paragraph_formatting(p_el, fmt: dict) -> None:
 
 def _build_tab_stops_ooxml(p_el) -> list[TabStopInfo]:
     """Build tab stops from w:p element (pure OOXML)."""
-    # OOXML alignment mapping (w:tab/@w:val)
     tab_align_ooxml = {
         "left": "left",
         "center": "center",
@@ -1000,7 +908,6 @@ def _build_tab_stops_ooxml(p_el) -> list[TabStopInfo]:
         "clear": "clear",  # Clears inherited tab
         "num": "left",  # Number tab (treated as left)
     }
-    # OOXML leader mapping (w:tab/@w:leader)
     tab_leader_ooxml = {
         "none": "spaces",
         "dot": "dots",
@@ -1037,7 +944,6 @@ def _build_tab_stops_ooxml(p_el) -> list[TabStopInfo]:
 
 def _build_paragraph_format_ooxml(p_el) -> ParagraphFormatInfo:
     """Extract paragraph formatting from w:p element (pure OOXML)."""
-    # OOXML alignment mapping (w:jc/@w:val)
     align_ooxml = {
         "left": "left",
         "center": "center",
@@ -1058,12 +964,10 @@ def _build_paragraph_format_ooxml(p_el) -> ParagraphFormatInfo:
 
     pPr = p_el.find(qn("w:pPr"))
     if pPr is not None:
-        # Alignment (w:jc/@w:val)
         jc = pPr.find(qn("w:jc"))
         if jc is not None:
             alignment = align_ooxml.get(jc.get(qn("w:val")))
 
-        # Indentation (w:ind)
         ind = pPr.find(qn("w:ind"))
         if ind is not None:
             left_val = ind.get(qn("w:left"))
@@ -1080,7 +984,6 @@ def _build_paragraph_format_ooxml(p_el) -> ParagraphFormatInfo:
             elif hanging:
                 first_line_indent = -int(hanging) / 1440  # Negative for hanging
 
-        # Spacing (w:spacing)
         spacing = pPr.find(qn("w:spacing"))
         if spacing is not None:
             before = spacing.get(qn("w:before"))
@@ -1098,13 +1001,11 @@ def _build_paragraph_format_ooxml(p_el) -> ParagraphFormatInfo:
                 else:
                     line_spacing = int(line) / 240  # 240ths to multiplier
 
-        # Keep with next (w:keepNext)
         keep_next = pPr.find(qn("w:keepNext"))
         if keep_next is not None:
             val = keep_next.get(qn("w:val"))
             keep_with_next = val != "0" if val else True
 
-        # Page break before (w:pageBreakBefore)
         pb_before = pPr.find(qn("w:pageBreakBefore"))
         if pb_before is not None:
             val = pb_before.get(qn("w:val"))
@@ -1133,11 +1034,6 @@ def build_paragraph_format(p_el) -> ParagraphFormatInfo:
     return _build_paragraph_format_ooxml(p_el)
 
 
-# =============================================================================
-# Tab Stops
-# =============================================================================
-
-
 def build_tab_stops(p_el) -> list[TabStopInfo]:
     """Build list of tab stops for a paragraph.
 
@@ -1162,11 +1058,9 @@ def add_tab_stop(
         leader: Tab leader character - spaces, dots, heavy, middle_dot
             Aliases: dot->dots, space->spaces, mid_dot->middle_dot
     """
-    # Validate position
     if position_inches <= 0:
         raise ValueError(f"position_inches must be positive, got {position_inches}")
 
-    # Alignment with validation
     valid_alignments = {"left", "center", "right", "decimal"}
     alignment_lower = alignment.lower()
     if alignment_lower not in valid_alignments:
@@ -1174,7 +1068,6 @@ def add_tab_stop(
             f"Invalid alignment '{alignment}'. Valid: {list(valid_alignments)}"
         )
 
-    # Leader with aliases and validation
     leader_aliases = {"dot": "dots", "space": "spaces", "mid_dot": "middle_dot"}
     leader_map_ooxml = {
         "spaces": "none",  # OOXML uses "none" for no leader
@@ -1203,7 +1096,6 @@ def _add_tab_stop_ooxml(
     """
     from mcp_handley_lab.microsoft.word.ops.core import get_or_create_pPr
 
-    # OOXML leader mapping
     leader_map_ooxml = {
         "spaces": "none",
         "dots": "dot",
@@ -1213,12 +1105,10 @@ def _add_tab_stop_ooxml(
 
     pPr = get_or_create_pPr(p_el)
 
-    # Get or create w:tabs
     tabs = pPr.find(qn("w:tabs"))
     if tabs is None:
         tabs = etree.SubElement(pPr, qn("w:tabs"))
 
-    # Create w:tab element
     tab = etree.SubElement(tabs, qn("w:tab"))
     tab.set(qn("w:pos"), str(int(position_inches * 1440)))  # inches to twips
     tab.set(qn("w:val"), alignment)
@@ -1238,11 +1128,6 @@ def clear_tab_stops(p_el) -> None:
         tabs = pPr.find(qn("w:tabs"))
         if tabs is not None:
             pPr.remove(tabs)
-
-
-# =============================================================================
-# Run Formatting
-# =============================================================================
 
 
 def get_or_create_rPr(run_el: etree._Element) -> etree._Element:
@@ -1287,7 +1172,7 @@ def _set_run_attr_ooxml(run_el: etree._Element, key: str, value) -> None:
         if sz is None:
             sz = etree.SubElement(rPr, qn("w:sz"))
         sz.set(qn("w:val"), str(int(float(value) * 2)))
-        # Also set szCs for complex script
+        # Word keeps complex-script size in w:szCs.
         szCs = rPr.find(qn("w:szCs"))
         if szCs is None:
             szCs = etree.SubElement(rPr, qn("w:szCs"))
@@ -1373,10 +1258,8 @@ def _set_run_text_ooxml(run_el: etree._Element, text: str) -> None:
 
     Clears existing text elements and creates a single w:t with the new text.
     """
-    # Remove existing text elements
     for t in list(run_el.findall(qn("w:t"))):
         run_el.remove(t)
-    # Create new text element
     t = etree.SubElement(run_el, qn("w:t"))
     t.text = text
     if text.startswith(" ") or text.endswith(" "):

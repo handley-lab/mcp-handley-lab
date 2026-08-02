@@ -25,7 +25,6 @@ def load_model_config(provider: str) -> dict[str, Any]:
     with open(yaml_path, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
-    # Validate required sections (business logic, not defensive programming)
     required_sections = ["models", "display_categories", "default_model", "usage_notes"]
     missing_sections = [
         section for section in required_sections if section not in config
@@ -57,11 +56,9 @@ def get_models_by_tags(
     for model_id, model_config in config["models"].items():
         model_tags = set(model_config.get("tags", []))
 
-        # Check if model has all required tags
         if not all(tag in model_tags for tag in required_tags):
             continue
 
-        # Check if model has any excluded tags
         if any(tag in model_tags for tag in exclude_tags):
             continue
 
@@ -84,15 +81,12 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
 
     for model_id, model_info in config["models"].items():
         if provider == "openai":
-            # OpenAI format - handle image generation models differently
             if model_info.get("pricing_type") == "per_image":
-                # Image generation models don't need output_tokens/param
                 model_configs[model_id] = {
-                    "output_tokens": None,  # N/A for image generation
+                    "output_tokens": None,
                     "param": None,
                 }
             else:
-                # Text generation models require explicit values in YAML
                 if "output_tokens" not in model_info:
                     raise ValueError(
                         f"Missing 'output_tokens' for OpenAI model {model_id}"
@@ -110,39 +104,32 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                     "requires_web_search": model_info.get("requires_web_search", False),
                 }
         elif provider == "claude":
-            # Claude format - require explicit values in YAML
             if "input_tokens" not in model_info:
                 raise ValueError(f"Missing 'input_tokens' for Claude model {model_id}")
-            # All Claude models in YAML have output_tokens defined - no need for defensive check
             model_configs[model_id] = {
                 "input_tokens": model_info["input_tokens"],
                 "output_tokens": model_info["output_tokens"],
             }
         elif provider == "gemini":
-            # Gemini format - handle agents, image/video generation, and text models
             if model_info.get("is_agent"):
-                # Agent models (e.g., deep research)
                 model_configs[model_id] = {
                     "output_tokens": model_info.get("output_tokens"),
                     "is_agent": True,
                 }
             elif model_info.get("pricing_type") in ["per_image", "per_second"]:
-                # Image/video generation models don't need output_tokens
-                entry = {"output_tokens": None}  # N/A for image/video generation
+                entry = {"output_tokens": None}
                 if "default_duration_seconds" in model_info:
                     entry["default_duration_seconds"] = model_info[
                         "default_duration_seconds"
                     ]
                 model_configs[model_id] = entry
             else:
-                # Text generation models require explicit values in YAML
                 if "output_tokens" not in model_info:
                     raise ValueError(
                         f"Missing 'output_tokens' for Gemini model {model_id}"
                     )
                 model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
         elif provider == "groq":
-            # Groq format - similar to OpenAI (OpenAI-compatible API)
             if "output_tokens" not in model_info:
                 raise ValueError(f"Missing 'output_tokens' for Groq model {model_id}")
             if "param" not in model_info:
@@ -153,27 +140,22 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 "supports_temperature": model_info.get("supports_temperature", True),
             }
         elif provider == "grok":
-            # Grok format - similar to Gemini but different pricing types
             if model_info.get("pricing_type") == "per_image":
-                # Image generation models don't need output_tokens
                 model_configs[model_id] = {
-                    "output_tokens": None  # N/A for image generation
+                    "output_tokens": None
                 }
             else:
-                # Text generation models require explicit values in YAML
                 if "output_tokens" not in model_info:
                     raise ValueError(
                         f"Missing 'output_tokens' for Grok model {model_id}"
                     )
                 model_configs[model_id] = {"output_tokens": model_info["output_tokens"]}
         elif provider == "mistral":
-            # Mistral format - include capability flags
             if "output_tokens" not in model_info:
                 raise ValueError(
                     f"Missing 'output_tokens' for Mistral model {model_id}"
                 )
             config_entry = {"output_tokens": model_info["output_tokens"]}
-            # Copy capability flags if present
             for flag in [
                 "supports_vision",
                 "supports_reasoning",
@@ -186,7 +168,6 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
                 if flag in model_info:
                     config_entry[flag] = model_info[flag]
             model_configs[model_id] = config_entry
-        # Other providers can be added here as needed
 
     return model_configs
 
@@ -212,7 +193,6 @@ def get_structured_model_listing(provider: str, api_model_ids: set | None = None
 
     config = load_model_config(provider)
 
-    # Build summary
     summary = ModelListingSummary(
         provider=provider,
         total_models=len(config["models"]),
@@ -221,7 +201,6 @@ def get_structured_model_listing(provider: str, api_model_ids: set | None = None
         api_available_models=len(api_model_ids) if api_model_ids else 0,
     )
 
-    # Process categories and models
     categories = []
     all_models = []
 
@@ -230,16 +209,13 @@ def get_structured_model_listing(provider: str, api_model_ids: set | None = None
         required_tags = category["tags"]
         exclude_tags = category.get("exclude_tags", [])
 
-        # Get models for this category
         category_models = get_models_by_tags(config, required_tags, exclude_tags)
 
         category_model_objects = []
 
         for model_id, model_config in category_models.items():
-            # Check API availability
             available = model_id in api_model_ids if api_model_ids else True
 
-            # Get pricing
             pricing_type = model_config.get("pricing_type", "token")
 
             if pricing_type == "per_image":
@@ -263,7 +239,6 @@ def get_structured_model_listing(provider: str, api_model_ids: set | None = None
                     output_cost_per_1m=output_cost,
                 )
 
-            # Parse capabilities and best_for from strings to lists
             capabilities = []
             if model_config.get("capabilities"):
                 capabilities = [
@@ -291,7 +266,7 @@ def get_structured_model_listing(provider: str, api_model_ids: set | None = None
             category_model_objects.append(model_info)
             all_models.append(model_info)
 
-        if category_model_objects:  # Only add categories with models
+        if category_model_objects:
             categories.append(
                 ModelCategory(name=category_name, models=category_model_objects)
             )
@@ -319,7 +294,6 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
     config = load_model_config(provider)
     model_info = []
 
-    # Build summary
     total_models = len(config["models"])
     total_categories = len(config["display_categories"])
 
@@ -331,11 +305,9 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
 • Default Model: {config["default_model"]}
 """
 
-    # Add provider-specific info
     if provider == "openai":
         summary += f"• API Available Models: {len(api_model_ids) if api_model_ids else 'Unknown'}\n"
 
-    # Process each display category
     for category in config["display_categories"]:
         category_name = category["name"]
         required_tags = category["tags"]
@@ -344,11 +316,9 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
         model_info.append(f"\n{category_name}")
         model_info.append("=" * len(category_name))
 
-        # Get models for this category
         category_models = get_models_by_tags(config, required_tags, exclude_tags)
 
         for model_id, model_config in category_models.items():
-            # Check API availability
             if api_model_ids:
                 availability = (
                     "✅ Available"
@@ -358,7 +328,6 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
             else:
                 availability = "✅ Configured"
 
-            # Get pricing
             pricing_type = model_config.get("pricing_type", "token")
             if pricing_type == "per_image":
                 cost_per_image = calculate_cost(
@@ -375,7 +344,6 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
                 output_cost = calculate_cost(model_id, 0, 1000000, provider)
                 pricing = f"${input_cost:.2f}/${output_cost:.2f} per 1M tokens"
 
-            # Format model entry
             context_window = model_config.get("context_window", "Unknown")
             description = model_config.get("description", "No description")
             capabilities = model_config.get("capabilities", "No capabilities listed")
@@ -390,7 +358,6 @@ def format_model_listing(provider: str, api_model_ids: set | None = None) -> str
    {capabilities}"""
             )
 
-    # Add usage notes
     usage_notes = "\n💡 Usage Notes:\n" + "\n".join(
         f"• {note}" for note in config["usage_notes"]
     )

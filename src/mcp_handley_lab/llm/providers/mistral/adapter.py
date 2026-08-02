@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     except ImportError:
         from mistralai import Mistral
 
-# Lazy initialization of Mistral client
 _client: "Mistral | None" = None
 _client_lock = threading.Lock()
 
@@ -45,7 +44,6 @@ def get_client() -> "Mistral":
     return _client
 
 
-# Load model configurations using shared loader
 MODEL_CONFIGS, DEFAULT_MODEL = load_provider_models("mistral")
 
 
@@ -67,13 +65,11 @@ def extract_text_content(content: str | list, include_thinking: bool = True) -> 
     if isinstance(content, str):
         return content
 
-    # Handle list of content chunks (reasoning models)
     text_parts = []
     for chunk in content:
         if hasattr(chunk, "text"):
             text_parts.append(chunk.text)
         elif hasattr(chunk, "thinking") and include_thinking:
-            # ThinkChunk contains nested thinking content
             for think_part in chunk.thinking:
                 if hasattr(think_part, "text"):
                     text_parts.append(f"<thinking>\n{think_part.text}\n</thinking>")
@@ -88,7 +84,6 @@ def resolve_files(files: list[str]) -> list[dict[str, Any]]:
     content_parts = []
 
     for file_item in files:
-        # Handle unified format: strings or {"path": "..."} dicts
         if isinstance(file_item, str):
             file_path = Path(file_item).expanduser()
         elif isinstance(file_item, dict) and "path" in file_item:
@@ -97,13 +92,11 @@ def resolve_files(files: list[str]) -> list[dict[str, Any]]:
             raise ValueError(f"Invalid file item format: {file_item}")
 
         if is_text_file(file_path):
-            # For text files, read directly as text
             content = file_path.read_text(encoding="utf-8")
             content_parts.append(
                 {"type": "text", "text": f"[File: {file_path.name}]\n{content}"}
             )
         else:
-            # For images, encode as base64 with proper MIME type
             mime_type = determine_mime_type(file_path)
             if not mime_type.startswith("image/"):
                 raise ValueError(
@@ -130,32 +123,25 @@ def generation_adapter(
     **kwargs,
 ) -> dict[str, Any]:
     """Mistral-specific text generation function for the shared processor."""
-    # Extract Mistral-specific parameters from options dict
     options = kwargs.get("options", {})
     temperature = kwargs.get("temperature", 1.0)
     files = kwargs.get("files", [])
     include_thinking = options.get("include_thinking", False)
 
-    # Get model configuration for output tokens
     model_config = get_model_config(model)
     output_tokens = model_config.get("output_tokens", 8192)
 
-    # Build messages array
     messages = []
 
-    # Add system instruction if provided
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
 
-    # Add conversation history
     for msg in history:
         messages.append({"role": msg["role"], "content": msg["content"]})
 
-    # Build user message with prompt and files
     user_content = []
     user_content.append({"type": "text", "text": prompt})
 
-    # Add file contents
     if files:
         file_parts = resolve_files(files)
         user_content.extend(file_parts)
@@ -164,7 +150,6 @@ def generation_adapter(
         {"role": "user", "content": user_content if len(user_content) > 1 else prompt}
     )
 
-    # Generate response
     try:
         response = get_client().chat.complete(
             model=model,
@@ -178,7 +163,6 @@ def generation_adapter(
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response text generated")
 
-    # Extract response data
     choice = response.choices[0]
     message = choice.message
     usage = response.usage
@@ -205,26 +189,20 @@ def image_analysis_adapter(
     **kwargs,
 ) -> dict[str, Any]:
     """Mistral-specific image analysis function for the shared processor."""
-    # Extract image analysis specific parameters
     images = kwargs.get("images", [])
     focus = kwargs.get("focus", "general")
 
-    # Enhance prompt based on focus
     if focus != "general":
         prompt = f"Focus on {focus} aspects. {prompt}"
 
-    # Get model configuration for output tokens
     model_config = get_model_config(model)
     output_tokens = model_config.get("output_tokens", 8192)
 
-    # Build message content with images
     content = [{"type": "text", "text": prompt}]
 
-    # Add images
     for image_item in images:
         image_bytes = resolve_image_data(image_item)
         encoded_image = base64.b64encode(image_bytes).decode()
-        # Detect MIME type from path or default to jpeg
         mime_type = "image/jpeg"
         if isinstance(image_item, str) and not image_item.startswith("data:"):
             guessed_type = determine_mime_type(Path(image_item).expanduser())
@@ -237,18 +215,15 @@ def image_analysis_adapter(
             }
         )
 
-    # Build messages (including conversation history for context)
     messages = []
     if system_instruction:
         messages.append({"role": "system", "content": system_instruction})
 
-    # Add conversation history for multi-turn context
     for entry in history:
         messages.append({"role": entry["role"], "content": entry["content"]})
 
     messages.append({"role": "user", "content": content})
 
-    # Generate response
     try:
         response = get_client().chat.complete(
             model=model,
@@ -261,7 +236,6 @@ def image_analysis_adapter(
     if not response.choices or not response.choices[0].message.content:
         raise RuntimeError("No response text generated")
 
-    # Extract response data
     choice = response.choices[0]
     message = choice.message
     usage = response.usage
@@ -279,24 +253,18 @@ def image_analysis_adapter(
 
 def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, Any]:
     """Mistral-specific OCR function for document processing."""
-    # Determine input type and format
     document_input = {}
 
     if document_path.startswith(("http://", "https://")):
-        # HTTP(S) URL
         document_input = {"type": "document_url", "document_url": document_path}
     elif document_path.startswith("data:"):
-        # Base64 data URI
         document_input = {"type": "document_url", "document_url": document_path}
     else:
-        # Local file - convert to base64 data URI
         file_path = Path(document_path).expanduser()
 
-        # Read file and encode
         file_content = file_path.read_bytes()
         encoded_content = base64.b64encode(file_content).decode()
 
-        # Determine MIME type
         suffix = file_path.suffix.lower()
         mime_types = {
             ".pdf": "application/pdf",
@@ -320,14 +288,12 @@ def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, An
                 "document_url": f"data:{mime_type};base64,{encoded_content}",
             }
 
-    # Call Mistral OCR API
     response = get_client().ocr.process(
         model="mistral-ocr-latest",
         document=document_input,
         include_image_base64=include_images,
     )
 
-    # Convert response to dict (handle Pydantic models)
     def to_dict(obj):
         """Convert Pydantic models to dicts recursively."""
         if hasattr(obj, "model_dump"):
@@ -356,16 +322,13 @@ def audio_transcription_adapter(
     include_timestamps: bool = False,
 ) -> dict[str, Any]:
     """Mistral-specific audio transcription function."""
-    # Prepare transcription request
     transcription_params = {
         "model": "voxtral-mini-latest",
     }
 
-    # Handle input source
     if audio_path.startswith(("http://", "https://")):
         transcription_params["file_url"] = audio_path
     else:
-        # Local file
         file_path = Path(audio_path).expanduser()
         with open(file_path, "rb") as f:
             transcription_params["file"] = {
@@ -373,22 +336,18 @@ def audio_transcription_adapter(
                 "file_name": file_path.name,
             }
 
-    # Add optional parameters
     if language:
         transcription_params["language"] = language
 
     if include_timestamps:
         transcription_params["timestamp_granularities"] = ["segment"]
 
-    # Call Mistral transcription API
     response = get_client().audio.transcriptions.complete(**transcription_params)
 
-    # Build result
     result = {
         "text": response.text if hasattr(response, "text") else str(response),
     }
 
-    # Add segments if timestamps requested
     if include_timestamps and hasattr(response, "segments"):
         result["segments"] = [
             {
@@ -410,22 +369,18 @@ def embeddings_adapter(texts: list[str], model: str) -> list[list[float]]:
 
 def moderation_adapter(text: str) -> dict[str, Any]:
     """Mistral-specific content moderation function."""
-    # Call Mistral moderation API
     response = get_client().classifiers.moderate_chat(
         model="mistral-moderation-latest",
         inputs=[{"role": "user", "content": text}],
     )
 
-    # Extract moderation results
     if response.results and len(response.results) > 0:
         result_data = response.results[0]
 
-        # Build category scores and flags
         categories = {}
         category_flags = {}
 
         if hasattr(result_data, "categories"):
-            # Handle dict, Pydantic model, or other object types
             cats = result_data.categories
             if isinstance(cats, dict):
                 cat_dict = cats
@@ -461,7 +416,6 @@ def fill_in_middle_adapter(
     stop: list[str] | None = None,
 ) -> dict[str, Any]:
     """Mistral-specific fill-in-the-middle code completion."""
-    # Build FIM request
     fim_params = {
         "model": model,
         "prompt": prefix,
@@ -473,7 +427,6 @@ def fill_in_middle_adapter(
     if stop:
         fim_params["stop"] = stop
 
-    # Call Mistral FIM API
     response = get_client().fim.complete(**fim_params)
 
     if not response.choices or not response.choices[0].message.content:

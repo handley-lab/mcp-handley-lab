@@ -16,7 +16,6 @@ from typing import Any
 # This pattern is used for quick pre-filtering only
 VALID_BRANCH_CHARS = re.compile(r"^[A-Za-z0-9_.\-]+$")
 
-# Event types for JSONL format
 EVENT_TYPES = {"message", "system_prompt", "clear"}
 
 
@@ -49,10 +48,6 @@ def get_edit_dir() -> Path:
     """Get the edit directory (contains worktrees for editing sessions)."""
     return get_global_storage_dir() / "edit"
 
-
-# =============================================================================
-# Git Plumbing Helpers
-# =============================================================================
 
 
 def _git(
@@ -120,14 +115,12 @@ def _ensure_git_repo(project_dir: Path) -> None:
     if git_dir.exists():
         return
 
-    # Initialize non-bare repo
     subprocess.run(
         ["git", "init", str(project_dir)],
         capture_output=True,
         check=True,
     )
 
-    # Set local identity
     _git(project_dir, "config", "user.name", "mcp-handley-lab")
     _git(project_dir, "config", "user.email", "mcp-handley-lab@local")
 
@@ -151,10 +144,6 @@ def get_project_dir(cwd: Path | None = None) -> Path:
     return project_dir
 
 
-# =============================================================================
-# Branch Validation
-# =============================================================================
-
 
 def validate_branch_name(name: str) -> None:
     """Validate a branch name using git check-ref-format.
@@ -165,14 +154,12 @@ def validate_branch_name(name: str) -> None:
     if not name:
         raise ValueError("Branch name cannot be empty")
 
-    # Quick pre-filter before calling git
     if not VALID_BRANCH_CHARS.match(name):
         raise ValueError(
             f"Invalid branch name '{name}'. "
             "Branch names must contain only letters, numbers, underscores, hyphens, and dots."
         )
 
-    # Let git do the authoritative validation
     result = subprocess.run(
         ["git", "check-ref-format", "--branch", name],
         capture_output=True,
@@ -196,24 +183,17 @@ def normalize_branch_input(branch: str) -> str | None:
     Raises:
         ValueError: If branch name is whitespace-only or invalid
     """
-    # Check special values on raw input (before normalization)
     if branch == "" or branch.lower() == "false":
         return None
 
-    # Normalize
     normalized = branch.strip()
 
     if not normalized:
         raise ValueError("Branch name cannot be whitespace-only")
 
-    # Validate
     validate_branch_name(normalized)
     return normalized
 
-
-# =============================================================================
-# Checkout-Free Read Operations
-# =============================================================================
 
 
 def branch_exists(project_dir: Path, branch: str) -> bool:
@@ -245,11 +225,9 @@ def read_branch(project_dir: Path, branch: str) -> str:
     Raises:
         ValueError: If branch exists but conversation.jsonl is missing (corrupted)
     """
-    # Check if branch exists
     if not branch_exists(project_dir, branch):
         return ""
 
-    # Branch exists - try to read the file
     result = _git_unchecked(
         project_dir, "show", f"refs/heads/{branch}:conversation.jsonl"
     )
@@ -292,10 +270,8 @@ def read_ref(project_dir: Path, ref: str) -> tuple[str, str]:
     Raises:
         ValueError: If ref doesn't exist or file is missing
     """
-    # Resolve ref to commit (handles tags, follows annotated tags)
     resolved_sha = resolve_ref(project_dir, ref)
 
-    # Read file at that commit
     result = _git_unchecked(project_dir, "show", f"{resolved_sha}:conversation.jsonl")
     if result.returncode != 0:
         raise ValueError("Corrupted conversation: missing file")
@@ -321,10 +297,6 @@ def get_branch_sha(project_dir: Path, branch: str) -> str | None:
     return result.stdout.strip()
 
 
-# =============================================================================
-# Commit Creation (Checkout-Free)
-# =============================================================================
-
 
 def create_commit(
     project_dir: Path,
@@ -348,16 +320,13 @@ def create_commit(
     Returns:
         New commit SHA
     """
-    # Create blob
     result = _git(project_dir, "hash-object", "-w", "--stdin", input_data=content)
     blob_sha = result.stdout.strip()
 
-    # Create tree (single-file tree with conversation.jsonl)
     tree_entry = f"100644 blob {blob_sha}\tconversation.jsonl"
     result = _git(project_dir, "mktree", input_data=tree_entry)
     tree_sha = result.stdout.strip()
 
-    # Create commit
     if parent:
         result = _git(project_dir, "commit-tree", tree_sha, "-p", parent, "-m", message)
     else:
@@ -365,10 +334,6 @@ def create_commit(
 
     return result.stdout.strip()
 
-
-# =============================================================================
-# Fast-Forward with Fork-on-Conflict
-# =============================================================================
 
 
 def try_fast_forward(
@@ -433,10 +398,8 @@ def create_orphan_branch(
     if branch_exists(project_dir, branch):
         raise ValueError(f"Branch '{branch}' already exists")
 
-    # Create orphan commit (no parent)
     commit_sha = create_commit(project_dir, content, None, message)
 
-    # Create branch
     if not create_branch(project_dir, branch, commit_sha):
         raise ValueError(f"Failed to create branch '{branch}'")
 
@@ -464,7 +427,6 @@ def fork_branch(project_dir: Path, branch: str, from_ref: str) -> str:
     if branch_exists(project_dir, branch):
         raise ValueError(f"Branch '{branch}' already exists")
 
-    # Resolve from_ref to commit SHA
     result = _git_unchecked(
         project_dir, "rev-parse", "--verify", f"{from_ref}^{{commit}}"
     )
@@ -473,16 +435,11 @@ def fork_branch(project_dir: Path, branch: str, from_ref: str) -> str:
 
     commit_sha = result.stdout.strip()
 
-    # Create branch at that commit
     if not create_branch(project_dir, branch, commit_sha):
         raise ValueError(f"Failed to create branch '{branch}'")
 
     return commit_sha
 
-
-# =============================================================================
-# JSONL Helpers
-# =============================================================================
 
 
 def parse_messages(jsonl_content: str) -> list[dict[str, Any]]:
@@ -584,7 +541,6 @@ def append_message(
         "content": text,
     }
 
-    # Add optional metadata
     if "usage" in meta:
         event["usage"] = meta["usage"]
     if "cwd" in meta:
@@ -646,11 +602,6 @@ def append_clear(content: str) -> str:
     return content + new_line
 
 
-# =============================================================================
-# High-Level Write Operations
-# =============================================================================
-
-
 def write_conversation(
     project_dir: Path,
     branch: str,
@@ -676,14 +627,11 @@ def write_conversation(
             "forked_from": str | None,  # Original branch if forked
         }
     """
-    # Validate content before writing
     validate_jsonl(content)
 
-    # Get current branch state
     old_sha = get_branch_sha(project_dir, branch)
 
     if old_sha is None:
-        # Branch doesn't exist - create as orphan with the provided message
         commit_sha = create_orphan_branch(project_dir, branch, content, message)
         return {
             "branch": branch,
@@ -692,10 +640,8 @@ def write_conversation(
             "forked_from": None,
         }
 
-    # Create commit with parent
     new_sha = create_commit(project_dir, content, old_sha, message)
 
-    # Attempt fast-forward
     if try_fast_forward(project_dir, branch, old_sha, new_sha):
         return {
             "branch": branch,
@@ -704,7 +650,6 @@ def write_conversation(
             "forked_from": None,
         }
 
-    # Conflict - create fork branch with full SHA for uniqueness
     fork_branch = f"{branch}-fork-{new_sha}"
 
     if not create_branch(project_dir, fork_branch, new_sha):
@@ -716,11 +661,6 @@ def write_conversation(
         "forked": True,
         "forked_from": branch,
     }
-
-
-# =============================================================================
-# LLM Context Extraction
-# =============================================================================
 
 
 def get_llm_context(
@@ -748,13 +688,11 @@ def get_llm_context(
     if not events:
         return [], None
 
-    # Find last clear boundary
     last_clear_idx = -1
     for i, event in enumerate(events):
         if event.get("type") == "clear":
             last_clear_idx = i
 
-    # Collect messages and system prompt after last clear
     history = []
     system_prompt = None
 
@@ -774,11 +712,6 @@ def get_llm_context(
             system_prompt = event["content"]
 
     return history, system_prompt
-
-
-# =============================================================================
-# Branch Operations
-# =============================================================================
 
 
 def list_branches(project_dir: Path) -> list[dict[str, Any]]:
@@ -802,7 +735,6 @@ def list_branches(project_dir: Path) -> list[dict[str, Any]]:
         if not name:
             continue
 
-        # Get basic stats from content
         content = read_branch(project_dir, name)
         events = parse_messages(content)
 
@@ -866,11 +798,6 @@ def get_log(
     return entries
 
 
-# =============================================================================
-# Edit Session Management (Worktree-based)
-# =============================================================================
-
-
 def _get_lock_path(project_dir: Path) -> Path:
     """Get the lock file path for a project."""
     return project_dir / ".mcp-edit-lock"
@@ -924,26 +851,20 @@ def start_edit(project_dir: Path) -> dict[str, Any]:
 
     worktree_path = _get_worktree_path(project_dir)
 
-    # Clean up orphaned worktree if exists
     if worktree_path.exists():
         _git_unchecked(project_dir, "worktree", "remove", "--force", str(worktree_path))
-        # If removal failed (dir still exists), try to remove manually
         if worktree_path.exists():
             import shutil
 
             shutil.rmtree(worktree_path, ignore_errors=True)
 
-    # Create worktree with detached HEAD
     worktree_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Get a commit to use as HEAD (any branch tip, or create an empty commit)
     branches = list_branches(project_dir)
     if branches:
-        # Use first available branch
         branch_name = branches[0]["name"]
         ref = f"refs/heads/{branch_name}"
     else:
-        # No branches - create an orphan commit for the worktree
         ref = create_commit(project_dir, "", None, "Empty worktree anchor")
 
     result = _git_unchecked(
@@ -952,7 +873,6 @@ def start_edit(project_dir: Path) -> dict[str, Any]:
     if result.returncode != 0:
         raise ValueError(f"Failed to create worktree: {result.stderr}")
 
-    # Create lock file
     lock_path = _get_lock_path(project_dir)
     lock_data = {
         "timestamp": datetime.now().isoformat(),
@@ -985,27 +905,22 @@ def end_edit(project_dir: Path, force: bool = False) -> dict[str, Any]:
     if lock_info is None and not force:
         raise ValueError("No editing session in progress")
 
-    # Check PID match unless forcing
     if lock_info and not force and lock_info.get("pid") != os.getpid():
         raise ValueError(
             f"Lock held by different process (pid={lock_info.get('pid')}). "
             "Use force=True to override."
         )
 
-    # Remove worktree
     worktree_path = _get_worktree_path(project_dir)
     if worktree_path.exists():
         _git_unchecked(project_dir, "worktree", "remove", "--force", str(worktree_path))
-        # Fallback: remove directory if worktree removal failed
         if worktree_path.exists():
             import shutil
 
             shutil.rmtree(worktree_path, ignore_errors=True)
 
-    # Prune worktree list
     _git_unchecked(project_dir, "worktree", "prune")
 
-    # Remove lock file
     if lock_path.exists():
         lock_path.unlink()
 
@@ -1037,13 +952,11 @@ def get_response(
 
     events = parse_messages(content)
 
-    # Find last clear boundary
     last_clear_idx = -1
     for i, event in enumerate(events):
         if event.get("type") == "clear":
             last_clear_idx = i
 
-    # Collect assistant messages after last clear
     responses = []
     for i, event in enumerate(events):
         if i <= last_clear_idx:
@@ -1057,10 +970,8 @@ def get_response(
     msg = responses[index]
     stored_usage = msg.get("usage") or {}
 
-    # Build result in LLMResult format
     result: dict[str, Any] = {"content": msg["content"]}
 
-    # Build usage dict matching UsageStats structure
     usage = {
         "input_tokens": stored_usage.get("input_tokens", 0),
         "output_tokens": stored_usage.get("output_tokens", 0),
@@ -1069,7 +980,6 @@ def get_response(
     }
     result["usage"] = usage
 
-    # Add other LLMResult fields if present
     llm_result_fields = [
         "finish_reason",
         "avg_logprobs",

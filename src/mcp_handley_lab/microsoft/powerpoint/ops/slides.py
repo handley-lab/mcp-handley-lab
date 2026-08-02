@@ -20,23 +20,18 @@ def list_slides(pkg: PowerPointPackage) -> list[SlideInfo]:
     for num, _rid, partname in pkg.get_slide_paths():
         slide_xml = pkg.get_xml(partname)
 
-        # Count shapes in spTree
         sp_tree = slide_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
         shape_count = 0
         if sp_tree is not None:
-            # Count direct shape children (excluding nvGrpSpPr which is the tree itself)
             for child in sp_tree:
                 tag = etree.QName(child).localname
                 if tag in ("sp", "pic", "graphicFrame", "grpSp", "cxnSp"):
                     shape_count += 1
 
-        # Check for notes
         has_notes = pkg.get_notes_xml(num) is not None
 
-        # Get layout name
         layout_name = pkg.get_slide_layout_name(num)
 
-        # Extract title from title placeholder
         title = extract_title_text(slide_xml)
 
         slides.append(
@@ -90,7 +85,6 @@ def list_layouts(pkg: PowerPointPackage) -> list[LayoutInfo]:
         master_path = pkg.resolve_rel_target(pkg.presentation_path, master_rid)
         master_xml = pkg.get_xml(master_path)
 
-        # Get master name from cSld@name
         master_cSld = master_xml.find(qn("p:cSld"), NSMAP)
         master_name = (
             master_cSld.get("name", f"Master {master_idx + 1}")
@@ -113,14 +107,11 @@ def list_layouts(pkg: PowerPointPackage) -> list[LayoutInfo]:
             layout_path = pkg.resolve_rel_target(master_path, layout_rid)
             layout_xml = pkg.get_xml(layout_path)
 
-            # Get layout name from cSld@name
             cSld = layout_xml.find(qn("p:cSld"), NSMAP)
             name = cSld.get("name", "Untitled") if cSld is not None else "Untitled"
 
-            # Get layout type from root element attribute
             layout_type = layout_xml.get("type")
 
-            # Collect placeholder info
             sp_tree = layout_xml.find(qn("p:cSld") + "/" + qn("p:spTree"), NSMAP)
             placeholder_count = 0
             placeholder_types = []
@@ -167,37 +158,30 @@ def add_slide(
     pres_path = pkg.presentation_path
     pres_rels = pkg.get_rels(pres_path)
 
-    # Find layout
     layout_path = _find_layout_by_name(pkg, layout_name)
 
-    # Determine new slide path (avoid collisions after deletions)
     new_slide_path = pkg.next_partname("/ppt/slides/slide", ".xml")
 
-    # Create minimal slide XML
     slide = _create_minimal_slide()
     pkg.set_xml(new_slide_path, slide)
 
-    # Add content type
     from mcp_handley_lab.microsoft.powerpoint.constants import CT
 
     pkg._content_types[new_slide_path] = CT.PML_SLIDE
 
-    # Add relationship from presentation to slide
     new_rid = pres_rels.get_or_add(RT.SLIDE, new_slide_path)
     pkg._dirty_rels.add(pres_path)
 
-    # Add slide to sldIdLst
     sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
     if sld_id_lst is None:
         sld_id_lst = etree.SubElement(pres, qn("p:sldIdLst"))
 
-    # Generate new slide ID (must be unique, >= 256)
+    # ECMA-376 requires slide IDs to be unique and at least 256.
     existing_ids = [int(el.get("id", "0")) for el in sld_id_lst]
     new_id = max(existing_ids, default=255) + 1
     if new_id < 256:
         new_id = 256
 
-    # Create the sldId element
     sld_id = etree.Element(
         qn("p:sldId"),
         id=str(new_id),
@@ -205,32 +189,24 @@ def add_slide(
     )
     sld_id.set(qn("r:id"), new_rid)
 
-    # Insert at position or append to end
     existing_count = len(list(sld_id_lst))
     if position is not None:
-        # Clamp position to valid range (1 to existing_count + 1)
         insert_idx = max(0, min(position - 1, existing_count))
         sld_id_lst.insert(insert_idx, sld_id)
     else:
-        # Append to end
         sld_id_lst.append(sld_id)
 
-    # Add relationship from slide to layout
     slide_rels = pkg.get_rels(new_slide_path)
     slide_rels.get_or_add(RT.SLIDE_LAYOUT, layout_path)
     pkg._dirty_rels.add(new_slide_path)
 
-    # Mark dirty and invalidate caches
     pkg.mark_xml_dirty(pres_path)
     pkg.invalidate_caches()
 
-    # Determine actual slide number after insertion
-    # The slide's position is its index in sldIdLst + 1
     for idx, el in enumerate(sld_id_lst):
         if el.get(qn("r:id")) == new_rid:
             return idx + 1
 
-    # Fallback (should not reach here)
     return existing_count + 1
 
 
@@ -239,7 +215,6 @@ def delete_slide(pkg: PowerPointPackage, slide_num: int) -> None:
     pres = pkg.presentation_xml
     pres_path = pkg.presentation_path
 
-    # Find slide info
     slide_paths = pkg.get_slide_paths()
     target = None
     for num, rid, partname in slide_paths:
@@ -252,7 +227,6 @@ def delete_slide(pkg: PowerPointPackage, slide_num: int) -> None:
 
     rid, partname = target
 
-    # Remove from sldIdLst
     sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
     if sld_id_lst is not None:
         for sld_id in list(sld_id_lst):
@@ -260,14 +234,11 @@ def delete_slide(pkg: PowerPointPackage, slide_num: int) -> None:
                 sld_id_lst.remove(sld_id)
                 break
 
-    # Remove relationship
     pres_rels = pkg.get_rels(pres_path)
     pres_rels.remove(rid)
 
-    # Drop the slide part and its relationships
     pkg.drop_part(partname)
 
-    # Mark dirty and invalidate caches
     pkg.mark_xml_dirty(pres_path)
     pkg.invalidate_caches()
 
@@ -287,11 +258,9 @@ def reorder_slide(pkg: PowerPointPackage, slide_num: int, new_position: int) -> 
     if new_position < 1 or new_position > len(sld_ids):
         raise ValueError(f"Invalid position {new_position}")
 
-    # Remove from current position (0-indexed)
     element = sld_ids[slide_num - 1]
     sld_id_lst.remove(element)
 
-    # Insert at new position
     sld_id_lst.insert(new_position - 1, element)
 
     pkg.mark_xml_dirty(pres_path)
@@ -331,7 +300,6 @@ def set_slide_dimensions(
         "standard": (9144000, 6858000, "screen4x3"),
     }
 
-    # Determine dimensions
     if preset is not None:
         preset_lower = preset.lower()
         if preset_lower not in PRESETS:
@@ -340,7 +308,6 @@ def set_slide_dimensions(
             )
         cx, cy, type_attr = PRESETS[preset_lower]
     elif width is not None and height is not None:
-        # Validate custom dimensions
         if width <= 0.1:
             raise ValueError(f"Width must be > 0.1 inches, got {width}")
         if height <= 0.1:
@@ -353,10 +320,8 @@ def set_slide_dimensions(
             "Must provide either preset or both width and height in inches"
         )
 
-    # Find or create p:sldSz
     sld_sz = pres.find(qn("p:sldSz"), NSMAP)
     if sld_sz is None:
-        # Create p:sldSz - insert before p:notesSz if present, otherwise at end
         notes_sz = pres.find(qn("p:notesSz"), NSMAP)
         sld_sz = etree.Element(qn("p:sldSz"))
         if notes_sz is not None:
@@ -364,11 +329,9 @@ def set_slide_dimensions(
         else:
             pres.append(sld_sz)
 
-    # Update attributes
     sld_sz.set("cx", str(cx))
     sld_sz.set("cy", str(cy))
 
-    # Set or remove type attribute
     if type_attr is not None:
         sld_sz.set("type", type_attr)
     elif "type" in sld_sz.attrib:
@@ -403,19 +366,15 @@ def duplicate_slide(
     pres_path = pkg.presentation_path
     pres_rels = pkg.get_rels(pres_path)
 
-    # Get source slide info
     source_path = pkg.get_slide_partname(source_num)
     source_xml = pkg.get_slide_xml(source_num)
     source_rels = pkg.get_rels(source_path)
 
-    # Determine new slide path (avoid collisions)
     new_slide_path = pkg.next_partname("/ppt/slides/slide", ".xml")
 
-    # Copy slide XML (deep copy)
     new_slide_xml = copy.deepcopy(source_xml)
     pkg.set_xml(new_slide_path, new_slide_xml)
 
-    # Register content type
     pkg._content_types[new_slide_path] = CT.PML_SLIDE
 
     # Copy relationships (except notes and comments)
@@ -425,27 +384,23 @@ def duplicate_slide(
     for rel in source_rels.values():
         if rel.reltype in excluded_reltypes:
             continue
-        # Preserve target and external flag
         new_slide_rels.add(rel.reltype, rel.target, rel.is_external)
 
     pkg._dirty_rels.add(new_slide_path)
 
-    # Add relationship from presentation to new slide
     new_rid = pres_rels.add(RT.SLIDE, new_slide_path)
     pkg._dirty_rels.add(pres_path)
 
-    # Add to sldIdLst
     sld_id_lst = pres.find(qn("p:sldIdLst"), NSMAP)
     if sld_id_lst is None:
         sld_id_lst = etree.SubElement(pres, qn("p:sldIdLst"))
 
-    # Generate new slide ID (must be unique, >= 256)
+    # ECMA-376 requires slide IDs to be unique and at least 256.
     existing_ids = [int(el.get("id", "0")) for el in sld_id_lst]
     new_id = max(existing_ids, default=255) + 1
     if new_id < 256:
         new_id = 256
 
-    # Create the sldId element
     sld_id = etree.Element(
         qn("p:sldId"),
         id=str(new_id),
@@ -453,26 +408,20 @@ def duplicate_slide(
     )
     sld_id.set(qn("r:id"), new_rid)
 
-    # Insert at position or append to end
     existing_count = len(list(sld_id_lst))
     if position is not None:
-        # Clamp position to valid range (1 to existing_count + 1)
         insert_idx = max(0, min(position - 1, existing_count))
         sld_id_lst.insert(insert_idx, sld_id)
     else:
-        # Append to end
         sld_id_lst.append(sld_id)
 
-    # Mark dirty and invalidate caches
     pkg.mark_xml_dirty(pres_path)
     pkg.invalidate_caches()
 
-    # Determine actual slide number after insertion
     for idx, el in enumerate(sld_id_lst):
         if el.get(qn("r:id")) == new_rid:
             return idx + 1
 
-    # Fallback (should not reach here)
     return existing_count + 1
 
 
@@ -484,7 +433,6 @@ def _find_layout_by_name(pkg: PowerPointPackage, layout_name: str | None) -> str
     """
     pres = pkg.presentation_xml
 
-    # Iterate over all masters in sldMasterIdLst (preserves ordering)
     sld_master_id_lst = pres.find(qn("p:sldMasterIdLst"), NSMAP)
     if sld_master_id_lst is None:
         raise ValueError("No slide masters found in presentation")
@@ -512,15 +460,12 @@ def _find_layout_by_name(pkg: PowerPointPackage, layout_name: str | None) -> str
 
             layout_path = pkg.resolve_rel_target(master_path, layout_rid)
 
-            # Track the first layout found (for None case)
             if first_layout_path is None:
                 first_layout_path = layout_path
 
-            # If no name specified, return first layout
             if layout_name is None:
                 return layout_path
 
-            # Check if this layout matches the requested name
             layout_xml = pkg.get_xml(layout_path)
             cSld = layout_xml.find(qn("p:cSld"), NSMAP)
             if cSld is not None and cSld.get("name") == layout_name:
@@ -580,7 +525,6 @@ def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> N
     if sld_id_lst is None:
         raise ValueError("Presentation has no slide list")
 
-    # Find the sldId element at the given position
     sld_ids = list(sld_id_lst.findall(qn("p:sldId"), NSMAP))
     if slide_num < 1 or slide_num > len(sld_ids):
         raise ValueError(
@@ -589,7 +533,6 @@ def hide_slide(pkg: PowerPointPackage, slide_num: int, hidden: bool = True) -> N
 
     sld_id = sld_ids[slide_num - 1]
 
-    # Set or remove the show attribute
     if hidden:
         sld_id.set("show", "0")
     else:

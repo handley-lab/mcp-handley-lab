@@ -27,7 +27,6 @@ from mcp_handley_lab.loop.protocol import (
     Response,
 )
 
-# Paths
 RUN_DIR = Path.home() / ".local" / "run"
 STATE_DIR = Path.home() / ".local" / "state" / "mcp-loop"
 SOCKET_PATH = RUN_DIR / "mcp-loop.sock"
@@ -40,7 +39,6 @@ IDLE_TIMEOUT = 30 * 60  # 30 minutes
 
 def sanitize_label(label: str, fallback: str = "loop") -> str:
     """Sanitize label for tmux window naming compatibility."""
-    # Replace spaces with dashes, remove special chars
     result = re.sub(r"[^a-zA-Z0-9_-]", "-", label).strip("-")
     return result if result else fallback
 
@@ -76,10 +74,9 @@ class LoopState:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "LoopState":
-        # Migration: handle old state.json with 'namespace' field
         if "namespace" in d and "parent_id" not in d:
             namespace = d["namespace"]
-            # Extract last component for label, parent_id is unknown
+            # A namespace-only record has no recoverable parent.
             label = namespace.split("/")[-1] if namespace else d.get("backend", "")
             logging.warning(
                 f"Migrating loop {d['loop_id']} from namespace to parent-child model"
@@ -145,15 +142,12 @@ class LoopDaemon:
             return []  # Cycle detected - stop recursion
         _visited.add(parent_id)
 
-        # Snapshot under lock
         with self._lock:
             all_loops = list(self.loops.values())
 
         result = []
-        # Direct children
         direct = [loop for loop in all_loops if loop.parent_id == parent_id]
         result.extend(direct)
-        # Recurse for grandchildren
         for child in direct:
             result.extend(self._get_descendants(child.loop_id, _visited))
         return result
@@ -219,7 +213,6 @@ class LoopDaemon:
         if not request.backend:
             return Response.error_response("backend required", ERROR_INVALID_REQUEST)
 
-        # Use provided label or default to backend name (both sanitized for tmux)
         label = sanitize_label(
             request.label if request.label else request.backend,
             fallback=request.backend,
@@ -242,7 +235,6 @@ class LoopDaemon:
         except Exception as e:
             return Response.error_response(str(e), ERROR_BACKEND_ERROR)
 
-        # Get sandbox PID if available (for dynamic mounts via nsenter)
         sandbox_pid = 0
         if request.sandbox:
             try:
@@ -339,7 +331,6 @@ class LoopDaemon:
 
             result = result_holder["result"]
 
-            # Update session_id if changed
             backend_session_id = result.get("session_id", "")
             if backend_session_id and backend_session_id != loop.session_id:
                 with self._lock:
@@ -608,7 +599,6 @@ def run_daemon():
     )
     logging.info("Loop daemon starting")
 
-    # Write sandbox launcher script (used by sandbox_cmd when spawning sandboxed loops)
     from mcp_handley_lab.loop.sandbox import write_launcher_script
 
     write_launcher_script()

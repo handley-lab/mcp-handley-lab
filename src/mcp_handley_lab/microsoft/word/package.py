@@ -19,7 +19,6 @@ class WordPackage(OpcPackage):
     and document creation.
     """
 
-    # Common image types that may not be in mimetypes database
     _IMAGE_TYPES = {
         "png": "image/png",
         "jpg": "image/jpeg",
@@ -33,8 +32,6 @@ class WordPackage(OpcPackage):
         "emf": "image/x-emf",
         "wmf": "image/x-wmf",
     }
-
-    # === Convenience Properties ===
 
     def get_optional_xml(self, path: str) -> etree._Element | None:
         """Get XML part if it exists, else None."""
@@ -72,8 +69,6 @@ class WordPackage(OpcPackage):
     def body(self) -> etree._Element:
         return self.document_xml.find(qn("w:body"))
 
-    # === Factory Methods ===
-
     @classmethod
     def open(cls, file: str | Path | BinaryIO) -> WordPackage:
         """Open a .docx file."""
@@ -99,13 +94,11 @@ class WordPackage(OpcPackage):
         Used for operations like footnotes that require saving to disk
         and then continuing with batch operations.
         """
-        # Clear existing state
         self._xml.clear()
         self._bytes.clear()
         self._rels.clear()
         self._dirty_xml.clear()
         self._dirty_rels.clear()
-        # Reload from file
         with open(path, "rb") as f:
             self._load_from_stream(f)
 
@@ -125,7 +118,6 @@ class WordPackage(OpcPackage):
         w_ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
         r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
-        # Document XML
         doc_nsmap = {None: w_ns, "r": r_ns}
         document = etree.Element(qn("w:document"), nsmap=doc_nsmap)
         body = etree.SubElement(document, qn("w:body"))
@@ -153,10 +145,8 @@ class WordPackage(OpcPackage):
         self._dirty_xml.add("/word/document.xml")
         self._content_types["/word/document.xml"] = CT.WML_DOCUMENT_MAIN
 
-        # Styles XML (minimal)
         styles_nsmap = {None: w_ns}
         styles = etree.Element(qn("w:styles"), nsmap=styles_nsmap)
-        # Add Normal style
         normal = etree.SubElement(styles, qn("w:style"))
         normal.set(qn("w:type"), "paragraph")
         normal.set(qn("w:styleId"), "Normal")
@@ -168,14 +158,12 @@ class WordPackage(OpcPackage):
         self._dirty_xml.add("/word/styles.xml")
         self._content_types["/word/styles.xml"] = CT.WML_STYLES
 
-        # Settings XML (minimal)
         settings = etree.Element(qn("w:settings"), nsmap=styles_nsmap)
         self._xml["/word/settings.xml"] = settings
         self._bytes["/word/settings.xml"] = b""
         self._dirty_xml.add("/word/settings.xml")
         self._content_types["/word/settings.xml"] = CT.WML_SETTINGS
 
-        # Core properties (docProps/core.xml)
         ns_cp = (
             "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
         )
@@ -192,17 +180,13 @@ class WordPackage(OpcPackage):
         self._dirty_xml.add("/docProps/core.xml")
         self._content_types["/docProps/core.xml"] = CT.OPC_CORE_PROPERTIES
 
-        # Package relationships
         self._pkg_rels.add(RT.OFFICE_DOCUMENT, "word/document.xml")
         self._pkg_rels.add(RT.CORE_PROPERTIES, "docProps/core.xml")
 
-        # Document relationships to styles and settings
         doc_rels = self.get_rels("/word/document.xml")
         doc_rels.add(RT.STYLES, "styles.xml")
         doc_rels.add(RT.SETTINGS, "settings.xml")
         self._dirty_rels.add("/word/document.xml")
-
-    # === Image Helpers ===
 
     def add_image(self, image_bytes: bytes, ext: str = "png") -> str:
         """Add image to package and return rId from document.xml."""
@@ -213,7 +197,6 @@ class WordPackage(OpcPackage):
             if not content_type:
                 raise ValueError(f"Unknown image extension: {ext!r}")
 
-        # Find next image number
         n = 1
         while self.has_part(f"/word/media/image{n}.{ext}"):
             n += 1
@@ -222,6 +205,5 @@ class WordPackage(OpcPackage):
         self.set_bytes(partname, image_bytes)
         self._content_types.add_default(ext, content_type)
 
-        # Add relationship from document.xml
         target = f"media/image{n}.{ext}"
         return self.relate_to("/word/document.xml", target, RT.IMAGE)

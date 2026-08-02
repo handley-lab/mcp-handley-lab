@@ -88,17 +88,14 @@ def extract_email_content(
     Returns:
         ExtractionResult with all extracted content and metadata
     """
-    # Step 1: MIME extraction
     plain_content, html_content, parts_manifest, warnings = extract_mime_parts(msg)
 
-    # Collect attachments from manifest (consistent format: "filename (content_type)")
     attachments = [
         f"{p.filename} ({p.content_type})"
         for p in parts_manifest
         if p.filename and p.disposition == "attachment"
     ]
 
-    # Step 2: Convert both to markdown, pick richer or merge
     plain_md = plain_content or ""
     html_md = html_to_markdown(html_content) if html_content else ""
 
@@ -126,7 +123,6 @@ def extract_email_content(
     body_raw = html_content if body_format == "html" else (plain_content or "")
     body_html_raw = html_content or ""
 
-    # Update parts_manifest to reflect actual selection (exactly one part)
     if parts_manifest:
         wanted_type = "text/html" if body_format == "html" else "text/plain"
         selected_found = False
@@ -141,20 +137,16 @@ def extract_email_content(
             else:
                 p.is_selected_body = False
 
-    # Step 3: Encoding fixes (ftfy)
     if body_markdown:
         body_markdown = ftfy.fix_text(body_markdown)
 
-    # Step 4: Conservative whitespace normalization
     if body_markdown:
         body_markdown = normalize_whitespace_safe(body_markdown)
 
-    # Step 5: Quote segmentation (optional)
     segments: list[EmailBodySegment] = []
     if segment_quotes and body_markdown:
         segments = segment_email_content(body_markdown, sender_email)
 
-    # Find selected part
     selected_part = next(
         (p for p in parts_manifest if p.is_selected_body),
         None,
@@ -191,17 +183,13 @@ def normalize_whitespace_safe(text: str) -> str:
     if not text:
         return ""
 
-    # Normalize line endings
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    # Remove trailing whitespace from each line (but preserve leading)
     lines = [line.rstrip() for line in text.split("\n")]
     text = "\n".join(lines)
 
-    # Collapse 3+ consecutive blank lines to 2
     text = re.sub(r"\n{3,}", "\n\n", text)
 
-    # Ensure single trailing newline
     text = text.strip() + "\n"
 
     return text

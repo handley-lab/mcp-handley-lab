@@ -1,64 +1,16 @@
-# Test Email Configuration Files
+# Test fixtures
 
-This directory contains test configuration files for the `handleylab@gmail.com` email account, designed for isolated testing of the email tools.
+Correct, minimal documentation is best. Omission is preferable to an
+unsupported or obsolete claim. Incorrect documentation is worst.
 
-## Files
+This directory mixes local fixtures with opt-in email integration fixtures.
+Tracked files contain no secret values, but the email configurations name the
+`handleylab@gmail.com` test account, read credentials from explicit environment
+variables, and include historical absolute paths that callers must replace with
+their controlled test directories.
 
-### `msmtprc`
-MSMTP configuration for sending emails via Gmail SMTP. Based on the user's existing Gmail setup.
-
-**Usage:**
-```python
-# In email tool tests
-send(to="test@example.com", subject="Test", body="Test message", config_file="/path/to/test_configs/msmtprc")
-```
-
-### `offlineimaprc`
-OfflineIMAP configuration for syncing emails from Gmail. Uses test mail directory `~/test_mail/HandleyLab`.
-
-**Usage:**
-```python
-# In email tool tests
-sync(account="HandleyLab", config_file="/path/to/test_configs/offlineimaprc")
-```
-
-### `notmuch-config`
-Notmuch configuration for email search and tagging. Points to test mail directory.
-
-**Usage:**
-```python
-# Set NOTMUCH_CONFIG environment variable
-search("test query", config_file="/path/to/test_configs/notmuch-config")
-```
-
-### `muttrc`
-Mutt configuration for interactive email management. Uses test addressbook and directories.
-
-**Usage:**
-```python
-# In mutt tool tests
-compose_email(to="test@example.com", config_file="/path/to/test_configs/muttrc")
-```
-
-### `test_addressbook`
-Sample mutt addressbook with test contacts for contact management testing.
-
-## Setup for Integration Testing
-
-1. **Authentication**: You'll need to set up authentication for `handleylab@gmail.com`:
-   - Gmail app-specific password or OAuth2 tokens
-   - Store securely (GPG-encrypted or environment variables)
-
-2. **Directories**: Create test mail directories:
-   ```bash
-   mkdir -p ~/test_mail/HandleyLab
-   mkdir -p ~/.cache/mutt_test
-   ```
-
-3. **Tool Usage**: All email and mutt tools accept `config_file` parameters for isolated testing.
-
-## Security Notes
-
-- Test configurations use separate directories to avoid interfering with user's personal email
-- Authentication credentials are not included - must be configured separately
-- Uses standard Gmail IMAP/SMTP settings compatible with most Gmail accounts
+Never install these files as user configuration or aim them at personal mail.
+Unit tests must isolate filesystem and process boundaries. A Gmail/OAuth
+integration test is a separate live test: provide its documented test-account
+credentials explicitly and treat the resulting network activity as part of the
+claim being measured.

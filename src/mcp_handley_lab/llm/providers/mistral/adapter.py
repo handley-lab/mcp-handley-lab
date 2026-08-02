@@ -255,9 +255,9 @@ def ocr_adapter(document_path: str, include_images: bool = True) -> dict[str, An
     """Mistral-specific OCR function for document processing."""
     document_input = {}
 
-    if document_path.startswith(("http://", "https://")):
-        document_input = {"type": "document_url", "document_url": document_path}
-    elif document_path.startswith("data:"):
+    if document_path.startswith(("http://", "https://")) or document_path.startswith(
+        "data:"
+    ):
         document_input = {"type": "document_url", "document_url": document_path}
     else:
         file_path = Path(document_path).expanduser()

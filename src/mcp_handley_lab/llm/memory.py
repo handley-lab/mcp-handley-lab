@@ -49,7 +49,6 @@ def get_edit_dir() -> Path:
     return get_global_storage_dir() / "edit"
 
 
-
 def _git(
     project_dir: Path, *args: str, input_data: str | None = None
 ) -> subprocess.CompletedProcess:
@@ -144,7 +143,6 @@ def get_project_dir(cwd: Path | None = None) -> Path:
     return project_dir
 
 
-
 def validate_branch_name(name: str) -> None:
     """Validate a branch name using git check-ref-format.
 
@@ -193,7 +191,6 @@ def normalize_branch_input(branch: str) -> str | None:
 
     validate_branch_name(normalized)
     return normalized
-
 
 
 def branch_exists(project_dir: Path, branch: str) -> bool:
@@ -297,7 +294,6 @@ def get_branch_sha(project_dir: Path, branch: str) -> str | None:
     return result.stdout.strip()
 
 
-
 def create_commit(
     project_dir: Path,
     content: str,
@@ -333,7 +329,6 @@ def create_commit(
         result = _git(project_dir, "commit-tree", tree_sha, "-m", message)
 
     return result.stdout.strip()
-
 
 
 def try_fast_forward(
@@ -439,7 +434,6 @@ def fork_branch(project_dir: Path, branch: str, from_ref: str) -> str:
         raise ValueError(f"Failed to create branch '{branch}'")
 
     return commit_sha
-
 
 
 def parse_messages(jsonl_content: str) -> list[dict[str, Any]]:

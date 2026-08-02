@@ -141,9 +141,7 @@ def build_model_configs_dict(provider: str) -> dict[str, dict[str, Any]]:
             }
         elif provider == "grok":
             if model_info.get("pricing_type") == "per_image":
-                model_configs[model_id] = {
-                    "output_tokens": None
-                }
+                model_configs[model_id] = {"output_tokens": None}
             else:
                 if "output_tokens" not in model_info:
                     raise ValueError(
